@@ -1,4 +1,4 @@
-/* M1 — title card and pause menu: dark panels, slanted red call-to-action. Panels scale with --rb-ui. */
+/* M1 — pause menu (and the main menu's panels): dark panels, slanted red call-to-action. Panels scale with --rb-ui. */
 .rb-overlay {
   position: absolute;
   inset: 0;
@@ -16,36 +16,6 @@
   border-left: 3px solid var(--rb-accent);
   padding: 28px 34px;
   min-width: 420px;
-}
-
-.rb-title {
-  text-align: center;
-  cursor: pointer;
-}
-
-.rb-title-name {
-  margin: 0;
-  font-size: 54px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  transform: skewX(-8deg);
-  color: var(--rb-text);
-  text-shadow: 3px 0 0 var(--rb-accent);
-}
-
-.rb-title-sub {
-  color: var(--rb-dim);
-  letter-spacing: 0.3em;
-  font-size: 13px;
-  margin: 4px 0 22px;
-  text-transform: uppercase;
-}
-
-.rb-title-dev {
-  margin-top: 16px;
-  font-family: var(--rb-mono);
-  font-size: 11px;
-  color: var(--rb-dim);
 }
 
 .rb-keys {
@@ -123,14 +93,8 @@
 .rb-pause-actions {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
   align-items: center;
-}
-
-.rb-pause-note {
-  margin-top: 10px;
-  font-family: var(--rb-mono);
-  font-size: 11px;
-  color: var(--rb-dim);
 }
 
 .rb-pause-settings {

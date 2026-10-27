@@ -22,6 +22,7 @@ export interface SaveData {
   settings: Settings;
 }
 
+/** Named after the working title; kept when the game became Born To Retry so saved settings carry over. */
 export const SAVE_KEY = 'ruinbreaker-save';
 export const FOV_MIN = 80;
 export const FOV_MAX = 130;

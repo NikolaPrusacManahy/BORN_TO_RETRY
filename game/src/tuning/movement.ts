@@ -37,7 +37,7 @@ export const SLIDE = group('slide', 'Slide', {
 // Update 0.0.3 — wall running (the designer): run along a wall for up to 2 s, jump off to the other side and
 // catch the next wall.
 export const WALLRUN = group('wallRun', 'Wall run', {
-  maxTime: knob(2, 0.3, 5, 0.1, 'Wall run length', 'Seconds on one wall at most.'),
+  maxTime: knob(1, 0.3, 5, 0.1, 'Wall run length', 'Seconds on one wall at most (Update 0.0.4: 1 s, was 2).'),
   minSpeed: knob(6, 0, 20, 0.5, 'Start speed', 'Speed along the wall needed to start (m/s), with forward held.'),
   // Update 0.0.3 (the designer): no grabbing walls you're just flying past, like the drop tower from the jump pad.
   maxRise: knob(6, 0, 30, 0.5, 'Max rise to start', 'Rising faster than this never starts a wall run: pad launches and the start of a jump fly past walls (m/s).'),

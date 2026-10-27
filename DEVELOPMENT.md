@@ -1,4 +1,4 @@
-# Ruinbreaker development
+# Born To Retry development
 
 The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). Node 24.
 
@@ -65,7 +65,11 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `physics/rapierWorld.ts` | The only Rapier import: arena colliders, the floating player capsule, ground probe, wall probe, stand check |
 | `world/arena.ts` | Arena data types; `boxAt`, `rampZ` helpers |
 | `world/arenas/feelLab.ts` | The M1 gray-box arena |
-| `engine/Game.ts` | Wiring and the frame loop only |
+| `engine/Game.ts` | Wiring and the frame loop only, in three modes: `menu` (the gate scene), `intro` (Start pressed: the gate opening), `play` (the lab) |
+| `engine/overlayFeed.ts` | What the HUD and the F2 overlay show, read from the sim once a frame |
+| `engine/menu/menuScene.ts` | The main menu's gate scene: loads `public/models/menu/gate.glb`, reads the menu shot, lights, torch flicker, dust, idle drift; raises the portcullis after Start |
+| `engine/menu/introTimeline.ts` | What Start plays, as pure timing: the gate lift, when the fade to black starts, how long it lasts |
+| `engine/fx/dust.ts` | Drifting dust motes (one `Points` cloud, updated in place) |
 | `engine/cameraRig.ts` | Eye height, landing spring, step smoothing, FOV kick, roll, shake |
 | `engine/look.ts`, `shake.ts` | Mouse look; trauma shake |
 | `engine/arenaView.ts`, `renderer.ts` | Meshes, grid texture, light, fog; the WebGL renderer |
@@ -79,12 +83,13 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `engine/viewmodel/armsRig.ts`, `armsMath.ts`, `armsAnim.ts`, `guard.ts` | Loading and posing the arms (IK, bone aiming, ported from `cut_arms.py`); punch timelines; the approved guard |
 | `engine/hudStore.ts` | HUD state (dash, hit marker, hurt flash) and live debug numbers |
 | `audio/audio.ts`, `synth.ts`, `moveSounds.ts`, `combatSounds.ts` | Buses; placeholder synth sounds; movement and combat sounds |
-| `screens/*` | App shell, title card, pause menu, HUD, F1 tuning panel, F2 debug overlay |
+| `screens/*` | App shell (`App.tsx`: menu → intro → playing ⇄ paused), main menu, pause menu, shared settings fields, HUD, F1 tuning panel, F2 debug overlay |
 
 ### Asset tools (`game/tools/`)
 | Tool | Does |
 |---|---|
 | `tools/blender/cut_arms.py` | Cuts first-person arms from a rigged Quaternius `.blend`, renders previews, exports a rest-pose `.glb`. Process: `MD/PIPELINE_CHARACTER_ARMS.md` |
+| `tools/blender/build_menu_scene.py` | Builds the main menu's gate scene from the Modular Dungeon Pack, renders previews, exports `public/models/menu/gate.glb`. Process: `MD/PIPELINE_MENU_SCENE.md` |
 | `tools/contact_sheet.py` | Tiles preview renders into one labelled sheet to compare variants (Python 3 + Pillow) |
 
 ## Contracts
@@ -105,3 +110,4 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 - **The arms** are drawn in their own scene with their own **vertical** FOV (68°) after a depth clear, so they never clip into walls, FOV kicks never stretch them, and wide screens frame them like 16:9. The posing math matches `tools/blender/cut_arms.py` (same `GUARD` table, in Blender axes there). The arms tilt up by the preview's 10° look-down, so the game frames the guard the same way as `fp.png`, and punches aim that much lower in the model so they still hit the crosshair. `test-arms.ts` poses the shipped `.glb`, checks each wrist lands on its target, and checks that both fists stay low on their own side of the screen (the centre stays clear).
 - **The parry was removed** (the designer's call, Update 0.0.3). It returns later; the turret and orbs stay in the code for it.
 - **Arms model:** `public/models/arms/<id>.glb` comes out of the pipeline with the fists baked closed. Bone names arrive without the dot (`UpperArmL`).
+- **Main menu (Update 0.0.4):** the Game starts in `menu` mode and nothing simulates until `play`. Start locks the mouse inside the click or key press (browsers require one), then the gate opens (`intro`), ignoring the mouse; the App ignores lock changes until it's over. `MenuScene.update` returns `'fade'` (the App fades to black over `INTRO.fade`) and `'done'` (the Game restarts the lab, clears input, and the black clears). If the gate scene fails to load, Start goes straight to the lab. The scene's node names (`MENU_NODES`) are a contract with `build_menu_scene.py`; `test-menu.ts` checks them on the shipped `.glb`, plus the framing, that the doorway is open by the fade, and that the raised bars stay inside the wall (`INTRO.gateLift` ≤ ~3 m, the script's `GATE_LIFT`).

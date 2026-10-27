@@ -10,6 +10,7 @@ import { ARMS } from './arms';
 /** Panel order. */
 export const GROUPS: TuningGroup[] = [MOVE, DASH, SLIDE, WALL, WALLRUN, SLAM, FISTS, FEEDBACK, ARMS, CAMERA, SHAKE, TARGETS, LAB];
 
+/** Named after the working title; kept when the game became Born To Retry so tuned values carry over. */
 export const TUNING_KEY = 'ruinbreaker-tuning';
 
 export type TuningValues = Record<string, number>;

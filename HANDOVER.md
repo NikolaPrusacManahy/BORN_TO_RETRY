@@ -2,19 +2,22 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-27): Update 0.0.3
+## Current state (2026-10-27): Update 0.0.4
+- **Update 0.0.4 — the main menu** (the designer's idea, outside the M1 plan): a low shot up a staircase at a dungeon gate built from the Modular Dungeon Pack, with the BORN TO RETRY logo in the sky. Start grinds the portcullis up, the screen fades to black, and the black clears off the Feel Lab.
 - **Milestone: M1 — The Feel Lab** (`MD_UPDATES/M1_FEEL_LAB.md`).
   - **Done:** steps 1–5 (scaffold, loop, tuning, arena, movement and camera), step 6 (the arms and fists), and the hit-feel part of step 8.
   - **Changed by the designer:** no real enemies yet; static training dummies replace the Grunt and Spitter of step 7 for now. The parry is removed for now, and with it the orb turret leaves the Feel Lab (its code stays).
   - **Next:** health and the HUD health bar (step 8), the key rebinding screen (step 9), docs (step 10).
-- Game: RUINBREAKER (working title), a first-person action roguelike, solo, desktop browser. Steam later via Electron.
+- Game: **Born To Retry**, a first-person action roguelike, solo, desktop browser. Steam later via Electron.
 - Tech: Vite + React + TypeScript, Three.js 0.186, Rapier 0.21 (`@dimforge/rapier3d-compat`), Node 24.
 
 ## What to try in-game
-Run `START_GAME.bat`, click to play.
+Run `START_GAME.bat`. The main menu opens on the gate.
+- **Main menu:** the torches flicker, dust drifts, the camera sways slowly. Start (or Enter / Space) locks the mouse, the portcullis grinds up into the wall (about 1.3 s), and the screen fades to black into the lab. Settings and Controls open panels over the scene. The pause menu has **Main menu** to come back.
+- If Esc is pressed while the gate opens, the lab starts paused (click Resume).
 - **Moves:** WASD, Space jump / wall jump, Shift dash (3 charges).
   - C slides for up to 0.5 s; press again to slide again. Pressed in the air, the slide starts on landing and eases in.
-  - Wall run: in the air beside a wall, hold W while heading along it (up to 2 s); rising fast (pads, jump starts) never grabs a wall. The view tilts clockwise with the wall on your left, anticlockwise on your right. Jump to push off to the other side and catch the next wall. Try the wall-run lane (north-west: three panels on alternating sides) or the outer walls.
+  - Wall run: in the air beside a wall, hold W while heading along it (up to 1 s); rising fast (pads, jump starts) never grabs a wall. The view tilts clockwise with the wall on your left, anticlockwise on your right. Jump to push off to the other side and catch the next wall. Try the wall-run lane (north-west: three panels on alternating sides) or the outer walls.
 - **Fists:**
   - Left click: jab combo. Hold it to keep punching: left, right, then a left finisher that knocks back.
   - Right click: hold 1 s (the fist draws back and trembles, a cue sounds when ready), then let go to punch. Letting go sooner cancels.
@@ -42,6 +45,7 @@ Run `START_GAME.bat`, click to play.
   - Slides need a fresh press and last 0.5 s at most (first 1 s, then shortened).
   - Right click needs a full 1 s hold (first 1.5 s, then shortened).
   - Wall running was added, with a tilt and chaining. The Feel Lab gained a wall-run lane.
+  - Wall runs last 1 s at most (first 2 s; Update 0.0.4).
   - Wall runs grabbed the drop tower from the jump pad. Now a run only starts when you're heading along the wall (within 50° of its line) and not rising faster than 6 m/s. The regression test tries the turn angle that used to stick you at 5.5 m.
 - Air steering is now Quake-style: holding forward no longer bleeds off sideways speed. Without this, wall-run chains couldn't reach the next wall.
 - F4 (invincibility) arrives with health.
@@ -52,6 +56,7 @@ Run `START_GAME.bat`, click to play.
 | `MD/DESIGN.md` | The full game design, with placeholders marked |
 | `MD_UPDATES/M1_FEEL_LAB.md` | M1 scope, starting values, build order, tests |
 | `MD/PIPELINE_CHARACTER_ARMS.md` | How to cut first-person arms for a new character |
+| `MD/PIPELINE_MENU_SCENE.md` | How the main menu's gate scene is built, and how to change it |
 | `DEVELOPMENT.md` | Module map and contracts |
 | `ASSETS/QUATERNIUS/` | Downloaded Quaternius packs, one folder per pack (git-ignored) |
 
@@ -68,9 +73,11 @@ Run `START_GAME.bat`, click to play.
 - Only character unlocks and stats carry over between runs.
 - Fists: both fists low in the corners; jabs go left, right, left; the charged punch is the right hand; the quick punch is the left.
 - The ground slam is not in the base kit: it comes later as an unlockable skill (its code is kept, with no key).
+- The name is **Born To Retry**. The main menu is the gate scene; Start opens the gate and fades to black (Update 0.0.4: the first-person walk-in was cut).
+- **No hints players already understand** on any interface: no key labels beside buttons, no how-to text, no status notes (Update 0.0.4).
 
 ## Open questions waiting on the designer
-1. The game's name.
+1. ~~The game's name~~: decided, **Born To Retry**.
 2. The theme: dark ruins and monsters, or something else?
 3. Firearms from the start, or melee only at first?
 4. Boss ideas for floors 1–3.
@@ -80,9 +87,10 @@ Run `START_GAME.bat`, click to play.
 | Check | Result |
 |---|---|
 | Raw mouse input (`unadjustedMovement`) in Brave | — (F2 shows "raw mouse") |
-| Keyboard lock captures Ctrl+W in fullscreen | — (pause menu shows "Keyboard lock") |
+| Keyboard lock captures Ctrl+W in fullscreen | — (F2 shows "kb lock") |
 | F1 can be captured by the page | — |
 | Steady frame time with many targets and effects | — |
 
 ## Not verified
 Claude has seen and heard none of this in the game: the feel, the arms on screen, the targets, effects, sounds and menus are all unverified until played. The tests check the rules, the collision, and that the shipped arms pose correctly.
+- **The main menu:** only the Blender previews of the scene were seen. In the browser, unseen: the logo and buttons over the scene, the lighting (torch flicker, gate light, shadows, fog), the dust, the gate's pace, the fade to black and back, and the gate's synth grind. `test-menu.ts` checks the scene's nodes, the menu shot's framing, that the gate is open before the fade (and never pokes out of the wall's top), and the timing.

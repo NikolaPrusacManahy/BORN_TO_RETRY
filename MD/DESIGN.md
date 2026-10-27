@@ -1,4 +1,4 @@
-# RUINBREAKER — Game Design
+# BORN TO RETRY — Game Design
 
 Status: first draft, 2026-10-27. Items marked **(placeholder)** are Claude's defaults and wait for the designer's call. Everything else was agreed in the planning chat.
 
@@ -51,7 +51,7 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - **Jump**, with coyote time (a jump still counts just after leaving a ledge) and a jump buffer (a jump pressed just before landing still counts).
 - **Dash:** a short burst in the movement direction, brief invincibility. 3 charges that refill over time. **(placeholder)**
 - **Slide:** eases up to slide speed, keeps it, lowers your height; slide-jump carries the momentum. Lasts **0.5 s at most**; press again to slide again (holding doesn't chain). Pressed in the air, it waits for the landing and eases in. (Update 0.0.3, the designer.)
-- **Wall run:** in the air beside a wall, holding forward and heading along it (not into it), you run on it for **2 s at most**. Rising fast (a pad launch, the start of a jump) never grabs a wall. The view tilts **clockwise with the wall on your left, anticlockwise on your right**. Jump to push off towards the other side; the next wall catches you into a new run, so runs chain. A wall can't be run twice without landing. (Update 0.0.3, the designer.)
+- **Wall run:** in the air beside a wall, holding forward and heading along it (not into it), you run on it for **1 s at most** (Update 0.0.4; first 2 s). Rising fast (a pad launch, the start of a jump) never grabs a wall. The view tilts **clockwise with the wall on your left, anticlockwise on your right**. Jump to push off towards the other side; the next wall catches you into a new run, so runs chain. A wall can't be run twice without landing. (Update 0.0.3, the designer.)
 - **Wall jump:** up to 3 in a row before touching the ground, when you're against a wall but not running on it. **(placeholder)** Jumps off a wall run don't count.
 - **Ground slam (later: an unlockable skill):** in the air, slam straight down; jumping right after landing bounces you higher. Not in the base kit: the designer wants it unlocked later as a skill. Its code is kept, keyless, until then. (The slide key in the air used to fire it; since Update 0.0.3 that key waits to slide on landing.)
 
@@ -139,13 +139,14 @@ Arenas are **hand-made templates assembled from a seed**, not random geometry, b
 - Names, looks and kits are the designer's call.
 
 ## 13. Between runs **(placeholder)**
+- **Main menu (Update 0.0.4):** a low shot up a staircase at a dungeon gate with a portcullis, torches and banners, glowing white behind the bars. The BORN TO RETRY logo sits in the sky (skewed RETRY with a red offset, echoes trailing off it, a turning retry arrow; tagline "Die · Learn · Retry"). Start grinds the portcullis up and fades to black into the game (the designer cut the first-person walk-in). No hints on the menu (no key labels; the designer's rule for every interface).
 - A small hub: pick a character, start a run, see stats and settings.
 - Saved: unlocked characters, wins, best time, total kills, settings and key bindings.
 
 ---
 
 ## 14. Art and audio
-- **Packs:** Modular Ruins, Bestiary/Dungeon Monsters, Ultimate Monsters, Fantasy Props MegaKit (melee weapons), Ultimate Guns (firearms), Universal Base Characters (first-person arms).
+- **Packs:** Modular Dungeon (the main menu's gate), Modular Ruins, Bestiary/Dungeon Monsters, Ultimate Monsters, Fantasy Props MegaKit (melee weapons), Ultimate Guns (firearms), Universal Base Characters (first-person arms).
 - **Look:** dark palette, fog, strong rim light so enemies read clearly against the background. Baked lighting in Blender for the arenas.
 - **Audio:** hits matter more than music. Every punch, impact, parry, dash and kill needs a clear, punchy sound. Music rises with the action.
 
@@ -163,7 +164,7 @@ Browser game: Three.js + Rapier, React for menus and HUD, Blender scripts for as
 | M6 | Steam prep: Electron build, Steam achievements and cloud saves, store assets | Ready to sell |
 
 ## 17. Open questions for the designer
-1. The name (RUINBREAKER is a working title).
+1. ~~The name~~ — decided: **Born To Retry** (2026-10-27).
 2. The theme: are dark ruins and monsters right, or something else (sci-fi, hell, modern)?
 3. Firearms: in the game from the start, or melee-only at first?
 4. Boss ideas for floors 1–3.

@@ -14,5 +14,6 @@ import './test-camera';
 import './test-fists';
 import './test-combat';
 import './test-arms';
+import './test-menu';
 
 process.exit(summary() > 0 ? 1 : 0);

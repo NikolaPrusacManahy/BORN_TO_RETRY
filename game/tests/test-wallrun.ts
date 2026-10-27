@@ -24,15 +24,16 @@ section('Wall run — start and stop');
   const seen = run(p, w, 1, () => ({ moveZ: 1 }));
   check('running along a wall in the air, holding forward, starts a wall run', p.wallRunning && seen.includes('wallRunStart'));
   const y0 = p.pos.y;
-  run(p, w, ticks(1), () => ({ moveZ: 1 }));
-  check('a second in, still running, barely dropping', p.wallRunning && Math.abs(p.pos.y - y0) < 1, `moved ${(p.pos.y - y0).toFixed(2)} m`);
+  const half = ticks(WALLRUN.v.maxTime / 2);
+  run(p, w, half, () => ({ moveZ: 1 }));
+  check('halfway through, still running, barely dropping', p.wallRunning && Math.abs(p.pos.y - y0) < 1, `moved ${(p.pos.y - y0).toFixed(2)} m`);
   check('at run speed along the wall', near(Math.hypot(p.vel.x + 0, p.vel.z), WALLRUN.v.speed, 1.6) && p.vel.z < -WALLRUN.v.speed + 0.01, `vz ${p.vel.z.toFixed(2)}`);
-  let total = 1 + ticks(1);
+  let total = 1 + half;
   while (p.wallRunning && total < ticks(4)) {
     run(p, w, 1, () => ({ moveZ: 1 }));
     total++;
   }
-  check('a wall run lasts 2 s at most', near(total * DT, WALLRUN.v.maxTime, 0.03), `${(total * DT).toFixed(2)} s`);
+  check('a wall run lasts 1 s at most', near(total * DT, WALLRUN.v.maxTime, 0.03), `${(total * DT).toFixed(2)} s`);
   run(p, w, ticks(0.3), () => ({ moveZ: 1 }));
   check('the same wall can\'t be run again before landing', !p.wallRunning);
 }

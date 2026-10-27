@@ -1,5 +1,5 @@
 @echo off
-title Ruinbreaker - dev server
+title Born To Retry - dev server
 cd /d "%~dp0game"
 
 if not exist node_modules (
@@ -8,7 +8,7 @@ if not exist node_modules (
 )
 
 echo.
-echo Starting Ruinbreaker... the game will open in your browser.
+echo Starting Born To Retry... the game will open in your browser.
 echo Leave this window open while you play/edit - every file save
 echo reloads the game instantly. Press Ctrl+C here to stop.
 echo.

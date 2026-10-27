@@ -1,0 +1,413 @@
+/* Update 0.0.4 — the main menu over the gate scene: the BORN TO RETRY logo in the sky, the buttons bottom left over
+   the dark wall, and the fade to black after Start. Sized in viewport units so it frames the scene the same at any
+   window size; the settings / controls panel uses the shared --rb-ui zoom like the pause menu. */
+.rb-menu {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* Shade behind the logo and the buttons, so they read over the torches and the glowing gate. */
+.rb-menu::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 48% at 50% 0%, rgba(6, 5, 10, 0.62), rgba(6, 5, 10, 0) 72%),
+    linear-gradient(to top right, rgba(6, 5, 10, 0.78), rgba(6, 5, 10, 0) 42%);
+  transition: opacity 0.6s;
+}
+
+.rb-menu-nav,
+.rb-menu-panel,
+.rb-menu-foot {
+  pointer-events: auto;
+}
+
+.rb-menu.is-leaving * {
+  pointer-events: none;
+}
+
+.rb-menu.is-leaving::before {
+  opacity: 0;
+}
+
+/* ---- the logo ---- */
+.rb-logo {
+  position: absolute;
+  top: 3.5vh;
+  left: 0;
+  right: 0;
+  text-align: center;
+  white-space: nowrap;
+  transition: opacity 0.25s;
+  /* backwards, not both: a held end state would override the dimming below. */
+  animation: rb-logo-in 0.8s cubic-bezier(0.2, 0.9, 0.2, 1) backwards;
+}
+
+.rb-menu.has-panel .rb-logo {
+  opacity: 0.12;
+}
+
+.rb-logo-born {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+  font-weight: 700;
+  font-size: min(2.1vw, 3.5vh);
+  color: var(--rb-text);
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.7);
+}
+
+/* Letter spacing leaves a gap after the last letter: pull it back so the words sit centred. */
+.rb-logo-born b {
+  letter-spacing: 0.75em;
+  margin-right: -0.75em;
+}
+
+.rb-logo-rule {
+  width: 3.4em;
+  height: 2px;
+  background: linear-gradient(to right, rgba(232, 70, 43, 0), var(--rb-accent));
+}
+
+.rb-logo-rule:last-child {
+  background: linear-gradient(to left, rgba(232, 70, 43, 0), var(--rb-accent));
+}
+
+.rb-logo-retry {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  font-family: 'Anton', var(--rb-font);
+  font-size: min(14vw, 21vh);
+  line-height: 0.95;
+  transform: skewX(-11deg);
+}
+
+.rb-logo-word {
+  position: relative;
+  color: #fff6ef;
+  letter-spacing: 0.02em;
+  text-shadow:
+    0.045em 0.045em 0 var(--rb-accent),
+    0.09em 0.09em 0 rgba(0, 0, 0, 0.55);
+}
+
+/* Two outlined echoes of the word slide off behind it, over and over: retry after retry. */
+.rb-logo-word::before,
+.rb-logo-word::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  color: transparent;
+  -webkit-text-stroke: 2px var(--rb-accent);
+  text-shadow: none;
+  animation: rb-echo 2.4s linear infinite;
+}
+
+.rb-logo-word::after {
+  animation-delay: -1.2s;
+}
+
+@keyframes rb-echo {
+  0% {
+    transform: translateX(0);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(-0.4em);
+    opacity: 0;
+  }
+}
+
+/* Speed lines trailing off the R. */
+.rb-logo-streaks {
+  position: absolute;
+  right: 100%;
+  top: 24%;
+  height: 52%;
+  width: 1.3em;
+  margin-right: 0.14em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.rb-logo-streaks i {
+  display: block;
+  height: 0.045em;
+  background: linear-gradient(to left, var(--rb-accent), rgba(232, 70, 43, 0));
+  transform-origin: right;
+  animation: rb-streak 1.4s ease-in-out infinite;
+}
+
+.rb-logo-streaks i:nth-child(1) {
+  width: 70%;
+  animation-delay: -0.4s;
+}
+
+.rb-logo-streaks i:nth-child(2) {
+  width: 100%;
+}
+
+.rb-logo-streaks i:nth-child(3) {
+  width: 45%;
+  animation-delay: -0.9s;
+}
+
+@keyframes rb-streak {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scaleX(0.55);
+    opacity: 0.45;
+  }
+}
+
+/* The retry arrow: a quick full turn every few seconds. The skewX(11deg) undoes the word's skew, so it turns as a
+   circle rather than wobbling as a skewed ellipse. */
+.rb-logo-arrow {
+  width: 0.34em;
+  height: 0.34em;
+  margin: 0.05em 0 0 0.1em;
+  color: var(--rb-accent);
+  filter: drop-shadow(0.025em 0.025em 0 rgba(0, 0, 0, 0.55));
+  animation: rb-retry-spin 3.2s cubic-bezier(0.6, 0, 0.3, 1) infinite;
+}
+
+@keyframes rb-retry-spin {
+  0%,
+  68% {
+    transform: skewX(11deg) rotate(0deg);
+  }
+  100% {
+    transform: skewX(11deg) rotate(360deg);
+  }
+}
+
+.rb-logo-tag {
+  margin-top: 1.6vh;
+  font-family: var(--rb-mono);
+  font-size: max(11px, min(1.05vw, 1.8vh));
+  letter-spacing: 0.5em;
+  margin-right: -0.5em;
+  text-transform: uppercase;
+  color: var(--rb-dim);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+}
+
+.rb-logo-tag b {
+  color: var(--rb-accent);
+  font-weight: 600;
+}
+
+.rb-logo-tag em {
+  font-style: normal;
+  color: var(--rb-text);
+}
+
+@keyframes rb-logo-in {
+  from {
+    opacity: 0;
+    transform: scale(1.2);
+    filter: blur(10px);
+  }
+}
+
+/* ---- the buttons ---- */
+.rb-menu-nav {
+  position: absolute;
+  left: 5vw;
+  bottom: 9vh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5vh;
+  animation: rb-nav-in 0.6s 0.3s cubic-bezier(0.2, 0.9, 0.2, 1) backwards;
+}
+
+@keyframes rb-nav-in {
+  from {
+    opacity: 0;
+    transform: translateX(-4vw);
+  }
+}
+
+.rb-menu-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.16em 0.9em 0.16em 0.7em;
+  border: 0;
+  background: none;
+  color: var(--rb-text);
+  font-family: var(--rb-font);
+  font-weight: 700;
+  font-size: min(2.1vw, 3.7vh);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+  cursor: pointer;
+  transform: skewX(-10deg);
+  transition:
+    transform 0.12s,
+    color 0.12s,
+    background 0.12s;
+}
+
+/* The red bar that marks the button under the mouse. */
+.rb-menu-btn::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 14%;
+  bottom: 14%;
+  width: 4px;
+  background: var(--rb-accent);
+  transform: scaleY(0);
+  transition: transform 0.12s;
+}
+
+.rb-menu-btn:hover:not(:disabled),
+.rb-menu-btn:focus-visible,
+.rb-menu-btn.is-open {
+  color: #fff;
+  transform: skewX(-10deg) translateX(0.4em);
+  outline: none;
+}
+
+.rb-menu-btn:hover::before,
+.rb-menu-btn:focus-visible::before,
+.rb-menu-btn.is-open::before {
+  transform: scaleY(1);
+}
+
+.rb-menu-btn.is-start {
+  margin-bottom: 0.6vh;
+  padding: 0.1em 1em 0.1em 0.8em;
+  font-size: min(3.3vw, 5.6vh);
+  background: var(--rb-accent);
+  color: #fff;
+  text-shadow: none;
+  box-shadow: 0.16em 0.16em 0 rgba(0, 0, 0, 0.55);
+  animation: rb-start-glow 2.2s ease-in-out infinite;
+}
+
+.rb-menu-btn.is-start::before {
+  display: none;
+}
+
+.rb-menu-btn.is-start:hover:not(:disabled),
+.rb-menu-btn.is-start:focus-visible {
+  background: var(--rb-accent-hi);
+}
+
+.rb-menu-btn.is-start:disabled {
+  opacity: 0.55;
+  cursor: wait;
+  animation: none;
+}
+
+@keyframes rb-start-glow {
+  0%,
+  100% {
+    box-shadow:
+      0.16em 0.16em 0 rgba(0, 0, 0, 0.55),
+      0 0 0 rgba(232, 70, 43, 0);
+  }
+  50% {
+    box-shadow:
+      0.16em 0.16em 0 rgba(0, 0, 0, 0.55),
+      0 0 0.9em rgba(232, 70, 43, 0.55);
+  }
+}
+
+/* ---- settings / controls, centred over the scene ---- */
+.rb-menu-side {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.rb-menu-panel {
+  width: 440px;
+  animation: rb-panel-in 0.18s ease-out both;
+}
+
+@keyframes rb-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.rb-menu-panel .rb-keys {
+  width: auto;
+  margin-bottom: 18px;
+}
+
+.rb-menu-panel-actions {
+  margin-top: 16px;
+}
+
+.rb-menu-back {
+  margin-top: 16px;
+}
+
+.rb-menu-foot {
+  position: absolute;
+  right: 2.4vw;
+  bottom: 2.4vh;
+  font-family: var(--rb-mono);
+  font-size: max(11px, min(0.75vw, 1.3vh));
+  letter-spacing: 0.08em;
+  color: var(--rb-dim);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+
+/* ---- Start pressed: everything slides off while the gate opens ---- */
+.rb-menu.is-leaving .rb-logo {
+  animation: rb-logo-out 0.55s cubic-bezier(0.6, 0, 0.8, 0.4) forwards;
+}
+
+@keyframes rb-logo-out {
+  to {
+    opacity: 0;
+    transform: translateY(-5vh) scale(1.12);
+    filter: blur(6px);
+  }
+}
+
+.rb-menu.is-leaving .rb-menu-nav,
+.rb-menu.is-leaving .rb-menu-foot {
+  animation: rb-nav-out 0.35s ease-in forwards;
+}
+
+@keyframes rb-nav-out {
+  to {
+    opacity: 0;
+    transform: translateX(-4vw);
+  }
+}
+
+/* The fade to black once the gate is up (its timing is set inline from INTRO.fade). */
+.rb-fade {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: #000;
+  pointer-events: none;
+  transition-property: opacity;
+  transition-timing-function: ease-in;
+}

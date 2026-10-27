@@ -1,6 +1,7 @@
 // M1 — wires the Feel Lab together and runs the frame loop. Thin on purpose: every mechanic lives in its own
 // module (sim/, engine/, audio/). Per frame: mouse look → fixed-step sim ticks (movement, then combat) → events
 // → camera → world render → arms render. Hit-stop pauses the ticks; it never pauses the mouse.
+// Update 0.0.4 — it opens on the main menu's gate scene (engine/menu/); Start opens the gate, then the lab.
 import * as THREE from 'three';
 import { FixedStep, MAX_FRAME } from '../core/fixedStep';
 import { FrameStats } from '../core/frameStats';
@@ -12,14 +13,13 @@ import { FullscreenState, enterFullscreen, exitFullscreen, state as fullscreenSt
 import { setLeaveGuard } from '../platform/leaveGuard';
 import type { RapierWorld } from '../physics/rapierWorld';
 import { PlayerIntent, emptyIntent } from '../sim/player/intent';
-import { PlayerState, createPlayer, flatSpeed, moveMode, resetPlayer } from '../sim/player/state';
+import { PlayerState, createPlayer, resetPlayer } from '../sim/player/state';
 import { stepPlayer } from '../sim/player/step';
 import { CombatIntent, emptyCombatIntent } from '../sim/combat/fists';
 import { CombatState, createCombat, resetCombat } from '../sim/combat/state';
 import { stepCombat } from '../sim/combat/step';
 import { AIM_HEIGHT } from '../sim/combat/turret';
 import type { Settings } from '../state/settings';
-import { DASH } from '../tuning/movement';
 import { FISTS } from '../tuning/combat';
 import { LAB } from '../tuning/lab';
 import type { Arena } from '../world/arena';
@@ -30,6 +30,8 @@ import { DebugInfo, HudStore, createDebugInfo } from './hudStore';
 import { readCombatIntent, readPlayerIntent } from './intents';
 import { Look } from './look';
 import { applyMoveEvents } from './moveFeedback';
+import { MenuScene } from './menu/menuScene';
+import { HudFeed, fillDebug } from './overlayFeed';
 import { createRenderer } from './renderer';
 import { Viewmodel } from './viewmodel/viewmodel';
 
@@ -37,12 +39,16 @@ import { Viewmodel } from './viewmodel/viewmodel';
 const STEP_MIN = 0.1;
 /** Fall below this and you're put back at the start (m). */
 const KILL_Y = -20;
-/** HUD refresh interval (s); hits and hurts push at once. */
-const HUD_EVERY = 0.05;
+/** 'menu': the gate scene, idle; 'intro': Start pressed, the gate opening; 'play': the lab. */
+export type GameMode = 'menu' | 'intro' | 'play';
 
 export interface GameCallbacks {
   /** The mouse was locked (playing) or released (Esc, a dev panel, alt-tab). */
   onLockChange(locked: boolean): void;
+  /** The gate is up: start the fade to black. */
+  onIntroFade(): void;
+  /** The lab is running; `locked`: the mouse is still locked (Esc wasn't pressed meanwhile). */
+  onIntroDone(locked: boolean): void;
 }
 
 export class Game {
@@ -61,21 +67,23 @@ export class Game {
   private readonly player: PlayerState;
   private readonly combat: CombatState;
   private readonly arms = new Viewmodel();
+  private readonly menu: MenuScene;
   private readonly combatScene: CombatScene;
   private readonly prev = new THREE.Vector3();
   private readonly chest = new THREE.Vector3();
   private readonly intent: PlayerIntent = emptyIntent();
   private readonly combatIntent: CombatIntent = emptyCombatIntent();
   private readonly resizeObs: ResizeObserver;
+  private readonly hudFeed: HudFeed;
   private raf = 0;
   private last = performance.now();
-  private hudTimer = 0;
   private aspect = 16 / 9;
+  private mode: GameMode = 'menu';
 
   constructor(
     private readonly host: HTMLElement,
     private settings: Settings,
-    private readonly hud: HudStore,
+    hud: HudStore,
     private readonly cb: GameCallbacks,
     private readonly physics: RapierWorld,
     private readonly arena: Arena,
@@ -84,12 +92,14 @@ export class Game {
     this.view = buildArenaView(this.scene, arena, this.renderer);
     this.scene.add(this.camera);
     this.input = new Input(host);
+    this.hudFeed = new HudFeed(hud);
     this.audio = new AudioEngine(this.volumes());
     this.sounds = new MoveSounds(this.audio);
     const s = arena.playerStart;
     this.player = createPlayer(s.x, s.y, s.z, s.yaw);
     this.combat = createCombat(arena);
     this.combatScene = new CombatScene(this.scene, this.combat, this.audio, this.rig, this.arms);
+    this.menu = new MenuScene(this.audio);
     this.restart();
     this.setSettings(settings);
     document.addEventListener('pointerlockchange', this.onLockChange);
@@ -115,6 +125,36 @@ export class Game {
 
   unlock() {
     releaseLock();
+  }
+
+  /** Resolves once the main menu's scene has loaded. */
+  get menuLoaded(): Promise<void> {
+    return this.menu.loaded;
+  }
+
+  /** Start pressed: the gate opens, then the lab (straight to the lab if the menu scene failed to load). */
+  startIntro() {
+    if (this.mode !== 'menu') return;
+    this.audio.resume();
+    if (!this.menu.ready) return this.enterPlay();
+    this.mode = 'intro';
+    this.menu.startIntro();
+  }
+
+  /** Back to the main menu (the pause menu's Main menu): the mouse freed, the gate shut. */
+  toMenu() {
+    this.mode = 'menu';
+    this.menu.reset();
+    this.sounds.setSliding(false);
+    this.sounds.setWallRunning(false);
+    releaseLock();
+  }
+
+  private enterPlay() {
+    this.mode = 'play';
+    this.restart();
+    this.input.clear();
+    this.cb.onIntroDone(document.pointerLockElement === this.host);
   }
 
   setSettings(s: Settings) {
@@ -198,6 +238,7 @@ export class Game {
     this.raf = requestAnimationFrame(this.frame);
     const real = Math.min(Math.max(0, (now - this.last) / 1000), MAX_FRAME);
     this.last = now;
+    if (this.mode !== 'play') return this.menuFrame(real);
 
     const locked = this.input.locked;
     const mouseDx = locked ? this.input.mouseDX : 0;
@@ -225,29 +266,18 @@ export class Game {
     this.renderer.render(this.scene, this.camera);
     this.arms.render(this.renderer, this.aspect);
 
-    this.updateDebug();
-    this.pushHud(real);
+    fillDebug(this.debug, p, this.combat);
+    this.hudFeed.push(real, p, this.combatScene.feedback);
   };
 
-  private updateDebug() {
-    const p = this.player;
-    const d = this.debug;
-    d.speed = flatSpeed(p);
-    d.vSpeed = p.vel.y;
-    d.mode = moveMode(p);
-    d.dashCharges = p.dashCharges;
-    d.wallJumpsLeft = p.wallJumpsLeft;
-    d.hitStop = this.combat.hitStop.remaining * 1000;
-  }
-
-  private pushHud(real: number) {
-    const fb = this.combatScene.feedback;
-    const cur = this.hud.get();
-    this.hudTimer -= real;
-    if (this.hudTimer > 0 && cur.hits === fb.hits && cur.hurts === fb.hurts) return;
-    this.hudTimer = HUD_EVERY;
-    const p = this.player;
-    this.hud.set({ dashCharges: Math.floor(p.dashCharges * 20) / 20, dashMax: DASH.v.charges, mode: moveMode(p), hits: fb.hits, marker: fb.marker, hurts: fb.hurts });
+  /** The main menu and the gate opening: the gate scene only. Nothing simulates. */
+  private menuFrame(real: number) {
+    this.input.clearMouse();
+    this.stats.push(real * 1000, 0, false);
+    const ev = this.menu.update(real);
+    this.menu.render(this.renderer, this.aspect);
+    if (ev === 'fade') this.cb.onIntroFade();
+    else if (ev === 'done') this.enterPlay();
   }
 
   dispose() {
@@ -260,6 +290,7 @@ export class Game {
     this.input.dispose();
     this.audio.dispose();
     this.combatScene.dispose();
+    this.menu.dispose();
     this.view.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
