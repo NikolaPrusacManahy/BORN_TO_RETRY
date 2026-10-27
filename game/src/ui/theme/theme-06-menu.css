@@ -20,7 +20,6 @@
 }
 
 .rb-menu-nav,
-.rb-menu-panel,
 .rb-menu-foot {
   pointer-events: auto;
 }
@@ -42,12 +41,7 @@
   text-align: center;
   white-space: nowrap;
   transition: opacity 0.25s;
-  /* backwards, not both: a held end state would override the dimming below. */
   animation: rb-logo-in 0.8s cubic-bezier(0.2, 0.9, 0.2, 1) backwards;
-}
-
-.rb-menu.has-panel .rb-logo {
-  opacity: 0.12;
 }
 
 .rb-logo-born {
@@ -329,35 +323,6 @@
       0.16em 0.16em 0 rgba(0, 0, 0, 0.55),
       0 0 0.9em rgba(232, 70, 43, 0.55);
   }
-}
-
-/* ---- settings / controls, centred over the scene ---- */
-.rb-menu-side {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  pointer-events: none;
-}
-
-.rb-menu-panel {
-  width: 440px;
-  animation: rb-panel-in 0.18s ease-out both;
-}
-
-@keyframes rb-panel-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
-
-.rb-menu-panel-actions {
-  margin-top: 16px;
-}
-
-.rb-menu-back {
-  margin-top: 16px;
 }
 
 .rb-menu-foot {

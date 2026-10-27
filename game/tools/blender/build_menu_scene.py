@@ -11,7 +11,8 @@
 #
 # Run (from game/):
 #   blender --background --disable-autoexec --python tools/blender/build_menu_scene.py -- \
-#     --kit "<Modular Dungeon Pack folder>" --nature "<Ultimate Nature Pack folder>" #     --glb public/models/menu/gate.glb --previews <folder>
+#     --kit "<Modular Dungeon Pack folder>" --nature "<Ultimate Nature Pack folder>" \
+#     --glb public/models/menu/gate.glb --previews <folder>
 #
 # Layout (Blender: z up, the scene's front faces -y). The lower floor is z = 0; the stairs rise 4 m from y = -4 to
 # y = 0; the landing and the gate wall sit at z = 4, the wall plane at y = 2.
@@ -21,7 +22,10 @@ import os
 import sys
 
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Vector
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from scene_kit import export_glb, flat_material, load_pieces, marker, place, setup_previews, shoot  # noqa: E402
 
 PIECES = ['Arch', 'Arch_bars', 'Wall_Modular', 'WallCover_Modular', 'Column', 'Stairs_Modular', 'Stairs_SideCover',
           'Floor_Modular', 'Torch', 'Banner_wall', 'Cobweb', 'Skull', 'Brick']
@@ -50,60 +54,6 @@ def parse_args():
     p.add_argument('--previews', required=True)
     p.add_argument('--engine', default='BLENDER_EEVEE')
     return p.parse_args(argv)
-
-
-def load_pieces(folder, names, protos, bake=False):
-    folder = os.path.abspath(folder)  # Blender reads a relative library path against the open .blend, not the shell
-    for name in names:
-        with bpy.data.libraries.load(os.path.join(folder, name + '.blend'), link=False) as (src, dst):
-            dst.objects = [n for n in src.objects]
-        meshes = [o for o in dst.objects if o is not None and o.type == 'MESH']
-        protos[name] = join_baked(name, meshes) if bake else meshes[0]
-    for img in bpy.data.images:
-        if img.name != 'Render Result' and img.packed_file is None:
-            print(f'warning: image {img.name} is not packed ({img.filepath})')
-    return protos
-
-
-def join_baked(name, objs):
-    """All of a piece's meshes as one, in its file's world space (RECENTER pieces: centred, base at z = 0)."""
-    scene = bpy.context.scene
-    for o in objs:
-        scene.collection.objects.link(o)
-    bpy.context.view_layer.update()
-    if len(objs) > 1:
-        with bpy.context.temp_override(active_object=objs[0], object=objs[0], selected_objects=objs, selected_editable_objects=objs):
-            bpy.ops.object.join()
-    o = objs[0]
-    o.data.transform(o.matrix_world)
-    o.matrix_world = Matrix.Identity(4)
-    if name in RECENTER:
-        vs = [v.co for v in o.data.vertices]
-        cx = (min(v.x for v in vs) + max(v.x for v in vs)) / 2
-        cy = (min(v.y for v in vs) + max(v.y for v in vs)) / 2
-        o.data.transform(Matrix.Translation((-cx, -cy, -min(v.z for v in vs))))
-        top = max(vs, key=lambda v: v.z)
-        print(f'{name}: highest point at x {top.x:.2f} y {top.y:.2f} (which way it faces)')
-    scene.collection.objects.unlink(o)
-    return o
-
-
-def place(protos, piece, loc, rot_z=0.0, scale=(1, 1, 1), name=None):
-    src = protos[piece]
-    o = bpy.data.objects.new(name or piece, src.data)
-    o.location = loc
-    o.rotation_euler = (0, 0, math.radians(rot_z))
-    o.scale = scale
-    bpy.context.scene.collection.objects.link(o)
-    return o
-
-
-def marker(name, loc):
-    e = bpy.data.objects.new(name, None)
-    e.location = loc
-    e.empty_display_size = 0.3
-    bpy.context.scene.collection.objects.link(e)
-    return e
 
 
 #   Half the width of the fortress (m): wide enough that the menu shot never sees its ends.
@@ -225,21 +175,9 @@ def tree_bed(protos, x, y, top):
     bed = bpy.context.active_object
     bed.name = 'TreeBed'
     bed.scale = (1.98, 1.98, 0.3)
-    bed.data.materials.append(soil_material())
+    bed.data.materials.append(flat_material('Soil', (0.06, 0.04, 0.025)))
     for dx, dy, rot in ((-0.95, 0.55, 20), (0.8, -0.95, -35), (0.95, 0.85, 70)):
         place(protos, 'Floor_BricksSeparate', (x + dx, y + dy, top - 0.08), rot_z=rot)
-
-
-def soil_material():
-    mat = bpy.data.materials.get('Soil')
-    if mat:
-        return mat
-    mat = bpy.data.materials.new('Soil')
-    mat.use_nodes = True
-    bsdf = mat.node_tree.nodes['Principled BSDF']
-    bsdf.inputs['Base Color'].default_value = (0.06, 0.04, 0.025, 1)
-    bsdf.inputs['Roughness'].default_value = 1.0
-    return mat
 
 
 def preview_lights():
@@ -274,36 +212,16 @@ def preview_lights():
     scene.collection.objects.link(go)
 
 
-def shoot(engine, path, at, look, size=(1600, 800), vfov=60):
-    scene = bpy.context.scene
-    cam = scene.camera
-    cam.location = at
-    cam.rotation_euler = (Vector(look) - Vector(at)).to_track_quat('-Z', 'Y').to_euler()
-    cam.data.sensor_fit = 'VERTICAL'
-    cam.data.angle = math.radians(vfov)
-    scene.render.resolution_x, scene.render.resolution_y = size
-    scene.render.filepath = path
-    bpy.ops.render.render(write_still=True)
-    print(f'rendered {path}')
-
-
 def main():
     args = parse_args()
     bpy.ops.wm.read_factory_settings(use_empty=True)
     protos = load_pieces(args.kit, PIECES, {})
-    load_pieces(args.kit, DRESS_KIT, protos, bake=True)
+    load_pieces(args.kit, DRESS_KIT, protos, bake=True, recenter=RECENTER)
     load_pieces(args.nature, DRESS_NATURE, protos, bake=True)
     build(protos)
     dress(protos)
 
-    os.makedirs(args.previews, exist_ok=True)
-    scene = bpy.context.scene
-    scene.render.engine = args.engine
-    scene.render.image_settings.file_format = 'PNG'
-    cam = bpy.data.objects.new('PreviewCam', bpy.data.cameras.new('PreviewCam'))
-    cam.data.clip_start = 0.05
-    scene.collection.objects.link(cam)
-    scene.camera = cam
+    setup_previews(args.engine, args.previews)
     preview_lights()
     m = bpy.data.objects
     # The menu shot, with the game's menu lens: the gate shut, then raised as far as Start raises it.
@@ -316,14 +234,7 @@ def main():
     for name, at, look in (('Detail_TreeBed_R', (13.5, -7.5, 4.5), (11, -3, 0.3)), ('Detail_TreeBed_L', (-8.0, -3.0, 8.5), (-11, 1, 4.3))):
         shoot(args.engine, os.path.join(args.previews, f'{name}.png'), at, look, size=(1000, 700), vfov=50)
 
-    # Export the scene: meshes and markers only (the game lights it itself).
-    bpy.ops.object.select_all(action='DESELECT')
-    for o in scene.objects:
-        if o.type in ('MESH', 'EMPTY'):
-            o.select_set(True)
-    os.makedirs(os.path.dirname(os.path.abspath(args.glb)), exist_ok=True)
-    bpy.ops.export_scene.gltf(filepath=args.glb, export_format='GLB', use_selection=True, export_apply=True, export_yup=True, export_lights=False, export_cameras=False)
-    print(f'exported {args.glb}')
+    export_glb(args.glb)
 
 
 main()

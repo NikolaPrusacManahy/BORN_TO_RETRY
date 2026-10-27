@@ -1,0 +1,50 @@
+/* Update 0.0.7 — the settings screen over the night camp: the options panel on the right, the fire left clear, a
+   soft shade behind the panel so it reads over the trees. The panel slides in once the black starts to clear and
+   slides out when Back is pressed. */
+.rb-camp {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6vw;
+  pointer-events: none;
+  background: linear-gradient(to left, rgba(5, 6, 12, 0.72), rgba(5, 6, 12, 0) 55%);
+}
+
+.rb-camp-panel {
+  width: 540px;
+  pointer-events: auto;
+  animation: rb-camp-in 0.45s 0.15s cubic-bezier(0.2, 0.9, 0.2, 1) backwards;
+}
+
+@keyframes rb-camp-in {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+
+.rb-camp.is-leaving .rb-camp-panel {
+  pointer-events: none;
+  animation: rb-camp-out 0.3s ease-in forwards;
+}
+
+@keyframes rb-camp-out {
+  to {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+
+.rb-camp-back {
+  margin-top: 18px;
+}
+
+/* The row under the General sliders (fullscreen), in the camp and the pause menu. */
+.rb-options-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}

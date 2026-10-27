@@ -47,10 +47,6 @@
   }
 }
 
-.rb-menu-panel.is-controls {
-  width: 540px;
-}
-
 .rb-tabs {
   display: flex;
   gap: 4px;

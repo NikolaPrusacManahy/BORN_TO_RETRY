@@ -3,11 +3,16 @@
 // Update 0.0.4 — opens on the main menu. Start locks the mouse and opens the gate; it fades to black, then the
 // black fades off the lab. The pause menu can go back to the main menu.
 // M1 step 8 — dying fades to black too, and the black clears when you're back at the start. F4: invincible.
+// Update 0.0.7 — Settings fades through black to the night camp (the settings screen, controls included); Back
+// fades back to the gate.
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { MenuView } from './engine/Game';
+import { CAMP_FADE } from './engine/menu/campScene';
 import { INTRO } from './engine/menu/introTimeline';
 import { HEALTH } from './tuning/health';
 import { LAB } from './tuning/lab';
 import { setKnob } from './tuning/schema';
+import { CampMenu } from './screens/CampMenu';
 import { GameHandle, GameView } from './screens/GameView';
 import { MainMenu } from './screens/MainMenu';
 import { PauseMenu } from './screens/PauseMenu';
@@ -30,6 +35,10 @@ export default function App() {
   const [tuning, setTuning] = useState(false);
   const [debug, setDebug] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  const [menuView, setMenuView] = useState<MenuView>('gate');
+  /** Going between the gate and the camp: the screen is fading to black. */
+  const [switching, setSwitching] = useState(false);
+  const switchTimer = useRef(0);
   const view = useRef<GameHandle>(null);
   const tuningRef = useRef(false);
   const phaseRef = useRef<Phase>('menu');
@@ -54,6 +63,24 @@ export default function App() {
     void g.lock();
     g.startIntro();
   }, [getGame, go]);
+
+  /** Fade to black, swap the menu's scene, fade back in. */
+  const switchMenu = useCallback(
+    (to: MenuView) => {
+      if (switchTimer.current) return;
+      setSwitching(true);
+      setBlack(CAMP_FADE);
+      switchTimer.current = window.setTimeout(() => {
+        switchTimer.current = 0;
+        getGame()?.showMenuView(to);
+        setMenuView(to);
+        setSwitching(false);
+        setBlack(null);
+      }, CAMP_FADE * 1000);
+    },
+    [getGame],
+  );
+  useEffect(() => () => window.clearTimeout(switchTimer.current), []);
 
   const onLockChange = useCallback(
     (locked: boolean) => {
@@ -123,15 +150,15 @@ export default function App() {
       onRespawn={() => setBlack(null)}
       onReady={() => setReady(true)}
     >
-      {onMenu && !tuning && (
-        <MainMenu
-          ready={ready}
-          leaving={phase === 'intro'}
+      {onMenu && menuView === 'gate' && !tuning && <MainMenu ready={ready} leaving={phase === 'intro' || switching} onStart={start} onSettings={() => switchMenu('camp')} />}
+      {phase === 'menu' && menuView === 'camp' && !tuning && (
+        <CampMenu
           settings={save.settings}
           fullscreen={fullscreen}
+          leaving={switching}
           onChange={changeSettings}
-          onStart={start}
           onFullscreen={() => void toggleFullscreen()}
+          onBack={() => switchMenu('gate')}
         />
       )}
       {phase === 'paused' && !tuning && (
@@ -148,6 +175,7 @@ export default function App() {
           onMainMenu={() => {
             getGame()?.toMenu();
             setBlack(null);
+            setMenuView('gate');
             go('menu');
           }}
         />

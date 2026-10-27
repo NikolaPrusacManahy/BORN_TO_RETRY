@@ -2,7 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-27): Update 0.0.6
+## Current state (2026-10-27): Update 0.0.7
+- **Update 0.0.7 — the settings camp** (the designer's idea): Settings on the main menu fades through black to a night camp in a forest clearing. The camera glides in to sit on a log by a campfire (embers, stars, crackling), and the options panel sits on the right. The controls live inside Settings now (tabs: General, Controls), in the camp and in the pause menu; the main menu has only Start and Settings. Back or Esc fades back to the gate.
+  - The camp's logs and fire-ring stones are simple low-poly shapes made in Blender: the Ultimate Nature Pack in `ASSETS/` is still partial (no logs, stumps, rocks, pines or grass). With the rest of the pack, its own logs and rocks can replace them.
 - **Update 0.0.6 — M1 steps 8 and 9:** health and rebinding.
   - **Health:** 100 HP and no regeneration. It's shown bottom left: the number and a bar, with a pale trail showing what a hit took, pulsing when low. A short invincibility follows each hit, and dashes still stop damage. Blood heal: punches that land heal 20% of their damage. Death (including falling out of the world) slows the world, fades to black, and puts you back at the start with full health.
   - **Spike strip** in the Feel Lab (east of the start) to test it: touching it hurts and pops you up; a dash carries you over unhurt. Nothing else in the lab hurts you yet (no enemies; the turret is out with the parry).
@@ -19,7 +21,7 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
 
 ## What to try in-game
 Run `START_GAME.bat`. The main menu opens on the gate.
-- **Main menu:** the torches and the campfire flicker, dust drifts, the camera sways slowly. Start (or Enter / Space) locks the mouse, the portcullis grinds up into the wall (about 1.3 s), and the screen fades to black into the lab. Settings and Controls open panels over the scene. The pause menu has **Main menu** to come back.
+- **Main menu:** the torches and the campfire flicker, dust drifts, the camera sways slowly. Start (or Enter / Space) locks the mouse, the portcullis grinds up into the wall (about 1.3 s), and the screen fades to black into the lab. Settings fades to the night camp (General and Controls tabs); Back or Esc returns. The pause menu has the same tabs, and **Main menu** to come back.
 - If Esc is pressed while the gate opens, the lab starts paused (click Resume).
 - **Moves:** WASD, Space jump / wall jump, Shift dash (3 charges).
   - C slides for up to 0.5 s; press again to slide again. Pressed in the air, the slide starts on landing and eases in.
@@ -30,7 +32,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
   - F: quick punch, always ready, even mid-charge.
 - **Targets:** four dummies in front of the start (they wobble, slide back, break, and return 2 s later).
 - **Health:** the spike strip east of the start (hurts, pops you up; dash over it to stay unhurt). Punch the dummies to heal. Fall off the edge or run out of health to die and restart.
-- **Controls:** main menu → Controls, or pause → Controls. Click an action's key, then press anything (a key, a mouse button, the wheel); Esc cancels; Reset restores the defaults. The wheel has no "held", so a wheel-bound slide or charged punch is only a tap.
+- **Controls:** main menu → Settings → Controls, or pause → Controls. Click an action's key, then press anything (a key, a mouse button, the wheel); Esc cancels; Reset restores the defaults. The wheel has no "held", so a wheel-bound slide or charged punch is only a tap.
 - **Hit feel:** hit-stop on finisher, charged and kill hits; screen shake; a small camera nod; sparks; chunks when a dummy breaks; a hit marker around the crosshair (red on a kill); placeholder sounds.
 - **Arms:** both fists low in the corners, the centre clear (`MD/reference/arms_guard_gameplay.webp`); a gentle run bob (about 4 a second at run speed).
 - **Dev keys:** F1 (or `) tuning panel, F2 debug overlay (shows the hit-stop, health and invincibility), F3 resets the player and all targets, F4 invincible on/off. Esc pauses.
@@ -66,7 +68,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `MD/DESIGN.md` | The full game design, with placeholders marked |
 | `MD_UPDATES/M1_FEEL_LAB.md` | M1 scope, starting values, build order, tests |
 | `MD/PIPELINE_CHARACTER_ARMS.md` | How to cut first-person arms for a new character |
-| `MD/PIPELINE_MENU_SCENE.md` | How the main menu's gate scene is built, and how to change it |
+| `MD/PIPELINE_MENU_SCENE.md` | How the menu's scenes (the gate, the settings camp) are built, and how to change them |
 | `DEVELOPMENT.md` | Module map and contracts |
 | `ASSETS/QUATERNIUS/` | Downloaded Quaternius packs, one folder per pack (git-ignored) |
 
@@ -106,3 +108,4 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 Claude has seen and heard none of this in the game: the feel, the arms on screen, the targets, effects, sounds and menus are all unverified until played. The tests check the rules, the collision, and that the shipped arms pose correctly.
 - **The main menu:** only the Blender previews of the scene were seen. In the browser, unseen: the logo and buttons over the scene, the statues, crates and trees under the game's own lighting, the lighting itself (torch and campfire flicker, gate light, shadows, fog), the dust, the gate's pace, the fade to black and back, and the gate's synth grind. `test-menu.ts` checks the scene's nodes, the menu shot's framing, that the gate is open before the fade (and never pokes out of the wall's top), and the timing.
 - **Health and rebinding (Update 0.0.6):** unseen in the browser: the health bar, its trail and low pulse, the hurt flash and shake, the hurt and death sounds, the spikes, the death slow motion and fade, and the controls screen (binding a mouse button, the wheel, Esc to cancel). `test-health.ts` checks the health rules, blood heal through a real punch, orbs, spikes and the death timing; `test-bindings.ts` checks that any key, mouse button and wheel direction binds, with swaps.
+- **The settings camp (Update 0.0.7):** only the Blender previews were seen. Unseen in the browser: the camp under the game's lighting (fire light, moon, fog, stars, embers), the glide in, the fades between the gate and the camp, the crackle, and the panel over the scene. `test-camp.ts` checks the scene's nodes, that every tree, bush and log stands on the ground with nothing grown into anything else, the fire in sight on the left, and the glide.

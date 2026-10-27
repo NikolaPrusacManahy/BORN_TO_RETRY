@@ -1,24 +1,16 @@
-// Update 0.0.4 — the main menu over the gate scene: the BORN TO RETRY logo up in the sky, Start / Settings /
-// Controls bottom left over the dark wall, the version bottom right. Enter or Space starts too. Once Start is
-// pressed it slides away while the gate opens. No hints a player already knows (the designer's rule).
-// M1 step 9 — Controls is the rebinding screen.
-import { useEffect, useState } from 'react';
+// Update 0.0.4 — the main menu over the gate scene: the BORN TO RETRY logo up in the sky, Start and Settings bottom
+// left over the dark wall, the version bottom right. Enter or Space starts too. Once Start (or Settings) is pressed
+// it slides away. No hints a player already knows (the designer's rule).
+// Update 0.0.7 — Settings goes to the night camp (CampMenu), where the controls are too.
+import { useEffect } from 'react';
 import { version } from '../../package.json';
-import type { Settings } from '../state/settings';
-import { KeyBindings } from './KeyBindings';
-import { SettingsFields } from './SettingsFields';
-
-type Panel = 'settings' | 'controls' | null;
 
 interface Props {
   ready: boolean;
-  /** Start was pressed: the menu animates out. */
+  /** Start or Settings was pressed: the menu animates out. */
   leaving: boolean;
-  settings: Settings;
-  fullscreen: boolean;
-  onChange(s: Settings): void;
   onStart(): void;
-  onFullscreen(): void;
+  onSettings(): void;
 }
 
 /** The retry arrow beside the logo: a clockwise arc and its head; it turns slowly. */
@@ -31,28 +23,23 @@ function RetryArrow() {
   );
 }
 
-export function MainMenu({ ready, leaving, settings, fullscreen, onChange, onStart, onFullscreen }: Props) {
-  const [panel, setPanel] = useState<Panel>(null);
-
+export function MainMenu({ ready, leaving, onStart, onSettings }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.repeat || leaving) return;
-      if (e.code === 'Escape') return setPanel(null);
-      // A focused button or field handles its own Enter / Space.
+      // A focused button handles its own Enter / Space.
       if ((e.target as HTMLElement | null)?.closest?.('button, input, textarea')) return;
-      if (!panel && ready && (e.code === 'Enter' || e.code === 'Space')) {
+      if (ready && (e.code === 'Enter' || e.code === 'Space')) {
         e.preventDefault();
         onStart();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [panel, ready, leaving, onStart]);
-
-  const toggle = (p: Panel) => setPanel((cur) => (cur === p ? null : p));
+  }, [ready, leaving, onStart]);
 
   return (
-    <div className={`rb-menu${leaving ? ' is-leaving' : ''}${panel ? ' has-panel' : ''}`}>
+    <div className={`rb-menu${leaving ? ' is-leaving' : ''}`}>
       <div className="rb-logo">
         <div className="rb-logo-born">
           <span className="rb-logo-rule" />
@@ -79,36 +66,10 @@ export function MainMenu({ ready, leaving, settings, fullscreen, onChange, onSta
         <button className="rb-menu-btn is-start" disabled={!ready || leaving} onClick={onStart}>
           <span>{ready ? 'Start' : 'Loading…'}</span>
         </button>
-        <button className={`rb-menu-btn${panel === 'settings' ? ' is-open' : ''}`} onClick={() => toggle('settings')}>
+        <button className="rb-menu-btn" disabled={!ready || leaving} onClick={onSettings}>
           <span>Settings</span>
         </button>
-        <button className={`rb-menu-btn${panel === 'controls' ? ' is-open' : ''}`} onClick={() => toggle('controls')}>
-          <span>Controls</span>
-        </button>
       </nav>
-
-      {panel && (
-        <div className="rb-menu-side">
-          <div className={`rb-panel rb-menu-panel${panel === 'controls' ? ' is-controls' : ''}`}>
-            <h2 className="rb-pause-title">{panel === 'settings' ? 'Settings' : 'Controls'}</h2>
-            {panel === 'settings' ? (
-              <>
-                <SettingsFields settings={settings} onChange={onChange} />
-                <div className="rb-pause-actions rb-menu-panel-actions">
-                  <button className="rb-btn" onClick={onFullscreen}>
-                    {fullscreen ? 'Leave fullscreen' : 'Fullscreen'}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <KeyBindings bindings={settings.bindings} onChange={(bindings) => onChange({ ...settings, bindings })} />
-            )}
-            <button className="rb-btn rb-menu-back" onClick={() => setPanel(null)}>
-              Back
-            </button>
-          </div>
-        </div>
-      )}
 
       <div className="rb-menu-foot">v{version}</div>
     </div>

@@ -1,12 +1,13 @@
 // Main menu — the gate scene (built by tools/blender/build_menu_scene.py): a low shot up the stairs at the gate,
-// with flickering torches and a campfire, drifting dust and a slow camera drift. Start (introTimeline.ts) grinds the portcullis
-// up, then the screen fades to black.
+// with flickering torches and a campfire, drifting dust and a slow camera drift. Start (introTimeline.ts) grinds
+// the portcullis up, then the screen fades to black.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { AudioEngine } from '../../audio/audio';
 import { noise, tone } from '../../audio/synth';
 import { Dust } from '../fx/dust';
 import { INTRO, INTRO_LENGTH, gateLift } from './introTimeline';
+import { Flames, nodeAt, readyMaterials } from './sceneBits';
 
 export const MENU_URL = '/models/menu/gate.glb';
 /** The menu shot's vertical FOV (degrees), matching MENU_VFOV in the Blender script. */
@@ -34,13 +35,7 @@ export interface MenuShot {
 
 /** Reads the menu shot from the model's markers (world positions). */
 export function readShot(root: THREE.Object3D): MenuShot {
-  root.updateMatrixWorld(true);
-  const at = (name: string) => {
-    const o = root.getObjectByName(name);
-    if (!o) throw new Error(`menu model: missing node ${name}`);
-    return o.getWorldPosition(new THREE.Vector3());
-  };
-  return { pos: at('Cam_Menu'), look: at('Cam_Menu_Look') };
+  return { pos: nodeAt(root, 'Cam_Menu'), look: nodeAt(root, 'Cam_Menu_Look') };
 }
 
 export class MenuScene {
@@ -51,7 +46,7 @@ export class MenuScene {
   private shot: MenuShot | null = null;
   private portcullis: THREE.Object3D | null = null;
   private gateBaseY = 0;
-  private flames: { light: THREE.PointLight; base: number; seed: number }[] = [];
+  private readonly flames = new Flames();
   private gateLight = new THREE.PointLight(0xfff0dc, 40, 22, 2);
   private dust: Dust | null = null;
   private time = 0;
@@ -90,25 +85,8 @@ export class MenuScene {
     this.shot = readShot(root);
     this.portcullis = root.getObjectByName('Portcullis') ?? null;
     this.gateBaseY = this.portcullis?.position.y ?? 0;
-    root.traverse((o) => {
-      if (!(o instanceof THREE.Mesh)) return;
-      o.castShadow = o.receiveShadow = o.name !== 'GateGlow';
-      const m = o.material as THREE.MeshStandardMaterial;
-      // Blender names a second piece's fire material Fire.001, and so on.
-      if (m.name.startsWith('Fire')) {
-        m.emissive.setHex(0xff7a22);
-        m.emissiveIntensity = 2.5;
-      } else if (o.name !== 'GateGlow') {
-        m.roughness = 0.9;
-        m.metalness = 0;
-      }
-    });
-    FLAMES.forEach(([name, base, reach], i) => {
-      const light = new THREE.PointLight(0xff8a3c, base, reach, 2);
-      root.getObjectByName(name)!.getWorldPosition(light.position);
-      this.scene.add(light);
-      this.flames.push({ light, base, seed: 1 + i * 6 });
-    });
+    readyMaterials(root, ['GateGlow']);
+    for (const [name, base, reach] of FLAMES) this.flames.add(this.scene, nodeAt(root, name), base, reach);
     // The light through the bars: from just inside the gate, out over the landing.
     root.getObjectByName('GateGlow')!.getWorldPosition(this.gateLight.position);
     this.gateLight.position.z += 2.5; // towards the stairs (the scene faces +z)
@@ -140,10 +118,7 @@ export class MenuScene {
   update(dt: number): MenuEvent | null {
     this.time += dt;
     this.dust?.update(dt);
-    for (const t of this.flames) {
-      const f = Math.sin(this.time * 9 + t.seed) * 0.5 + Math.sin(this.time * 23 + t.seed * 3) * 0.3 + Math.sin(this.time * 5.3 + t.seed) * 0.2;
-      t.light.intensity = t.base * (0.85 + 0.15 * f);
-    }
+    this.flames.update(this.time);
     const shot = this.shot;
     if (!shot) return null;
     // A slow drift around the menu shot, Start or not.

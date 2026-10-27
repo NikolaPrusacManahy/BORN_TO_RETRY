@@ -1,5 +1,17 @@
 // Main menu — slow drifting dust motes, lit warm by the torches: one Points cloud, updated in place (no garbage).
+// The camp's embers use it too, with their own look (faster, smaller, orange).
 import * as THREE from 'three';
+
+export interface DustLook {
+  color: number;
+  /** Size (m). */
+  size: number;
+  opacity: number;
+  /** Rising speed range (m/s). */
+  rise: [number, number];
+}
+
+const MOTES: DustLook = { color: 0xffc890, size: 0.06, opacity: 0.55, rise: [0.05, 0.2] };
 
 export class Dust {
   readonly points: THREE.Points;
@@ -12,18 +24,20 @@ export class Dust {
     count: number,
     private readonly min: THREE.Vector3,
     private readonly max: THREE.Vector3,
+    look: Partial<DustLook> = {},
   ) {
+    const l = { ...MOTES, ...look };
     this.pos = new Float32Array(count * 3);
     this.speed = new Float32Array(count);
     for (let i = 0; i < count; i++) {
       this.pos[i * 3] = min.x + Math.random() * (max.x - min.x);
       this.pos[i * 3 + 1] = min.y + Math.random() * (max.y - min.y);
       this.pos[i * 3 + 2] = min.z + Math.random() * (max.z - min.z);
-      this.speed[i] = 0.05 + Math.random() * 0.15;
+      this.speed[i] = l.rise[0] + Math.random() * (l.rise[1] - l.rise[0]);
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage));
-    const mat = new THREE.PointsMaterial({ color: 0xffc890, size: 0.06, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false });
+    const mat = new THREE.PointsMaterial({ color: l.color, size: l.size, transparent: true, opacity: l.opacity, blending: THREE.AdditiveBlending, depthWrite: false });
     this.points = new THREE.Points(geo, mat);
     this.points.frustumCulled = false;
   }

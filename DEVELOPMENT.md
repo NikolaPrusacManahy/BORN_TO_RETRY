@@ -73,7 +73,9 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `engine/overlayFeed.ts` | What the HUD and the F2 overlay show, read from the sim once a frame |
 | `engine/menu/menuScene.ts` | The main menu's gate scene: loads `public/models/menu/gate.glb`, reads the menu shot, lights, flickering flames (torches, campfire), dust, idle drift; raises the portcullis after Start |
 | `engine/menu/introTimeline.ts` | What Start plays, as pure timing: the gate lift, when the fade to black starts, how long it lasts |
-| `engine/fx/dust.ts` | Drifting dust motes (one `Points` cloud, updated in place) |
+| `engine/menu/campScene.ts` | Update 0.0.7 — the settings screen's night camp: loads `public/models/menu/camp.glb`, the fire light, embers, stars, the crackle, and the camera's glide in |
+| `engine/menu/sceneBits.ts` | What the menu scenes share: marker positions, readying materials (fires glow), flickering flame lights |
+| `engine/fx/dust.ts` | Drifting motes (one `Points` cloud, updated in place): the gate's dust and the camp's embers |
 | `engine/cameraRig.ts` | Eye height, landing spring, step smoothing, FOV kick, roll, shake |
 | `engine/look.ts`, `shake.ts` | Mouse look; trauma shake |
 | `engine/arenaView.ts`, `renderer.ts` | Meshes, grid texture, light, fog; the WebGL renderer |
@@ -87,13 +89,15 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `engine/viewmodel/armsRig.ts`, `armsMath.ts`, `armsAnim.ts`, `guard.ts` | Loading and posing the arms (IK, bone aiming, ported from `cut_arms.py`); punch timelines; the approved guard |
 | `engine/hudStore.ts` | HUD state (dash, hit marker, hurt flash) and live debug numbers |
 | `audio/audio.ts`, `synth.ts`, `moveSounds.ts`, `combatSounds.ts` | Buses; placeholder synth sounds; movement and combat sounds |
-| `screens/*` | App shell (`App.tsx`: menu → intro → playing ⇄ paused), main menu, pause menu (Settings / Controls tabs), shared settings fields, the controls screen (`KeyBindings.tsx`, key names in `keyLabel.ts`), HUD (health bottom left), F1 tuning panel, F2 debug overlay |
+| `screens/*` | App shell (`App.tsx`: menu → intro → playing ⇄ paused; the menu's gate and camp views), main menu, the camp's settings screen (`CampMenu.tsx`), pause menu, the options both show (`Options.tsx`: General / Controls tabs), shared settings fields, the controls screen (`KeyBindings.tsx`, key names in `keyLabel.ts`), HUD (health bottom left), F1 tuning panel, F2 debug overlay |
 
 ### Asset tools (`game/tools/`)
 | Tool | Does |
 |---|---|
 | `tools/blender/cut_arms.py` | Cuts first-person arms from a rigged Quaternius `.blend`, renders previews, exports a rest-pose `.glb`. Process: `MD/PIPELINE_CHARACTER_ARMS.md` |
 | `tools/blender/build_menu_scene.py` | Builds the main menu's gate scene from the Modular Dungeon Pack, renders previews, exports `public/models/menu/gate.glb`. Process: `MD/PIPELINE_MENU_SCENE.md` |
+| `tools/blender/build_camp_scene.py` | Builds the settings camp (nature pack trees, the dungeon pack's fire, low-poly logs and stones), renders previews, exports `public/models/menu/camp.glb` |
+| `tools/blender/scene_kit.py` | Helpers both scene builders import: load and place pieces, markers, flat materials, previews, export |
 | `tools/contact_sheet.py` | Tiles preview renders into one labelled sheet to compare variants (Python 3 + Pillow) |
 
 ## Contracts
@@ -116,4 +120,5 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 - **Arms model:** `public/models/arms/<id>.glb` comes out of the pipeline with the fists baked closed. Bone names arrive without the dot (`UpperArmL`).
 - **Health (M1 step 8):** `PlayerState` holds `hp`, `hurtTime` and `dead`. Everything that hurts the player goes through `damagePlayer`, which a dash (`invuln`), the hurt invincibility (`hurtTime`, set by each hit) and F4 (`LAB.god`) all stop; it pushes `'hurt'` (value = damage) and, at 0 HP, `'death'` once. `killPlayer` (falling out) ignores dashes. Blood heal: `stepCombat` heals `bloodHeal` × the punch's damage when it lands within `bloodRange`. The dead read no input. `LabRun` turns `'death'` into `DeathFlow`: the sim slows to `deathSlow` and the App fades to black over `deathFade`; then `restart()` puts you back with full health and the black clears.
 - **Bindings (M1 step 9):** a binding is any `KeyboardEvent.code`, `Mouse0`..`Mouse4`, or `WheelUp` / `WheelDown`. The wheel has no held state: a notch is a press that also counts as held until the tick that reads it. The controls screen listens in the capture phase and stops the event, so menus, dev keys and the game never see the key being bound; Esc cancels.
+- **Menu views (Update 0.0.7):** in `menu` mode the Game draws the gate or the camp (`showMenuView`). The App swaps them under a fade to black (`CAMP_FADE` each way) and the camp's camera glides in (`CAMP_GLIDE`). Both scenes load before the menu is ready. The camp's node names (`CAMP_NODES`) are a contract with `build_camp_scene.py`; `test-camp.ts` checks them on the shipped `.glb`.
 - **Main menu (Update 0.0.4):** the Game starts in `menu` mode and nothing simulates until `play`. Start locks the mouse inside the click or key press (browsers require one), then the gate opens (`intro`), ignoring the mouse; the App ignores lock changes until it's over. `MenuScene.update` returns `'fade'` (the App fades to black over `INTRO.fade`) and `'done'` (the Game restarts the lab, clears input, and the black clears). If the gate scene fails to load, Start goes straight to the lab. The scene's node names (`MENU_NODES`) are a contract with `build_menu_scene.py`; `test-menu.ts` checks them on the shipped `.glb`, plus the framing, that the doorway is open by the fade, and that the raised bars stay inside the wall (`INTRO.gateLift` ≤ ~3 m, the script's `GATE_LIFT`).

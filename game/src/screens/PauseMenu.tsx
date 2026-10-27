@@ -1,10 +1,9 @@
-// M1 — pause: resume, back to start, fullscreen, and the settings that matter for testing feel.
+// M1 — pause: resume, back to start, and the settings that matter for testing feel.
 // Update 0.0.4 — and back to the main menu. The keyboard-lock note moved to the F2 overlay (no info players don't need).
-// M1 step 9 — two tabs: the settings, and the controls (rebinding).
-import { useState } from 'react';
+// M1 step 9 — the controls (rebinding) are a tab.
+// Update 0.0.7 — the same options as the settings screen (Options: General and Controls); fullscreen is in General.
 import type { Settings } from '../state/settings';
-import { KeyBindings } from './KeyBindings';
-import { SettingsFields } from './SettingsFields';
+import { Options } from './Options';
 
 interface Props {
   settings: Settings;
@@ -17,7 +16,6 @@ interface Props {
 }
 
 export function PauseMenu({ settings, fullscreen, onChange, onResume, onRestart, onFullscreen, onMainMenu }: Props) {
-  const [tab, setTab] = useState<'settings' | 'controls'>('settings');
   return (
     <div className="rb-overlay">
       <div className="rb-panel rb-pause">
@@ -29,22 +27,11 @@ export function PauseMenu({ settings, fullscreen, onChange, onResume, onRestart,
           <button className="rb-btn" onClick={onRestart}>
             Back to start
           </button>
-          <button className="rb-btn" onClick={onFullscreen}>
-            {fullscreen ? 'Leave fullscreen' : 'Fullscreen'}
-          </button>
           <button className="rb-btn" onClick={onMainMenu}>
             Main menu
           </button>
         </div>
-        <div className="rb-tabs">
-          <button className={`rb-tab${tab === 'settings' ? ' is-on' : ''}`} onClick={() => setTab('settings')}>
-            Settings
-          </button>
-          <button className={`rb-tab${tab === 'controls' ? ' is-on' : ''}`} onClick={() => setTab('controls')}>
-            Controls
-          </button>
-        </div>
-        {tab === 'settings' ? <SettingsFields settings={settings} onChange={onChange} /> : <KeyBindings bindings={settings.bindings} onChange={(bindings) => onChange({ ...settings, bindings })} />}
+        <Options settings={settings} fullscreen={fullscreen} onChange={onChange} onFullscreen={onFullscreen} />
       </div>
     </div>
   );

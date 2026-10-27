@@ -1,6 +1,9 @@
-# Pipeline: the main menu's gate scene
+# Pipeline: the menu's scenes
 
-Update 0.0.4. The main menu is a 3D scene built in Blender from Quaternius's **Modular Dungeon Pack** and **Ultimate Nature Pack** (both CC0, both flat colour) by a script, then loaded by the game as one `.glb`.
+Two scenes, each built by its own Blender script with shared helpers (`game/tools/blender/scene_kit.py`): the main menu's gate (below) and the settings camp (at the end).
+
+## The gate (Update 0.0.4)
+The main menu is a 3D scene built in Blender from Quaternius's **Modular Dungeon Pack** and **Ultimate Nature Pack** (both CC0, both flat colour) by a script, then loaded by the game as one `.glb`.
 
 ## What the script builds
 `game/tools/blender/build_menu_scene.py`:
@@ -36,3 +39,19 @@ Blender is z up and the scene's front faces −y. glTF (and the game) is y up: B
 2. Re-run the script and look at the previews. The menu shot should keep the gate near the middle, with sky across the top quarter for the logo.
 3. Run `npm run verify`. `tests/test-menu.ts` parses the shipped `.glb` and checks the nodes, the framing, that every tree stands in earth and every prop on the ground, that the doorway is open by the fade to black, and that the raised bars stay inside the wall.
 4. What Start plays (the gate's timing, the fade) lives in `src/engine/menu/introTimeline.ts` (`INTRO`), not in Blender.
+
+## The settings camp (Update 0.0.7)
+`game/tools/blender/build_camp_scene.py` builds a forest clearing at night: the forest floor and a dirt clearing (`Ground`, `Clearing`), the dungeon pack's `Woodfire` ringed by low-poly stones, three low-poly logs (one under the camera), and two rings of nature-pack trees with a few bushes. Trees and bushes are placed from a fixed seed (`SEED`), so every export is the same, and keep apart (`TREE_GAP`, `BUSH_GAP`) so nothing grows into anything.
+
+| Node | Used for |
+|---|---|
+| `Campfire` | The fire's flickering light, and where the embers rise |
+| `Cam_Camp`, `Cam_Camp_Look` | The settings shot: sat on a log, the fire on the left, room on the right for the panel (`CAMP_VFOV`, 50°) |
+| `Cam_Camp_From` | Where the camera glides in from |
+| `Ground` | The forest floor |
+
+Run (from `game/`):
+```
+blender --background --disable-autoexec --python tools/blender/build_camp_scene.py -- --kit "../ASSETS/QUATERNIUS/Modular Dungeon Pack" --nature "../ASSETS/QUATERNIUS/Ultimate Nature Pack" --glb public/models/menu/camp.glb --previews <a scratch folder>
+```
+Previews: `Cam_Camp.png` (the shot), `Cam_Camp_From.png` (the glide's start) and `Overview.png`. Then `npm run verify`: `tests/test-camp.ts` checks the nodes, that everything stands on the ground with nothing grown together, the fire in sight on the left, and the glide.

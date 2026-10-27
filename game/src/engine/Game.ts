@@ -2,6 +2,7 @@
 // loop. Thin on purpose: the lab itself (player, fists, camera, arms) is LabRun; the main menu is MenuScene.
 // Update 0.0.4 — it opens on the main menu's gate scene (engine/menu/); Start opens the gate, then the lab.
 // M1 step 8 — the play loop moved to labRun.ts when health and death joined.
+// Update 0.0.7 — the menu has a second view: the night camp, where the settings are.
 import * as THREE from 'three';
 import { MAX_FRAME } from '../core/fixedStep';
 import { FrameStats } from '../core/frameStats';
@@ -15,11 +16,14 @@ import type { Settings } from '../state/settings';
 import type { Arena } from '../world/arena';
 import { DebugInfo, HudStore, createDebugInfo } from './hudStore';
 import { LabRun, RunCallbacks } from './labRun';
+import { CampScene } from './menu/campScene';
 import { MenuScene } from './menu/menuScene';
 import { createRenderer } from './renderer';
 
 /** 'menu': the gate scene, idle; 'intro': Start pressed, the gate opening; 'play': the lab. */
 export type GameMode = 'menu' | 'intro' | 'play';
+/** Which scene the menu shows: the gate (main menu) or the camp (settings). */
+export type MenuView = 'gate' | 'camp';
 
 export interface GameCallbacks extends RunCallbacks {
   /** The mouse was locked (playing) or released (Esc, a dev panel, alt-tab). */
@@ -38,11 +42,13 @@ export class Game {
   private readonly audio: AudioEngine;
   private readonly run: LabRun;
   private readonly menu: MenuScene;
+  private readonly camp: CampScene;
   private readonly resizeObs: ResizeObserver;
   private raf = 0;
   private last = performance.now();
   private aspect = 16 / 9;
   private mode: GameMode = 'menu';
+  private menuView: MenuView = 'gate';
 
   constructor(
     private readonly host: HTMLElement,
@@ -57,6 +63,7 @@ export class Game {
     this.audio = new AudioEngine(this.volumes());
     this.run = new LabRun(arena, physics, this.audio, this.renderer, hud, cb);
     this.menu = new MenuScene(this.audio);
+    this.camp = new CampScene(this.audio);
     this.setSettings(settings);
     document.addEventListener('pointerlockchange', this.onLockChange);
     window.addEventListener('keydown', this.onEsc);
@@ -83,9 +90,17 @@ export class Game {
     releaseLock();
   }
 
-  /** Resolves once the main menu's scene has loaded. */
+  /** Resolves once the menu's scenes (the gate and the camp) have loaded. */
   get menuLoaded(): Promise<void> {
-    return this.menu.loaded;
+    return Promise.all([this.menu.loaded, this.camp.loaded]).then(() => undefined);
+  }
+
+  /** The menu's scene: the camp (settings; the camera glides in) or the gate. Called under the fade to black. */
+  showMenuView(view: MenuView) {
+    if (view === this.menuView) return;
+    this.menuView = view;
+    if (view === 'camp') this.camp.enter();
+    else this.camp.leave();
   }
 
   /** Start pressed: the gate opens, then the lab (straight to the lab if the menu scene failed to load). */
@@ -100,6 +115,7 @@ export class Game {
   /** Back to the main menu (the pause menu's Main menu): the mouse freed, the gate shut. */
   toMenu() {
     this.mode = 'menu';
+    this.showMenuView('gate');
     this.menu.reset();
     this.run.silence();
     releaseLock();
@@ -160,10 +176,15 @@ export class Game {
     else this.menuFrame(real);
   };
 
-  /** The main menu and the gate opening: the gate scene only. Nothing simulates. */
+  /** The main menu, the gate opening, and the settings camp. Nothing simulates. */
   private menuFrame(real: number) {
     this.input.clearMouse();
     this.stats.push(real * 1000, 0, false);
+    if (this.menuView === 'camp' && this.camp.ready) {
+      this.camp.update(real);
+      this.camp.render(this.renderer, this.aspect);
+      return;
+    }
     const ev = this.menu.update(real);
     this.menu.render(this.renderer, this.aspect);
     if (ev === 'fade') this.cb.onIntroFade();
@@ -181,6 +202,7 @@ export class Game {
     this.audio.dispose();
     this.run.dispose();
     this.menu.dispose();
+    this.camp.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
     this.physics.dispose();
