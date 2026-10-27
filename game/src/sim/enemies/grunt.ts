@@ -1,14 +1,19 @@
 // M2 — the Grunt (design §9: a melee chaser in groups, fodder). It runs at you and stops in reach; winds up for the
 // full warning time (its swing starts, it flashes, it growls), turning only slowly so a sideways dash dodges; then
 // swings: only if you're still in reach and in front does it land. A hit flinches it (cancelling a wind-up) and
-// knocks it back. Pure: it moves on the floor and asks the CollisionWorld for walls.
+// knocks it back. Pure: it moves on the floor.
+// Update 0.0.11 (the designer: grunts ran into walls forever and got stuck in blocks) — it finds its way round walls
+// (chase.ts), never swings through one or at you up on a block, and whatever moves it (running, knockback, other
+// grunts) ends with it pushed back out of any wall (world/navGrid.ts).
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { ENEMIES } from '../../tuning/enemies';
+import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
 import type { CollisionWorld, MoveResult } from '../collisionWorld';
 import type { CombatEvent } from '../combat/state';
 import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
+import { chaseDir, Flow } from './chase';
 
 export type GruntPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead';
 
@@ -35,11 +40,8 @@ export const GRUNT_POOL = 12;
 export const GRUNT_RADIUS = 0.45;
 /** Knockback slide dies away at this rate (1/s). */
 const SLIDE_FRICTION = 7;
-/** Feelers for walls, at these heights above the feet (m). */
-const FEELERS = [0.35, 1.2];
 
-const scratch = new Vector3();
-const dirScratch = new Vector3();
+const way = new Vector3();
 
 export function createGrunts(): Grunt[] {
   return Array.from({ length: GRUNT_POOL }, () => ({ alive: false, pos: new Vector3(), prev: new Vector3(), vel: new Vector3(), facing: 0, hp: 0, phase: 'chase' as GruntPhase, t: 0, flash: 0 }));
@@ -81,33 +83,20 @@ function turn(from: number, to: number, step: number): number {
   return from + Math.max(-step, Math.min(step, d));
 }
 
-/** Is the way along (dx, dz) (length 1) clear for `dist` metres? */
-function clear(g: Grunt, dx: number, dz: number, dist: number, world: CollisionWorld): boolean {
-  dirScratch.set(dx, 0, dz);
-  for (const h of FEELERS) {
-    scratch.set(g.pos.x, g.pos.y + h, g.pos.z);
-    if (world.rayDistance(scratch, dirScratch, dist + GRUNT_RADIUS) <= dist + GRUNT_RADIUS) return false;
-  }
-  return true;
+/** Moves on the floor along (dx, dz) (length 1) by `dist`, then out of any wall it ran into. */
+function walk(g: Grunt, dx: number, dz: number, dist: number, nav: NavGrid) {
+  g.pos.x += dx * dist;
+  g.pos.z += dz * dist;
+  pushOutOfWalls(nav, g.pos, GRUNT_RADIUS);
 }
 
-/** Moves on the floor along (dx, dz) (length 1) by `dist`, steering round anything in the way. */
-function walk(g: Grunt, dx: number, dz: number, dist: number, world: CollisionWorld) {
-  for (const a of [0, 0.6, -0.6, 1.2, -1.2]) {
-    const c = Math.cos(a);
-    const s = Math.sin(a);
-    const x = dx * c - dz * s;
-    const z = dx * s + dz * c;
-    if (clear(g, x, z, dist, world)) {
-      g.pos.x += x * dist;
-      g.pos.z += z * dist;
-      return;
-    }
-  }
+/** Can it hit the player from here: level with it and no wall in between? */
+function canReach(g: Grunt, player: PlayerState, nav: NavGrid): boolean {
+  return Math.abs(player.pos.y - g.pos.y) < ENEMIES.v.gruntHeight * 0.75 && !wallBetween(nav, g.pos.x, g.pos.z, player.pos.x, player.pos.z);
 }
 
-/** One tick of a grunt's fight with the player. */
-export function updateGrunt(g: Grunt, index: number, player: PlayerState, world: CollisionWorld, events: EventQueue<CombatEvent>, dt: number) {
+/** One tick of a grunt's fight with the player. `nav` and `flow`: the floor's walls and the way to the player. */
+export function updateGrunt(g: Grunt, index: number, player: PlayerState, nav: NavGrid, flow: Flow, events: EventQueue<CombatEvent>, dt: number) {
   if (!g.alive) return;
   const v = ENEMIES.v;
   g.prev.copy(g.pos);
@@ -117,10 +106,12 @@ export function updateGrunt(g: Grunt, index: number, player: PlayerState, world:
     if (g.t >= v.gruntDeathTime) g.alive = false;
     return;
   }
+  // Never left inside a wall (spawned into one, or shoved by another grunt).
+  pushOutOfWalls(nav, g.pos, GRUNT_RADIUS);
   // The knockback slide.
   const slide = Math.hypot(g.vel.x, g.vel.z);
   if (slide > 0.01) {
-    walk(g, g.vel.x / slide, g.vel.z / slide, slide * dt, world);
+    walk(g, g.vel.x / slide, g.vel.z / slide, slide * dt, nav);
     g.vel.multiplyScalar(Math.exp(-SLIDE_FRICTION * dt));
   }
   const dx = player.pos.x - g.pos.x;
@@ -134,33 +125,45 @@ export function updateGrunt(g: Grunt, index: number, player: PlayerState, world:
     case 'recover':
       if (g.t >= v.gruntRecover) setPhase(g, 'chase');
       break;
-    case 'chase':
-      g.facing = turn(g.facing, toward, v.gruntTurn * dt);
-      if (player.dead) break;
-      if (dist > v.gruntReach * 0.9) {
-        walk(g, dx / dist, dz / dist, Math.min(v.gruntSpeed * dt, dist - v.gruntReach * 0.9), world);
-      } else {
+    case 'chase': {
+      if (player.dead) {
+        g.facing = turn(g.facing, toward, v.gruntTurn * dt);
+        break;
+      }
+      if (dist <= v.gruntReach * 0.9 && canReach(g, player, nav)) {
+        g.facing = turn(g.facing, toward, v.gruntTurn * dt);
         setPhase(g, 'windup');
         events.push('gruntWindup', index, g.pos.x, g.pos.y + v.gruntHeight * 0.6, g.pos.z);
+        break;
       }
+      const how = chaseDir(flow, nav, g.pos, player.pos.x, player.pos.z, way);
+      // No way closer (you're up on a block): it waits below, watching you.
+      if (how === 'none') {
+        g.facing = turn(g.facing, toward, v.gruntTurn * dt);
+        break;
+      }
+      // Running straight at you it stops in reach; round a wall it faces the way it runs.
+      const step = how === 'straight' ? Math.min(v.gruntSpeed * dt, Math.max(0, dist - v.gruntReach * 0.9)) : v.gruntSpeed * dt;
+      g.facing = turn(g.facing, how === 'straight' ? toward : Math.atan2(-way.x, -way.z), v.gruntTurn * dt);
+      walk(g, way.x, way.z, step, nav);
       break;
+    }
     case 'windup':
       g.facing = turn(g.facing, toward, v.gruntWindupTurn * dt);
       if (g.t >= v.gruntWindup) {
-        strike(g, index, player, dist, toward, events);
+        strike(g, index, player, dist, toward, nav, events);
         setPhase(g, 'recover');
       }
       break;
   }
 }
 
-/** The swing lands only if the player is in reach, in front, and roughly level with it. */
-function strike(g: Grunt, index: number, player: PlayerState, dist: number, toward: number, events: EventQueue<CombatEvent>) {
+/** The swing lands only if the player is in reach, in front, roughly level with it and not behind a wall. */
+function strike(g: Grunt, index: number, player: PlayerState, dist: number, toward: number, nav: NavGrid, events: EventQueue<CombatEvent>) {
   const v = ENEMIES.v;
   events.push('gruntStrike', index, g.pos.x, g.pos.y + v.gruntHeight * 0.5, g.pos.z);
   const off = Math.abs(Math.atan2(Math.sin(toward - g.facing), Math.cos(toward - g.facing)));
-  const level = Math.abs(player.pos.y - g.pos.y) < v.gruntHeight * 0.75;
-  if (dist > v.gruntReach || off > (v.gruntArc * Math.PI) / 180 || !level) return;
+  if (dist > v.gruntReach || off > (v.gruntArc * Math.PI) / 180 || !canReach(g, player, nav)) return;
   if (!damagePlayer(player, v.gruntDamage)) return;
   // Shoved away from it, and a little up.
   const len = Math.max(dist, 1e-3);
@@ -191,8 +194,8 @@ export function hitGrunt(g: Grunt, damage: number, knock: number, dirX: number, 
   return true;
 }
 
-/** Live grunts push each other apart (they never stand inside one another). */
-export function separateGrunts(grunts: Grunt[]) {
+/** Live grunts push each other apart (they never stand inside one another), and none is pushed into a wall. */
+export function separateGrunts(grunts: Grunt[], nav: NavGrid) {
   const min = GRUNT_RADIUS * 2;
   for (let i = 0; i < grunts.length; i++) {
     const a = grunts[i];
@@ -213,6 +216,7 @@ export function separateGrunts(grunts: Grunt[]) {
       b.pos.z += nz * push;
     }
   }
+  for (const g of grunts) if (isLive(g)) pushOutOfWalls(nav, g.pos, GRUNT_RADIUS);
 }
 
 const shove = new Vector3();

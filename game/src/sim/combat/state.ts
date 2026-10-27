@@ -7,7 +7,9 @@ import { Vector3 } from 'three';
 import type { Arena } from '../../world/arena';
 import { WEAPON_STATS } from '../weapons/catalog';
 import { HeldWeapon, Pickup, Stand, Thrown, createPickups, createStands, createThrown, placePickup } from '../weapons/weapons';
-import { Grunt, createGrunts } from '../enemies/grunt';
+import { createFlow, Flow } from '../enemies/chase';
+import { GRUNT_RADIUS, Grunt, createGrunts } from '../enemies/grunt';
+import { buildNavGrid, NavGrid } from '../../world/navGrid';
 import { Waves, createWaves } from '../enemies/waves';
 import { FistState, createFists } from './fists';
 import { HitStop } from './hitStop';
@@ -64,6 +66,9 @@ export interface CombatState {
   orbs: Orb[];
   grunts: Grunt[];
   waves: Waves;
+  /** Update 0.0.11 — where grunts can walk (built once from the arena), and the way from anywhere to the player. */
+  nav: NavGrid;
+  flow: Flow;
   /** The weapon in your hand (null: barehanded). */
   weapon: HeldWeapon | null;
   pickups: Pickup[];
@@ -85,6 +90,7 @@ function stockStands(state: CombatState) {
 }
 
 export function createCombat(arena: Arena): CombatState {
+  const nav = buildNavGrid(arena, GRUNT_RADIUS);
   const state: CombatState = {
     fists: createFists(),
     dummies: arena.dummies.map(createDummy),
@@ -92,6 +98,8 @@ export function createCombat(arena: Arena): CombatState {
     orbs: createOrbs(),
     grunts: createGrunts(),
     waves: createWaves(),
+    nav,
+    flow: createFlow(nav),
     weapon: null,
     pickups: createPickups(),
     stands: createStands(arena.stands),
@@ -113,6 +121,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   for (const o of state.orbs) o.alive = false;
   for (const g of state.grunts) g.alive = false;
   state.waves = createWaves();
+  state.flow.target = -1;
   state.weapon = null;
   for (const p of state.pickups) p.alive = false;
   for (const t of state.thrown) t.alive = false;

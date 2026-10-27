@@ -19,20 +19,24 @@ import { ENEMIES } from '../src/tuning/enemies';
 import { HEALTH } from '../src/tuning/health';
 import { WEAPONS } from '../src/tuning/weapons';
 import type { Arena } from '../src/world/arena';
+import { buildNavGrid } from '../src/world/navGrid';
+import { createFlow } from '../src/sim/enemies/chase';
 
 const v = ENEMIES.v;
 const events = new EventQueue<CombatEvent>(256, 'none');
 const kinds = () => Array.from({ length: events.length }, (_, i) => events.at(i).kind);
 
+/** No floor in the arena: open ground everywhere, no walls. */
+const OPEN = buildNavGrid({ name: 'open', boxes: [], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] }, GRUNT_RADIUS);
+
 /** A player at the origin facing −z, and one grunt `dist` m ahead of them, facing them. */
 function face(dist: number) {
-  const world = new FlatWorld();
   const p = createPlayer(0, 0, 0, 0);
   p.grounded = true;
   const grunts = createGrunts();
   spawnGrunt(grunts, new Vector3(0, 0, -dist), Math.PI);
   events.clear();
-  return { world, p, grunts, g: grunts[0] };
+  return { nav: OPEN, flow: createFlow(OPEN), p, grunts, g: grunts[0] };
 }
 
 /** Ticks one grunt `n` times; returns the time (s) the player was first hurt, or −1. */
@@ -41,7 +45,7 @@ function tick(s: ReturnType<typeof face>, n: number, each?: (t: number) => void)
   for (let i = 0; i < n; i++) {
     each?.(i * DT);
     const hp = s.p.hp;
-    updateGrunt(s.g, 0, s.p, s.world, events, DT);
+    updateGrunt(s.g, 0, s.p, s.nav, s.flow, events, DT);
     s.p.hurtTime = Math.max(0, s.p.hurtTime - DT);
     if (s.p.hp < hp && hurtAt < 0) hurtAt = (i + 1) * DT;
   }
@@ -162,7 +166,7 @@ section('Grunt — in the lab');
   const grunts = createGrunts();
   spawnGrunt(grunts, new Vector3(0, 0, 0), 0);
   spawnGrunt(grunts, new Vector3(0.1, 0, 0), 0);
-  separateGrunts(grunts);
+  separateGrunts(grunts, OPEN);
   check('grunts never stand inside each other', grunts[0].pos.distanceTo(grunts[1].pos) >= GRUNT_RADIUS * 2 - 1e-9);
   const one = createGrunts();
   spawnGrunt(one, new Vector3(0, 0, 0), 0);

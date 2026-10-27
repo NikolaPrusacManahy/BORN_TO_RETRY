@@ -6,6 +6,7 @@
 import { Vector3 } from 'three';
 import type { Spot } from '../../world/arena';
 import type { CollisionWorld } from '../collisionWorld';
+import { updateFlow } from '../enemies/chase';
 import { separateGrunts, updateGrunt } from '../enemies/grunt';
 import { updateWaves } from '../enemies/waves';
 import { bloodHeal } from '../player/health';
@@ -68,8 +69,9 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   for (const d of state.dummies) updateDummy(d, events, dt);
   for (const t of state.turrets) updateTurret(t, player.pos, world, state.orbs, events, dt);
   updateOrbs(state.orbs, player, world, events, dt);
-  for (let i = 0; i < state.grunts.length; i++) updateGrunt(state.grunts[i], i, player, world, events, dt);
-  separateGrunts(state.grunts);
+  updateFlow(state.flow, state.nav, player.pos.x, player.pos.z);
+  for (let i = 0; i < state.grunts.length; i++) updateGrunt(state.grunts[i], i, player, state.nav, state.flow, events, dt);
+  separateGrunts(state.grunts, state.nav);
   updateWaves(state.waves, state.grunts, spawns, player, state.rng, events, dt);
   updateThrown(state, world, dt);
   updateStands(state.stands, state.pickups, events, dt);
