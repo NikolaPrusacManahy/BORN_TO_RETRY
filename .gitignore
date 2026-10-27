@@ -1,0 +1,13 @@
+# Claude Code files stay on this PC, never in the repo.
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+
+# Raw staging (Quaternius packs, source audio): converted copies ship from game/public/.
+/ASSETS/
+
+node_modules/
+dist/
+*.log
+.DS_Store
+Thumbs.db

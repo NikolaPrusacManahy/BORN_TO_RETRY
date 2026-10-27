@@ -1,0 +1,166 @@
+/* M1 — title card and pause menu: dark panels, slanted red call-to-action. Panels scale with --rb-ui. */
+.rb-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at center, rgba(11, 10, 12, 0.55), rgba(11, 10, 12, 0.88));
+  cursor: default;
+}
+
+.rb-panel {
+  zoom: var(--rb-ui);
+  background: var(--rb-panel);
+  border: 1px solid var(--rb-line);
+  border-left: 3px solid var(--rb-accent);
+  padding: 28px 34px;
+  min-width: 420px;
+}
+
+.rb-title {
+  text-align: center;
+  cursor: pointer;
+}
+
+.rb-title-name {
+  margin: 0;
+  font-size: 54px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  transform: skewX(-8deg);
+  color: var(--rb-text);
+  text-shadow: 3px 0 0 var(--rb-accent);
+}
+
+.rb-title-sub {
+  color: var(--rb-dim);
+  letter-spacing: 0.3em;
+  font-size: 13px;
+  margin: 4px 0 22px;
+  text-transform: uppercase;
+}
+
+.rb-title-dev {
+  margin-top: 16px;
+  font-family: var(--rb-mono);
+  font-size: 11px;
+  color: var(--rb-dim);
+}
+
+.rb-keys {
+  list-style: none;
+  margin: 0 auto 24px;
+  padding: 0;
+  width: 300px;
+  text-align: left;
+}
+
+.rb-keys li {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--rb-line);
+  font-size: 14px;
+}
+
+.rb-keys kbd {
+  font-family: var(--rb-mono);
+  font-size: 12px;
+  color: var(--rb-accent-hi);
+}
+
+.rb-cta,
+.rb-btn {
+  font-family: var(--rb-font);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 0;
+  cursor: pointer;
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+
+.rb-cta {
+  background: var(--rb-accent);
+  color: #fff;
+  font-size: 16px;
+  padding: 12px 36px;
+}
+
+.rb-cta:hover:not(:disabled) {
+  background: var(--rb-accent-hi);
+}
+
+.rb-cta:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.rb-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--rb-text);
+  font-size: 12px;
+  padding: 9px 20px;
+}
+
+.rb-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.rb-pause {
+  width: 520px;
+}
+
+.rb-pause-title {
+  margin: 0 0 18px;
+  font-size: 30px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transform: skewX(-8deg);
+}
+
+.rb-pause-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.rb-pause-note {
+  margin-top: 10px;
+  font-family: var(--rb-mono);
+  font-size: 11px;
+  color: var(--rb-dim);
+}
+
+.rb-pause-settings {
+  margin-top: 22px;
+  display: grid;
+  gap: 10px;
+}
+
+.rb-slider,
+.rb-toggle {
+  display: grid;
+  grid-template-columns: 130px 1fr 56px;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.rb-toggle {
+  grid-template-columns: 130px auto;
+  justify-content: start;
+}
+
+.rb-slider output {
+  font-family: var(--rb-mono);
+  font-size: 12px;
+  color: var(--rb-dim);
+  text-align: right;
+}
+
+.rb-slider input,
+.rb-toggle input {
+  accent-color: var(--rb-accent);
+}

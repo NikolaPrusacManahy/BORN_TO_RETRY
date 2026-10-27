@@ -1,0 +1,69 @@
+// M1 — an arena as plain data: boxes (some tilted into ramps), jump pads, the player start and enemy spawns.
+// physics/ builds colliders from it and engine/ builds meshes from it, so the two always match.
+import { Euler, Quaternion } from 'three';
+
+export type BoxKind = 'floor' | 'wall' | 'block' | 'ramp' | 'accent';
+
+export interface ArenaBox {
+  /** Centre (m). */
+  x: number;
+  y: number;
+  z: number;
+  /** Full size (m). */
+  w: number;
+  h: number;
+  d: number;
+  /** Rotation as a quaternion [x, y, z, w]; none = axis-aligned. */
+  quat?: [number, number, number, number];
+  kind: BoxKind;
+}
+
+export interface JumpPad {
+  x: number;
+  /** Height of the pad's top surface. */
+  y: number;
+  z: number;
+  radius: number;
+  /** Upward speed it gives (m/s). */
+  launch: number;
+}
+
+export interface Arena {
+  name: string;
+  boxes: ArenaBox[];
+  pads: JumpPad[];
+  /** Feet position and facing (yaw 0 faces -z). */
+  playerStart: { x: number; y: number; z: number; yaw: number };
+  spawns: { x: number; y: number; z: number }[];
+}
+
+/** An axis-aligned box from its min corner and size, which is easier to lay out than a centre. */
+export function boxAt(minX: number, minY: number, minZ: number, w: number, h: number, d: number, kind: BoxKind): ArenaBox {
+  return { x: minX + w / 2, y: minY + h / 2, z: minZ + d / 2, w, h, d, kind };
+}
+
+/**
+ * A ramp whose top surface runs from (x, y0, z0) to (x, y1, z1) along the z axis, `width` wide and
+ * `thickness` thick. A little extra length tucks its ends into the ground and the ledge it meets.
+ */
+export function rampZ(x: number, z0: number, y0: number, z1: number, y1: number, width: number, thickness = 0.5): ArenaBox {
+  const run = z1 - z0;
+  const rise = y1 - y0;
+  const len = Math.hypot(run, rise) + 0.6;
+  // Tilting about x by +a turns local +z towards -y: a ramp rising towards -z tilts by +a, towards +z by -a.
+  const angle = Math.atan2(rise, Math.abs(run)) * (run < 0 ? 1 : -1);
+  const q = new Quaternion().setFromEuler(new Euler(angle, 0, 0));
+  // The box's centre sits half a thickness below the middle of the top surface, along the surface normal.
+  const ny = Math.cos(angle);
+  const nz = Math.sin(angle);
+  return {
+    x,
+    y: (y0 + y1) / 2 - (ny * thickness) / 2,
+    z: (z0 + z1) / 2 - (nz * thickness) / 2,
+    w: width,
+    h: thickness,
+    d: len,
+    quat: [q.x, q.y, q.z, q.w],
+    kind: 'ramp',
+  };
+}

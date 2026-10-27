@@ -1,0 +1,153 @@
+/* M1 — dev tools: the F1 tuning panel (left) and the F2 debug overlay (top right). Fixed size, not zoomed. */
+.rb-tune {
+  position: absolute;
+  z-index: 30;
+  left: 16px;
+  top: 16px;
+  bottom: 16px;
+  width: 470px;
+  display: flex;
+  flex-direction: column;
+  background: var(--rb-panel);
+  border: 1px solid var(--rb-line);
+  border-left: 3px solid var(--rb-accent);
+  font-size: 13px;
+}
+
+.rb-tune-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rb-line);
+}
+
+.rb-tune-hint {
+  flex: 1;
+  color: var(--rb-dim);
+  font-family: var(--rb-mono);
+  font-size: 11px;
+}
+
+.rb-tune-x {
+  background: none;
+  border: 0;
+  color: var(--rb-text);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.rb-tune-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 12px;
+}
+
+.rb-tune-tab {
+  font-family: var(--rb-font);
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--rb-dim);
+  border: 0;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.rb-tune-tab.is-on {
+  background: var(--rb-accent);
+  color: #fff;
+}
+
+.rb-tune-rows {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 12px;
+}
+
+.rb-tune-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 58px 24px;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.rb-tune-label.is-changed {
+  color: var(--rb-accent-hi);
+}
+
+.rb-tune-row input {
+  accent-color: var(--rb-accent);
+  min-width: 0;
+}
+
+.rb-tune-row output {
+  font-family: var(--rb-mono);
+  font-size: 12px;
+  text-align: right;
+}
+
+.rb-tune-reset {
+  background: none;
+  border: 0;
+  color: var(--rb-text);
+  cursor: pointer;
+}
+
+.rb-tune-reset:disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+
+.rb-tune-foot,
+.rb-tune-import {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--rb-line);
+}
+
+.rb-tune-import textarea {
+  width: 100%;
+  height: 90px;
+  background: #000;
+  color: var(--rb-text);
+  border: 1px solid var(--rb-line);
+  font-family: var(--rb-mono);
+  font-size: 11px;
+  user-select: text;
+}
+
+.rb-tune-note {
+  padding: 0 12px 10px;
+  color: var(--rb-dim);
+  font-family: var(--rb-mono);
+  font-size: 11px;
+  white-space: pre-wrap;
+  user-select: text;
+}
+
+.rb-debug {
+  position: absolute;
+  z-index: 30;
+  right: 16px;
+  top: 16px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
+.rb-debug canvas {
+  display: block;
+}
+
+.rb-debug pre {
+  margin: 6px 0 0;
+  font-family: var(--rb-mono);
+  font-size: 11px;
+  line-height: 1.45;
+  color: #d8f5e2;
+}

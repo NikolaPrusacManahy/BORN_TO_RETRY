@@ -1,0 +1,49 @@
+/* M1 — base: colours, fonts, the full-window game and its canvas. */
+:root {
+  --rb-bg: #0b0a0c;
+  --rb-panel: rgba(18, 15, 20, 0.92);
+  --rb-line: rgba(255, 255, 255, 0.1);
+  --rb-text: #ece6ee;
+  --rb-dim: #9a919f;
+  --rb-accent: #e8462b;
+  --rb-accent-hi: #ff6a45;
+  --rb-ui: 1;
+  --rb-font: 'Chakra Petch', system-ui, sans-serif;
+  --rb-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--rb-bg);
+  color: var(--rb-text);
+  font-family: var(--rb-font);
+  user-select: none;
+}
+
+/* No visible scrollbars anywhere. */
+* {
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
+.rb-game {
+  position: fixed;
+  inset: 0;
+}
+
+.rb-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  z-index: 0;
+}

@@ -1,0 +1,95 @@
+// M1 — one movement tick: timers → actions (dash, slam, slide, jumps) → velocity → collision → landing.
+// Each mechanic lives in its own module; this file only decides the order.
+import { Vector3 } from 'three';
+import { MOVE, WALL } from '../../tuning/movement';
+import type { JumpPad } from '../../world/arena';
+import type { CollisionWorld, MoveResult } from '../collisionWorld';
+import { airMove, applyGravity } from './air';
+import { refillDash, tryStartDash, updateDash } from './dash';
+import { groundMove } from './ground';
+import type { PlayerIntent } from './intent';
+import { tryGroundJump, updateJumpTimers } from './jump';
+import { checkPads } from './jumpPad';
+import { landSlam, tryStartSlam, updateSlam } from './slam';
+import { canStartSlide, endSlide, startSlide, updateSlide } from './slide';
+import type { PlayerState } from './state';
+import { applyWallSlide, tryWallJump } from './wallJump';
+
+/** While on the ground, each tick asks to move this far down so ground contact is never lost (m). */
+export const GROUND_STICK = 0.02;
+
+// Scratch objects: one tick makes no garbage.
+const wish = new Vector3();
+const wallN = new Vector3();
+const delta = new Vector3();
+const move: MoveResult = { grounded: false, hitCeiling: false, wall: false, wallNormal: new Vector3() };
+
+/** The wanted direction on the ground plane (length 1, or 0 with no input). */
+export function wishDirection(moveX: number, moveZ: number, yaw: number, out: Vector3): Vector3 {
+  const s = Math.sin(yaw);
+  const c = Math.cos(yaw);
+  // Forward is (-sin, -cos); right is (cos, -sin).
+  out.set(-s * moveZ + c * moveX, 0, -c * moveZ - s * moveX);
+  const len = Math.hypot(out.x, out.z);
+  if (len > 1e-6) out.multiplyScalar(1 / len);
+  else out.set(0, 0, 0);
+  return out;
+}
+
+export function stepPlayer(p: PlayerState, intent: PlayerIntent, world: CollisionWorld, pads: readonly JumpPad[], dt: number) {
+  p.yaw = intent.yaw;
+  updateJumpTimers(p, intent.jumpPressed, dt);
+  p.slamBounce = Math.max(0, p.slamBounce - dt);
+  p.invuln = Math.max(0, p.invuln - dt);
+  refillDash(p, dt);
+  wishDirection(intent.moveX, intent.moveZ, p.yaw, wish);
+
+  // Actions.
+  tryStartDash(p, intent.dashPressed, wish);
+  tryStartSlam(p, intent.slidePressed);
+  if (canStartSlide(p, intent.slideHeld)) startSlide(p, wish);
+  if (p.jumpBuffer > 0 && !tryGroundJump(p)) tryWallJump(p, world, wallN);
+
+  // Velocity.
+  if (p.dashTime > 0) updateDash(p, dt);
+  else if (p.slamming) updateSlam(p);
+  else {
+    if (p.sliding) updateSlide(p, wish, dt);
+    else if (p.grounded) groundMove(p.vel, wish.x, wish.z, dt);
+    else airMove(p.vel, wish.x, wish.z, dt);
+    if (!p.grounded) {
+      applyGravity(p.vel, dt);
+      applyWallSlide(p, wish);
+    }
+  }
+  checkPads(p, pads);
+
+  // Collision.
+  const wasGrounded = p.grounded;
+  const fallSpeed = -p.vel.y;
+  delta.copy(p.vel).multiplyScalar(dt);
+  if (p.grounded && p.vel.y <= 0) delta.y = -GROUND_STICK;
+  world.movePlayer(p.pos, delta, p.sliding, move);
+
+  p.onWall = move.wall;
+  if (move.wall) {
+    p.wallNormal.copy(move.wallNormal);
+    // Speed into the wall is lost; speed along it is kept.
+    const into = p.vel.x * move.wallNormal.x + p.vel.z * move.wallNormal.z;
+    if (into < 0) {
+      p.vel.x -= move.wallNormal.x * into;
+      p.vel.z -= move.wallNormal.z * into;
+    }
+  }
+  if (move.hitCeiling && p.vel.y > 0) p.vel.y = 0;
+
+  p.grounded = move.grounded && p.vel.y <= 0;
+  if (wasGrounded && !p.grounded && p.vel.y <= 0) p.coyote = MOVE.v.coyoteTime; // walked off a ledge
+  if (!wasGrounded && p.grounded) {
+    p.wallJumpsLeft = WALL.v.count;
+    if (p.slamming) landSlam(p, fallSpeed);
+    else p.events.push('land', Math.max(0, fallSpeed));
+  }
+  if (p.grounded) p.vel.y = 0;
+  if (p.sliding && (!p.grounded || (!intent.slideHeld && world.canStand(p.pos)))) endSlide(p);
+}
