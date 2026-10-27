@@ -1,6 +1,7 @@
 // Update 0.0.4 — the main menu: the gate scene (the shipped .glb, parsed here) has every node the code needs, the
 // menu shot frames the gate low with sky left for the logo, and Start raises the portcullis (out of the doorway,
 // never out of the wall's top) before the fade to black, then leaves the gate shut again for next time.
+// Update 0.0.5 — the dressing: trees grow from earth, never paving (the designer), and every prop stands on something.
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -18,11 +19,11 @@ section('Menu — the gate scene');
 {
   const missing = MENU_NODES.filter((n) => !root.getObjectByName(n));
   check('the model has every node the menu uses', missing.length === 0, `missing ${missing.join(', ')}`);
-  let fire = false;
+  let fires = 0;
   root.traverse((o) => {
-    if (o instanceof THREE.Mesh && (o.material as THREE.Material).name === 'Fire') fire = true;
+    if (o instanceof THREE.Mesh && (o.material as THREE.Material).name.startsWith('Fire')) fires++;
   });
-  check('the torches have their Fire material (it glows in the game)', fire);
+  check('the torches and the campfire have their Fire material (it glows in the game)', fires >= 3, `${fires} fire meshes`);
 }
 
 root.updateMatrixWorld(true);
@@ -48,6 +49,33 @@ function firstHit(p: THREE.Vector3): THREE.Object3D | null {
   ray.set(shot.pos, dir.clone().normalize());
   ray.far = dir.length();
   return ray.intersectObjects(solids, true)[0]?.object ?? null;
+}
+
+section('Menu — the dressing');
+{
+  const within = (o: THREE.Object3D, anc: THREE.Object3D) => {
+    for (let a: THREE.Object3D | null = o; a; a = a.parent) if (a === anc) return true;
+    return false;
+  };
+  /** The first thing straight below `p`, ignoring anything inside `skip`. */
+  const below = (p: THREE.Vector3, skip: THREE.Object3D[]) => {
+    ray.set(p, DOWN);
+    ray.far = 50;
+    return ray.intersectObjects(solids.filter((o) => !skip.some((s) => within(o, s))), false)[0] ?? null;
+  };
+  const named = (re: RegExp) => root.children.filter((o) => re.test(o.name));
+  const trees = named(/^BirchTree/);
+  const onPaving = trees.filter((t) => {
+    const hit = below(t.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 0.5, 0)), trees);
+    return !hit || ((hit.object as THREE.Mesh).material as THREE.Material).name !== 'Soil';
+  });
+  check('every tree grows from a bed of earth, not from paving', trees.length >= 2 && onPaving.length === 0, `${trees.length} trees; on paving: ${onPaving.map((t) => t.name).join(', ')}`);
+  const props = named(/^(Statue_Horse|Crate|Barrel|Woodfire)/);
+  const floating = props.filter((o) => {
+    const hit = below(o.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 0.3, 0)), [o]);
+    return !hit || hit.distance > 0.45;
+  });
+  check('statues, crates, barrels and the campfire all stand on something', props.length >= 6 && floating.length === 0, `${props.length} props; floating: ${floating.map((o) => o.name).join(', ')}`);
 }
 
 section('Menu — the menu shot');

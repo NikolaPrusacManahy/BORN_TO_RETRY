@@ -67,7 +67,7 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `world/arenas/feelLab.ts` | The M1 gray-box arena |
 | `engine/Game.ts` | Wiring and the frame loop only, in three modes: `menu` (the gate scene), `intro` (Start pressed: the gate opening), `play` (the lab) |
 | `engine/overlayFeed.ts` | What the HUD and the F2 overlay show, read from the sim once a frame |
-| `engine/menu/menuScene.ts` | The main menu's gate scene: loads `public/models/menu/gate.glb`, reads the menu shot, lights, torch flicker, dust, idle drift; raises the portcullis after Start |
+| `engine/menu/menuScene.ts` | The main menu's gate scene: loads `public/models/menu/gate.glb`, reads the menu shot, lights, flickering flames (torches, campfire), dust, idle drift; raises the portcullis after Start |
 | `engine/menu/introTimeline.ts` | What Start plays, as pure timing: the gate lift, when the fade to black starts, how long it lasts |
 | `engine/fx/dust.ts` | Drifting dust motes (one `Points` cloud, updated in place) |
 | `engine/cameraRig.ts` | Eye height, landing spring, step smoothing, FOV kick, roll, shake |

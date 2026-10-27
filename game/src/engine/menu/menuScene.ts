@@ -1,5 +1,5 @@
 // Main menu — the gate scene (built by tools/blender/build_menu_scene.py): a low shot up the stairs at the gate,
-// with flickering torches, drifting dust and a slow camera drift. Start (introTimeline.ts) grinds the portcullis
+// with flickering torches and a campfire, drifting dust and a slow camera drift. Start (introTimeline.ts) grinds the portcullis
 // up, then the screen fades to black.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -17,7 +17,14 @@ const SKY = 0x0d0c16;
 export type MenuEvent = 'fade' | 'done';
 
 /** The nodes the scene must have (see build_menu_scene.py). */
-export const MENU_NODES = ['Portcullis', 'Torch_L', 'Torch_R', 'GateGlow', 'Cam_Menu', 'Cam_Menu_Look'] as const;
+export const MENU_NODES = ['Portcullis', 'Torch_L', 'Torch_R', 'Campfire', 'GateGlow', 'Cam_Menu', 'Cam_Menu_Look'] as const;
+
+/** Flickering lights at the flame markers: node, intensity (cd), reach (m). */
+const FLAMES = [
+  ['Torch_L', 30, 16],
+  ['Torch_R', 30, 16],
+  ['Campfire', 24, 12],
+] as const;
 
 export interface MenuShot {
   /** Where the camera stands, and the point it looks at. */
@@ -44,7 +51,7 @@ export class MenuScene {
   private shot: MenuShot | null = null;
   private portcullis: THREE.Object3D | null = null;
   private gateBaseY = 0;
-  private torches: { light: THREE.PointLight; seed: number }[] = [];
+  private flames: { light: THREE.PointLight; base: number; seed: number }[] = [];
   private gateLight = new THREE.PointLight(0xfff0dc, 40, 22, 2);
   private dust: Dust | null = null;
   private time = 0;
@@ -87,7 +94,8 @@ export class MenuScene {
       if (!(o instanceof THREE.Mesh)) return;
       o.castShadow = o.receiveShadow = o.name !== 'GateGlow';
       const m = o.material as THREE.MeshStandardMaterial;
-      if (m.name === 'Fire') {
+      // Blender names a second piece's fire material Fire.001, and so on.
+      if (m.name.startsWith('Fire')) {
         m.emissive.setHex(0xff7a22);
         m.emissiveIntensity = 2.5;
       } else if (o.name !== 'GateGlow') {
@@ -95,12 +103,12 @@ export class MenuScene {
         m.metalness = 0;
       }
     });
-    for (const [name, seed] of [['Torch_L', 1], ['Torch_R', 7]] as const) {
-      const light = new THREE.PointLight(0xff8a3c, 30, 16, 2);
+    FLAMES.forEach(([name, base, reach], i) => {
+      const light = new THREE.PointLight(0xff8a3c, base, reach, 2);
       root.getObjectByName(name)!.getWorldPosition(light.position);
       this.scene.add(light);
-      this.torches.push({ light, seed });
-    }
+      this.flames.push({ light, base, seed: 1 + i * 6 });
+    });
     // The light through the bars: from just inside the gate, out over the landing.
     root.getObjectByName('GateGlow')!.getWorldPosition(this.gateLight.position);
     this.gateLight.position.z += 2.5; // towards the stairs (the scene faces +z)
@@ -132,9 +140,9 @@ export class MenuScene {
   update(dt: number): MenuEvent | null {
     this.time += dt;
     this.dust?.update(dt);
-    for (const t of this.torches) {
+    for (const t of this.flames) {
       const f = Math.sin(this.time * 9 + t.seed) * 0.5 + Math.sin(this.time * 23 + t.seed * 3) * 0.3 + Math.sin(this.time * 5.3 + t.seed) * 0.2;
-      t.light.intensity = 30 * (0.85 + 0.15 * f);
+      t.light.intensity = t.base * (0.85 + 0.15 * f);
     }
     const shot = this.shot;
     if (!shot) return null;

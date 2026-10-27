@@ -2,7 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-27): Update 0.0.4
+## Current state (2026-10-27): Update 0.0.5
+- **Update 0.0.5 — the menu scene dressed:** two rearing horse statues guard the foot of the stairs; crates, barrels and a campfire on the right; a pale dead tree at each side (Ultimate Nature Pack), each growing from a bed of earth where a flagstone was lifted (the designer: no trees on paving). The yard is now paved right up to the wall (it stopped 4 m short, under the statues).
+  - **The Ultimate Nature Pack in `ASSETS/` looks partial:** 50 `.blend` files, stopping at `CommonTree_Autumn_4` (birches, bushes, cacti, common trees). The rocks, logs, stumps, grass and pines aren't there, likely the rest of a split download.
 - **Update 0.0.4 — the main menu** (the designer's idea, outside the M1 plan): a low shot up a staircase at a dungeon gate built from the Modular Dungeon Pack, with the BORN TO RETRY logo in the sky. Start grinds the portcullis up, the screen fades to black, and the black clears off the Feel Lab.
 - **Milestone: M1 — The Feel Lab** (`MD_UPDATES/M1_FEEL_LAB.md`).
   - **Done:** steps 1–5 (scaffold, loop, tuning, arena, movement and camera), step 6 (the arms and fists), and the hit-feel part of step 8.
@@ -13,7 +15,7 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
 
 ## What to try in-game
 Run `START_GAME.bat`. The main menu opens on the gate.
-- **Main menu:** the torches flicker, dust drifts, the camera sways slowly. Start (or Enter / Space) locks the mouse, the portcullis grinds up into the wall (about 1.3 s), and the screen fades to black into the lab. Settings and Controls open panels over the scene. The pause menu has **Main menu** to come back.
+- **Main menu:** the torches and the campfire flicker, dust drifts, the camera sways slowly. Start (or Enter / Space) locks the mouse, the portcullis grinds up into the wall (about 1.3 s), and the screen fades to black into the lab. Settings and Controls open panels over the scene. The pause menu has **Main menu** to come back.
 - If Esc is pressed while the gate opens, the lab starts paused (click Resume).
 - **Moves:** WASD, Space jump / wall jump, Shift dash (3 charges).
   - C slides for up to 0.5 s; press again to slide again. Pressed in the air, the slide starts on landing and eases in.
@@ -75,6 +77,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 - The ground slam is not in the base kit: it comes later as an unlockable skill (its code is kept, with no key).
 - The name is **Born To Retry**. The main menu is the gate scene; Start opens the gate and fades to black (Update 0.0.4: the first-person walk-in was cut).
 - **No hints players already understand** on any interface: no key labels beside buttons, no how-to text, no status notes (Update 0.0.4).
+- **Scenes make physical sense** even off camera: trees grow from earth, never paving; props stand on real ground (Update 0.0.5). `test-menu.ts` raycasts down from each to check.
 
 ## Open questions waiting on the designer
 1. ~~The game's name~~: decided, **Born To Retry**.
@@ -93,4 +96,4 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 
 ## Not verified
 Claude has seen and heard none of this in the game: the feel, the arms on screen, the targets, effects, sounds and menus are all unverified until played. The tests check the rules, the collision, and that the shipped arms pose correctly.
-- **The main menu:** only the Blender previews of the scene were seen. In the browser, unseen: the logo and buttons over the scene, the lighting (torch flicker, gate light, shadows, fog), the dust, the gate's pace, the fade to black and back, and the gate's synth grind. `test-menu.ts` checks the scene's nodes, the menu shot's framing, that the gate is open before the fade (and never pokes out of the wall's top), and the timing.
+- **The main menu:** only the Blender previews of the scene were seen. In the browser, unseen: the logo and buttons over the scene, the statues, crates and trees under the game's own lighting, the lighting itself (torch and campfire flicker, gate light, shadows, fog), the dust, the gate's pace, the fade to black and back, and the gate's synth grind. `test-menu.ts` checks the scene's nodes, the menu shot's framing, that the gate is open before the fade (and never pokes out of the wall's top), and the timing.
