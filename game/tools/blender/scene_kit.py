@@ -79,6 +79,52 @@ def flat_material(name, rgb, roughness=1.0):
     return mat
 
 
+def frame(y, z):
+    """A rotation whose y axis is `y` and whose z axis is as close to `z` as it can be (from cut_arms.py)."""
+    y = y.normalized()
+    z = (z - y * z.dot(y)).normalized()
+    return Matrix((y.cross(z), y, z)).transposed()
+
+
+def orient_bone(arm, name, y_dir, back_dir):
+    """Turns a pose bone to point along `y_dir` with its rest +z side (the back of the hand in the Quaternius
+    T-pose) facing `back_dir`; its head stays where its parent put it (from cut_arms.py)."""
+    bpy.context.view_layer.update()
+    rest = arm.data.bones[name].matrix_local.to_3x3()
+    turn = frame(Vector(y_dir), Vector(back_dir)) @ frame(rest @ Vector((0, 1, 0)), Vector((0, 0, 1))).inverted()
+    pb = arm.pose.bones[name]
+    m = (turn @ rest).to_4x4()
+    m.translation = pb.head.copy()
+    pb.matrix = m
+    bpy.context.view_layer.update()
+
+
+def bake_posed(objs, name):
+    """The meshes among `objs` as one static mesh in their current pose (armature deform and bone parents applied),
+    in world space. The originals (and their armature) are removed."""
+    scene = bpy.context.scene
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    baked = []
+    for o in objs:
+        if o.type != 'MESH':
+            continue
+        e = o.evaluated_get(dg)
+        me = bpy.data.meshes.new_from_object(e, depsgraph=dg)
+        me.transform(e.matrix_world)
+        b = bpy.data.objects.new(name, me)
+        scene.collection.objects.link(b)
+        baked.append(b)
+    for o in objs:
+        bpy.data.objects.remove(o, do_unlink=True)
+    if len(baked) > 1:
+        with bpy.context.temp_override(active_object=baked[0], object=baked[0], selected_objects=baked, selected_editable_objects=baked):
+            bpy.ops.object.join()
+    out = baked[0]
+    out.name = name
+    return out
+
+
 def setup_previews(engine, folder):
     """Render settings and a camera for `shoot`."""
     os.makedirs(folder, exist_ok=True)

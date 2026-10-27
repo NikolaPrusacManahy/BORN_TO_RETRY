@@ -5,14 +5,19 @@
 // M1 step 8 — dying fades to black too, and the black clears when you're back at the start. F4: invincible.
 // Update 0.0.7 — Settings fades through black to the night camp (the settings screen, controls included); Back
 // fades back to the gate.
+// Update 0.0.8 — Start opens the gate onto the prison corridor, the character select. Play locks the mouse (its click
+// is the gesture browsers need) and fades into the lab; Esc fades back to the gate.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MenuView } from './engine/Game';
 import { CAMP_FADE } from './engine/menu/campScene';
+import { PRISON } from './engine/menu/prisonScene';
+import { ROSTER, stepCell } from './sim/characters';
 import { INTRO } from './engine/menu/introTimeline';
 import { HEALTH } from './tuning/health';
 import { LAB } from './tuning/lab';
 import { setKnob } from './tuning/schema';
 import { CampMenu } from './screens/CampMenu';
+import { CharacterSelect } from './screens/CharacterSelect';
 import { GameHandle, GameView } from './screens/GameView';
 import { MainMenu } from './screens/MainMenu';
 import { PauseMenu } from './screens/PauseMenu';
@@ -21,7 +26,7 @@ import { DebugOverlay } from './screens/DebugOverlay';
 import { Settings, loadSave, writeSave } from './state/settings';
 import { devKeyAction, devToolsEnabled } from './state/devTools';
 
-type Phase = 'menu' | 'intro' | 'playing' | 'paused';
+type Phase = 'menu' | 'intro' | 'select' | 'playing' | 'paused';
 
 /** How long the black takes to clear off the lab (s). */
 const FADE_OUT = 0.5;
@@ -39,6 +44,11 @@ export default function App() {
   /** Going between the gate and the camp: the screen is fading to black. */
   const [switching, setSwitching] = useState(false);
   const switchTimer = useRef(0);
+  /** Character select: the selected cell, and Play pressed (fading into the lab). */
+  const [cell, setCell] = useState(0);
+  const cellRef = useRef(0);
+  const [startingRun, setStartingRun] = useState(false);
+  const runTimer = useRef(0);
   const view = useRef<GameHandle>(null);
   const tuningRef = useRef(false);
   const phaseRef = useRef<Phase>('menu');
@@ -59,14 +69,40 @@ export default function App() {
     const g = getGame();
     if (!g || phaseRef.current !== 'menu') return;
     go('intro');
-    // Lock now, inside the click / key press (browsers require one); the gate opening ignores the mouse.
-    void g.lock();
     g.startIntro();
   }, [getGame, go]);
 
-  /** Fade to black, swap the menu's scene, fade back in. */
+  const stepSelect = useCallback(
+    (step: number) => {
+      const next = stepCell(cellRef.current, step);
+      if (next === cellRef.current) return;
+      cellRef.current = next;
+      setCell(next);
+      getGame()?.selectCell(next);
+    },
+    [getGame],
+  );
+
+  const playSelected = useCallback(() => {
+    const g = getGame();
+    const c = ROSTER[cellRef.current];
+    if (!g || runTimer.current) return;
+    if (!c.available) return g.rattleCell();
+    setStartingRun(true);
+    // Lock now, inside the click / key press (browsers require one); the fade ignores the mouse.
+    void g.lock();
+    setBlack(PRISON.fade);
+    runTimer.current = window.setTimeout(() => {
+      runTimer.current = 0;
+      setStartingRun(false);
+      g.startRun(c.id);
+    }, PRISON.fade * 1000);
+  }, [getGame]);
+  useEffect(() => () => window.clearTimeout(runTimer.current), []);
+
+  /** Fade to black, swap the menu's scene (and run `then`), fade back in. */
   const switchMenu = useCallback(
-    (to: MenuView) => {
+    (to: MenuView, then?: () => void) => {
       if (switchTimer.current) return;
       setSwitching(true);
       setBlack(CAMP_FADE);
@@ -74,6 +110,7 @@ export default function App() {
         switchTimer.current = 0;
         getGame()?.showMenuView(to);
         setMenuView(to);
+        then?.();
         setSwitching(false);
         setBlack(null);
       }, CAMP_FADE * 1000);
@@ -85,16 +122,26 @@ export default function App() {
   const onLockChange = useCallback(
     (locked: boolean) => {
       const ph = phaseRef.current;
-      if (ph === 'menu' || ph === 'intro') return;
+      if (ph === 'menu' || ph === 'intro' || ph === 'select') return;
       if (locked) go('playing');
       else if (!tuningRef.current && ph === 'playing') go('paused');
     },
     [go],
   );
 
-  const onIntroDone = useCallback(
+  /** Through the gate: the corridor shows under the black. */
+  const onIntroDone = useCallback(() => {
+    cellRef.current = 0;
+    setCell(0);
+    setMenuView('prison');
+    setBlack(null);
+    go('select');
+  }, [go]);
+
+  const onRunStart = useCallback(
     (locked: boolean) => {
       setBlack(null);
+      setMenuView('gate');
       go(locked ? 'playing' : 'paused');
     },
     [go],
@@ -138,14 +185,16 @@ export default function App() {
   };
 
   const onMenu = phase === 'menu' || phase === 'intro';
+  const inGame = phase === 'playing' || phase === 'paused';
   return (
     <GameView
       ref={view}
       settings={save.settings}
-      showHud={!onMenu}
+      showHud={inGame}
       onLockChange={onLockChange}
       onIntroFade={() => setBlack(INTRO.fade)}
       onIntroDone={onIntroDone}
+      onRunStart={onRunStart}
       onDeath={() => setBlack(HEALTH.v.deathFade)}
       onRespawn={() => setBlack(null)}
       onReady={() => setReady(true)}
@@ -159,6 +208,16 @@ export default function App() {
           onChange={changeSettings}
           onFullscreen={() => void toggleFullscreen()}
           onBack={() => switchMenu('gate')}
+        />
+      )}
+      {phase === 'select' && !tuning && (
+        <CharacterSelect
+          index={cell}
+          bindings={save.settings.bindings}
+          leaving={switching || startingRun}
+          onStep={stepSelect}
+          onPlay={playSelected}
+          onBack={() => switchMenu('gate', () => go('menu'))}
         />
       )}
       {phase === 'paused' && !tuning && (

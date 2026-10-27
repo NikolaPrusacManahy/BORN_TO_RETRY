@@ -1,6 +1,6 @@
 # Pipeline: the menu's scenes
 
-Two scenes, each built by its own Blender script with shared helpers (`game/tools/blender/scene_kit.py`): the main menu's gate (below) and the settings camp (at the end).
+Three scenes, each built by its own Blender script with shared helpers (`game/tools/blender/scene_kit.py`): the main menu's gate (below), the settings camp, and the character select's prison corridor (at the end).
 
 ## The gate (Update 0.0.4)
 The main menu is a 3D scene built in Blender from Quaternius's **Modular Dungeon Pack** and **Ultimate Nature Pack** (both CC0, both flat colour) by a script, then loaded by the game as one `.glb`.
@@ -55,3 +55,19 @@ Run (from `game/`):
 blender --background --disable-autoexec --python tools/blender/build_camp_scene.py -- --kit "../ASSETS/QUATERNIUS/Modular Dungeon Pack" --nature "../ASSETS/QUATERNIUS/Ultimate Nature Pack" --glb public/models/menu/camp.glb --previews <a scratch folder>
 ```
 Previews: `Cam_Camp.png` (the shot), `Cam_Camp_From.png` (the glide's start) and `Overview.png`. Then `npm run verify`: `tests/test-camp.ts` checks the nodes, that everything stands on the ground with nothing grown together, the fire in sight on the left, and the glide.
+
+## The prison corridor (Update 0.0.8)
+`game/tools/blender/build_prison_scene.py` builds a corridor with a row of barred cells (dungeon pack arches, portcullis bars as doors, columns between), torches on the opposite wall, and one character per cell. Characters are the Quaternius `.blend` files (in `ASSETS/QUATERNIUS/Humanoid Rig/Individual Characters/Blend/`), posed out of the T-pose with the arms tool's bone math (`orient_bone`) and baked into static meshes (`bake_posed`). A missing file stands as a dark silhouette until it's there. Broken bits in the source meshes are repaired before export.
+
+| Node | Used for |
+|---|---|
+| `Char_<id>`, `Door_<id>`, `Cell_<id>` | The character, its cell's bars (they lift; `DOOR_LIFT` 2.6 m is all the wall above hides), where it stands |
+| `Cam_<id>`, `Look_<id>` | The camera facing that cell (`PRISON_VFOV`, 58°) |
+| `CellLight_<id>`, `Torch_<n>` | The cell's light, the torches' flames |
+| `Cam_Prison_From`, `Look_Prison_From` | The glide in's start, at the corridor's end |
+
+Ids and cell order come from `game/src/sim/characters.ts` (`CHARACTERS` in the script must match). Run (from `game/`):
+```
+blender --background --disable-autoexec --python tools/blender/build_prison_scene.py -- --kit "../ASSETS/QUATERNIUS/Modular Dungeon Pack" --characters "../ASSETS/QUATERNIUS/Humanoid Rig/Individual Characters/Blend" --glb public/models/menu/prison.glb --previews <a scratch folder>
+```
+Previews: `From.png` (down the corridor), `Cell_<id>.png` for each cell, `Cell_adventurer_open.png`. Then `npm run verify`: `tests/test-prison.ts`.

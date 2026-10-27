@@ -1,0 +1,134 @@
+/* Update 0.0.8 — the character select over the prison corridor: the name card bottom left (the character stands in
+   the middle of the screen), arrows at the screen's edges, a dot per cell along the bottom. The card slides in again
+   for each character. Sized in viewport units, like the main menu. */
+.rb-select {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  background: linear-gradient(to top right, rgba(5, 4, 8, 0.75), rgba(5, 4, 8, 0) 45%);
+  transition: opacity 0.3s;
+}
+
+.rb-select > * {
+  pointer-events: auto;
+}
+
+.rb-select.is-leaving {
+  opacity: 0;
+}
+
+.rb-select.is-leaving * {
+  pointer-events: none;
+}
+
+.rb-select-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) skewX(-10deg);
+  padding: 0 0.3em;
+  border: 0;
+  background: none;
+  color: var(--rb-text);
+  font-family: var(--rb-font);
+  font-size: min(7vw, 12vh);
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.8);
+  cursor: pointer;
+  transition: color 0.12s;
+}
+
+.rb-select-arrow.is-left {
+  left: 2.5vw;
+}
+
+.rb-select-arrow.is-right {
+  right: 2.5vw;
+}
+
+.rb-select-arrow:hover:not(:disabled) {
+  color: var(--rb-accent-hi);
+}
+
+.rb-select-arrow:disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+
+.rb-select-card {
+  position: absolute;
+  left: 6vw;
+  bottom: 11vh;
+  animation: rb-select-card-in 0.35s cubic-bezier(0.2, 0.9, 0.2, 1) backwards;
+}
+
+@keyframes rb-select-card-in {
+  from {
+    opacity: 0;
+    transform: translateX(-3vw);
+  }
+}
+
+.rb-select-name {
+  font-family: 'Anton', var(--rb-font);
+  font-size: min(5.5vw, 9.5vh);
+  line-height: 1;
+  color: #fff6ef;
+  transform: skewX(-10deg);
+  text-shadow:
+    0.045em 0.045em 0 var(--rb-accent),
+    0.09em 0.09em 0 rgba(0, 0, 0, 0.55);
+}
+
+.rb-select-kit {
+  margin-top: 1.4vh;
+  font-size: max(13px, min(1.3vw, 2.3vh));
+  letter-spacing: 0.08em;
+  color: var(--rb-text);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9);
+}
+
+.rb-select-play {
+  margin-top: 2.6vh;
+}
+
+.rb-select-locked {
+  display: inline-block;
+  margin-top: 2.6vh;
+  padding: 0.35em 0.9em;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-family: var(--rb-mono);
+  font-size: max(12px, min(1.1vw, 1.9vh));
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--rb-dim);
+  transform: skewX(-10deg);
+}
+
+.rb-select-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 4.5vh;
+  display: flex;
+  gap: 8px;
+  transform: translateX(-50%);
+}
+
+.rb-select-dots i {
+  width: 36px;
+  height: 6px;
+  transform: skewX(-20deg);
+  background: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  transition: background 0.15s;
+}
+
+.rb-select-dots i.is-locked {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.rb-select-dots i.is-on {
+  background: var(--rb-accent);
+}

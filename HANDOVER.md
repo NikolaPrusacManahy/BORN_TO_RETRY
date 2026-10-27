@@ -2,7 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-27): Update 0.0.7
+## Current state (2026-10-27): Update 0.0.8
+- **Update 0.0.8 — the character select** (the designer's idea): Start opens the gate onto a prison corridor. A row of barred cells holds the roster: **Joseph** (the Adventurer: fists only, picks up used weapons), **Fallen King**, **William Rich** (the suit) and **Alpha Team** (the Swat). Only Joseph is playable; the others are there to show the roster. Walking the corridor moves the camera from cell to cell: a playable character's bars lift as he's selected, a locked cell's bars rattle. Play locks the mouse and fades into the lab; Esc fades back to the gate. The characters are the Quaternius models, posed out of their T-pose and baked in Blender, breathing a little in the game.
+  - The HUD's health readout is twice the size.
 - **Update 0.0.7 — the settings camp** (the designer's idea): Settings on the main menu fades through black to a night camp in a forest clearing. The camera glides in to sit on a log by a campfire (embers, stars, crackling), and the options panel sits on the right. The controls live inside Settings now (tabs: General, Controls), in the camp and in the pause menu; the main menu has only Start and Settings. Back or Esc fades back to the gate.
   - The camp's logs and fire-ring stones are simple low-poly shapes made in Blender: the Ultimate Nature Pack in `ASSETS/` is still partial (no logs, stumps, rocks, pines or grass). With the rest of the pack, its own logs and rocks can replace them.
 - **Update 0.0.6 — M1 steps 8 and 9:** health and rebinding.
@@ -21,7 +23,7 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
 
 ## What to try in-game
 Run `START_GAME.bat`. The main menu opens on the gate.
-- **Main menu:** the torches and the campfire flicker, dust drifts, the camera sways slowly. Start (or Enter / Space) locks the mouse, the portcullis grinds up into the wall (about 1.3 s), and the screen fades to black into the lab. Settings fades to the night camp (General and Controls tabs); Back or Esc returns. The pause menu has the same tabs, and **Main menu** to come back.
+- **Main menu:** the torches and the campfire flicker, dust drifts, the camera sways slowly. Start (or Enter / Space): the portcullis grinds up into the wall (about 1.3 s), the screen fades to black, and you're in the prison corridor to pick a character. ←/→ (or your left/right keys) walk the cells; Play (or Enter) locks the mouse and fades into the lab; Esc goes back to the gate. Settings fades to the night camp (General and Controls tabs); Back or Esc returns. The pause menu has the same tabs, and **Main menu** to come back.
 - If Esc is pressed while the gate opens, the lab starts paused (click Resume).
 - **Moves:** WASD, Space jump / wall jump, Shift dash (3 charges).
   - C slides for up to 0.5 s; press again to slide again. Pressed in the air, the slide starts on landing and eases in.
@@ -68,7 +70,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `MD/DESIGN.md` | The full game design, with placeholders marked |
 | `MD_UPDATES/M1_FEEL_LAB.md` | M1 scope, starting values, build order, tests |
 | `MD/PIPELINE_CHARACTER_ARMS.md` | How to cut first-person arms for a new character |
-| `MD/PIPELINE_MENU_SCENE.md` | How the menu's scenes (the gate, the settings camp) are built, and how to change them |
+| `MD/PIPELINE_MENU_SCENE.md` | How the menu's scenes (the gate, the settings camp, the prison corridor) are built, and how to change them |
 | `DEVELOPMENT.md` | Module map and contracts |
 | `ASSETS/QUATERNIUS/` | Downloaded Quaternius packs, one folder per pack (git-ignored) |
 
@@ -85,6 +87,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 - Only character unlocks and stats carry over between runs.
 - Fists: both fists low in the corners; jabs go left, right, left; the charged punch is the right hand; the quick punch is the left.
 - The ground slam is not in the base kit: it comes later as an unlockable skill (its code is kept, with no key).
+- **The roster (Update 0.0.8):** Joseph (the Adventurer), Fallen King (King), William Rich (Suit), Alpha Team (Swat), in that cell order. Only Joseph is playable for now. The first list also had a Cowboy and a Horse Guy; the designer's later list names these four.
 - The name is **Born To Retry**. The main menu is the gate scene; Start opens the gate and fades to black (Update 0.0.4: the first-person walk-in was cut).
 - **No hints players already understand** on any interface: no key labels beside buttons, no how-to text, no status notes (Update 0.0.4).
 - **Scenes make physical sense** even off camera: trees grow from earth, never paving; props stand on real ground (Update 0.0.5). `test-menu.ts` raycasts down from each to check.
@@ -109,3 +112,4 @@ Claude has seen and heard none of this in the game: the feel, the arms on screen
 - **The main menu:** only the Blender previews of the scene were seen. In the browser, unseen: the logo and buttons over the scene, the statues, crates and trees under the game's own lighting, the lighting itself (torch and campfire flicker, gate light, shadows, fog), the dust, the gate's pace, the fade to black and back, and the gate's synth grind. `test-menu.ts` checks the scene's nodes, the menu shot's framing, that the gate is open before the fade (and never pokes out of the wall's top), and the timing.
 - **Health and rebinding (Update 0.0.6):** unseen in the browser: the health bar, its trail and low pulse, the hurt flash and shake, the hurt and death sounds, the spikes, the death slow motion and fade, and the controls screen (binding a mouse button, the wheel, Esc to cancel). `test-health.ts` checks the health rules, blood heal through a real punch, orbs, spikes and the death timing; `test-bindings.ts` checks that any key, mouse button and wheel direction binds, with swaps.
 - **The settings camp (Update 0.0.7):** only the Blender previews were seen. Unseen in the browser: the camp under the game's lighting (fire light, moon, fog, stars, embers), the glide in, the fades between the gate and the camp, the crackle, and the panel over the scene. `test-camp.ts` checks the scene's nodes, that every tree, bush and log stands on the ground with nothing grown into anything else, the fire in sight on the left, and the glide.
+- **The character select (Update 0.0.8):** only the Blender previews were seen. Unseen in the browser: the corridor under the game's lighting, the glide in, the camera moving between cells, the bars lifting and rattling (and their sounds), the breathing, the name card, arrows and dots, and the fades. Also the bigger health readout. `test-prison.ts` checks the roster, the scene's nodes, each character on the floor in its cell clear of its bars, raised bars hidden in the wall, the glide, and the select (Joseph's bars lift, a locked cell stays shut, the camera follows).

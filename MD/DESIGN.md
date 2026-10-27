@@ -135,6 +135,8 @@ Arenas are **hand-made templates assembled from a seed**, not random geometry, b
 5. **Same seed, same run.** The seed shows on the run summary, so daily or shared-seed runs are easy later.
 
 ## 12. Characters **(placeholder)**
+- **The roster (Update 0.0.8, the designer):** Joseph (the Adventurer): fists only, picks up used weapons. Fallen King, William Rich and Alpha Team are in the select screen, locked; their kits come later.
+- **Character select:** Start opens the gate onto a prison corridor, one character per barred cell. Selecting a playable character lifts his cell's bars; a locked cell stays shut.
 - You start with one character. Winning a run unlocks the next one.
 - Each character has a **fist style**, a **movement twist** and a **passive**. Examples:
   - The Boxer (starter): fast jab combo, standard movement.

@@ -17,5 +17,6 @@ import './test-arms';
 import './test-health';
 import './test-menu';
 import './test-camp';
+import './test-prison';
 
 process.exit(summary() > 0 ? 1 : 0);

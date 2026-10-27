@@ -3,6 +3,7 @@
 // Update 0.0.4 — it opens on the main menu's gate scene (engine/menu/); Start opens the gate, then the lab.
 // M1 step 8 — the play loop moved to labRun.ts when health and death joined.
 // Update 0.0.7 — the menu has a second view: the night camp, where the settings are.
+// Update 0.0.8 — and a third: the prison corridor, the character select, which the gate opens onto.
 import * as THREE from 'three';
 import { MAX_FRAME } from '../core/fixedStep';
 import { FrameStats } from '../core/frameStats';
@@ -12,26 +13,30 @@ import { requestLock, releaseLock } from '../platform/pointerLock';
 import { FullscreenState, enterFullscreen, exitFullscreen, state as fullscreenState } from '../platform/fullscreen';
 import { setLeaveGuard } from '../platform/leaveGuard';
 import type { RapierWorld } from '../physics/rapierWorld';
+import { CharacterId, ROSTER } from '../sim/characters';
 import type { Settings } from '../state/settings';
 import type { Arena } from '../world/arena';
 import { DebugInfo, HudStore, createDebugInfo } from './hudStore';
 import { LabRun, RunCallbacks } from './labRun';
 import { CampScene } from './menu/campScene';
 import { MenuScene } from './menu/menuScene';
+import { PrisonScene } from './menu/prisonScene';
 import { createRenderer } from './renderer';
 
-/** 'menu': the gate scene, idle; 'intro': Start pressed, the gate opening; 'play': the lab. */
+/** 'menu': a menu scene, idle; 'intro': Start pressed, the gate opening; 'play': the lab. */
 export type GameMode = 'menu' | 'intro' | 'play';
-/** Which scene the menu shows: the gate (main menu) or the camp (settings). */
-export type MenuView = 'gate' | 'camp';
+/** Which scene the menu shows: the gate (main menu), the camp (settings) or the prison (character select). */
+export type MenuView = 'gate' | 'camp' | 'prison';
 
 export interface GameCallbacks extends RunCallbacks {
   /** The mouse was locked (playing) or released (Esc, a dev panel, alt-tab). */
   onLockChange(locked: boolean): void;
   /** The gate is up: start the fade to black. */
   onIntroFade(): void;
-  /** The lab is running; `locked`: the mouse is still locked (Esc wasn't pressed meanwhile). */
-  onIntroDone(locked: boolean): void;
+  /** Through the gate: the prison corridor (character select) is showing, under the black. */
+  onIntroDone(): void;
+  /** The lab is running; `locked`: the mouse is locked (Play's click got it). */
+  onRunStart(locked: boolean): void;
 }
 
 export class Game {
@@ -43,6 +48,7 @@ export class Game {
   private readonly run: LabRun;
   private readonly menu: MenuScene;
   private readonly camp: CampScene;
+  private readonly prison: PrisonScene;
   private readonly resizeObs: ResizeObserver;
   private raf = 0;
   private last = performance.now();
@@ -64,6 +70,7 @@ export class Game {
     this.run = new LabRun(arena, physics, this.audio, this.renderer, hud, cb);
     this.menu = new MenuScene(this.audio);
     this.camp = new CampScene(this.audio);
+    this.prison = new PrisonScene(this.audio);
     this.setSettings(settings);
     document.addEventListener('pointerlockchange', this.onLockChange);
     window.addEventListener('keydown', this.onEsc);
@@ -90,26 +97,53 @@ export class Game {
     releaseLock();
   }
 
-  /** Resolves once the menu's scenes (the gate and the camp) have loaded. */
+  /** Resolves once the menu's scenes (the gate, the camp, the prison) have loaded. */
   get menuLoaded(): Promise<void> {
-    return Promise.all([this.menu.loaded, this.camp.loaded]).then(() => undefined);
+    return Promise.all([this.menu.loaded, this.camp.loaded, this.prison.loaded]).then(() => undefined);
   }
 
-  /** The menu's scene: the camp (settings; the camera glides in) or the gate. Called under the fade to black. */
+  /** The menu's scene: the gate, the camp (settings) or the prison (character select); the camp and the prison
+   *  glide their camera in. Called under the fade to black. */
   showMenuView(view: MenuView) {
     if (view === this.menuView) return;
     this.menuView = view;
     if (view === 'camp') this.camp.enter();
     else this.camp.leave();
+    if (view === 'prison') this.prison.enter(0);
   }
 
-  /** Start pressed: the gate opens, then the lab (straight to the lab if the menu scene failed to load). */
+  /** Start pressed: the gate opens onto the prison (straight there if the gate scene failed to load). */
   startIntro() {
     if (this.mode !== 'menu') return;
     this.audio.resume();
-    if (!this.menu.ready) return this.enterPlay();
+    if (!this.menu.ready) return this.throughTheGate();
     this.mode = 'intro';
     this.menu.startIntro();
+  }
+
+  private throughTheGate() {
+    this.mode = 'menu';
+    this.showMenuView('prison');
+    this.cb.onIntroDone();
+  }
+
+  /** Character select: the camera moves to cell `index` (its bars lift if the character is playable). */
+  selectCell(index: number) {
+    this.prison.select(index);
+  }
+
+  /** A locked character's bars rattle (Play pressed on one). */
+  rattleCell() {
+    this.prison.rattle();
+  }
+
+  /** Into the lab as `character` (only playable ones). Call once the screen is black. */
+  startRun(character: CharacterId) {
+    if (!ROSTER.find((c) => c.id === character)?.available) return;
+    this.mode = 'play';
+    this.restart();
+    this.input.clear();
+    this.cb.onRunStart(document.pointerLockElement === this.host);
   }
 
   /** Back to the main menu (the pause menu's Main menu): the mouse freed, the gate shut. */
@@ -119,13 +153,6 @@ export class Game {
     this.menu.reset();
     this.run.silence();
     releaseLock();
-  }
-
-  private enterPlay() {
-    this.mode = 'play';
-    this.restart();
-    this.input.clear();
-    this.cb.onIntroDone(document.pointerLockElement === this.host);
   }
 
   setSettings(s: Settings) {
@@ -185,10 +212,15 @@ export class Game {
       this.camp.render(this.renderer, this.aspect);
       return;
     }
+    if (this.menuView === 'prison' && this.prison.ready) {
+      this.prison.update(real);
+      this.prison.render(this.renderer, this.aspect);
+      return;
+    }
     const ev = this.menu.update(real);
     this.menu.render(this.renderer, this.aspect);
     if (ev === 'fade') this.cb.onIntroFade();
-    else if (ev === 'done') this.enterPlay();
+    else if (ev === 'done') this.throughTheGate();
   }
 
   dispose() {
@@ -203,6 +235,7 @@ export class Game {
     this.run.dispose();
     this.menu.dispose();
     this.camp.dispose();
+    this.prison.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
     this.physics.dispose();
