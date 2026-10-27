@@ -7,8 +7,12 @@ import './test-movement';
 import './test-dash';
 import './test-slide';
 import './test-walljump';
+import './test-wallrun';
 import './test-slam';
 import './test-physics';
 import './test-camera';
+import './test-fists';
+import './test-combat';
+import './test-arms';
 
 process.exit(summary() > 0 ? 1 : 0);

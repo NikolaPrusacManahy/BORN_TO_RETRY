@@ -25,8 +25,8 @@ export function tryGroundJump(p: PlayerState): boolean {
     p.dashTime = 0;
     p.events.push('dashJump');
   } else if (p.sliding) {
-    p.vel.x = p.slideDir.x * p.slideSpeed * SLIDE.v.jumpKeep;
-    p.vel.z = p.slideDir.z * p.slideSpeed * SLIDE.v.jumpKeep;
+    p.vel.x = p.slideDir.x * p.slideCur * SLIDE.v.jumpKeep;
+    p.vel.z = p.slideDir.z * p.slideCur * SLIDE.v.jumpKeep;
     endSlide(p);
     p.events.push('slideJump');
   } else if (p.slamBounce > 0) {

@@ -1,4 +1,4 @@
-// M1 — one movement tick: timers → actions (dash, slam, slide, jumps) → velocity → collision → landing.
+// M1 — one movement tick: timers → actions (dash, slide, wall run, jumps) → velocity → collision → landing.
 // Each mechanic lives in its own module; this file only decides the order.
 import { Vector3 } from 'three';
 import { MOVE, WALL } from '../../tuning/movement';
@@ -10,10 +10,11 @@ import { groundMove } from './ground';
 import type { PlayerIntent } from './intent';
 import { tryGroundJump, updateJumpTimers } from './jump';
 import { checkPads } from './jumpPad';
-import { landSlam, tryStartSlam, updateSlam } from './slam';
-import { canStartSlide, endSlide, startSlide, updateSlide } from './slide';
+import { landSlam, updateSlam } from './slam';
+import { armSlide, canStartSlide, endSlide, slideOver, startSlide, updateSlide } from './slide';
 import type { PlayerState } from './state';
 import { applyWallSlide, tryWallJump } from './wallJump';
+import { endWallRun, tryStartWallRun, updateWallRun, wallRunJump } from './wallRun';
 
 /** While on the ground, each tick asks to move this far down so ground contact is never lost (m). */
 export const GROUND_STICK = 0.02;
@@ -41,19 +42,25 @@ export function stepPlayer(p: PlayerState, intent: PlayerIntent, world: Collisio
   updateJumpTimers(p, intent.jumpPressed, dt);
   p.slamBounce = Math.max(0, p.slamBounce - dt);
   p.invuln = Math.max(0, p.invuln - dt);
+  p.wallRunCooldown = Math.max(0, p.wallRunCooldown - dt);
   refillDash(p, dt);
   wishDirection(intent.moveX, intent.moveZ, p.yaw, wish);
 
-  // Actions.
-  tryStartDash(p, intent.dashPressed, wish);
-  tryStartSlam(p, intent.slidePressed);
+  // Actions. Update 0.0.3 — the slide key no longer slams in the air: a slide pressed in the air waits for the
+  // landing (the slam has no key for now).
+  if (tryStartDash(p, intent.dashPressed, wish)) endWallRun(p);
+  armSlide(p, intent.slidePressed, intent.slideHeld);
   if (canStartSlide(p, intent.slideHeld)) startSlide(p, wish);
-  if (p.jumpBuffer > 0 && !tryGroundJump(p)) tryWallJump(p, world, wallN);
+  if (!p.grounded && !p.wallRunning) tryStartWallRun(p, intent, wish, world);
+  if (p.jumpBuffer > 0 && !tryGroundJump(p)) {
+    if (p.wallRunning) wallRunJump(p);
+    else tryWallJump(p, world, wallN);
+  }
 
   // Velocity.
   if (p.dashTime > 0) updateDash(p, dt);
   else if (p.slamming) updateSlam(p);
-  else {
+  else if (!(p.wallRunning && updateWallRun(p, intent, world, dt))) {
     if (p.sliding) updateSlide(p, wish, dt);
     else if (p.grounded) groundMove(p.vel, wish.x, wish.z, dt);
     else airMove(p.vel, wish.x, wish.z, dt);
@@ -86,10 +93,12 @@ export function stepPlayer(p: PlayerState, intent: PlayerIntent, world: Collisio
   p.grounded = move.grounded && p.vel.y <= 0;
   if (wasGrounded && !p.grounded && p.vel.y <= 0) p.coyote = MOVE.v.coyoteTime; // walked off a ledge
   if (!wasGrounded && p.grounded) {
+    endWallRun(p);
+    p.lastWallSet = false; // any wall can be run on again
     p.wallJumpsLeft = WALL.v.count;
     if (p.slamming) landSlam(p, fallSpeed);
     else p.events.push('land', Math.max(0, fallSpeed));
   }
   if (p.grounded) p.vel.y = 0;
-  if (p.sliding && (!p.grounded || (!intent.slideHeld && world.canStand(p.pos)))) endSlide(p);
+  if (p.sliding && slideOver(p, intent.slideHeld, world)) endSlide(p);
 }

@@ -62,6 +62,18 @@ export class FlatWorld implements CollisionWorld {
   canStand(pos: Vector3): boolean {
     return this.ceiling === null || pos.y + BODY.height <= this.ceiling;
   }
+
+  /** The floor (y = 0) and the walls' planes. */
+  rayDistance(origin: Vector3, dir: Vector3, max: number): number {
+    let best = Infinity;
+    if (dir.y < 0) best = Math.min(best, -origin.y / dir.y);
+    for (const w of this.walls) {
+      if (dir.x === 0) continue;
+      const t = (w.x - origin.x) / dir.x;
+      if (t >= 0) best = Math.min(best, t);
+    }
+    return best <= max ? best : Infinity;
+  }
 }
 
 export const DT = 1 / 120;

@@ -13,7 +13,11 @@ export function TitleCard({ ready, bindings, onPlay }: Props) {
     ['Move', 'WASD'],
     ['Jump / wall jump', keyLabel(bindings.jump)],
     ['Dash', keyLabel(bindings.dash)],
-    ['Slide / slam (air)', keyLabel(bindings.slide)],
+    ['Slide (hold; in the air: on landing)', keyLabel(bindings.slide)],
+    ['Wall run: hold forward along a wall', keyLabel(bindings.forward)],
+    ['Jab combo (hold)', keyLabel(bindings.attack)],
+    ['Charged punch (hold 1 s, release)', keyLabel(bindings.heavy)],
+    ['Quick punch', keyLabel(bindings.punch)],
     ['Pause', 'Esc'],
   ];
   return (
@@ -32,7 +36,7 @@ export function TitleCard({ ready, bindings, onPlay }: Props) {
         <button className="rb-cta" disabled={!ready}>
           {ready ? 'Click to play' : 'Loading…'}
         </button>
-        {import.meta.env.DEV && <div className="rb-title-dev">F1 tuning · F2 debug · F3 back to start</div>}
+        {import.meta.env.DEV && <div className="rb-title-dev">F1 tuning · F2 debug · F3 reset player and targets</div>}
       </div>
     </div>
   );

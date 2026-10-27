@@ -32,10 +32,10 @@ A first-person action roguelike. You start every run with your bare hands, tear 
 | Mouse | Look |
 | Space | Jump / wall jump |
 | Shift | Dash |
-| C | Slide (on the ground) / ground slam (in the air) |
+| C | Slide. Pressed in the air, the slide starts when you land. |
 | Left click | Attack: the held weapon, or a jab combo when barehanded |
 | Right click | Heavy: charged punch when barehanded, the weapon's alt attack otherwise |
-| F | Quick punch. Always available, even holding a weapon. This is the parry. |
+| F | Quick punch. Always available, even holding a weapon. (It will also be the parry, which is on hold.) |
 | Q | Throw the held weapon |
 | E | Interact: pick up, buy, open |
 | Esc | Pause |
@@ -50,9 +50,10 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - Fast base speed with quick acceleration and almost no friction in the air.
 - **Jump**, with coyote time (a jump still counts just after leaving a ledge) and a jump buffer (a jump pressed just before landing still counts).
 - **Dash:** a short burst in the movement direction, brief invincibility. 3 charges that refill over time. **(placeholder)**
-- **Slide:** keeps your speed, lowers your height; slide-jump carries the momentum.
-- **Wall jump:** up to 3 in a row before touching the ground. **(placeholder)**
-- **Ground slam:** in the air, slam straight down; jumping right after landing bounces you higher.
+- **Slide:** eases up to slide speed, keeps it, lowers your height; slide-jump carries the momentum. Lasts **0.5 s at most**; press again to slide again (holding doesn't chain). Pressed in the air, it waits for the landing and eases in. (Update 0.0.3, the designer.)
+- **Wall run:** in the air beside a wall, holding forward and heading along it (not into it), you run on it for **2 s at most**. Rising fast (a pad launch, the start of a jump) never grabs a wall. The view tilts **clockwise with the wall on your left, anticlockwise on your right**. Jump to push off towards the other side; the next wall catches you into a new run, so runs chain. A wall can't be run twice without landing. (Update 0.0.3, the designer.)
+- **Wall jump:** up to 3 in a row before touching the ground, when you're against a wall but not running on it. **(placeholder)** Jumps off a wall run don't count.
+- **Ground slam (later: an unlockable skill):** in the air, slam straight down; jumping right after landing bounces you higher. Not in the base kit: the designer wants it unlocked later as a skill. Its code is kept, keyless, until then. (The slide key in the air used to fire it; since Update 0.0.3 that key waits to slide on landing.)
 
 ### Health
 - 100 HP. **(placeholder)** No regeneration.
@@ -61,8 +62,9 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 
 ### Fists (always available, never break)
 - **Jab combo** (left click, barehanded): fast alternating punches; the third hit knocks back.
-- **Charged punch** (hold right click): bigger damage and knockback the longer you charge.
-- **Quick punch / parry** (F): punching an enemy projectile just before it hits sends it back at double damage and heals you a little. Parrying a melee attack staggers the attacker.
+- **Charged punch** (hold right click): hold **1 s** until it's ready (a cue sounds), then let go to throw it. Letting go sooner cancels it; right click is never a light punch. (Update 0.0.3, the designer.)
+- **Quick punch** (F): a fast punch, ready even mid-charge.
+- **Parry (on hold):** taken out for now at the designer's request (Update 0.0.3); it returns later. When it does, punching an enemy projectile just before it hits sends it back at double damage and heals you a little, and parrying a melee attack staggers the attacker.
 - Fist upgrades from the shop last for the rest of the run.
 
 ---

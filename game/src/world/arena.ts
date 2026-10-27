@@ -28,13 +28,23 @@ export interface JumpPad {
   launch: number;
 }
 
+export interface Spot {
+  x: number;
+  y: number;
+  z: number;
+}
+
 export interface Arena {
   name: string;
   boxes: ArenaBox[];
   pads: JumpPad[];
   /** Feet position and facing (yaw 0 faces -z). */
   playerStart: { x: number; y: number; z: number; yaw: number };
-  spawns: { x: number; y: number; z: number }[];
+  spawns: Spot[];
+  /** M1 step 6 — training dummies (base positions). */
+  dummies: Spot[];
+  /** M1 step 6 — orb turrets (base positions). */
+  turrets: Spot[];
 }
 
 /** An axis-aligned box from its min corner and size, which is easier to lay out than a centre. */

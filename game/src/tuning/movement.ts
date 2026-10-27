@@ -29,6 +29,26 @@ export const SLIDE = group('slide', 'Slide', {
   friction: knob(0, 0, 30, 0.5, 'Slide friction', 'Speed lost per second while sliding (never below run speed).'),
   steer: knob(1.2, 0, 6, 0.1, 'Slide steering', 'How fast you can bend a slide (rad/s).'),
   jumpKeep: knob(1, 0, 1.5, 0.05, 'Slide-jump keep', 'Share of slide speed kept when you jump out of a slide.'),
+  // Update 0.0.3 (the designer): a slide ends after 0.5 s (1 s was too long); press again to slide again.
+  maxTime: knob(0.5, 0.2, 3, 0.05, 'Slide length', 'Seconds a slide lasts at most (longer only while there is no room to stand).'),
+  rampTime: knob(0.12, 0, 0.5, 0.01, 'Slide ease-in', 'Seconds to reach slide speed, so landing into a slide is smooth.'),
+});
+
+// Update 0.0.3 — wall running (the designer): run along a wall for up to 2 s, jump off to the other side and
+// catch the next wall.
+export const WALLRUN = group('wallRun', 'Wall run', {
+  maxTime: knob(2, 0.3, 5, 0.1, 'Wall run length', 'Seconds on one wall at most.'),
+  minSpeed: knob(6, 0, 20, 0.5, 'Start speed', 'Speed along the wall needed to start (m/s), with forward held.'),
+  // Update 0.0.3 (the designer): no grabbing walls you're just flying past, like the drop tower from the jump pad.
+  maxRise: knob(6, 0, 30, 0.5, 'Max rise to start', 'Rising faster than this never starts a wall run: pad launches and the start of a jump fly past walls (m/s).'),
+  facingAngle: knob(50, 10, 90, 1, 'Heading angle', 'A run only starts when you head within this many degrees of the wall\'s line, not into it.'),
+  speed: knob(13, 4, 30, 0.5, 'Run speed', 'Speed along the wall while running (m/s); faster entries keep their speed.'),
+  startUp: knob(2, 0, 8, 0.25, 'Start lift', 'Upward speed when a run starts (m/s); falling stops.'),
+  gravity: knob(0.08, 0, 1, 0.01, 'Wall gravity', 'Share of gravity while running (a gentle arc).'),
+  maxFall: knob(3, 0, 20, 0.5, 'Max slip', 'Fastest you slide down the wall while running (m/s).'),
+  jumpUp: knob(8.5, 0, 20, 0.5, 'Jump up', 'Upward push of a wall-run jump (m/s).'),
+  jumpOut: knob(8, 0, 20, 0.5, 'Jump out', 'Push away from the wall (m/s), towards the next one.'),
+  cooldown: knob(0.15, 0, 1, 0.01, 'Re-grab delay', 'Seconds after a wall-run jump before the next run can start.'),
 });
 
 export const WALL = group('wallJump', 'Wall jump', {

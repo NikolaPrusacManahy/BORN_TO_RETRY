@@ -18,4 +18,7 @@ export interface CollisionWorld {
   probeWall(pos: Vector3, reach: number, outNormal: Vector3): boolean;
   /** Is there room to stand up at `pos`? */
   canStand(pos: Vector3): boolean;
+  /** Distance along `dir` (length 1) to the first solid thing (walls, dummies, turrets; never the player), or
+   *  Infinity within `max`. M1 step 6 — punches and orbs stop at walls. */
+  rayDistance(origin: Vector3, dir: Vector3, max: number): number;
 }

@@ -95,4 +95,50 @@ section('Physics — Rapier on the Feel Lab');
   const seen = run(p, world, ticks(0.1), () => ({}), pads);
   check('the jump pad launches you', seen.includes('pad'));
 }
+{
+  // Regression (the designer's report): from the jump pad, holding forward towards the drop tower (faces at z = 14,
+  // top at 8 m) with the view turned to the side, the launch must carry you up, not stick you to its side in a
+  // wall run. Under the old rules a 0.6 rad turn wall-ran and stopped at 5.5 m.
+  for (const turn of [0.1, 0.6, 0.9]) {
+    const p = createPlayer(12, 0, 11.6, Math.PI - turn);
+    let ran = false;
+    let top = 0;
+    for (let i = 0; i < ticks(1.2); i++) {
+      run(p, world, 1, () => ({ moveZ: 1 }), pads);
+      ran ||= p.wallRunning;
+      top = Math.max(top, p.pos.y);
+    }
+    check(`the pad launch by the drop tower (view turned ${turn} rad) never wall runs and clears the top`, !ran && top > 9, `wall ran ${ran}, highest ${top.toFixed(2)} m`);
+  }
+  {
+    const p = createPlayer(12, 0, 11.6, Math.PI - 0.1);
+    let overTop = false;
+    for (let i = 0; i < ticks(1.2); i++) {
+      run(p, world, 1, () => ({ moveZ: 1 }), pads);
+      overTop ||= p.pos.y > 8 && p.pos.z > 14.2 && p.pos.z < 18;
+    }
+    check('heading at the tower carries you over its top', overTop);
+  }
+}
+{
+  // Update 0.0.3 — wall running on the real outer west wall (inner face x = -30), heading north.
+  const p = createPlayer(-29.5, 2.5, 14, 0);
+  p.vel.set(0, 0, -12);
+  run(p, world, ticks(0.5), () => ({ moveZ: 1 }), pads);
+  check('wall running along the outer wall', p.wallRunning && p.pos.y > 2 && near(p.wallNormal.x, 1, 0.05), `y ${p.pos.y.toFixed(2)}, normal ${p.wallNormal.x.toFixed(2)}`);
+}
+{
+  // The wall-run lane: run on the first panel (face x = -27), jump, and the second panel (face x = -21) catches you.
+  const p = createPlayer(-26.5, 2.5, -2.5, 0);
+  p.vel.set(0, 0, -12);
+  run(p, world, ticks(0.3), () => ({ moveZ: 1 }), pads);
+  const onFirst = p.wallRunning && p.wallNormal.x > 0.9;
+  run(p, world, 1, () => ({ moveZ: 1, jumpPressed: true }), pads);
+  let caught = false;
+  for (let i = 0; i < ticks(1.2) && !caught; i++) {
+    run(p, world, 1, () => ({ moveZ: 1 }), pads);
+    caught = p.wallRunning && p.wallNormal.x < -0.9;
+  }
+  check('the wall-run lane chains from one panel to the next', onFirst && caught, `on first ${onFirst}, at x ${p.pos.x.toFixed(2)}, z ${p.pos.z.toFixed(2)}`);
+}
 world.dispose();

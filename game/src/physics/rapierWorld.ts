@@ -8,6 +8,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import type { Vector3 } from 'three';
 import type { CollisionWorld, MoveResult } from '../sim/collisionWorld';
 import { BODY } from '../sim/player/body';
+import { TARGET_SHAPES } from '../sim/combat/targets';
 import type { Arena } from '../world/arena';
 
 let ready: Promise<void> | null = null;
@@ -58,6 +59,13 @@ export class RapierWorld implements CollisionWorld {
       const desc = RAPIER.ColliderDesc.cuboid(b.w / 2, b.h / 2, b.d / 2).setTranslation(b.x, b.y, b.z);
       if (b.quat) desc.setRotation({ x: b.quat[0], y: b.quat[1], z: b.quat[2], w: b.quat[3] });
       this.world.createCollider(desc);
+    }
+    // M1 step 6 — dummies and turrets are solid posts (they wobble on screen but don't move here).
+    for (const d of arena.dummies) {
+      this.world.createCollider(RAPIER.ColliderDesc.capsule(TARGET_SHAPES.dummy.height / 2 - TARGET_SHAPES.dummy.radius, TARGET_SHAPES.dummy.radius).setTranslation(d.x, d.y + TARGET_SHAPES.dummy.height / 2, d.z));
+    }
+    for (const t of arena.turrets) {
+      this.world.createCollider(RAPIER.ColliderDesc.capsule(TARGET_SHAPES.turret.height / 2 - TARGET_SHAPES.turret.radius, TARGET_SHAPES.turret.radius).setTranslation(t.x, t.y + TARGET_SHAPES.turret.height / 2, t.z));
     }
     const s = arena.playerStart;
     this.player = this.world.createCollider(RAPIER.ColliderDesc.capsule(halfHeightFor(BODY.height), BODY.radius).setTranslation(s.x, s.y + centreAbove(BODY.height), s.z));
@@ -162,6 +170,17 @@ export class RapierWorld implements CollisionWorld {
       outNormal.set(hit.normal.x, 0, hit.normal.z).normalize();
     }
     return best < Infinity;
+  }
+
+  rayDistance(origin: Vector3, dir: Vector3, max: number): number {
+    this.ray.origin.x = origin.x;
+    this.ray.origin.y = origin.y;
+    this.ray.origin.z = origin.z;
+    this.ray.dir.x = dir.x;
+    this.ray.dir.y = dir.y;
+    this.ray.dir.z = dir.z;
+    const hit = this.world.castRay(this.ray, max, true, undefined, undefined, this.player);
+    return hit ? hit.timeOfImpact : Infinity;
   }
 
   canStand(pos: Vector3): boolean {

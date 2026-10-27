@@ -1,12 +1,14 @@
 // M1 — the list of tuning groups, plus saving, exporting and importing changed values.
 // Export/import keys are "group.knob" (for example "movement.runSpeed").
 import { TuningGroup, resetGroup, setKnob } from './schema';
-import { DASH, MOVE, SLAM, SLIDE, WALL } from './movement';
+import { DASH, MOVE, SLAM, SLIDE, WALL, WALLRUN } from './movement';
 import { CAMERA, SHAKE } from './camera';
 import { LAB } from './lab';
+import { FEEDBACK, FISTS, TARGETS } from './combat';
+import { ARMS } from './arms';
 
 /** Panel order. */
-export const GROUPS: TuningGroup[] = [MOVE, DASH, SLIDE, WALL, SLAM, CAMERA, SHAKE, LAB];
+export const GROUPS: TuningGroup[] = [MOVE, DASH, SLIDE, WALL, WALLRUN, SLAM, FISTS, FEEDBACK, ARMS, CAMERA, SHAKE, TARGETS, LAB];
 
 export const TUNING_KEY = 'ruinbreaker-tuning';
 

@@ -13,10 +13,10 @@ export const ACTIONS: { id: Action; label: string }[] = [
   { id: 'right', label: 'Right' },
   { id: 'jump', label: 'Jump' },
   { id: 'dash', label: 'Dash' },
-  { id: 'slide', label: 'Slide / slam' },
+  { id: 'slide', label: 'Slide' },
   { id: 'attack', label: 'Attack' },
   { id: 'heavy', label: 'Heavy' },
-  { id: 'punch', label: 'Punch / parry' },
+  { id: 'punch', label: 'Quick punch' },
   { id: 'throw', label: 'Throw' },
   { id: 'interact', label: 'Interact' },
 ];

@@ -5,9 +5,11 @@ import { NoiseLoop, noise, tone } from './synth';
 
 export class MoveSounds {
   private slide: NoiseLoop;
+  private wallRun: NoiseLoop;
 
   constructor(private a: AudioEngine) {
     this.slide = new NoiseLoop(a, 900);
+    this.wallRun = new NoiseLoop(a, 1600);
   }
 
   play(kind: MoveEvent, value: number) {
@@ -19,7 +21,11 @@ export class MoveSounds {
         tone(a, { from: 230, to: 430, dur: 0.07, gain: 0.12 });
         noise(a, { dur: 0.08, gain: 0.12, filter: 'highpass', from: 1500, to: 3500 });
         break;
+      case 'wallRunStart':
+        noise(a, { dur: 0.08, gain: 0.18, filter: 'bandpass', from: 1200, to: 700, q: 1.5 });
+        break;
       case 'wallJump':
+      case 'wallRunJump':
         tone(a, { from: 300, to: 560, dur: 0.07, gain: 0.13 });
         noise(a, { dur: 0.05, gain: 0.2, filter: 'bandpass', from: 2500, to: 1800, q: 2 });
         break;
@@ -54,5 +60,10 @@ export class MoveSounds {
   /** Every frame: the scrape is on while sliding on the ground. */
   setSliding(on: boolean) {
     this.slide.setLevel(on ? 0.16 : 0);
+  }
+
+  /** Every frame: a lighter, brighter scrape while wall running. */
+  setWallRunning(on: boolean) {
+    this.wallRun.setLevel(on ? 0.1 : 0);
   }
 }

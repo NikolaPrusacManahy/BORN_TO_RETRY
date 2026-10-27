@@ -16,7 +16,10 @@ export type MoveEvent =
   | 'slideStart'
   | 'slideEnd'
   | 'slam'
-  | 'slamLand';
+  | 'slamLand'
+  | 'wallRunStart'
+  | 'wallRunEnd'
+  | 'wallRunJump';
 
 export interface PlayerState {
   /** Feet position. */
@@ -36,11 +39,28 @@ export interface PlayerState {
   dashDir: Vector3;
   sliding: boolean;
   slideDir: Vector3;
+  /** The speed the slide is heading for (never below the slide speed at the start; friction lowers it). */
   slideSpeed: number;
+  /** The slide's actual speed, easing up to `slideSpeed`. */
+  slideCur: number;
+  /** Seconds into the current slide (it ends at the max). */
+  slideTime: number;
+  /** Update 0.0.3 — the slide key was pressed and is still held, and no slide has used that press yet. A slide
+   *  needs a fresh press; one pressed in the air starts on landing. */
+  slideArmed: boolean;
   wallJumpsLeft: number;
-  /** Touching a wall after the last move, and its normal. */
+  /** Touching a wall after the last move, and its normal (also the wall being run on). */
   onWall: boolean;
   wallNormal: Vector3;
+  /** Update 0.0.3 — wall running, for how long, and the run's direction along the wall. */
+  wallRunning: boolean;
+  wallRunTime: number;
+  wallRunDir: Vector3;
+  /** Time before another wall run may start (just after a wall-run jump). */
+  wallRunCooldown: number;
+  /** The last wall run on; it can't be run on again until you land. */
+  lastWallNormal: Vector3;
+  lastWallSet: boolean;
   slamming: boolean;
   /** Time left to bounce after a slam landing. */
   slamBounce: number;
@@ -64,9 +84,18 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     sliding: false,
     slideDir: new Vector3(0, 0, -1),
     slideSpeed: 0,
+    slideCur: 0,
+    slideTime: 0,
+    slideArmed: false,
     wallJumpsLeft: WALL.v.count,
     onWall: false,
     wallNormal: new Vector3(),
+    wallRunning: false,
+    wallRunTime: 0,
+    wallRunDir: new Vector3(0, 0, -1),
+    wallRunCooldown: 0,
+    lastWallNormal: new Vector3(),
+    lastWallSet: false,
     slamming: false,
     slamBounce: 0,
     invuln: 0,
@@ -80,9 +109,9 @@ export function resetPlayer(p: PlayerState, x: number, y: number, z: number, yaw
   p.vel.set(0, 0, 0);
   p.yaw = yaw;
   p.grounded = false;
-  p.coyote = p.jumpBuffer = p.dashTime = p.slamBounce = p.invuln = 0;
+  p.coyote = p.jumpBuffer = p.dashTime = p.slamBounce = p.invuln = p.slideTime = p.wallRunTime = p.wallRunCooldown = 0;
   p.dashCharges = DASH.v.charges;
-  p.sliding = p.slamming = p.onWall = false;
+  p.sliding = p.slamming = p.onWall = p.slideArmed = p.wallRunning = p.lastWallSet = false;
   p.wallJumpsLeft = WALL.v.count;
   p.events.clear();
 }
@@ -92,12 +121,13 @@ export function flatSpeed(p: PlayerState): number {
   return Math.hypot(p.vel.x, p.vel.z);
 }
 
-export type MoveMode = 'ground' | 'air' | 'slide' | 'dash' | 'slam' | 'wall';
+export type MoveMode = 'ground' | 'air' | 'slide' | 'dash' | 'slam' | 'wall' | 'wallrun';
 
 /** For the debug overlay and camera. */
 export function moveMode(p: PlayerState): MoveMode {
   if (p.dashTime > 0) return 'dash';
   if (p.slamming) return 'slam';
+  if (p.wallRunning) return 'wallrun';
   if (p.sliding) return 'slide';
   if (p.grounded) return 'ground';
   return p.onWall ? 'wall' : 'air';

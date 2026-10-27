@@ -16,6 +16,7 @@ export const CAMERA = group('camera', 'Camera', {
   strafeTilt: knob(1.5, 0, 6, 0.1, 'Strafe tilt', 'Degrees of roll while strafing.'),
   slideTilt: knob(4, 0, 12, 0.5, 'Slide tilt', 'Degrees of roll while sliding.'),
   wallTilt: knob(6, 0, 15, 0.5, 'Wall tilt', 'Degrees of roll away from a wall you slide on.'),
+  wallRunTilt: knob(10, -25, 25, 0.5, 'Wall-run tilt', 'Degrees of roll while wall running: the view tilts clockwise with the wall on your left, anticlockwise on your right (head leaning away from the wall). Negative flips it.'),
   tiltRate: knob(10, 2, 40, 1, 'Tilt ease', 'How fast the roll follows its target.'),
 });
 

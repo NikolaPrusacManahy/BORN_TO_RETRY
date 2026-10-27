@@ -1,6 +1,6 @@
 # Milestone 1 — The Feel Lab
 
-Status: in progress. Build steps 1–5 are done (Update 0.0.1, 2026-10-27). Changes from this plan are listed in `HANDOVER.md`.
+Status: in progress. Steps 1–5 are done (Update 0.0.1). Step 6 (the arms and fists) and the hit-feel part of step 8 are done too, with static dummies and an orb turret in place of the Grunt and Spitter (Update 0.0.3, the designer's call). Changes from this plan are listed in `HANDOVER.md`.
 
 ## Goal
 A gray-box arena where moving, punching and parrying feel great. Nothing else gets built until the designer says it does.

@@ -1,17 +1,19 @@
-// M1 — the ground slam, its bounce window, and jump pads.
+// M1 — the ground slam (no key for now since Update 0.0.3, so it's started directly), its bounce window, and
+// jump pads.
 import { check, near, section } from './harness';
 import { DT, FlatWorld, run, ticks } from './fakes/flatWorld';
 import { createPlayer } from '../src/sim/player/state';
 import { MOVE, SLAM } from '../src/tuning/movement';
 import { jumpSpeed } from '../src/sim/player/jump';
+import { tryStartSlam } from '../src/sim/player/slam';
 
 section('Slam');
 {
   const w = new FlatWorld();
   const p = createPlayer(0, 5, 0, 0);
   p.vel.set(8, 3, 0);
-  const seen = run(p, w, 1, () => ({ slidePressed: true, slideHeld: true }));
-  check('slide in the air starts a slam', p.slamming && seen.includes('slam'));
+  const started = tryStartSlam(p, true);
+  check('a slam starts in the air', started && p.slamming);
   check('a slam drops straight down', p.vel.x === 0 && p.vel.z === 0 && near(p.vel.y, -SLAM.v.speed, 1e-9));
   let land: string[] = [];
   for (let i = 0; i < ticks(0.3) && !land.includes('slamLand'); i++) land = run(p, w, 1);
@@ -24,7 +26,7 @@ section('Slam');
 {
   const w = new FlatWorld();
   const p = createPlayer(0, 5, 0, 0);
-  run(p, w, 1, () => ({ slidePressed: true }));
+  tryStartSlam(p, true);
   run(p, w, ticks(0.3));
   run(p, w, ticks(SLAM.v.bounceWindow) + 2);
   const late = run(p, w, 1, () => ({ jumpPressed: true }));
@@ -32,10 +34,11 @@ section('Slam');
 }
 {
   const w = new FlatWorld();
-  const p = createPlayer(0, 0, 0, 0);
-  run(p, w, 2);
+  const p = createPlayer(0, 5, 0, 0);
   const seen = run(p, w, 1, () => ({ slidePressed: true, slideHeld: true }));
-  check('slide on the ground is a slide, not a slam', !p.slamming && !seen.includes('slam') && p.sliding);
+  check('the slide key in the air no longer slams (Update 0.0.3)', !p.slamming && !seen.includes('slam'));
+  const q = createPlayer(0, 0, 0, 0);
+  check('nor can a slam start on the ground', !tryStartSlam(q, true) || !q.grounded);
 }
 
 section('Jump pads');

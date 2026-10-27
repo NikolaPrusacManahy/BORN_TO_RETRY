@@ -1,0 +1,54 @@
+/* M1 step 6 — hit marker (four ticks around the crosshair that pop and fade) and the red hurt flash. */
+.rb-hud-marker {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  --rb-mark: #ffffff;
+  background:
+    linear-gradient(45deg, transparent 46%, var(--rb-mark) 46%, var(--rb-mark) 54%, transparent 54%) 0 0 / 9px 9px no-repeat,
+    linear-gradient(-45deg, transparent 46%, var(--rb-mark) 46%, var(--rb-mark) 54%, transparent 54%) 100% 0 / 9px 9px no-repeat,
+    linear-gradient(-45deg, transparent 46%, var(--rb-mark) 46%, var(--rb-mark) 54%, transparent 54%) 0 100% / 9px 9px no-repeat,
+    linear-gradient(45deg, transparent 46%, var(--rb-mark) 46%, var(--rb-mark) 54%, transparent 54%) 100% 100% / 9px 9px no-repeat;
+  animation: rb-mark-pop 0.22s ease-out forwards;
+}
+
+.rb-hud-marker.is-heavy {
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+}
+
+.rb-hud-marker.is-kill {
+  --rb-mark: #ff4a2b;
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  animation-duration: 0.35s;
+}
+
+@keyframes rb-mark-pop {
+  0% {
+    transform: scale(1.5);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+.rb-hud-hurt {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 140px 30px rgba(220, 20, 10, 0.75);
+  animation: rb-hurt-fade 0.45s ease-out forwards;
+}
+
+@keyframes rb-hurt-fade {
+  to {
+    opacity: 0;
+  }
+}

@@ -42,11 +42,22 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `step.ts` | One tick's order: timers → actions → velocity → collision → landing. Nothing else |
 | `state.ts` | `PlayerState`, its events, `moveMode` |
 | `intent.ts` | What the player asked for this tick |
-| `ground.ts`, `air.ts` | Ground acceleration/stop/overspeed; air steering and gravity |
+| `ground.ts`, `air.ts` | Ground acceleration/stop/overspeed; air steering (Quake-style: only pushes while you're under run speed in the wanted direction, never past it) and gravity |
 | `jump.ts` | Ground jumps, coyote time, jump buffer; dash-jump, slide-jump, slam bounce |
-| `dash.ts`, `slide.ts`, `wallJump.ts`, `slam.ts`, `jumpPad.ts` | One move each |
+| `dash.ts`, `slide.ts`, `wallJump.ts`, `wallRun.ts`, `slam.ts`, `jumpPad.ts` | One move each (the slam has no key since Update 0.0.3) |
 | `body.ts` | The player's size and step height |
 | `sim/collisionWorld.ts` | The collision interface the sim uses |
+
+### Combat (pure, `sim/combat/`) — M1 step 6
+| Module | Owns |
+|---|---|
+| `step.ts` | One combat tick's order: fists (and the punch they throw) → dummies → turrets → orbs. Nothing else |
+| `state.ts` | `CombatState`, its events (`CombatEvent`), create/reset |
+| `fists.ts` | Jab combo (hold to repeat), charged punch on release, quick punch (always ready, mid-charge too) |
+| `punch.ts` | Landing a punch: sweep from the eye; nearest target takes the hit; hit-stop requests |
+| `dummy.ts`, `turret.ts`, `turretDamage.ts`, `orbs.ts` | Training dummies (spring wobble, break, respawn); the turret (warn → fire, line of sight); orbs (hit you unless dashing, pop on walls). The turret is out of the Feel Lab until the parry returns |
+| `hitStop.ts` | The freeze: longest request wins, counted down on real time |
+| `targets.ts`, `geometry.ts` | Target data and shapes; segment–segment distance |
 
 ### Physics, world, engine, audio, screens
 | Module | Owns |
@@ -58,9 +69,16 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `engine/cameraRig.ts` | Eye height, landing spring, step smoothing, FOV kick, roll, shake |
 | `engine/look.ts`, `shake.ts` | Mouse look; trauma shake |
 | `engine/arenaView.ts`, `renderer.ts` | Meshes, grid texture, light, fog; the WebGL renderer |
-| `engine/moveFeedback.ts` | Movement events → camera kicks and sounds |
-| `engine/hudStore.ts` | HUD state and live debug numbers |
-| `audio/audio.ts`, `synth.ts`, `moveSounds.ts` | Buses; placeholder synth sounds; movement sounds |
+| `engine/moveFeedback.ts` | Movement events → camera kicks, arm dips and sounds |
+| `engine/intents.ts` | Keys and mouse → `PlayerIntent` and `CombatIntent` each tick |
+| `engine/combatScene.ts` | Owns the combat visuals and sounds; reads and clears combat events each frame |
+| `engine/combatFeedback.ts` | Combat events → arm punches, sparks, chunks, shake, camera kick, HUD markers, sounds |
+| `engine/targetsView.ts` | Dummy, turret and orb meshes |
+| `engine/fx/burst.ts` | Pooled instanced pieces (sparks, chunks) |
+| `engine/viewmodel/viewmodel.ts` | The arms' own scene and camera, sway, bob, landing dip, dash/slide poses, punch aim; draws over the world |
+| `engine/viewmodel/armsRig.ts`, `armsMath.ts`, `armsAnim.ts`, `guard.ts` | Loading and posing the arms (IK, bone aiming, ported from `cut_arms.py`); punch timelines; the approved guard |
+| `engine/hudStore.ts` | HUD state (dash, hit marker, hurt flash) and live debug numbers |
+| `audio/audio.ts`, `synth.ts`, `moveSounds.ts`, `combatSounds.ts` | Buses; placeholder synth sounds; movement and combat sounds |
 | `screens/*` | App shell, title card, pause menu, HUD, F1 tuning panel, F2 debug overlay |
 
 ### Asset tools (`game/tools/`)
@@ -77,3 +95,13 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 - **Frame order:** mouse look (every frame, unscaled) → fixed ticks (input presses cleared after each tick) → events → camera → render. Time scale slows the sim and camera effects, never the mouse.
 - **Events:** sim ticks push to `PlayerState.events`; the Game reads them once per frame, then clears them.
 - **Tuning:** gameplay reads `GROUP.v.key`. Every new feel number is added as a knob.
+- **Slide (Update 0.0.3):** a press arms the next slide (`slideArmed`) and letting go disarms it; a slide starts on the ground only when armed, so holding never chains slides and a press in the air starts the slide on landing. `slideCur` eases up to `slideSpeed` over `rampTime`; a slide ends at `maxTime`, except while there's no room to stand.
+- **Wall run (Update 0.0.3):** starts in the air when `probeWall` finds a wall, forward is held, you head along the wall (within `facingAngle` of its line), you're not rising faster than `maxRise`, and the speed along the wall is at least `minSpeed`. Each tick it re-probes (the run ends at a corner, off the wall's end, on landing, when forward is let go, or at `maxTime`) and pushes `WALL_STICK` into the wall so contact holds. A wall-run jump keeps the speed along the wall, pushes away from it, and doesn't use wall jumps. The last wall can't be run again until you land (`lastWallSet`). The camera rolls by `wallRunTilt`: clockwise (negative roll) with the wall on the left.
+- **Charged punch (Update 0.0.3):** fires only if right click was held the full `chargeTime` (`chargeReady`); otherwise `chargeCancel`. It always does `chargeDamage`/`chargeKnock`.
+- **Combat tick order:** movement first, then combat, in the same tick. Punches land the instant they're thrown (no wind-up delay); the arms' animation is only visual.
+- **Hit-stop** is a sim freeze: the Game counts it down on real time and runs no ticks while it lasts, and a tick that starts one ends that frame's ticks. Mouse look, camera shake and the arms' sway keep running; punch animations, targets, sparks and chunks freeze.
+- **Targets are solid:** dummies and turrets get static Rapier capsules from the arena data. `rayDistance` (punch reach, orbs, turret sight) sees walls and targets but never the player. Rays from inside a target's own collider stop at once, so the turret's sight and shots start outside its head.
+- **Every turret shot is warned:** a shot only fires after its full warning time (`test-combat.ts` checks this).
+- **The arms** are drawn in their own scene with their own **vertical** FOV (68°) after a depth clear, so they never clip into walls, FOV kicks never stretch them, and wide screens frame them like 16:9. The posing math matches `tools/blender/cut_arms.py` (same `GUARD` table, in Blender axes there). The arms tilt up by the preview's 10° look-down, so the game frames the guard the same way as `fp.png`, and punches aim that much lower in the model so they still hit the crosshair. `test-arms.ts` poses the shipped `.glb`, checks each wrist lands on its target, and checks that both fists stay low on their own side of the screen (the centre stays clear).
+- **The parry was removed** (the designer's call, Update 0.0.3). It returns later; the turret and orbs stay in the code for it.
+- **Arms model:** `public/models/arms/<id>.glb` comes out of the pipeline with the fists baked closed. Bone names arrive without the dot (`UpperArmL`).

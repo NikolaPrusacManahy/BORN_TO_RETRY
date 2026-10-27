@@ -2,32 +2,49 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-27): Update 0.0.2
-- **Milestone: M1 — The Feel Lab** (`MD_UPDATES/M1_FEEL_LAB.md`). **Build steps 1–5 are done**: scaffold, loop and platform, tuning system, arena, movement and camera.
-- Next: step 6 (fists), step 7 (Grunt and Spitter), step 8 (hit feedback, health, HUD), step 9 (key rebinding screen), step 10 (docs).
+## Current state (2026-10-27): Update 0.0.3
+- **Milestone: M1 — The Feel Lab** (`MD_UPDATES/M1_FEEL_LAB.md`).
+  - **Done:** steps 1–5 (scaffold, loop, tuning, arena, movement and camera), step 6 (the arms and fists), and the hit-feel part of step 8.
+  - **Changed by the designer:** no real enemies yet; static training dummies replace the Grunt and Spitter of step 7 for now. The parry is removed for now, and with it the orb turret leaves the Feel Lab (its code stays).
+  - **Next:** health and the HUD health bar (step 8), the key rebinding screen (step 9), docs (step 10).
 - Game: RUINBREAKER (working title), a first-person action roguelike, solo, desktop browser. Steam later via Electron.
 - Tech: Vite + React + TypeScript, Three.js 0.186, Rapier 0.21 (`@dimforge/rapier3d-compat`), Node 24.
 
-## First-person arms
-- **Pipeline ready and approved** (2026-10-27): `MD/PIPELINE_CHARACTER_ARMS.md`, tool `game/tools/blender/cut_arms.py`.
-  The Adventurer (Ultimate Modular Men, Humanoid Rig) was cut and posed in an orthodox boxing guard after a
-  reference photo; the approved look is `MD/reference/arms_guard_adventurer.webp`.
-- **Not in the game yet.** It arrives with M1 step 6 (fists): the guard becomes F1 sliders, and punches move the
-  bones in code.
-- The designer plans more characters in future updates: each one goes through the same pipeline.
-
 ## What to try in-game
 Run `START_GAME.bat`, click to play.
-- **Moves:** WASD, Space jump / wall jump, Shift dash (3 charges), C slide on the ground or slam in the air. Jump right after a slam landing to bounce.
-- **Feel Lab spots:** the wall-jump shaft (west), the ramp up to the plateau (north-east), the drop tower with its jump pad (east), the 1.3 m tunnel you must slide through (east, leads onto the ramp), three steps (south-west).
-- **Dev keys:** F1 (or `) tuning panel, F2 debug overlay, F3 back to start. Esc pauses: sensitivity, FOV, volume, fullscreen.
-- **Tuning:** changes save in the browser. Export copies the changed values; paste them in the chat to make them the defaults.
+- **Moves:** WASD, Space jump / wall jump, Shift dash (3 charges).
+  - C slides for up to 0.5 s; press again to slide again. Pressed in the air, the slide starts on landing and eases in.
+  - Wall run: in the air beside a wall, hold W while heading along it (up to 2 s); rising fast (pads, jump starts) never grabs a wall. The view tilts clockwise with the wall on your left, anticlockwise on your right. Jump to push off to the other side and catch the next wall. Try the wall-run lane (north-west: three panels on alternating sides) or the outer walls.
+- **Fists:**
+  - Left click: jab combo. Hold it to keep punching: left, right, then a left finisher that knocks back.
+  - Right click: hold 1 s (the fist draws back and trembles, a cue sounds when ready), then let go to punch. Letting go sooner cancels.
+  - F: quick punch, always ready, even mid-charge.
+- **Targets:** four dummies in front of the start (they wobble, slide back, break, and return 2 s later).
+- **Hit feel:** hit-stop on finisher, charged and kill hits; screen shake; a small camera nod; sparks; chunks when a dummy breaks; a hit marker around the crosshair (red on a kill); placeholder sounds.
+- **Arms:** both fists low in the corners, the centre clear (`MD/reference/arms_guard_gameplay.webp`); a gentle run bob (about 4 a second at run speed).
+- **Dev keys:** F1 (or `) tuning panel, F2 debug overlay (shows the hit-stop), F3 resets the player and all targets. Esc pauses.
+- **Tuning tabs added:** Fists, Hit feel, Arms (guard nudges per fist, roll, wrist bend, punch timing, sway, bob), Targets, Wall run. Slide gained a length and an ease-in; Camera gained the wall-run tilt (negative flips its direction).
+
+## First-person arms
+- **Pipeline:** `MD/PIPELINE_CHARACTER_ARMS.md`, tool `game/tools/blender/cut_arms.py`. The game's guard: `MD/reference/arms_guard_gameplay.webp`. The first, photo-based guard (`arms_guard_adventurer.webp`) covered the crosshair in play.
+- **In the game:** `game/public/models/arms/adventurer.glb`, with the fists baked closed. The game poses only the upper arm, forearm and hand, using the same math as the Blender previews.
+- The designer plans more characters in future updates; each one goes through the same pipeline.
 
 ## Changes from the M1 plan
 - **Floating capsule:** Rapier's own step climbing only worked above ~6 m/s, so a player starting next to a step got stuck. The capsule now floats 0.4 m above the feet and a ground probe places the feet. Steps up to 0.4 m work at any speed (`DEVELOPMENT.md`, Contracts).
 - The slide height is 1.2 m (it was planned as 1.0), so the floating capsule fits. The tunnel roof is 1.3 m.
 - The tunnel sits just south of the ramp, so a slide through it carries onto the ramp.
-- F3 puts you back at the start (it respawns enemies once they exist). F4 (invincibility) arrives with health.
+- No Grunt or Spitter yet (the designer's call): static dummies instead.
+- No parry yet (the designer's call, Update 0.0.3); the orb turret is out of the lab until it returns.
+- The arms bob was about 23 bobs a second at run speed (a units slip); it is now about 4.
+- The designer's fixes after playing Update 0.0.3:
+  - The slide key in the air used to fire the ground slam (a 45 m/s drop that looked like a teleport). Now it waits to slide on landing, and the slam has no key.
+  - Slides need a fresh press and last 0.5 s at most (first 1 s, then shortened).
+  - Right click needs a full 1 s hold (first 1.5 s, then shortened).
+  - Wall running was added, with a tilt and chaining. The Feel Lab gained a wall-run lane.
+  - Wall runs grabbed the drop tower from the jump pad. Now a run only starts when you're heading along the wall (within 50° of its line) and not rising faster than 6 m/s. The regression test tries the turn angle that used to stick you at 5.5 m.
+- Air steering is now Quake-style: holding forward no longer bleeds off sideways speed. Without this, wall-run chains couldn't reach the next wall.
+- F4 (invincibility) arrives with health.
 
 ## Files
 | File | What it is |
@@ -36,11 +53,12 @@ Run `START_GAME.bat`, click to play.
 | `MD_UPDATES/M1_FEEL_LAB.md` | M1 scope, starting values, build order, tests |
 | `MD/PIPELINE_CHARACTER_ARMS.md` | How to cut first-person arms for a new character |
 | `DEVELOPMENT.md` | Module map and contracts |
-| `ASSETS/QUATERNIUS/` | Drop the downloaded Quaternius packs here, one folder per pack (git-ignored) |
+| `ASSETS/QUATERNIUS/` | Downloaded Quaternius packs, one folder per pack (git-ignored) |
 
 ## Git
 - Commit titles are `Update X.Y.Z`, then a blank line and `- ` bullet lines. No co-author line.
 - `CLAUDE.md`, `CLAUDE.local.md`, `.claude/` and the raw `ASSETS/` folder are git-ignored.
+- The repo is local; the designer publishes through GitHub Desktop.
 
 ## Decisions made
 - First person, solo only, no online features.
@@ -48,6 +66,8 @@ Run `START_GAME.bat`, click to play.
 - Arenas are hand-made templates assembled from a seed, not random geometry.
 - Weapons break; breaking throws the weapon for a big hit.
 - Only character unlocks and stats carry over between runs.
+- Fists: both fists low in the corners; jabs go left, right, left; the charged punch is the right hand; the quick punch is the left.
+- The ground slam is not in the base kit: it comes later as an unlockable skill (its code is kept, with no key).
 
 ## Open questions waiting on the designer
 1. The game's name.
@@ -62,7 +82,7 @@ Run `START_GAME.bat`, click to play.
 | Raw mouse input (`unadjustedMovement`) in Brave | — (F2 shows "raw mouse") |
 | Keyboard lock captures Ctrl+W in fullscreen | — (pause menu shows "Keyboard lock") |
 | F1 can be captured by the page | — |
-| Steady frame time with 15 enemies | — (needs step 7) |
+| Steady frame time with many targets and effects | — |
 
 ## Not verified
-Nothing visual or audible has been seen or heard by Claude: the feel, the look, the sounds and the menus are unverified until played.
+Claude has seen and heard none of this in the game: the feel, the arms on screen, the targets, effects, sounds and menus are all unverified until played. The tests check the rules, the collision, and that the shipped arms pose correctly.

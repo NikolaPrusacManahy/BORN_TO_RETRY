@@ -33,6 +33,11 @@ export const FEEL_LAB: Arena = {
     boxAt(-14, 0, 20, 2, 0.35, 3, 'block'),
     boxAt(-12, 0, 20, 2, 0.7, 3, 'block'),
     boxAt(-10, 0, 20, 2, 1.05, 3, 'block'),
+    // North-west: a wall-run lane (Update 0.0.3) — three 8 m panels on alternating sides, 6 m apart, for chained
+    // wall runs heading north. The outer west wall works for long single runs.
+    boxAt(-28, 0, -10, 1, 6, 8, 'accent'),
+    boxAt(-21, 0, -19, 1, 6, 8, 'accent'),
+    boxAt(-28, 0, -28, 1, 6, 8, 'accent'),
     // Cover.
     boxAt(-6, 0, -4, 3, 1.2, 1.5, 'block'),
     boxAt(4, 0, -20, 2, 2.5, 2, 'block'),
@@ -51,4 +56,13 @@ export const FEEL_LAB: Arena = {
     { x: 26, y: 0, z: 12 },
     { x: -8, y: 0, z: 10 },
   ],
+  // A row of four dummies in front of the start. The orb turret (it was here for the parry) is out of the lab
+  // until the parry returns; it went at { x: 0, y: 0, z: -8 }.
+  dummies: [
+    { x: -6, y: 0, z: 17 },
+    { x: -2, y: 0, z: 17 },
+    { x: 2, y: 0, z: 17 },
+    { x: 6, y: 0, z: 17 },
+  ],
+  turrets: [],
 };
