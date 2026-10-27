@@ -45,6 +45,25 @@ const dir = new THREE.Vector3();
 const upperBack = new THREE.Vector3();
 const handDir = new THREE.Vector3();
 
+/** M2 — where a held weapon sits in a fist, worked out once from the rest pose (model space). */
+interface HoldRest {
+  hand: THREE.Bone;
+  /** The hand's rest model matrix, inverted (model space → the hand's space). */
+  handInv: THREE.Matrix4;
+  /** The middle of the fist; the knuckles' direction; the thumb's side (across the fist, where a blade comes out);
+   *  the back of the hand. */
+  grip: THREE.Vector3;
+  knuckles: THREE.Vector3;
+  thumb: THREE.Vector3;
+  back: THREE.Vector3;
+}
+
+const holdM = new THREE.Matrix4();
+const xAxis = new THREE.Vector3();
+const yAxis = new THREE.Vector3();
+const zAxis = new THREE.Vector3();
+const holdScale = new THREE.Vector3();
+
 export class ArmsRig {
   readonly root: THREE.Object3D;
   /** The eye in model space (where the camera sits). */
@@ -52,6 +71,7 @@ export class ArmsRig {
   /** Between the shoulders, model space. */
   readonly between = new THREE.Vector3();
   private readonly arms: Record<Side, ArmRest>;
+  private readonly hold: HoldRest;
 
   private constructor(root: THREE.Object3D) {
     this.root = root;
@@ -78,6 +98,21 @@ export class ArmsRig {
     this.arms = { L: arm('L'), R: arm('R') };
     find('Head').getWorldPosition(this.eye).add(EYE_FROM_HEAD);
     this.between.addVectors(this.arms.L.upper.pos, this.arms.R.upper.pos).multiplyScalar(0.5);
+    // M2 — the right fist's hold: the grip half-way from the wrist to the knuckles, a little into the palm; the thumb
+    // side is the thumb bone's direction from the wrist, with the knuckle and back-of-hand parts taken out.
+    const h = this.arms.R.hand;
+    const knuckle = find(boneName('Middle2', 'R')).getWorldPosition(new THREE.Vector3());
+    const thumb = find(boneName('Thumb2', 'R')).getWorldPosition(new THREE.Vector3()).sub(h.pos);
+    const back = REST_BACK.clone();
+    thumb.addScaledVector(h.dir, -thumb.dot(h.dir)).addScaledVector(back, -thumb.dot(back)).normalize();
+    this.hold = {
+      hand: h.bone,
+      handInv: h.bone.matrixWorld.clone().invert(),
+      grip: h.pos.clone().lerp(knuckle, 0.5).addScaledVector(back, -0.02),
+      knuckles: h.dir.clone(),
+      thumb,
+      back,
+    };
     root.traverse((o) => {
       if (o instanceof THREE.Mesh) {
         o.frustumCulled = false; // posed arms leave their bind-pose bounds
@@ -96,6 +131,24 @@ export class ArmsRig {
   /** From an already-loaded model (tests parse the .glb themselves). */
   static fromScene(root: THREE.Object3D): ArmsRig {
     return new ArmsRig(root);
+  }
+
+  /** M2 — the right hand's bone (a held weapon hangs off it). */
+  get holdBone(): THREE.Bone {
+    return this.hold.hand;
+  }
+
+  /** M2 — a held weapon's matrix under the right hand's bone: its grip in the fist, its blade (+y) out of the thumb
+   *  side, tilted back by `back` and out to the right by `out` (radians), its edge (+x) facing the knuckles. */
+  holdMatrix(back: number, out: number, scale: number, into: THREE.Matrix4): THREE.Matrix4 {
+    const r = this.hold;
+    // The blade leans back (towards the wrist) and out (away from the back of the hand, the right on screen).
+    yAxis.copy(r.thumb).multiplyScalar(Math.cos(back)).addScaledVector(r.knuckles, -Math.sin(back));
+    yAxis.multiplyScalar(Math.cos(out)).addScaledVector(r.back, -Math.sin(out)).normalize();
+    xAxis.copy(r.knuckles).addScaledVector(yAxis, -r.knuckles.dot(yAxis)).normalize();
+    zAxis.crossVectors(xAxis, yAxis);
+    holdM.makeBasis(xAxis, yAxis, zAxis).scale(holdScale.setScalar(scale)).setPosition(r.grip);
+    return into.multiplyMatrices(r.handInv, holdM);
   }
 
   /** How far this arm reaches (upper arm + forearm). */

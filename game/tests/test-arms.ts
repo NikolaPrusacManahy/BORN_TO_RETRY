@@ -99,3 +99,29 @@ section('Arms — on screen');
     check(`${label}: the right fist sits low right`, r.x > 0.25 && r.x < 0.95 && r.y < -0.2 && r.y > -0.95, `(${r.x.toFixed(2)}, ${r.y.toFixed(2)})`);
   }
 }
+
+section('Arms — holding the sword');
+{
+  // M2 — the sword in the right fist (the Arms tab's weapon knobs): its blade shows, and never crosses the crosshair.
+  const armsBuf = readFileSync(new URL('../public/models/arms/adventurer.glb', import.meta.url));
+  const arms = await new GLTFLoader().parseAsync(armsBuf.buffer.slice(armsBuf.byteOffset, armsBuf.byteOffset + armsBuf.byteLength) as ArrayBuffer, '');
+  const swordBuf = readFileSync(new URL('../public/models/weapons/sword.glb', import.meta.url));
+  const sword = await new GLTFLoader().parseAsync(swordBuf.buffer.slice(swordBuf.byteOffset, swordBuf.byteOffset + swordBuf.byteLength) as ArrayBuffer, '');
+  const vm = new Viewmodel(false);
+  vm.attach(ArmsRig.fromScene(arms.scene));
+  vm.setWeapon(sword.scene);
+  const tip = new THREE.Box3().setFromObject(sword.scene).max.y;
+  const p = createPlayer(0, 0, 0, 0);
+  p.grounded = true;
+  for (const aspect of [16 / 9, 2]) {
+    vm.update(0, 0, 0, 0, p, -1);
+    vm.setLens(aspect);
+    vm.scene.updateMatrixWorld(true);
+    const samples = Array.from({ length: 12 }, (_, i) => new THREE.Vector3(0, (tip * i) / 11, 0).applyMatrix4(sword.scene.matrixWorld).project(vm.camera));
+    const label = aspect === 2 ? '2:1' : '16:9';
+    const onScreen = samples.filter((s) => Math.abs(s.x) <= 1 && Math.abs(s.y) <= 1 && s.z < 1);
+    const centre = samples.filter((s) => Math.abs(s.x) < 0.12 && Math.abs(s.y) < 0.2);
+    check(`${label}: the held sword shows`, onScreen.length >= 4, `${onScreen.length} of 12 blade points on screen`);
+    check(`${label}: and keeps clear of the crosshair`, centre.length === 0, centre.map((s) => `(${s.x.toFixed(2)}, ${s.y.toFixed(2)})`).join(' '));
+  }
+}

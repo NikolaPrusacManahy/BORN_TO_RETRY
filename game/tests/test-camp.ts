@@ -50,14 +50,14 @@ section('Camp — the scene');
     if (o instanceof THREE.Mesh && matName(o).startsWith('Fire')) fires++;
   });
   check('the campfire has its Fire material (it glows in the game)', fires >= 1);
-  const things = root.children.filter((o) => /^(CommonTree|BirchTree|Bush|Log)/.test(o.name));
-  const trees = things.filter((o) => /Tree/.test(o.name));
+  const things = root.children.filter((o) => /^(CommonTree|BirchTree|PineTree|Bush|WoodLog|TreeStump|Grass|Plant|Rock)/.test(o.name));
+  const trees = things.filter((o) => /Tree/.test(o.name) && !/Stump/.test(o.name));
   const floating = things.filter((o) => {
     const hit = below(o.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 0.6, 0)), o);
     return !hit || !['ForestFloor', 'Dirt'].includes(matName(hit.object)) || hit.distance > 0.9;
   });
-  check('every tree, bush and log stands on the forest floor', trees.length >= 20 && floating.length === 0, `${things.length} things; floating: ${floating.map((o) => o.name).join(', ')}`);
-  const growing = root.children.filter((o) => /^(CommonTree|BirchTree|Bush)/.test(o.name));
+  check('every tree, bush, log, rock and tuft stands on the ground', trees.length >= 20 && floating.length === 0, `${things.length} things; floating: ${floating.map((o) => o.name).join(', ')}`);
+  const growing = root.children.filter((o) => /^(CommonTree|BirchTree|PineTree|Bush)/.test(o.name));
   const crowded = growing.filter((o, i) => growing.some((q, j) => j !== i && Math.hypot(o.position.x - q.position.x, o.position.z - q.position.z) < 1.5));
   check('nothing grows into anything else (trees and bushes 1.5 m apart at least)', crowded.length === 0, crowded.map((o) => o.name).join(', '));
   const inClearing = trees.filter((t) => Math.hypot(t.position.x - fire.x, t.position.z - fire.z) < 5);
@@ -66,6 +66,10 @@ section('Camp — the scene');
 
 section('Camp — the shot');
 {
+  // Regression: a pine behind the seat once reached its low branches into the corner of the shot.
+  const seat = root.children.filter((o) => /^WoodLog/.test(o.name)).sort((a, b) => a.position.distanceTo(shot.pos) - b.position.distanceTo(shot.pos))[0];
+  const crowding = root.children.filter((o) => o !== seat && !['Ground', 'Clearing'].includes(o.name) && o.type !== 'Object3D' && new THREE.Box3().setFromObject(o).distanceToPoint(shot.pos) < 1);
+  check('nothing crowds the camera (no branch or bush within 1 m, the seat log aside)', crowding.length === 0, crowding.map((o) => o.name).join(', '));
   check('the camera sits at a seated height', shot.pos.y > 0.8 && shot.pos.y < 1.4, fmt(shot.pos));
   check('the glide starts further back than it ends', shot.from.distanceTo(fire) > shot.pos.distanceTo(fire) + 1);
   const hit = between(shot.pos, fire.clone().add(new THREE.Vector3(0, 0.3, 0)));

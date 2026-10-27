@@ -1,0 +1,38 @@
+// M2 — swinging the held weapon: left click slashes (hold to keep slashing, alternating directions); the charged right
+// click (timed like the charged punch, fists.ts) becomes the weapon's cleave. Hits cost uses; misses are free.
+import type { EventQueue } from '../../core/eventQueue';
+import type { CombatIntent, Punch } from '../combat/fists';
+import type { CombatEvent } from '../combat/state';
+import { WEAPON_STATS } from './catalog';
+import type { HeldWeapon } from './weapons';
+
+/** Advances the held weapon's swing. Writes a slash into `out` and returns true when one is swung this tick. */
+export function updateSlashes(w: HeldWeapon, intent: CombatIntent, events: EventQueue<CombatEvent>, dt: number, out: Punch): boolean {
+  w.cooldown = Math.max(0, w.cooldown - dt);
+  if (!(intent.attackPressed || intent.attackHeld) || w.cooldown > 0) return false;
+  const s = WEAPON_STATS[w.kind]();
+  w.cooldown = s.interval;
+  events.push(w.right ? 'slashR' : 'slashL');
+  w.right = !w.right;
+  out.kind = 'slash';
+  out.damage = s.damage;
+  out.knock = s.knock;
+  out.charge = 0;
+  out.reach = s.reach;
+  out.radius = s.width;
+  return true;
+}
+
+/** A full charge while armed: the fists hand over a 'cleave'; it takes the weapon's numbers. */
+export function asCleave(w: HeldWeapon, out: Punch) {
+  const s = WEAPON_STATS[w.kind]();
+  out.damage = s.heavyDamage;
+  out.knock = s.heavyKnock;
+  out.reach = s.reach;
+  out.radius = s.width;
+}
+
+/** Uses a landed hit takes. */
+export function usesFor(w: HeldWeapon, kind: Punch['kind']): number {
+  return kind === 'cleave' ? WEAPON_STATS[w.kind]().heavyUses : 1;
+}

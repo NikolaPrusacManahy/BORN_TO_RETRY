@@ -3,6 +3,8 @@
 // Update 0.0.4 — moved out of Game.ts when the main menu joined it.
 import type { CombatState } from '../sim/combat/state';
 import { PlayerState, flatSpeed, moveMode } from '../sim/player/state';
+import { WEAPON_NAME } from '../sim/weapons/catalog';
+import type { HeldWeapon } from '../sim/weapons/weapons';
 import { HEALTH } from '../tuning/health';
 import { LAB } from '../tuning/lab';
 import { DASH } from '../tuning/movement';
@@ -28,13 +30,15 @@ export class HudFeed {
 
   constructor(private readonly hud: HudStore) {}
 
-  /** `hurts`: how many times the player has been hurt (each new one flashes the screen's edge). */
-  push(real: number, p: PlayerState, fb: CombatFeedback, hurts: number) {
+  /** `hurts`: how many times the player has been hurt (each new one flashes the screen's edge). `weapon`: in hand. */
+  push(real: number, p: PlayerState, fb: CombatFeedback, hurts: number, weapon: HeldWeapon | null) {
     const cur = this.hud.get();
     const hp = Math.ceil(p.hp);
+    const name = weapon ? WEAPON_NAME[weapon.kind] : '';
+    const uses = weapon ? weapon.uses : 0;
     this.timer -= real;
-    if (this.timer > 0 && cur.hits === fb.hits && cur.hurts === hurts && cur.hp === hp) return;
+    if (this.timer > 0 && cur.hits === fb.hits && cur.hurts === hurts && cur.hp === hp && cur.weapon === name && cur.uses === uses) return;
     this.timer = HUD_EVERY;
-    this.hud.set({ dashCharges: Math.floor(p.dashCharges * 20) / 20, dashMax: DASH.v.charges, mode: moveMode(p), hits: fb.hits, marker: fb.marker, hurts, hp, maxHp: HEALTH.v.maxHp });
+    this.hud.set({ dashCharges: Math.floor(p.dashCharges * 20) / 20, dashMax: DASH.v.charges, mode: moveMode(p), hits: fb.hits, marker: fb.marker, hurts, hp, maxHp: HEALTH.v.maxHp, weapon: name, uses });
   }
 }

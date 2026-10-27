@@ -2,7 +2,13 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-27): Update 0.0.8
+## Current state (2026-10-27): M1 done, M2 started — Update 0.0.9
+- **Update 0.0.9 — M2's first slice: the Grunt and the Sword** (`MD_UPDATES/M2_COMBAT_SANDBOX.md`).
+  - **Grunts:** the Orc (Ultimate Monsters), animated. Three come at a time from the lab's spawn points (the first wave 3 s after you arrive, the next 3 s after the last dies). One runs at you, stops in reach, winds up for 0.45 s (its club swing starts, it glows red, it growls) and swings: 15 damage and a shove, only if you're still in reach and in front. Every hit flinches it, cancelling the swing. 40 health. It may drop a worn sword (30%). You can't walk through one.
+  - **The sword:** the RPG pack's, on a stand right of the start. E picks it up; left click slashes (alternating, 22 damage, longer reach than fists); a full right-click charge cleaves (55); F still quick-punches. Hits cost uses (shown bottom right; a cleave costs 2), misses are free. At 0 it's broken (red) and the next attack throws it; Q throws it any time: 70 damage and a hit-stop on whatever it hits, and it's gone. Picking up another drops yours at your feet.
+- **M1 — The Feel Lab is done** (2026-10-27): the designer says the feel is good; no tuning changes to bake in (the defaults stand); 144 fps steady on the designer's PC; **we stay in the browser** (Godot not needed).
+- **Milestone: M2 — The Combat Sandbox** (`MD_UPDATES/M2_COMBAT_SANDBOX.md`). First slice: the Grunt (the Orc from Ultimate Monsters) and the Sword (Ultimate RPG Pack) in the Feel Lab.
+- **The settings camp now uses the full Ultimate Nature Pack:** real logs, a ring of rocks round the fire, a stump, grass, plants, mossy rocks and pines (the stand-in logs and stones are gone). The packs in `ASSETS/` are complete now (nature 150, RPG 106, monsters 50 in three zips, unzipped beside them).
 - **Update 0.0.8 — the character select** (the designer's idea): Start opens the gate onto a prison corridor. A row of barred cells holds the roster: **Joseph** (the Adventurer: fists only, picks up used weapons), **Fallen King**, **William Rich** (the suit) and **Alpha Team** (the Swat). Only Joseph is playable; the others are there to show the roster. Walking the corridor moves the camera from cell to cell: a playable character's bars lift as he's selected, a locked cell's bars rattle. Play locks the mouse and fades into the lab; Esc fades back to the gate. The characters are the Quaternius models, posed out of their T-pose and baked in Blender, breathing a little in the game.
   - The HUD's health readout is twice the size.
 - **Update 0.0.7 — the settings camp** (the designer's idea): Settings on the main menu fades through black to a night camp in a forest clearing. The camera glides in to sit on a log by a campfire (embers, stars, crackling), and the options panel sits on the right. The controls live inside Settings now (tabs: General, Controls), in the camp and in the pause menu; the main menu has only Start and Settings. Back or Esc fades back to the gate.
@@ -14,10 +20,10 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
 - **Update 0.0.5 — the menu scene dressed:** two rearing horse statues guard the foot of the stairs; crates, barrels and a campfire on the right; a pale dead tree at each side (Ultimate Nature Pack), each growing from a bed of earth where a flagstone was lifted (the designer: no trees on paving). The yard is now paved right up to the wall (it stopped 4 m short, under the statues).
   - **The Ultimate Nature Pack in `ASSETS/` looks partial:** 50 `.blend` files, stopping at `CommonTree_Autumn_4` (birches, bushes, cacti, common trees). The rocks, logs, stumps, grass and pines aren't there, likely the rest of a split download.
 - **Update 0.0.4 — the main menu** (the designer's idea, outside the M1 plan): a low shot up a staircase at a dungeon gate built from the Modular Dungeon Pack, with the BORN TO RETRY logo in the sky. Start grinds the portcullis up, the screen fades to black, and the black clears off the Feel Lab.
-- **Milestone: M1 — The Feel Lab** (`MD_UPDATES/M1_FEEL_LAB.md`).
+- **M1 — The Feel Lab** (`MD_UPDATES/M1_FEEL_LAB.md`), done.
   - **Done:** steps 1–5 (scaffold, loop, tuning, arena, movement and camera), step 6 (the arms and fists), step 8 (hit feel, health, HUD), step 9 (pause, settings, rebinding) and step 10 (docs).
   - **Changed by the designer:** no real enemies yet; static training dummies replace the Grunt and Spitter of step 7 for now. The parry is removed for now, and with it the orb turret leaves the Feel Lab (its code stays).
-  - **Next — the M1 "done when" list:** the designer plays and says the feel is right, exported tuning becomes the defaults, frame time holds on the designer's PC, and the browser-or-Godot call is recorded here.
+  - **Closed (2026-10-27):** the feel approved, the defaults stand, frame time steady, browser kept.
 - Game: **Born To Retry**, a first-person action roguelike, solo, desktop browser. Steam later via Electron.
 - Tech: Vite + React + TypeScript, Three.js 0.186, Rapier 0.21 (`@dimforge/rapier3d-compat`), Node 24.
 
@@ -33,6 +39,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
   - Right click: hold 1 s (the fist draws back and trembles, a cue sounds when ready), then let go to punch. Letting go sooner cancels.
   - F: quick punch, always ready, even mid-charge.
 - **Targets:** four dummies in front of the start (they wobble, slide back, break, and return 2 s later).
+- **Grunts and the sword (Update 0.0.9):** wait 3 s for the first three Orcs. The sword stands right of the start: E to take it, left click to slash, hold right click to cleave, Q to throw. Kill grunts with it until it breaks, then throw it; pick up what they drop. F1 → Enemies (set "Lab grunts" to 0 to practise movement in peace) and Weapons; the Arms tab has the held weapon's lean and size.
 - **Health:** the spike strip east of the start (hurts, pops you up; dash over it to stay unhurt). Punch the dummies to heal. Fall off the edge or run out of health to die and restart.
 - **Controls:** main menu → Settings → Controls, or pause → Controls. Click an action's key, then press anything (a key, a mouse button, the wheel); Esc cancels; Reset restores the defaults. The wheel has no "held", so a wheel-bound slide or charged punch is only a tap.
 - **Hit feel:** hit-stop on finisher, charged and kill hits; screen shake; a small camera nod; sparks; chunks when a dummy breaks; a hit marker around the crosshair (red on a kill); placeholder sounds.
@@ -70,6 +77,8 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `MD/DESIGN.md` | The full game design, with placeholders marked |
 | `MD_UPDATES/M1_FEEL_LAB.md` | M1 scope, starting values, build order, tests |
 | `MD/PIPELINE_CHARACTER_ARMS.md` | How to cut first-person arms for a new character |
+| `MD/PIPELINE_ENEMIES_WEAPONS.md` | How a monster (with its animations) and a held weapon get from the packs into the game |
+| `MD_UPDATES/M2_COMBAT_SANDBOX.md` | M2's plan; its first slice is the Grunt and the Sword |
 | `MD/PIPELINE_MENU_SCENE.md` | How the menu's scenes (the gate, the settings camp, the prison corridor) are built, and how to change them |
 | `DEVELOPMENT.md` | Module map and contracts |
 | `ASSETS/QUATERNIUS/` | Downloaded Quaternius packs, one folder per pack (git-ignored) |
@@ -81,7 +90,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 
 ## Decisions made
 - First person, solo only, no online features.
-- Browser (Three.js + Rapier), not raylib or Godot. **Godot is the fallback** if M1 shows the browser can't deliver the feel.
+- Browser (Three.js + Rapier), not raylib or Godot. **Confirmed after M1 (2026-10-27): we stay in the browser.**
 - Arenas are hand-made templates assembled from a seed, not random geometry.
 - Weapons break; breaking throws the weapon for a big hit.
 - Only character unlocks and stats carry over between runs.
@@ -102,10 +111,10 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 ## Browser checks (filled in during M1)
 | Check | Result |
 |---|---|
-| Raw mouse input (`unadjustedMovement`) in Brave | — (F2 shows "raw mouse") |
-| Keyboard lock captures Ctrl+W in fullscreen | — (F2 shows "kb lock") |
-| F1 can be captured by the page | — |
-| Steady frame time with many targets and effects | — |
+| Raw mouse input (`unadjustedMovement`) in Brave | **Yes** (F2: "raw mouse yes"; 2026-10-27) |
+| Keyboard lock captures Ctrl+W in fullscreen | **Ctrl+W was stopped** (the designer, 2026-10-27), but the test ran in a window (F2: fullscreen no, kb lock no): the leave-page guard's "Leave site?" prompt caught it. Keyboard lock in fullscreen is still untested, so Ctrl stays off the default keys (players can bind it) |
+| F1 can be captured by the page | **Yes**: it opens the tuning panel (2026-10-27) |
+| Steady frame time with many targets and effects | **Yes**: 144 fps steady, worst frame 7.1 ms, nothing dropped, on the designer's 144 Hz PC with the dummies and effects (2026-10-27) |
 
 ## Not verified
 Claude has seen and heard none of this in the game: the feel, the arms on screen, the targets, effects, sounds and menus are all unverified until played. The tests check the rules, the collision, and that the shipped arms pose correctly.
@@ -113,3 +122,5 @@ Claude has seen and heard none of this in the game: the feel, the arms on screen
 - **Health and rebinding (Update 0.0.6):** unseen in the browser: the health bar, its trail and low pulse, the hurt flash and shake, the hurt and death sounds, the spikes, the death slow motion and fade, and the controls screen (binding a mouse button, the wheel, Esc to cancel). `test-health.ts` checks the health rules, blood heal through a real punch, orbs, spikes and the death timing; `test-bindings.ts` checks that any key, mouse button and wheel direction binds, with swaps.
 - **The settings camp (Update 0.0.7):** only the Blender previews were seen. Unseen in the browser: the camp under the game's lighting (fire light, moon, fog, stars, embers), the glide in, the fades between the gate and the camp, the crackle, and the panel over the scene. `test-camp.ts` checks the scene's nodes, that every tree, bush and log stands on the ground with nothing grown into anything else, the fire in sight on the left, and the glide.
 - **The character select (Update 0.0.8):** only the Blender previews were seen. Unseen in the browser: the corridor under the game's lighting, the glide in, the camera moving between cells, the bars lifting and rattling (and their sounds), the breathing, the name card, arrows and dots, and the fades. Also the bigger health readout. `test-prison.ts` checks the roster, the scene's nodes, each character on the floor in its cell clear of its bars, raised bars hidden in the wall, the glide, and the select (Joseph's bars lift, a locked cell stays shut, the camera follows).
+- **Grunts and the sword (Update 0.0.9):** nothing seen in the browser. Unseen: the Orcs' look, scale, animations and their timing (the swing should land as the wind-up ends), the red glow, the growl; the sword in the hand (placed by measurement: up the right of the screen), the slashes' sweep, the cleave (for now the arm's move is the charged punch's thrust), the throw's spin, the stand, the HUD readout, and every sound. `test-grunt.ts` and `test-sword.ts` check the rules; `test-arms.ts` checks the held sword stays clear of the crosshair.
+- **Known limits (Update 0.0.9):** grunts walk on the floor only (no climbing, no jumping: on a block you're out of their reach), and steer round walls with feelers rather than a path. Fine for the lab; real rooms (M3) will want proper navigation.

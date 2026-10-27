@@ -3,13 +3,13 @@
 import { check, near, section } from './harness';
 import { DT, ticks } from './fakes/flatWorld';
 import { EventQueue } from '../src/core/eventQueue';
-import { CombatIntent, Punch, createFists, emptyCombatIntent, updateFists } from '../src/sim/combat/fists';
+import { CombatIntent, Punch, createFists, emptyCombatIntent, emptyPunch, updateFists } from '../src/sim/combat/fists';
 import type { CombatEvent } from '../src/sim/combat/state';
 import { HitStop } from '../src/sim/combat/hitStop';
 import { FISTS } from '../src/tuning/combat';
 
 const events = new EventQueue<CombatEvent>(256, 'none');
-const punch: Punch = { kind: 'jab', damage: 0, knock: 0, charge: 0 };
+const punch = emptyPunch();
 
 function kinds(): string[] {
   const out: string[] = [];

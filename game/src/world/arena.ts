@@ -46,6 +46,8 @@ export interface Arena {
   dummies: Spot[];
   /** M1 step 6 — orb turrets (base positions). */
   turrets: Spot[];
+  /** M2 — stands holding a weapon (the lab's sword); it's back a moment after you take it. */
+  stands?: Spot[];
 }
 
 /** M1 step 8 — the arena's hazard boxes (spike strips). */

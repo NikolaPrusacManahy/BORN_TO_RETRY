@@ -78,7 +78,8 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 ### Weapons
 - Dropped by some enemies (elites always, others sometimes) and sold in the shop.
 - You hold one weapon at a time. Picking up another drops the current one.
-- **Durability** counts uses (hits or shots). Drops are low (about 8–20 uses); shop weapons are sturdier. **(placeholder)**
+- **Durability** counts uses (hits or shots). Drops are low (about 8–20 uses); shop weapons are sturdier. **(placeholder)** Misses cost nothing.
+- **The Sword (M2):** left click slashes (alternating), a full right-click charge cleaves (costs 2 uses), F still punches. Q throws it: 70 damage and a hit-stop on the first thing it hits. Picking up uses E. **(placeholder numbers)**
 - **Breaking is a payoff:** when durability hits 0, your next attack throws the weapon for a big hit. You can also throw it any time with Q.
 - Families: **melee** (swords, axes, maces from the Fantasy Props kit) and **firearms** (Ultimate Guns, rarer). **(placeholder mix)**
 
@@ -104,7 +105,7 @@ Rule: every attack is telegraphed (a flash and a sound) before it can hit, and e
 
 | Enemy | Role |
 |---|---|
-| Grunt | Melee chaser in groups. Fodder. |
+| Grunt | Melee chaser in groups. Fodder. **(M2: the Orc from Ultimate Monsters; 40 HP, 7 m/s, a 0.45 s warned wind-up, 15 damage; any hit flinches it; drops a worn sword 30%.)** |
 | Spitter | Keeps distance and fires slow orbs that can be parried. |
 | Brute | Slow and heavy, telegraphed ground slam. Often drops a weapon. |
 | Leaper | Jumps at you from range; punish it on landing. |
@@ -163,7 +164,7 @@ Browser game: Three.js + Rapier, React for menus and HUD, Blender scripts for as
 ## 16. Milestones
 | | Milestone | What it proves |
 |---|---|---|
-| **M1** | **Feel lab:** one gray-box arena, movement, fists, two simple enemies, tuning panel | The core feels great, and the browser can deliver it |
+| **M1** | **Feel lab:** one gray-box arena, movement, fists, two simple enemies, tuning panel | The core feels great, and the browser can deliver it. **Done (2026-10-27); browser kept.** |
 | M2 | Combat sandbox: the enemy roster, weapons with durability and throwing, style meter, money | Fighting stays fun for minutes |
 | M3 | Run structure: rooms, doors, procedural assembly, shop, first boss | One floor is a real roguelike run |
 | M4 | Art pass: Quaternius models, arena kits, first-person arms, real sound effects | It looks and sounds like a game |

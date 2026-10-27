@@ -1,0 +1,36 @@
+/* M2 — the weapon in hand, bottom right (mirroring the health bottom left): its name, then its uses left in big
+   numbers. At 0 it's broken: red, pulsing (the next attack throws it). */
+.rb-hud-weapon {
+  position: absolute;
+  right: 44px;
+  bottom: 36px;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.rb-hud-weapon-name {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--rb-text);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+}
+
+.rb-hud-weapon-uses {
+  min-width: 1.4em;
+  font-family: 'Anton', var(--rb-font);
+  font-size: 68px;
+  line-height: 1;
+  color: #fff;
+  text-shadow:
+    4px 4px 0 rgba(0, 0, 0, 0.55),
+    0 0 14px rgba(0, 0, 0, 0.6);
+  transform: skewX(-10deg);
+}
+
+.rb-hud-weapon.is-broken .rb-hud-weapon-uses {
+  color: var(--rb-accent-hi);
+  animation: rb-hud-low 0.6s ease-in-out infinite;
+}

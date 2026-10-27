@@ -10,10 +10,13 @@ import type { AudioEngine } from '../audio/audio';
 import { MoveSounds } from '../audio/moveSounds';
 import type { Input } from '../input/input';
 import type { RapierWorld } from '../physics/rapierWorld';
+import type { MoveResult } from '../sim/collisionWorld';
 import { CombatIntent, emptyCombatIntent } from '../sim/combat/fists';
 import { CombatState, createCombat, resetCombat } from '../sim/combat/state';
 import { stepCombat } from '../sim/combat/step';
 import { AIM_HEIGHT } from '../sim/combat/turret';
+import { pushPlayerOut } from '../sim/enemies/grunt';
+import { BODY } from '../sim/player/body';
 import { checkHazards } from '../sim/player/hazards';
 import { killPlayer, updateHealth } from '../sim/player/health';
 import { PlayerIntent, emptyIntent } from '../sim/player/intent';
@@ -65,6 +68,7 @@ export class LabRun {
   private readonly chest = new THREE.Vector3();
   private readonly intent: PlayerIntent = emptyIntent();
   private readonly combatIntent: CombatIntent = emptyCombatIntent();
+  private readonly shove: MoveResult = { grounded: false, hitCeiling: false, wall: false, wallNormal: new THREE.Vector3() };
   /** Counts hits on you, for the HUD's hurt flash. */
   private hurts = 0;
 
@@ -133,7 +137,8 @@ export class LabRun {
       updateHealth(p, stepDt);
       stepPlayer(p, this.intent, this.physics, this.arena.pads, stepDt);
       checkHazards(p, this.hazards);
-      stepCombat(this.combat, p, this.combatIntent, this.physics, stepDt);
+      stepCombat(this.combat, p, this.combatIntent, this.physics, stepDt, this.arena.spawns);
+      pushPlayerOut(p, this.combat.grunts, this.physics, BODY.radius, this.shove);
       input.clearPressed();
       const dy = p.pos.y - this.prev.y;
       if (wasGrounded && p.grounded && Math.abs(dy) > STEP_MIN) this.rig.step(dy);
@@ -175,7 +180,7 @@ export class LabRun {
     this.sounds.setWallRunning(p.wallRunning);
     this.rig.update(real * scale, this.clock.alpha, this.prev, p, this.look, settings.fov, aspect);
     this.chest.set(p.pos.x, p.pos.y + AIM_HEIGHT, p.pos.z);
-    this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt);
+    this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt, this.clock.alpha);
     const f = this.combat.fists;
     this.arms.update(gameDt, real, mouseDx, mouseDy, p, f.charging ? f.charge / FISTS.v.chargeTime : -1);
 
@@ -183,7 +188,7 @@ export class LabRun {
     this.arms.render(renderer, aspect);
 
     fillDebug(debug, p, this.combat);
-    this.hudFeed.push(real, p, this.combatScene.feedback, this.hurts);
+    this.hudFeed.push(real, p, this.combatScene.feedback, this.hurts, this.combat.weapon);
     if (this.death.update(real)) this.restart();
   }
 

@@ -16,6 +16,9 @@ export interface HudState {
   /** M1 step 8 — health, rounded up (never shows 0 while alive). */
   hp: number;
   maxHp: number;
+  /** M2 — the weapon in hand ('' barehanded) and its uses left (0: broken, the next attack throws it). */
+  weapon: string;
+  uses: number;
 }
 
 export interface HudStore {
@@ -25,7 +28,7 @@ export interface HudStore {
 }
 
 export function createHudStore(): HudStore {
-  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0 };
+  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0 };
   const subs = new Set<() => void>();
   return {
     get: () => state,

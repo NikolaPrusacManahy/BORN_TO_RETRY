@@ -1,6 +1,7 @@
 // M1 — the HUD: a crosshair, the hit marker around it, the dash charges (bottom centre), and a red edge flash when
 // you're hurt. M1 step 8 — health bottom left: the number and a bar, with a pale trail showing what a hit took; it
 // pulses when low.
+// M2 — the weapon in hand bottom right: its name and uses left (red and pulsing at 0: the next attack throws it).
 import { CSSProperties, useSyncExternalStore } from 'react';
 import type { HudStore } from '../engine/hudStore';
 
@@ -21,6 +22,12 @@ export function Hud({ store }: { store: HudStore }) {
           <i className="rb-hud-bar-fill" />
         </div>
       </div>
+      {s.weapon && (
+        <div className={`rb-hud-weapon${s.uses <= 0 ? ' is-broken' : ''}`}>
+          <span className="rb-hud-weapon-name">{s.weapon}</span>
+          <span className="rb-hud-weapon-uses">{s.uses}</span>
+        </div>
+      )}
       <div className="rb-hud-dash">
         {Array.from({ length: s.dashMax }, (_, i) => (
           <span key={i} className="rb-hud-pip" style={{ '--fill': Math.max(0, Math.min(1, s.dashCharges - i)) } as CSSProperties} />

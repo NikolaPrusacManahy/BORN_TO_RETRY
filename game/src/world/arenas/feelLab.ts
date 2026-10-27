@@ -67,4 +67,6 @@ export const FEEL_LAB: Arena = {
     { x: 6, y: 0, z: 17 },
   ],
   turrets: [],
+  // M2 — a sword on a stand just right of the start; grunts come from the spawn points above.
+  stands: [{ x: 3, y: 0, z: 21.5 }],
 };

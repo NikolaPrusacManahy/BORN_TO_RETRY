@@ -31,4 +31,10 @@ export const ARMS = group('arms', 'Arms', {
   landDip: knob(0.004, 0, 0.02, 0.0005, 'Landing dip', 'Extra arm drop per m/s of landing.'),
   dashPull: knob(0.05, 0, 0.2, 0.005, 'Dash pull', 'Arms pulled back during a dash.'),
   slideDrop: knob(0.05, 0, 0.2, 0.005, 'Slide drop', 'Arms lowered while sliding.'),
+  // M2 — how the right fist holds a weapon: the blade comes out on the thumb side, leaning forward and to the right
+  // (40° and 40° keep it up the right of the screen, clear of the crosshair: test-arms.ts checks it).
+  weaponLeanForward: knob(40, -60, 90, 1, 'Weapon lean forward', 'Degrees the blade leans forward, away from you.'),
+  weaponLeanRight: knob(40, -60, 90, 1, 'Weapon lean right', 'Degrees the blade leans right, away from the crosshair.'),
+  weaponScale: knob(0.75, 0.3, 1.5, 0.01, 'Weapon size (held)', 'The held weapon\'s size in view (1 = its true size).'),
+  slashWidth: knob(0.42, 0.1, 0.8, 0.01, 'Slash width', 'How far a slash sweeps across, each side of centre (m).'),
 });

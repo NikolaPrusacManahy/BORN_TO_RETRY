@@ -1,6 +1,8 @@
 // M1 step 6 — the first-person arms: their own little scene and camera (drawn over the world after a depth clear,
 // so they never poke into walls and FOV kicks never stretch them), the guard, punches, mouse sway, run bob,
 // landing dip, and the dash and slide poses.
+// M2 — a held weapon in the right fist (hung off the hand bone, held as the Arms tab's weapon knobs say), and its
+// slashes: the fist sweeps across the view (forehand: from up right down to the left; backhand: back).
 import * as THREE from 'three';
 import { ARMS } from '../../tuning/arms';
 import type { PlayerState } from '../../sim/player/state';
@@ -46,6 +48,8 @@ export class Viewmodel {
   private dropY = 0;
   private chargeVis = 0;
   private time = 0;
+  private weapon: THREE.Object3D | null = null;
+  private readonly sweep = new THREE.Vector3();
 
   /** `loadModel`: fetch the arms (tests attach a parsed model instead). */
   constructor(loadModel = true) {
@@ -67,6 +71,21 @@ export class Viewmodel {
   attach(rig: ArmsRig) {
     this.rig = rig;
     this.holder.add(rig.root);
+    if (this.weapon) rig.holdBone.add(this.weapon);
+  }
+
+  /** M2 — the weapon in the right fist (null: barehanded). */
+  setWeapon(model: THREE.Object3D | null) {
+    if (this.weapon === model) return;
+    this.weapon?.removeFromParent();
+    this.weapon = model;
+    if (!model) return;
+    model.matrixAutoUpdate = false;
+    this.rig?.holdBone.add(model);
+  }
+
+  get armed() {
+    return this.weapon !== null;
   }
 
   /** The arms camera's lens for a screen of this aspect (vertical FOV from the Arms tuning). */
@@ -128,6 +147,11 @@ export class Viewmodel {
     // The holder puts the model's eye at the camera.
     this.holder.position.add(this.toStrike.set(rig.eye.x, -rig.eye.y, rig.eye.z));
     for (const side of ['L', 'R'] as const) this.poseArm(rig, side, this.chargeVis, charge >= 1);
+    if (this.weapon) {
+      // holdMatrix leans back and out (towards the back of the hand); forward and right are the opposite ways.
+      rig.holdMatrix(-THREE.MathUtils.degToRad(v.weaponLeanForward), -THREE.MathUtils.degToRad(v.weaponLeanRight), v.weaponScale, this.weapon.matrix);
+      this.weapon.matrixWorldNeedsUpdate = true;
+    }
     this.camera.updateMatrixWorld(true);
   }
 
@@ -143,6 +167,8 @@ export class Viewmodel {
     this.strike.copy(rig.eye).addScaledVector(FORWARD, d * Math.cos(PREVIEW_PITCH));
     this.strike.y -= d * Math.sin(PREVIEW_PITCH) + STRIKE_DROP;
     this.strike.x += side === 'L' ? STRIKE_SPREAD : -STRIKE_SPREAD;
+    const style = this.anim.style(side);
+    if (side === 'R' && (style === 'slashL' || style === 'slashR') && e > 0) return this.slash(rig, g, out, style === 'slashL', e);
     out.fist.copy(g.fist).lerp(this.strike, Math.max(e, 0));
     if (e < 0) out.fist.addScaledVector(this.toStrike.subVectors(g.fist, this.strike).normalize(), -e * 0.1);
     out.knuckles.copy(g.knuckles).lerp(this.toStrike.subVectors(this.strike, rig.between).normalize(), Math.max(e, 0)).normalize();
@@ -158,6 +184,21 @@ export class Viewmodel {
     rig.apply(side, out);
   }
 
+  /** M2 — a slash: the fist runs along a sweep across the view (screen right is model −x) as the swing goes out, its
+   *  knuckles turned into the sweep so the blade cuts across. `forehand`: from up right down to the left. */
+  private slash(rig: ArmsRig, g: ArmPose, out: ArmPose, forehand: boolean, e: number) {
+    const w = ARMS.v.slashWidth;
+    const k = Math.min(1, e);
+    const fromX = forehand ? -w : w;
+    const fromY = forehand ? 0.16 : -0.14;
+    this.sweep.set(fromX + (-2 * fromX) * k, fromY + (-fromY - 0.02) * k, 0);
+    this.strike.add(this.sweep);
+    out.fist.copy(g.fist).lerp(this.strike, k);
+    out.knuckles.copy(FORWARD).addScaledVector(this.sweep.set(forehand ? 1 : -1, forehand ? -0.4 : 0.4, 0), 0.9 * k).normalize();
+    out.back.copy(g.back).normalize().lerp(REST_BACK, k);
+    rig.apply('R', out);
+  }
+
   /** Draws the arms over the world already on screen: depth cleared, colour kept. */
   render(renderer: THREE.WebGLRenderer, aspect: number) {
     this.setLens(aspect);
@@ -169,10 +210,11 @@ export class Viewmodel {
   }
 
   /** Reacts to a punch event by kind. */
-  static styleFor(kind: 'jabL' | 'jabR' | 'heavy' | 'quick'): [Side, PunchStyle] {
+  static styleFor(kind: 'jabL' | 'jabR' | 'heavy' | 'quick' | 'slashL' | 'slashR' | 'cleave'): [Side, PunchStyle] {
     if (kind === 'jabL') return ['L', 'jab'];
     if (kind === 'jabR') return ['R', 'jab'];
-    if (kind === 'heavy') return ['R', 'heavy'];
+    if (kind === 'heavy' || kind === 'cleave') return ['R', 'heavy'];
+    if (kind === 'slashL' || kind === 'slashR') return ['R', kind];
     return ['L', 'quick'];
   }
 

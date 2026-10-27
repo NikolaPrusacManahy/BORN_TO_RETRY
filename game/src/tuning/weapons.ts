@@ -1,0 +1,23 @@
+// M2 — weapons (design §6): the sword's swings, its uses, throwing, and picking weapons up. Placeholders the designer
+// tunes (M2_COMBAT_SANDBOX.md).
+import { group, knob } from './schema';
+
+export const WEAPONS = group('weapons', 'Weapons', {
+  swordDamage: knob(22, 1, 200, 1, 'Sword slash damage', 'Per slash that lands.'),
+  swordKnock: knob(7, 0, 40, 0.5, 'Sword slash knock', 'How hard a slash pushes what it hits (m/s).'),
+  swordReach: knob(2.6, 1, 5, 0.05, 'Sword reach', 'How far a slash or cleave reaches from the eye (m).'),
+  swordWidth: knob(0.8, 0.2, 2, 0.05, 'Sword width', 'How wide its sweep is (m): wider than a fist.'),
+  swordInterval: knob(0.42, 0.15, 1.5, 0.01, 'Sword slash interval', 'Seconds between slashes while left click is held.'),
+  swordCleaveDamage: knob(55, 1, 300, 1, 'Sword cleave damage', 'The charged right click (it charges like the charged punch).'),
+  swordCleaveKnock: knob(18, 0, 60, 0.5, 'Sword cleave knock', 'How hard a cleave pushes what it hits (m/s).'),
+  swordCleaveUses: knob(2, 1, 5, 1, 'Sword cleave cost', 'Uses a cleave that lands takes.'),
+  swordStandUses: knob(20, 1, 100, 1, 'Sword uses (stand)', 'Uses of the sword on the lab stand.'),
+  swordDropMin: knob(8, 1, 100, 1, 'Sword uses (drop, min)', 'A dropped sword has between min and max uses left.'),
+  swordDropMax: knob(20, 1, 100, 1, 'Sword uses (drop, max)', 'Design §6: drops are low, about 8–20.'),
+  throwSpeed: knob(30, 5, 80, 1, 'Throw speed', 'How fast a thrown weapon flies (m/s).'),
+  throwDamage: knob(70, 1, 300, 1, 'Throw damage', 'A thrown weapon hitting something (it breaks on it).'),
+  throwKnock: knob(20, 0, 60, 0.5, 'Throw knock', 'How hard a thrown weapon pushes what it hits (m/s).'),
+  throwSpin: knob(20, 0, 60, 1, 'Throw spin', 'How fast it spins in flight (rad/s; looks only).'),
+  pickupRange: knob(2, 0.5, 5, 0.1, 'Pickup range', 'How close a weapon on the ground must be to pick it up with E (m).'),
+  standRespawn: knob(3, 0.5, 30, 0.5, 'Stand respawn', 'Seconds before the lab stand has a sword again.'),
+});
