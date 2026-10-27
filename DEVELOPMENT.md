@@ -63,6 +63,12 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `audio/audio.ts`, `synth.ts`, `moveSounds.ts` | Buses; placeholder synth sounds; movement sounds |
 | `screens/*` | App shell, title card, pause menu, HUD, F1 tuning panel, F2 debug overlay |
 
+### Asset tools (`game/tools/`)
+| Tool | Does |
+|---|---|
+| `tools/blender/cut_arms.py` | Cuts first-person arms from a rigged Quaternius `.blend`, renders previews, exports a rest-pose `.glb`. Process: `MD/PIPELINE_CHARACTER_ARMS.md` |
+| `tools/contact_sheet.py` | Tiles preview renders into one labelled sheet to compare variants (Python 3 + Pillow) |
+
 ## Contracts
 - **Sim purity:** `sim/`, `world/`, `tuning/` and `state/` never import Rapier, React or the DOM. They may use Three.js math.
 - **Collision:** the sim only calls `CollisionWorld` (`movePlayer`, `probeWall`, `canStand`). Tests use `tests/fakes/flatWorld.ts`; `tests/test-physics.ts` runs the real Rapier world headless.

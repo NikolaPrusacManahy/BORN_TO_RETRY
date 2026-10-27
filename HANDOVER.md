@@ -2,11 +2,19 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-27): Update 0.0.1
+## Current state (2026-10-27): Update 0.0.2
 - **Milestone: M1 — The Feel Lab** (`MD_UPDATES/M1_FEEL_LAB.md`). **Build steps 1–5 are done**: scaffold, loop and platform, tuning system, arena, movement and camera.
 - Next: step 6 (fists), step 7 (Grunt and Spitter), step 8 (hit feedback, health, HUD), step 9 (key rebinding screen), step 10 (docs).
 - Game: RUINBREAKER (working title), a first-person action roguelike, solo, desktop browser. Steam later via Electron.
 - Tech: Vite + React + TypeScript, Three.js 0.186, Rapier 0.21 (`@dimforge/rapier3d-compat`), Node 24.
+
+## First-person arms
+- **Pipeline ready and approved** (2026-10-27): `MD/PIPELINE_CHARACTER_ARMS.md`, tool `game/tools/blender/cut_arms.py`.
+  The Adventurer (Ultimate Modular Men, Humanoid Rig) was cut and posed in an orthodox boxing guard after a
+  reference photo; the approved look is `MD/reference/arms_guard_adventurer.webp`.
+- **Not in the game yet.** It arrives with M1 step 6 (fists): the guard becomes F1 sliders, and punches move the
+  bones in code.
+- The designer plans more characters in future updates: each one goes through the same pipeline.
 
 ## What to try in-game
 Run `START_GAME.bat`, click to play.
@@ -26,6 +34,7 @@ Run `START_GAME.bat`, click to play.
 |---|---|
 | `MD/DESIGN.md` | The full game design, with placeholders marked |
 | `MD_UPDATES/M1_FEEL_LAB.md` | M1 scope, starting values, build order, tests |
+| `MD/PIPELINE_CHARACTER_ARMS.md` | How to cut first-person arms for a new character |
 | `DEVELOPMENT.md` | Module map and contracts |
 | `ASSETS/QUATERNIUS/` | Drop the downloaded Quaternius packs here, one folder per pack (git-ignored) |
 
