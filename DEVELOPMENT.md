@@ -43,7 +43,7 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `sim/enemies/waves.ts` | The lab's waves of grunts (seeded RNG, away from the player) |
 | `sim/weapons/catalog.ts` | Weapon kinds, their names and stats (from `tuning/weapons.ts`) |
 | `sim/weapons/weapons.ts` | The held weapon, weapons on the ground (stands, drops), in flight; pick up, swap, drop, throw |
-| `sim/weapons/swing.ts` | The held weapon's slashes; the charge becomes its cleave; what a hit costs |
+| `sim/weapons/swing.ts` | The held weapon's slashes (one 'slash' event; the arms pick the way); the charge becomes its pierce; what a hit costs |
 | `sim/weapons/thrown.ts` | Thrown weapons flying, hitting the first target or a wall, and breaking |
 | `sim/combat/strike.ts` | What a sweep hits (the nearest dummy, turret or grunt) and landing a hit: kills, the kill hit-stop, drops |
 
@@ -71,7 +71,7 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 |---|---|
 | `step.ts` | One combat tick's order: fists (and the punch they throw) → dummies → turrets → orbs. Nothing else |
 | `state.ts` | `CombatState`, its events (`CombatEvent`), create/reset |
-| `fists.ts` | Jab combo (hold to repeat), charged punch on release, quick punch (always ready, mid-charge too) |
+| `fists.ts` | Jab combo (hold to repeat), charged punch on release (the quick punch was cut in Update 0.0.10) |
 | `punch.ts` | Landing a punch: sweep from the eye; nearest target takes the hit; hit-stop requests |
 | `dummy.ts`, `turret.ts`, `turretDamage.ts`, `orbs.ts` | Training dummies (spring wobble, break, respawn); the turret (warn → fire, line of sight); orbs (hit you unless dashing, pop on walls). The turret is out of the Feel Lab until the parry returns |
 | `hitStop.ts` | The freeze: longest request wins, counted down on real time |
@@ -104,8 +104,9 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `engine/gruntsView.ts` | M2 — the grunts: one animated Orc per slot, clips by phase (the swing timed to land as the wind-up ends), the wind-up's red glow, hit flash |
 | `engine/weaponsView.ts` | M2 — weapons on the ground (turning above a glowing ring), the lab stand, weapons in flight (spinning), and the one in hand (given to the arms) |
 | `engine/fx/burst.ts` | Pooled instanced pieces (sparks, chunks) |
-| `engine/viewmodel/viewmodel.ts` | The arms' own scene and camera, sway, bob, landing dip, dash/slide poses, punch aim; draws over the world |
-| `engine/viewmodel/armsRig.ts`, `armsMath.ts`, `armsAnim.ts`, `guard.ts` | Loading and posing the arms (IK, bone aiming, ported from `cut_arms.py`); punch timelines; the approved guard |
+| `engine/viewmodel/viewmodel.ts` | The arms' own scene and camera, sway, bob, landing dip, dash/slide poses, punch aim; draws over the world. M2: with a weapon, the left arm drops out of view and the right holds the sword |
+| `engine/viewmodel/armsRig.ts`, `armsMath.ts`, `armsAnim.ts`, `guard.ts` | Loading and posing the arms (IK, bone aiming, ported from `cut_arms.py`); punch timelines; the approved guard. M2: the grip in the right fist, and the arm pose that holds a sword where a pose says |
+| `engine/viewmodel/swordAnim.ts`, `swordPoses.ts` | Update 0.0.10 — the sword arm's moves (ready, the pierce's charge, forehand and backhand slashes, the pierce, the throw) and their key poses |
 | `engine/hudStore.ts` | HUD state (dash, hit marker, hurt flash) and live debug numbers |
 | `audio/audio.ts`, `synth.ts`, `moveSounds.ts`, `combatSounds.ts` | Buses; placeholder synth sounds; movement and combat sounds |
 | `screens/*` | App shell (`App.tsx`: menu → intro → playing ⇄ paused; the menu's gate and camp views), main menu, the camp's settings screen (`CampMenu.tsx`), pause menu, the options both show (`Options.tsx`: General / Controls tabs), shared settings fields, the controls screen (`KeyBindings.tsx`, key names in `keyLabel.ts`), HUD (health bottom left), F1 tuning panel, F2 debug overlay |
@@ -120,6 +121,7 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `tools/blender/scene_kit.py` | Helpers the scene builders import: load and place pieces, markers, flat materials, posing a rig's bones and baking a pose, previews, export |
 | `tools/blender/export_monster.py` | M2 — a monster with its animations to a `.glb`; prints when its weapon swing lands. Process: `MD/PIPELINE_ENEMIES_WEAPONS.md` |
 | `tools/blender/export_weapon.py` | M2 — a held weapon to a `.glb`, its origin in the grip, blade up |
+| `tools/view-shots.ts` (+ `view-shots-list.ts`), `tools/blender/render_view.py` | Update 0.0.10 — the first-person arms posed by the game's own code for a list of moments, rendered by Blender (no browser); prints each shot's wrist bend and where the sword's tip lands |
 | `tools/contact_sheet.py` | Tiles preview renders into one labelled sheet to compare variants (Python 3 + Pillow) |
 
 ## Contracts
@@ -144,7 +146,10 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 - **Bindings (M1 step 9):** a binding is any `KeyboardEvent.code`, `Mouse0`..`Mouse4`, or `WheelUp` / `WheelDown`. The wheel has no held state: a notch is a press that also counts as held until the tick that reads it. The controls screen listens in the capture phase and stops the event, so menus, dev keys and the game never see the key being bound; Esc cancels.
 - **One way to hit things (M2):** punches, sword swings and thrown weapons all find their target with `nearestTarget` and land with `landHit` (strike.ts): the hit event, then on a kill the 'kill' event, the kill hit-stop, and a grunt's drop roll. A new target kind is added there once.
 - **Every enemy attack is warned (M2):** a grunt's swing only lands after its full wind-up (`gruntWindup`), which starts with 'gruntWindup' (the growl, the glow, the swing animation). It turns only `gruntWindupTurn` rad/s meanwhile, so a dash round it dodges. `test-grunt.ts` checks no swing lands early.
-- **Weapons (M2):** holding one, left click is `updateSlashes` and a full charge from `updateFists(…, armed)` is a 'cleave' that takes the weapon's numbers. Uses drop only on hits. At 0 the weapon is broken: the next attack press (or Q, any time) throws it. Drops and waves use `CombatState.rng` (`LAB_SEED`), reset with the lab.
+- **Weapons (M2):** holding one, left click is `updateSlashes` and a full charge from `updateFists(…, armed)` is a 'pierce' that takes the weapon's numbers. Uses drop only on hits. At 0 the weapon is broken: the next attack press (or Q, any time) starts a throw: 'throwStart', `throwWindup` seconds in which nothing else attacks, then 'throw'. Drops and waves use `CombatState.rng` (`LAB_SEED`), reset with the lab.
+- **The sword arm picks its own way (Update 0.0.10):** the rules push one 'slash'; `SwordAnim.slash()` swings a forehand from the right half of the slash path and a backhand from the left half, so the arm never jumps. 'chargeStart' while armed and 'pierce' bring the sword to ready. The throw's arm move lasts `throwWindup`, so the sword leaves the hand as 'throw' arrives.
+- **Hit-stop freezes a swing on contact (Update 0.0.10):** hits land on the click, so `SwordAnim.update(gameDt, realDt)` runs a slash or pierce on real time until its contact point (a slash half-way along its path, a pierce at full stretch), then on game time.
+- **Sword poses are where the sword is (Update 0.0.10):** `swordPoses.ts` gives the grip, blade, edge, grip tilt and elbow in the arms camera's view; `ArmsRig.gripPose` turns that into the right arm's pose and `holdMatrix` hangs the sword in the fist to match. Check a new pose with `tools/view-shots.ts` (renders, and the wrist bend it prints) and keep the wrist under ~40° in held poses (`test-arms.ts`).
 - **Character select (Update 0.0.8):** the gate's intro ends in the prison view (`onIntroDone`), not the lab; the App is then in its `select` phase. `selectCell` moves the camera and opens or shuts bars; Play (only for a playable character) locks the mouse in its click, fades over `PRISON.fade`, then `startRun(id)` starts the lab and calls `onRunStart(locked)`. The prison's node names (`PRISON_NODES`, built from the roster's ids) are a contract with `build_prison_scene.py`; `test-prison.ts` checks them on the shipped `.glb`.
 - **Menu views (Update 0.0.7):** in `menu` mode the Game draws the gate, the camp or the prison (`showMenuView`). The App swaps them under a fade to black (`CAMP_FADE` each way) and the camp's camera glides in (`CAMP_GLIDE`). Both scenes load before the menu is ready. The camp's node names (`CAMP_NODES`) are a contract with `build_camp_scene.py`; `test-camp.ts` checks them on the shipped `.glb`.
 - **Main menu (Update 0.0.4):** the Game starts in `menu` mode and nothing simulates until `play`. Start locks the mouse inside the click or key press (browsers require one), then the gate opens (`intro`), ignoring the mouse; the App ignores lock changes until it's over. `MenuScene.update` returns `'fade'` (the App fades to black over `INTRO.fade`) and `'done'` (the Game restarts the lab, clears input, and the black clears). If the gate scene fails to load, Start goes straight to the lab. The scene's node names (`MENU_NODES`) are a contract with `build_menu_scene.py`; `test-menu.ts` checks them on the shipped `.glb`, plus the framing, that the doorway is open by the fade, and that the raised bars stay inside the wall (`INTRO.gateLift` ≤ ~3 m, the script's `GATE_LIFT`).

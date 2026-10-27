@@ -1,5 +1,5 @@
-// M1 step 6 — the fists: jab combo and its timing, holding to keep punching, charged punch scaling, the quick
-// punch's cooldown and its priority over charging, and hit-stop.
+// M1 step 6 — the fists: jab combo and its timing, holding to keep punching, charged punch scaling, and hit-stop.
+// (Update 0.0.10 — the quick punch is gone: the designer.)
 import { check, near, section } from './harness';
 import { DT, ticks } from './fakes/flatWorld';
 import { EventQueue } from '../src/core/eventQueue';
@@ -70,16 +70,6 @@ section('Fists — charged punch');
   const k = createFists();
   const none = run(k, ticks(0.3), () => ({ heavyHeld: true, attackHeld: true }));
   check('no jabs while charging', none.length === 0);
-}
-
-section('Fists — quick punch');
-{
-  const f = createFists();
-  const q = run(f, ticks(FISTS.v.quickCooldown * 0.5), () => ({ punchPressed: true }));
-  check('the quick punch has a cooldown', q.length === 1 && q[0].kind === 'quick');
-  const g = createFists();
-  const mid = run(g, ticks(0.2), (i) => ({ heavyHeld: true, punchPressed: i === 5 }));
-  check('the quick punch works mid-charge, and the charge carries on', mid.length === 1 && mid[0].kind === 'quick' && g.charging);
 }
 
 section('Hit-stop');

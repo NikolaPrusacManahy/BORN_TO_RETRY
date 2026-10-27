@@ -24,7 +24,7 @@ export class CombatScene {
   constructor(scene: THREE.Scene, state: CombatState, audio: AudioEngine, rig: CameraRig, arms: Viewmodel) {
     this.targets = new TargetsView(scene, state);
     this.grunts = new GruntsView(scene);
-    this.weapons = new WeaponsView(scene, state, arms);
+    this.weapons = new WeaponsView(scene, state, arms, rig.camera);
     this.sparks = new Burst(240, new THREE.MeshBasicMaterial({ color: 0xfff0c0 }), { speed: [4, 11], life: [0.12, 0.3], size: 0.05, gravity: 6, bounce: 0.3 });
     this.chunks = new Burst(160, new THREE.MeshStandardMaterial({ color: 0xb49a76, roughness: 0.85 }), { speed: [3, 7], life: [0.9, 1.4], size: 0.14, gravity: 20, bounce: 0.35 });
     this.chunks.mesh.castShadow = true;

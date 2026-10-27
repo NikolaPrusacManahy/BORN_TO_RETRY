@@ -1,6 +1,6 @@
 // M2 — weapons in the world (design §6): the one you hold, the ones lying around (the lab's stand, drops), and the
 // ones in flight. You hold one at a time; picking one up drops yours at your feet. Throwing (Q, or the next attack
-// once it's broken) sends it spinning; it breaks on whatever it hits.
+// once it's broken) draws it back for a moment, then sends it flying; it breaks on whatever it hits.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import type { Rng } from '../../core/rng';
@@ -16,8 +16,8 @@ export interface HeldWeapon {
   uses: number;
   /** Time until the next swing. */
   cooldown: number;
-  /** Which way the next slash goes (the arms alternate). */
-  right: boolean;
+  /** Seconds into a throw's wind-up (−1: not throwing). */
+  throwing: number;
 }
 
 export interface Pickup {
@@ -66,7 +66,7 @@ export function createStands(spots: readonly Spot[] = []): Stand[] {
 }
 
 export function holding(kind: WeaponKind, uses: number): HeldWeapon {
-  return { kind, uses, cooldown: 0, right: true };
+  return { kind, uses, cooldown: 0, throwing: -1 };
 }
 
 /** A weapon on the ground at `at`. Reuses the oldest drop if every slot is taken. */

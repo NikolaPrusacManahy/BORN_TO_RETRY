@@ -1,7 +1,6 @@
-// M1 step 6 — what the fists do this tick: the jab combo (hold to keep punching), the charged punch on release,
-// and the quick punch, which is always ready, even mid-charge.
-// M2 — holding a weapon (`armed`), left click is the weapon's (weapons/swing.ts) and the charge throws a cleave;
-// the quick punch stays the left fist's.
+// M1 step 6 — what the fists do this tick: the jab combo (hold to keep punching) and the charged punch on release.
+// M2 — holding a weapon (`armed`), left click is the weapon's (weapons/swing.ts) and the charge lets go a pierce.
+// Update 0.0.10 — the quick punch (F) is gone (the designer).
 import type { EventQueue } from '../../core/eventQueue';
 import { FISTS } from '../../tuning/combat';
 import type { CombatEvent } from './state';
@@ -17,14 +16,12 @@ export interface FistState {
   charge: number;
   /** The charge is full: letting go now throws the punch. */
   chargeReady: boolean;
-  quickCooldown: number;
 }
 
 export interface CombatIntent {
   attackHeld: boolean;
   attackPressed: boolean;
   heavyHeld: boolean;
-  punchPressed: boolean;
   /** M2 — Q: throw the held weapon; E: pick one up. */
   throwPressed: boolean;
   interactPressed: boolean;
@@ -32,13 +29,13 @@ export interface CombatIntent {
   pitch: number;
 }
 
-export type PunchKind = 'jab' | 'finisher' | 'heavy' | 'quick' | 'slash' | 'cleave';
+export type PunchKind = 'jab' | 'finisher' | 'heavy' | 'slash' | 'pierce';
 
 export interface Punch {
   kind: PunchKind;
   damage: number;
   knock: number;
-  /** 1 for a charged punch or cleave, 0 otherwise. */
+  /** 1 for a charged punch or pierce, 0 otherwise. */
   charge: number;
   /** M2 — how far it reaches from the eye (m) and its sweep's radius (a sword's is wider than a fist's). */
   reach: number;
@@ -46,11 +43,11 @@ export interface Punch {
 }
 
 export function createFists(): FistState {
-  return { combo: 0, comboTimer: 0, jabCooldown: 0, charging: false, charge: 0, chargeReady: false, quickCooldown: 0 };
+  return { combo: 0, comboTimer: 0, jabCooldown: 0, charging: false, charge: 0, chargeReady: false };
 }
 
 export function emptyCombatIntent(): CombatIntent {
-  return { attackHeld: false, attackPressed: false, heavyHeld: false, punchPressed: false, throwPressed: false, interactPressed: false, yaw: 0, pitch: 0 };
+  return { attackHeld: false, attackPressed: false, heavyHeld: false, throwPressed: false, interactPressed: false, yaw: 0, pitch: 0 };
 }
 
 export function emptyPunch(): Punch {
@@ -69,18 +66,11 @@ function set(out: Punch, kind: PunchKind, damage: number, knock: number, charge 
 }
 
 /** Advances the fists. Writes a punch into `out` and returns true when one is thrown this tick. `armed`: holding a
- *  weapon (no jabs; a full charge throws a 'cleave', which the caller turns into the weapon's). */
+ *  weapon (no jabs; a full charge lets go a 'pierce', which the caller turns into the weapon's). */
 export function updateFists(f: FistState, intent: CombatIntent, events: EventQueue<CombatEvent>, dt: number, out: Punch, armed = false): boolean {
   const v = FISTS.v;
   f.jabCooldown = Math.max(0, f.jabCooldown - dt);
-  f.quickCooldown = Math.max(0, f.quickCooldown - dt);
   f.comboTimer = Math.max(0, f.comboTimer - dt);
-
-  if (intent.punchPressed && f.quickCooldown <= 0) {
-    f.quickCooldown = v.quickCooldown;
-    events.push('quick');
-    return set(out, 'quick', v.quickDamage, v.quickKnock);
-  }
 
   // Update 0.0.3 (the designer): right click is never a light punch. Hold it for the full charge time; letting go
   // sooner cancels.
@@ -105,8 +95,8 @@ export function updateFists(f: FistState, intent: CombatIntent, events: EventQue
       return false;
     }
     f.chargeReady = false;
-    events.push(armed ? 'cleave' : 'heavy', 1);
-    return set(out, armed ? 'cleave' : 'heavy', v.chargeDamage, v.chargeKnock, 1);
+    events.push(armed ? 'pierce' : 'heavy', 1);
+    return set(out, armed ? 'pierce' : 'heavy', v.chargeDamage, v.chargeKnock, 1);
   }
 
   if (!armed && (intent.attackPressed || intent.attackHeld) && f.jabCooldown <= 0) {

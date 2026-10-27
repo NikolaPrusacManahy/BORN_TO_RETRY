@@ -20,5 +20,18 @@ Exports one weapon with its origin in the middle of the grip, the blade (or head
 blender --background --disable-autoexec --python tools/blender/export_weapon.py -- --blend "<Ultimate RPG Pack>/Sword.blend" --glb public/models/weapons/sword.glb --length 1.05 --previews <a scratch folder>
 ```
 
-- The arms hold it in the right fist: the blade out of the thumb side, leaning forward and right by the Arms tab's weapon knobs. `game/tests/test-arms.ts` checks the held sword shows and keeps clear of the crosshair.
-- A new weapon is a new kind in `game/src/sim/weapons/catalog.ts` (the compiler then asks for its stats and name everywhere), its numbers in `game/src/tuning/weapons.ts`, and its model through this script.
+- The arms hold it in the right fist (Update 0.0.10): its grip through the curled fingers, just under the guard (Arms → "Sword in the fist": how far up the handle from its middle), the blade out of the index finger's side, leaning towards the knuckles by each pose's grip tilt. The sword arm's poses (`game/src/engine/viewmodel/swordPoses.ts`) say where the sword is; the arm is posed to hold it there. `game/tests/test-arms.ts` checks the grip sits in the fingers, the wrist stays nearly straight, and the sword keeps clear of the crosshair when ready.
+- A new weapon is a new kind in `game/src/sim/weapons/catalog.ts` (the compiler then asks for its stats and name everywhere), its numbers in `game/src/tuning/weapons.ts`, and its model through this script. A weapon held differently (an axe, a hammer) wants its own poses.
+
+## Looking at the arms without a browser: `game/tools/view-shots.ts`
+Poses the game's own arms code (the real models) at the moments listed in `game/tools/view-shots-list.ts` and writes the posed meshes; Blender renders them through the arms camera, a red dot on the crosshair.
+
+```
+npx tsx tools/view-shots.ts <out folder> [shot names…]
+blender --background --python tools/blender/render_view.py -- --json <out folder>/shots.json --out <out folder> [--crop 0.6,0,1,0.45]
+```
+
+- Each shot prints how far the right wrist bends (keep held poses under ~40°), where the elbow and wrist are on screen, and where the sword's tip lands.
+- `film-forehand-*` and `film-backhand-*` film a slash every 15 ms; `tools/contact_sheet.py` tiles frames into one image.
+- `--crop` renders part of the frame larger (fractions: left, bottom, right, top), for the hand's grip.
+- Flat light and no world behind: it shows poses, not the game's look.

@@ -25,12 +25,11 @@ const STOP: Record<PunchKind, () => number> = {
   jab: () => FEEDBACK.v.stopJab,
   finisher: () => FEEDBACK.v.stopFinisher,
   heavy: () => FEEDBACK.v.stopHeavy,
-  quick: () => FEEDBACK.v.stopJab,
   slash: () => FEEDBACK.v.stopJab,
-  cleave: () => FEEDBACK.v.stopHeavy,
+  pierce: () => FEEDBACK.v.stopHeavy,
 };
 
-const HIT_EVENT: Record<PunchKind, CombatEvent> = { jab: 'hitJab', finisher: 'hitFinisher', heavy: 'hitHeavy', quick: 'hitQuick', slash: 'hitSlash', cleave: 'hitCleave' };
+const HIT_EVENT: Record<PunchKind, CombatEvent> = { jab: 'hitJab', finisher: 'hitFinisher', heavy: 'hitHeavy', slash: 'hitSlash', pierce: 'hitPierce' };
 
 /** Resolves a thrown punch or swing: hit or whiff. Pushes events and hit-stop requests. Returns how far from the eye
  *  it landed (m), or −1 for a whiff (M1 step 8: blood heal needs the distance). */
@@ -42,7 +41,7 @@ export function resolvePunch(punch: Punch, state: CombatState, eye: Vector3, dir
     return -1;
   }
   const flat = Math.hypot(dir.x, dir.z) || 1;
-  const charged = punch.kind === 'heavy' || punch.kind === 'cleave';
+  const charged = punch.kind === 'heavy' || punch.kind === 'pierce';
   landHit(state, hit, punch.damage, punch.knock, dir.x / flat, dir.z / flat, HIT_EVENT[punch.kind], charged ? punch.charge : punch.damage);
   state.hitStop.request(STOP[punch.kind]() * (charged ? 0.5 + 0.5 * punch.charge : 1));
   return eye.distanceTo(hit.point);

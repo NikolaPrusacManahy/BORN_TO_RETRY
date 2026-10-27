@@ -25,19 +25,16 @@ export type CombatEvent =
   | 'chargeReady'
   | 'chargeCancel'
   | 'heavy'
-  | 'quick'
   // M2 — sword swings (for the arms).
-  | 'slashL'
-  | 'slashR'
-  | 'cleave'
+  | 'slash'
+  | 'pierce'
   // What a punch or swing did; x, y, z = where.
   | 'whiff'
   | 'hitJab'
   | 'hitFinisher'
   | 'hitHeavy'
-  | 'hitQuick'
   | 'hitSlash'
-  | 'hitCleave'
+  | 'hitPierce'
   | 'hitThrown'
   | 'kill'
   // The targets.
@@ -50,10 +47,12 @@ export type CombatEvent =
   | 'gruntSpawn'
   | 'gruntWindup'
   | 'gruntStrike'
-  // M2 — weapons: picked up (value = its uses), dropped, worn out, thrown, broken on impact, back on the stand.
+  // M2 — weapons: picked up (value = its uses), dropped, worn out, a throw begun and let go, broken on impact, back
+  // on the stand.
   | 'pickup'
   | 'weaponDrop'
   | 'weaponBroken'
+  | 'throwStart'
   | 'throw'
   | 'thrownBreak'
   | 'standRespawn';

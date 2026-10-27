@@ -16,10 +16,12 @@ export interface WeaponStats {
   /** The sweep's radius (m). */
   width: number;
   interval: number;
-  /** Right click (charged): the heavy swing, and the uses it takes. */
-  heavyDamage: number;
-  heavyKnock: number;
-  heavyUses: number;
+  /** Right click (charged): the pierce, and the uses it takes. */
+  pierceDamage: number;
+  pierceKnock: number;
+  pierceReach: number;
+  pierceWidth: number;
+  pierceUses: number;
   /** Uses: on the lab stand, and the range a drop has. */
   standUses: number;
   dropUses: [number, number];
@@ -35,9 +37,11 @@ export const WEAPON_STATS: Record<WeaponKind, () => WeaponStats> = {
       reach: v.swordReach,
       width: v.swordWidth,
       interval: v.swordInterval,
-      heavyDamage: v.swordCleaveDamage,
-      heavyKnock: v.swordCleaveKnock,
-      heavyUses: v.swordCleaveUses,
+      pierceDamage: v.swordPierceDamage,
+      pierceKnock: v.swordPierceKnock,
+      pierceReach: v.swordPierceReach,
+      pierceWidth: v.swordPierceWidth,
+      pierceUses: v.swordPierceUses,
       standUses: v.swordStandUses,
       dropUses: [v.swordDropMin, Math.max(v.swordDropMin, v.swordDropMax)],
     };

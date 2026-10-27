@@ -21,7 +21,6 @@ export class CombatSounds {
     switch (kind) {
       case 'jabL':
       case 'jabR':
-      case 'quick':
         noise(a, { dur: 0.09, gain: 0.12, filter: 'bandpass', from: 900, to: 2600, q: 1.4 });
         break;
       case 'heavy':
@@ -37,7 +36,6 @@ export class CombatSounds {
         tone(a, { from: 240, to: 90, dur: 0.14, gain: 0.06, type: 'sawtooth' });
         break;
       case 'hitJab':
-      case 'hitQuick':
         tone(a, { from: 180, to: 60, dur: 0.09, gain: 0.45 });
         noise(a, { dur: 0.05, gain: 0.3, filter: 'lowpass', from: 2500, to: 400 });
         break;
@@ -66,19 +64,19 @@ export class CombatSounds {
       case 'respawn':
         tone(a, { from: 400, to: 800, dur: 0.12, gain: 0.08 * far, type: 'triangle' });
         break;
-      case 'slashL':
-      case 'slashR':
+      case 'slash':
         noise(a, { dur: 0.16, gain: 0.2, filter: 'bandpass', from: 2400, to: 700, q: 1.3 });
         break;
-      case 'cleave':
-        noise(a, { dur: 0.26, gain: 0.32, filter: 'bandpass', from: 1800, to: 400, q: 1.1 });
+      case 'pierce':
+        // A thrust: short and rising, where a slash falls.
+        noise(a, { dur: 0.18, gain: 0.34, filter: 'bandpass', from: 700, to: 3000, q: 1.4 });
         break;
       case 'hitSlash':
         tone(a, { from: 620, to: 210, dur: 0.1, gain: 0.22, type: 'square' });
         noise(a, { dur: 0.08, gain: 0.35, filter: 'highpass', from: 3000, to: 1200 });
         tone(a, { from: 170, to: 60, dur: 0.1, gain: 0.35 });
         break;
-      case 'hitCleave':
+      case 'hitPierce':
         tone(a, { from: 480, to: 140, dur: 0.18, gain: 0.25, type: 'square' });
         tone(a, { from: 130, to: 32, dur: 0.26, gain: 0.8 });
         noise(a, { dur: 0.18, gain: 0.55, filter: 'lowpass', from: 3800, to: 200 });
@@ -86,6 +84,9 @@ export class CombatSounds {
       case 'hitThrown':
         tone(a, { from: 150, to: 28, dur: 0.3, gain: 0.85 });
         noise(a, { dur: 0.22, gain: 0.6, filter: 'lowpass', from: 4000, to: 180 });
+        break;
+      case 'throwStart':
+        noise(a, { dur: 0.1, gain: 0.12, filter: 'lowpass', from: 900, to: 300 });
         break;
       case 'throw':
         noise(a, { dur: 0.22, gain: 0.3, filter: 'bandpass', from: 900, to: 3200, q: 1.2 });

@@ -35,7 +35,7 @@ A first-person action roguelike. You start every run with your bare hands, tear 
 | C | Slide. Pressed in the air, the slide starts when you land. |
 | Left click | Attack: the held weapon, or a jab combo when barehanded |
 | Right click | Heavy: charged punch when barehanded, the weapon's alt attack otherwise |
-| F | Quick punch. Always available, even holding a weapon. (It will also be the parry, which is on hold.) |
+| F | Free: kept for something later. (The quick punch was cut, Update 0.0.10, the designer.) |
 | Q | Throw the held weapon |
 | E | Interact: pick up, buy, open |
 | Esc | Pause |
@@ -67,7 +67,6 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 ### Fists (always available, never break)
 - **Jab combo** (left click, barehanded): fast alternating punches; the third hit knocks back.
 - **Charged punch** (hold right click): hold **1 s** until it's ready (a cue sounds), then let go to throw it. Letting go sooner cancels it; right click is never a light punch. (Update 0.0.3, the designer.)
-- **Quick punch** (F): a fast punch, ready even mid-charge.
 - **Parry (on hold):** taken out for now at the designer's request (Update 0.0.3); it returns later. When it does, punching an enemy projectile just before it hits sends it back at double damage and heals you a little, and parrying a melee attack staggers the attacker.
 - Fist upgrades from the shop last for the rest of the run.
 
@@ -79,7 +78,7 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - Dropped by some enemies (elites always, others sometimes) and sold in the shop.
 - You hold one weapon at a time. Picking up another drops the current one.
 - **Durability** counts uses (hits or shots). Drops are low (about 8–20 uses); shop weapons are sturdier. **(placeholder)** Misses cost nothing.
-- **The Sword (M2):** left click slashes (alternating), a full right-click charge cleaves (costs 2 uses), F still punches. Q throws it: 70 damage and a hit-stop on the first thing it hits. Picking up uses E. **(placeholder numbers)**
+- **The Sword (M2):** held in the right hand; the left arm drops out of view. Left click slashes: a cut from the upper right through the middle to low left, straight back to ready. Holding right click points the tip at the crosshair; letting go pierces (longer and narrower than a slash, costs 2 uses). Q throws it after a short wind-up (drawn back, then thrust): it flies tip first, 70 damage and a hit-stop on the first thing it hits. Picking up uses E. **(placeholder numbers)**
 - **Breaking is a payoff:** when durability hits 0, your next attack throws the weapon for a big hit. You can also throw it any time with Q.
 - Families: **melee** (swords, axes, maces from the Fantasy Props kit) and **firearms** (Ultimate Guns, rarer). **(placeholder mix)**
 

@@ -1,6 +1,6 @@
 # Milestone 2 — The Combat Sandbox
 
-Status: started (2026-10-27). First slice built: the Grunt and the Sword in the Feel Lab (Update 0.0.9); waiting on the designer's play notes.
+Status: started (2026-10-27). First slice built: the Grunt and the Sword in the Feel Lab (Update 0.0.9); the sword arm reworked from the designer's notes (Update 0.0.10).
 
 ## Goal
 Fighting stays fun for minutes: enemies that fight back, weapons that wear out and get thrown, money and the style meter. Movement and fists from M1 stay as they are.
@@ -18,12 +18,13 @@ Numbers are placeholders the designer tunes in F1 (new tabs: Enemies, Weapons).
 - **In the lab:** three at a time; when the last one dies, three more come 3 s later at the lab's spawn points. F3 resets them. They block each other and you (you can't walk through them).
 
 ### The Sword (design §6)
-- **Model:** the Sword from the Ultimate RPG Pack, held in the right hand.
-- **Left click:** slashes, alternating directions; hold to keep slashing. **22 damage, 2.6 m reach, a slash every 0.42 s.** **(placeholder)**
-- **Right click:** hold 1 s (like the charged punch), let go: a heavy cleave, **55 damage** and a big knockback. Letting go sooner cancels. **(placeholder alt attack)**
-- **F:** the quick punch still works (left fist).
-- **Uses:** each hit costs one (a cleave costs two; misses are free). At 0 the sword is broken: **your next attack throws it** (design §6).
-- **Q:** throw it any time: it spins out at 30 m/s, hits the first thing for **70 damage**, a big knockback and a hit-stop, and is gone. **(placeholder numbers)**
+- **Model:** the Sword from the Ultimate RPG Pack, held in the right hand, the grip through the curled fingers.
+- **No left hand** (the designer, Update 0.0.10): holding a weapon, the left arm drops out of view.
+- **Left click:** a slash: the whole arm cuts down from the upper right through the middle of the view to low left, then goes straight back to ready (the designer: no rest on the left). A slash before it's back swings back the other way. Holding left click slashes every interval. **22 damage, 2.6 m reach, a slash every 0.42 s.** **(placeholder)** (Redone in Update 0.0.10: the designer found the first one atrocious.)
+- **Right click:** hold 1 s (like the charged punch): the sword draws back and points its tip at the crosshair (the designer, Update 0.0.10). Let go: a **pierce**, a straight thrust along the aim: **55 damage**, a big knockback, **3.2 m reach, 0.5 m wide** (longer and narrower than a slash). Letting go sooner cancels. **(placeholder numbers)**
+- **Uses:** each hit costs one (a pierce costs two; misses are free). At 0 the sword is broken: **your next attack throws it** (design §6).
+- **Q:** throw it any time. A throw winds up for **0.12 s** (drawn back like the pierce, then thrust; the designer, Update 0.0.10) and the sword leaves the hand flying tip first at 30 m/s; it hits the first thing for **70 damage**, a big knockback and a hit-stop, and is gone. Nothing else attacks while it winds up. **(placeholder numbers)**
+- **No quick punch** (the designer, Update 0.0.10): F does nothing, with a sword or barehanded; it's kept for something later.
 - **E:** pick up a weapon within 2 m. Picking one up while holding another drops yours at your feet.
 - **HUD:** bottom right, the weapon's name and uses left. Nothing when barehanded.
 - **In the lab:** a sword lies on a stand near the start, back 3 s after you take it.
@@ -32,4 +33,4 @@ Numbers are placeholders the designer tunes in F1 (new tabs: Enemies, Weapons).
 More enemies (Spitter, Brute, Leaper, Shieldbearer, elites), more weapons (dagger, axe, hammer, bow), coins and money, the style meter (design §7), and enemy waves that feel like a room.
 
 ## Tests
-`test-grunt.ts` (chase and stop in reach, every strike warned for the full wind-up, a strike only lands in reach and in front, flinch cancels a wind-up, death, drops from the seeded RNG, waves), `test-sword.ts` (pickup and swap, uses only on hits, broken means the next attack throws, Q throws, the thrown sword's hit, quick punch with a sword).
+`test-grunt.ts` (chase and stop in reach, every strike warned for the full wind-up, a strike only lands in reach and in front, flinch cancels a wind-up, death, drops from the seeded RNG, waves), `test-sword.ts` (pickup and swap, the slash's pace, uses only on hits, the pierce's reach, broken means the next attack throws after the wind-up, Q throws, nothing else during the wind-up, the thrown sword's hit), `test-arms.ts` (the grip in the fingers under the guard, a nearly straight wrist in every held pose, the left arm out of view, the slash crossing the crosshair with the whole arm and going straight back, swinging back if slashed again first, freezing on contact, the pierce pointing at the crosshair, the thrust and the throw going forward).

@@ -1,6 +1,7 @@
 // M2 — draws weapons: the ones lying in reach (turning slowly above the floor, a soft ring under them), the lab's stands
-// (a plain gray-box post), the ones in flight (spinning end over end along their path), and the one in your hand
+// (a plain gray-box post), the ones in flight (tip first, or end over end with Throw spin), and the one in your hand
 // (handed to the arms). The sword is the Ultimate RPG Pack's (public/models/weapons/sword.glb, export_weapon.py).
+// A thrown weapon starts where the hand let it go and joins its true path (from the eye) over LAUNCH seconds.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { CombatState } from '../sim/combat/state';
@@ -12,6 +13,9 @@ export const SWORD_URL = '/models/weapons/sword.glb';
 const FLOAT = 0.9;
 const TURN = 1.4;
 const UP = new THREE.Vector3(0, 1, 0);
+/** Seconds a thrown weapon takes to go from the hand to its true path. */
+const LAUNCH = 0.12;
+const smooth = (x: number) => x * x * (3 - 2 * x);
 
 export class WeaponsView {
   readonly group = new THREE.Group();
@@ -19,7 +23,15 @@ export class WeaponsView {
   private pickups: THREE.Object3D[] = [];
   private rings: THREE.Mesh[] = [];
   private thrown: THREE.Object3D[] = [];
+  /** Per thrown slot: seconds since it left the hand (−1: flying on its own), and where the hand let it go. */
+  private launch: number[] = [];
+  private fromPos: THREE.Vector3[] = [];
+  private fromQuat: THREE.Quaternion[] = [];
+  private fromScale: number[] = [];
   private held: THREE.Object3D | null = null;
+  private readonly handM = new THREE.Matrix4();
+  private readonly scale = new THREE.Vector3();
+  private readonly flight = new THREE.Quaternion();
   private readonly ringMat = new THREE.MeshBasicMaterial({ color: 0xffb070, transparent: true, opacity: 0.35, depthWrite: false, blending: THREE.AdditiveBlending });
   private readonly standMat = new THREE.MeshStandardMaterial({ color: 0x6a6170, roughness: 0.9 });
   private readonly geos: THREE.BufferGeometry[] = [];
@@ -33,6 +45,7 @@ export class WeaponsView {
     scene: THREE.Scene,
     state: CombatState,
     private readonly arms: Viewmodel,
+    private readonly camera: THREE.Camera,
     loadModel = true,
   ) {
     scene.add(this.group);
@@ -86,6 +99,10 @@ export class WeaponsView {
       t.visible = false;
       this.group.add(t);
       this.thrown.push(t);
+      this.launch.push(-1);
+      this.fromPos.push(new THREE.Vector3());
+      this.fromQuat.push(new THREE.Quaternion());
+      this.fromScale.push(1);
     }
     this.held = model.clone();
   }
@@ -105,16 +122,38 @@ export class WeaponsView {
     for (let i = 0; i < this.thrown.length; i++) {
       const t = state.thrown[i];
       const m = this.thrown[i];
+      if (t.alive && !m.visible) this.letGo(i);
       m.visible = t.alive;
       if (!t.alive) continue;
       m.position.copy(t.pos);
-      // End over end: the blade turns about the axis across the flight, starting forward.
+      // Tip first, turning end over end about the axis across the flight if Throw spin says so.
       this.fly.copy(t.vel).normalize();
       this.side.crossVectors(this.fly, UP).normalize();
       this.q.setFromUnitVectors(UP, this.fly);
       m.quaternion.setFromAxisAngle(this.side, -t.spin).multiply(this.q);
+      m.scale.setScalar(1);
+      if (this.launch[i] >= 0) {
+        this.launch[i] += dt;
+        const k = smooth(Math.min(1, this.launch[i] / LAUNCH));
+        m.position.lerpVectors(this.fromPos[i], t.pos, k);
+        this.flight.copy(m.quaternion);
+        m.quaternion.copy(this.fromQuat[i]).slerp(this.flight, k);
+        m.scale.setScalar(this.fromScale[i] + (1 - this.fromScale[i]) * k);
+        if (k >= 1) this.launch[i] = -1;
+      }
     }
     this.arms.setWeapon(state.weapon && this.held ? this.held : null);
+  }
+
+  /** A weapon just thrown: it starts from where the sword in the arms is (the arms' camera sits at the eye, so the
+   *  world camera's matrix carries it into the world). */
+  private letGo(i: number) {
+    const held = this.arms.heldWeapon;
+    if (!held) return;
+    this.camera.updateMatrixWorld();
+    this.handM.multiplyMatrices(this.camera.matrixWorld, held.matrixWorld).decompose(this.fromPos[i], this.fromQuat[i], this.scale);
+    this.fromScale[i] = this.scale.x;
+    this.launch[i] = 0;
   }
 
   dispose() {

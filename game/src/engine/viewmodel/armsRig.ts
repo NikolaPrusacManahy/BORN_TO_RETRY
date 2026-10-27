@@ -45,17 +45,31 @@ const dir = new THREE.Vector3();
 const upperBack = new THREE.Vector3();
 const handDir = new THREE.Vector3();
 
-/** M2 — where a held weapon sits in a fist, worked out once from the rest pose (model space). */
+/** M2 — where a held weapon sits in the right fist, worked out once from the rest pose (model space). */
 interface HoldRest {
   hand: THREE.Bone;
   /** The hand's rest model matrix, inverted (model space → the hand's space). */
   handInv: THREE.Matrix4;
-  /** The middle of the fist; the knuckles' direction; the thumb's side (across the fist, where a blade comes out);
-   *  the back of the hand. */
+  /** The hole the curled fingers make (the middle of the grip). */
   grip: THREE.Vector3;
-  knuckles: THREE.Vector3;
+  /** The hand's rest frame as the arm posing sees it: y wrist → knuckles, z the back of the hand, x = y × z. */
+  y: THREE.Vector3;
+  /** The way through the fist to the index finger's side, where a blade comes out (along ±x). */
   thumb: THREE.Vector3;
-  back: THREE.Vector3;
+  /** The grip from the wrist, in that frame. */
+  offset: THREE.Vector3;
+  /** +1 if the index side is +x, −1 if it is −x. */
+  sign: number;
+}
+
+/** M2 — a sword in the hand: its grip, the way its blade points, the way its edge faces (across it), how far the blade
+ *  leans in the fist towards the knuckles (radians), and the way the elbow bends out. */
+export interface SwordPose {
+  grip: THREE.Vector3;
+  blade: THREE.Vector3;
+  edge: THREE.Vector3;
+  tilt: number;
+  elbow: THREE.Vector3;
 }
 
 const holdM = new THREE.Matrix4();
@@ -63,6 +77,7 @@ const xAxis = new THREE.Vector3();
 const yAxis = new THREE.Vector3();
 const zAxis = new THREE.Vector3();
 const holdScale = new THREE.Vector3();
+const through = new THREE.Vector3();
 
 export class ArmsRig {
   readonly root: THREE.Object3D;
@@ -98,20 +113,26 @@ export class ArmsRig {
     this.arms = { L: arm('L'), R: arm('R') };
     find('Head').getWorldPosition(this.eye).add(EYE_FROM_HEAD);
     this.between.addVectors(this.arms.L.upper.pos, this.arms.R.upper.pos).multiplyScalar(0.5);
-    // M2 — the right fist's hold: the grip half-way from the wrist to the knuckles, a little into the palm; the thumb
-    // side is the thumb bone's direction from the wrist, with the knuckle and back-of-hand parts taken out.
+    // M2 — the right fist's hold. The fingers are baked closed, so the grip goes where they curl round: the middle of
+    // their twelve joints. The way through the fist runs from the little finger's knuckle to the index finger's.
     const h = this.arms.R.hand;
-    const knuckle = find(boneName('Middle2', 'R')).getWorldPosition(new THREE.Vector3());
-    const thumb = find(boneName('Thumb2', 'R')).getWorldPosition(new THREE.Vector3()).sub(h.pos);
-    const back = REST_BACK.clone();
-    thumb.addScaledVector(h.dir, -thumb.dot(h.dir)).addScaledVector(back, -thumb.dot(back)).normalize();
+    const grip = new THREE.Vector3();
+    for (const f of ['Index', 'Middle', 'Ring', 'Pinky']) for (const j of [2, 3, 4]) grip.add(find(boneName(`${f}${j}`, 'R')).getWorldPosition(dir));
+    grip.divideScalar(12);
+    const y = h.dir.clone();
+    const z = REST_BACK.clone().addScaledVector(y, -REST_BACK.dot(y)).normalize();
+    const x = new THREE.Vector3().crossVectors(y, z);
+    const thumb = find(boneName('Index2', 'R')).getWorldPosition(new THREE.Vector3()).sub(find(boneName('Pinky2', 'R')).getWorldPosition(dir));
+    thumb.addScaledVector(y, -thumb.dot(y)).addScaledVector(z, -thumb.dot(z)).normalize();
+    const off = grip.clone().sub(h.pos);
     this.hold = {
       hand: h.bone,
       handInv: h.bone.matrixWorld.clone().invert(),
-      grip: h.pos.clone().lerp(knuckle, 0.5).addScaledVector(back, -0.02),
-      knuckles: h.dir.clone(),
+      grip,
+      y,
       thumb,
-      back,
+      offset: new THREE.Vector3(off.dot(x), off.dot(y), off.dot(z)),
+      sign: Math.sign(thumb.dot(x)),
     };
     root.traverse((o) => {
       if (o instanceof THREE.Mesh) {
@@ -138,17 +159,34 @@ export class ArmsRig {
     return this.hold.hand;
   }
 
-  /** M2 — a held weapon's matrix under the right hand's bone: its grip in the fist, its blade (+y) out of the thumb
-   *  side, tilted back by `back` and out to the right by `out` (radians), its edge (+x) facing the knuckles. */
-  holdMatrix(back: number, out: number, scale: number, into: THREE.Matrix4): THREE.Matrix4 {
+  /** M2 — a held weapon's matrix under the right hand's bone: its grip in the hole the fingers make (`slide` metres up
+   *  the handle from the model's origin, its middle), its blade (+y) out of the index finger's side, leaning `tilt`
+   *  (radians) towards the knuckles as a real grip crosses the palm, its edge (+x) facing the knuckles. */
+  holdMatrix(tilt: number, scale: number, slide: number, into: THREE.Matrix4): THREE.Matrix4 {
     const r = this.hold;
-    // The blade leans back (towards the wrist) and out (away from the back of the hand, the right on screen).
-    yAxis.copy(r.thumb).multiplyScalar(Math.cos(back)).addScaledVector(r.knuckles, -Math.sin(back));
-    yAxis.multiplyScalar(Math.cos(out)).addScaledVector(r.back, -Math.sin(out)).normalize();
-    xAxis.copy(r.knuckles).addScaledVector(yAxis, -r.knuckles.dot(yAxis)).normalize();
+    yAxis.copy(r.thumb).multiplyScalar(Math.cos(tilt)).addScaledVector(r.y, Math.sin(tilt));
+    xAxis.copy(r.y).multiplyScalar(Math.cos(tilt)).addScaledVector(r.thumb, -Math.sin(tilt));
     zAxis.crossVectors(xAxis, yAxis);
-    holdM.makeBasis(xAxis, yAxis, zAxis).scale(holdScale.setScalar(scale)).setPosition(r.grip);
+    holdM.makeBasis(xAxis, yAxis, zAxis).scale(holdScale.setScalar(scale));
+    holdM.setPosition(through.copy(r.grip).addScaledVector(yAxis, -slide));
     return into.multiplyMatrices(r.handInv, holdM);
+  }
+
+  /** M2 — the right arm's pose that holds a sword where `sword` says (model space), for `holdMatrix` with its tilt.
+   *  Exact when applied with a full wrist bend (`apply(…, 1)`). */
+  gripPose(sword: SwordPose, out: ArmPose): ArmPose {
+    const r = this.hold;
+    const c = Math.cos(sword.tilt);
+    const s = Math.sin(sword.tilt);
+    // Undo the tilt: the way through the fist, and the knuckles (the edge faces them).
+    through.copy(sword.blade).multiplyScalar(c).addScaledVector(sword.edge, -s);
+    out.knuckles.copy(sword.blade).multiplyScalar(s).addScaledVector(sword.edge, c);
+    xAxis.copy(through).multiplyScalar(r.sign);
+    out.back.crossVectors(xAxis, out.knuckles);
+    // The wrist sits back from the grip by the grip's rest offset, turned with the hand.
+    out.fist.copy(sword.grip).addScaledVector(xAxis, -r.offset.x).addScaledVector(out.knuckles, -r.offset.y).addScaledVector(out.back, -r.offset.z);
+    out.fist.addScaledVector(out.knuckles, FIST_REACH);
+    return out;
   }
 
   /** How far this arm reaches (upper arm + forearm). */
@@ -168,17 +206,18 @@ export class ArmsRig {
     out.back.copy(g.back).applyAxisAngle(g.knuckles, THREE.MathUtils.degToRad(side === 'L' ? v.leftRoll : v.rightRoll));
   }
 
-  /** Poses one arm so its fist sits at `pose.fist`, pointing along `pose.knuckles`, back facing `pose.back`. */
-  apply(side: Side, pose: ArmPose) {
+  /** Poses one arm so its fist sits at `pose.fist`, pointing along `pose.knuckles`, back facing `pose.back`. `bend`: how
+   *  far the hand turns from the forearm's line to the knuckles (M2: 1 holding a sword, so the grip is exact); `pole`:
+   *  the way the elbow bends out (M2: a sword's swing lifts it). */
+  apply(side: Side, pose: ArmPose, bend = ARMS.v.wristBend, pole = GUARD[side].pole) {
     const a = this.arms[side];
-    const g = GUARD[side];
     wrist.copy(pose.fist).addScaledVector(pose.knuckles, -FIST_REACH);
-    solveElbow(a.upper.pos, wrist, a.upperLen, a.foreLen, g.pole, elbow);
+    solveElbow(a.upper.pos, wrist, a.upperLen, a.foreLen, pole, elbow);
     // The upper arm's back sits half-way between up and the hand's, so the elbow never twists hard.
     upperBack.copy(pose.back).normalize().add(REST_BACK);
     aimBone(a.upper.quat, a.upper.dir, REST_BACK, dir.subVectors(elbow, a.upper.pos), upperBack, qUpper);
     aimBone(a.fore.quat, a.fore.dir, REST_BACK, dir.subVectors(wrist, elbow), pose.back, qFore);
-    handDir.subVectors(wrist, elbow).normalize().lerp(pose.knuckles, ARMS.v.wristBend);
+    handDir.subVectors(wrist, elbow).normalize().lerp(pose.knuckles, bend);
     aimBone(a.hand.quat, a.hand.dir, REST_BACK, handDir, pose.back, qHand);
     // Model-space rotations → each bone's local rotation under its (posed) parent.
     a.upper.bone.quaternion.copy(tmpQ.copy(a.parentQuat).invert().multiply(qUpper));

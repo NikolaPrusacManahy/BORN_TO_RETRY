@@ -17,6 +17,10 @@ section('Bindings');
   check('rebinding to a used key swaps the two', swapped.jump === 'KeyC' && swapped.slide === 'Space');
   check('a broken save falls back to defaults', JSON.stringify(hydrateBindings('junk')) === JSON.stringify(DEFAULT_BINDINGS));
   check('a duplicated save falls back to defaults', JSON.stringify(hydrateBindings({ ...DEFAULT_BINDINGS, jump: 'KeyW' })) === JSON.stringify(DEFAULT_BINDINGS));
+  // Update 0.0.10 — the quick punch is gone; F is kept free for something later (the designer).
+  check('F is free: nothing uses it by default', !Object.values(DEFAULT_BINDINGS).includes('KeyF'));
+  const old = hydrateBindings({ ...DEFAULT_BINDINGS, punch: 'KeyF' });
+  check("an old save's quick punch is dropped, the rest kept", !('punch' in old) && JSON.stringify(old) === JSON.stringify(DEFAULT_BINDINGS));
 }
 
 section('Bindings — anything the player wants');
@@ -29,9 +33,10 @@ section('Bindings — anything the player wants');
   setDevKeysReserved(false);
   check('in a real build the dev keys are free to bind', isBindable('F1') && isBindable('F4') && isBindable('Backquote'));
   setDevKeysReserved(true);
+  const codes = ['WheelUp', 'WheelDown', 'Mouse3', 'Mouse4', 'ControlLeft', 'KeyZ', 'Tab', 'CapsLock', 'ArrowUp', 'Numpad0', 'KeyX', 'AltLeft'];
   let b = DEFAULT_BINDINGS;
-  for (const [i, a] of ACTIONS.entries()) b = rebind(b, a.id, ['WheelUp', 'WheelDown', 'Mouse3', 'Mouse4', 'ControlLeft', 'KeyZ', 'Tab', 'CapsLock', 'ArrowUp', 'Numpad0', 'KeyX', 'AltLeft'][i]);
-  check('every action can take a key at once, all different', new Set(Object.values(b)).size === ACTIONS.length && b.forward === 'WheelUp' && b.interact === 'AltLeft');
+  for (const [i, a] of ACTIONS.entries()) b = rebind(b, a.id, codes[i]);
+  check('every action can take a key at once, all different', new Set(Object.values(b)).size === ACTIONS.length && ACTIONS.every((a, i) => b[a.id] === codes[i]));
   const swapped = rebind(DEFAULT_BINDINGS, 'jump', 'Mouse0');
   check('binding jump to left click swaps it with attack', swapped.jump === 'Mouse0' && swapped.attack === 'Space');
   check('a save with the wheel and Ctrl keeps them', JSON.stringify(hydrateBindings(b)) === JSON.stringify(b));

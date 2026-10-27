@@ -11,6 +11,7 @@ import { FIST_REACH, GUARD } from '../src/engine/viewmodel/guard';
 import { Viewmodel } from '../src/engine/viewmodel/viewmodel';
 import { createPlayer } from '../src/sim/player/state';
 import { ARMS } from '../src/tuning/arms';
+import { WEAPONS } from '../src/tuning/weapons';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
@@ -102,26 +103,148 @@ section('Arms — on screen');
 
 section('Arms — holding the sword');
 {
-  // M2 — the sword in the right fist (the Arms tab's weapon knobs): its blade shows, and never crosses the crosshair.
+  // M2 / Update 0.0.10 — the sword arm (the designer: a real grip, no left hand, the tip pointed while a pierce
+  // charges, a throw that looks like the pierce). Posed through the game's own Viewmodel with the real models.
   const armsBuf = readFileSync(new URL('../public/models/arms/adventurer.glb', import.meta.url));
   const arms = await new GLTFLoader().parseAsync(armsBuf.buffer.slice(armsBuf.byteOffset, armsBuf.byteOffset + armsBuf.byteLength) as ArrayBuffer, '');
   const swordBuf = readFileSync(new URL('../public/models/weapons/sword.glb', import.meta.url));
   const sword = await new GLTFLoader().parseAsync(swordBuf.buffer.slice(swordBuf.byteOffset, swordBuf.byteOffset + swordBuf.byteLength) as ArrayBuffer, '');
+  const tip = new THREE.Box3().setFromObject(sword.scene).max.y;
   const vm = new Viewmodel(false);
   vm.attach(ArmsRig.fromScene(arms.scene));
-  vm.setWeapon(sword.scene);
-  const tip = new THREE.Box3().setFromObject(sword.scene).max.y;
+  vm.setLens(16 / 9);
   const p = createPlayer(0, 0, 0, 0);
   p.grounded = true;
-  for (const aspect of [16 / 9, 2]) {
-    vm.update(0, 0, 0, 0, p, -1);
-    vm.setLens(aspect);
+  const STEP = 1 / 120;
+  const play = (secs: number, charge = -1) => {
+    for (let t = 0; t < secs - 1e-9; t += STEP) vm.update(STEP, STEP, 0, 0, p, charge);
     vm.scene.updateMatrixWorld(true);
-    const samples = Array.from({ length: 12 }, (_, i) => new THREE.Vector3(0, (tip * i) / 11, 0).applyMatrix4(sword.scene.matrixWorld).project(vm.camera));
-    const label = aspect === 2 ? '2:1' : '16:9';
-    const onScreen = samples.filter((s) => Math.abs(s.x) <= 1 && Math.abs(s.y) <= 1 && s.z < 1);
-    const centre = samples.filter((s) => Math.abs(s.x) < 0.12 && Math.abs(s.y) < 0.2);
-    check(`${label}: the held sword shows`, onScreen.length >= 4, `${onScreen.length} of 12 blade points on screen`);
-    check(`${label}: and keeps clear of the crosshair`, centre.length === 0, centre.map((s) => `(${s.x.toFixed(2)}, ${s.y.toFixed(2)})`).join(' '));
+  };
+  const bone = (n: string) => arms.scene.getObjectByName(n)!.getWorldPosition(new THREE.Vector3());
+  const ndc = (n: string) => bone(n).project(vm.camera);
+  /** Degrees the right hand turns from the forearm's line. */
+  const wrist = () => THREE.MathUtils.radToDeg(bone('HandR').sub(bone('LowerArmR')).normalize().angleTo(bone('Middle2R').sub(bone('HandR')).normalize()));
+  const blade = (k: number) => new THREE.Vector3(0, tip * k, 0).applyMatrix4(sword.scene.matrixWorld);
+  const offScreen = (v: THREE.Vector3) => v.z > 1 || Math.abs(v.x) > 1 || Math.abs(v.y) > 1;
+
+  vm.setWeapon(sword.scene);
+  play(1);
+  const fingers = new THREE.Vector3();
+  for (const f of ['Index', 'Middle', 'Ring', 'Pinky']) for (const j of [2, 3, 4]) fingers.add(bone(`${f}${j}R`));
+  fingers.divideScalar(12);
+  // The point of the handle held (Sword in the fist, up from the handle's middle; Update 0.0.10).
+  const grip = new THREE.Vector3(0, ARMS.v.swordGripSlide / ARMS.v.weaponScale, 0).applyMatrix4(sword.scene.matrixWorld);
+  check('the grip sits where the fingers curl round (not in the palm)', grip.distanceTo(fingers) < 0.005, `${(grip.distanceTo(fingers) * 100).toFixed(1)} cm off`);
+  check('the left arm is out of view', ['HandL', 'LowerArmL', 'Middle2L'].every((n) => offScreen(ndc(n))), ['HandL', 'LowerArmL'].map((n) => `${n} (${ndc(n).x.toFixed(2)}, ${ndc(n).y.toFixed(2)})`).join(' '));
+  const samples = Array.from({ length: 12 }, (_, i) => blade(i / 11).project(vm.camera));
+  check('ready: the sword shows', samples.filter((q) => !offScreen(q)).length >= 4);
+  check('ready: and keeps clear of the crosshair', samples.every((q) => Math.abs(q.x) >= 0.12 || Math.abs(q.y) >= 0.2));
+  const held: [string, () => void][] = [
+    ['ready', () => play(0.1)],
+    ['the end of a forehand', () => (vm.sword('forehand'), play(ARMS.v.swordSwing))],
+    ['the end of the backhand', () => (vm.sword('backhand'), play(ARMS.v.swordSwing))],
+    ['a full pierce charge', () => play(1.5, 1)],
+    ['the thrust', () => (vm.sword('pierce'), play(ARMS.v.pierceOut + 0.02))],
+  ];
+  for (const [name, pose] of held) {
+    pose();
+    check(`${name}: the wrist stays nearly straight`, wrist() < 40, `${wrist().toFixed(0)}°`);
   }
+  play(1, 1);
+  const g = new THREE.Vector3().setFromMatrixPosition(sword.scene.matrixWorld).applyMatrix4(vm.camera.matrixWorldInverse);
+  const along = blade(1).applyMatrix4(vm.camera.matrixWorldInverse).sub(g).normalize();
+  const toAim = new THREE.Vector3(0, 0, -3).sub(g).normalize();
+  check('charging a pierce points the tip at the crosshair', THREE.MathUtils.radToDeg(along.angleTo(toAim)) < 3, `${THREE.MathUtils.radToDeg(along.angleTo(toAim)).toFixed(1)}° off`);
+  vm.sword('pierce');
+  play(ARMS.v.pierceOut);
+  const thrust = new THREE.Vector3().setFromMatrixPosition(sword.scene.matrixWorld).applyMatrix4(vm.camera.matrixWorldInverse);
+  check('the pierce thrusts the sword ahead', thrust.z < g.z - 0.1, `${((g.z - thrust.z) * 100).toFixed(0)} cm`);
+  // The throw: drawn back, then thrust to let go when the wind-up ends.
+  play(1);
+  vm.sword('throw');
+  play(WEAPONS.v.throwWindup * 0.5);
+  const drawn = new THREE.Vector3().setFromMatrixPosition(sword.scene.matrixWorld).applyMatrix4(vm.camera.matrixWorldInverse);
+  play(WEAPONS.v.throwWindup * 0.5);
+  const release = new THREE.Vector3().setFromMatrixPosition(sword.scene.matrixWorld).applyMatrix4(vm.camera.matrixWorldInverse);
+  check('a throw draws back, then thrusts as it lets go', release.z < drawn.z - 0.1, `${((drawn.z - release.z) * 100).toFixed(0)} cm`);
+  vm.setWeapon(null);
+  play(ARMS.v.armedSwap + 0.05);
+  check('barehanded again, both fists are back', !offScreen(ndc('Middle2L')) && !offScreen(ndc('Middle2R')));
+}
+
+section('Arms — the slash');
+{
+  // Update 0.0.10 — the designer: the first slash was atrocious (the hand stayed at the screen's edge and only the
+  // wrist turned; it rested stiffly; the backhand drove the hand into the camera). Now the arm swings through the
+  // middle of the view to low left, then straight back; a slash before it's back swings back; hit-stop freezes it on
+  // contact.
+  const armsBuf = readFileSync(new URL('../public/models/arms/adventurer.glb', import.meta.url));
+  const arms = await new GLTFLoader().parseAsync(armsBuf.buffer.slice(armsBuf.byteOffset, armsBuf.byteOffset + armsBuf.byteLength) as ArrayBuffer, '');
+  const swordBuf = readFileSync(new URL('../public/models/weapons/sword.glb', import.meta.url));
+  const sword = await new GLTFLoader().parseAsync(swordBuf.buffer.slice(swordBuf.byteOffset, swordBuf.byteOffset + swordBuf.byteLength) as ArrayBuffer, '');
+  const tip = new THREE.Box3().setFromObject(sword.scene).max.y;
+  const vm = new Viewmodel(false);
+  vm.attach(ArmsRig.fromScene(arms.scene));
+  vm.setLens(16 / 9);
+  const p = createPlayer(0, 0, 0, 0);
+  p.grounded = true;
+  const STEP = 1 / 120;
+  const play = (secs: number, frozen = false) => {
+    for (let t = 0; t < secs - 1e-9; t += STEP) vm.update(frozen ? 0 : STEP, STEP, 0, 0, p, -1);
+    vm.scene.updateMatrixWorld(true);
+  };
+  const onScreen = (local: THREE.Vector3) => local.applyMatrix4(sword.scene.matrixWorld).project(vm.camera);
+  const wristX = () => arms.scene.getObjectByName('HandR')!.getWorldPosition(new THREE.Vector3()).project(vm.camera).x;
+  vm.setWeapon(sword.scene);
+  play(1);
+
+  // The guard rests on the fist (the designer: the sword sat too low in it).
+  const origin = new THREE.Vector3().setFromMatrixPosition(sword.scene.matrixWorld);
+  const up = new THREE.Vector3(0, 1, 0).transformDirection(sword.scene.matrixWorld);
+  const along = (v: THREE.Vector3) => v.clone().sub(origin).dot(up);
+  const guard = along(new THREE.Vector3(0, 0.125, 0).applyMatrix4(sword.scene.matrixWorld));
+  const fistTop = Math.max(...['Index2R', 'Index3R', 'Thumb2R', 'Thumb3R'].map((n) => along(arms.scene.getObjectByName(n)!.getWorldPosition(new THREE.Vector3()))));
+  check('ready: the guard rests on top of the fist', guard - fistTop >= 0 && guard - fistTop < 0.025, `${((guard - fistTop) * 100).toFixed(1)} cm above the knuckles`);
+
+  // A forehand from ready: the blade passes the crosshair and the whole arm travels across.
+  const startX = wristX();
+  vm.slash();
+  let nearest = 9;
+  for (let t = 0; t < ARMS.v.swordSwing; t += STEP / 4) {
+    vm.update(STEP / 4, STEP / 4, 0, 0, p, -1);
+    vm.scene.updateMatrixWorld(true);
+    const a = onScreen(new THREE.Vector3(0, 0, 0));
+    const b = onScreen(new THREE.Vector3(0, tip, 0));
+    const ab = b.clone().sub(a).setZ(0);
+    const k = Math.max(0, Math.min(1, -a.clone().setZ(0).dot(ab) / ab.lengthSq()));
+    nearest = Math.min(nearest, a.clone().addScaledVector(ab, k).setZ(0).length());
+  }
+  check('a forehand sweeps the blade across the crosshair', nearest < 0.1, `nearest ${nearest.toFixed(2)}`);
+  check('the arm swings across (not just the wrist)', startX - wristX() > 0.6, `wrist ${startX.toFixed(2)} → ${wristX().toFixed(2)}`);
+  check('it ends on the left', vm.swordAnim.path > 0.99 && onScreen(new THREE.Vector3(0, tip, 0)).x < 0);
+  // The designer: back right away (resting on the left read as a freeze).
+  play(ARMS.v.swordRest + ARMS.v.swordRecover + STEP);
+  check('then goes straight back to ready', vm.swordAnim.current === 'ready', `${(ARMS.v.swordSwing + ARMS.v.swordRest + ARMS.v.swordRecover).toFixed(2)} s after the click`);
+  vm.slash();
+  play(ARMS.v.swordSwing);
+  vm.slash();
+  check('a slash before it is back swings back (a backhand)', vm.swordAnim.current === 'backhand');
+  play(ARMS.v.swordSwing + STEP);
+  check('ending in the ready pose', vm.swordAnim.current === 'ready' && vm.swordAnim.path === 0);
+
+  // Left alone, a forehand drifts home; the next slash is a forehand again.
+  vm.slash();
+  play(ARMS.v.swordSwing + ARMS.v.swordRest + ARMS.v.swordRecover + 0.05);
+  check('a forehand left alone is back in the ready pose', vm.swordAnim.current === 'ready');
+  vm.slash();
+  check('then the next slash is a forehand', vm.swordAnim.current === 'forehand');
+  play(1);
+
+  // The hit lands on the click; hit-stop freezes the arm at contact, not at the start.
+  vm.slash();
+  play(0.2, true);
+  const frozenAt = vm.swordAnim.path;
+  check('hit-stop freezes the swing on contact (half-way), not before it', frozenAt > 0.45 && frozenAt < 0.65, `path ${frozenAt.toFixed(2)}`);
+  play(0.02);
+  check('then it carries on past the contact', vm.swordAnim.path > frozenAt + 0.1, `path ${vm.swordAnim.path.toFixed(2)}`);
 }

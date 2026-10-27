@@ -2,10 +2,19 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-27): M1 done, M2 started — Update 0.0.9
+## Current state (2026-10-27): M1 done, M2 started — Update 0.0.10
+- **Update 0.0.10 — the sword arm** (the designer's notes on 0.0.9: a real grip, no left hand, a pointed pierce, a throw that looks like it).
+  - **The grip:** the handle now runs through the curled fingers (it sat in the palm, 6 cm too far back, and tilted 40° through the fist), and the fist sits right under the guard (the designer: "more inside the grip"; Arms → "Sword in the fist"). Each pose sets how far the blade leans in the fist: a hammer grip when ready, a fencer's grip for slashes and the pierce, so arm and blade swing as one.
+  - **No left hand:** with a weapon the left arm drops out of view.
+  - **No quick punch** (the designer): F is unbound, with a sword or barehanded, and kept free for something later. Its knobs, sounds and arm move are gone; an old save's binding for it is dropped.
+  - **Its own moves** (`engine/viewmodel/swordAnim.ts`, poses in `swordPoses.ts`): ready low right, blade up.
+  - **The slash** (redone after the designer called the first one atrocious: the hand stayed at the screen's edge while only the wrist turned, it rested stiffly with the arm flat across the view, and the backhand drove the hand into the camera). Left click: the hand rises a little and the whole arm cuts down from the upper right through the middle of the view (the blade crosses the crosshair about 20 ms in), reaching low left, then gliding straight back to ready along the bottom (about 0.3 s from the click). The designer: no rest on the left (it waited 0.7 s, which read as a freeze); Arms → "Slash rest" can bring a wait back. A slash before it's back swings back to ready (the backhand, on the other edge). The arms choose the way from where the sword is; the rules just say "slash". On a hit-stop the swing now plays on to its contact and freezes there (it used to freeze before it moved, since the hit lands on the click).
+  - **The pierce** (was "cleave"): holding right click draws the sword back low right and points the tip at the crosshair, trembling when full; letting go thrusts straight along the aim. It reaches further (3.2 m) and is narrower (0.5 m) than a slash.
+  - **The throw** (broken + any attack, or Q): a 0.12 s wind-up (drawn back like the pierce, then thrust), and the sword leaves the hand at the end, flying tip first. In the world it starts where the hand let it go and joins its true path over 0.12 s.
+  - The poses were picked from renders of the game's own arms code (`game/tools/view-shots.ts` + `tools/blender/render_view.py`) with the wrist kept nearly straight.
 - **Update 0.0.9 — M2's first slice: the Grunt and the Sword** (`MD_UPDATES/M2_COMBAT_SANDBOX.md`).
   - **Grunts:** the Orc (Ultimate Monsters), animated. Three come at a time from the lab's spawn points (the first wave 3 s after you arrive, the next 3 s after the last dies). One runs at you, stops in reach, winds up for 0.45 s (its club swing starts, it glows red, it growls) and swings: 15 damage and a shove, only if you're still in reach and in front. Every hit flinches it, cancelling the swing. 40 health. It may drop a worn sword (30%). You can't walk through one.
-  - **The sword:** the RPG pack's, on a stand right of the start. E picks it up; left click slashes (alternating, 22 damage, longer reach than fists); a full right-click charge cleaves (55); F still quick-punches. Hits cost uses (shown bottom right; a cleave costs 2), misses are free. At 0 it's broken (red) and the next attack throws it; Q throws it any time: 70 damage and a hit-stop on whatever it hits, and it's gone. Picking up another drops yours at your feet.
+  - **The sword:** the RPG pack's, on a stand right of the start. E picks it up; left click slashes (22 damage, longer reach than fists); a full right-click charge pierces (55; it was a cleave until 0.0.10). Hits cost uses (shown bottom right; a pierce costs 2), misses are free. At 0 it's broken (red) and the next attack throws it; Q throws it any time: 70 damage and a hit-stop on whatever it hits, and it's gone. Picking up another drops yours at your feet.
 - **M1 — The Feel Lab is done** (2026-10-27): the designer says the feel is good; no tuning changes to bake in (the defaults stand); 144 fps steady on the designer's PC; **we stay in the browser** (Godot not needed).
 - **Milestone: M2 — The Combat Sandbox** (`MD_UPDATES/M2_COMBAT_SANDBOX.md`). First slice: the Grunt (the Orc from Ultimate Monsters) and the Sword (Ultimate RPG Pack) in the Feel Lab.
 - **The settings camp now uses the full Ultimate Nature Pack:** real logs, a ring of rocks round the fire, a stump, grass, plants, mossy rocks and pines (the stand-in logs and stones are gone). The packs in `ASSETS/` are complete now (nature 150, RPG 106, monsters 50 in three zips, unzipped beside them).
@@ -37,9 +46,8 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 - **Fists:**
   - Left click: jab combo. Hold it to keep punching: left, right, then a left finisher that knocks back.
   - Right click: hold 1 s (the fist draws back and trembles, a cue sounds when ready), then let go to punch. Letting go sooner cancels.
-  - F: quick punch, always ready, even mid-charge.
 - **Targets:** four dummies in front of the start (they wobble, slide back, break, and return 2 s later).
-- **Grunts and the sword (Update 0.0.9):** wait 3 s for the first three Orcs. The sword stands right of the start: E to take it, left click to slash, hold right click to cleave, Q to throw. Kill grunts with it until it breaks, then throw it; pick up what they drop. F1 → Enemies (set "Lab grunts" to 0 to practise movement in peace) and Weapons; the Arms tab has the held weapon's lean and size.
+- **Grunts and the sword (Updates 0.0.9 and 0.0.10):** wait 3 s for the first three Orcs. The sword stands right of the start: E to take it, left click to slash (tap for a forehand, keep going for forehand and backhand by turns), hold right click to point it and let go to pierce, Q to throw. Kill grunts with it until it breaks, then throw it; pick up what they drop. F1 → Enemies (set "Lab grunts" to 0 to practise movement in peace) and Weapons (pierce reach and width, throw wind-up, throw spin); the Arms tab moves the sword arm, slides it in the fist, and times its slash, its return, the pierce and the swap.
 - **Health:** the spike strip east of the start (hurts, pops you up; dash over it to stay unhurt). Punch the dummies to heal. Fall off the edge or run out of health to die and restart.
 - **Controls:** main menu → Settings → Controls, or pause → Controls. Click an action's key, then press anything (a key, a mouse button, the wheel); Esc cancels; Reset restores the defaults. The wheel has no "held", so a wheel-bound slide or charged punch is only a tap.
 - **Hit feel:** hit-stop on finisher, charged and kill hits; screen shake; a small camera nod; sparks; chunks when a dummy breaks; a hit marker around the crosshair (red on a kill); placeholder sounds.
@@ -79,6 +87,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `MD/PIPELINE_CHARACTER_ARMS.md` | How to cut first-person arms for a new character |
 | `MD/PIPELINE_ENEMIES_WEAPONS.md` | How a monster (with its animations) and a held weapon get from the packs into the game |
 | `MD_UPDATES/M2_COMBAT_SANDBOX.md` | M2's plan; its first slice is the Grunt and the Sword |
+| `game/tools/view-shots.ts`, `game/tools/blender/render_view.py` | Renders the first-person arms (the game's own code and models) at chosen moments, without a browser |
 | `MD/PIPELINE_MENU_SCENE.md` | How the menu's scenes (the gate, the settings camp, the prison corridor) are built, and how to change them |
 | `DEVELOPMENT.md` | Module map and contracts |
 | `ASSETS/QUATERNIUS/` | Downloaded Quaternius packs, one folder per pack (git-ignored) |
@@ -94,7 +103,8 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 - Arenas are hand-made templates assembled from a seed, not random geometry.
 - Weapons break; breaking throws the weapon for a big hit.
 - Only character unlocks and stats carry over between runs.
-- Fists: both fists low in the corners; jabs go left, right, left; the charged punch is the right hand; the quick punch is the left.
+- Fists: both fists low in the corners; jabs go left, right, left; the charged punch is the right hand.
+- **No quick punch (Update 0.0.10):** F is free, kept for a new idea later (the designer).
 - The ground slam is not in the base kit: it comes later as an unlockable skill (its code is kept, with no key).
 - **The roster (Update 0.0.8):** Joseph (the Adventurer), Fallen King (King), William Rich (Suit), Alpha Team (Swat), in that cell order. Only Joseph is playable for now. The first list also had a Cowboy and a Horse Guy; the designer's later list names these four.
 - The name is **Born To Retry**. The main menu is the gate scene; Start opens the gate and fades to black (Update 0.0.4: the first-person walk-in was cut).
@@ -107,6 +117,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 3. Firearms from the start, or melee only at first?
 4. Boss ideas for floors 1–3.
 5. The starter character and the unlock order.
+6. ~~F with a sword~~: decided, the quick punch is gone altogether; F waits for a new idea.
 
 ## Browser checks (filled in during M1)
 | Check | Result |
@@ -122,5 +133,6 @@ Claude has seen and heard none of this in the game: the feel, the arms on screen
 - **Health and rebinding (Update 0.0.6):** unseen in the browser: the health bar, its trail and low pulse, the hurt flash and shake, the hurt and death sounds, the spikes, the death slow motion and fade, and the controls screen (binding a mouse button, the wheel, Esc to cancel). `test-health.ts` checks the health rules, blood heal through a real punch, orbs, spikes and the death timing; `test-bindings.ts` checks that any key, mouse button and wheel direction binds, with swaps.
 - **The settings camp (Update 0.0.7):** only the Blender previews were seen. Unseen in the browser: the camp under the game's lighting (fire light, moon, fog, stars, embers), the glide in, the fades between the gate and the camp, the crackle, and the panel over the scene. `test-camp.ts` checks the scene's nodes, that every tree, bush and log stands on the ground with nothing grown into anything else, the fire in sight on the left, and the glide.
 - **The character select (Update 0.0.8):** only the Blender previews were seen. Unseen in the browser: the corridor under the game's lighting, the glide in, the camera moving between cells, the bars lifting and rattling (and their sounds), the breathing, the name card, arrows and dots, and the fades. Also the bigger health readout. `test-prison.ts` checks the roster, the scene's nodes, each character on the floor in its cell clear of its bars, raised bars hidden in the wall, the glide, and the select (Joseph's bars lift, a locked cell stays shut, the camera follows).
-- **Grunts and the sword (Update 0.0.9):** nothing seen in the browser. Unseen: the Orcs' look, scale, animations and their timing (the swing should land as the wind-up ends), the red glow, the growl; the sword in the hand (placed by measurement: up the right of the screen), the slashes' sweep, the cleave (for now the arm's move is the charged punch's thrust), the throw's spin, the stand, the HUD readout, and every sound. `test-grunt.ts` and `test-sword.ts` check the rules; `test-arms.ts` checks the held sword stays clear of the crosshair.
+- **Grunts and the sword (Update 0.0.9):** nothing seen in the browser. Unseen: the Orcs' look, scale, animations and their timing (the swing should land as the wind-up ends), the red glow, the growl; the stand, the HUD readout, and every sound. `test-grunt.ts` and `test-sword.ts` check the rules.
+- **The sword arm (Update 0.0.10):** seen only as still renders of the game's arms code (Blender, flat light, no world behind). Unseen in the game: the moves in motion (how fast the slash reads, the backhand coming back, the pierce's draw and thrust, the throw), the left arm dropping, the thrown sword leaving the hand, the swap back to fists, and the new pierce and wind-up sounds. The redone slash was checked as a film of frames 15 ms apart (wrist under 30° throughout). `test-arms.ts` checks the grip sits in the fingers under the guard, the wrist stays nearly straight in every held pose, the left arm is out of view, a forehand sweeps the blade across the crosshair with the whole arm and goes straight back, a slash before it's back swings back, and a hit-stop freezes it on contact, the pierce points at the crosshair, and the thrust and throw go forward.
 - **Known limits (Update 0.0.9):** grunts walk on the floor only (no climbing, no jumping: on a block you're out of their reach), and steer round walls with feelers rather than a path. Fine for the lab; real rooms (M3) will want proper navigation.

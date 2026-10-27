@@ -3,8 +3,7 @@
 import { ARMS } from '../../tuning/arms';
 import type { Side } from './guard';
 
-// M2 — slashL (forehand: from up right, down to the left) and slashR (backhand: back across) swing a held weapon.
-export type PunchStyle = 'jab' | 'heavy' | 'quick' | 'slashL' | 'slashR';
+export type PunchStyle = 'jab' | 'heavy';
 
 interface ArmTimeline {
   /** Seconds since the punch was thrown (−1: idle). */
@@ -16,9 +15,6 @@ interface ArmTimeline {
 const STYLE: Record<PunchStyle, [number, number, number]> = {
   jab: [1, 1, 1],
   heavy: [1.25, 2.5, 1.4],
-  quick: [0.8, 0.8, 0.9],
-  slashL: [1.3, 0.9, 1.5],
-  slashR: [1.3, 0.9, 1.5],
 };
 
 const easeOutCubic = (x: number) => 1 - (1 - x) ** 3;
@@ -66,11 +62,6 @@ export class ArmsAnim {
   extension(side: Side): number {
     const a = this.arms[side];
     return punchExtension(a.t, a.style);
-  }
-
-  /** The style of the punch or swing in progress (or the last one). */
-  style(side: Side): PunchStyle {
-    return this.arms[side].style;
   }
 
   reset() {

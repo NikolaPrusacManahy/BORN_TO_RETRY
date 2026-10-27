@@ -3,8 +3,10 @@
 // M1 — no default uses Ctrl: Ctrl+W (slide while running forward) closes the browser tab. Players may still bind it.
 // M1 step 9 — any key, mouse button or wheel direction can take any action (the designer). Off limits: Esc (the
 // browser frees the mouse on it), the OS keys, and the dev keys while the dev tools are on.
+// Update 0.0.10 — the quick punch (F) is gone (the designer): F is kept free for something later. An old save's
+// binding for it is dropped.
 
-export type Action = 'forward' | 'back' | 'left' | 'right' | 'jump' | 'dash' | 'slide' | 'attack' | 'heavy' | 'punch' | 'throw' | 'interact';
+export type Action = 'forward' | 'back' | 'left' | 'right' | 'jump' | 'dash' | 'slide' | 'attack' | 'heavy' | 'throw' | 'interact';
 export type Bindings = Record<Action, string>;
 
 /** Order shown in settings. */
@@ -18,7 +20,6 @@ export const ACTIONS: { id: Action; label: string }[] = [
   { id: 'slide', label: 'Slide' },
   { id: 'attack', label: 'Attack' },
   { id: 'heavy', label: 'Heavy' },
-  { id: 'punch', label: 'Quick punch' },
   { id: 'throw', label: 'Throw' },
   { id: 'interact', label: 'Interact' },
 ];
@@ -33,7 +34,6 @@ export const DEFAULT_BINDINGS: Bindings = {
   slide: 'KeyC',
   attack: 'Mouse0',
   heavy: 'Mouse2',
-  punch: 'KeyF',
   throw: 'KeyQ',
   interact: 'KeyE',
 };

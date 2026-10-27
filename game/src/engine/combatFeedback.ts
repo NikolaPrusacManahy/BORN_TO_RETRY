@@ -1,6 +1,6 @@
 // M1 step 6 — turns combat events into everything you see and hear: the arms punching, sparks, chunks, shake,
 // camera kick, hit markers, the hurt flash and sounds.
-// M2 — and sword slashes, cleaves and throws, weapons breaking, and grunts arriving.
+// M2 — and sword slashes, pierces and throws (the sword arm's moves), weapons breaking, and grunts arriving.
 import * as THREE from 'three';
 import type { CombatSounds } from '../audio/combatSounds';
 import type { CombatState } from '../sim/combat/state';
@@ -51,19 +51,27 @@ export class CombatFeedback {
       switch (e.kind) {
         case 'jabL':
         case 'jabR':
-        case 'heavy':
-        case 'quick':
-        case 'slashL':
-        case 'slashR':
-        case 'cleave': {
+        case 'heavy': {
           const [side, style] = Viewmodel.styleFor(e.kind);
           this.f.arms.punch(side, style);
           break;
         }
+        case 'slash':
+          this.f.arms.slash();
+          break;
+        case 'pierce':
+          this.f.arms.sword('pierce');
+          break;
+        case 'throwStart':
+          this.f.arms.sword('throw');
+          break;
+        case 'chargeStart':
+          if (this.f.arms.armed) this.f.arms.sword('ready');
+          break;
         case 'hitSlash':
           this.hit(1.3, fb.shakeJab * 1.4, fb.kickJab * 1.2, 'hit');
           break;
-        case 'hitCleave':
+        case 'hitPierce':
           this.hit(2, fb.shakeHeavy, fb.kickHeavy, 'heavy');
           break;
         case 'hitThrown':
@@ -77,7 +85,6 @@ export class CombatFeedback {
           this.f.chunks.spawn(at, UP, 10, 0.8);
           break;
         case 'hitJab':
-        case 'hitQuick':
           this.hit(1, fb.shakeJab, fb.kickJab, 'hit');
           break;
         case 'hitFinisher':

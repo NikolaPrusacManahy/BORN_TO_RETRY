@@ -16,9 +16,6 @@ export const FISTS = group('fists', 'Fists', {
   chargeTime: knob(1, 0.3, 3, 0.05, 'Charge time', 'Hold right click this long to throw the charged punch; letting go sooner cancels it.'),
   chargeDamage: knob(60, 1, 200, 1, 'Charged punch damage', 'Damage.'),
   chargeKnock: knob(20, 0, 60, 0.5, 'Charged punch knockback', 'm/s.'),
-  quickDamage: knob(8, 1, 50, 1, 'Quick punch damage', 'The F punch.'),
-  quickKnock: knob(4, 0, 20, 0.5, 'Quick punch knockback', 'm/s.'),
-  quickCooldown: knob(0.35, 0.05, 1.5, 0.05, 'Quick punch cooldown', 'Seconds.'),
 });
 
 export const FEEDBACK = group('feedback', 'Hit feel', {

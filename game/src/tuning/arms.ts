@@ -31,10 +31,20 @@ export const ARMS = group('arms', 'Arms', {
   landDip: knob(0.004, 0, 0.02, 0.0005, 'Landing dip', 'Extra arm drop per m/s of landing.'),
   dashPull: knob(0.05, 0, 0.2, 0.005, 'Dash pull', 'Arms pulled back during a dash.'),
   slideDrop: knob(0.05, 0, 0.2, 0.005, 'Slide drop', 'Arms lowered while sliding.'),
-  // M2 — how the right fist holds a weapon: the blade comes out on the thumb side, leaning forward and to the right
-  // (40° and 40° keep it up the right of the screen, clear of the crosshair: test-arms.ts checks it).
-  weaponLeanForward: knob(40, -60, 90, 1, 'Weapon lean forward', 'Degrees the blade leans forward, away from you.'),
-  weaponLeanRight: knob(40, -60, 90, 1, 'Weapon lean right', 'Degrees the blade leans right, away from the crosshair.'),
+  // M2 — the sword arm (the left arm drops out of view while a weapon is held). The grip goes through the curled
+  // fingers; the poses are in viewmodel/swordPoses.ts.
   weaponScale: knob(0.75, 0.3, 1.5, 0.01, 'Weapon size (held)', 'The held weapon\'s size in view (1 = its true size).'),
-  slashWidth: knob(0.42, 0.1, 0.8, 0.01, 'Slash width', 'How far a slash sweeps across, each side of centre (m).'),
+  // Update 0.0.10 — the designer: the sword sat too low in the fist; this puts the guard on top of it.
+  swordGripSlide: knob(0.038, -0.08, 0.1, 0.002, 'Sword in the fist', 'How far up the handle the fist holds it, from the handle\'s middle (m).'),
+  swordSide: knob(0, -0.2, 0.2, 0.005, 'Sword arm: sideways', 'Moves the sword arm (all its poses).'),
+  swordUp: knob(0, -0.2, 0.2, 0.005, 'Sword arm: up', 'Moves the sword arm (all its poses).'),
+  swordForward: knob(0, -0.2, 0.2, 0.005, 'Sword arm: forward', 'Moves the sword arm (all its poses).'),
+  swordSwing: knob(0.09, 0.03, 0.3, 0.005, 'Slash swing', 'Seconds a slash takes to sweep across.'),
+  // Update 0.0.10 — the designer: back right away (it rested 0.7 s on the left, which read as a freeze).
+  swordRest: knob(0, 0, 1.5, 0.05, 'Slash rest', 'Seconds the sword waits on the left after a slash before going back (a slash meanwhile swings back).'),
+  swordRecover: knob(0.22, 0.05, 0.6, 0.01, 'Slash return', 'Seconds back to the ready pose after a slash.'),
+  pierceOut: knob(0.07, 0.02, 0.3, 0.005, 'Pierce out', 'Seconds for the thrust.'),
+  pierceHold: knob(0.1, 0, 0.4, 0.01, 'Pierce hold', 'Seconds it stays out.'),
+  pierceBack: knob(0.28, 0.05, 0.8, 0.01, 'Pierce return', 'Seconds back to the ready pose.'),
+  armedSwap: knob(0.18, 0.05, 0.6, 0.01, 'Weapon swap', 'Seconds for the arms to change over when a weapon is taken or thrown.'),
 });

@@ -128,14 +128,14 @@ section('Combat — turret and orbs');
   check('orbs pass through you while you dash', !hit);
 }
 {
-  // The parry was removed (the designer's call): a quick punch at an incoming orb does nothing to it.
+  // The parry was removed (the designer's call): a punch at an incoming orb does nothing to it.
   const w = new FlatWorld();
   const p = createPlayer(0, 0, 0, 0);
   const s = createCombat(arena(5, -30));
   fireOrb(s.orbs, new Vector3(0, 1.4, -1.2), new Vector3(0, 0, 1), TARGETS.v.orbSpeed, TARGETS.v.orbDamage);
-  tick(s, p, w, { punchPressed: true });
+  tick(s, p, w, { attackPressed: true });
   const o = s.orbs.find((x) => x.alive)!;
-  check('a quick punch no longer turns an orb around', !!o && o.vel.z > 0);
+  check('a punch no longer turns an orb around', !!o && o.vel.z > 0);
 }
 {
   // A wall between the turret and you blocks its sight: no warning, no shot.
