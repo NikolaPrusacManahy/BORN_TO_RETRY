@@ -1,6 +1,7 @@
 // M1 — everything the movement rules remember about the player between ticks.
 import { Vector3 } from 'three';
 import { EventQueue } from '../../core/eventQueue';
+import { HEALTH } from '../../tuning/health';
 import { DASH, WALL } from '../../tuning/movement';
 
 export type MoveEvent =
@@ -19,7 +20,10 @@ export type MoveEvent =
   | 'slamLand'
   | 'wallRunStart'
   | 'wallRunEnd'
-  | 'wallRunJump';
+  | 'wallRunJump'
+  // M1 step 8 — health: value = the amount.
+  | 'hurt'
+  | 'death';
 
 export interface PlayerState {
   /** Feet position. */
@@ -64,8 +68,12 @@ export interface PlayerState {
   slamming: boolean;
   /** Time left to bounce after a slam landing. */
   slamBounce: number;
-  /** Time left invincible. */
+  /** Time left invincible (dashing). */
   invuln: number;
+  /** M1 step 8 — health, the time left before something can hurt you again, and dead (until the respawn). */
+  hp: number;
+  hurtTime: number;
+  dead: boolean;
   /** What happened this tick, for the camera, sound and HUD. */
   events: EventQueue<MoveEvent>;
 }
@@ -99,17 +107,22 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     slamming: false,
     slamBounce: 0,
     invuln: 0,
+    hp: HEALTH.v.maxHp,
+    hurtTime: 0,
+    dead: false,
     events: new EventQueue<MoveEvent>(32, 'none'),
   };
 }
 
-/** Back to the start, standing still, everything refilled. */
+/** Back to the start, standing still, everything refilled (health too). */
 export function resetPlayer(p: PlayerState, x: number, y: number, z: number, yaw: number) {
   p.pos.set(x, y, z);
   p.vel.set(0, 0, 0);
   p.yaw = yaw;
   p.grounded = false;
-  p.coyote = p.jumpBuffer = p.dashTime = p.slamBounce = p.invuln = p.slideTime = p.wallRunTime = p.wallRunCooldown = 0;
+  p.coyote = p.jumpBuffer = p.dashTime = p.slamBounce = p.invuln = p.slideTime = p.wallRunTime = p.wallRunCooldown = p.hurtTime = 0;
+  p.hp = HEALTH.v.maxHp;
+  p.dead = false;
   p.dashCharges = DASH.v.charges;
   p.sliding = p.slamming = p.onWall = p.slideArmed = p.wallRunning = p.lastWallSet = false;
   p.wallJumpsLeft = WALL.v.count;

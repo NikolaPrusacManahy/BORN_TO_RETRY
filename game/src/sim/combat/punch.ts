@@ -36,8 +36,9 @@ const STOP: Record<Punch['kind'], () => number> = {
 
 const HIT_EVENT = { jab: 'hitJab', finisher: 'hitFinisher', heavy: 'hitHeavy', quick: 'hitQuick' } as const;
 
-/** Resolves a thrown punch: hit or whiff. Pushes events and hit-stop requests. */
-export function resolvePunch(punch: Punch, state: CombatState, eye: Vector3, dir: Vector3, world: CollisionWorld) {
+/** Resolves a thrown punch: hit or whiff. Pushes events and hit-stop requests. Returns how far from the eye it
+ *  landed (m), or -1 for a whiff (M1 step 8: blood heal needs the distance). */
+export function resolvePunch(punch: Punch, state: CombatState, eye: Vector3, dir: Vector3, world: CollisionWorld): number {
   const v = FISTS.v;
   const events = state.events;
   const reach = Math.min(v.reach, world.rayDistance(eye, dir, v.reach) + v.radius);
@@ -68,7 +69,7 @@ export function resolvePunch(punch: Punch, state: CombatState, eye: Vector3, dir
 
   if (dummyIndex < 0 && turretIndex < 0) {
     events.push('whiff', 0, end.x, end.y, end.z);
-    return;
+    return -1;
   }
   const flat = Math.hypot(dir.x, dir.z) || 1;
   const killed = dummyIndex >= 0 ? hitDummy(state.dummies[dummyIndex], punch.damage, punch.knock, dir.x / flat, dir.z / flat) : hitTurret(state.turrets[turretIndex], punch.damage);
@@ -78,4 +79,5 @@ export function resolvePunch(punch: Punch, state: CombatState, eye: Vector3, dir
     events.push('kill', 0, best.x, best.y, best.z);
     state.hitStop.request(FEEDBACK.v.stopKill);
   }
+  return eye.distanceTo(best);
 }

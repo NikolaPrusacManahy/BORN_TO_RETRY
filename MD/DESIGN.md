@@ -42,6 +42,8 @@ A first-person action roguelike. You start every run with your bare hands, tear 
 
 No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we test whether the browser's keyboard lock can capture Ctrl; in the Steam build it is free. **(placeholder: C for slide)**
 
+**Rebinding (M1 step 9, the designer: anything players want):** every action takes any key (Ctrl too), any mouse button (side buttons too) or a wheel direction. Only Esc stays fixed (it pauses), and the OS keys. A key another action uses swaps with it.
+
 ---
 
 ## 5. The player
@@ -56,7 +58,9 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - **Ground slam (later: an unlockable skill):** in the air, slam straight down; jumping right after landing bounces you higher. Not in the base kit: the designer wants it unlocked later as a skill. Its code is kept, keyless, until then. (The slide key in the air used to fire it; since Update 0.0.3 that key waits to slide on landing.)
 
 ### Health
-- 100 HP. **(placeholder)** No regeneration.
+- 100 HP. **(placeholder)** No regeneration. Shown bottom left: the number and a bar.
+- A short invincibility follows each hit (0.6 s **(placeholder)**), and the dash's invincibility stops damage too.
+- **Death:** the world slows and fades to black. In the Feel Lab you're straight back at the start; in a run, death ends the run (M3).
 - **Blood heal:** damage you deal within a few metres heals you a little. Aggression is the main way to heal. **(placeholder amounts)**
 - Other healing: health drops, shop, a part-heal after each boss.
 

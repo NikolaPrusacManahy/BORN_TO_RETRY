@@ -24,10 +24,9 @@ export interface FeedbackParts {
 }
 
 export class CombatFeedback {
-  /** HUD counters: each change restarts the marker / hurt animation. */
+  /** HUD counters: each change restarts the marker animation. */
   hits = 0;
   marker: MarkerKind = 'hit';
-  hurts = 0;
 
   constructor(private readonly f: FeedbackParts) {}
 
@@ -79,8 +78,8 @@ export class CombatFeedback {
           this.f.sparks.spawn(at, back, 4, 1.2);
           break;
         case 'orbHitPlayer':
-          this.f.rig.shake.add(fb.shakeHurt);
-          this.hurts++;
+          // The hurt itself (shake, flash, sound) comes from the player's 'hurt' event (M1 step 8).
+          this.f.sparks.spawn(at, back, 6, 1.4);
           break;
         case 'respawn':
           this.f.targets.respawned(state, e.x, e.z);

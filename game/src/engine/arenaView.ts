@@ -1,5 +1,5 @@
 // M1 — draws an arena from its data: gray boxes with a 1 m grid on every face (so speed is easy to read),
-// glowing jump pads, light and fog.
+// glowing jump pads, spike strips, light and fog.
 import * as THREE from 'three';
 import type { Arena, BoxKind } from '../world/arena';
 
@@ -9,7 +9,12 @@ const TINT: Record<BoxKind, number> = {
   block: 0x6a6170,
   ramp: 0x7c5c52,
   accent: 0x8c3b30,
+  hazard: 0x4a1a1c,
 };
+
+/** M1 step 8 — spike spacing on hazard strips (m) and spike height. */
+const SPIKE_GAP = 0.5;
+const SPIKE_HEIGHT = 0.3;
 
 export const FOG_COLOR = 0x16131a;
 
@@ -71,6 +76,24 @@ export function buildArenaView(scene: THREE.Scene, arena: Arena, renderer: THREE
     group.add(mesh);
   }
 
+  // Spikes on every hazard strip: one instanced cone per spot (drawing only; the strip is the collider).
+  const hazards = arena.boxes.filter((b) => b.kind === 'hazard');
+  const spots: THREE.Vector3[] = [];
+  for (const h of hazards) {
+    const nx = Math.max(1, Math.floor(h.w / SPIKE_GAP));
+    const nz = Math.max(1, Math.floor(h.d / SPIKE_GAP));
+    for (let i = 0; i < nx; i++)
+      for (let j = 0; j < nz; j++) spots.push(new THREE.Vector3(h.x - h.w / 2 + (i + 0.5) * (h.w / nx), h.y + h.h / 2 + SPIKE_HEIGHT / 2, h.z - h.d / 2 + (j + 0.5) * (h.d / nz)));
+  }
+  const spikeMat = new THREE.MeshStandardMaterial({ color: 0xc9c2cc, emissive: 0x5a0d10, emissiveIntensity: 0.6, roughness: 0.35, metalness: 0.6 });
+  if (spots.length) {
+    const spikes = new THREE.InstancedMesh(new THREE.ConeGeometry(0.13, SPIKE_HEIGHT, 6), spikeMat, spots.length);
+    const m = new THREE.Matrix4();
+    spots.forEach((p, i) => spikes.setMatrixAt(i, m.makeTranslation(p.x, p.y, p.z)));
+    spikes.castShadow = true;
+    group.add(spikes);
+  }
+
   const padMat = new THREE.MeshStandardMaterial({ color: 0xff7a2a, emissive: 0xff5a10, emissiveIntensity: 1.4, roughness: 0.4 });
   for (const p of arena.pads) {
     const pad = new THREE.Mesh(new THREE.CylinderGeometry(p.radius, p.radius, 0.08, 32), padMat);
@@ -105,6 +128,7 @@ export function buildArenaView(scene: THREE.Scene, arena: Arena, renderer: THREE
       });
       mats.forEach((m) => m.dispose());
       padMat.dispose();
+      spikeMat.dispose();
       tex.dispose();
     },
   };

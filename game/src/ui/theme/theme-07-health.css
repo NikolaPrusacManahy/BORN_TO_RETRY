@@ -1,0 +1,62 @@
+/* M1 step 8 — the health readout, bottom left: the number, then a slanted bar. A pale trail behind the bar catches
+   up a moment after a hit, so you see what it took. Both pulse when health is low. */
+.rb-hud-health {
+  position: absolute;
+  left: 40px;
+  bottom: 34px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rb-hud-hp {
+  min-width: 2.2em;
+  font-family: 'Anton', var(--rb-font);
+  font-size: 34px;
+  line-height: 1;
+  text-align: right;
+  color: #fff;
+  text-shadow:
+    2px 2px 0 var(--rb-accent),
+    0 0 8px rgba(0, 0, 0, 0.6);
+  transform: skewX(-10deg);
+}
+
+.rb-hud-bar {
+  --fill: 1;
+  position: relative;
+  width: 220px;
+  height: 12px;
+  overflow: hidden;
+  transform: skewX(-20deg);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
+}
+
+.rb-hud-bar i {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  transform: scaleX(var(--fill));
+}
+
+.rb-hud-bar-trail {
+  background: #ffd9cf;
+  transition: transform 0.45s ease-in 0.35s;
+}
+
+.rb-hud-bar-fill {
+  background: var(--rb-accent);
+  transition: transform 0.08s ease-out;
+}
+
+.rb-hud-health.is-low .rb-hud-bar-fill,
+.rb-hud-health.is-low .rb-hud-hp {
+  animation: rb-hud-low 0.8s ease-in-out infinite;
+}
+
+@keyframes rb-hud-low {
+  50% {
+    filter: brightness(1.9);
+  }
+}

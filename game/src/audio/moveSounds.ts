@@ -1,4 +1,5 @@
-// M1 — placeholder movement sounds: jumps, landings, dashes, the slide scrape, slams and pads.
+// M1 — placeholder movement sounds: jumps, landings, dashes, the slide scrape, slams and pads. M1 step 8 — and
+// getting hurt and dying.
 import type { MoveEvent } from '../sim/player/state';
 import type { AudioEngine } from './audio';
 import { NoiseLoop, noise, tone } from './synth';
@@ -51,6 +52,14 @@ export class MoveSounds {
       case 'slamLand':
         tone(a, { from: 95, to: 28, dur: 0.32, gain: 0.8 });
         noise(a, { dur: 0.22, gain: 0.45, filter: 'lowpass', from: 1400, to: 120 });
+        break;
+      case 'hurt':
+        tone(a, { from: 210, to: 70, dur: 0.16, gain: 0.45, type: 'square' });
+        noise(a, { dur: 0.12, gain: 0.35, filter: 'lowpass', from: 2200, to: 300 });
+        break;
+      case 'death':
+        tone(a, { from: 110, to: 22, dur: 0.9, gain: 0.8, type: 'sawtooth' });
+        noise(a, { dur: 0.7, gain: 0.4, filter: 'lowpass', from: 900, to: 60 });
         break;
       default:
         break;

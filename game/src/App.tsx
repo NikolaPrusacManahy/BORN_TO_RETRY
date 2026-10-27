@@ -2,8 +2,12 @@
 // Opening the tuning panel frees the mouse without pausing.
 // Update 0.0.4 — opens on the main menu. Start locks the mouse and opens the gate; it fades to black, then the
 // black fades off the lab. The pause menu can go back to the main menu.
+// M1 step 8 — dying fades to black too, and the black clears when you're back at the start. F4: invincible.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { INTRO } from './engine/menu/introTimeline';
+import { HEALTH } from './tuning/health';
+import { LAB } from './tuning/lab';
+import { setKnob } from './tuning/schema';
 import { GameHandle, GameView } from './screens/GameView';
 import { MainMenu } from './screens/MainMenu';
 import { PauseMenu } from './screens/PauseMenu';
@@ -21,7 +25,8 @@ export default function App() {
   const [save, setSave] = useState(loadSave);
   const [phase, setPhase] = useState<Phase>('menu');
   const [ready, setReady] = useState(false);
-  const [black, setBlack] = useState(false);
+  /** The fade to black: how long it takes to go black (s), or null when clear. */
+  const [black, setBlack] = useState<number | null>(null);
   const [tuning, setTuning] = useState(false);
   const [debug, setDebug] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -62,7 +67,7 @@ export default function App() {
 
   const onIntroDone = useCallback(
     (locked: boolean) => {
-      setBlack(false);
+      setBlack(null);
       go(locked ? 'playing' : 'paused');
     },
     [go],
@@ -88,6 +93,7 @@ export default function App() {
       if (action === 'tuning') setTuningOpen(!tuningRef.current);
       else if (action === 'debug') setDebug((d) => !d);
       else if (action === 'respawn' && phaseRef.current !== 'intro') getGame()?.restart();
+      else if (action === 'god') setKnob(LAB, 'god', LAB.v.god >= 1 ? 0 : 1);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -111,8 +117,10 @@ export default function App() {
       settings={save.settings}
       showHud={!onMenu}
       onLockChange={onLockChange}
-      onIntroFade={() => setBlack(true)}
+      onIntroFade={() => setBlack(INTRO.fade)}
       onIntroDone={onIntroDone}
+      onDeath={() => setBlack(HEALTH.v.deathFade)}
+      onRespawn={() => setBlack(null)}
       onReady={() => setReady(true)}
     >
       {onMenu && !tuning && (
@@ -139,11 +147,12 @@ export default function App() {
           onFullscreen={() => void toggleFullscreen()}
           onMainMenu={() => {
             getGame()?.toMenu();
+            setBlack(null);
             go('menu');
           }}
         />
       )}
-      <div className="rb-fade" style={{ opacity: black ? 1 : 0, transitionDuration: `${black ? INTRO.fade : FADE_OUT}s` }} />
+      <div className="rb-fade" style={{ opacity: black !== null ? 1 : 0, transitionDuration: `${black ?? FADE_OUT}s` }} />
       {dev && tuning && <TuningPanel onClose={() => setTuningOpen(false)} />}
       {dev && debug && <DebugOverlay getGame={getGame} />}
     </GameView>

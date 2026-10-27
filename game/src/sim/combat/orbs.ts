@@ -5,6 +5,7 @@ import type { EventQueue } from '../../core/eventQueue';
 import { TARGETS } from '../../tuning/combat';
 import type { CollisionWorld } from '../collisionWorld';
 import { BODY } from '../player/body';
+import { canHurt, damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
 import { segmentDistance } from './geometry';
 import type { CombatEvent } from './state';
@@ -44,11 +45,12 @@ export function updateOrbs(orbs: Orb[], player: PlayerState, world: CollisionWor
       continue;
     }
     next.copy(o.pos).addScaledVector(o.vel, dt);
-    if (player.invuln <= 0) {
+    if (canHurt(player)) {
       a.set(player.pos.x, player.pos.y + BODY.radius, player.pos.z);
       b.set(player.pos.x, player.pos.y + height - BODY.radius, player.pos.z);
       if (segmentDistance(o.pos, next, a, b, hitAt) <= r + BODY.radius) {
         o.alive = false;
+        damagePlayer(player, o.damage);
         events.push('orbHitPlayer', o.damage, hitAt.x, hitAt.y, hitAt.z);
         continue;
       }

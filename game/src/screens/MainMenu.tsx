@@ -1,11 +1,11 @@
 // Update 0.0.4 — the main menu over the gate scene: the BORN TO RETRY logo up in the sky, Start / Settings /
 // Controls bottom left over the dark wall, the version bottom right. Enter or Space starts too. Once Start is
 // pressed it slides away while the gate opens. No hints a player already knows (the designer's rule).
+// M1 step 9 — Controls is the rebinding screen.
 import { useEffect, useState } from 'react';
 import { version } from '../../package.json';
-import type { Bindings } from '../input/bindings';
 import type { Settings } from '../state/settings';
-import { keyLabel } from './keyLabel';
+import { KeyBindings } from './KeyBindings';
 import { SettingsFields } from './SettingsFields';
 
 type Panel = 'settings' | 'controls' | null;
@@ -19,19 +19,6 @@ interface Props {
   onChange(s: Settings): void;
   onStart(): void;
   onFullscreen(): void;
-}
-
-function controls(b: Bindings): [string, string][] {
-  return [
-    ['Move', 'WASD'],
-    ['Jump', keyLabel(b.jump)],
-    ['Dash', keyLabel(b.dash)],
-    ['Slide', keyLabel(b.slide)],
-    ['Jab', keyLabel(b.attack)],
-    ['Charged punch', keyLabel(b.heavy)],
-    ['Quick punch', keyLabel(b.punch)],
-    ['Pause', 'Esc'],
-  ];
 }
 
 /** The retry arrow beside the logo: a clockwise arc and its head; it turns slowly. */
@@ -102,7 +89,7 @@ export function MainMenu({ ready, leaving, settings, fullscreen, onChange, onSta
 
       {panel && (
         <div className="rb-menu-side">
-          <div className="rb-panel rb-menu-panel">
+          <div className={`rb-panel rb-menu-panel${panel === 'controls' ? ' is-controls' : ''}`}>
             <h2 className="rb-pause-title">{panel === 'settings' ? 'Settings' : 'Controls'}</h2>
             {panel === 'settings' ? (
               <>
@@ -114,14 +101,7 @@ export function MainMenu({ ready, leaving, settings, fullscreen, onChange, onSta
                 </div>
               </>
             ) : (
-              <ul className="rb-keys">
-                {controls(settings.bindings).map(([label, key]) => (
-                  <li key={label}>
-                    <span>{label}</span>
-                    <kbd>{key}</kbd>
-                  </li>
-                ))}
-              </ul>
+              <KeyBindings bindings={settings.bindings} onChange={(bindings) => onChange({ ...settings, bindings })} />
             )}
             <button className="rb-btn rb-menu-back" onClick={() => setPanel(null)}>
               Back

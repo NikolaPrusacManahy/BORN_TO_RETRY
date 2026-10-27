@@ -1,6 +1,8 @@
-// Rebindable controls (from Last Ward). Pure: codes are KeyboardEvent.code ('KeyW', 'ShiftLeft') or mouse
-// buttons as 'Mouse0'..'Mouse4' (left, middle, right, back, forward).
-// M1 — no default uses Ctrl: Ctrl+W (slide while running forward) closes the browser tab.
+// Rebindable controls (from Last Ward). Pure: codes are KeyboardEvent.code ('KeyW', 'ShiftLeft'), mouse buttons
+// as 'Mouse0'..'Mouse4' (left, middle, right, back, forward), or the wheel as 'WheelUp' / 'WheelDown'.
+// M1 — no default uses Ctrl: Ctrl+W (slide while running forward) closes the browser tab. Players may still bind it.
+// M1 step 9 — any key, mouse button or wheel direction can take any action (the designer). Off limits: Esc (the
+// browser frees the mouse on it), the OS keys, and the dev keys while the dev tools are on.
 
 export type Action = 'forward' | 'back' | 'left' | 'right' | 'jump' | 'dash' | 'slide' | 'attack' | 'heavy' | 'punch' | 'throw' | 'interact';
 export type Bindings = Record<Action, string>;
@@ -39,14 +41,27 @@ export const DEFAULT_BINDINGS: Bindings = {
 /** Dev tools (dev build only): F1 / ` tuning panel, F2 debug overlay, F3 respawn enemies, F4 invincibility. */
 export const DEV_KEYS = ['F1', 'F2', 'F3', 'F4', 'Backquote'];
 
-/** Never bindable: Esc pauses (the browser owns it), the dev keys, Win/Cmd opens the OS. */
-export const RESERVED = ['Escape', 'MetaLeft', 'MetaRight', 'ContextMenu', ...DEV_KEYS];
+/** Never bindable: Esc pauses (the browser owns it), Win/Cmd and the menu key belong to the OS. */
+export const RESERVED = ['Escape', 'MetaLeft', 'MetaRight', 'ContextMenu'];
 
 const MOUSE = /^Mouse[0-4]$/;
+const WHEEL = /^Wheel(Up|Down)$/;
 const KEY = /^[A-Za-z][A-Za-z0-9]{1,24}$/;
+
+let devKeysReserved = true;
+
+/** The dev keys are only off limits while the dev tools are on (the dev server); a real build can bind them. */
+export function setDevKeysReserved(on: boolean) {
+  devKeysReserved = on;
+}
+
+/** The wheel has no "held": a notch is a press, held until the sim tick that reads it. */
+export const isWheel = (code: string) => WHEEL.test(code);
 
 export function isBindable(code: string): boolean {
   if (code.startsWith('Mouse')) return MOUSE.test(code);
+  if (code.startsWith('Wheel')) return WHEEL.test(code);
+  if (devKeysReserved && DEV_KEYS.includes(code)) return false;
   return KEY.test(code) && !RESERVED.includes(code);
 }
 

@@ -1,6 +1,9 @@
 // M1 — pause: resume, back to start, fullscreen, and the settings that matter for testing feel.
 // Update 0.0.4 — and back to the main menu. The keyboard-lock note moved to the F2 overlay (no info players don't need).
+// M1 step 9 — two tabs: the settings, and the controls (rebinding).
+import { useState } from 'react';
 import type { Settings } from '../state/settings';
+import { KeyBindings } from './KeyBindings';
 import { SettingsFields } from './SettingsFields';
 
 interface Props {
@@ -14,6 +17,7 @@ interface Props {
 }
 
 export function PauseMenu({ settings, fullscreen, onChange, onResume, onRestart, onFullscreen, onMainMenu }: Props) {
+  const [tab, setTab] = useState<'settings' | 'controls'>('settings');
   return (
     <div className="rb-overlay">
       <div className="rb-panel rb-pause">
@@ -32,7 +36,15 @@ export function PauseMenu({ settings, fullscreen, onChange, onResume, onRestart,
             Main menu
           </button>
         </div>
-        <SettingsFields settings={settings} onChange={onChange} />
+        <div className="rb-tabs">
+          <button className={`rb-tab${tab === 'settings' ? ' is-on' : ''}`} onClick={() => setTab('settings')}>
+            Settings
+          </button>
+          <button className={`rb-tab${tab === 'controls' ? ' is-on' : ''}`} onClick={() => setTab('controls')}>
+            Controls
+          </button>
+        </div>
+        {tab === 'settings' ? <SettingsFields settings={settings} onChange={onChange} /> : <KeyBindings bindings={settings.bindings} onChange={(bindings) => onChange({ ...settings, bindings })} />}
       </div>
     </div>
   );

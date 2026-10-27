@@ -2,7 +2,8 @@
 // physics/ builds colliders from it and engine/ builds meshes from it, so the two always match.
 import { Euler, Quaternion } from 'three';
 
-export type BoxKind = 'floor' | 'wall' | 'block' | 'ramp' | 'accent';
+/** M1 step 8 — 'hazard': spikes; solid like a block, and touching its top hurts (sim/player/hazards.ts). */
+export type BoxKind = 'floor' | 'wall' | 'block' | 'ramp' | 'accent' | 'hazard';
 
 export interface ArenaBox {
   /** Centre (m). */
@@ -45,6 +46,11 @@ export interface Arena {
   dummies: Spot[];
   /** M1 step 6 — orb turrets (base positions). */
   turrets: Spot[];
+}
+
+/** M1 step 8 — the arena's hazard boxes (spike strips). */
+export function hazardsOf(arena: Arena): ArenaBox[] {
+  return arena.boxes.filter((b) => b.kind === 'hazard');
 }
 
 /** An axis-aligned box from its min corner and size, which is easier to lay out than a centre. */

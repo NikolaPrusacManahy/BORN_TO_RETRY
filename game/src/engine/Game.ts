@@ -1,48 +1,27 @@
-// M1 — wires the Feel Lab together and runs the frame loop. Thin on purpose: every mechanic lives in its own
-// module (sim/, engine/, audio/). Per frame: mouse look → fixed-step sim ticks (movement, then combat) → events
-// → camera → world render → arms render. Hit-stop pauses the ticks; it never pauses the mouse.
+// M1 — the shell around the Feel Lab: the renderer, input, sound, the mouse lock and fullscreen, and the frame
+// loop. Thin on purpose: the lab itself (player, fists, camera, arms) is LabRun; the main menu is MenuScene.
 // Update 0.0.4 — it opens on the main menu's gate scene (engine/menu/); Start opens the gate, then the lab.
+// M1 step 8 — the play loop moved to labRun.ts when health and death joined.
 import * as THREE from 'three';
-import { FixedStep, MAX_FRAME } from '../core/fixedStep';
+import { MAX_FRAME } from '../core/fixedStep';
 import { FrameStats } from '../core/frameStats';
 import { Input } from '../input/input';
 import { AudioEngine } from '../audio/audio';
-import { MoveSounds } from '../audio/moveSounds';
 import { requestLock, releaseLock } from '../platform/pointerLock';
 import { FullscreenState, enterFullscreen, exitFullscreen, state as fullscreenState } from '../platform/fullscreen';
 import { setLeaveGuard } from '../platform/leaveGuard';
 import type { RapierWorld } from '../physics/rapierWorld';
-import { PlayerIntent, emptyIntent } from '../sim/player/intent';
-import { PlayerState, createPlayer, resetPlayer } from '../sim/player/state';
-import { stepPlayer } from '../sim/player/step';
-import { CombatIntent, emptyCombatIntent } from '../sim/combat/fists';
-import { CombatState, createCombat, resetCombat } from '../sim/combat/state';
-import { stepCombat } from '../sim/combat/step';
-import { AIM_HEIGHT } from '../sim/combat/turret';
 import type { Settings } from '../state/settings';
-import { FISTS } from '../tuning/combat';
-import { LAB } from '../tuning/lab';
 import type { Arena } from '../world/arena';
-import { ArenaView, buildArenaView } from './arenaView';
-import { CameraRig } from './cameraRig';
-import { CombatScene } from './combatScene';
 import { DebugInfo, HudStore, createDebugInfo } from './hudStore';
-import { readCombatIntent, readPlayerIntent } from './intents';
-import { Look } from './look';
-import { applyMoveEvents } from './moveFeedback';
+import { LabRun, RunCallbacks } from './labRun';
 import { MenuScene } from './menu/menuScene';
-import { HudFeed, fillDebug } from './overlayFeed';
 import { createRenderer } from './renderer';
-import { Viewmodel } from './viewmodel/viewmodel';
 
-/** A height change bigger than this in one tick on the ground is a step: the camera smooths it (m). */
-const STEP_MIN = 0.1;
-/** Fall below this and you're put back at the start (m). */
-const KILL_Y = -20;
 /** 'menu': the gate scene, idle; 'intro': Start pressed, the gate opening; 'play': the lab. */
 export type GameMode = 'menu' | 'intro' | 'play';
 
-export interface GameCallbacks {
+export interface GameCallbacks extends RunCallbacks {
   /** The mouse was locked (playing) or released (Esc, a dev panel, alt-tab). */
   onLockChange(locked: boolean): void;
   /** The gate is up: start the fade to black. */
@@ -55,26 +34,11 @@ export class Game {
   readonly stats = new FrameStats();
   readonly debug: DebugInfo = createDebugInfo();
   private readonly renderer: THREE.WebGLRenderer;
-  private readonly scene = new THREE.Scene();
-  private readonly camera = new THREE.PerspectiveCamera(70, 16 / 9, 0.05, 400);
-  private readonly rig = new CameraRig(this.camera);
-  private readonly look = new Look();
   private readonly input: Input;
-  private readonly clock = new FixedStep();
-  private readonly view: ArenaView;
   private readonly audio: AudioEngine;
-  private readonly sounds: MoveSounds;
-  private readonly player: PlayerState;
-  private readonly combat: CombatState;
-  private readonly arms = new Viewmodel();
+  private readonly run: LabRun;
   private readonly menu: MenuScene;
-  private readonly combatScene: CombatScene;
-  private readonly prev = new THREE.Vector3();
-  private readonly chest = new THREE.Vector3();
-  private readonly intent: PlayerIntent = emptyIntent();
-  private readonly combatIntent: CombatIntent = emptyCombatIntent();
   private readonly resizeObs: ResizeObserver;
-  private readonly hudFeed: HudFeed;
   private raf = 0;
   private last = performance.now();
   private aspect = 16 / 9;
@@ -86,21 +50,13 @@ export class Game {
     hud: HudStore,
     private readonly cb: GameCallbacks,
     private readonly physics: RapierWorld,
-    private readonly arena: Arena,
+    arena: Arena,
   ) {
     this.renderer = createRenderer(host);
-    this.view = buildArenaView(this.scene, arena, this.renderer);
-    this.scene.add(this.camera);
     this.input = new Input(host);
-    this.hudFeed = new HudFeed(hud);
     this.audio = new AudioEngine(this.volumes());
-    this.sounds = new MoveSounds(this.audio);
-    const s = arena.playerStart;
-    this.player = createPlayer(s.x, s.y, s.z, s.yaw);
-    this.combat = createCombat(arena);
-    this.combatScene = new CombatScene(this.scene, this.combat, this.audio, this.rig, this.arms);
+    this.run = new LabRun(arena, physics, this.audio, this.renderer, hud, cb);
     this.menu = new MenuScene(this.audio);
-    this.restart();
     this.setSettings(settings);
     document.addEventListener('pointerlockchange', this.onLockChange);
     window.addEventListener('keydown', this.onEsc);
@@ -145,8 +101,7 @@ export class Game {
   toMenu() {
     this.mode = 'menu';
     this.menu.reset();
-    this.sounds.setSliding(false);
-    this.sounds.setWallRunning(false);
+    this.run.silence();
     releaseLock();
   }
 
@@ -163,18 +118,9 @@ export class Game {
     this.audio.setVolumes(this.volumes());
   }
 
-  /** Back to the start, standing still; the targets back in place and whole (F3). */
+  /** Back to the start, full health; the targets back in place and whole (F3). */
   restart() {
-    const s = this.arena.playerStart;
-    resetPlayer(this.player, s.x, s.y, s.z, s.yaw);
-    resetCombat(this.combat, this.arena);
-    this.arms.reset();
-    this.combatScene.clear();
-    this.prev.copy(this.player.pos);
-    this.look.yaw = s.yaw;
-    this.look.pitch = 0;
-    this.rig.reset();
-    this.clock.reset();
+    this.run.restart();
   }
 
   async toggleFullscreen(): Promise<FullscreenState> {
@@ -193,9 +139,7 @@ export class Game {
     const locked = document.pointerLockElement === this.host;
     if (!locked) {
       this.input.clear();
-      // Freeing the mouse mid-charge cancels it rather than throwing it.
-      this.combat.fists.charging = false;
-      this.combat.fists.chargeReady = false;
+      this.run.cancelCharge();
     }
     setLeaveGuard(locked);
     this.cb.onLockChange(locked);
@@ -208,66 +152,12 @@ export class Game {
     this.aspect = w / h;
   }
 
-  /** Runs this frame's sim ticks. Stops early when a hit starts a hit-stop, so the freeze begins on the hit. */
-  private tick(gameDt: number): number {
-    const p = this.player;
-    const stepDt = 1 / LAB.v.simHz;
-    const steps = this.clock.advance(gameDt, stepDt, LAB.v.maxSteps);
-    let n = 0;
-    for (; n < steps; n++) {
-      this.prev.copy(p.pos);
-      const wasGrounded = p.grounded;
-      readPlayerIntent(this.input, this.look, this.intent);
-      readCombatIntent(this.input, this.look, this.combatIntent);
-      stepPlayer(p, this.intent, this.physics, this.arena.pads, stepDt);
-      stepCombat(this.combat, p, this.combatIntent, this.physics, stepDt);
-      this.input.clearPressed();
-      const dy = p.pos.y - this.prev.y;
-      if (wasGrounded && p.grounded && Math.abs(dy) > STEP_MIN) this.rig.step(dy);
-      if (p.pos.y < KILL_Y) this.restart();
-      if (this.combat.hitStop.active) {
-        this.clock.reset();
-        n++;
-        break;
-      }
-    }
-    return n;
-  }
-
   private frame = (now: number) => {
     this.raf = requestAnimationFrame(this.frame);
     const real = Math.min(Math.max(0, (now - this.last) / 1000), MAX_FRAME);
     this.last = now;
-    if (this.mode !== 'play') return this.menuFrame(real);
-
-    const locked = this.input.locked;
-    const mouseDx = locked ? this.input.mouseDX : 0;
-    const mouseDy = locked ? this.input.mouseDY : 0;
-    if (locked) this.look.apply(mouseDx, mouseDy, this.settings);
-    this.input.clearMouse();
-
-    const p = this.player;
-    const frozen = this.combat.hitStop.tick(real);
-    const scale = LAB.v.timeScale;
-    const gameDt = frozen ? 0 : real * scale;
-    const steps = frozen ? 0 : this.tick(gameDt);
-    this.stats.push(real * 1000, steps, this.clock.dropped);
-
-    applyMoveEvents(p.events, this.rig, this.sounds, this.arms);
-    p.events.clear();
-    this.sounds.setSliding(p.sliding && p.grounded);
-    this.sounds.setWallRunning(p.wallRunning);
-    this.rig.update(real * scale, this.clock.alpha, this.prev, p, this.look, this.settings.fov, this.aspect);
-    this.chest.set(p.pos.x, p.pos.y + AIM_HEIGHT, p.pos.z);
-    this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt);
-    const f = this.combat.fists;
-    this.arms.update(gameDt, real, mouseDx, mouseDy, p, f.charging ? f.charge / FISTS.v.chargeTime : -1);
-
-    this.renderer.render(this.scene, this.camera);
-    this.arms.render(this.renderer, this.aspect);
-
-    fillDebug(this.debug, p, this.combat);
-    this.hudFeed.push(real, p, this.combatScene.feedback);
+    if (this.mode === 'play') this.run.frame(real, this.input, this.settings, this.aspect, this.renderer, this.stats, this.debug);
+    else this.menuFrame(real);
   };
 
   /** The main menu and the gate opening: the gate scene only. Nothing simulates. */
@@ -289,9 +179,8 @@ export class Game {
     releaseLock();
     this.input.dispose();
     this.audio.dispose();
-    this.combatScene.dispose();
+    this.run.dispose();
     this.menu.dispose();
-    this.view.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
     this.physics.dispose();

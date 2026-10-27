@@ -1,5 +1,6 @@
 // M1 — hosts the Three.js Game and the HUD. Rapier loads first; the Game is built once it's ready.
 // Update 0.0.4 — ready once the main menu's scene has loaded too; the HUD only shows in play.
+// M1 step 8 — passes the death and respawn calls through.
 import { ReactNode, forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import { Game, GameCallbacks } from '../engine/Game';
 import { createHudStore } from '../engine/hudStore';
@@ -20,12 +21,12 @@ interface Props extends GameCallbacks {
   children?: ReactNode;
 }
 
-export const GameView = forwardRef<GameHandle, Props>(function GameView({ settings, showHud, onLockChange, onIntroFade, onIntroDone, onReady, children }, ref) {
+export const GameView = forwardRef<GameHandle, Props>(function GameView({ settings, showHud, onLockChange, onIntroFade, onIntroDone, onDeath, onRespawn, onReady, children }, ref) {
   const host = useRef<HTMLDivElement>(null);
   const game = useRef<Game | null>(null);
   const hud = useMemo(() => createHudStore(), []);
-  const cbs = useRef({ onLockChange, onIntroFade, onIntroDone, onReady, settings });
-  cbs.current = { onLockChange, onIntroFade, onIntroDone, onReady, settings };
+  const cbs = useRef({ onLockChange, onIntroFade, onIntroDone, onDeath, onRespawn, onReady, settings });
+  cbs.current = { onLockChange, onIntroFade, onIntroDone, onDeath, onRespawn, onReady, settings };
 
   useEffect(() => {
     let disposed = false;
@@ -35,6 +36,8 @@ export const GameView = forwardRef<GameHandle, Props>(function GameView({ settin
         onLockChange: (l) => cbs.current.onLockChange(l),
         onIntroFade: () => cbs.current.onIntroFade(),
         onIntroDone: (l) => cbs.current.onIntroDone(l),
+        onDeath: () => cbs.current.onDeath(),
+        onRespawn: () => cbs.current.onRespawn(),
       };
       const g = new Game(host.current, cbs.current.settings, hud, callbacks, new RapierWorld(FEEL_LAB), FEEL_LAB);
       game.current = g;

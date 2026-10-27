@@ -30,7 +30,6 @@ export const FEEDBACK = group('feedback', 'Hit feel', {
   shakeFinisher: knob(0.18, 0, 1, 0.01, 'Shake: finisher', 'Trauma added.'),
   shakeHeavy: knob(0.35, 0, 1, 0.01, 'Shake: charged', 'Trauma at full charge.'),
   shakeKill: knob(0.25, 0, 1, 0.01, 'Shake: kill', 'Trauma added.'),
-  shakeHurt: knob(0.35, 0, 1, 0.01, 'Shake: hurt', 'Trauma when an orb hits you.'),
   kickJab: knob(0.6, 0, 5, 0.1, 'Camera kick: jab (°)', 'The view nods on a hit.'),
   kickHeavy: knob(1.8, 0, 8, 0.1, 'Camera kick: charged (°)', 'At full charge.'),
   sparks: knob(10, 0, 40, 1, 'Sparks', 'Sparks per hit.'),
@@ -49,6 +48,6 @@ export const TARGETS = group('targets', 'Targets', {
   turretTelegraph: knob(0.5, 0.1, 2, 0.05, 'Turret warning', 'The head glows this long before it fires.'),
   turretRange: knob(40, 5, 80, 1, 'Turret range', 'm.'),
   orbSpeed: knob(9, 2, 40, 0.5, 'Orb speed', 'm/s.'),
-  orbDamage: knob(20, 1, 100, 1, 'Orb damage', 'To you (feedback only until health exists).'),
+  orbDamage: knob(20, 1, 100, 1, 'Orb damage', 'To you.'),
   orbRadius: knob(0.3, 0.1, 1, 0.05, 'Orb size', 'Radius (m).'),
 });

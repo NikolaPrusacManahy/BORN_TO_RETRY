@@ -43,6 +43,8 @@ export const FEEL_LAB: Arena = {
     boxAt(4, 0, -20, 2, 2.5, 2, 'block'),
     boxAt(-18, 0, -18, 4, 1, 4, 'block'),
     boxAt(-4, 0, -26, 6, 3, 1, 'block'),
+    // M1 step 8 — a spike strip east of the start, to test health: touching it hurts and pops you up.
+    boxAt(16, 0, 13, 6, 0.25, 4, 'hazard'),
   ],
   pads: [{ x: 12, y: 0, z: 10.5, radius: 1.2, launch: 24 }],
   playerStart: { x: 0, y: 0, z: 24, yaw: 0 },

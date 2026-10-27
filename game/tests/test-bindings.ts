@@ -1,6 +1,8 @@
-// M1 — key bindings, settings hydrate and the dev keys.
+// M1 — key bindings, settings hydrate and the dev keys. M1 step 9 — any key, mouse button or wheel direction for
+// any action (the designer), with the dev keys free in a real build.
 import { check, near, section } from './harness';
-import { ACTIONS, DEFAULT_BINDINGS, hydrateBindings, isBindable, rebind } from '../src/input/bindings';
+import { ACTIONS, DEFAULT_BINDINGS, hydrateBindings, isBindable, rebind, setDevKeysReserved } from '../src/input/bindings';
+import { keyLabel } from '../src/screens/keyLabel';
 import { DEFAULT_SETTINGS, FOV_MAX, hydrateSave, verticalFov } from '../src/state/settings';
 import { devKeyAction } from '../src/state/devTools';
 import { isMouseSpike } from '../src/input/mouseSpike';
@@ -10,11 +12,30 @@ section('Bindings');
   check('no default uses Ctrl (Ctrl+W closes the tab)', Object.values(DEFAULT_BINDINGS).every((c) => !c.startsWith('Control')));
   check('every action has a default', ACTIONS.every((a) => typeof DEFAULT_BINDINGS[a.id] === 'string'));
   check('defaults are all different keys', new Set(Object.values(DEFAULT_BINDINGS)).size === ACTIONS.length);
-  check('Esc and the dev keys are not bindable', !isBindable('Escape') && !isBindable('F1') && !isBindable('Backquote'));
+  check('Esc, and the dev keys while the dev tools are on, are not bindable', !isBindable('Escape') && !isBindable('F1') && !isBindable('Backquote'));
   const swapped = rebind(DEFAULT_BINDINGS, 'jump', 'KeyC');
   check('rebinding to a used key swaps the two', swapped.jump === 'KeyC' && swapped.slide === 'Space');
   check('a broken save falls back to defaults', JSON.stringify(hydrateBindings('junk')) === JSON.stringify(DEFAULT_BINDINGS));
   check('a duplicated save falls back to defaults', JSON.stringify(hydrateBindings({ ...DEFAULT_BINDINGS, jump: 'KeyW' })) === JSON.stringify(DEFAULT_BINDINGS));
+}
+
+section('Bindings — anything the player wants');
+{
+  const keys = ['KeyQ', 'ControlLeft', 'AltRight', 'Tab', 'CapsLock', 'Numpad5', 'ArrowUp', 'BracketLeft', 'Semicolon', 'F5', 'F12', 'Digit7', 'IntlBackslash'];
+  check('any key can be bound, Ctrl included', keys.every(isBindable), keys.filter((k) => !isBindable(k)).join(', '));
+  check('every mouse button, side buttons included', ['Mouse0', 'Mouse1', 'Mouse2', 'Mouse3', 'Mouse4'].every(isBindable));
+  check('the wheel, both ways', isBindable('WheelUp') && isBindable('WheelDown') && !isBindable('WheelLeft'));
+  check('never Esc, the Windows key or junk', !isBindable('Escape') && !isBindable('MetaLeft') && !isBindable('Mouse9') && !isBindable(''));
+  setDevKeysReserved(false);
+  check('in a real build the dev keys are free to bind', isBindable('F1') && isBindable('F4') && isBindable('Backquote'));
+  setDevKeysReserved(true);
+  let b = DEFAULT_BINDINGS;
+  for (const [i, a] of ACTIONS.entries()) b = rebind(b, a.id, ['WheelUp', 'WheelDown', 'Mouse3', 'Mouse4', 'ControlLeft', 'KeyZ', 'Tab', 'CapsLock', 'ArrowUp', 'Numpad0', 'KeyX', 'AltLeft'][i]);
+  check('every action can take a key at once, all different', new Set(Object.values(b)).size === ACTIONS.length && b.forward === 'WheelUp' && b.interact === 'AltLeft');
+  const swapped = rebind(DEFAULT_BINDINGS, 'jump', 'Mouse0');
+  check('binding jump to left click swaps it with attack', swapped.jump === 'Mouse0' && swapped.attack === 'Space');
+  check('a save with the wheel and Ctrl keeps them', JSON.stringify(hydrateBindings(b)) === JSON.stringify(b));
+  check('keys show short names', keyLabel('WheelUp') === 'Wheel ↑' && keyLabel('Mouse3') === 'Mouse 4' && keyLabel('Backquote') === '`' && keyLabel('Numpad5') === 'Num 5' && keyLabel('ControlLeft') === 'Ctrl' && keyLabel('KeyQ') === 'Q');
 }
 
 section('Settings');

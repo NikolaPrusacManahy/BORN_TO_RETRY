@@ -2,14 +2,18 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-27): Update 0.0.5
+## Current state (2026-10-27): Update 0.0.6
+- **Update 0.0.6 — M1 steps 8 and 9:** health and rebinding.
+  - **Health:** 100 HP and no regeneration. It's shown bottom left: the number and a bar, with a pale trail showing what a hit took, pulsing when low. A short invincibility follows each hit, and dashes still stop damage. Blood heal: punches that land heal 20% of their damage. Death (including falling out of the world) slows the world, fades to black, and puts you back at the start with full health.
+  - **Spike strip** in the Feel Lab (east of the start) to test it: touching it hurts and pops you up; a dash carries you over unhurt. Nothing else in the lab hurts you yet (no enemies; the turret is out with the parry).
+  - **Rebinding:** every action takes any key (Ctrl included), any mouse button (side buttons too) or a wheel direction. Esc and the Windows key are off limits, and so are the dev keys, but only while the dev tools are on. A key another action uses swaps with it. The controls screen is the main menu's Controls panel and the pause menu's Controls tab.
 - **Update 0.0.5 — the menu scene dressed:** two rearing horse statues guard the foot of the stairs; crates, barrels and a campfire on the right; a pale dead tree at each side (Ultimate Nature Pack), each growing from a bed of earth where a flagstone was lifted (the designer: no trees on paving). The yard is now paved right up to the wall (it stopped 4 m short, under the statues).
   - **The Ultimate Nature Pack in `ASSETS/` looks partial:** 50 `.blend` files, stopping at `CommonTree_Autumn_4` (birches, bushes, cacti, common trees). The rocks, logs, stumps, grass and pines aren't there, likely the rest of a split download.
 - **Update 0.0.4 — the main menu** (the designer's idea, outside the M1 plan): a low shot up a staircase at a dungeon gate built from the Modular Dungeon Pack, with the BORN TO RETRY logo in the sky. Start grinds the portcullis up, the screen fades to black, and the black clears off the Feel Lab.
 - **Milestone: M1 — The Feel Lab** (`MD_UPDATES/M1_FEEL_LAB.md`).
-  - **Done:** steps 1–5 (scaffold, loop, tuning, arena, movement and camera), step 6 (the arms and fists), and the hit-feel part of step 8.
+  - **Done:** steps 1–5 (scaffold, loop, tuning, arena, movement and camera), step 6 (the arms and fists), step 8 (hit feel, health, HUD), step 9 (pause, settings, rebinding) and step 10 (docs).
   - **Changed by the designer:** no real enemies yet; static training dummies replace the Grunt and Spitter of step 7 for now. The parry is removed for now, and with it the orb turret leaves the Feel Lab (its code stays).
-  - **Next:** health and the HUD health bar (step 8), the key rebinding screen (step 9), docs (step 10).
+  - **Next — the M1 "done when" list:** the designer plays and says the feel is right, exported tuning becomes the defaults, frame time holds on the designer's PC, and the browser-or-Godot call is recorded here.
 - Game: **Born To Retry**, a first-person action roguelike, solo, desktop browser. Steam later via Electron.
 - Tech: Vite + React + TypeScript, Three.js 0.186, Rapier 0.21 (`@dimforge/rapier3d-compat`), Node 24.
 
@@ -25,10 +29,12 @@ Run `START_GAME.bat`. The main menu opens on the gate.
   - Right click: hold 1 s (the fist draws back and trembles, a cue sounds when ready), then let go to punch. Letting go sooner cancels.
   - F: quick punch, always ready, even mid-charge.
 - **Targets:** four dummies in front of the start (they wobble, slide back, break, and return 2 s later).
+- **Health:** the spike strip east of the start (hurts, pops you up; dash over it to stay unhurt). Punch the dummies to heal. Fall off the edge or run out of health to die and restart.
+- **Controls:** main menu → Controls, or pause → Controls. Click an action's key, then press anything (a key, a mouse button, the wheel); Esc cancels; Reset restores the defaults. The wheel has no "held", so a wheel-bound slide or charged punch is only a tap.
 - **Hit feel:** hit-stop on finisher, charged and kill hits; screen shake; a small camera nod; sparks; chunks when a dummy breaks; a hit marker around the crosshair (red on a kill); placeholder sounds.
 - **Arms:** both fists low in the corners, the centre clear (`MD/reference/arms_guard_gameplay.webp`); a gentle run bob (about 4 a second at run speed).
-- **Dev keys:** F1 (or `) tuning panel, F2 debug overlay (shows the hit-stop), F3 resets the player and all targets. Esc pauses.
-- **Tuning tabs added:** Fists, Hit feel, Arms (guard nudges per fist, roll, wrist bend, punch timing, sway, bob), Targets, Wall run. Slide gained a length and an ease-in; Camera gained the wall-run tilt (negative flips its direction).
+- **Dev keys:** F1 (or `) tuning panel, F2 debug overlay (shows the hit-stop, health and invincibility), F3 resets the player and all targets, F4 invincible on/off. Esc pauses.
+- **Tuning tabs added:** Health (max, blood heal, hurt invincibility, spikes, death slow motion and fade, hurt shake); Lab gained Invincible. Earlier: Fists, Hit feel, Arms (guard nudges per fist, roll, wrist bend, punch timing, sway, bob), Targets, Wall run. Slide gained a length and an ease-in; Camera gained the wall-run tilt (negative flips its direction).
 
 ## First-person arms
 - **Pipeline:** `MD/PIPELINE_CHARACTER_ARMS.md`, tool `game/tools/blender/cut_arms.py`. The game's guard: `MD/reference/arms_guard_gameplay.webp`. The first, photo-based guard (`arms_guard_adventurer.webp`) covered the crosshair in play.
@@ -50,7 +56,9 @@ Run `START_GAME.bat`. The main menu opens on the gate.
   - Wall runs last 1 s at most (first 2 s; Update 0.0.4).
   - Wall runs grabbed the drop tower from the jump pad. Now a run only starts when you're heading along the wall (within 50° of its line) and not rising faster than 6 m/s. The regression test tries the turn angle that used to stick you at 5.5 m.
 - Air steering is now Quake-style: holding forward no longer bleeds off sideways speed. Without this, wall-run chains couldn't reach the next wall.
-- F4 (invincibility) arrives with health.
+- Health came with a spike strip to test it, since there are no enemies yet (the designer's call). Hurt invincibility (0.6 s) was added so a hazard can't hit every tick.
+- Death in the lab is a quick restart (slow motion, fade to black, back at the start). A real death screen comes with runs (M3).
+- `Game.ts` was split: the lab's play loop is now `engine/labRun.ts`.
 
 ## Files
 | File | What it is |
@@ -97,3 +105,4 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 ## Not verified
 Claude has seen and heard none of this in the game: the feel, the arms on screen, the targets, effects, sounds and menus are all unverified until played. The tests check the rules, the collision, and that the shipped arms pose correctly.
 - **The main menu:** only the Blender previews of the scene were seen. In the browser, unseen: the logo and buttons over the scene, the statues, crates and trees under the game's own lighting, the lighting itself (torch and campfire flicker, gate light, shadows, fog), the dust, the gate's pace, the fade to black and back, and the gate's synth grind. `test-menu.ts` checks the scene's nodes, the menu shot's framing, that the gate is open before the fade (and never pokes out of the wall's top), and the timing.
+- **Health and rebinding (Update 0.0.6):** unseen in the browser: the health bar, its trail and low pulse, the hurt flash and shake, the hurt and death sounds, the spikes, the death slow motion and fade, and the controls screen (binding a mouse button, the wheel, Esc to cancel). `test-health.ts` checks the health rules, blood heal through a real punch, orbs, spikes and the death timing; `test-bindings.ts` checks that any key, mouse button and wheel direction binds, with swaps.

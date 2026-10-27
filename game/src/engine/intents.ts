@@ -1,12 +1,12 @@
 // M1 — turns keys and the mouse into what the sim asks for each tick: movement and fists. Nothing is pressed
-// while the mouse isn't locked (pause menu, tuning panel).
+// while the mouse isn't locked (pause menu, tuning panel), or while `alive` is false (M1 step 8: dying).
 import type { Input } from '../input/input';
 import type { CombatIntent } from '../sim/combat/fists';
 import type { PlayerIntent } from '../sim/player/intent';
 import type { Look } from './look';
 
-export function readPlayerIntent(input: Input, look: Look, i: PlayerIntent) {
-  const live = input.locked;
+export function readPlayerIntent(input: Input, look: Look, i: PlayerIntent, alive = true) {
+  const live = alive && input.locked;
   i.yaw = look.yaw;
   i.moveX = live ? (input.action('right') ? 1 : 0) - (input.action('left') ? 1 : 0) : 0;
   i.moveZ = live ? (input.action('forward') ? 1 : 0) - (input.action('back') ? 1 : 0) : 0;
@@ -17,8 +17,8 @@ export function readPlayerIntent(input: Input, look: Look, i: PlayerIntent) {
 }
 
 /** M1 step 6. */
-export function readCombatIntent(input: Input, look: Look, i: CombatIntent) {
-  const live = input.locked;
+export function readCombatIntent(input: Input, look: Look, i: CombatIntent, alive = true) {
+  const live = alive && input.locked;
   i.yaw = look.yaw;
   i.pitch = look.pitch;
   i.attackHeld = live && input.action('attack');

@@ -2,7 +2,8 @@
 // works on any layout; gameplay asks for actions (input/bindings.ts), so everything can be rebound.
 // M1 — presses are kept until a sim tick reads them (`clearPressed`), not cleared every frame: on a 240 Hz
 // screen with a 120 Hz sim, half the frames run no tick and a press there would be lost.
-import { Action, Bindings, DEFAULT_BINDINGS, DEV_KEYS, codesFor, mouseCode } from './bindings';
+// M1 step 9 — the wheel can be bound: each notch is a press (and counts as held for that one tick).
+import { Action, Bindings, DEFAULT_BINDINGS, DEV_KEYS, codesFor, isWheel, mouseCode } from './bindings';
 import { MOUSE_SPIKE, isMouseSpike } from './mouseSpike';
 
 /** Moves remembered for the spike check: 0.1 s at up to ~2,500 moves a second is plenty with 256. */
@@ -31,6 +32,7 @@ export class Input {
     document.addEventListener('mousedown', this.onMouseDown);
     document.addEventListener('mouseup', this.onMouseUp);
     document.addEventListener('contextmenu', this.onContextMenu);
+    document.addEventListener('wheel', this.onWheel, { passive: false });
   }
 
   get locked() {
@@ -78,14 +80,19 @@ export class Input {
     this.down.delete(mouseCode(e.button));
     if (this.locked && e.button >= 3) e.preventDefault();
   };
+  private onWheel = (e: WheelEvent) => {
+    if (!this.locked || e.deltaY === 0) return;
+    e.preventDefault();
+    this.pressed.add(e.deltaY < 0 ? 'WheelUp' : 'WheelDown');
+  };
   /** Right click is Heavy: never open the browser menu over the game. */
   private onContextMenu = (e: MouseEvent) => {
     if (this.locked || e.target === this.el) e.preventDefault();
   };
 
-  /** Held: the key bound to this action (either Shift/Ctrl/Alt counts). */
+  /** Held: the key bound to this action (either Shift/Ctrl/Alt counts). A wheel notch counts until a tick reads it. */
   action(a: Action) {
-    return codesFor(this.bindings[a]).some((c) => this.down.has(c));
+    return codesFor(this.bindings[a]).some((c) => this.down.has(c) || (isWheel(c) && this.pressed.has(c)));
   }
 
   /** Pressed since the last sim tick read presses. */
@@ -118,5 +125,6 @@ export class Input {
     document.removeEventListener('mousedown', this.onMouseDown);
     document.removeEventListener('mouseup', this.onMouseUp);
     document.removeEventListener('contextmenu', this.onContextMenu);
+    document.removeEventListener('wheel', this.onWheel);
   }
 }

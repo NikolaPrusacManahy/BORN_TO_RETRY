@@ -3,11 +3,13 @@
 // Update 0.0.4 — moved out of Game.ts when the main menu joined it.
 import type { CombatState } from '../sim/combat/state';
 import { PlayerState, flatSpeed, moveMode } from '../sim/player/state';
+import { HEALTH } from '../tuning/health';
+import { LAB } from '../tuning/lab';
 import { DASH } from '../tuning/movement';
 import type { CombatFeedback } from './combatFeedback';
 import type { DebugInfo, HudStore } from './hudStore';
 
-/** HUD refresh interval (s); hits and hurts push at once. */
+/** HUD refresh interval (s); hits, hurts and health changes push at once. */
 const HUD_EVERY = 0.05;
 
 export function fillDebug(d: DebugInfo, p: PlayerState, combat: CombatState) {
@@ -17,6 +19,8 @@ export function fillDebug(d: DebugInfo, p: PlayerState, combat: CombatState) {
   d.dashCharges = p.dashCharges;
   d.wallJumpsLeft = p.wallJumpsLeft;
   d.hitStop = combat.hitStop.remaining * 1000;
+  d.hp = p.hp;
+  d.god = LAB.v.god >= 1;
 }
 
 export class HudFeed {
@@ -24,11 +28,13 @@ export class HudFeed {
 
   constructor(private readonly hud: HudStore) {}
 
-  push(real: number, p: PlayerState, fb: CombatFeedback) {
+  /** `hurts`: how many times the player has been hurt (each new one flashes the screen's edge). */
+  push(real: number, p: PlayerState, fb: CombatFeedback, hurts: number) {
     const cur = this.hud.get();
+    const hp = Math.ceil(p.hp);
     this.timer -= real;
-    if (this.timer > 0 && cur.hits === fb.hits && cur.hurts === fb.hurts) return;
+    if (this.timer > 0 && cur.hits === fb.hits && cur.hurts === hurts && cur.hp === hp) return;
     this.timer = HUD_EVERY;
-    this.hud.set({ dashCharges: Math.floor(p.dashCharges * 20) / 20, dashMax: DASH.v.charges, mode: moveMode(p), hits: fb.hits, marker: fb.marker, hurts: fb.hurts });
+    this.hud.set({ dashCharges: Math.floor(p.dashCharges * 20) / 20, dashMax: DASH.v.charges, mode: moveMode(p), hits: fb.hits, marker: fb.marker, hurts, hp, maxHp: HEALTH.v.maxHp });
   }
 }

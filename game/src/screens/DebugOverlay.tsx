@@ -46,7 +46,7 @@ export function DebugOverlay({ getGame }: { getGame(): Game | null }) {
         `ticks/frame ${s.steps} · dropped ${s.dropped}`,
         `speed ${d.speed.toFixed(1)} m/s · vy ${d.vSpeed.toFixed(1)}`,
         `${d.mode} · dash ${d.dashCharges.toFixed(2)} · wall jumps ${d.wallJumpsLeft}`,
-        `hit-stop ${d.hitStop.toFixed(0)} ms`,
+        `hit-stop ${d.hitStop.toFixed(0)} ms · hp ${d.hp.toFixed(0)}${d.god ? ' · invincible' : ''}`,
         `raw mouse ${d.rawInput ? 'yes' : 'no'} · fullscreen ${d.fullscreen ? 'yes' : 'no'} · kb lock ${d.keyboardLock ? 'yes' : 'no'}`,
       ].join('\n');
     };

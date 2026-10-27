@@ -11,8 +11,11 @@ export interface HudState {
   /** M1 step 6 — counts hits; `marker` is the last one's kind. */
   hits: number;
   marker: MarkerKind;
-  /** Counts orb hits on you. */
+  /** Counts hits on you. */
   hurts: number;
+  /** M1 step 8 — health, rounded up (never shows 0 while alive). */
+  hp: number;
+  maxHp: number;
 }
 
 export interface HudStore {
@@ -22,7 +25,7 @@ export interface HudStore {
 }
 
 export function createHudStore(): HudStore {
-  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0 };
+  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0 };
   const subs = new Set<() => void>();
   return {
     get: () => state,
@@ -52,8 +55,11 @@ export interface DebugInfo {
   fullscreen: boolean;
   /** M1 step 6 — hit-stop left (ms). */
   hitStop: number;
+  /** M1 step 8 — health, and invincible (F4). */
+  hp: number;
+  god: boolean;
 }
 
 export function createDebugInfo(): DebugInfo {
-  return { speed: 0, vSpeed: 0, mode: 'ground', dashCharges: 0, wallJumpsLeft: 0, rawInput: false, keyboardLock: false, fullscreen: false, hitStop: 0 };
+  return { speed: 0, vSpeed: 0, mode: 'ground', dashCharges: 0, wallJumpsLeft: 0, rawInput: false, keyboardLock: false, fullscreen: false, hitStop: 0, hp: 0, god: false };
 }
