@@ -9,7 +9,8 @@ import { HEALTH } from '../tuning/health';
 import { LAB } from '../tuning/lab';
 import { DASH } from '../tuning/movement';
 import type { CombatFeedback } from './combatFeedback';
-import type { DebugInfo, HudStore } from './hudStore';
+import type { DebugInfo, HudStore, MapView } from './hudStore';
+import { CELL, GRID } from '../world/dungeon/floorPlan';
 
 /** HUD refresh interval (s); hits, hurts and health changes push at once. */
 const HUD_EVERY = 0.05;
@@ -31,14 +32,14 @@ export class HudFeed {
   constructor(private readonly hud: HudStore) {}
 
   /** `hurts`: how many times the player has been hurt (each new one flashes the screen's edge). `weapon`: in hand. */
-  push(real: number, p: PlayerState, fb: CombatFeedback, hurts: number, weapon: HeldWeapon | null) {
+  push(real: number, p: PlayerState, fb: CombatFeedback, hurts: number, weapon: HeldWeapon | null, money: number, map: MapView | null, yaw: number) {
     const cur = this.hud.get();
     const hp = Math.ceil(p.hp);
     const name = weapon ? WEAPON_NAME[weapon.kind] : '';
     const uses = weapon ? weapon.uses : 0;
     this.timer -= real;
-    if (this.timer > 0 && cur.hits === fb.hits && cur.hurts === hurts && cur.hp === hp && cur.weapon === name && cur.uses === uses) return;
+    if (this.timer > 0 && cur.hits === fb.hits && cur.hurts === hurts && cur.hp === hp && cur.weapon === name && cur.uses === uses && cur.money === money && cur.map === map) return;
     this.timer = HUD_EVERY;
-    this.hud.set({ dashCharges: Math.floor(p.dashCharges * 20) / 20, dashMax: DASH.v.charges, mode: moveMode(p), hits: fb.hits, marker: fb.marker, hurts, hp, maxHp: HEALTH.v.maxHp, weapon: name, uses });
+    this.hud.set({ dashCharges: Math.floor(p.dashCharges * 20) / 20, dashMax: DASH.v.charges, mode: moveMode(p), hits: fb.hits, marker: fb.marker, hurts, hp, maxHp: HEALTH.v.maxHp, weapon: name, uses, money, map, mapX: p.pos.x / CELL + GRID / 2, mapZ: p.pos.z / CELL + GRID / 2, mapYaw: yaw });
   }
 }

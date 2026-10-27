@@ -6,8 +6,10 @@ import { check, section } from './harness';
 import { DT, ticks } from './fakes/flatWorld';
 import { EventQueue } from '../src/core/eventQueue';
 import type { CombatEvent } from '../src/sim/combat/state';
-import { createFlow, updateFlow } from '../src/sim/enemies/chase';
-import { createGrunts, GRUNT_RADIUS, Grunt, hitGrunt, separateGrunts, spawnGrunt, updateGrunt } from '../src/sim/enemies/grunt';
+import { createEnemies, Enemy, hitEnemy, separateEnemies, spawnEnemy } from '../src/sim/enemies/enemy';
+import { RADIUS } from '../src/sim/enemies/kinds';
+import { updateEnemies } from '../src/sim/enemies/update';
+import { worldFor } from './fakes/enemyWorld';
 import { createPlayer, PlayerState } from '../src/sim/player/state';
 import { ENEMIES } from '../src/tuning/enemies';
 import { Arena, ArenaBox, boxAt } from '../src/world/arena';
@@ -15,6 +17,7 @@ import { FEEL_LAB } from '../src/world/arenas/feelLab';
 import { buildNavGrid, freeAt, lineClear, NavGrid, pushOutOfWalls, wallBetween } from '../src/world/navGrid';
 
 const v = ENEMIES.v;
+const GRUNT_RADIUS = RADIUS.grunt;
 const events = new EventQueue<CombatEvent>(256, 'none');
 
 /** A 40 × 40 m floor with these boxes on it. */
@@ -36,14 +39,13 @@ function inWall(nav: NavGrid, x: number, z: number): number {
 /** Runs one grunt at the player for up to `secs`; returns when it first winds up (−1: never) and how deep it ever got
  *  into a wall. */
 function chase(nav: NavGrid, from: Vector3, p: PlayerState, secs: number) {
-  const flow = createFlow(nav);
-  const grunts = createGrunts();
-  spawnGrunt(grunts, from, 0);
+  const w = worldFor(events, nav);
+  const grunts = createEnemies();
+  spawnEnemy(grunts, 'grunt', from, 0);
   const g = grunts[0];
   let deepest = 0;
   for (let i = 0; i < ticks(secs); i++) {
-    updateFlow(flow, nav, p.pos.x, p.pos.z);
-    updateGrunt(g, 0, p, nav, flow, events, DT);
+    updateEnemies(grunts, p, w, DT);
     events.clear();
     deepest = Math.max(deepest, inWall(nav, g.pos.x, g.pos.z));
     if (g.phase === 'windup') return { g, windupAt: (i + 1) * DT, deepest };
@@ -90,11 +92,9 @@ section('Grunt — round walls');
   // Behind a thin wall in reach: no swing through it.
   const nav = buildNavGrid(room(boxAt(-3, 0, -0.15, 6, 3, 0.3, 'wall')), GRUNT_RADIUS);
   const p = createPlayer(0, 0, 0.65, 0);
-  const flow = createFlow(nav);
-  const grunts = createGrunts();
-  spawnGrunt(grunts, new Vector3(0, 0, -0.65), 0);
-  updateFlow(flow, nav, p.pos.x, p.pos.z);
-  updateGrunt(grunts[0], 0, p, nav, flow, events, DT);
+  const grunts = createEnemies();
+  spawnEnemy(grunts, 'grunt', new Vector3(0, 0, -0.65), 0);
+  updateEnemies(grunts, p, worldFor(events, nav), DT);
   events.clear();
   check('in reach but behind a wall: no wind-up, it heads round', grunts[0].phase === 'chase');
 }
@@ -102,29 +102,28 @@ section('Grunt — round walls');
 section('Grunt — never stuck in a wall');
 {
   const nav = buildNavGrid(room(boxAt(-1, 0, -1, 2, 3, 2, 'block')), GRUNT_RADIUS);
-  const flow = createFlow(nav);
+  const w = worldFor(events, nav);
   const p = createPlayer(0, 0, 10, 0);
-  const grunts = createGrunts();
-  spawnGrunt(grunts, new Vector3(0.2, 0, 0.1), 0);
-  updateFlow(flow, nav, p.pos.x, p.pos.z);
-  updateGrunt(grunts[0], 0, p, nav, flow, events, DT);
+  const grunts = createEnemies();
+  spawnEnemy(grunts, 'grunt', new Vector3(0.2, 0, 0.1), 0);
+  updateEnemies(grunts, p, w, DT);
   check('one that finds itself inside a block is out of it the next tick', inWall(nav, grunts[0].pos.x, grunts[0].pos.z) <= MM);
   // Knocked hard into the block.
   const g = grunts[0];
   g.pos.set(0, 0, 2);
-  hitGrunt(g, 1, 40, 0, -1);
+  hitEnemy(g, 1, 40, 0, -1);
   let deepest = 0;
   for (let i = 0; i < ticks(1); i++) {
-    updateGrunt(g, 0, p, nav, flow, events, DT);
+    updateEnemies(grunts, p, w, DT);
     deepest = Math.max(deepest, inWall(nav, g.pos.x, g.pos.z));
   }
   events.clear();
   check('knocked hard into a block, it stops at its face', deepest <= MM, `${(deepest * 100).toFixed(1)} cm deep`);
   // Two squeezed together against it: pushing apart never pushes one in.
-  const two: Grunt[] = createGrunts();
-  spawnGrunt(two, new Vector3(0, 0, 1.46), 0);
-  spawnGrunt(two, new Vector3(0, 0, 1.5), 0);
-  separateGrunts(two, nav);
+  const two: Enemy[] = createEnemies();
+  spawnEnemy(two, 'grunt', new Vector3(0, 0, 1.46), 0);
+  spawnEnemy(two, 'grunt', new Vector3(0, 0, 1.5), 0);
+  separateEnemies(two, w.nav);
   check('grunts pushed apart against a block stay out of it', inWall(nav, two[0].pos.x, two[0].pos.z) <= MM && inWall(nav, two[1].pos.x, two[1].pos.z) <= MM);
 }
 {

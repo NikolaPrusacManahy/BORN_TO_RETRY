@@ -10,7 +10,10 @@ import { emptyCombatIntent } from '../src/sim/combat/fists';
 import { CombatEvent, createCombat } from '../src/sim/combat/state';
 import { stepCombat } from '../src/sim/combat/step';
 import { emptyTargetHit, landHit, nearestTarget } from '../src/sim/combat/strike';
-import { GRUNT_RADIUS, createGrunts, hitGrunt, isLive, pushPlayerOut, separateGrunts, spawnGrunt, updateGrunt } from '../src/sim/enemies/grunt';
+import { createEnemies, hitEnemy, isLive, pushPlayerOut, separateEnemies, spawnEnemy } from '../src/sim/enemies/enemy';
+import { RADIUS } from '../src/sim/enemies/kinds';
+import { updateEnemies } from '../src/sim/enemies/update';
+import { arenaWorld } from './fakes/enemyWorld';
 import { SPAWN_MIN_DIST } from '../src/sim/enemies/waves';
 import { BODY } from '../src/sim/player/body';
 import { createPlayer } from '../src/sim/player/state';
@@ -19,24 +22,23 @@ import { ENEMIES } from '../src/tuning/enemies';
 import { HEALTH } from '../src/tuning/health';
 import { WEAPONS } from '../src/tuning/weapons';
 import type { Arena } from '../src/world/arena';
-import { buildNavGrid } from '../src/world/navGrid';
-import { createFlow } from '../src/sim/enemies/chase';
 
 const v = ENEMIES.v;
 const events = new EventQueue<CombatEvent>(256, 'none');
 const kinds = () => Array.from({ length: events.length }, (_, i) => events.at(i).kind);
 
-/** No floor in the arena: open ground everywhere, no walls. */
-const OPEN = buildNavGrid({ name: 'open', boxes: [], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] }, GRUNT_RADIUS);
+const GRUNT_RADIUS = RADIUS.grunt;
+/** Open ground everywhere, no walls. */
+const OPEN = arenaWorld(events);
 
 /** A player at the origin facing −z, and one grunt `dist` m ahead of them, facing them. */
 function face(dist: number) {
   const p = createPlayer(0, 0, 0, 0);
   p.grounded = true;
-  const grunts = createGrunts();
-  spawnGrunt(grunts, new Vector3(0, 0, -dist), Math.PI);
+  const grunts = createEnemies();
+  spawnEnemy(grunts, 'grunt', new Vector3(0, 0, -dist), Math.PI);
   events.clear();
-  return { nav: OPEN, flow: createFlow(OPEN), p, grunts, g: grunts[0] };
+  return { p, grunts, g: grunts[0] };
 }
 
 /** Ticks one grunt `n` times; returns the time (s) the player was first hurt, or −1. */
@@ -45,7 +47,7 @@ function tick(s: ReturnType<typeof face>, n: number, each?: (t: number) => void)
   for (let i = 0; i < n; i++) {
     each?.(i * DT);
     const hp = s.p.hp;
-    updateGrunt(s.g, 0, s.p, s.nav, s.flow, events, DT);
+    updateEnemies(s.grunts, s.p, OPEN, DT);
     s.p.hurtTime = Math.max(0, s.p.hurtTime - DT);
     if (s.p.hp < hp && hurtAt < 0) hurtAt = (i + 1) * DT;
   }
@@ -96,13 +98,13 @@ section('Grunt — hit and killed');
 {
   const s = face(v.gruntReach * 0.85);
   tick(s, ticks(v.gruntWindup * 0.5));
-  const died = hitGrunt(s.g, 10, 8, 0, -1);
+  const died = hitEnemy(s.g, 10, 8, 0, -1);
   check('a hit flinches it, cancelling the wind-up', !died && s.g.phase === 'flinch' && s.g.hp === v.gruntHp - 10 && s.g.flash > 0);
   check('and knocks it back', s.g.vel.z < 0);
   const hurtAt = tick(s, ticks(v.gruntWindup));
   check('so the cancelled swing never lands', hurtAt < 0);
-  check('it dies at 0 health', hitGrunt(s.g, 1000, 0, 0, -1) && s.g.phase === 'dead' && !isLive(s.g));
-  check('the dead take no more hits', !hitGrunt(s.g, 10, 0, 0, -1));
+  check('it dies at 0 health', hitEnemy(s.g, 1000, 0, 0, -1) && s.g.phase === 'dead' && !isLive(s.g));
+  check('the dead take no more hits', !hitEnemy(s.g, 10, 0, 0, -1));
   tick(s, ticks(v.gruntDeathTime + 0.05));
   check('its body goes after a moment, freeing the slot', !s.g.alive);
 }
@@ -112,7 +114,7 @@ section('Grunt — hit and killed');
     const old = v.gruntDrop;
     v.gruntDrop = chance;
     const state = createCombat(arena);
-    spawnGrunt(state.grunts, new Vector3(0, 0, -2), 0);
+    spawnEnemy(state.enemies, 'grunt', new Vector3(0, 0, -2), 0);
     const hit = emptyTargetHit();
     nearestTarget(state, new Vector3(0, 1.6, 0), new Vector3(0, 1.6, -3), 0.5, hit);
     landHit(state, hit, 1000, 0, 0, -1, 'hitJab', 0);
@@ -120,7 +122,7 @@ section('Grunt — hit and killed');
     return state.pickups.filter((q) => q.alive);
   };
   const always = drops(1);
-  check('a kill can drop a worn sword (drop chance 1: always)', always.length === 1 && always[0].uses >= WEAPONS.v.swordDropMin && always[0].uses <= WEAPONS.v.swordDropMax, `${always.length} drops, ${always[0]?.uses} uses`);
+  check(`a kill can drop a sword with ${WEAPONS.v.swordUses} uses (drop chance 1: always)`, always.length === 1 && always[0].uses === WEAPONS.v.swordUses, `${always.length} drops, ${always[0]?.uses} uses`);
   check('drop chance 0: never', drops(0).length === 0);
   check('the seeded RNG gives the same drop every time', drops(1)[0].uses === always[0].uses);
 }
@@ -137,6 +139,8 @@ section('Grunt — in the lab');
       { x: 20, y: 0, z: 0 },
       { x: -20, y: 0, z: 0 },
       { x: 0, y: 0, z: 20 },
+      { x: 0, y: 0, z: -20 },
+      { x: 15, y: 0, z: 15 },
     ],
     dummies: [],
     turrets: [],
@@ -151,25 +155,26 @@ section('Grunt — in the lab');
     }
   };
   step(ticks(v.labWaveDelay * 0.5));
-  check('no grunts until the wave delay passes', !state.grunts.some(isLive));
+  check('no enemies until the wave delay passes', !state.enemies.some(isLive));
   step(ticks(v.labWaveDelay * 0.6));
-  const live = state.grunts.filter(isLive);
-  check(`then ${v.labGrunts} come`, live.length === v.labGrunts);
+  const live = state.enemies.filter(isLive);
+  const count = (k: string) => live.filter((e) => e.kind === k).length;
+  check(`then ${v.labGrunts} grunts, ${v.labSpitters} spitter and ${v.labBrutes} brute come`, count('grunt') === v.labGrunts && count('spitter') === v.labSpitters && count('brute') === v.labBrutes);
   check(`none closer than ${SPAWN_MIN_DIST} m to you`, live.every((g) => Math.hypot(g.pos.x, g.pos.z) >= SPAWN_MIN_DIST - 1e-6));
-  for (const g of live) hitGrunt(g, 1000, 0, 0, 1);
-  step(ticks(v.gruntDeathTime + 0.1));
-  check('when the last one dies, the next wave waits', !state.grunts.some(isLive));
+  for (const g of live) hitEnemy(g, 1000, 0, 0, 1);
+  step(ticks(2.1));
+  check('when the last one dies, the next wave waits', !state.enemies.some(isLive));
   step(ticks(v.labWaveDelay));
-  check('then comes', state.grunts.filter(isLive).length === v.labGrunts);
+  check('then comes', state.enemies.filter(isLive).length === v.labGrunts + v.labSpitters + v.labBrutes);
 }
 {
-  const grunts = createGrunts();
-  spawnGrunt(grunts, new Vector3(0, 0, 0), 0);
-  spawnGrunt(grunts, new Vector3(0.1, 0, 0), 0);
-  separateGrunts(grunts, OPEN);
+  const grunts = createEnemies();
+  spawnEnemy(grunts, 'grunt', new Vector3(0, 0, 0), 0);
+  spawnEnemy(grunts, 'grunt', new Vector3(0.1, 0, 0), 0);
+  separateEnemies(grunts, OPEN.nav);
   check('grunts never stand inside each other', grunts[0].pos.distanceTo(grunts[1].pos) >= GRUNT_RADIUS * 2 - 1e-9);
-  const one = createGrunts();
-  spawnGrunt(one, new Vector3(0, 0, 0), 0);
+  const one = createEnemies();
+  spawnEnemy(one, 'grunt', new Vector3(0, 0, 0), 0);
   const p = createPlayer(0.3, 0, 0.1, 0);
   pushPlayerOut(p, one, new FlatWorld(), BODY.radius, { grounded: false, hitCeiling: false, wall: false, wallNormal: new Vector3() });
   const d = Math.hypot(p.pos.x, p.pos.z);
@@ -178,11 +183,11 @@ section('Grunt — in the lab');
 {
   const arena: Arena = { name: 't', boxes: [], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] };
   const state = createCombat(arena);
-  spawnGrunt(state.grunts, new Vector3(0, 0, -1.5), 0);
+  spawnEnemy(state.enemies, 'grunt', new Vector3(0, 0, -1.5), 0);
   const p = createPlayer(0, 0, 0, 0);
   p.hp = 50;
   stepCombat(state, p, { ...emptyCombatIntent(), attackPressed: true }, new FlatWorld(), DT);
-  check('a jab hits a grunt (and flinches it)', state.grunts[0].hp === v.gruntHp - FISTS.v.jabDamage && state.grunts[0].phase === 'flinch');
+  check('a jab hits a grunt (and flinches it)', state.enemies[0].hp === v.gruntHp - FISTS.v.jabDamage && state.enemies[0].phase === 'flinch');
   check('and heals you like any hit (blood heal)', p.hp > 50);
   check('dummies are still there to hit too', TARGETS.v.dummyHp > 0);
 }

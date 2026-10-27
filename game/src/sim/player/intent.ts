@@ -12,8 +12,10 @@ export interface PlayerIntent {
   dashPressed: boolean;
   slidePressed: boolean;
   slideHeld: boolean;
+  /** Update 0.0.12 — F: the ground slam. */
+  slamPressed: boolean;
 }
 
 export function emptyIntent(yaw = 0): PlayerIntent {
-  return { moveX: 0, moveZ: 0, yaw, jumpPressed: false, dashPressed: false, slidePressed: false, slideHeld: false };
+  return { moveX: 0, moveZ: 0, yaw, jumpPressed: false, dashPressed: false, slidePressed: false, slideHeld: false, slamPressed: false };
 }

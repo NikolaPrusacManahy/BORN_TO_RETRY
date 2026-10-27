@@ -4,6 +4,8 @@
 // M1 step 8 — the play loop moved to labRun.ts when health and death joined.
 // Update 0.0.7 — the menu has a second view: the night camp, where the settings are.
 // Update 0.0.8 — and a third: the prison corridor, the character select, which the gate opens onto.
+// Update 0.0.12 — Play starts a dungeon run (a new floor plan from a new seed); the way down makes the next floor; a
+// death starts a new run. The Feel Lab is a dev key away (F9).
 import * as THREE from 'three';
 import { MAX_FRAME } from '../core/fixedStep';
 import { FrameStats } from '../core/frameStats';
@@ -12,12 +14,11 @@ import { AudioEngine } from '../audio/audio';
 import { requestLock, releaseLock } from '../platform/pointerLock';
 import { FullscreenState, enterFullscreen, exitFullscreen, state as fullscreenState } from '../platform/fullscreen';
 import { setLeaveGuard } from '../platform/leaveGuard';
-import type { RapierWorld } from '../physics/rapierWorld';
 import { CharacterId, ROSTER } from '../sim/characters';
 import type { Settings } from '../state/settings';
-import type { Arena } from '../world/arena';
 import { DebugInfo, HudStore, createDebugInfo } from './hudStore';
-import { LabRun, RunCallbacks } from './labRun';
+import { dungeonLevel, labLevel, Level, newSeed } from './level';
+import { Levels, Run, RunCallbacks } from './run';
 import { CampScene } from './menu/campScene';
 import { MenuScene } from './menu/menuScene';
 import { PrisonScene } from './menu/prisonScene';
@@ -45,7 +46,14 @@ export class Game {
   private readonly renderer: THREE.WebGLRenderer;
   private readonly input: Input;
   private readonly audio: AudioEngine;
-  private readonly run: LabRun;
+  private run: Run | null = null;
+  /** F9 (dev): the lab instead of the dungeon. */
+  private inLab = false;
+  private readonly levels: Levels = {
+    fresh: () => dungeonLevel(newSeed(), 1),
+    next: (l: Level) => dungeonLevel(l.seed, l.floor + 1),
+    again: (l: Level) => dungeonLevel(l.seed, l.floor),
+  };
   private readonly menu: MenuScene;
   private readonly camp: CampScene;
   private readonly prison: PrisonScene;
@@ -55,19 +63,18 @@ export class Game {
   private aspect = 16 / 9;
   private mode: GameMode = 'menu';
   private menuView: MenuView = 'gate';
+  private readonly hud: HudStore;
 
   constructor(
     private readonly host: HTMLElement,
     private settings: Settings,
     hud: HudStore,
     private readonly cb: GameCallbacks,
-    private readonly physics: RapierWorld,
-    arena: Arena,
   ) {
     this.renderer = createRenderer(host);
     this.input = new Input(host);
     this.audio = new AudioEngine(this.volumes());
-    this.run = new LabRun(arena, physics, this.audio, this.renderer, hud, cb);
+    this.hud = hud;
     this.menu = new MenuScene(this.audio);
     this.camp = new CampScene(this.audio);
     this.prison = new PrisonScene(this.audio);
@@ -137,13 +144,24 @@ export class Game {
     this.prison.rattle();
   }
 
-  /** Into the lab as `character` (only playable ones). Call once the screen is black. */
+  /** Into a new dungeon run as `character` (only playable ones). Call once the screen is black. */
   startRun(character: CharacterId) {
     if (!ROSTER.find((c) => c.id === character)?.available) return;
     this.mode = 'play';
-    this.restart();
+    this.newRun(this.inLab ? labLevel() : this.levels.fresh());
     this.input.clear();
     this.cb.onRunStart(document.pointerLockElement === this.host);
+  }
+
+  private newRun(level: Level) {
+    this.run?.dispose();
+    this.run = new Run(level, this.audio, this.renderer, this.hud, this.cb, this.levels);
+  }
+
+  /** F9 (dev): swap between the Feel Lab and a fresh dungeon run. */
+  toggleLab() {
+    this.inLab = !this.inLab;
+    if (this.mode === 'play') this.newRun(this.inLab ? labLevel() : this.levels.fresh());
   }
 
   /** Back to the main menu (the pause menu's Main menu): the mouse freed, the gate shut. */
@@ -151,7 +169,7 @@ export class Game {
     this.mode = 'menu';
     this.showMenuView('gate');
     this.menu.reset();
-    this.run.silence();
+    this.run?.silence();
     releaseLock();
   }
 
@@ -161,9 +179,9 @@ export class Game {
     this.audio.setVolumes(this.volumes());
   }
 
-  /** Back to the start, full health; the targets back in place and whole (F3). */
+  /** Back to the start, full health; the targets back in place and whole (F3, Restart). */
   restart() {
-    this.run.restart();
+    this.run?.restart();
   }
 
   async toggleFullscreen(): Promise<FullscreenState> {
@@ -182,7 +200,7 @@ export class Game {
     const locked = document.pointerLockElement === this.host;
     if (!locked) {
       this.input.clear();
-      this.run.cancelCharge();
+      this.run?.cancelCharge();
     }
     setLeaveGuard(locked);
     this.cb.onLockChange(locked);
@@ -199,7 +217,7 @@ export class Game {
     this.raf = requestAnimationFrame(this.frame);
     const real = Math.min(Math.max(0, (now - this.last) / 1000), MAX_FRAME);
     this.last = now;
-    if (this.mode === 'play') this.run.frame(real, this.input, this.settings, this.aspect, this.renderer, this.stats, this.debug);
+    if (this.mode === 'play' && this.run) this.run.frame(real, this.input, this.settings, this.aspect, this.renderer, this.stats, this.debug);
     else this.menuFrame(real);
   };
 
@@ -232,12 +250,11 @@ export class Game {
     releaseLock();
     this.input.dispose();
     this.audio.dispose();
-    this.run.dispose();
+    this.run?.dispose();
     this.menu.dispose();
     this.camp.dispose();
     this.prison.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
-    this.physics.dispose();
   }
 }

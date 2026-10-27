@@ -1,5 +1,6 @@
-// M2 — the Grunt (design §9: a melee chaser in groups, fodder) and the lab's waves of them. Starting values from the
-// M1 plan where it had them (health, speed, wind-up, damage); the rest are placeholders (M2_COMBAT_SANDBOX.md).
+// M2 — the Grunt (design §9: a melee chaser in groups, fodder), the Spitter and the Brute (Update 0.0.12), and the
+// lab's waves of them. Starting values from the M1 plan where it had them (health, speed, wind-up, damage); the rest
+// are placeholders (M2_COMBAT_SANDBOX.md).
 import { group, knob } from './schema';
 
 export const ENEMIES = group('enemies', 'Enemies', {
@@ -16,8 +17,39 @@ export const ENEMIES = group('enemies', 'Enemies', {
   gruntFlinch: knob(0.25, 0, 1, 0.05, 'Grunt flinch', 'A hit stops it this long and cancels a wind-up (s).'),
   gruntKnock: knob(0.5, 0, 2, 0.05, 'Grunt knockback', 'How far a hit slides it back (times the attack knock).'),
   gruntDeathTime: knob(1.5, 0.3, 5, 0.1, 'Grunt body time', 'Seconds the body stays after death.'),
-  gruntDrop: knob(0.3, 0, 1, 0.05, 'Grunt drop chance', 'Chance it drops a worn sword.'),
+  gruntDrop: knob(0.15, 0, 1, 0.05, 'Grunt drop chance', 'Chance it drops a worn sword.'),
   gruntHeight: knob(2.0, 1.2, 3.5, 0.05, 'Grunt height', 'Its model is scaled to this (m); its hit capsule follows.'),
-  labGrunts: knob(3, 0, 12, 1, 'Lab grunts', 'How many come at once in the lab (0: none).'),
+  gruntCoins: knob(2, 0, 50, 1, 'Grunt coins', 'Coins it drops when killed.'),
+  // Update 0.0.12 — the Spitter (design §9: keeps its distance, fires slow orbs). Placeholders.
+  spitterHp: knob(30, 5, 300, 5, 'Spitter health', 'Damage to kill one.'),
+  spitterSpeed: knob(5, 1, 15, 0.5, 'Spitter speed', 'How fast it moves (m/s).'),
+  spitterNear: knob(7, 2, 20, 0.5, 'Spitter too close', 'Closer than this it backs away (m).'),
+  spitterFar: knob(16, 5, 40, 0.5, 'Spitter too far', 'Further than this (or out of sight) it comes closer (m).'),
+  spitterWindup: knob(0.6, 0.2, 2, 0.05, 'Spitter wind-up', 'The warning before an orb flies (s).'),
+  spitterCooldown: knob(1.8, 0.3, 6, 0.1, 'Spitter cooldown', 'Seconds between its shots.'),
+  spitterOrbSpeed: knob(13, 4, 40, 0.5, 'Spitter orb speed', 'm/s: slow enough to dodge.'),
+  spitterOrbDamage: knob(12, 1, 100, 1, 'Spitter orb damage', 'To you, per orb.'),
+  spitterFlinch: knob(0.3, 0, 1, 0.05, 'Spitter flinch', 'A hit stops it this long and cancels a shot (s).'),
+  spitterKnock: knob(0.7, 0, 2, 0.05, 'Spitter knockback', 'How far a hit slides it (times the attack knock).'),
+  spitterHeight: knob(1.6, 0.8, 3, 0.05, 'Spitter height', 'Its model is scaled to this (m); its hit capsule follows.'),
+  spitterCoins: knob(4, 0, 50, 1, 'Spitter coins', 'Coins it drops when killed.'),
+  // Update 0.0.12 — the Brute (design §9: slow and heavy, a warned ground slam). Placeholders.
+  bruteHp: knob(160, 20, 1000, 10, 'Brute health', 'Damage to kill one.'),
+  bruteSpeed: knob(3.5, 1, 10, 0.25, 'Brute speed', 'How fast it walks at you (m/s).'),
+  bruteTurn: knob(3, 0.5, 15, 0.5, 'Brute turn', 'How fast it turns (rad/s).'),
+  bruteReach: knob(3, 1, 6, 0.1, 'Brute reach', 'It starts its slam this close (m).'),
+  bruteWindup: knob(0.9, 0.3, 2.5, 0.05, 'Brute wind-up', 'The warning before its slam lands (s): it rears up and the ground glows.'),
+  bruteSlamRadius: knob(3.6, 1, 8, 0.1, 'Brute slam radius', 'The slam hits everything this close to it (m).'),
+  bruteSlamDamage: knob(30, 1, 100, 1, 'Brute slam damage', 'To you, if you are on the ground in the ring.'),
+  bruteShove: knob(14, 0, 40, 0.5, 'Brute shove', 'How hard the slam throws you away (m/s).'),
+  bruteRecover: knob(1.2, 0.2, 4, 0.1, 'Brute recovery', 'After a slam, before it moves again (s): your opening.'),
+  bruteStagger: knob(40, 0, 200, 5, 'Brute stagger', 'Only a hit this hard (or harder) flinches it; lighter hits just hurt it.'),
+  bruteFlinch: knob(0.4, 0, 1.5, 0.05, 'Brute flinch', 'A staggering hit stops it this long and cancels a slam (s).'),
+  bruteKnock: knob(0.15, 0, 1, 0.05, 'Brute knockback', 'How far a hit slides it (times the attack knock).'),
+  bruteHeight: knob(2.8, 1.8, 4.5, 0.05, 'Brute height', 'Its model is scaled to this (m); its hit capsule follows.'),
+  bruteCoins: knob(10, 0, 100, 1, 'Brute coins', 'Coins it drops when killed.'),
+  labGrunts: knob(2, 0, 12, 1, 'Lab grunts', 'Grunts per lab wave (0: none).'),
+  labSpitters: knob(1, 0, 6, 1, 'Lab spitters', 'Spitters per lab wave.'),
+  labBrutes: knob(1, 0, 4, 1, 'Lab brutes', 'Brutes per lab wave.'),
   labWaveDelay: knob(3, 0.5, 15, 0.5, 'Lab wave delay', 'Seconds after the last one dies before the next wave.'),
 });

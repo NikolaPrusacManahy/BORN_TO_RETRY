@@ -25,6 +25,9 @@ def parse_args():
     p.add_argument('--glb', required=True)
     p.add_argument('--previews', required=True)
     p.add_argument('--engine', default='BLENDER_EEVEE')
+    # Update 0.0.12 — the clip to time (where its blow lands): 'Weapon' for the Orc and the Yeti, 'Bite_Front' for the
+    # Wizard's spit.
+    p.add_argument('--attack', default='Weapon')
     return p.parse_args(argv)
 
 
@@ -65,17 +68,17 @@ def main():
     if not arm.animation_data:
         arm.animation_data_create()
     print('actions:', ', '.join(a.name for a in bpy.data.actions))
-    timing = swing_timing(arm, 'Weapon')
+    timing = swing_timing(arm, args.attack)
     if timing:
         hit, frames = timing
         fps = bpy.context.scene.render.fps
-        print(f'WEAPON SWING: lands at frame {hit} of {frames} ({hit / frames:.2f} of the clip; {frames / fps:.2f} s at {fps} fps)')
+        print(f'{args.attack.upper()} SWING: lands at frame {hit} of {frames} ({hit / frames:.2f} of the clip; {frames / fps:.2f} s at {fps} fps)')
 
     setup_previews(args.engine, args.previews)
     sun = bpy.data.objects.new('Sun', bpy.data.lights.new('Sun', 'SUN'))
     sun.rotation_euler = (math.radians(50), 0, math.radians(20))
     bpy.context.scene.collection.objects.link(sun)
-    for name, frame in (('Idle', 0), ('Weapon', timing[0] if timing else 0)):
+    for name, frame in (('Idle', 0), (args.attack, timing[0] if timing else 0)):
         if bpy.data.actions.get(name):
             arm.animation_data.action = bpy.data.actions[name]
             bpy.context.scene.frame_set(frame)

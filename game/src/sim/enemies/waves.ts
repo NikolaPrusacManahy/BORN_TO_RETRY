@@ -1,5 +1,6 @@
-// M2 — the Feel Lab's grunts: a few at a time; once the last one dies, the next wave comes after a short delay at
-// spawn points away from the player. Spawns are picked with the seeded RNG (never Math.random in sim/).
+// M2 — the Feel Lab's waves: a few enemies at a time; once the last one dies, the next wave comes after a short delay
+// at spawn points away from the player. Spawns are picked with the seeded RNG (never Math.random in sim/).
+// Update 0.0.12 — a wave mixes grunts, spitters and brutes (Lab grunts, Lab spitters, Lab brutes).
 import { Vector3 } from 'three';
 import type { Rng } from '../../core/rng';
 import type { EventQueue } from '../../core/eventQueue';
@@ -7,13 +8,14 @@ import { ENEMIES } from '../../tuning/enemies';
 import type { Spot } from '../../world/arena';
 import type { CombatEvent } from '../combat/state';
 import type { PlayerState } from '../player/state';
-import { Grunt, isLive, spawnGrunt } from './grunt';
+import { Enemy, isLive, spawnEnemy } from './enemy';
+import type { EnemyKind } from './kinds';
 
 /** A wave never spawns closer to the player than this (m). */
 export const SPAWN_MIN_DIST = 10;
 
 export interface Waves {
-  /** Seconds until the next wave (counting only while no grunt is fighting). */
+  /** Seconds until the next wave (counting only while nothing is fighting). */
   timer: number;
 }
 
@@ -23,18 +25,26 @@ export function createWaves(): Waves {
 
 const at = new Vector3();
 
-export function updateWaves(w: Waves, grunts: Grunt[], spots: readonly Spot[], player: PlayerState, rng: Rng, events: EventQueue<CombatEvent>, dt: number) {
-  const count = ENEMIES.v.labGrunts;
-  if (count <= 0 || spots.length === 0 || grunts.some(isLive)) return;
+/** Puts `kind` at a spot picked (seeded) from `pool`, which loses it. Returns its index, or −1. */
+export function spawnAt(enemies: Enemy[], kind: EnemyKind, pool: Spot[], player: PlayerState, rng: Rng, events: EventQueue<CombatEvent>): number {
+  if (pool.length === 0) return -1;
+  const s = pool.splice(Math.floor(rng() * pool.length), 1)[0];
+  at.set(s.x, s.y, s.z);
+  const i = spawnEnemy(enemies, kind, at, Math.atan2(-(player.pos.x - s.x), -(player.pos.z - s.z)));
+  if (i >= 0) events.push('enemySpawn', i, s.x, s.y, s.z);
+  return i;
+}
+
+export function updateWaves(w: Waves, enemies: Enemy[], spots: readonly Spot[], player: PlayerState, rng: Rng, events: EventQueue<CombatEvent>, dt: number) {
+  const v = ENEMIES.v;
+  if (v.labGrunts + v.labSpitters + v.labBrutes <= 0 || spots.length === 0) return;
+  for (const e of enemies) if (isLive(e)) return;
   w.timer -= dt;
   if (w.timer > 0) return;
-  w.timer = ENEMIES.v.labWaveDelay;
+  w.timer = v.labWaveDelay;
   const far = spots.filter((s) => Math.hypot(s.x - player.pos.x, s.z - player.pos.z) >= SPAWN_MIN_DIST);
   const pool = far.length > 0 ? far : [...spots];
-  for (let n = 0; n < count && pool.length > 0; n++) {
-    const s = pool.splice(Math.floor(rng() * pool.length), 1)[0];
-    at.set(s.x, s.y, s.z);
-    const i = spawnGrunt(grunts, at, Math.atan2(-(player.pos.x - s.x), -(player.pos.z - s.z)));
-    if (i >= 0) events.push('gruntSpawn', i, s.x, s.y, s.z);
-  }
+  for (let n = 0; n < v.labBrutes; n++) spawnAt(enemies, 'brute', pool, player, rng, events);
+  for (let n = 0; n < v.labSpitters; n++) spawnAt(enemies, 'spitter', pool, player, rng, events);
+  for (let n = 0; n < v.labGrunts; n++) spawnAt(enemies, 'grunt', pool, player, rng, events);
 }

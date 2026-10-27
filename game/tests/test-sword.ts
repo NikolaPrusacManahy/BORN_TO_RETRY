@@ -40,19 +40,19 @@ section('Sword — picking it up');
 {
   const { state, p, world } = lab([], { x: 0, y: 0, z: -1.5 });
   const onStand = state.pickups.filter((q) => q.alive);
-  check(`the lab stand holds a sword with ${w.swordStandUses} uses`, onStand.length === 1 && onStand[0].uses === w.swordStandUses && onStand[0].stand === 0);
+  check(`the lab stand holds a sword with ${w.swordUses} uses`, onStand.length === 1 && onStand[0].uses === w.swordUses && onStand[0].stand === 0);
   const far = lab([], { x: 0, y: 0, z: -(w.pickupRange + 1) });
   tick(far.state, far.p, far.world, { interactPressed: true });
   check('out of reach, E does nothing', far.state.weapon === null);
   const ev = tick(state, p, world, { interactPressed: true });
-  check('in reach, E picks it up', state.weapon?.kind === 'sword' && state.weapon.uses === w.swordStandUses && ev.includes('pickup'));
+  check('in reach, E picks it up', state.weapon?.kind === 'sword' && state.weapon.uses === w.swordUses && ev.includes('pickup'));
   check('the stand is empty for a moment', !state.pickups.some((q) => q.alive));
   run(state, p, world, w.standRespawn + 0.05);
   check('then holds a new one', state.pickups.filter((q) => q.alive && q.stand === 0).length === 1);
   state.weapon = holding('sword', 5);
   tick(state, p, world, { interactPressed: true });
   const dropped = state.pickups.find((q) => q.alive && q.stand < 0);
-  check('picking one up while holding one swaps them: yours lies at your feet', state.weapon.uses === w.swordStandUses && dropped?.uses === 5 && near(dropped.pos.distanceTo(p.pos), 0, 1e-6));
+  check('picking one up while holding one swaps them: yours lies at your feet', state.weapon.uses === w.swordUses && dropped?.uses === 5 && near(dropped.pos.distanceTo(p.pos), 0, 1e-6));
 }
 
 section('Sword — slashes');

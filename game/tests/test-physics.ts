@@ -4,6 +4,9 @@ import { check, near, section } from './harness';
 import { run, ticks } from './fakes/flatWorld';
 import { RapierWorld, initPhysics } from '../src/physics/rapierWorld';
 import { FEEL_LAB } from '../src/world/arenas/feelLab';
+import { Arena, boxAt } from '../src/world/arena';
+import { buildDungeon } from '../src/world/dungeon/assemble';
+import { planFloor } from '../src/world/dungeon/floorPlan';
 import { createPlayer } from '../src/sim/player/state';
 import { BODY } from '../src/sim/player/body';
 import { Vector3 } from 'three';
@@ -142,3 +145,39 @@ section('Physics — Rapier on the Feel Lab');
   check('the wall-run lane chains from one panel to the next', onFirst && caught, `on first ${onFirst}, at x ${p.pos.x.toFixed(2)}, z ${p.pos.z.toFixed(2)}`);
 }
 world.dispose();
+
+section('Physics — the dungeon gates');
+{
+  // Update 0.0.12 — a gate is solid only while shut: through it open, stopped shut, through again once it opens.
+  const arena = { name: 'gate', boxes: [boxAt(-10, -1, -10, 20, 1, 20, 'floor')], pads: [], playerStart: { x: 0, y: 0, z: 4, yaw: 0 }, spawns: [], dummies: [], turrets: [] } as Arena;
+  const gates = new RapierWorld(arena);
+  gates.addGates([{ x: 0, y: 3, z: 0, w: 4, h: 6, d: 0.6, kind: 'wall' }]);
+  const walk = () => {
+    const p = createPlayer(0, 0, 3, 0);
+    run(p, gates, ticks(0.1));
+    run(p, gates, ticks(0.8), () => ({ moveZ: 1 }));
+    return p.pos.z;
+  };
+  check('open, you walk through it', walk() < -2);
+  gates.setGates([true]);
+  const z = walk();
+  check('shut, it stops you', z > 0.3, `z ${z.toFixed(2)}`);
+  gates.setGates([false]);
+  check('open again, through', walk() < -2);
+  gates.dispose();
+}
+{
+  // A real floor: you land at the start and walk out of the start room through its doorway into the corridor.
+  const level = buildDungeon(planFloor(9001, 1));
+  const w = new RapierWorld(level.arena);
+  w.addGates(level.gates);
+  const s = level.arena.playerStart;
+  const p = createPlayer(s.x, s.y + 0.5, s.z, s.yaw);
+  run(p, w, ticks(0.5));
+  check('on a dungeon floor you land at the start', p.grounded && near(p.pos.y, 0, 0.05), `y ${p.pos.y.toFixed(2)}`);
+  run(p, w, ticks(1.6), () => ({ moveZ: 1, yaw: s.yaw }));
+  const start = level.rooms[0];
+  const out = p.pos.x < start.min.x || p.pos.x > start.max.x || p.pos.z < start.min.z || p.pos.z > start.max.z;
+  check('and walk out through its doorway', out && p.grounded, `at (${p.pos.x.toFixed(1)}, ${p.pos.z.toFixed(1)})`);
+  w.dispose();
+}

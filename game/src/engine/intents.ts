@@ -14,6 +14,7 @@ export function readPlayerIntent(input: Input, look: Look, i: PlayerIntent, aliv
   i.dashPressed = live && input.actionPressed('dash');
   i.slidePressed = live && input.actionPressed('slide');
   i.slideHeld = live && input.action('slide');
+  i.slamPressed = live && input.actionPressed('slam');
 }
 
 /** M1 step 6. */

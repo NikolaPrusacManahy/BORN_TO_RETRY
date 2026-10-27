@@ -13,9 +13,8 @@ export const WEAPONS = group('weapons', 'Weapons', {
   swordPierceReach: knob(3.2, 1, 6, 0.05, 'Sword pierce reach', 'How far a pierce reaches from the eye (m).'),
   swordPierceWidth: knob(0.5, 0.1, 2, 0.05, 'Sword pierce width', 'How wide the thrust is (m): narrower than a slash.'),
   swordPierceUses: knob(2, 1, 5, 1, 'Sword pierce cost', 'Uses a pierce that lands takes.'),
-  swordStandUses: knob(20, 1, 100, 1, 'Sword uses (stand)', 'Uses of the sword on the lab stand.'),
-  swordDropMin: knob(8, 1, 100, 1, 'Sword uses (drop, min)', 'A dropped sword has between min and max uses left.'),
-  swordDropMax: knob(20, 1, 100, 1, 'Sword uses (drop, max)', 'Design §6: drops are low, about 8–20.'),
+  // Update 0.0.12 — the designer: a picked-up weapon has 4 uses (was 20 on the stand, 8–20 dropped).
+  swordUses: knob(4, 1, 100, 1, 'Sword uses', 'Uses of a sword you pick up (from a stand or a drop).'),
   throwWindup: knob(0.12, 0, 0.4, 0.01, 'Throw wind-up', 'Seconds from the press to the weapon leaving the hand (drawn back, then thrust).'),
   throwSpeed: knob(30, 5, 80, 1, 'Throw speed', 'How fast a thrown weapon flies (m/s).'),
   throwDamage: knob(70, 1, 300, 1, 'Throw damage', 'A thrown weapon hitting something (it breaks on it).'),

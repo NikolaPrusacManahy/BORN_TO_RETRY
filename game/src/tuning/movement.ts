@@ -61,6 +61,15 @@ export const WALL = group('wallJump', 'Wall jump', {
 
 export const SLAM = group('slam', 'Ground slam', {
   speed: knob(45, 15, 120, 1, 'Slam speed', 'm/s straight down.'),
+  // Update 0.0.12 — F, from a real height only; the landing blasts what's around it.
+  minHeight: knob(1.8, 0.5, 6, 0.1, 'Slam height', 'How high above the ground you must be to slam (m). A jump peaks at the Jump height.'),
+  damage: knob(35, 0, 200, 1, 'Slam damage', 'At the centre, from the lowest slam.'),
+  damagePerMetre: knob(6, 0, 40, 1, 'Slam damage per metre', 'Extra for every metre fallen past the slam height.'),
+  maxDamage: knob(90, 1, 300, 1, 'Slam damage cap', 'The most a slam can do.'),
+  radius: knob(4, 1, 10, 0.1, 'Slam radius', 'How far the blast reaches from the lowest slam (m). It does half damage at the edge.'),
+  radiusPerMetre: knob(0.25, 0, 2, 0.05, 'Slam radius per metre', 'Extra reach for every metre fallen.'),
+  maxRadius: knob(7, 1, 15, 0.1, 'Slam radius cap', 'The widest a blast gets (m).'),
+  knock: knob(14, 0, 60, 0.5, 'Slam knock', 'How hard it throws enemies away (m/s).'),
   bounceWindow: knob(0.15, 0, 0.5, 0.01, 'Bounce window', 'Jump this soon after landing a slam to bounce.'),
   bounceHeight: knob(1.6, 1, 4, 0.1, 'Bounce height', 'Times a normal jump.'),
 });

@@ -1,12 +1,15 @@
 // M1 step 6 — turns combat events into everything you see and hear: the arms punching, sparks, chunks, shake,
 // camera kick, hit markers, the hurt flash and sounds.
-// M2 — and sword slashes, pierces and throws (the sword arm's moves), weapons breaking, and grunts arriving.
+// M2 — and sword slashes, pierces and throws (the sword arm's moves), weapons breaking, and enemies arriving.
+// Update 0.0.12 — the slams (yours and the brute's) and the spitter's spit.
 import * as THREE from 'three';
 import type { CombatSounds } from '../audio/combatSounds';
 import type { CombatState } from '../sim/combat/state';
 import { FEEDBACK } from '../tuning/combat';
 import type { CameraRig } from './cameraRig';
 import type { Burst } from './fx/burst';
+import type { Shockwaves } from './fx/shockwave';
+import { ENEMIES } from '../tuning/enemies';
 import type { MarkerKind } from './hudStore';
 import type { TargetsView } from './targetsView';
 import { Viewmodel } from './viewmodel/viewmodel';
@@ -20,6 +23,7 @@ export interface FeedbackParts {
   arms: Viewmodel;
   sparks: Burst;
   chunks: Burst;
+  waves: Shockwaves;
   sounds: CombatSounds;
   targets: TargetsView;
 }
@@ -81,8 +85,30 @@ export class CombatFeedback {
         case 'thrownBreak':
           this.f.sparks.spawn(at, back, 16, 1.3);
           break;
-        case 'gruntSpawn':
+        case 'enemySpawn':
           this.f.chunks.spawn(at, UP, 10, 0.8);
+          break;
+        // Update 0.0.12 — slams: a ring racing out over the floor and dust thrown up.
+        case 'slamImpact':
+          this.f.waves.spawn(at, e.value, 0xbfd8ff);
+          this.f.chunks.spawn(at, UP, 18, 1.1);
+          break;
+        case 'bruteSlam': {
+          this.f.waves.spawn(at, ENEMIES.v.bruteSlamRadius, 0xff6a2a);
+          this.f.chunks.spawn(at, UP, 14, 1);
+          // Felt more the closer you are.
+          const near = Math.max(0, 1 - at.distanceTo(listener) / 14);
+          this.f.rig.shake.add(0.45 * near);
+          break;
+        }
+        case 'gatesShut':
+          this.f.rig.shake.add(0.35);
+          break;
+        case 'spit':
+          this.f.sparks.spawn(at, back, 5, 0.8);
+          break;
+        case 'hitSlam':
+          this.hit(1.6, fb.shakeJab, fb.kickJab, 'heavy');
           break;
         case 'hitJab':
           this.hit(1, fb.shakeJab, fb.kickJab, 'hit');

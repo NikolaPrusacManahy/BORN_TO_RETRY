@@ -20,6 +20,9 @@ import './test-camp';
 import './test-prison';
 import './test-grunt';
 import './test-nav';
+import './test-enemies';
+import './test-money';
+import './test-dungeon';
 import './test-sword';
 
 process.exit(summary() > 0 ? 1 : 0);

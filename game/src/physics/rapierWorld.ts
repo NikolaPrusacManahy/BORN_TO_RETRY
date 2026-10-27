@@ -9,7 +9,7 @@ import type { Vector3 } from 'three';
 import type { CollisionWorld, MoveResult } from '../sim/collisionWorld';
 import { BODY } from '../sim/player/body';
 import { TARGET_SHAPES } from '../sim/combat/targets';
-import type { Arena } from '../world/arena';
+import type { Arena, ArenaBox } from '../world/arena';
 
 let ready: Promise<void> | null = null;
 
@@ -49,6 +49,9 @@ export class RapierWorld implements CollisionWorld {
   private readonly moved = { x: 0, y: 0, z: 0 };
   private readonly down = { x: 0, y: -1, z: 0 };
   private crouched = false;
+  /** Update 0.0.12 — the dungeon's gates: solid only while shut. */
+  private readonly gates: RAPIER.Collider[] = [];
+  private readonly gateShut: boolean[] = [];
   /** On the ground after the last move (for snapping down). */
   private grounded = false;
   private readonly notPlayer = (c: RAPIER.Collider) => c.handle !== this.player.handle;
@@ -201,6 +204,29 @@ export class RapierWorld implements CollisionWorld {
       this.player,
     );
     return free;
+  }
+
+  /** Update 0.0.12 — the dungeon's gates, open to start with. */
+  addGates(boxes: readonly ArenaBox[]) {
+    for (const b of boxes) {
+      const c = this.world.createCollider(RAPIER.ColliderDesc.cuboid(b.w / 2, b.h / 2, b.d / 2).setTranslation(b.x, b.y, b.z));
+      c.setEnabled(false);
+      this.gates.push(c);
+      this.gateShut.push(false);
+    }
+    this.world.step();
+  }
+
+  /** Shuts or opens the gates (as `addGates` took them); the queries see the change at once. */
+  setGates(shut: readonly boolean[]) {
+    let changed = false;
+    for (let i = 0; i < this.gates.length; i++) {
+      if (shut[i] === this.gateShut[i]) continue;
+      this.gates[i].setEnabled(shut[i]);
+      this.gateShut[i] = shut[i];
+      changed = true;
+    }
+    if (changed) this.world.step();
   }
 
   dispose() {

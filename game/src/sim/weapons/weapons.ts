@@ -3,7 +3,6 @@
 // once it's broken) draws it back for a moment, then sends it flying; it breaks on whatever it hits.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
-import type { Rng } from '../../core/rng';
 import { WEAPONS } from '../../tuning/weapons';
 import type { Spot } from '../../world/arena';
 import type { CombatEvent } from '../combat/state';
@@ -80,10 +79,9 @@ export function placePickup(pickups: Pickup[], kind: WeaponKind, uses: number, a
   return p;
 }
 
-/** A drop from an enemy: uses rolled in the weapon's drop range (seeded RNG). */
-export function dropWeapon(pickups: Pickup[], kind: WeaponKind, at: Vector3, rng: Rng, events: EventQueue<CombatEvent>) {
-  const [lo, hi] = WEAPON_STATS[kind]().dropUses;
-  placePickup(pickups, kind, lo + Math.floor(rng() * (hi - lo + 1)), at);
+/** A drop from an enemy, with the weapon's uses. */
+export function dropWeapon(pickups: Pickup[], kind: WeaponKind, at: Vector3, events: EventQueue<CombatEvent>) {
+  placePickup(pickups, kind, WEAPON_STATS[kind]().uses, at);
   events.push('weaponDrop', 0, at.x, at.y, at.z);
 }
 
@@ -93,7 +91,7 @@ export function updateStands(stands: Stand[], pickups: Pickup[], events: EventQu
     if (s.timer <= 0) return;
     s.timer -= dt;
     if (s.timer > 0) return;
-    placePickup(pickups, s.kind, WEAPON_STATS[s.kind]().standUses, s.pos, i);
+    placePickup(pickups, s.kind, WEAPON_STATS[s.kind]().uses, s.pos, i);
     events.push('standRespawn', i, s.pos.x, s.pos.y, s.pos.z);
   });
 }

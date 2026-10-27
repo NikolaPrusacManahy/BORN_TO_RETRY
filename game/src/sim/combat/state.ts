@@ -8,7 +8,9 @@ import type { Arena } from '../../world/arena';
 import { WEAPON_STATS } from '../weapons/catalog';
 import { HeldWeapon, Pickup, Stand, Thrown, createPickups, createStands, createThrown, placePickup } from '../weapons/weapons';
 import { createFlow, Flow } from '../enemies/chase';
-import { GRUNT_RADIUS, Grunt, createGrunts } from '../enemies/grunt';
+import { createEnemies, Enemy } from '../enemies/enemy';
+import { Coin, createCoins } from './coins';
+import { GRID_RADIUS, SizeClass } from '../enemies/kinds';
 import { buildNavGrid, NavGrid } from '../../world/navGrid';
 import { Waves, createWaves } from '../enemies/waves';
 import { FistState, createFists } from './fists';
@@ -45,10 +47,24 @@ export type CombatEvent =
   | 'orbPop'
   | 'orbHitPlayer'
   | 'respawn'
-  // M2 — grunts (value = which grunt).
-  | 'gruntSpawn'
+  // M2 — enemies (value = which enemy): one arriving, each kind's warning and attack.
+  | 'enemySpawn'
   | 'gruntWindup'
   | 'gruntStrike'
+  | 'spitterWindup'
+  | 'spit'
+  | 'bruteWindup'
+  | 'bruteSlam'
+  // Update 0.0.12 — your ground slam landing (value = its radius), and what it hit. A coin reaching you (value = your
+  // money after).
+  | 'slamImpact'
+  | 'hitSlam'
+  | 'coin'
+  // Update 0.0.12 — the dungeon's room loop (value = the room; x, y, z = its middle): its gates slam shut, they open
+  // (cleared); you take the way down (value = the floor you leave).
+  | 'gatesShut'
+  | 'gatesOpen'
+  | 'floorExit'
   // M2 — weapons: picked up (value = its uses), dropped, worn out, a throw begun and let go, broken on impact, back
   // on the stand.
   | 'pickup'
@@ -64,17 +80,21 @@ export interface CombatState {
   dummies: Dummy[];
   turrets: Turret[];
   orbs: Orb[];
-  grunts: Grunt[];
+  enemies: Enemy[];
   waves: Waves;
-  /** Update 0.0.11 — where grunts can walk (built once from the arena), and the way from anywhere to the player. */
-  nav: NavGrid;
-  flow: Flow;
+  /** Update 0.0.11 — where enemies can walk (built once from the arena, one grid per size), and the way from anywhere
+   *  to the player. */
+  nav: Record<SizeClass, NavGrid>;
+  flow: Record<SizeClass, Flow>;
   /** The weapon in your hand (null: barehanded). */
   weapon: HeldWeapon | null;
   pickups: Pickup[];
   stands: Stand[];
   thrown: Thrown[];
   rng: Rng;
+  /** Update 0.0.12 — your coins, and the ones still flying. */
+  money: number;
+  coins: Coin[];
   hitStop: HitStop;
   events: EventQueue<CombatEvent>;
 }
@@ -85,26 +105,31 @@ const at = new Vector3();
 function stockStands(state: CombatState) {
   state.stands.forEach((s, i) => {
     s.timer = 0;
-    placePickup(state.pickups, s.kind, WEAPON_STATS[s.kind]().standUses, at.copy(s.pos), i);
+    placePickup(state.pickups, s.kind, WEAPON_STATS[s.kind]().uses, at.copy(s.pos), i);
   });
 }
 
-export function createCombat(arena: Arena): CombatState {
-  const nav = buildNavGrid(arena, GRUNT_RADIUS);
+/** `walkGrid`: build the enemies' walk grids for the whole arena (the lab). The dungeon gives each room its own when
+ *  you go in (Update 0.0.12), so it passes false: a whole floor's grid would take seconds to build. */
+export function createCombat(arena: Arena, walkGrid = true): CombatState {
+  const ground = walkGrid ? arena : { ...arena, boxes: [] };
+  const nav = { small: buildNavGrid(ground, GRID_RADIUS.small), large: buildNavGrid(ground, GRID_RADIUS.large) };
   const state: CombatState = {
     fists: createFists(),
     dummies: arena.dummies.map(createDummy),
     turrets: arena.turrets.map(createTurret),
     orbs: createOrbs(),
-    grunts: createGrunts(),
+    enemies: createEnemies(),
     waves: createWaves(),
     nav,
-    flow: createFlow(nav),
+    flow: { small: createFlow(nav.small), large: createFlow(nav.large) },
     weapon: null,
     pickups: createPickups(),
     stands: createStands(arena.stands),
     thrown: createThrown(),
     rng: createRng(LAB_SEED),
+    money: 0,
+    coins: createCoins(),
     hitStop: new HitStop(),
     events: new EventQueue<CombatEvent>(64, 'none'),
   };
@@ -119,14 +144,16 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.dummies = arena.dummies.map(createDummy);
   state.turrets = arena.turrets.map(createTurret);
   for (const o of state.orbs) o.alive = false;
-  for (const g of state.grunts) g.alive = false;
+  for (const e of state.enemies) e.alive = false;
   state.waves = createWaves();
-  state.flow.target = -1;
+  state.flow.small.target = state.flow.large.target = -1;
   state.weapon = null;
   for (const p of state.pickups) p.alive = false;
   for (const t of state.thrown) t.alive = false;
   state.stands = createStands(arena.stands);
   state.rng = createRng(LAB_SEED);
+  state.money = 0;
+  for (const c of state.coins) c.alive = false;
   stockStands(state);
   state.hitStop.remaining = 0;
   state.events.clear();

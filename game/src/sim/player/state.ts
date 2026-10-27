@@ -68,6 +68,10 @@ export interface PlayerState {
   slamming: boolean;
   /** Time left to bounce after a slam landing. */
   slamBounce: number;
+  /** Update 0.0.12 — the height a slam started from, and the drop of the slam that just landed (> 0 until combat
+   *  has dealt its blast). */
+  slamFrom: number;
+  slamImpact: number;
   /** Time left invincible (dashing). */
   invuln: number;
   /** M1 step 8 — health, the time left before something can hurt you again, and dead (until the respawn). */
@@ -106,6 +110,8 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     lastWallSet: false,
     slamming: false,
     slamBounce: 0,
+    slamFrom: 0,
+    slamImpact: 0,
     invuln: 0,
     hp: HEALTH.v.maxHp,
     hurtTime: 0,
@@ -120,7 +126,7 @@ export function resetPlayer(p: PlayerState, x: number, y: number, z: number, yaw
   p.vel.set(0, 0, 0);
   p.yaw = yaw;
   p.grounded = false;
-  p.coyote = p.jumpBuffer = p.dashTime = p.slamBounce = p.invuln = p.slideTime = p.wallRunTime = p.wallRunCooldown = p.hurtTime = 0;
+  p.coyote = p.jumpBuffer = p.dashTime = p.slamBounce = p.slamImpact = p.invuln = p.slideTime = p.wallRunTime = p.wallRunCooldown = p.hurtTime = 0;
   p.hp = HEALTH.v.maxHp;
   p.dead = false;
   p.dashCharges = DASH.v.charges;

@@ -22,9 +22,8 @@ export interface WeaponStats {
   pierceReach: number;
   pierceWidth: number;
   pierceUses: number;
-  /** Uses: on the lab stand, and the range a drop has. */
-  standUses: number;
-  dropUses: [number, number];
+  /** Uses of one picked up (from a stand or a drop). */
+  uses: number;
 }
 
 export const WEAPON_STATS: Record<WeaponKind, () => WeaponStats> = {
@@ -42,8 +41,7 @@ export const WEAPON_STATS: Record<WeaponKind, () => WeaponStats> = {
       pierceReach: v.swordPierceReach,
       pierceWidth: v.swordPierceWidth,
       pierceUses: v.swordPierceUses,
-      standUses: v.swordStandUses,
-      dropUses: [v.swordDropMin, Math.max(v.swordDropMin, v.swordDropMax)],
+      uses: v.swordUses,
     };
   },
 };

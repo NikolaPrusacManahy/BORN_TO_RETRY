@@ -10,7 +10,7 @@ import { groundMove } from './ground';
 import type { PlayerIntent } from './intent';
 import { tryGroundJump, updateJumpTimers } from './jump';
 import { checkPads } from './jumpPad';
-import { landSlam, updateSlam } from './slam';
+import { landSlam, tryStartSlam, updateSlam } from './slam';
 import { armSlide, canStartSlide, endSlide, slideOver, startSlide, updateSlide } from './slide';
 import type { PlayerState } from './state';
 import { applyWallSlide, tryWallJump } from './wallJump';
@@ -47,8 +47,9 @@ export function stepPlayer(p: PlayerState, intent: PlayerIntent, world: Collisio
   wishDirection(intent.moveX, intent.moveZ, p.yaw, wish);
 
   // Actions. Update 0.0.3 — the slide key no longer slams in the air: a slide pressed in the air waits for the
-  // landing (the slam has no key for now).
+  // landing. Update 0.0.12 — the slam has its own key (F).
   if (tryStartDash(p, intent.dashPressed, wish)) endWallRun(p);
+  if (tryStartSlam(p, intent.slamPressed, world)) endWallRun(p);
   armSlide(p, intent.slidePressed, intent.slideHeld);
   if (canStartSlide(p, intent.slideHeld)) startSlide(p, wish);
   if (!p.grounded && !p.wallRunning) tryStartWallRun(p, intent, wish, world);

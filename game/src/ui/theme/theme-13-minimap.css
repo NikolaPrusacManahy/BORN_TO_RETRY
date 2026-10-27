@@ -1,0 +1,52 @@
+/* Update 0.0.12 — the dungeon's minimap, top right: rooms outlined when known, filled once visited, bright where you
+   are; the start and the way down tinted; you're the arrow. */
+.rb-map {
+  position: absolute;
+  top: 28px;
+  right: 28px;
+  padding: 6px;
+  background: rgba(10, 8, 14, 0.55);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.rb-map svg {
+  display: block;
+  overflow: hidden;
+}
+
+.rb-map-corridor {
+  fill: rgba(200, 190, 210, 0.28);
+}
+
+.rb-map-room {
+  fill: none;
+  stroke: rgba(220, 210, 230, 0.55);
+  stroke-width: 1.5;
+}
+
+.rb-map-room.is-been {
+  fill: rgba(200, 190, 210, 0.3);
+}
+
+.rb-map-room.is-here {
+  fill: rgba(255, 236, 200, 0.55);
+  stroke: #fff2d6;
+  stroke-width: 2;
+}
+
+.rb-map-room.is-start {
+  stroke: rgba(150, 220, 160, 0.8);
+}
+
+.rb-map-room.is-exit {
+  stroke: #b37bff;
+  fill: rgba(150, 90, 255, 0.25);
+}
+
+.rb-map-you {
+  fill: var(--rb-accent-hi);
+  stroke: #fff;
+  stroke-width: 1;
+}

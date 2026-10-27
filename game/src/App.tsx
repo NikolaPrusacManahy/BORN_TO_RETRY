@@ -168,6 +168,7 @@ export default function App() {
       else if (action === 'debug') setDebug((d) => !d);
       else if (action === 'respawn' && phaseRef.current !== 'intro') getGame()?.restart();
       else if (action === 'god') setKnob(LAB, 'god', LAB.v.god >= 1 ? 0 : 1);
+      else if (action === 'lab') getGame()?.toggleLab();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

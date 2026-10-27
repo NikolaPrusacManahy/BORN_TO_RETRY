@@ -3,10 +3,10 @@
 // M1 — no default uses Ctrl: Ctrl+W (slide while running forward) closes the browser tab. Players may still bind it.
 // M1 step 9 — any key, mouse button or wheel direction can take any action (the designer). Off limits: Esc (the
 // browser frees the mouse on it), the OS keys, and the dev keys while the dev tools are on.
-// Update 0.0.10 — the quick punch (F) is gone (the designer): F is kept free for something later. An old save's
-// binding for it is dropped.
+// Update 0.0.10 — the quick punch (F) is gone (the designer). An old save's binding for it is dropped.
+// Update 0.0.12 — F is the ground slam (the designer).
 
-export type Action = 'forward' | 'back' | 'left' | 'right' | 'jump' | 'dash' | 'slide' | 'attack' | 'heavy' | 'throw' | 'interact';
+export type Action = 'forward' | 'back' | 'left' | 'right' | 'jump' | 'dash' | 'slide' | 'slam' | 'attack' | 'heavy' | 'throw' | 'interact';
 export type Bindings = Record<Action, string>;
 
 /** Order shown in settings. */
@@ -18,6 +18,7 @@ export const ACTIONS: { id: Action; label: string }[] = [
   { id: 'jump', label: 'Jump' },
   { id: 'dash', label: 'Dash' },
   { id: 'slide', label: 'Slide' },
+  { id: 'slam', label: 'Slam' },
   { id: 'attack', label: 'Attack' },
   { id: 'heavy', label: 'Heavy' },
   { id: 'throw', label: 'Throw' },
@@ -32,14 +33,16 @@ export const DEFAULT_BINDINGS: Bindings = {
   jump: 'Space',
   dash: 'ShiftLeft',
   slide: 'KeyC',
+  slam: 'KeyF',
   attack: 'Mouse0',
   heavy: 'Mouse2',
   throw: 'KeyQ',
   interact: 'KeyE',
 };
 
-/** Dev tools (dev build only): F1 / ` tuning panel, F2 debug overlay, F3 respawn enemies, F4 invincibility. */
-export const DEV_KEYS = ['F1', 'F2', 'F3', 'F4', 'Backquote'];
+/** Dev tools (dev build only): F1 / ` tuning panel, F2 debug overlay, F3 respawn enemies, F4 invincibility, F9 the
+ *  Feel Lab instead of the dungeon. */
+export const DEV_KEYS = ['F1', 'F2', 'F3', 'F4', 'F9', 'Backquote'];
 
 /** Never bindable: Esc pauses (the browser owns it), Win/Cmd and the menu key belong to the OS. */
 export const RESERVED = ['Escape', 'MetaLeft', 'MetaRight', 'ContextMenu'];

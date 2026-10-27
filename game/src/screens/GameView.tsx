@@ -4,9 +4,8 @@
 import { ReactNode, forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import { Game, GameCallbacks } from '../engine/Game';
 import { createHudStore } from '../engine/hudStore';
-import { RapierWorld, initPhysics } from '../physics/rapierWorld';
+import { initPhysics } from '../physics/rapierWorld';
 import type { Settings } from '../state/settings';
-import { FEEL_LAB } from '../world/arenas/feelLab';
 import { Hud } from './Hud';
 
 export interface GameHandle {
@@ -40,7 +39,7 @@ export const GameView = forwardRef<GameHandle, Props>(function GameView({ settin
         onDeath: () => cbs.current.onDeath(),
         onRespawn: () => cbs.current.onRespawn(),
       };
-      const g = new Game(host.current, cbs.current.settings, hud, callbacks, new RapierWorld(FEEL_LAB), FEEL_LAB);
+      const g = new Game(host.current, cbs.current.settings, hud, callbacks);
       game.current = g;
       await g.menuLoaded;
       if (!disposed) cbs.current.onReady();

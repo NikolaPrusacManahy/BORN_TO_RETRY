@@ -39,15 +39,27 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 ### Enemies and weapons (pure) — M2
 | Module | Owns |
 |---|---|
-| `sim/enemies/grunt.ts` | The Grunt: chase, the warned wind-up, the swing (in reach and in front only), flinch, death; grunts pushing apart; the player pushed out of them |
+| `sim/enemies/enemy.ts` | Update 0.0.12 — every enemy's body: the pool, spawning, its hit capsule, taking a hit (a flinch cancels its attack; the brute only flinches from a hard hit), walking the floor and out of walls, turning, pushing apart, the player pushed out of them |
+| `sim/enemies/kinds.ts` | Update 0.0.12 — the enemy catalog: each kind's numbers (from `tuning/enemies.ts`), radius and walk-grid size; `Record<EnemyKind, …>` so a new kind is asked for everywhere |
+| `sim/enemies/grunt.ts`, `spitter.ts`, `brute.ts` | Each kind's moves: the grunt's chase and warned swing; the spitter's ring round you, warned spit and cooldown; the brute's walk, warned slam (on the ground inside its ring) and winded recovery |
+| `sim/enemies/update.ts` | Update 0.0.12 — one tick of every enemy, in a fixed order: the ways to the player per size, each one's shared start, its kind's moves, then pushing apart |
 | `sim/enemies/chase.ts` | Update 0.0.11 — the way to the player for floor-bound enemies: a flow field over the walk grid, and the steering that reads it (straight when it can, else the farthest cell down the flow in a straight line) |
-| `world/navGrid.ts` | Update 0.0.11 — where a floor-bound enemy can stand, built once from an arena: blocked cells (with the body's radius), the walls' footprints, line tests, and pushing a body out of walls |
-| `sim/enemies/waves.ts` | The lab's waves of grunts (seeded RNG, away from the player) |
+| `world/navGrid.ts` | Update 0.0.11 — where a floor-bound enemy can stand, built from an arena: blocked cells (with the body's radius), the walls' footprints, line tests, and pushing a body out of walls |
+| `sim/enemies/waves.ts` | The lab's waves (seeded RNG, away from the player): Update 0.0.12 — mixed kinds; `spawnAt` also serves the dungeon's waves |
 | `sim/weapons/catalog.ts` | Weapon kinds, their names and stats (from `tuning/weapons.ts`) |
 | `sim/weapons/weapons.ts` | The held weapon, weapons on the ground (stands, drops), in flight; pick up, swap, drop, throw |
 | `sim/weapons/swing.ts` | The held weapon's slashes (one 'slash' event; the arms pick the way); the charge becomes its pierce; what a hit costs |
 | `sim/weapons/thrown.ts` | Thrown weapons flying, hitting the first target or a wall, and breaking |
 | `sim/combat/strike.ts` | What a sweep hits (the nearest dummy, turret or grunt) and landing a hit: kills, the kill hit-stop, drops |
+
+### The dungeon (pure) — Update 0.0.12
+| Module | Owns |
+|---|---|
+| `world/dungeon/rooms.ts` | The hand-made rooms as text layouts (2 m cells: floor, wall, column, cover, ledges, spikes, pads, spawns, the way down) and their per-run variations (mirrored, turned, optional cover) |
+| `world/dungeon/floorPlan.ts` | A floor from a seed: rooms on a 5 × 5 board (the way, its side rooms), doors, corridors, all stamped on one grid of 2 m cells |
+| `world/dungeon/assemble.ts` | The floor as a level: merged collision boxes, jump pads, a gate per doorway, and per room its inside, spawns, gates and its own arena (for its walk grid) |
+| `world/dungeon/dressing.ts` | Where each Modular Dungeon Pack piece goes (walls three high with caps, floor tiles, arches, columns, crates, ledges, spikes, torches, banners, litter) |
+| `sim/dungeon/roomLoop.ts` | The room loop: in a fight room its gates shut, waves bought from its budget, gates open when it's clear; the way down; rooms visited; each room's walk grids |
 
 ### Characters (pure)
 | Module | Owns |
@@ -69,6 +81,7 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `sim/collisionWorld.ts` | The collision interface the sim uses |
 
 ### Combat (pure, `sim/combat/`) — M1 step 6
+Update 0.0.12: `slamHit.ts` (your ground slam's blast: every target in reach, half at the edge, never through a wall) and `coins.ts` (coins burst from kills, fly to you, counted).
 | Module | Owns |
 |---|---|
 | `step.ts` | One combat tick's order: fists (and the punch they throw) → dummies → turrets → orbs. Nothing else |
@@ -86,7 +99,10 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `world/arena.ts` | Arena data types; `boxAt`, `rampZ` helpers |
 | `world/arenas/feelLab.ts` | The M1 gray-box arena |
 | `engine/Game.ts` | The shell: renderer, input, sound, mouse lock, fullscreen, and the frame loop in three modes: `menu` (the gate scene), `intro` (Start pressed: the gate opening), `play` (the lab, run by `LabRun`) |
-| `engine/labRun.ts` | M1 step 8 — the lab's play loop: player, fists, targets, camera, arms; ticks, events, render, death and respawn (split out of `Game.ts`) |
+| `engine/run.ts` | The play loop (was labRun.ts): player, fists, targets, camera, arms; ticks, events, render, death and respawn. Update 0.0.12 — plays a level: the lab, or a dungeon floor with its room loop; the way down loads the next floor (health, coins and weapon kept), a death a new run |
+| `engine/level.ts` | Update 0.0.12 — a level: arena, physics, how it's drawn, the room loop (dungeon); the lab and dungeon floors; a run's seed |
+| `engine/dungeonView.ts` | Update 0.0.12 — a dungeon floor drawn from the kit as instanced meshes; the gates' bars; pads; the way down's glow; fog; torch lights that follow you |
+| `engine/mapFeed.ts`, `screens/Minimap.tsx` | Update 0.0.12 — the minimap: known, visited and current rooms, corridors, you |
 | `engine/deathFlow.ts` | M1 step 8 — the death timing: slow motion, then respawn once the fade is black |
 | `engine/overlayFeed.ts` | What the HUD and the F2 overlay show, read from the sim once a frame |
 | `engine/menu/menuScene.ts` | The main menu's gate scene: loads `public/models/menu/gate.glb`, reads the menu shot, lights, flickering flames (torches, campfire), dust, idle drift; raises the portcullis after Start |
@@ -103,7 +119,8 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `engine/combatScene.ts` | Owns the combat visuals and sounds; reads and clears combat events each frame |
 | `engine/combatFeedback.ts` | Combat events → arm punches, sparks, chunks, shake, camera kick, HUD markers, sounds |
 | `engine/targetsView.ts` | Dummy, turret and orb meshes |
-| `engine/gruntsView.ts` | M2 — the grunts: one animated Orc per slot, clips by phase (the swing timed to land as the wind-up ends), the wind-up's red glow, hit flash |
+| `engine/enemiesView.ts` | The enemies (was gruntsView.ts): one animated body per slot of its kind (Orc, Wizard, Yeti), clips by phase (the blow timed to land as the wind-up ends), the wind-up's glow, hit flash, the brute's slam ring |
+| `engine/coinsView.ts`, `engine/fx/shockwave.ts` | Update 0.0.12 — the flying coins (instanced); slam shockwave rings |
 | `engine/weaponsView.ts` | M2 — weapons on the ground (turning above a glowing ring), the lab stand, weapons in flight (spinning), and the one in hand (given to the arms) |
 | `engine/fx/burst.ts` | Pooled instanced pieces (sparks, chunks) |
 | `engine/viewmodel/viewmodel.ts` | The arms' own scene and camera, sway, bob, landing dip, dash/slide poses, punch aim; draws over the world. M2: with a weapon, the left arm drops out of view and the right holds the sword |
@@ -123,6 +140,8 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `tools/blender/scene_kit.py` | Helpers the scene builders import: load and place pieces, markers, flat materials, posing a rig's bones and baking a pose, previews, export |
 | `tools/blender/export_monster.py` | M2 — a monster with its animations to a `.glb`; prints when its weapon swing lands. Process: `MD/PIPELINE_ENEMIES_WEAPONS.md` |
 | `tools/blender/export_weapon.py` | M2 — a held weapon to a `.glb`, its origin in the grip, blade up |
+| `tools/blender/export_dungeon_kit.py` | Update 0.0.12 — the Modular Dungeon Pack (parts 1 and 2) pieces to `public/models/dungeon/kit.glb`. Process: `MD/PIPELINE_DUNGEON.md` |
+| `tools/dungeon-shots.ts`, `tools/blender/render_dungeon.py` | Update 0.0.12 — a floor for a seed drawn by Blender with the real kit: an overview and eye-height views |
 | `tools/view-shots.ts` (+ `view-shots-list.ts`), `tools/blender/render_view.py` | Update 0.0.10 — the first-person arms posed by the game's own code for a list of moments, rendered by Blender (no browser); prints each shot's wrist bend and where the sword's tip lands |
 | `tools/contact_sheet.py` | Tiles preview renders into one labelled sheet to compare variants (Python 3 + Pillow) |
 
@@ -147,6 +166,9 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 - **Health (M1 step 8):** `PlayerState` holds `hp`, `hurtTime` and `dead`. Everything that hurts the player goes through `damagePlayer`, which a dash (`invuln`), the hurt invincibility (`hurtTime`, set by each hit) and F4 (`LAB.god`) all stop; it pushes `'hurt'` (value = damage) and, at 0 HP, `'death'` once. `killPlayer` (falling out) ignores dashes. Blood heal: `stepCombat` heals `bloodHeal` × the punch's damage when it lands within `bloodRange`. The dead read no input. `LabRun` turns `'death'` into `DeathFlow`: the sim slows to `deathSlow` and the App fades to black over `deathFade`; then `restart()` puts you back with full health and the black clears.
 - **Bindings (M1 step 9):** a binding is any `KeyboardEvent.code`, `Mouse0`..`Mouse4`, or `WheelUp` / `WheelDown`. The wheel has no held state: a notch is a press that also counts as held until the tick that reads it. The controls screen listens in the capture phase and stops the event, so menus, dev keys and the game never see the key being bound; Esc cancels.
 - **One way to hit things (M2):** punches, sword swings and thrown weapons all find their target with `nearestTarget` and land with `landHit` (strike.ts): the hit event, then on a kill the 'kill' event, the kill hit-stop, and a grunt's drop roll. A new target kind is added there once.
+- **Every enemy is one Enemy (Update 0.0.12):** kinds live in `kinds.ts`; `updateEnemies` runs them in slot order; hits, coins and drops go through `strike.ts` for every kind. Only grunts drop a weapon. Every attack warns for its full wind-up ('gruntWindup', 'spitterWindup', 'bruteWindup').
+- **The dungeon's rooms are data (Update 0.0.12):** a new room is a text layout in `rooms.ts` (the middle two cells of each side clear two deep); `test-dungeon.ts` lays out 40 floors and checks every floor cell is reachable, every spawn free, and no pocket the grunts can't reach. The level's collision (assemble.ts) and its look (dressing.ts) come from the same grid; the gates are physics colliders switched on and off (`RapierWorld.setGates`).
+- **A room's enemies walk its own grid (Update 0.0.12):** `roomLoop` swaps `CombatState.nav` and `flow` to the room's (built when the floor loads); the dungeon never builds a whole-floor grid.
 - **Enemies never stay inside walls (Update 0.0.11):** anything that moves a floor-bound enemy (its run, knockback, other enemies, a spawn) ends with `pushOutOfWalls`; its steering comes from `chaseDir`, never a straight line through a wall; `wallBetween` stops a swing through one. `CombatState.nav` is built once in `createCombat`, `CombatState.flow` follows the player.
 - **Every enemy attack is warned (M2):** a grunt's swing only lands after its full wind-up (`gruntWindup`), which starts with 'gruntWindup' (the growl, the glow, the swing animation). It turns only `gruntWindupTurn` rad/s meanwhile, so a dash round it dodges. `test-grunt.ts` checks no swing lands early.
 - **Weapons (M2):** holding one, left click is `updateSlashes` and a full charge from `updateFists(…, armed)` is a 'pierce' that takes the weapon's numbers. Uses drop only on hits. At 0 the weapon is broken: the next attack press (or Q, any time) starts a throw: 'throwStart', `throwWindup` seconds in which nothing else attacks, then 'throw'. Drops and waves use `CombatState.rng` (`LAB_SEED`), reset with the lab.

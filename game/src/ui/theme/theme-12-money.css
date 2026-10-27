@@ -1,0 +1,43 @@
+/* Update 0.0.12 — your coins, just above the health readout (the designer): a gold coin and the count, which pops
+   when it goes up. */
+.rb-hud-money {
+  position: absolute;
+  left: 52px;
+  bottom: 118px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transform: skewX(-10deg);
+}
+
+.rb-hud-coin {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, #fff3b0 0 18%, #f5c542 30% 62%, #b8860b 64% 100%);
+  box-shadow:
+    inset 0 0 0 3px rgba(120, 80, 0, 0.55),
+    0 0 10px rgba(245, 197, 66, 0.45),
+    2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+.rb-hud-money-n {
+  font-family: 'Anton', var(--rb-font);
+  font-size: 40px;
+  line-height: 1;
+  color: #ffe7a0;
+  text-shadow:
+    3px 3px 0 #8a5a00,
+    0 0 12px rgba(0, 0, 0, 0.6);
+  animation: rb-hud-money-pop 0.22s ease-out;
+}
+
+@keyframes rb-hud-money-pop {
+  from {
+    transform: scale(1.35);
+    color: #fff;
+  }
+  to {
+    transform: scale(1);
+  }
+}

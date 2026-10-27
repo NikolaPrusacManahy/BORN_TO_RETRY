@@ -2,8 +2,11 @@
 // you're hurt. M1 step 8 — health bottom left: the number and a bar, with a pale trail showing what a hit took; it
 // pulses when low.
 // M2 — the weapon in hand bottom right: its name and uses left (red and pulsing at 0: the next attack throws it).
+// Update 0.0.12 — your coins, just above the health (the designer); the number pops when it goes up. In the dungeon, the
+// minimap top right.
 import { CSSProperties, useSyncExternalStore } from 'react';
 import type { HudStore } from '../engine/hudStore';
+import { Minimap } from './Minimap';
 
 /** At or below this share of max health the bar pulses. */
 const LOW_HEALTH = 0.25;
@@ -15,6 +18,11 @@ export function Hud({ store }: { store: HudStore }) {
       <div className="rb-hud-cross" />
       {s.hits > 0 && <div key={`m${s.hits}`} className={`rb-hud-marker is-${s.marker}`} />}
       {s.hurts > 0 && <div key={`h${s.hurts}`} className="rb-hud-hurt" />}
+      {s.map && <Minimap map={s.map} x={s.mapX} z={s.mapZ} yaw={s.mapYaw} />}
+      <div className="rb-hud-money">
+        <i className="rb-hud-coin" />
+        <span key={s.money} className="rb-hud-money-n">{s.money}</span>
+      </div>
       <div className={`rb-hud-health${s.hp <= s.maxHp * LOW_HEALTH ? ' is-low' : ''}`}>
         <span className="rb-hud-hp">{s.hp}</span>
         <div className="rb-hud-bar" style={{ '--fill': s.maxHp > 0 ? s.hp / s.maxHp : 0 } as CSSProperties}>

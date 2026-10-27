@@ -1,17 +1,20 @@
-// M2 — what a sweep hits: the nearest live target (dummy, turret or grunt) along a segment, and applying a hit to it.
+// M2 — what a sweep hits: the nearest live target (dummy, turret or enemy) along a segment, and applying a hit to it.
 // Punches, sword swings and thrown weapons all use these, so every target takes every attack the same way.
+// Update 0.0.12 — every enemy kind is a target; only grunts drop a weapon (15%: the designer); every kill drops coins.
 import { Vector3 } from 'three';
 import { ENEMIES } from '../../tuning/enemies';
 import { FEEDBACK } from '../../tuning/combat';
-import { GRUNT_RADIUS, gruntAxis, hitGrunt, isLive } from '../enemies/grunt';
+import { enemyAxis, hitEnemy, isLive, radiusOf } from '../enemies/enemy';
 import { dropWeapon } from '../weapons/weapons';
+import { ENEMY_STATS } from '../enemies/kinds';
+import { burstCoins } from './coins';
 import { hitDummy } from './dummy';
 import { segmentDistance } from './geometry';
 import type { CombatEvent, CombatState } from './state';
 import { TARGET_SHAPES, dummyAxis, turretAxis } from './targets';
 import { hitTurret } from './turretDamage';
 
-export type TargetKind = 'dummy' | 'turret' | 'grunt';
+export type TargetKind = 'dummy' | 'turret' | 'enemy';
 
 export interface TargetHit {
   kind: TargetKind;
@@ -52,10 +55,10 @@ export function nearestTarget(state: CombatState, from: Vector3, to: Vector3, ra
     turretAxis(t, a, b);
     consider('turret', i, TARGET_SHAPES.turret.radius);
   });
-  state.grunts.forEach((g, i) => {
-    if (!isLive(g)) return;
-    gruntAxis(g, a, b);
-    consider('grunt', i, GRUNT_RADIUS);
+  state.enemies.forEach((e, i) => {
+    if (!isLive(e)) return;
+    enemyAxis(e, a, b);
+    consider('enemy', i, radiusOf(e));
   });
   return out.index >= 0;
 }
@@ -67,13 +70,13 @@ export function hitTarget(state: CombatState, t: TargetHit, damage: number, knoc
       return hitDummy(state.dummies[t.index], damage, knock, dirX, dirZ);
     case 'turret':
       return hitTurret(state.turrets[t.index], damage);
-    case 'grunt':
-      return hitGrunt(state.grunts[t.index], damage, knock, dirX, dirZ);
+    case 'enemy':
+      return hitEnemy(state.enemies[t.index], damage, knock, dirX, dirZ);
   }
 }
 
 /** Lands a hit: applies it, reports it (`event`, with `value`, at the hit point), and on a kill reports that too, asks
- *  for the kill hit-stop, and lets a grunt drop a worn sword (seeded RNG). Returns true on a kill. */
+ *  for the kill hit-stop, and lets a grunt drop a sword (seeded RNG). Returns true on a kill. */
 export function landHit(state: CombatState, t: TargetHit, damage: number, knock: number, dirX: number, dirZ: number, event: CombatEvent, value: number): boolean {
   const killed = hitTarget(state, t, damage, knock, dirX, dirZ);
   const p = t.point;
@@ -81,6 +84,10 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   if (!killed) return false;
   state.events.push('kill', 0, p.x, p.y, p.z);
   state.hitStop.request(FEEDBACK.v.stopKill);
-  if (t.kind === 'grunt' && state.rng() < ENEMIES.v.gruntDrop) dropWeapon(state.pickups, 'sword', state.grunts[t.index].pos, state.rng, state.events);
+  if (t.kind !== 'enemy') return true;
+  const e = state.enemies[t.index];
+  if (e.kind === 'grunt' && state.rng() < ENEMIES.v.gruntDrop) dropWeapon(state.pickups, 'sword', e.pos, state.events);
+  // Update 0.0.12 — its coins burst out (any the pool can't hold go straight to your money).
+  state.money += burstCoins(state.coins, e.pos, ENEMY_STATS[e.kind]().coins, state.rng);
   return true;
 }

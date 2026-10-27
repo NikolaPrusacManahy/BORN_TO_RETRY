@@ -2,7 +2,18 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-27): M1 done, M2 started — Update 0.0.11
+## Current state (2026-10-27): M1 done, M2 under way, M3 started — Update 0.0.12
+- **Update 0.0.12 — the dungeon, the Spitter and the Brute, coins, the slam** (the designer's list).
+  - **Play starts a dungeon run** (`MD_UPDATES/M3_DUNGEON.md`): a floor of rooms joined by corridors, laid out from a new seed every run (like Soul Knight's levels). From the start room a winding way of five fight rooms leads to the way down (a trapdoor in the exit room); one or two side rooms branch off it. Nine hand-made fight rooms (text layouts on a 2 m grid: colonnade, crossfire, altar, spike hall, ledges, maze, arena, twin, crypt), each mirrored, turned and with its optional cover chosen per run; none twice on a floor. Built from the Modular Dungeon Pack, parts 1 and 2 (`tools/blender/export_dungeon_kit.py` → `public/models/dungeon/kit.glb`): brick walls, slate floors, arched doorways, columns, crates, broken columns, spike traps, ledges, wall torches, banners, bones.
+  - **The room loop:** step into a fight room and its gates (iron bars in the arches) crash down; a moment later the waves come (2–3, bought from a budget that grows with the room's depth and the floor: grunt 1, spitter 2, brute 4); when the last one dies the bars sink and the gates open. The way down takes you to the next floor with your health, coins and weapon; dying starts a new run on a new floor plan.
+  - **The minimap**, top right: rooms you've been in filled, the ones beside them outlined, the one you're in bright, the way down in purple, you as an arrow.
+  - **The Spitter** (the Wizard): keeps 7–16 m from you, comes closer when it can't see you, backs off when you're close, circles in between; warns 0.6 s (rears, glows green, gurgles), then spits a slow orb (13 m/s, 12 damage); a hit cancels the shot.
+  - **The Brute** (the Yeti, 2.8 m, 160 health): walks at you; in reach it rears up for 0.9 s while a red ring on the ground shows its slam's 3.6 m reach, then slams (30 damage and thrown, if you're on the ground inside: jump it); then it stands winded 1.2 s. Only a hit of 40 or more staggers it.
+  - **Enemies share one body now** (`sim/enemies/enemy.ts`): each kind's numbers in `kinds.ts`, its moves in `grunt.ts`, `spitter.ts`, `brute.ts`. The brute walks its own, wider grid.
+  - **Coins:** kills burst coins (grunt 2, spitter 4, brute 10) that fly to you with a ding; your count sits just above the health bar. Money resets with each run.
+  - **F is the ground slam** (the designer): only from 1.8 m or more above the ground (near the top of a jump, off a ledge, a pad or a wall). The landing is a blast: every enemy within 4 m takes up to 35 (half at the edge), harder and wider the further you fell (up to 90 and 7 m), thrown outwards; a shockwave ring, dust, a boom. Old saves get F for it.
+  - **Weapons:** a weapon you pick up has 4 uses; only grunts drop one (15%).
+  - **The Feel Lab** is still there: F9 (dev only) swaps between it and a fresh dungeon run. It now sends mixed waves (2 grunts, a spitter, a brute).
 - **Update 0.0.11 — grunts and walls** (the designer: the grunts are mostly fine, but with a wall in the way they ran into it forever, and some got stuck inside walls and blocks).
   - **They find their way round:** a walk grid of half-metre cells is built once from the arena (`world/navGrid.ts`): a cell is blocked off the floor or where a grunt's body would touch a wall, a block taller than a step, a roof lower than its head, or spikes. A flow field over it (`sim/enemies/chase.ts`) gives every cell its number of steps to you, redone when you move to another cell. A grunt with a clear straight line runs straight at you; otherwise it heads for the farthest cell down the flow it can run straight to, so it rounds corners and backs out of dead ends.
   - **Never inside a wall:** after any move (running, knockback, grunts pushing each other apart, a spawn) a grunt is pushed back out of every wall it overlaps.
@@ -51,12 +62,13 @@ Run `START_GAME.bat`. The main menu opens on the gate.
   - Left click: jab combo. Hold it to keep punching: left, right, then a left finisher that knocks back.
   - Right click: hold 1 s (the fist draws back and trembles, a cue sounds when ready), then let go to punch. Letting go sooner cancels.
 - **Targets:** four dummies in front of the start (they wobble, slide back, break, and return 2 s later).
+- **The dungeon (Update 0.0.12):** Play → you start in a small room facing its door. Walk into the next room: the gates crash down and the waves come. Clear it, follow the corridors (watch the minimap), find the trapdoor in the exit room and step on it for the next floor. Try the slam (F) off a ledge or after a jump pad into a crowd; jump the brute's slam; dodge the spitter's orbs. F9 swaps to the Feel Lab and back; F3 lays the floor out again from its start.
 - **Grunts and the sword (Updates 0.0.9 and 0.0.10):** wait 3 s for the first three Orcs. The sword stands right of the start: E to take it, left click to slash (tap for a forehand, keep going for forehand and backhand by turns), hold right click to point it and let go to pierce, Q to throw. Kill grunts with it until it breaks, then throw it; pick up what they drop. F1 → Enemies (set "Lab grunts" to 0 to practise movement in peace) and Weapons (pierce reach and width, throw wind-up, throw spin); the Arms tab moves the sword arm, slides it in the fist, and times its slash, its return, the pierce and the swap.
 - **Health:** the spike strip east of the start (hurts, pops you up; dash over it to stay unhurt). Punch the dummies to heal. Fall off the edge or run out of health to die and restart.
 - **Controls:** main menu → Settings → Controls, or pause → Controls. Click an action's key, then press anything (a key, a mouse button, the wheel); Esc cancels; Reset restores the defaults. The wheel has no "held", so a wheel-bound slide or charged punch is only a tap.
 - **Hit feel:** hit-stop on finisher, charged and kill hits; screen shake; a small camera nod; sparks; chunks when a dummy breaks; a hit marker around the crosshair (red on a kill); placeholder sounds.
 - **Arms:** both fists low in the corners, the centre clear (`MD/reference/arms_guard_gameplay.webp`); a gentle run bob (about 4 a second at run speed).
-- **Dev keys:** F1 (or `) tuning panel, F2 debug overlay (shows the hit-stop, health and invincibility), F3 resets the player and all targets, F4 invincible on/off. Esc pauses.
+- **Dev keys:** F1 (or `) tuning panel, F2 debug overlay (shows the hit-stop, health and invincibility), F3 resets the player and all targets (in the dungeon: the floor again from its start), F4 invincible on/off, F9 the Feel Lab / a fresh dungeon run. Esc pauses.
 - **Tuning tabs added:** Health (max, blood heal, hurt invincibility, spikes, death slow motion and fade, hurt shake); Lab gained Invincible. Earlier: Fists, Hit feel, Arms (guard nudges per fist, roll, wrist bend, punch timing, sway, bob), Targets, Wall run. Slide gained a length and an ease-in; Camera gained the wall-run tilt (negative flips its direction).
 
 ## First-person arms
@@ -90,7 +102,9 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `MD_UPDATES/M1_FEEL_LAB.md` | M1 scope, starting values, build order, tests |
 | `MD/PIPELINE_CHARACTER_ARMS.md` | How to cut first-person arms for a new character |
 | `MD/PIPELINE_ENEMIES_WEAPONS.md` | How a monster (with its animations) and a held weapon get from the packs into the game |
-| `MD_UPDATES/M2_COMBAT_SANDBOX.md` | M2's plan; its first slice is the Grunt and the Sword |
+| `MD_UPDATES/M2_COMBAT_SANDBOX.md` | M2's plan: the Grunt and the Sword, then the Spitter, the Brute, coins and the slam |
+| `MD_UPDATES/M3_DUNGEON.md` | M3's first slice: the dungeon floors, their rooms, the room loop and the minimap |
+| `MD/PIPELINE_DUNGEON.md` | How the dungeon kit is exported, how a room is drawn, and how to look at a floor without a browser |
 | `game/tools/view-shots.ts`, `game/tools/blender/render_view.py` | Renders the first-person arms (the game's own code and models) at chosen moments, without a browser |
 | `MD/PIPELINE_MENU_SCENE.md` | How the menu's scenes (the gate, the settings camp, the prison corridor) are built, and how to change them |
 | `DEVELOPMENT.md` | Module map and contracts |
@@ -108,8 +122,9 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 - Weapons break; breaking throws the weapon for a big hit.
 - Only character unlocks and stats carry over between runs.
 - Fists: both fists low in the corners; jabs go left, right, left; the charged punch is the right hand.
-- **No quick punch (Update 0.0.10):** F is free, kept for a new idea later (the designer).
-- The ground slam is not in the base kit: it comes later as an unlockable skill (its code is kept, with no key).
+- **No quick punch (Update 0.0.10).** **F is the ground slam (Update 0.0.12, the designer)**, from a real height only.
+- **Floors are explored maps of rooms (Update 0.0.12, the designer: like Soul Knight)**, not a chain of door choices. Rooms are hand-made layouts on a 2 m grid, varied per run; the Modular Dungeon Pack (parts 1 and 2) dresses them.
+- **Weapons: 4 uses when picked up; only grunts drop them, 15% (Update 0.0.12).**
 - **The roster (Update 0.0.8):** Joseph (the Adventurer), Fallen King (King), William Rich (Suit), Alpha Team (Swat), in that cell order. Only Joseph is playable for now. The first list also had a Cowboy and a Horse Guy; the designer's later list names these four.
 - The name is **Born To Retry**. The main menu is the gate scene; Start opens the gate and fades to black (Update 0.0.4: the first-person walk-in was cut).
 - **No hints players already understand** on any interface: no key labels beside buttons, no how-to text, no status notes (Update 0.0.4).
@@ -121,7 +136,8 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 3. Firearms from the start, or melee only at first?
 4. Boss ideas for floors 1–3.
 5. The starter character and the unlock order.
-6. ~~F with a sword~~: decided, the quick punch is gone altogether; F waits for a new idea.
+6. ~~F with a sword~~: decided, the quick punch is gone; F is the ground slam (Update 0.0.12).
+7. What the side rooms and the end of the way hold: the boss, the shop, a weapon or coin reward room?
 
 ## Browser checks (filled in during M1)
 | Check | Result |
@@ -140,4 +156,5 @@ Claude has seen and heard none of this in the game: the feel, the arms on screen
 - **Grunts and the sword (Update 0.0.9):** nothing seen in the browser. Unseen: the Orcs' look, scale, animations and their timing (the swing should land as the wind-up ends), the red glow, the growl; the stand, the HUD readout, and every sound. `test-grunt.ts` and `test-sword.ts` check the rules.
 - **The sword arm (Update 0.0.10):** seen only as still renders of the game's arms code (Blender, flat light, no world behind). Unseen in the game: the moves in motion (how fast the slash reads, the backhand coming back, the pierce's draw and thrust, the throw), the left arm dropping, the thrown sword leaving the hand, the swap back to fists, and the new pierce and wind-up sounds. The redone slash was checked as a film of frames 15 ms apart (wrist under 30° throughout). `test-arms.ts` checks the grip sits in the fingers under the guard, the wrist stays nearly straight in every held pose, the left arm is out of view, a forehand sweeps the blade across the crosshair with the whole arm and goes straight back, a slash before it's back swings back, and a hit-stop freezes it on contact, the pierce points at the crosshair, and the thrust and throw go forward.
 - **Grunts and walls (Update 0.0.11):** unseen in the browser. `test-nav.ts` checks the lab's grid, a grunt going round a wall and out of a pen, never inside a wall (running, knocked, shoved, spawned in one), no swing through a wall, waiting at the foot of a block you're on, and grunts from every lab spawn reaching you at the start, behind the low cover and between the pillars.
-- **Known limits:** grunts walk the floor only (no climbing, no jumping, no steps: on a block or the steps you're out of their reach), and the grid is built once per arena at floor height. Fine for the lab; rooms with levels (M3) will want grids per floor or links between them.
+- **The dungeon, the Spitter, the Brute, coins and the slam (Update 0.0.12):** nothing seen in the browser. Seen only as Blender renders of the game's own floor plans with the real kit (`tools/dungeon-shots.ts`): an overview and a few eye-height views, flat light. Unseen: the dungeon under the game's lights (torch lights following you, fog, the exit glow: the brightness is a guess), the bars crashing and sinking, the minimap, the Wizard and the Yeti in motion (their scale, clips, the swing timing, the glow, the brute's ring), the slam's shockwave and dust, the coins flying in, and every new sound. Load time per floor measured at about 35 ms in Node. `test-dungeon.ts` (rooms, floor plans over 40 seeds, the level, the room loop, the kit), `test-enemies.ts`, `test-slam.ts`, `test-money.ts` check the rules.
+- **Known limits:** enemies walk the floor only (no climbing, no jumping, no steps: on a block, a ledge or the steps you're out of their reach), and the walk grids are at floor height (the dungeon builds one per room). The way down swaps floors at once (no fade yet). No boss, shop or reward rooms yet: the side rooms are fights. Fine for the lab; rooms with levels (M3) will want grids per floor or links between them.
