@@ -6,6 +6,7 @@ import { ITEMS } from '../../tuning/items';
 import { WEAPONS } from '../../tuning/weapons';
 
 export type WeaponKind = 'sword' | 'goldSword';
+export const WEAPON_KINDS: readonly WeaponKind[] = ['sword', 'goldSword'];
 
 /** What the HUD calls each weapon. */
 export const WEAPON_NAME: Record<WeaponKind, string> = { sword: 'Sword', goldSword: 'Gold Sword' };

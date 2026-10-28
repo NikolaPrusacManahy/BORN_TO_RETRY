@@ -83,8 +83,10 @@ export interface PlayerState {
   dead: boolean;
   /** Update 0.0.13 — the shield (armour plates) that takes a hit before your health does. */
   shield: number;
-  /** Update 0.0.13 — run speed times this (the blue rings). */
+  /** Update 0.0.13 — run speed times this (the blue rings; Update 0.0.17: and the blue potion). */
   speedMul: number;
+  /** Update 0.0.17 — max health on top of the base (the red rings). */
+  hpBonus: number;
   /** Update 0.0.13 — kneeling at a chest: seconds left (0: not), the spot you're eased onto, and the way you face. */
   kneel: number;
   kneelAt: Vector3;
@@ -129,6 +131,7 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     dead: false,
     shield: 0,
     speedMul: 1,
+    hpBonus: 0,
     kneel: 0,
     kneelAt: new Vector3(),
     kneelYaw: 0,
@@ -144,7 +147,7 @@ export function resetPlayer(p: PlayerState, x: number, y: number, z: number, yaw
   p.grounded = false;
   p.coyote = p.jumpBuffer = p.dashTime = p.slamBounce = p.slamImpact = p.invuln = p.slideTime = p.wallRunTime = p.wallRunCooldown = p.hurtTime = 0;
   p.hp = HEALTH.v.maxHp;
-  p.shield = p.kneel = 0;
+  p.shield = p.kneel = p.hpBonus = 0;
   p.dead = false;
   p.dashCharges = DASH.v.charges;
   p.sliding = p.slamming = p.onWall = p.slideArmed = p.wallRunning = p.lastWallSet = false;

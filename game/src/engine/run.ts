@@ -18,12 +18,13 @@ import { MoveSounds } from '../audio/moveSounds';
 import type { Input } from '../input/input';
 import type { MoveResult } from '../sim/collisionWorld';
 import { CombatIntent, emptyCombatIntent } from '../sim/combat/fists';
-import { CombatState, createCombat, resetCombat } from '../sim/combat/state';
+import { carryOver, CombatState, createCombat, resetCombat } from '../sim/combat/state';
 import { stepCombat } from '../sim/combat/step';
 import { AIM_HEIGHT } from '../sim/combat/turret';
 import { stepRooms } from '../sim/dungeon/roomLoop';
 import { stepTreasure } from '../sim/dungeon/treasure';
-import { KeyKind, speedFactor } from '../sim/items/items';
+import { hpBonusOf, KeyKind, speedFactor } from '../sim/items/items';
+import { hasteFactor } from '../sim/items/bonuses';
 import { pushPlayerOut } from '../sim/enemies/enemy';
 import { BODY } from '../sim/player/body';
 import { checkHazards } from '../sim/player/hazards';
@@ -149,9 +150,7 @@ export class Run {
     if (keep && old) {
       this.player.hp = hp;
       this.player.shield = shield;
-      this.combat.weapon = old.weapon;
-      this.combat.money = old.money;
-      this.combat.items = old.items;
+      carryOver(old, this.combat);
     }
   }
 
@@ -207,7 +206,8 @@ export class Run {
       readPlayerIntent(input, this.look, this.intent, free);
       readCombatIntent(input, this.look, this.combatIntent, free);
       updateHealth(p, stepDt);
-      p.speedMul = speedFactor(this.combat.items);
+      p.speedMul = speedFactor(this.combat.items) * hasteFactor(this.combat.bonuses);
+      p.hpBonus = hpBonusOf(this.combat.items);
       const ci = this.combatIntent;
       if (d && stepTreasure(d.treasure, p, this.combat, ci.interactPressed, ci.switchKeyPressed, this.fighting, stepDt)) ci.interactPressed = false;
       stepPlayer(p, this.intent, this.level.physics, this.level.arena.pads, stepDt);

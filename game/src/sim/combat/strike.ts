@@ -2,6 +2,8 @@
 // Punches, sword swings and thrown weapons all use these, so every target takes every attack the same way.
 // Update 0.0.12 — every enemy kind is a target; only grunts drop a weapon (15%: the designer); every kill drops coins.
 // Update 0.0.16 — a Yeti (the brute) drops its room's key: one per room, whichever Yeti dies first (the designer).
+// Update 0.0.17 — a kill's coins (halves count as one more half the time; more with gold ingots on), and maybe a kill
+// bonus (not from a boss).
 import { Vector3 } from 'three';
 import { ENEMIES } from '../../tuning/enemies';
 import { FEEDBACK } from '../../tuning/combat';
@@ -11,6 +13,7 @@ import { ENEMY_STATS } from '../enemies/kinds';
 import { burstCoins } from './coins';
 import { damageFactor, keyFor } from '../items/items';
 import { dropItem } from '../items/drops';
+import { coinsFor, rollBonus } from '../items/bonuses';
 import { hitDummy } from './dummy';
 import { segmentDistance } from './geometry';
 import type { CombatEvent, CombatState } from './state';
@@ -96,6 +99,9 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
     dropItem(state.drops, keyFor(state.rng()), e.pos, state.events);
   }
   // Update 0.0.12 — its coins burst out (any the pool can't hold go straight to your money).
-  state.money += burstCoins(state.coins, e.pos, ENEMY_STATS[e.kind]().coins, state.rng);
+  const s = ENEMY_STATS[e.kind]();
+  state.money += burstCoins(state.coins, e.pos, coinsFor(s.coins, state, state.rng), state.rng);
+  const bonus = s.boss ? null : rollBonus(state, state.rng);
+  if (bonus) dropItem(state.drops, bonus, e.pos, state.events);
   return true;
 }

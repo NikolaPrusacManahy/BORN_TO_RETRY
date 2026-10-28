@@ -5,6 +5,7 @@
 // Update 0.0.15 — the boss's sounds are in bossSounds.ts.
 // Update 0.0.16 — a key switched (a click), a key falling to the floor (a clink), a chest's rarity as its lid comes up
 // (a chime: nothing for common, one note more for each rarity above it).
+// Update 0.0.17 — a kill bonus taken (its own sound each), a hit that freezes (a crack of ice), a weapon swap (a draw).
 import type { CombatEvent } from '../sim/combat/state';
 import { FISTS } from '../tuning/combat';
 import { ENEMIES } from '../tuning/enemies';
@@ -206,6 +207,21 @@ export class CombatSounds {
         break;
       case 'chestLocked':
         for (let k = 0; k < 3; k++) noise(a, { dur: 0.05 + k * 0.03, gain: 0.25, filter: 'bandpass', from: 2400, to: 1200, q: 3 });
+        break;
+      case 'bonus':
+        if (value === 0) for (let k = 0; k < 3; k++) tone(a, { from: 2400 + k * 400, to: 3200 + k * 400, dur: 0.18 + k * 0.06, gain: 0.07, type: 'sine' });
+        else if (value === 1) for (let k = 0; k < 5; k++) tone(a, { from: 1400 + k * 260, to: 2000 + k * 260, dur: 0.08 + k * 0.03, gain: 0.08, type: 'triangle' });
+        else {
+          tone(a, { from: 300, to: 900, dur: 0.3, gain: 0.12, type: 'sine' });
+          noise(a, { dur: 0.25, gain: 0.1, filter: 'bandpass', from: 800, to: 2400, q: 3 });
+        }
+        break;
+      case 'freeze':
+        noise(a, { dur: 0.14, gain: 0.22 * far, filter: 'highpass', from: 4000, to: 7000 });
+        tone(a, { from: 2600, to: 1800, dur: 0.12, gain: 0.06 * far, type: 'triangle' });
+        break;
+      case 'weaponSwap':
+        noise(a, { dur: 0.12, gain: 0.12, filter: 'bandpass', from: 1800, to: 3200, q: 2 });
         break;
       case 'keySwitch':
         tone(a, { from: 1250, to: 1500, dur: 0.05, gain: 0.08, type: 'triangle' });

@@ -6,8 +6,11 @@
 // Update 0.0.10 — the quick punch (F) is gone (the designer). An old save's binding for it is dropped.
 // Update 0.0.12 — F is the ground slam (the designer).
 // Update 0.0.16 — Switch key (the wheel): the key you'll use at a chest.
+// Update 0.0.17 — Weapon 1–5 (the number keys): the weapon slots (1 is your fists).
 
-export type Action = 'forward' | 'back' | 'left' | 'right' | 'jump' | 'dash' | 'slide' | 'slam' | 'attack' | 'heavy' | 'throw' | 'interact' | 'switchKey';
+export type Action = 'forward' | 'back' | 'left' | 'right' | 'jump' | 'dash' | 'slide' | 'slam' | 'attack' | 'heavy' | 'throw' | 'interact' | 'switchKey' | 'slot1' | 'slot2' | 'slot3' | 'slot4' | 'slot5';
+/** Update 0.0.17 — the weapon slot actions, in slot order. */
+export const SLOT_ACTIONS: readonly Action[] = ['slot1', 'slot2', 'slot3', 'slot4', 'slot5'];
 export type Bindings = Record<Action, string>;
 
 /** Order shown in settings. */
@@ -25,6 +28,11 @@ export const ACTIONS: { id: Action; label: string }[] = [
   { id: 'throw', label: 'Throw' },
   { id: 'interact', label: 'Interact' },
   { id: 'switchKey', label: 'Switch key' },
+  { id: 'slot1', label: 'Fists' },
+  { id: 'slot2', label: 'Weapon 2' },
+  { id: 'slot3', label: 'Weapon 3' },
+  { id: 'slot4', label: 'Weapon 4' },
+  { id: 'slot5', label: 'Weapon 5' },
 ];
 
 export const DEFAULT_BINDINGS: Bindings = {
@@ -41,6 +49,11 @@ export const DEFAULT_BINDINGS: Bindings = {
   throw: 'KeyQ',
   interact: 'KeyE',
   switchKey: 'WheelDown',
+  slot1: 'Digit1',
+  slot2: 'Digit2',
+  slot3: 'Digit3',
+  slot4: 'Digit4',
+  slot5: 'Digit5',
 };
 
 /** Dev tools (dev build only): F1 / ` tuning panel, F2 debug overlay, F3 respawn enemies, F4 invincibility, F9 the

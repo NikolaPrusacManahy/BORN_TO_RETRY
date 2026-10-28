@@ -153,11 +153,14 @@ section('Keys — the Yeti');
     hit.point.copy(c.enemies[i].pos);
     landHit(c, hit, 1e6, 0, 0, 1, 'hitJab', 1);
   };
+  // (Kill bonuses may drop too: only the keys count here.)
+  const keyDrops = () => c.drops.filter((d) => d.alive && (d.kind === 'key' || d.kind === 'whiteKey' || d.kind === 'goldKey'));
   kill(a);
-  check('the first Yeti killed drops a key where it fell', c.drops.filter((d) => d.alive).length === 1 && events(c).includes('itemDrop') && near(c.drops[0].pos.x, p.pos.x + 8, 0.01));
+  check('the first Yeti killed drops a key where it fell', keyDrops().length === 1 && events(c).includes('itemDrop') && near(keyDrops()[0].pos.x, p.pos.x + 8, 0.01));
   kill(b);
-  check('the second drops none (one key a room)', c.drops.filter((d) => d.alive).length === 1 && !isLive(c.enemies[b]));
-  const drop = c.drops.find((d) => d.alive)!;
+  check('the second drops none (one key a room)', keyDrops().length === 1 && !isLive(c.enemies[b]));
+  for (const d of c.drops) if (!keyDrops().includes(d)) d.alive = false;
+  const drop = keyDrops()[0];
   const before = c.items.keys + c.items.whiteKeys + c.items.goldKeys;
   stepCombat(c, p, emptyCombatIntent(), new FlatWorld(), DT);
   check('it lies there until you walk over it', drop.alive);

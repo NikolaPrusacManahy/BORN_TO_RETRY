@@ -4,15 +4,38 @@
 // Update 0.0.13 — the shield, keys and rings.
 // Update 0.0.15 — the boss room's show (letterbox, name card, the boss's health, the black, the floor's name).
 // Update 0.0.16 — white and gold keys, and the key you'd use at a chest.
+// Update 0.0.17 — max health with the red rings, the green and purple rings, the weapon slots, the kill bonuses.
 import type { CombatState } from '../sim/combat/state';
 import { PlayerState, flatSpeed, moveMode } from '../sim/player/state';
 import { WEAPON_NAME } from '../sim/weapons/catalog';
-import { HEALTH } from '../tuning/health';
 import { LAB } from '../tuning/lab';
 import { DASH } from '../tuning/movement';
 import type { CombatFeedback } from './combatFeedback';
 import type { ShowHud } from './boss/bossShow';
 import type { KeyKind } from '../sim/items/items';
+import { maxHpOf } from '../sim/player/health';
+import { BONUS_KINDS, bonusLength } from '../sim/items/bonuses';
+import { WEAPON_KINDS } from '../sim/weapons/catalog';
+
+/** The bonuses' bars move in steps of this share. */
+const BONUS_STEP = 50;
+
+/** A number for the weapon slots: changes whenever a slot's weapon or uses do. */
+function slotSig(combat: CombatState): number {
+  let sig = combat.slot;
+  for (let i = 1; i < combat.bag.length; i++) {
+    const w = combat.bag[i];
+    sig = sig * 1024 + (w ? (WEAPON_KINDS.indexOf(w.kind) + 1) * 256 + Math.min(255, w.uses) : 0);
+  }
+  return sig;
+}
+
+/** Steps of the bonuses' time left, as one number. */
+function bonusSig(combat: CombatState): number {
+  let sig = 0;
+  for (const k of BONUS_KINDS) sig = sig * 64 + Math.ceil((combat.bonuses[k] / bonusLength(k)) * BONUS_STEP);
+  return sig;
+}
 import type { DebugInfo, HudStore, MapView } from './hudStore';
 import { CELL, GRID } from '../world/dungeon/floorPlan';
 
@@ -32,6 +55,7 @@ export function fillDebug(d: DebugInfo, p: PlayerState, combat: CombatState) {
 
 export class HudFeed {
   private timer = 0;
+  private bonus = -1;
 
   constructor(private readonly hud: HudStore) {}
 
@@ -51,7 +75,13 @@ export class HudFeed {
     const bossHp = show.bossHp < 0 ? -1 : Math.ceil(show.bossHp * 100) / 100;
     const shown = cur.cine === show.cine && cur.card === show.card && cur.bossHp === bossHp && cur.veil === show.veil && cur.floorName === show.floorName && cur.bossTitle === show.bossTitle;
     const keys = cur.keys === it.keys && cur.whiteKeys === it.whiteKeys && cur.goldKeys === it.goldKeys && cur.keyPick === keyPick;
-    if (this.timer > 0 && same && shown && keys && cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.map === map) return;
+    const rings = cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.greenRings === it.greenRings && cur.purpleRings === it.purpleRings;
+    const sig = slotSig(combat);
+    const bonus = bonusSig(combat);
+    if (this.timer > 0 && same && shown && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map) return;
+    this.bonus = bonus;
+    const bonusLeft: Record<string, number> = {};
+    for (const k of BONUS_KINDS) bonusLeft[k] = Math.ceil((combat.bonuses[k] / bonusLength(k)) * BONUS_STEP) / BONUS_STEP;
     this.timer = HUD_EVERY;
     this.hud.set({
       dashCharges: Math.floor(p.dashCharges * 20) / 20,
@@ -61,7 +91,7 @@ export class HudFeed {
       marker: fb.marker,
       hurts: hits.hurts,
       hp,
-      maxHp: HEALTH.v.maxHp,
+      maxHp: maxHpOf(p),
       weapon: name,
       uses,
       money,
@@ -73,6 +103,12 @@ export class HudFeed {
       keyPick,
       redRings: it.redRings,
       blueRings: it.blueRings,
+      greenRings: it.greenRings,
+      purpleRings: it.purpleRings,
+      slots: combat.bag.slice(1).map((w) => (w ? { kind: w.kind, uses: w.uses } : null)),
+      slot: combat.slot,
+      slotSig: sig,
+      bonusLeft,
       map,
       mapX: p.pos.x / CELL + GRID / 2,
       mapZ: p.pos.z / CELL + GRID / 2,

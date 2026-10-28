@@ -1,5 +1,6 @@
 // M1 — turns keys and the mouse into what the sim asks for each tick: movement and fists. Nothing is pressed
 // while the mouse isn't locked (pause menu, tuning panel), or while `alive` is false (M1 step 8: dying).
+import { SLOT_ACTIONS } from '../input/bindings';
 import type { Input } from '../input/input';
 import type { CombatIntent } from '../sim/combat/fists';
 import type { PlayerIntent } from '../sim/player/intent';
@@ -28,4 +29,6 @@ export function readCombatIntent(input: Input, look: Look, i: CombatIntent, aliv
   i.throwPressed = live && input.actionPressed('throw');
   i.interactPressed = live && input.actionPressed('interact');
   i.switchKeyPressed = live && input.actionPressed('switchKey');
+  i.slotPressed = -1;
+  if (live) for (let s = 0; s < SLOT_ACTIONS.length; s++) if (input.actionPressed(SLOT_ACTIONS[s])) i.slotPressed = s;
 }

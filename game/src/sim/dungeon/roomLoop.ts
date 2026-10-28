@@ -22,6 +22,7 @@ import { isLive } from '../enemies/enemy';
 import { GRID_RADIUS, SizeClass } from '../enemies/kinds';
 import { spawnAt } from '../enemies/waves';
 import { hasYeti } from './wavePlan';
+import { BONUS } from '../../tuning/bonus';
 import type { PlayerState } from '../player/state';
 import { BossRun, createBossRun, startShow, stepBoss } from './bossRoom';
 import { createTreasure, Treasure } from './treasure';
@@ -94,6 +95,7 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
       rr.waves = room.waves.length;
       rr.wave = 0;
       combat.keyDrops = hasYeti(room.waves) ? 1 : 0;
+      combat.bonusDrops = BONUS.v.perRoom;
       rr.delay = FIRST_WAVE;
       for (const g of room.gates) run.shut[g] = true;
       enterNav(run, i, combat);

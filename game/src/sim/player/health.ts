@@ -2,6 +2,7 @@
 // regeneration. Pure: everything it does shows up as events.
 // Update 0.0.13 — no blood heal (the designer: you only heal from the shop). The shield (armour plates) takes a hit
 // before your health does.
+// Update 0.0.17 — your max health is the base plus what red rings add (PlayerState.hpBonus).
 import { HEALTH } from '../../tuning/health';
 import { ITEMS } from '../../tuning/items';
 import { LAB } from '../../tuning/lab';
@@ -36,11 +37,14 @@ export function damagePlayer(p: PlayerState, amount: number): boolean {
   return true;
 }
 
+/** Update 0.0.17 — your max health now. */
+export const maxHpOf = (p: PlayerState) => HEALTH.v.maxHp + p.hpBonus;
+
 /** Heals up to the max. Returns how much was healed. */
 export function healPlayer(p: PlayerState, amount: number): number {
   if (p.dead || amount <= 0) return 0;
   const before = p.hp;
-  p.hp = Math.min(HEALTH.v.maxHp, p.hp + amount);
+  p.hp = Math.min(maxHpOf(p), p.hp + amount);
   return p.hp - before;
 }
 

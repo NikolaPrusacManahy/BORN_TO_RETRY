@@ -8,6 +8,7 @@ import type { Spot } from '../../world/arena';
 import { BOSS } from '../../tuning/boss';
 import { CINEMA } from '../../tuning/cinema';
 import { burstCoins } from '../combat/coins';
+import { coinsFor } from '../items/bonuses';
 import { clearQuakes } from '../combat/quakes';
 import type { CombatState } from '../combat/state';
 import { hitEnemy, isLive, setPhase, spawnEnemy } from '../enemies/enemy';
@@ -158,7 +159,7 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
       if (!boss || !boss.struck) break;
       // Its body has burst: what it leaves you.
       mid.set(boss.pos.x, boss.pos.y + v.demonHeight * 0.5, boss.pos.z);
-      combat.money += burstCoins(combat.coins, mid, v.demonCoins, rng);
+      combat.money += burstCoins(combat.coins, mid, coinsFor(v.demonCoins, combat, rng), rng);
       for (const kind of LOOT) {
         takeItem(kind, player, combat);
         ev.push('bossLoot', ITEM_KINDS.indexOf(kind), mid.x, mid.y, mid.z);

@@ -2,8 +2,12 @@
 // The nearest target in the sweep takes the hit. Hits land the instant the punch is thrown, so they never feel
 // late.
 // M2 — sword swings land the same way (with their own reach and width), and grunts are targets too (strike.ts).
+// Update 0.0.17 — with the snowflake bonus on, a hit freezes the enemy it lands on.
 import { Vector3 } from 'three';
+import { BONUS } from '../../tuning/bonus';
 import { FEEDBACK } from '../../tuning/combat';
+import { isLive } from '../enemies/enemy';
+import { ENEMY_STATS } from '../enemies/kinds';
 import { CAMERA } from '../../tuning/camera';
 import type { CollisionWorld } from '../collisionWorld';
 import type { PlayerState } from '../player/state';
@@ -43,6 +47,14 @@ export function resolvePunch(punch: Punch, state: CombatState, eye: Vector3, dir
   const flat = Math.hypot(dir.x, dir.z) || 1;
   const charged = punch.kind === 'heavy' || punch.kind === 'pierce';
   landHit(state, hit, punch.damage, punch.knock, dir.x / flat, dir.z / flat, HIT_EVENT[punch.kind], charged ? punch.charge : punch.damage);
+  // Update 0.0.17 — the snowflake bonus: a melee hit freezes what it hits (never a boss).
+  if (state.bonuses.snowflake > 0 && hit.kind === 'enemy') {
+    const e = state.enemies[hit.index];
+    if (isLive(e) && !ENEMY_STATS[e.kind]().boss) {
+      e.frozen = BONUS.v.frozen;
+      state.events.push('freeze', hit.index, hit.point.x, hit.point.y, hit.point.z);
+    }
+  }
   state.hitStop.request(STOP[punch.kind]() * (charged ? 0.5 + 0.5 * punch.charge : 1));
   return eye.distanceTo(hit.point);
 }

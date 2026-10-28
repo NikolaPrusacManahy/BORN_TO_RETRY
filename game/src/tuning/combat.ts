@@ -9,7 +9,8 @@ export const FISTS = group('fists', 'Fists', {
   comboWindow: knob(0.4, 0.1, 1.5, 0.05, 'Combo window', 'Jab again within this to continue the combo.'),
   finisherDamage: knob(14, 1, 60, 1, 'Finisher damage', 'The third jab.'),
   finisherKnock: knob(8, 0, 30, 0.5, 'Finisher knockback', 'm/s.'),
-  reach: knob(2.2, 1, 5, 0.1, 'Reach', 'How far a punch hits (m).'),
+  // Update 0.0.17 (the designer: it felt uncomfortable to get this close): melee reach +30% (was 2.2).
+  reach: knob(2.9, 1, 5, 0.1, 'Reach', 'How far a punch hits (m).'),
   radius: knob(0.6, 0.1, 1.5, 0.05, 'Punch width', 'Radius of the punch sweep (m).'),
   // Update 0.0.3 (the designer): hold at least 1 s (first 1.5 s, then shortened); letting go sooner cancels
   // (no light right-click punches).

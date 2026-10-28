@@ -6,6 +6,8 @@
 // flight, and the lab's stands.
 // Update 0.0.15 — quake rings roll after the enemies move (a landing starts one).
 // Update 0.0.16 — you take an item on the floor by walking over it.
+// Update 0.0.17 — weapon slots (the number keys; a weapon picked up goes into the next free one), green rings' quicker
+// attacks, kill bonuses counting down.
 import { Vector3 } from 'three';
 import type { Spot } from '../../world/arena';
 import type { CollisionWorld } from '../collisionWorld';
@@ -24,6 +26,9 @@ import { slamImpact } from './slamHit';
 import { updateCoins } from './coins';
 import { updateQuakes } from './quakes';
 import { updateDrops } from '../items/drops';
+import { updateBonuses } from '../items/bonuses';
+import { attackRate } from '../items/items';
+import { emptyHand, giveWeapon, selectSlot, settleHand } from '../weapons/slots';
 import type { CombatState } from './state';
 import { updateTurret } from './turret';
 
@@ -38,8 +43,13 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   const events = state.events;
   // Update 0.0.13 — kneeling at a chest, you don't fight.
   if (player.kneel > 0) intent = IDLE;
+  settleHand(state);
   const throwing = state.weapon !== null && state.weapon.throwing >= 0;
-  if (intent.interactPressed && !throwing) state.weapon = tryPickup(state.weapon, state.pickups, state.stands, player, events);
+  if (intent.interactPressed && !throwing) {
+    const got = tryPickup(state.pickups, state.stands, player, events);
+    if (got) giveWeapon(state, got, player.pos);
+  }
+  if (intent.slotPressed >= 0 && !throwing && !state.fists.charging) selectSlot(state, intent.slotPressed);
   const held = state.weapon;
   if (held && !throwing && (intent.throwPressed || (held.uses <= 0 && (intent.attackPressed || intent.heavyHeld)))) {
     held.throwing = 0;
@@ -51,16 +61,17 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     if (held.throwing >= WEAPONS.v.throwWindup) {
       aim(player, intent.yaw, intent.pitch, eye, dir);
       throwWeapon(held, state.thrown, eye, dir, events);
-      state.weapon = null;
+      emptyHand(state);
     }
   }
 
   // While a throw winds up, nothing else attacks.
   const w = state.weapon;
   const busy = w !== null && w.throwing >= 0;
-  let swung = updateFists(state.fists, busy ? IDLE : intent, events, dt, punch, w !== null);
+  const rate = attackRate(state.items);
+  let swung = updateFists(state.fists, busy ? IDLE : intent, events, dt, punch, w !== null, rate);
   if (swung && punch.kind === 'pierce' && w) asPierce(w, punch);
-  if (!swung && w && !busy && !state.fists.charging) swung = updateSlashes(w, intent, events, dt, punch);
+  if (!swung && w && !busy && !state.fists.charging) swung = updateSlashes(w, intent, events, dt, punch, rate);
   if (swung) {
     aim(player, intent.yaw, intent.pitch, eye, dir);
     const landed = resolvePunch(punch, state, eye, dir, world);
@@ -84,6 +95,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   updateWaves(state.waves, state.enemies, spawns, player, state.rng, events, dt);
   updateThrown(state, world, dt);
   state.money = updateCoins(state.coins, player, state.money, events, dt);
-  updateDrops(state, player);
+  updateDrops(state, player, dt);
+  updateBonuses(state.bonuses, dt);
   updateStands(state.stands, state.pickups, events, dt);
 }

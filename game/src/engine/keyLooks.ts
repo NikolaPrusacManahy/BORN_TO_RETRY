@@ -1,8 +1,11 @@
 // Update 0.0.16 — how the three keys look (the designer): the RPG pack's key standing on end, so it shows as it turns;
 // the white key pale silver in a blue aura, the gold key gold in a yellow aura. Built once from items.glb's key and
 // cloned wherever a key shows (the shop, the floor, flying to you, in your palm).
+// Update 0.0.17 — the kill bonuses glow too: the snowflake pale blue, the gold ingots yellow, the blue potion blue.
 import * as THREE from 'three';
-import type { ItemKind, KeyKind } from '../sim/items/items';
+import type { KeyKind } from '../sim/items/items';
+import type { DropKind } from '../sim/items/drops';
+import type { BonusKind } from '../sim/items/bonuses';
 
 /** Each key's metal, and its aura's colour (none for the normal key). */
 const METAL: Record<KeyKind, { color: number; metal: number; rough: number; glow: number } | null> = {
@@ -11,6 +14,7 @@ const METAL: Record<KeyKind, { color: number; metal: number; rough: number; glow
   goldKey: { color: 0xffc23a, metal: 0.85, rough: 0.25, glow: 0x3a2600 },
 };
 export const AURA: Record<KeyKind, number | null> = { key: null, whiteKey: 0x4d9dff, goldKey: 0xffd23a };
+const BONUS_AURA: Record<BonusKind, number> = { snowflake: 0x9ad8ff, goldIngots: 0xffcf3a, bluePotion: 0x3d7bff };
 /** The aura's size, against the key's length. */
 const AURA_SIZE = 2.2;
 
@@ -53,19 +57,40 @@ export function keyLook(kind: KeyKind, proto: THREE.Object3D): THREE.Object3D {
   });
   look.add(key);
   const aura = AURA[kind];
-  if (aura !== null) {
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: auraTexture(), color: aura, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
-    const size = new THREE.Box3().setFromObject(key).getSize(new THREE.Vector3());
-    sprite.scale.setScalar(Math.max(size.x, size.y, size.z) * AURA_SIZE);
-    sprite.name = 'aura';
-    look.add(sprite);
-  }
+  if (aura !== null) addAura(look, key, aura);
+  return look;
+}
+
+/** A soft glow of `colour` round `around`, in `look`. */
+function addAura(look: THREE.Object3D, around: THREE.Object3D, colour: number) {
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: auraTexture(), color: colour, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const size = new THREE.Box3().setFromObject(around).getSize(new THREE.Vector3());
+  sprite.scale.setScalar(Math.max(size.x, size.y, size.z) * AURA_SIZE);
+  sprite.name = 'aura';
+  look.add(sprite);
+}
+
+/** A kill bonus's look: as it comes, in its glow. */
+function bonusLook(kind: BonusKind, proto: THREE.Object3D): THREE.Object3D {
+  const look = new THREE.Group();
+  look.name = `item_${kind}`;
+  const body = proto.clone();
+  body.position.set(0, 0, 0);
+  // The snowflake stands up to face you as it turns.
+  if (kind === 'snowflake') body.rotation.set(Math.PI / 2, 0, 0);
+  look.add(body);
+  addAura(look, body, BONUS_AURA[kind]);
   return look;
 }
 
 /** Every item's look: the keys built from the key, the rest as they come. */
-export function itemLooks(protos: Partial<Record<ItemKind, THREE.Object3D>>): Partial<Record<ItemKind, THREE.Object3D>> {
+export function itemLooks(protos: Partial<Record<DropKind, THREE.Object3D>>): Partial<Record<DropKind, THREE.Object3D>> {
+  const out = { ...protos };
   const key = protos.key;
-  if (!key) return protos;
-  return { ...protos, key: keyLook('key', key), whiteKey: keyLook('whiteKey', key), goldKey: keyLook('goldKey', key) };
+  if (key) Object.assign(out, { key: keyLook('key', key), whiteKey: keyLook('whiteKey', key), goldKey: keyLook('goldKey', key) });
+  for (const kind of ['snowflake', 'goldIngots', 'bluePotion'] as BonusKind[]) {
+    const p = protos[kind];
+    if (p) out[kind] = bonusLook(kind, p);
+  }
+  return out;
 }

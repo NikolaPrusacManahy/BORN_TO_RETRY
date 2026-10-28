@@ -6,6 +6,7 @@
 // own grid, their bodies falling when they die), and bodies at different heights not pushing each other.
 // Update 0.0.15 — the Demon's phases (its charge, stunned, its roar, its entrance) and which move it winds up; a boss's
 // body doesn't fall when it dies (its death show places it); a hit on a stunned boss is worth more.
+// Update 0.0.17 — frozen (the snowflake bonus): it stands still, its attack paused, until the ice wears off.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
@@ -37,6 +38,8 @@ export interface Enemy {
   t: number;
   /** Counts down after a hit, for the white flash. */
   flash: number;
+  /** Update 0.0.17 — seconds it stays frozen (0: not). */
+  frozen: number;
   /** Time until it may attack again (the spitter's shots). */
   cooldown: number;
   /** Which way it circles you, +1 or −1 (the spitter), and time until it turns round. */
@@ -84,6 +87,7 @@ export function createEnemies(): Enemy[] {
     phase: 'chase' as EnemyPhase,
     t: 0,
     flash: 0,
+    frozen: 0,
     cooldown: 0,
     strafe: 1,
     strafeTime: 0,
@@ -110,6 +114,7 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.phase = 'chase';
   e.t = 0;
   e.flash = 0;
+  e.frozen = 0;
   // A spitter doesn't fire the moment it arrives.
   e.cooldown = 1;
   e.strafe = i % 2 === 0 ? 1 : -1;
@@ -164,6 +169,12 @@ export function walk(e: Enemy, dx: number, dz: number, dist: number, nav: NavGri
 export function beginTick(e: Enemy, nav: NavGrid, dt: number): boolean {
   if (!e.alive) return false;
   e.prev.copy(e.pos);
+  // Frozen: nothing moves on (not even its time, so an attack waits), until the ice wears off.
+  if (e.frozen > 0 && e.phase !== 'dead') {
+    e.frozen = Math.max(0, e.frozen - dt);
+    e.flash = Math.max(0, e.flash - dt);
+    return false;
+  }
   e.t += dt;
   e.flash = Math.max(0, e.flash - dt);
   e.cooldown = Math.max(0, e.cooldown - dt);

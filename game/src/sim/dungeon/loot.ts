@@ -3,6 +3,8 @@
 // may come out: a normal key anything, a white key no common or uncommon, a gold key only epic or legendary. A rarity
 // with nothing in it gives the next one down that has something. Pure: the rolls are made when the floor is laid out,
 // so the same chest opened with the same key always holds the same thing.
+// Update 0.0.17 — more in them (the designer): the gold armour is rare too, and every ring (red, blue, green, purple)
+// is epic.
 import { ITEMS } from '../../tuning/items';
 import type { ItemKind, KeyKind } from '../items/items';
 
@@ -13,8 +15,8 @@ export const RARITIES: readonly Rarity[] = ['common', 'uncommon', 'rare', 'epic'
 export const TIER: Record<Rarity, readonly (ItemKind | 'coins')[]> = {
   common: ['coins'],
   uncommon: ['heart', 'plate'],
-  rare: ['goldSword'],
-  epic: ['redRing', 'blueRing'],
+  rare: ['goldSword', 'goldPlate'],
+  epic: ['redRing', 'blueRing', 'greenRing', 'purpleRing'],
   legendary: [],
 };
 

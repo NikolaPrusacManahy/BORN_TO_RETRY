@@ -19,7 +19,7 @@ export const ENEMIES = group('enemies', 'Enemies', {
   gruntDeathTime: knob(1.5, 0.3, 5, 0.1, 'Grunt body time', 'Seconds the body stays after death.'),
   gruntDrop: knob(0.15, 0, 1, 0.05, 'Grunt drop chance', 'Chance it drops a worn sword.'),
   gruntHeight: knob(2.0, 1.2, 3.5, 0.05, 'Grunt height', 'Its model is scaled to this (m); its hit capsule follows.'),
-  gruntCoins: knob(2, 0, 50, 1, 'Grunt coins', 'Coins it drops when killed.'),
+  gruntCoins: knob(1, 0, 50, 0.5, 'Grunt coins', 'Coins it drops when killed (a half: one more half the time).'),
   // Update 0.0.12 — the Spitter (design §9: keeps its distance, fires slow orbs). Placeholders.
   spitterHp: knob(30, 5, 300, 5, 'Spitter health', 'Damage to kill one.'),
   spitterSpeed: knob(5, 1, 15, 0.5, 'Spitter speed', 'How fast it moves (m/s).'),
@@ -32,7 +32,7 @@ export const ENEMIES = group('enemies', 'Enemies', {
   spitterFlinch: knob(0.3, 0, 1, 0.05, 'Spitter flinch', 'A hit stops it this long and cancels a shot (s).'),
   spitterKnock: knob(0.7, 0, 2, 0.05, 'Spitter knockback', 'How far a hit slides it (times the attack knock).'),
   spitterHeight: knob(1.6, 0.8, 3, 0.05, 'Spitter height', 'Its model is scaled to this (m); its hit capsule follows.'),
-  spitterCoins: knob(4, 0, 50, 1, 'Spitter coins', 'Coins it drops when killed.'),
+  spitterCoins: knob(2, 0, 50, 0.5, 'Spitter coins', 'Coins it drops when killed (a half: one more half the time).'),
   // Update 0.0.12 — the Brute (design §9: slow and heavy, a warned ground slam). Placeholders.
   bruteHp: knob(160, 20, 1000, 10, 'Brute health', 'Damage to kill one.'),
   bruteSpeed: knob(3.5, 1, 10, 0.25, 'Brute speed', 'How fast it walks at you (m/s).'),
@@ -47,7 +47,7 @@ export const ENEMIES = group('enemies', 'Enemies', {
   bruteFlinch: knob(0.4, 0, 1.5, 0.05, 'Brute flinch', 'A staggering hit stops it this long and cancels a slam (s).'),
   bruteKnock: knob(0.15, 0, 1, 0.05, 'Brute knockback', 'How far a hit slides it (times the attack knock).'),
   bruteHeight: knob(2.8, 1.8, 4.5, 0.05, 'Brute height', 'Its model is scaled to this (m); its hit capsule follows.'),
-  bruteCoins: knob(10, 0, 100, 1, 'Brute coins', 'Coins it drops when killed.'),
+  bruteCoins: knob(5, 0, 100, 0.5, 'Brute coins', 'Coins it drops when killed (a half: one more half the time).'),
   labGrunts: knob(2, 0, 12, 1, 'Lab grunts', 'Grunts per lab wave (0: none).'),
   labSpitters: knob(1, 0, 6, 1, 'Lab spitters', 'Spitters per lab wave.'),
   labBrutes: knob(1, 0, 4, 1, 'Lab brutes', 'Brutes per lab wave.'),

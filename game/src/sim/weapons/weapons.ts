@@ -1,6 +1,7 @@
 // M2 — weapons in the world (design §6): the one you hold, the ones lying around (the lab's stand, drops), and the
 // ones in flight. You hold one at a time; picking one up drops yours at your feet. Throwing (Q, or the next attack
 // once it's broken) draws it back for a moment, then sends it flying; it breaks on whatever it hits.
+// Update 0.0.17 — picking one up takes it off the ground; where it goes is the weapon slots' business (slots.ts).
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { WEAPONS } from '../../tuning/weapons';
@@ -96,8 +97,8 @@ export function updateStands(stands: Stand[], pickups: Pickup[], events: EventQu
   });
 }
 
-/** E: picks up the nearest weapon in reach. The one you held lies where you stand. Returns what you hold after. */
-export function tryPickup(held: HeldWeapon | null, pickups: Pickup[], stands: Stand[], player: PlayerState, events: EventQueue<CombatEvent>): HeldWeapon | null {
+/** E: takes the nearest weapon in reach off the ground. Returns it (null: none in reach). */
+export function tryPickup(pickups: Pickup[], stands: Stand[], player: PlayerState, events: EventQueue<CombatEvent>): HeldWeapon | null {
   const range = WEAPONS.v.pickupRange;
   let best: Pickup | null = null;
   let bestD = range;
@@ -109,12 +110,11 @@ export function tryPickup(held: HeldWeapon | null, pickups: Pickup[], stands: St
       best = p;
     }
   }
-  if (!best) return held;
+  if (!best) return null;
   best.alive = false;
   if (best.stand >= 0) stands[best.stand].timer = WEAPONS.v.standRespawn;
   const kind = best.kind;
   const uses = best.uses;
-  if (held) placePickup(pickups, held.kind, held.uses, player.pos);
   events.push('pickup', uses, best.pos.x, best.pos.y, best.pos.z);
   return holding(kind, uses);
 }

@@ -2,6 +2,13 @@
 // and hurt flashes are counters: each new number restarts their animation.
 import type { MoveMode } from '../sim/player/state';
 import type { KeyKind } from '../sim/items/items';
+import type { WeaponKind } from '../sim/weapons/catalog';
+
+/** Update 0.0.17 — a weapon slot's weapon and its uses. */
+export interface HudSlot {
+  kind: WeaponKind;
+  uses: number;
+}
 import type { RoomKind } from '../world/dungeon/rooms';
 
 export type MarkerKind = 'hit' | 'heavy' | 'kill';
@@ -51,6 +58,14 @@ export interface HudState {
   whiteKeys: number;
   goldKeys: number;
   keyPick: KeyKind | '';
+  /** Update 0.0.17 — the green and purple rings; the weapon slots after your fists (slot 2 on) and the one in your hand
+   *  (0: fists), with a number that changes whenever they do; the kill bonuses that are on (share of their time left). */
+  greenRings: number;
+  purpleRings: number;
+  slots: (HudSlot | null)[];
+  slot: number;
+  slotSig: number;
+  bonusLeft: Record<string, number>;
   map: MapView | null;
   mapX: number;
   mapZ: number;
@@ -73,7 +88,7 @@ export interface HudStore {
 }
 
 export function createHudStore(): HudStore {
-  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '' };
+  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, purpleRings: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '' };
   const subs = new Set<() => void>();
   return {
     get: () => state,

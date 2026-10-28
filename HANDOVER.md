@@ -2,7 +2,26 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.0.16
+## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.0.17
+- **Update 0.0.17 — less gold, reworked rings, kill bonuses, weapon slots** (the designer's list; spec `MD_UPDATES/M3_LOADOUT.md`).
+  - **Gold:**
+    - chests hold 10/20/30/40 coins;
+    - kills give half what they did (grunt 1, spitter 2, brute 5, leaper 2, stinger 1.5, wraith 2.5, Demon 30); a half is one more coin half the time.
+  - **Armour:** the silver plate gives 20 shield; the new **gold armour** gives 40.
+  - **Rings** (for the run): red +15 max health; **purple** +25% damage; **green** +15% melee attack speed; blue +15% run speed.
+  - **Chests and the shop:**
+    - Chests can hold the gold armour (rare) and all four rings (epic).
+    - The shop always has a heart and the silver plate; its other three tiles are drawn from the gold sword, the gold armour, the four rings and a key.
+  - **Melee reach +30%:** punch 2.9 m, slash 3.4 m, pierce 4.15 m.
+  - **Kill bonuses**, like CoD Zombies' power-ups. A kill may drop one (10% each, at most 2 a room); walk over it:
+    - **snowflake:** for 7 s, every melee hit freezes the enemy for 1 s (icy blue, still; not a boss);
+    - **gold ingots:** for 10 s, +50% coins;
+    - **blue potion:** for 7 s, +30% speed.
+    Each shows bottom left with its time draining. Left lying, it blinks and fades after 20 s.
+  - **Weapon slots:**
+    - Your fists are slot 1. A weapon you get goes in the next slot (2, 3, 4, 5) and into your hand, and **keys 1–5 swap**.
+    - Getting another weapon no longer drops yours. A thrown weapon empties its slot.
+    - The slots show bottom right with their uses; the one in hand is raised.
 - **Update 0.0.16 — keys, loot by rarity, the Yeti's key, a shuffled shop** (the designer's list; spec `MD_UPDATES/M3_KEYS_LOOT.md`).
   - **Chest loot by rarity:**
     - common 45%: 20, 35, 45 or 70 coins;
@@ -171,6 +190,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `MD_UPDATES/M3_SHOP_CHESTS.md` | Update 0.0.13: the shop, the chests, the items, the shield, and rooms twice the size |
 | `MD_UPDATES/M3_BOSS.md` | Update 0.0.15: the Demon, the boss room and its show, the wooden gate onto the dark |
 | `MD_UPDATES/M3_KEYS_LOOT.md` | Update 0.0.16: keys, loot by rarity, the Yeti's key, the shuffled shop, the open palm |
+| `MD_UPDATES/M3_LOADOUT.md` | Update 0.0.17: less gold, armour and rings reworked, melee reach, kill bonuses, weapon slots |
 | `game/tools/boss-shots.ts` | Renders the boss room (walls at any point of their slide, the gate shut or open, the Demon's stance) from the show's own shots, without a browser |
 | `game/tools/view-shots.ts`, `game/tools/blender/render_view.py` | Renders the first-person arms (the game's own code and models) at chosen moments, without a browser |
 | `MD/PIPELINE_MENU_SCENE.md` | How the menu's scenes (the gate, the settings camp, the prison corridor) are built, and how to change them |
@@ -211,6 +231,15 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 7. ~~What the side rooms hold~~: the shop (Update 0.0.13); the boss room ends the way (Update 0.0.15). Still open: reward rooms.
 8. **Update 0.0.13 placeholders to confirm:** five tiles for six items (the key always offered, four of the other five); E to buy and to open a chest (the design's E: "pick up, buy, open"); a chest opens only when its room isn't fighting; one chest a floor (35%: two); chest odds (coins 40%, then a plate, a heart or a ring alike); the shield caps at a full bar (two plates), rings stack; the blue ring speeds running and sliding, not the dash; buying the gold sword drops your sword at your feet; the new enemies' numbers (Leaper & fliers tab); bigger room budgets.
 
+11. **Update 0.0.17 placeholders to confirm:**
+   - bonuses: at most 2 a room, 20 s on the floor;
+   - the snowflake never freezing a boss, and only from punches and swings (not throws or the slam);
+   - the green ring speeding jabs and slashes but not the charge;
+   - five weapon slots;
+   - a new weapon going straight into your hand;
+   - all slots full: the new one replaces the one in your hand;
+   - after a throw, your fists come out;
+   - the shield's cap staying at 100.
 10. **Update 0.0.16 placeholders to confirm:**
    - the Yeti's key odds (the shop's 70/25/5);
    - one or two extra chests beside the Yeti rooms;
@@ -250,6 +279,15 @@ Claude has seen and heard none of this in the game: the feel, the arms on screen
 - **Grunts and walls (Update 0.0.11):** unseen in the browser. `test-nav.ts` checks the lab's grid, a grunt going round a wall and out of a pen, never inside a wall (running, knocked, shoved, spawned in one), no swing through a wall, waiting at the foot of a block you're on, and grunts from every lab spawn reaching you at the start, behind the low cover and between the pillars.
 - **The dungeon, the Spitter, the Brute, coins and the slam (Update 0.0.12):** nothing seen in the browser. Seen only as Blender renders of the game's own floor plans with the real kit (`tools/dungeon-shots.ts`): an overview and a few eye-height views, flat light. Unseen: the dungeon under the game's lights (torch lights following you, fog, the exit glow: the brightness is a guess), the bars crashing and sinking, the minimap, the Wizard and the Yeti in motion (their scale, clips, the swing timing, the glow, the brute's ring), the slam's shockwave and dust, the coins flying in, and every new sound. Load time per floor measured at about 35 ms in Node. `test-dungeon.ts` (rooms, floor plans over 40 seeds, the level, the room loop, the kit), `test-enemies.ts`, `test-slam.ts`, `test-money.ts` check the rules.
 - **Bigger rooms, the Leaper, the Stinger, the Wraith, the shop, chests, the shield, rings (Update 0.0.13):** nothing seen in the browser. Seen only as Blender renders: a floor's overview and an eye-height view with the real kit (the rooms at their new size), the item models (`export_items.py` previews: the chest's lid swung open on its hinge), and the new monsters' previews. Daylight seen only as a Blender stand-in (`render_dungeon.py --day`: the same sky colour, sun direction and strengths, not the game's renderer): bright and readable there; the game's real brightness, the shadows' look and their cost per frame are unverified. Unseen: the shop under the game's lights (tiles, turning items, price tags), the chest opening (the kneel, the view turning, the hands on the lid: a rule test checks through the game's own arms and cameras that both fists land on the lid's front edge on screen, within a fifth of the screen), items flying in, the shield bar and its blue flash, the HUD's keys and rings, the three new enemies in motion (their scale, clips, timing, glows, the leaper's arc, the stinger's dive, the wraith's fan), their sounds, and how the bigger rooms play. A floor now loads in about 10 ms in Node (the walk grids are built faster: identical cells, checked over 525 grids). `test-shop.ts`, `test-foes.ts`, and new checks in `test-dungeon.ts` and `test-health.ts` check the rules.
+- **Less gold, rings, bonuses, weapon slots (Update 0.0.17):** nothing seen in the browser.
+  - **Seen only as a Blender preview:** the new item models (gold armour, the four rings, the snowflake, the gold ingots, the blue potion).
+  - **Unseen:**
+    - how the longer reach feels;
+    - the bonuses on the floor, their glows and blinking, and their HUD timers;
+    - frozen enemies;
+    - the weapon slots bar and swapping (the arms change from sword to fists and back);
+    - the new sounds.
+  - `test-loadout.ts` checks the rules.
 - **Keys and loot (Update 0.0.16):** nothing seen in the browser.
   - **Seen only as renders** of the game's own arms code (`tools/view-shots.ts`: the open palm with each key, barehanded and with a sword; all three keys the same size).
   - **Unseen:** the palm in motion (coming up, switching keys, closing as you kneel); the keys' auras (sprites, not in the renders); the chest lights; the keys standing and turning on the shop's tiles and on the floor; the key picker on the HUD; the new sounds.

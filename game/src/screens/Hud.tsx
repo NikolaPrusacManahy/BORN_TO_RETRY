@@ -8,10 +8,13 @@
 // you carry beside your coins.
 // Update 0.0.15 — the boss room's show (BossHud.tsx); while it has the view, the rest fades out.
 // Update 0.0.16 — white and gold keys beside the normal ones; at a chest, the key picker (KeyPicker.tsx).
+// Update 0.0.17 — four rings (red, blue, green, purple); the weapon slots in place of the weapon's name and uses; the
+// kill bonuses that are on (HudSlots.tsx).
 import { CSSProperties, useSyncExternalStore } from 'react';
 import type { HudStore } from '../engine/hudStore';
 import { BossHud } from './BossHud';
 import { KeyIcon, KeyPicker } from './KeyPicker';
+import { Bonuses, WeaponSlots } from './HudSlots';
 import { Minimap } from './Minimap';
 
 /** At or below this share of max health the bar pulses. */
@@ -62,7 +65,13 @@ export function Hud({ store }: { store: HudStore }) {
             <RingIcon gem="#e2321e" />
           </Carried>
           <Carried n={s.blueRings}>
-            <RingIcon gem="#4d6bff" />
+            <RingIcon gem="#3d6bff" />
+          </Carried>
+          <Carried n={s.greenRings}>
+            <RingIcon gem="#2ecc40" />
+          </Carried>
+          <Carried n={s.purpleRings}>
+            <RingIcon gem="#a640ff" />
           </Carried>
         </span>
       </div>
@@ -80,12 +89,8 @@ export function Hud({ store }: { store: HudStore }) {
           </div>
         </div>
       </div>
-      {s.weapon && (
-        <div className={`rb-hud-weapon${s.uses <= 0 ? ' is-broken' : ''}`}>
-          <span className="rb-hud-weapon-name">{s.weapon}</span>
-          <span className="rb-hud-weapon-uses">{s.uses}</span>
-        </div>
-      )}
+      <WeaponSlots slots={s.slots} slot={s.slot} />
+      <Bonuses left={s.bonusLeft} />
       <div className="rb-hud-dash">
         {Array.from({ length: s.dashMax }, (_, i) => (
           <span key={i} className="rb-hud-pip" style={{ '--fill': Math.max(0, Math.min(1, s.dashCharges - i)) } as CSSProperties} />

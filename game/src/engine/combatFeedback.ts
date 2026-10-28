@@ -6,6 +6,7 @@
 // Update 0.0.15 — the Demon: its charge crashing, its landing, its roar, its gore and the quakes (felt more the closer
 // you are); its show's rumble; killed, a heavy jolt; its body bursting (chunks, sparks, a ring); the wooden gate.
 // Update 0.0.16 — a key falling to the floor, and more sparks from a chest the rarer what's in it.
+// Update 0.0.17 — a freezing hit bursts sparks of ice.
 import * as THREE from 'three';
 import type { CombatSounds } from '../audio/combatSounds';
 import type { CombatState } from '../sim/combat/state';
@@ -135,6 +136,9 @@ export class CombatFeedback {
           break;
         case 'itemDrop':
           this.f.sparks.spawn(at, UP, 14, 0.9);
+          break;
+        case 'freeze':
+          this.f.sparks.spawn(at, back, 12, 0.8);
           break;
         case 'demonCrash':
           this.f.chunks.spawn(at, back, 22, 1.2);

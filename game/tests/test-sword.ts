@@ -49,10 +49,11 @@ section('Sword — picking it up');
   check('the stand is empty for a moment', !state.pickups.some((q) => q.alive));
   run(state, p, world, w.standRespawn + 0.05);
   check('then holds a new one', state.pickups.filter((q) => q.alive && q.stand === 0).length === 1);
-  state.weapon = holding('sword', 5);
+  // The sword in your hand (slot 2) has 5 uses left.
+  state.weapon!.uses = 5;
   tick(state, p, world, { interactPressed: true });
-  const dropped = state.pickups.find((q) => q.alive && q.stand < 0);
-  check('picking one up while holding one swaps them: yours lies at your feet', state.weapon.uses === w.swordUses && dropped?.uses === 5 && near(dropped.pos.distanceTo(p.pos), 0, 1e-6));
+  // (Update 0.0.17 — the designer's weapon slots: the new one goes in the next slot; it used to swap with yours.)
+  check('picking one up while holding one: it goes in the next slot and into your hand; yours stays in its slot', state.weapon?.uses === w.swordUses && state.slot === 2 && state.bag[1]?.uses === 5 && !state.pickups.some((q) => q.alive && q.stand < 0));
 }
 
 section('Sword — slashes');

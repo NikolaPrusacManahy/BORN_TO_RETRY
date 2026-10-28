@@ -7,6 +7,7 @@
 // the gold sword, the two rings and a key (normal, white or gold by its odds), and the five are shuffled. A chest's
 // loot goes by rarity and by the key you open it with (loot.ts). In front of a chest with keys, you pick which key
 // (the Switch key action goes to the next one you carry); E uses it.
+// Update 0.0.17 — the shop's draw takes in the gold armour and the green and purple rings too.
 import type { Rng } from '../../core/rng';
 import { ITEMS } from '../../tuning/items';
 import type { ChestSpot, DungeonLevel } from '../../world/dungeon/assemble';
@@ -58,7 +59,7 @@ export const LOOT_AT = 0.62;
 export const SHOP_TILES = 5;
 /** Always in the shop; the rest of its tiles are drawn from the others ('key': a key by its odds). */
 const SHOP_ALWAYS: readonly ItemKind[] = ['heart', 'plate'];
-const SHOP_DRAWN: readonly ItemKind[] = ['goldSword', 'redRing', 'blueRing', 'key'];
+const SHOP_DRAWN: readonly ItemKind[] = ['goldSword', 'goldPlate', 'redRing', 'blueRing', 'greenRing', 'purpleRing', 'key'];
 
 const at = new Vector3();
 

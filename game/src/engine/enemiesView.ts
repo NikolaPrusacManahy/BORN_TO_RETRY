@@ -8,6 +8,7 @@
 // or a dive plays the kind's 'air' clip; bodies are placed by their lowest point (the fliers' models float above
 // their origin).
 // Update 0.0.15 — not the Demon: a boss is drawn by boss/demonView.ts (its aura, its death show).
+// Update 0.0.17 — frozen (the snowflake bonus): its pose stops and it turns icy blue.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -190,10 +191,11 @@ export class EnemiesView {
       const want = roleFor(e.phase, attack.time >= attack.getClip().duration - 0.01);
       if (want !== b.role || (again && ONCE.includes(want))) this.play(b, want);
       attack.timeScale = look.lands / look.windup();
-      b.mixer.update(dt);
+      const ice = e.frozen > 0 ? 1 : 0;
+      if (!ice) b.mixer.update(dt);
       const glow = e.phase === 'windup' ? Math.min(1, e.t / look.windup()) : 0;
       const flash = e.flash / 0.12;
-      for (const m of b.mats) m.emissive.setRGB(flash + glow * look.glow[0], flash + glow * look.glow[1], flash + glow * look.glow[2]);
+      for (const m of b.mats) m.emissive.setRGB(flash + glow * look.glow[0] + ice * 0.25, flash + glow * look.glow[1] + ice * 0.55, flash + glow * look.glow[2] + ice * 0.95);
       if (e.kind === 'brute' && e.phase === 'windup') this.ring(slot.ring, e.pos, glow);
       slot.phase = e.phase;
       slot.t = e.t;

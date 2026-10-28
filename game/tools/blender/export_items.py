@@ -3,6 +3,10 @@
 # Ultimate RPG Pack (Heart, Armor_Metal2, Sword_Golden, Ring3, Ring5, Key1) and the Modular Dungeon Pack part 1 (Chest:
 # its base and its lid, the lid's origin on its hinge so the game can swing it open). Each item is centred on its
 # origin and scaled to a set size; a display tile for the shop floor is made here (a marble slab with a gold rim).
+# Update 0.0.17 — the gold armour (Armor_Golden), four rings (red Ring3; blue Ring4, its gem made blue; green Ring6;
+# purple Ring5, its gem made purple), and the kill bonuses: a snowflake (Snowflake1, made icy), gold ingots and a blue
+# potion (Potion5, its liquid and glass made blue). Recoloured parts get a plain flat material (some pack colours live in nodes
+# the glTF export drops).
 #   blender --background --disable-autoexec --python tools/blender/export_items.py -- --rpg <Ultimate RPG Pack>
 #       --dungeon <Modular Dungeon Pack - part 1> --glb public/models/items/items.glb [--previews <folder>]
 import argparse
@@ -15,15 +19,30 @@ from mathutils import Matrix, Vector
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from scene_kit import export_glb, flat_material, setup_previews, shoot  # noqa: E402
 
-# name in the game: (.blend in the RPG pack, its largest side in the game (m))
+# name in the game: (.blend in the RPG pack, its largest side in the game (m), {material name start: new colour})
 ITEMS = {
-    'item_heart': ('Heart', 0.45),
-    'item_plate': ('Armor_Metal2', 0.6),
-    'item_goldSword': ('Sword_Golden', 1.0),
-    'item_redRing': ('Ring3', 0.36),
-    'item_blueRing': ('Ring5', 0.36),
-    'item_key': ('Key1', 0.42),
+    'item_heart': ('Heart', 0.45, {}),
+    'item_plate': ('Armor_Metal2', 0.6, {}),
+    'item_goldPlate': ('Armor_Golden', 0.6, {}),
+    'item_goldSword': ('Sword_Golden', 1.0, {}),
+    'item_redRing': ('Ring3', 0.36, {}),
+    'item_blueRing': ('Ring4', 0.36, {'Cyan': (0.08, 0.25, 1.0)}),
+    'item_greenRing': ('Ring6', 0.36, {'Green': (0.1, 0.85, 0.2)}),
+    'item_purpleRing': ('Ring5', 0.36, {'Lilac': (0.55, 0.08, 0.9)}),
+    'item_key': ('Key1', 0.42, {}),
+    'item_snowflake': ('Snowflake1', 0.5, {'Snowflake': (0.72, 0.9, 1.0)}),
+    'item_goldIngots': ('Gold_Ingots', 0.5, {}),
+    'item_bluePotion': ('Potion5_Filled', 0.5, {'Liquid': (0.1, 0.35, 1.0), 'Glass': (0.45, 0.7, 1.0)}),
 }
+
+
+def recolor(o, colours):
+    """Each material whose name starts with a key gets a flat material of that colour."""
+    for slot in o.material_slots:
+        m = slot.material
+        for start, rgb in colours.items():
+            if m and m.name.startswith(start):
+                slot.material = flat_material(f'{start}_{o.name}', rgb, 0.35)
 
 
 def parse_args():
@@ -69,10 +88,11 @@ def main():
     for o in list(bpy.data.objects):
         bpy.data.objects.remove(o, do_unlink=True)
     made = []
-    for name, (blend, size) in ITEMS.items():
+    for name, (blend, size, colours) in ITEMS.items():
         objs = load(os.path.join(args.rpg, blend + '.blend'))
         for o in objs:
             bake(o)
+            recolor(o, colours)
         if len(objs) > 1:
             with bpy.context.temp_override(active_object=objs[0], object=objs[0], selected_objects=objs, selected_editable_objects=objs):
                 bpy.ops.object.join()

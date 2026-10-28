@@ -10,6 +10,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { CombatState } from '../sim/combat/state';
 import type { Treasure } from '../sim/dungeon/treasure';
 import { ITEM_KINDS, ItemKind } from '../sim/items/items';
+import { DROP_KINDS, DropKind } from '../sim/items/drops';
 import { ITEMS } from '../tuning/items';
 import { itemLooks } from './keyLooks';
 import { ChestGlows, DropsView } from './treasureFx';
@@ -56,7 +57,7 @@ export class TreasureView {
   private prices: THREE.Sprite[] = [];
   private chests: ChestBody[] = [];
   private flyers: Partial<Record<ItemKind, Flyer>> = {};
-  private protos: Partial<Record<ItemKind, THREE.Object3D>> = {};
+  private protos: Partial<Record<DropKind, THREE.Object3D>> = {};
   private readonly drops = new DropsView(() => this.protos);
   private readonly glows = new ChestGlows();
   private readonly dear: THREE.SpriteMaterial;
@@ -112,8 +113,8 @@ export class TreasureView {
 
   attach(model: THREE.Object3D) {
     const get = (name: string) => model.getObjectByName(name);
-    const found: Partial<Record<ItemKind, THREE.Object3D>> = {};
-    for (const kind of ITEM_KINDS) {
+    const found: Partial<Record<DropKind, THREE.Object3D>> = {};
+    for (const kind of DROP_KINDS) {
       const proto = get(`item_${kind}`);
       if (proto) found[kind] = proto;
     }

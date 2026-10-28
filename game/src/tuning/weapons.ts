@@ -5,12 +5,13 @@ import { group, knob } from './schema';
 export const WEAPONS = group('weapons', 'Weapons', {
   swordDamage: knob(22, 1, 200, 1, 'Sword slash damage', 'Per slash that lands.'),
   swordKnock: knob(7, 0, 40, 0.5, 'Sword slash knock', 'How hard a slash pushes what it hits (m/s).'),
-  swordReach: knob(2.6, 1, 5, 0.05, 'Sword reach', 'How far a slash reaches from the eye (m).'),
+  // Update 0.0.17 (the designer): melee reach +30% (slash was 2.6, pierce 3.2).
+  swordReach: knob(3.4, 1, 5, 0.05, 'Sword reach', 'How far a slash reaches from the eye (m).'),
   swordWidth: knob(0.8, 0.2, 2, 0.05, 'Sword width', 'How wide its sweep is (m): wider than a fist.'),
   swordInterval: knob(0.42, 0.15, 1.5, 0.01, 'Sword slash interval', 'Seconds between slashes while left click is held.'),
   swordPierceDamage: knob(55, 1, 300, 1, 'Sword pierce damage', 'The charged right click (it charges like the charged punch).'),
   swordPierceKnock: knob(18, 0, 60, 0.5, 'Sword pierce knock', 'How hard a pierce pushes what it hits (m/s).'),
-  swordPierceReach: knob(3.2, 1, 6, 0.05, 'Sword pierce reach', 'How far a pierce reaches from the eye (m).'),
+  swordPierceReach: knob(4.15, 1, 6, 0.05, 'Sword pierce reach', 'How far a pierce reaches from the eye (m).'),
   swordPierceWidth: knob(0.5, 0.1, 2, 0.05, 'Sword pierce width', 'How wide the thrust is (m): narrower than a slash.'),
   swordPierceUses: knob(2, 1, 5, 1, 'Sword pierce cost', 'Uses a pierce that lands takes.'),
   // Update 0.0.12 — the designer: a picked-up weapon has 4 uses (was 20 on the stand, 8–20 dropped).

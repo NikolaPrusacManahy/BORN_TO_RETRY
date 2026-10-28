@@ -34,6 +34,9 @@ blender --background --disable-autoexec --python tools/blender/export_monster.py
 - It's 2.9 m tall as it comes; the game scales it to `BOSS.demonHeight` (6.5 m).
 - Rule tests parse it with its textures taken out (`tests/fakes/glb.ts`): Node can't decode images.
 
+## Update 0.0.17 — more items
+`export_items.py` (same command as Update 0.0.13) now also exports item_goldPlate (Armor_Golden), item_greenRing (Ring6), item_purpleRing (Ring5, gem purple), item_blueRing (now Ring4, gem blue), item_snowflake (Snowflake1, icy), item_goldIngots (Gold_Ingots) and item_bluePotion (Potion5_Filled, liquid and glass blue). A recolour gives the part a plain flat material: some pack colours live in shader nodes the glTF export drops (the liquids and the snowflake came out mint green).
+
 ## A held weapon: `game/tools/blender/export_weapon.py`
 Exports one weapon with its origin in the middle of the grip, the blade (or head) pointing up and the edge across x, scaled to a set length. The grip is found from the shape: past the pommel, up the narrow handle to where the guard (or the head) widens.
 

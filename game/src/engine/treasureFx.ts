@@ -4,8 +4,7 @@
 import * as THREE from 'three';
 import type { Chest } from '../sim/dungeon/treasure';
 import type { Rarity } from '../sim/dungeon/loot';
-import type { Drop } from '../sim/items/drops';
-import type { ItemKind } from '../sim/items/items';
+import type { Drop, DropKind } from '../sim/items/drops';
 import { ITEMS } from '../tuning/items';
 
 export const RARITY_COLOUR: Record<Rarity, number | null> = { common: null, uncommon: 0x3dff6a, rare: 0x3d8bff, epic: 0xb04dff, legendary: 0xffd23d };
@@ -20,8 +19,11 @@ const COLUMN_R = 0.55;
 
 interface Shown {
   holder: THREE.Group;
-  kind: ItemKind | null;
+  kind: DropKind | null;
 }
+
+/** A kill bonus left lying blinks over its last seconds. */
+const BLINK = 4;
 
 /** Items on the floor. */
 export class DropsView {
@@ -29,7 +31,7 @@ export class DropsView {
   private readonly shown: Shown[] = [];
   private time = 0;
 
-  constructor(private looks: () => Partial<Record<ItemKind, THREE.Object3D>>) {}
+  constructor(private looks: () => Partial<Record<DropKind, THREE.Object3D>>) {}
 
   update(drops: Drop[], dt: number) {
     this.time += dt;
@@ -41,7 +43,7 @@ export class DropsView {
     for (let i = 0; i < drops.length; i++) {
       const d = drops[i];
       const s = this.shown[i];
-      s.holder.visible = d.alive;
+      s.holder.visible = d.alive && (d.life > BLINK || Math.sin(this.time * 18) > -0.3);
       if (!d.alive) continue;
       if (s.kind !== d.kind) {
         s.holder.clear();

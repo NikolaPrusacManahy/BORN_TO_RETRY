@@ -25,6 +25,8 @@ export interface CombatIntent {
   /** M2 — Q: throw the held weapon; E: pick one up. */
   throwPressed: boolean;
   interactPressed: boolean;
+  /** Update 0.0.17 — a weapon slot picked (index; −1: none). */
+  slotPressed: number;
   /** Update 0.0.16 — the next key you carry, in front of a chest. */
   switchKeyPressed: boolean;
   yaw: number;
@@ -49,7 +51,7 @@ export function createFists(): FistState {
 }
 
 export function emptyCombatIntent(): CombatIntent {
-  return { attackHeld: false, attackPressed: false, heavyHeld: false, throwPressed: false, interactPressed: false, switchKeyPressed: false, yaw: 0, pitch: 0 };
+  return { attackHeld: false, attackPressed: false, heavyHeld: false, throwPressed: false, interactPressed: false, slotPressed: -1, switchKeyPressed: false, yaw: 0, pitch: 0 };
 }
 
 export function emptyPunch(): Punch {
@@ -69,7 +71,7 @@ function set(out: Punch, kind: PunchKind, damage: number, knock: number, charge 
 
 /** Advances the fists. Writes a punch into `out` and returns true when one is thrown this tick. `armed`: holding a
  *  weapon (no jabs; a full charge lets go a 'pierce', which the caller turns into the weapon's). */
-export function updateFists(f: FistState, intent: CombatIntent, events: EventQueue<CombatEvent>, dt: number, out: Punch, armed = false): boolean {
+export function updateFists(f: FistState, intent: CombatIntent, events: EventQueue<CombatEvent>, dt: number, out: Punch, armed = false, rate = 1): boolean {
   const v = FISTS.v;
   f.jabCooldown = Math.max(0, f.jabCooldown - dt);
   f.comboTimer = Math.max(0, f.comboTimer - dt);
@@ -103,7 +105,8 @@ export function updateFists(f: FistState, intent: CombatIntent, events: EventQue
 
   if (!armed && (intent.attackPressed || intent.attackHeld) && f.jabCooldown <= 0) {
     const step = f.comboTimer > 0 ? f.combo : 0;
-    f.jabCooldown = v.jabInterval;
+    // Update 0.0.17 — green rings make jabs come quicker.
+    f.jabCooldown = v.jabInterval / rate;
     f.combo = (step + 1) % 3;
     f.comboTimer = step === 2 ? 0 : v.comboWindow;
     events.push(step % 2 === 0 ? 'jabL' : 'jabR', step);

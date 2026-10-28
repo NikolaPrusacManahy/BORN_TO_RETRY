@@ -104,11 +104,13 @@ section('Shop — buying');
 {
   const { p, c } = shopWith('plate', 0);
   takeItem('plate', p, c);
-  check('an armour plate gives a shield of half your health', p.shield === HEALTH.v.maxHp * ITEMS.v.plateShield);
+  // (Update 0.0.17 — the designer: 20 shield, was half your health.)
+  check(`the silver armour plate gives ${ITEMS.v.silverShield} shield`, p.shield === ITEMS.v.silverShield);
   c.weapon = { kind: 'sword', uses: 2, cooldown: 0, throwing: -1 };
   takeItem('goldSword', p, c);
   check(`the gold sword goes into your hand with ${ITEMS.v.goldSwordUses} uses`, c.weapon?.kind === 'goldSword' && c.weapon.uses === ITEMS.v.goldSwordUses);
-  check('the sword you held lies at your feet', c.pickups.some((q) => q.alive && q.kind === 'sword' && q.uses === 2));
+  // (Update 0.0.17 — it goes in the next weapon slot; the sword you held stays in its own.)
+  check('the sword you held stays in its slot', c.bag[1]?.kind === 'sword' && c.bag[1].uses === 2 && c.slot === 2 && !c.pickups.some((q) => q.alive));
   takeItem('key', p, c);
   check('a key is carried', c.items.keys === 1);
 }
@@ -117,19 +119,20 @@ section('Shop — rings');
 {
   const inv = createInventory();
   check('no rings, no change', damageFactor(inv) === 1 && speedFactor(inv) === 1);
-  inv.redRings = 1;
+  // (Update 0.0.17 — the designer's rework: the purple ring is the damage one now, +25%; the blue ring +15% speed.)
+  inv.purpleRings = 1;
   inv.blueRings = 1;
-  check('a red ring: +25% damage; a blue ring: +20% speed', near(damageFactor(inv), 1.25, 1e-9) && near(speedFactor(inv), 1.2, 1e-9));
-  // A real jab on a dummy, with and without a red ring.
+  check(`a purple ring: +${ITEMS.v.purpleRing * 100}% damage; a blue ring: +${ITEMS.v.blueRing * 100}% speed`, near(damageFactor(inv), 1 + ITEMS.v.purpleRing, 1e-9) && near(speedFactor(inv), 1 + ITEMS.v.blueRing, 1e-9));
+  // A real jab on a dummy, with and without a purple ring.
   const jab = (rings: number) => {
     const s = createCombat({ ...bare, dummies: [{ x: 0, y: 0, z: -1.5 }] });
-    s.items.redRings = rings;
+    s.items.purpleRings = rings;
     const p = createPlayer(0, 0, 0, 0);
     stepCombat(s, p, { ...emptyCombatIntent(), attackPressed: true }, new FlatWorld(), DT);
     return TARGETS.v.dummyHp - s.dummies[0].hp;
   };
   const plain = jab(0);
-  check('a red ring makes your hits 25% harder', plain > 0 && near(jab(1), plain * 1.25, 1e-6), `${plain} → ${jab(1)}`);
+  check('a purple ring makes your hits 25% harder', plain > 0 && near(jab(1), plain * 1.25, 1e-6), `${plain} → ${jab(1)}`);
   // Running flat out, with and without a blue ring.
   const run = (mul: number) => {
     const p = createPlayer(0, 0, 0, 0);
@@ -139,7 +142,7 @@ section('Shop — rings');
     for (let i = 0; i < ticks(1); i++) stepPlayer(p, { ...emptyIntent(), moveZ: 1 }, w, [], DT);
     return Math.hypot(p.vel.x, p.vel.z);
   };
-  check('a blue ring makes you run 20% faster', near(run(1), MOVE.v.runSpeed, 1e-6) && near(run(1.2), MOVE.v.runSpeed * 1.2, 1e-6));
+  check('a blue ring makes you run 15% faster', near(run(1), MOVE.v.runSpeed, 1e-6) && near(run(1 + ITEMS.v.blueRing), MOVE.v.runSpeed * (1 + ITEMS.v.blueRing), 1e-6));
 }
 
 /** A chest at the origin facing +z, and you in front of it. */

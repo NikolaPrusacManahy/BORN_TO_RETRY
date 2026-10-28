@@ -3,6 +3,8 @@
 // that drops and spawns use.
 // Update 0.0.15 — the Demon's quake rings, and the boss's events (its moves, its show, its death, the wooden gate).
 // Update 0.0.16 — items on the floor (the Yeti's key) and how many keys the room you're in still holds.
+// Update 0.0.17 — weapon slots (your fists and the weapons you carry), kill bonuses (on, and how many the room still
+// gives).
 import { EventQueue } from '../../core/eventQueue';
 import { Rng, createRng } from '../../core/rng';
 import { Vector3 } from 'three';
@@ -14,6 +16,8 @@ import { createEnemies, Enemy } from '../enemies/enemy';
 import { Coin, createCoins } from './coins';
 import { Quake, clearQuakes, createQuakes } from './quakes';
 import { createDrops, Drop } from '../items/drops';
+import { Bonuses, createBonuses } from '../items/bonuses';
+import { createBag } from '../weapons/slots';
 import { createInventory, Inventory } from '../items/items';
 import { GRID_RADIUS, SizeClass } from '../enemies/kinds';
 import { AIR, buildNavGrid, NavGrid } from '../../world/navGrid';
@@ -112,6 +116,11 @@ export type CombatEvent =
   | 'keySwitch'
   | 'chestRarity'
   | 'itemDrop'
+  // Update 0.0.17 — a kill bonus taken (value = its index in BONUS_KINDS), a hit that froze (value = the enemy), a
+  // weapon slot picked (value = the slot).
+  | 'bonus'
+  | 'freeze'
+  | 'weaponSwap'
   // M2 — weapons: picked up (value = its uses), dropped, worn out, a throw begun and let go, broken on impact, back
   // on the stand.
   | 'pickup'
@@ -137,6 +146,12 @@ export interface CombatState {
   flow: Record<SizeClass, Flow>;
   /** The weapon in your hand (null: barehanded). */
   weapon: HeldWeapon | null;
+  /** Update 0.0.17 — your weapon slots (index 0: your fists, always empty) and the one picked. */
+  bag: (HeldWeapon | null)[];
+  slot: number;
+  /** Update 0.0.17 — kill bonuses on (seconds left) and how many the room you're in still drops. */
+  bonuses: Bonuses;
+  bonusDrops: number;
   pickups: Pickup[];
   stands: Stand[];
   thrown: Thrown[];
@@ -179,6 +194,10 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     nav,
     flow: { small: createFlow(nav.small), large: createFlow(nav.large), air: createFlow(nav.air) },
     weapon: null,
+    bag: createBag(),
+    slot: 0,
+    bonuses: createBonuses(),
+    bonusDrops: Infinity,
     pickups: createPickups(),
     stands: createStands(arena.stands),
     thrown: createThrown(),
@@ -207,6 +226,10 @@ export function resetCombat(state: CombatState, arena: Arena) {
   clearQuakes(state.quakes);
   state.flow.small.target = state.flow.large.target = state.flow.air.target = -1;
   state.weapon = null;
+  state.bag = createBag();
+  state.slot = 0;
+  state.bonuses = createBonuses();
+  state.bonusDrops = Infinity;
   for (const p of state.pickups) p.alive = false;
   for (const t of state.thrown) t.alive = false;
   state.stands = createStands(arena.stands);
@@ -219,4 +242,14 @@ export function resetCombat(state: CombatState, arena: Arena) {
   stockStands(state);
   state.hitStop.remaining = 0;
   state.events.clear();
+}
+
+/** Update 0.0.17 — what comes down to the next floor with you: your weapons (and the one in your hand), your coins,
+ *  your keys and rings. */
+export function carryOver(from: CombatState, to: CombatState) {
+  to.weapon = from.weapon;
+  to.bag = from.bag;
+  to.slot = from.slot;
+  to.money = from.money;
+  to.items = from.items;
 }

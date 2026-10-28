@@ -38,6 +38,8 @@ A first-person action roguelike. You start every run with your bare hands, tear 
 | F | Ground slam, in the air from a real height (Update 0.0.12, the designer). (The quick punch it used to be was cut in Update 0.0.10.) |
 | Q | Throw the held weapon |
 | E | Interact: pick up, buy, open |
+| Mouse wheel | Switch key, in front of a chest (Update 0.0.16) |
+| 1–5 | Weapon slots: 1 your fists, 2–5 the weapons you carry (Update 0.0.17, the designer) |
 | Esc | Pause |
 
 No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we test whether the browser's keyboard lock can capture Ctrl; in the Steam build it is free. **(placeholder: C for slide)**
@@ -88,10 +90,13 @@ From the shop (70 coins each) and chests (Ultimate RPG Pack models):
 | Item | Does |
 |---|---|
 | Heart | Heals half your health. |
-| Silver armour plate | A shield of half your health (the blue bar). |
-| Gold sword | A sword with 40 uses, into your hand. |
-| Ring with a red gem | +25% damage, for the rest of the run. Rings stack. **(placeholder: stacking)** |
-| Ring with blue gems | +20% run speed (running and sliding; not the dash), for the rest of the run. **(placeholder: what it speeds)** |
+| Silver armour plate | 20 shield (the blue bar). (Update 0.0.17, the designer: was half your health.) |
+| Gold armour (Update 0.0.17) | 40 shield. |
+| Gold sword | A sword with 40 uses, into the next weapon slot and your hand. |
+| Red ring | +15 max health (and the health to fill it), for the rest of the run. (Update 0.0.17, the designer: was +25% damage.) Rings stack. **(placeholder: stacking)** |
+| Purple ring (Update 0.0.17) | +25% damage, for the rest of the run. |
+| Green ring (Update 0.0.17) | +15% melee attack speed (jabs and slashes), for the rest of the run. |
+| Blue ring | +15% run speed (running and sliding; not the dash), for the rest of the run. (Update 0.0.17: was 20%.) |
 | Key | Opens a chest. |
 | White key (Update 0.0.16) | Opens a chest: rare or better. Pale silver, a blue aura. |
 | Gold key (Update 0.0.16) | Opens a chest: epic or legendary. Gold, a yellow aura. |
@@ -101,7 +106,8 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 ---
 
 ## 7. Money and style
-- Kills give money (Update 0.0.12): coins burst out of what you kill and fly to you: a grunt **2**, a spitter **4**, a brute **10**, the Demon **60** (out of its burst, Update 0.0.15). Elites will give more. Your coins show just above the health bar. **(placeholder amounts)**
+- Kills give money (Update 0.0.12): coins burst out of what you kill and fly to you. **Update 0.0.17 (the designer): half what they were:** a grunt **1**, a spitter **2**, a brute **5**, a leaper **2**, a stinger **1.5**, a wraith **2.5** (a half is one more coin half the time), the Demon **30** (out of its burst). Elites will give more.
+- **Kill bonuses (Update 0.0.17, the designer: like CoD Zombies' power-ups):** a kill may drop a snowflake (7 s: every melee hit freezes what it hits for 1 s; never a boss), gold ingots (10 s: +50% coins) or a blue potion (7 s: +30% speed), each 10%, at most 2 a fight room **(placeholder)**. Walk over one to take it; left lying, it fades after 20 s. Your coins show just above the health bar. **(placeholder amounts)**
 - **Style meter (D → C → B → A → S):** rises with variety, air kills, parries, throw kills and not getting hit; drops when you're hit or stop fighting.
 - Style multiplies money from ×1.0 at D to ×2.0 at S. **(placeholder)**
 - Money resets at the end of every run.

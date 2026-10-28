@@ -41,7 +41,7 @@ export const BOSS = group('boss', 'Demon (boss)', {
   rageSpeed: knob(1.25, 1, 2, 0.05, 'Rage speed', 'Its walk and charge are this much faster once it rages.'),
   summonGrunts: knob(4, 0, 8, 1, 'Summoned grunts', 'Grunts it calls when it roars, and again later.'),
   summonEvery: knob(18, 5, 60, 1, 'Summon every', 'Seconds between calls once it rages (only when fewer than two are left).'),
-  demonCoins: knob(60, 0, 300, 5, 'Demon coins', 'Coins that burst out of it.'),
+  demonCoins: knob(30, 0, 300, 5, 'Demon coins', 'Coins that burst out of it.'),
   doomLift: knob(2.5, 0, 6, 0.1, 'Death lift', 'How high its body rises when it dies (m).'),
   doomRise: knob(0.35, 0.1, 1.5, 0.05, 'Death rise', 'Seconds it takes to rise.'),
   doomHang: knob(0.9, 0, 3, 0.05, 'Death hang', 'Seconds it hangs frozen in the air.'),
