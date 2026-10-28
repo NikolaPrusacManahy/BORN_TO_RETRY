@@ -84,6 +84,25 @@ def main():
     bars = protos.get('kit_p1_Arch_bars')
     for g in data['gates'] if bars else []:
         place(bars, {'x': g['x'], 'y': 0, 'z': g['z'], 'rot': g['rot'], 'sx': 1.69, 'sy': 1.12, 'sz': 1})
+    # Update 0.0.13 — the walls' and ledges' solid cores (dark), and the slab under the floor.
+    core_mat = bpy.data.materials.new('Core')
+    core_mat.use_nodes = True
+    core_mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = (0.196, 0.147, 0.096, 1)
+    verts, faces = [], []
+    for b in data.get('cores', []):
+        c = to_blender(b['x'], b['y'], b['z'])
+        hx, hy, hz = b['w'] / 2, b['d'] / 2, b['h'] / 2
+        k = len(verts)
+        verts += [(c.x + sx * hx, c.y + sy * hy, c.z + sz * hz) for sz in (-1, 1) for sy in (-1, 1) for sx in (-1, 1)]
+        faces += [(k + a, k + b_, k + c_, k + d) for a, b_, c_, d in ((0, 1, 3, 2), (4, 6, 7, 5), (0, 4, 5, 1), (2, 3, 7, 6), (0, 2, 6, 4), (1, 5, 7, 3))]
+    if verts:
+        me = bpy.data.meshes.new('Cores')
+        me.from_pydata(verts, [], faces)
+        me.materials.append(core_mat)
+        cores = bpy.data.objects.new('Cores', me)
+        bpy.context.scene.collection.objects.link(cores)
+        bpy.ops.mesh.primitive_plane_add(size=1000, location=(0, 0, -0.45))
+        bpy.context.active_object.data.materials.append(core_mat)
     for pad in data['pads']:
         bpy.ops.mesh.primitive_cylinder_add(radius=0.85, depth=0.08, location=to_blender(pad['x'], 0.04, pad['z']))
     scene = bpy.context.scene

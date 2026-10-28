@@ -6,6 +6,8 @@
 // Update 0.0.13 — the fog pushed back and two more torch lights, for rooms twice the size. Then day time (the designer:
 // way too dark to play): the dungeon is open to the sky, so a sun overhead (its shadows follow you), a bright sky light
 // filling the shade, a pale haze far off instead of black fog; the torches stay as warm accents. Dungeon light tab.
+// The walls and ledges have solid dark cores and the floor a dark slab under it, so no notch between the kit's pieces
+// shows the sky.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { DungeonLevel } from '../world/dungeon/assemble';
@@ -23,6 +25,11 @@ const GROUND_LIGHT = 0x7d6a55;
 const SUN = 0xfff0d6;
 const SUN_DIR = new THREE.Vector3(-0.45, 1, 0.35).normalize();
 const SHADOW_REACH = 40;
+/** The cores' colour (the kit's darkest brick, Wall_Dark, linear) and the under-floor slab's (the floor's, darker); how
+ *  far under the floor the slab is (m). */
+const CORE = new THREE.Color().setRGB(0.196, 0.147, 0.096);
+const UNDER = new THREE.Color().setRGB(0.045, 0.043, 0.062);
+const UNDER_Y = -0.45;
 /** Torch lights that follow you, and how often they move to the nearest torches (s). */
 const LIGHTS = 8;
 const RELIGHT = 0.25;
@@ -80,6 +87,7 @@ export class DungeonView implements ArenaView {
     }
     this.pads();
     this.exitGlow();
+    this.solid();
     this.loaded = loadKit
       ? new GLTFLoader()
           .loadAsync(KIT_URL)
@@ -153,6 +161,29 @@ export class DungeonView implements ArenaView {
     }
     this.mats.push(mat);
     return mat;
+  }
+
+  /** The walls' and ledges' cores, and the slab under the whole floor. */
+  private solid() {
+    const cores = this.dressing.cores;
+    const box = new THREE.BoxGeometry(1, 1, 1);
+    const coreMat = new THREE.MeshStandardMaterial({ color: CORE, roughness: 1 });
+    const inst = new THREE.InstancedMesh(box, coreMat, cores.length);
+    cores.forEach((b, i) => {
+      pos.set(b.x, b.y, b.z);
+      scale.set(b.w, b.h, b.d);
+      inst.setMatrixAt(i, m.compose(pos, q.identity(), scale));
+    });
+    inst.computeBoundingSphere();
+    inst.receiveShadow = true;
+    const size = this.level.arena.boxes.reduce((s, b) => Math.max(s, Math.abs(b.x) + b.w / 2, Math.abs(b.z) + b.d / 2), 0) * 2 + 20;
+    const plane = new THREE.PlaneGeometry(size, size).rotateX(-Math.PI / 2);
+    const underMat = new THREE.MeshStandardMaterial({ color: UNDER, roughness: 1 });
+    const under = new THREE.Mesh(plane, underMat);
+    under.position.y = UNDER_Y;
+    this.group.add(inst, under);
+    this.mats.push(coreMat, underMat);
+    this.geos.push(box, plane);
   }
 
   private pads() {

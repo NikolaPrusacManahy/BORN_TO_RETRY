@@ -5,9 +5,14 @@
 // the way down, wall torches, a few banners, and bones, skulls and rocks along the walls. Pure and seeded.
 // Update 0.0.13 — the shop: a red carpet before its tiles and a tall candelabrum at each end of them (the tiles, their
 // items and the chests are drawn by engine/treasureView.ts).
+// Update 0.0.13 — solid cores inside the walls and ledges (the designer saw the sky through them in daylight): the kit's
+// brick faces have jagged edges, so where two meet at a corner, or a wall meets the floor, notches opened onto the empty
+// cell behind. A plain dark block now fills each wall and ledge cell, set just behind its faces (only on the sides that
+// have faces: next to another wall it reaches the cell's edge, so no crack runs through), so a notch shows shadow.
 import { createRng } from '../../core/rng';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, Side } from './floorPlan';
 import { HEIGHT } from './assemble';
+import type { ArenaBox } from '../arena';
 import type { Cell } from './rooms';
 
 export interface Placement {
@@ -35,6 +40,8 @@ export interface Dressing {
   gates: GateLook[];
   /** Where torch flames burn (for the lights). */
   torches: { x: number; y: number; z: number }[];
+  /** Update 0.0.13 — the solid cores of the wall and ledge cells (boxes, behind their faces). */
+  cores: ArenaBox[];
 }
 
 /** Kit pieces (export_dungeon_kit.py names). */
@@ -61,6 +68,11 @@ export const ARCH_SCALE: [number, number, number] = [1.75, 1.2, 1];
 export const BARS_SCALE: [number, number, number] = [1.69, 1.12, 1];
 const WALL_PIECE = 2;
 const WALL_DEPTH = 0.44;
+/** A core sits this far behind its faces' fronts (inside their depth), from below the floor to just under the top: the
+ *  wall's caps, or a ledge's top tiles (0.25 thick). */
+export const CORE_INSET = 0.2;
+export const CORE_BOTTOM = -0.5;
+const CORE_TOP_GAP: Partial<Record<Cell, number>> = { wall: 0.02, ledge: 0.3, highLedge: 0.3 };
 const TORCH_REACH = 0.55;
 const TORCH_Y = 2.2;
 
@@ -198,5 +210,31 @@ export function dress(plan: FloorPlan): Dressing {
   }
   // The way down.
   put(KIT.trapdoor, plan.exit.x, 0.01, plan.exit.z);
-  return { pieces, gates, torches };
+  return { pieces, gates, torches, cores: coresOf(plan) };
+}
+
+/** A core for every wall and ledge cell, pulled back from each side that has faces (one that looks onto lower ground). */
+function coresOf(plan: FloorPlan): ArenaBox[] {
+  const cores: ArenaBox[] = [];
+  const top = (c: Cell) => (c === 'wall' ? HEIGHT.wall! : c === 'ledge' || c === 'highLedge' ? height(c) : 0);
+  for (let row = 0; row < GRID; row++) {
+    for (let col = 0; col < GRID; col++) {
+      const c = cellAt(plan, col, row);
+      const h = top(c);
+      if (h === 0) continue;
+      // A side has faces when the cell beside it is lower ground (as the faces are placed above: not the void outside,
+      // not a doorway, whose arch covers it).
+      const faced = (dc: number, dr: number) => {
+        const n = cellAt(plan, col + dc, row + dr);
+        return surface(n) && n !== 'door' && top(n) < h;
+      };
+      const w0 = faced(-1, 0) ? CORE_INSET : 0;
+      const w1 = faced(1, 0) ? CORE_INSET : 0;
+      const d0 = faced(0, -1) ? CORE_INSET : 0;
+      const d1 = faced(0, 1) ? CORE_INSET : 0;
+      const y1 = h - CORE_TOP_GAP[c]!;
+      cores.push({ x: cellX(col) + (w0 - w1) / 2, y: (CORE_BOTTOM + y1) / 2, z: cellZ(row) + (d0 - d1) / 2, w: CELL - w0 - w1, h: y1 - CORE_BOTTOM, d: CELL - d0 - d1, kind: 'wall' });
+    }
+  }
+  return cores;
 }

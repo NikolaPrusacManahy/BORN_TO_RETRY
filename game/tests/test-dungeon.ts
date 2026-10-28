@@ -17,9 +17,10 @@ import { GRID_RADIUS } from '../src/sim/enemies/kinds';
 import { buyWave, createDungeonRun, roomBudget, stepRooms, FIRST_WAVE, NEXT_WAVE } from '../src/sim/dungeon/roomLoop';
 import { createPlayer } from '../src/sim/player/state';
 import { buildDungeon } from '../src/world/dungeon/assemble';
-import { cellAt, colAt, FloorPlan, GRID, MAX_ROOM, PATH_FIGHTS, planFloor, rowAt } from '../src/world/dungeon/floorPlan';
+import { CELL, cellAt, cellX, cellZ, colAt, FloorPlan, GRID, MAX_ROOM, PATH_FIGHTS, planFloor, rowAt } from '../src/world/dungeon/floorPlan';
 import { Cell, EXIT_ROOM, FIGHT_ROOMS, layOut, SHOP_ROOM, START_ROOM } from '../src/world/dungeon/rooms';
-import { dress, KIT } from '../src/world/dungeon/dressing';
+import { CORE_INSET, dress, KIT } from '../src/world/dungeon/dressing';
+import { HEIGHT } from '../src/world/dungeon/assemble';
 import { buildNavGrid, colOf, freeAt, rowOf } from '../src/world/navGrid';
 
 section('Dungeon — the rooms');
@@ -216,5 +217,34 @@ section('Dungeon — the look');
   check('day time: a light sky, the haze far off', sky.r + sky.g + sky.b > 2 && fog.near >= 40);
   check('a sun overhead, its shadows round you', !!sun && sun.castShadow && sun.intensity >= 2 && sun.position.y > 50 && Math.hypot(sun.target.position.x - 10, sun.target.position.z + 20) < 1e-6);
   check('a bright sky light filling the shade', !!fill && fill.intensity >= 1);
+  // Update 0.0.13 — the designer saw the sky through the walls' corners and feet: solid cores behind the brick faces,
+  // and a slab under the floor.
+  check('the walls and ledges are solid inside, and the floor has a slab under it', view.group.children.some((o) => o instanceof THREE.InstancedMesh && o.count === look.cores.length) && view.group.children.some((o) => o instanceof THREE.Mesh && o.position.y < -0.3 && o.position.y > -1));
   view.dispose();
+  const solid = (c: Cell) => c === 'wall' || c === 'ledge' || c === 'highLedge';
+  const inside = (b: { x: number; z: number; w: number; d: number }, x: number, z: number) => Math.abs(x - b.x) <= b.w / 2 + 1e-6 && Math.abs(z - b.z) <= b.d / 2 + 1e-6;
+  let unfilled = 0;
+  let poking = 0;
+  for (let row = 0; row < GRID; row++) {
+    for (let col = 0; col < GRID; col++) {
+      if (!solid(cellAt(level.plan, col, row))) continue;
+      const x = cellX(col);
+      const z = cellZ(row);
+      const core = look.cores.find((b) => inside(b, x, z));
+      if (!core || core.y - core.h / 2 > -0.4) {
+        unfilled++;
+        continue;
+      }
+      // Towards lower ground (where the brick faces are) it stays behind them; towards more wall it reaches the edge.
+      for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const n = cellAt(level.plan, col + dc, row + dr);
+        const edge = dc !== 0 ? core.x + (dc * core.w) / 2 : core.z + (dr * core.d) / 2;
+        const boundary = (dc !== 0 ? x : z) + ((dc || dr) * CELL) / 2;
+        const back = (boundary - edge) * (dc || dr);
+        const faced = n !== 'void' && n !== 'wall' && n !== 'door' && !(solid(n) && (HEIGHT[n] ?? 0) >= (HEIGHT[cellAt(level.plan, col, row)] ?? 0));
+        if (faced ? back < CORE_INSET - 1e-6 : back > 1e-6) poking++;
+      }
+    }
+  }
+  check('every wall and ledge cell is filled, set back behind its faces and flush with the walls beside it', unfilled === 0 && poking === 0, `${unfilled} unfilled, ${poking} sides wrong`);
 }

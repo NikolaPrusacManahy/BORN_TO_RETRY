@@ -26,7 +26,10 @@ const cams = [
   { name: 'start', at: [s.x, 1.6, s.z], to: [s.x + fx * 10, 1.4, s.z + fz * 10] },
   { name: 'room1', at: [r1.min.x + 2.5, 1.6, r1.min.z + 2.5], to: [mid.x, 1.2, mid.z] },
   { name: 'room1-high', at: [r1.max.x - 2, 7, r1.max.z - 2], to: [mid.x, 0, mid.z] },
+  // Update 0.0.13 — close to the start room's corner, looking into it and up it (where the sky showed through).
+  { name: 'corner', at: [s.x - 4, 1.6, s.z - 4], to: [s.x - 12, 1.2, s.z - 12] },
+  { name: 'corner-up', at: [s.x - 9.5, 1.6, s.z - 9.5], to: [s.x - 12, 5, s.z - 12] },
 ];
 const extent = { min: { x: Math.min(...level.rooms.map((r) => r.min.x)) - 4, z: Math.min(...level.rooms.map((r) => r.min.z)) - 4 }, max: { x: Math.max(...level.rooms.map((r) => r.max.x)) + 4, z: Math.max(...level.rooms.map((r) => r.max.z)) + 4 } };
-writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ seed, floor, pieces: d.pieces, gates: d.gates, torches: d.torches, pads: level.arena.pads, exit: level.exit, cams, extent }));
+writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ seed, floor, pieces: d.pieces, gates: d.gates, torches: d.torches, cores: d.cores, pads: level.arena.pads, exit: level.exit, cams, extent }));
 console.log(`seed ${seed} floor ${floor}: ${level.rooms.length} rooms (${level.plan.rooms.map((r) => r.layout.template.id).join(', ')}), ${d.pieces.length} pieces, ${level.arena.boxes.length} boxes`);

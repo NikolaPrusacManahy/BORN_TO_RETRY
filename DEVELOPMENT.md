@@ -63,7 +63,7 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `world/dungeon/fightRooms.ts` | Update 0.0.13 — the nine fight rooms at twice the size, each drawn as its top-left quarter and mirrored |
 | `world/dungeon/floorPlan.ts` | A floor from a seed: rooms on a 5 × 5 board (the way, the shop and maybe a fight off it; Update 0.0.13 — columns and rows as wide as their rooms), chests, doors, corridors, all stamped on one grid of 2 m cells |
 | `world/dungeon/assemble.ts` | The floor as a level: merged collision boxes, jump pads, a gate per doorway, and per room its inside, spawns, gates and its own arena (for its walk grid) |
-| `world/dungeon/dressing.ts` | Where each Modular Dungeon Pack piece goes (walls three high with caps, floor tiles, arches, columns, crates, ledges, spikes, torches, banners, litter) |
+| `world/dungeon/dressing.ts` | Where each Modular Dungeon Pack piece goes (walls three high with caps, floor tiles, arches, columns, crates, ledges, spikes, torches, banners, litter); Update 0.0.14 — the walls' and ledges' solid cores |
 | `sim/dungeon/roomLoop.ts` | The room loop: in a fight room its gates shut, waves bought from its budget (Update 0.0.13: weighted over the kinds open to the room), gates open when it's clear; the way down; rooms visited; each room's walk grids (walkers, the brute, fliers) |
 | `sim/dungeon/treasure.ts` | Update 0.0.13 — the shop's offers (always a key) and buying with E; the chests' loot (seeded), opening one with a key (you kneel), its loot coming out as the lid is up |
 | `sim/items/items.ts` | Update 0.0.13 — the items (heart, plate, gold sword, rings, key), what each does when taken, what you carry (keys, rings) and the damage and speed it gives |
