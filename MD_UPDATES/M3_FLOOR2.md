@@ -17,7 +17,7 @@ Status: built (2026-10-28), from the designer's list:
   - a version above that costs 100 (for example armour at 50 and 70).
 - "The prices are the basic prices along the game. Every new floor up increases the shop prices by 15% every time."
 
-Models: Ultimate Monsters, from the designer's folders `ASSETS/QUATERNIUS/Ultimate Monsters/{big,blob,flying,boss}/`. Exported by `tools/blender/export_monster.py` to `game/public/models/enemies/` as `spider`, `bluedemon`, `slime`, `frog`, `snake`, `wasp` and `dragon.glb`.
+Models: Ultimate Monsters, from the designer's folders `ASSETS/QUATERNIUS/Ultimate Monsters/{big,blob,flying,boss}/` (since Update 0.0.21 in `used_monster/`). Exported by `tools/blender/export_monster.py` to `game/public/models/enemies/` as `spider`, `bluedemon`, `slime`, `frog`, `snake`, `wasp` and `dragon.glb`.
 - These models come from the pack's newer set: their clip names carry the monster's name (`Spider_Walk`), and they have no hit clips (a flinch plays the idle).
 - The Wasp's model faces sideways and is turned in the view.
 - Some of the files were saved in pose mode, so the script now selects objects by hand.

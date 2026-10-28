@@ -1,0 +1,40 @@
+/* Update 0.0.21 — enemies left in the fight: a skull and the count, top middle (where the boss's bar goes in its room);
+   the count pops when it drops. */
+.rb-hud-left {
+  position: absolute;
+  top: 28px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transform: translateX(-50%) skewX(-10deg);
+  zoom: var(--rb-ui);
+  pointer-events: none;
+}
+
+.rb-hud-skull {
+  width: 26px;
+  height: 26px;
+  color: #ece6ee;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8));
+}
+
+.rb-hud-left-n {
+  font-family: var(--rb-font);
+  font-weight: 700;
+  font-size: 30px;
+  color: #ece6ee;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+  animation: rb-left-pop 0.25s ease-out;
+}
+
+@keyframes rb-left-pop {
+  from {
+    transform: scale(1.35);
+    color: #ff6a45;
+  }
+  to {
+    transform: scale(1);
+    color: #ece6ee;
+  }
+}

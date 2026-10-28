@@ -9,6 +9,9 @@
 // Update 0.0.17 — frozen (the snowflake bonus): it stands still, its attack paused, until the ice wears off.
 // Update 0.0.18 — the Dragon's fire beam (a phase of its own) and a burst's shots; the enemy world knows every enemy
 // (the beam burns them).
+// Update 0.0.21 — the Dragon up in the sky (a phase of its own: it doesn't fall), its fire bombs, and how long you've
+// stayed close to it. A perched enemy (a spitter on a high ledge, floor 3) stands on its ledge: it falls only to it,
+// and hits don't slide it off.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
@@ -16,12 +19,13 @@ import type { CollisionWorld, MoveResult } from '../collisionWorld';
 import type { CombatEvent } from '../combat/state';
 import type { Orb } from '../combat/targets';
 import type { Quake } from '../combat/quakes';
+import type { Bomb } from '../combat/bombs';
 import type { Rng } from '../../core/rng';
 import type { PlayerState } from '../player/state';
 import type { Flow } from './chase';
 import { ENEMY_STATS, EnemyKind, flies, SizeClass } from './kinds';
 
-export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive' | 'charge' | 'stun' | 'roar' | 'intro' | 'breath';
+export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive' | 'charge' | 'stun' | 'roar' | 'intro' | 'breath' | 'sky';
 
 export interface Enemy {
   /** The slot is in use (a live enemy, or a body still lying there). */
@@ -56,6 +60,9 @@ export interface Enemy {
   stage: number;
   /** Update 0.0.18 — shots fired in this burst (the Dragon's fireballs). */
   shots: number;
+  /** Update 0.0.21 — seconds you've stayed close (the Dragon's flame burst); the ledge it stands on (m; 0: the floor). */
+  near: number;
+  perch: number;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -68,6 +75,7 @@ export interface EnemyWorld {
   rng: Rng;
   events: EventQueue<CombatEvent>;
   enemies: Enemy[];
+  bombs: Bomb[];
 }
 
 export const ENEMY_POOL = 16;
@@ -102,6 +110,8 @@ export function createEnemies(): Enemy[] {
     move: 0,
     stage: 0,
     shots: 0,
+    near: 0,
+    perch: 0,
   }));
 }
 
@@ -131,6 +141,8 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.move = 0;
   e.stage = 0;
   e.shots = 0;
+  e.near = 0;
+  e.perch = 0;
   return i;
 }
 
@@ -187,19 +199,21 @@ export function beginTick(e: Enemy, nav: NavGrid, dt: number): boolean {
   e.cooldown = Math.max(0, e.cooldown - dt);
   if (e.phase === 'dead') {
     // A body in the air falls (a boss's is placed by its death show).
-    if (e.pos.y > 0 && !ENEMY_STATS[e.kind]().boss) {
+    if (e.pos.y > e.perch && !ENEMY_STATS[e.kind]().boss) {
       e.vel.y -= FALL * dt;
-      e.pos.y = Math.max(0, e.pos.y + e.vel.y * dt);
+      e.pos.y = Math.max(e.perch, e.pos.y + e.vel.y * dt);
     }
     if (e.t >= ENEMY_STATS[e.kind]().deathTime) e.alive = false;
     return false;
   }
   // A walker in the air with no leap to carry it (knocked out of one) falls.
-  if (!flies(e.kind) && e.phase !== 'leap' && e.pos.y > 0) {
+  if (!flies(e.kind) && e.phase !== 'leap' && e.phase !== 'sky' && e.pos.y > e.perch) {
     e.vel.y -= FALL * dt;
-    e.pos.y = Math.max(0, e.pos.y + e.vel.y * dt);
-    if (e.pos.y === 0) e.vel.y = 0;
+    e.pos.y = Math.max(e.perch, e.pos.y + e.vel.y * dt);
+    if (e.pos.y === e.perch) e.vel.y = 0;
   }
+  // Perched: hits don't slide it off its ledge.
+  if (e.perch > 0) e.vel.set(0, 0, 0);
   if (grounded(e)) pushOutOfWalls(nav, e.pos, radiusOf(e));
   const slide = Math.hypot(e.vel.x, e.vel.z);
   if (slide > 0.01) {

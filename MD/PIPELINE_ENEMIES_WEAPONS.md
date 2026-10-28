@@ -2,6 +2,8 @@
 
 M2. Enemies come from Quaternius's **Ultimate Monsters** (in `ASSETS/QUATERNIUS/Ultimate Monsters/`, unzipped beside each zip: `big`, `blob`, `flying`); weapons from the **Ultimate RPG Pack**. Both are flat colour (the monsters through one small palette texture).
 
+**Update 0.0.21 — the designer's sorting:** every monster already in the game lives in `Ultimate Monsters/used_monster/`, by role: `Boss/` (Demon, Dragon), `mini_boss/` (Yeti, Spider, BlueDemon), `flying/` (Armabee, Ghost, Wasp), `blobs/` (Orc, Wizard, Ninja, Slime, Frog, Snake), each with a copy of `Atlas_Monsters.png`. What's left in `big/`, `blob/`, `flying/` and `boss/` isn't used yet; a monster that comes into the game moves to `used_monster/`. (Same-named files can be different models: `blob/Orc` is the round blob Orc, the game's is the big one. The paths below are from when each was exported.)
+
 ## An enemy: `game/tools/blender/export_monster.py`
 Exports one monster with its skinned mesh, anything on its rig (the Orc's club), every animation (Idle, Run, Walk, Weapon, Punch, HitReact, Death, Jump…) and its palette texture.
 

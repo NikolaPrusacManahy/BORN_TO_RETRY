@@ -2,8 +2,9 @@
 // rising inhale before the beam, a crackle before the fireballs, a growl before the swoop, air gathering before the
 // wing, a rattle before the tail), the beam's roar for as long as it burns, the fireball's whoosh, the wing's blast of
 // air, the tail's crack, its scream, and an enemy sizzling away in the beam.
+// Update 0.0.21 — a fire bomb's falling whistle and its burst; the flame burst's charge (a swelling roar) and blast.
 import type { CombatEvent } from '../sim/combat/state';
-import { BREATH, CLAWS, FIREBALLS, WING } from '../sim/enemies/dragonMoves';
+import { BREATH, BURST, CLAWS, FIREBALLS, WING } from '../sim/enemies/dragonMoves';
 import { DRAGON } from '../tuning/dragon';
 import type { AudioEngine } from './audio';
 import { noise, tone } from './synth';
@@ -25,7 +26,10 @@ export function playDragon(a: AudioEngine, kind: CombatEvent, value: number, far
         tone(a, { from: 55, to: 120, dur: v.clawWindup, gain: 0.45 * loud, type: 'sawtooth' });
         noise(a, { dur: v.clawWindup, gain: 0.2 * loud, filter: 'bandpass', from: 250, to: 800, q: 2 });
       } else if (value === WING) noise(a, { dur: v.wingWindup, gain: 0.35 * loud, filter: 'bandpass', from: 300, to: 1300, q: 1 });
-      else {
+      else if (value === BURST) {
+        tone(a, { from: 50, to: 160, dur: v.burstWindup, gain: 0.5 * loud, type: 'sawtooth' });
+        noise(a, { dur: v.burstWindup, gain: 0.4 * loud, filter: 'bandpass', from: 200, to: 2600, q: 1 });
+      } else {
         noise(a, { dur: v.tailWindup, gain: 0.25 * loud, filter: 'highpass', from: 2500, to: 5000 });
         tone(a, { from: 130, to: 90, dur: v.tailWindup, gain: 0.2 * loud, type: 'square' });
       }
@@ -50,6 +54,17 @@ export function playDragon(a: AudioEngine, kind: CombatEvent, value: number, far
       tone(a, { from: 300, to: 760, dur: v.screamTime, gain: 0.4 * loud, type: 'sawtooth' });
       tone(a, { from: 312, to: 730, dur: v.screamTime, gain: 0.25 * loud, type: 'square' });
       noise(a, { dur: v.screamTime, gain: 0.4 * loud, filter: 'bandpass', from: 800, to: 3200, q: 1 });
+      return true;
+    case 'dragonBomb':
+      tone(a, { from: 1400, to: 300, dur: v.bombFall, gain: 0.12 * loud, type: 'sine' });
+      return true;
+    case 'bombBlast':
+      noise(a, { dur: 0.5, gain: 0.6 * far, filter: 'lowpass', from: 2400, to: 90 });
+      tone(a, { from: 90, to: 30, dur: 0.45, gain: 0.55 * far });
+      return true;
+    case 'dragonBurst':
+      noise(a, { dur: 0.9, gain: 0.8 * loud, filter: 'lowpass', from: 3200, to: 70 });
+      tone(a, { from: 70, to: 22, dur: 0.8, gain: 0.8 * loud, type: 'sawtooth' });
       return true;
     case 'burnt':
       noise(a, { dur: 0.35, gain: 0.3 * far, filter: 'highpass', from: 3500, to: 1500 });

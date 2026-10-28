@@ -52,7 +52,6 @@ import type { Levels, RunCallbacks } from './runLinks';
 import { Look } from './look';
 import { BossShow } from './boss/bossShow';
 import { TreasureView } from './treasureView';
-import { mapOf } from './mapFeed';
 import { applyMoveEvents } from './moveFeedback';
 import { HudFeed, fillDebug } from './overlayFeed';
 import { Viewmodel } from './viewmodel/viewmodel';
@@ -285,7 +284,7 @@ export class Run {
     if (!shot.cinematic) this.arms.render(renderer, aspect);
 
     fillDebug(debug, p, this.combat);
-    this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d ? mapOf(d) : null, this.look.yaw, this.show.hud, choosing ?? '');
+    this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d, this.look.yaw, this.show.hud, choosing ?? '');
     // Dead: once it's black, a new run (the dungeon) or the lab's start. The way down: the next floor.
     if (this.death.update(real)) {
       if (d) this.load(this.levels.fresh(), false);

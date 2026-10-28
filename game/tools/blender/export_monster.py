@@ -5,7 +5,7 @@
 #
 # Run (from game/):
 #   blender --background --disable-autoexec --python tools/blender/export_monster.py -- \
-#     --blend "<Ultimate Monsters>/big/.../Orc.blend" --glb public/models/enemies/orc.glb --previews <folder>
+#     --blend "<Ultimate Monsters>/used_monster/blobs/Orc.blend" --glb public/models/enemies/orc.glb --previews <folder>
 import argparse
 import math
 import os

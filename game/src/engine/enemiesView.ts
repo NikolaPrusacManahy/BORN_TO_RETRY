@@ -116,6 +116,8 @@ function roleFor(phase: EnemyPhase, attackOver: boolean): Role {
       return 'air';
     case 'breath':
       return 'attack';
+    case 'sky':
+      return 'air';
     case 'stun':
       return 'hit';
     case 'roar':

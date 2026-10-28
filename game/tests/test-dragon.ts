@@ -10,10 +10,11 @@ import { arenaWorld, OPEN_WORLD } from './fakes/enemyWorld';
 import { EventQueue } from '../src/core/eventQueue';
 import { createRng } from '../src/core/rng';
 import { updateOrbs } from '../src/sim/combat/orbs';
+import { updateBombs } from '../src/sim/combat/bombs';
 import { createCombat, CombatEvent } from '../src/sim/combat/state';
 import { introBeats } from '../src/sim/dungeon/bossRoom';
 import { createDungeonRun, stepRooms } from '../src/sim/dungeon/roomLoop';
-import { BREATH, CLAWS, FIREBALLS, TAIL, WING } from '../src/sim/enemies/dragonMoves';
+import { BREATH, BURST, CLAWS, FIREBALLS, TAIL, WING } from '../src/sim/enemies/dragonMoves';
 import { createEnemies, Enemy, EnemyWorld, hitEnemy, isLive, setPhase, spawnEnemy } from '../src/sim/enemies/enemy';
 import { bossOf, doomTime } from '../src/sim/enemies/kinds';
 import { updateEnemies } from '../src/sim/enemies/update';
@@ -59,6 +60,7 @@ function run(f: Fight, secs: number, each?: () => void) {
     each?.();
     updateEnemies(f.all, f.p, f.w, OPEN_WORLD, DT);
     updateOrbs(f.w.orbs, f.p, new FlatWorld(), events, DT);
+    updateBombs(f.w.bombs, f.p, events, DT);
     f.p.hurtTime = Math.max(0, f.p.hurtTime - DT);
     seen.push(...kinds());
     events.clear();
@@ -138,7 +140,8 @@ section('Dragon — rage and death');
   check('it never flinches', f.d.phase !== 'flinch');
   f.d.hp = v.dragonHp * v.rageAt - 1;
   const a = run(f, 0.05);
-  check('at half health it screams', a.seen.filter((k) => k === 'dragonScream').length === 1 && f.d.stage === 1 && f.d.phase === 'roar');
+  // (Update 0.0.21 — the designer: raging, it flies up to bomb you; it no longer stands and roars.)
+  check('at half health it screams and takes to the sky', a.seen.filter((k) => k === 'dragonScream').length === 1 && f.d.stage === 1 && f.d.phase === 'sky');
   const b = run(f, v.screamTime + 0.05);
   check('once', !b.seen.includes('dragonScream') && f.d.phase !== 'roar');
   hitEnemy(f.d, 1e9, 0, 0, 0);
@@ -186,8 +189,9 @@ section('Dragon — floor 2’s boss room');
   tick(0.5, () => {
     p.hp = 100;
   });
-  const wasps = combat.enemies.filter((e) => isLive(e) && e.kind === 'wasp').length;
-  check(`raging, it calls ${v.summonWasps} wasps`, wasps === v.summonWasps);
+  // (Update 0.0.21 — the designer: no more spawning wasps.)
+  const minions = combat.enemies.filter((e) => isLive(e) && e.kind !== 'dragon').length;
+  check('raging, it calls no wasps (nor anything)', minions === 0 && boss.phase === 'sky');
 }
 
 section('Dragon — close, it strikes; far, it burns (Update 0.0.20)');
@@ -224,4 +228,69 @@ section('Dragon — close, it strikes; far, it burns (Update 0.0.20)');
   check(`the beam charges ${v.breathWindup} s, aimed at you all the while (the warning line), harmless meanwhile`, v.breathWindup === 1.5 && !charge.seen.includes('dragonBreath') && !charge.hurt && Math.hypot(f.d.aim.x, f.d.aim.z) < 5 && f.d.phase === 'windup');
   const fire = run(f, 0.2);
   check('then it fires', fire.seen.includes('dragonBreath') && fire.hurt);
+}
+
+section('Dragon — the sky bombardment (Update 0.0.21)');
+{
+  // The designer: its second phase starts with it flying up and bombing the ground with massive fireballs, their
+  // landing shown; 5 to 8 s in the air.
+  const f = fight(new Vector3(0, 0, -12));
+  f.d.hp = v.dragonHp * v.rageAt - 1;
+  let top = 0;
+  let marked = 0;
+  let bombs = 0;
+  let longest = 0;
+  const spots: number[] = [];
+  let px = f.p.pos.x;
+  let pz = f.p.pos.z;
+  const a = run(f, v.skyMax + v.skyRise + 1, () => {
+    f.p.hurtTime = 0;
+    top = Math.max(top, f.d.pos.y);
+    const alive = f.w.bombs.filter((b) => b.alive);
+    marked = Math.max(marked, alive.length);
+    // (Each bomb just thrown, against where you stood as it was thrown: the last tick.)
+    for (const b of alive) if (b.t > 0 && b.t <= DT * 1.01) spots.push(Math.hypot(b.to.x - px, b.to.z - pz));
+    px = f.p.pos.x;
+    pz = f.p.pos.z;
+    if (f.d.phase === 'sky') longest = f.d.t;
+  });
+  bombs = a.seen.filter((k) => k === 'dragonBomb').length;
+  check(`it flies up (${v.skyAlt} m)`, near(top, v.skyAlt, 0.05));
+  check(`and bombs the ground with fireballs (${bombs}), each landing spot known from the throw`, bombs >= 6 && marked >= 2 && a.seen.filter((k) => k === 'bombBlast').length >= bombs - 3);
+  check('aimed at you or round you', spots.length > 0 && spots.every((d) => d <= v.bombSpread + 0.01) && spots.some((d) => d < 0.01));
+  check(`up there ${v.skyMin}–${v.skyMax} s, then back down to fight`, longest >= v.skyMin && longest <= v.skyMax + v.skyRise + 0.05 && f.d.pos.y === 0 && f.d.phase !== 'sky', longest.toFixed(2));
+  check('a bomb landing on you hurts', a.hurt);
+  // Out of a bomb's reach: unhurt.
+  const g = fight(new Vector3(0, 0, -12));
+  g.w.bombs[0].alive = true;
+  g.w.bombs[0].to.set(20, 0, 20);
+  g.w.bombs[0].from.set(20, 10, 20);
+  g.w.bombs[0].fall = 0.1;
+  g.w.bombs[0].radius = v.bombRadius;
+  g.w.bombs[0].damage = v.bombDamage;
+  g.d.cooldown = 99;
+  const b = run(g, 0.2);
+  check('away from where it lands, it misses', b.seen.includes('bombBlast') && !b.hurt);
+}
+
+section('Dragon — the flame burst (Update 0.0.21)');
+{
+  // The designer: stay near it too long (about 30 s) and it charges up and explodes in flames: run.
+  const f = fight(new Vector3(0, 0, -4));
+  f.d.near = v.burstAfter;
+  f.d.cooldown = 0;
+  const a = run(f, DT);
+  check('after you have stayed close too long, it charges a burst', f.d.phase === 'windup' && f.d.move === BURST && a.seen.includes('dragonWindup'));
+  const b = run(f, v.burstWindup + 0.05);
+  check(`then bursts into flame: close, you're hurt and thrown far`, b.seen.includes('dragonBurst') && b.hurt && Math.hypot(f.p.vel.x, f.p.vel.z) > 10);
+  const g = fight(new Vector3(0, 0, -4));
+  g.d.near = v.burstAfter;
+  g.d.cooldown = 0;
+  run(g, v.burstWindup * 0.5);
+  g.p.pos.set(0, 0, v.burstRadius + 4);
+  const c = run(g, v.burstWindup * 0.5 + 0.05);
+  check('run out of its reach while it charges and you are safe', c.seen.includes('dragonBurst') && !c.hurt);
+  const h = fight(new Vector3(0, 0, -4));
+  run(h, 3);
+  check('close for a while (3 s) counts up; it bursts only after Burst after', near(h.d.near, 3, 0.05) && h.d.move !== BURST);
 }

@@ -62,5 +62,16 @@ export function planWaves(depth: number, floor: number, rng: Rng): EnemyKind[][]
   return Array.from({ length: waves }, () => buyWave(Math.ceil(budget / waves), depth, floor, rng).sort((a, b) => COST[b] - COST[a]));
 }
 
+/** Update 0.0.21 — spitters to stand on a room's perches, in every wave of a room with them. **(placeholder)** */
+export const PERCHED = 2;
+
+/** Update 0.0.21 — a room with `perches`: every wave brings spitters to stand on them (as many as it has, up to
+ *  PERCHED). Rooms without perches are as planned. */
+export function perchWaves(waves: EnemyKind[][], perches: number): EnemyKind[][] {
+  const n = Math.min(perches, PERCHED);
+  if (n > 0) for (const w of waves) for (let i = 0; i < n; i++) w.push('spitter');
+  return waves;
+}
+
 /** A mini boss (a big one: the Yeti, the Spider, the Blue Demon) comes in these waves. */
 export const hasYeti = (waves: readonly EnemyKind[][]) => waves.some((w) => w.some((k) => MINI_BOSSES.includes(k)));

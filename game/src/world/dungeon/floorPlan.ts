@@ -13,8 +13,8 @@
 // chest (the Yeti carries its key); one more chest in another fight room, sometimes two.
 import { createRng, Rng } from '../../core/rng';
 import type { EnemyKind } from '../../sim/enemies/kinds';
-import { hasYeti, planWaves } from '../../sim/dungeon/wavePlan';
-import { BOSS_ROOM, Cell, FIGHT_ROOMS, layOut, RoomKind, RoomLayout, SHOP_ROOM, START_ROOM } from './rooms';
+import { hasYeti, perchWaves, planWaves } from '../../sim/dungeon/wavePlan';
+import { BOSS_ROOM, Cell, FIGHT_ROOMS, layOut, onFloor, RoomKind, RoomLayout, SHOP_ROOM, START_ROOM } from './rooms';
 import { NO_WAY_OUT, stampWayOut, WayOut } from './wayOut';
 
 /** Metres per cell; slots on the board; the largest room's side (cells); cells between neighbouring rooms' insides
@@ -121,8 +121,9 @@ function sideTo(a: [number, number], b: [number, number]): [Side, Side] {
 export function planFloor(seed: number, level: number): FloorPlan {
   const rng = createRng(seed * 7919 + level * 104729);
   const way = wayThrough(rng);
-  // Update 0.0.20 — only the rooms this floor has (the lava rooms come from floor 2).
-  const fights = FIGHT_ROOMS.filter((t) => (t.from ?? 1) <= level);
+  // Update 0.0.20 — only the rooms this floor has (the lava rooms come from floor 2; Update 0.0.21: floor 3 has only its
+  // own).
+  const fights = FIGHT_ROOMS.filter((t) => onFloor(t, level));
   for (let i = fights.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [fights[i], fights[j]] = [fights[j], fights[i]];
@@ -158,7 +159,7 @@ export function planFloor(seed: number, level: number): FloorPlan {
   };
   if (!sideRoom('shop', 2, 4)) sideRoom('shop', 1, PATH_FIGHTS);
   if (rng() < SIDE_FIGHT) sideRoom('fight', 1, PATH_FIGHTS);
-  for (const r of rooms) if (r.kind === 'fight') r.waves = planWaves(r.depth, level, createRng(seed * 7717 + level * 131 + r.index * 17));
+  for (const r of rooms) if (r.kind === 'fight') r.waves = perchWaves(planWaves(r.depth, level, createRng(seed * 7717 + level * 131 + r.index * 17)), r.layout.perches.length);
   placeChests(rooms, rng);
   for (const [a, b] of links) {
     const [sa, sb] = sideTo(rooms[a].slot, rooms[b].slot);

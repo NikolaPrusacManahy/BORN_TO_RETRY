@@ -114,6 +114,8 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 - Style multiplies money from ×1.0 at D to ×2.0 at S. **(placeholder)**
 - Money resets at the end of every run.
 
+- **Enemies left (Update 0.0.21, the designer):** in a fight, a skull and the number of enemies left (alive and still to come), top middle.
+
 ## 8. Shop and chests (Update 0.0.13, the designer)
 - **The shop** is a room with **five floor tiles**, each showing something to buy, turning above it with its price. One on every floor, a side room off the second to fourth fight room. **(placeholder: where)**
 - **Prices (Update 0.0.18, the designer):** an item's normal version **50**, a better version of it **70**, a version above that **100** (heart, silver plate, rings and the key 50; gold armour, gold sword and the white key 70; the gold key 100). These are floor 1's: **every floor down is +15%** (58 / 81 / 115 on floor 2). (Was 70 for everything.) **Update 0.0.16 (the designer):** the **heart and the armour plate are always there**; the other three tiles are drawn from the gold sword, the two rings and a key (normal 70%, white 25%, gold 5%), and the five are shuffled. Keys float on their tiles, standing on end, and turn.
@@ -151,6 +153,8 @@ Models come from Quaternius's Bestiary/Dungeon Monsters and Ultimate Monsters pa
 
 **Lava (Update 0.0.20, the designer):** some rooms from floor 2 on have lava pits (the lava lake, the lava bridges, the gauntlet), with walls in or beside the lava to wall-run across and a walkway round every pit. Falling in costs 50 health and puts you back at the floor's start (the fight you left starts over); with 50 or less, you die.
 
+**Floor 3's rooms (Update 0.0.21, the designer):** none of floors 1–2's rooms; the lava rooms and four of its own with an upper floor 2.5 m up (the keep, ramparts, towers, bridgeworks), reached by steps, jump pads and wall runs. Spitters stand on perches up there and shoot down: climb up and take them out.
+
 **Floor 3's look (Update 0.0.20, the designer):** grey stone (the dungeon pack's part 2): stone walls and floor, deep stone arches, stacked stone columns, and gates that are a portcullis dropping from above when a room shuts and drawn back up when it's won.
 
 **Poison (Update 0.0.18):** 3 damage a second for 4 s, straight off your health (not the shield); a new dose starts it over; the screen's edge pulses green. **(placeholder numbers)**
@@ -172,7 +176,9 @@ One per floor, three in total, each with 2 phases. Floor 1's is the Demon, floor
 - **Wing swing:** close in front, a wide sweep: 16 and blown away.
 - **Tail swing:** it spins, the tail sweeping all round it low: 20 (jump it).
 - **Its choices (Update 0.0.20, the designer):** close to it, its wing, tail and claws, more often; far off, the beam and fireballs; between, the swoop, the beam and fireballs.
-- **Phase 2 (half health):** it screams again and calls wasps; quicker, faster. **Death:** the Demon's show; 40 coins, a key, a heart. **(placeholder numbers)**
+- **Phase 2 (half health; Update 0.0.21, the designer):** it screams and flies up at once, 5–8 s in the air, bombing the ground round you with massive fireballs (each landing spot shows as a ring until it lands); then it's back down, quicker and faster. No minions (no more wasps).
+- **Flame burst (Update 0.0.21, the designer: rare):** stay close to it for about 30 s in all and it charges up (glowing, its reach ringed on the floor) and bursts into flame round it: run.
+- **Death:** the Demon's show; 40 coins, a key, a heart. **(placeholder numbers)**
 
 **The boss room (Update 0.0.15, the designer):** stepping in, the view leaves your eyes and rises over the room; its walls slide back as it grows; a portal opens in the middle and the boss rises out of it, takes its stance beside its name; the view glides back and the fight starts. Once it's dead, a wooden gate in the far wall swings open onto the dark: the way down.
 

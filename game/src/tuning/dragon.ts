@@ -2,6 +2,8 @@
 // the view); fire breath like a laser beam that burns anything in its line, its own side too; fireballs; its claws (a
 // swoop at you); a wing swing in front; a tail swing round it. At Rage at of its health it screams again, calls wasps
 // and gets faster. The death show is the Demon's (tuning/boss.ts). Placeholders past the designer's words.
+// Update 0.0.21 (the designer) — no more wasps; raging, it flies up for 5–8 s and bombs the ground with fireballs (their
+// landing spots shown); and a flame burst round it when you've stayed close too long.
 import { group, knob } from './schema';
 
 export const DRAGON = group('dragon', 'Dragon (boss)', {
@@ -51,8 +53,24 @@ export const DRAGON = group('dragon', 'Dragon (boss)', {
   ragePause: knob(0.6, 0.2, 1, 0.05, 'Dragon rage pauses', 'Its pauses take this share as long once it rages.'),
   rageSpeed: knob(1.25, 1, 2, 0.05, 'Dragon rage speed', 'Its flight and swoop are this much faster once it rages.'),
   screamShake: knob(0.9, 0, 2, 0.05, 'Scream shake', 'How hard its scream shakes the view.'),
-  summonWasps: knob(3, 0, 8, 1, 'Summoned wasps', 'Wasps it calls when it rages, and again later.'),
-  summonEvery: knob(20, 5, 60, 1, 'Dragon summon every', 'Seconds between calls once it rages (only when fewer than two are left).'),
+  skyAlt: knob(12, 5, 25, 0.5, 'Sky height', 'How high it flies to bomb you (m).'),
+  skyRise: knob(0.8, 0.2, 3, 0.05, 'Sky climb', 'Seconds it takes to fly up, and to come down.'),
+  skyMin: knob(5, 1, 15, 0.5, 'Sky time least', 'It stays up at least this long (s).'),
+  skyMax: knob(8, 1, 20, 0.5, 'Sky time most', 'And at most this long (s).'),
+  skyKeep: knob(9, 0, 30, 0.5, 'Sky distance', 'Up there it keeps this far off you (m).'),
+  skyDrift: knob(4, 0, 15, 0.5, 'Sky drift', 'How fast it drifts after you up there (m/s).'),
+  bombGap: knob(0.5, 0.1, 2, 0.05, 'Bomb gap', 'Seconds between its fire bombs.'),
+  bombFall: knob(1.2, 0.4, 3, 0.05, 'Bomb fall', 'Seconds a bomb takes to land: its spot glows meanwhile.'),
+  bombRadius: knob(3.5, 1, 8, 0.25, 'Bomb blast', 'How far a bomb’s burst reaches (m).'),
+  bombDamage: knob(25, 1, 100, 1, 'Bomb damage', 'To you, inside a burst.'),
+  bombShove: knob(12, 0, 30, 0.5, 'Bomb shove', 'How hard a burst throws you (m/s).'),
+  bombSpread: knob(6, 0, 15, 0.5, 'Bomb spread', 'Bombs not aimed right at you land within this of you (m).'),
+  burstNear: knob(6, 2, 15, 0.5, 'Burst range', 'Closer than this (m), you count as too close.'),
+  burstAfter: knob(30, 3, 120, 1, 'Burst after', 'Seconds too close (it forgets slowly when you step away) before it bursts into flame.'),
+  burstWindup: knob(1.8, 0.5, 4, 0.05, 'Burst charge', 'The warning (s): it glows white-hot and a ring shows the blast.'),
+  burstRadius: knob(9, 3, 20, 0.5, 'Burst reach', 'How far its flames reach (m).'),
+  burstDamage: knob(35, 1, 100, 1, 'Burst damage', 'To you, in the flames.'),
+  burstShove: knob(20, 0, 40, 0.5, 'Burst shove', 'How hard the flames throw you (m/s).'),
   dragonCoins: knob(40, 0, 300, 5, 'Dragon coins', 'Coins that burst out of it.'),
   labDragons: knob(0, 0, 1, 1, 'Lab dragon', 'A dragon in the Feel Lab waves (to try the fight).'),
 });

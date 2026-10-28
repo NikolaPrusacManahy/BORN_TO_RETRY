@@ -5,11 +5,12 @@
 // gold, then red once it rages; its beam (beamView.ts) runs from its head to where the fire stops. Killed, its death
 // show is the Demon's (bossTint.ts, demonFx.ts). Clips run on game time.
 // Update 0.0.19 — measured from its skinned body (bodyMeasure.ts), as the newer pack's are.
+// Update 0.0.21 — up in the sky it flaps hard; its flame burst's charge glows white-hot (a lunge, as it screams).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { CombatState } from '../../sim/combat/state';
 import { dragonWindup } from '../../sim/enemies/dragon';
-import { BREATH, CLAWS, FIREBALLS, TAIL, WING } from '../../sim/enemies/dragonMoves';
+import { BREATH, BURST, CLAWS, FIREBALLS, TAIL, WING } from '../../sim/enemies/dragonMoves';
 import type { Enemy } from '../../sim/enemies/enemy';
 import { doomTime } from '../../sim/enemies/kinds';
 import { DRAGON } from '../../tuning/dragon';
@@ -43,6 +44,7 @@ const GLOW: Record<number, [number, number, number]> = {
   [CLAWS]: [1, 0.08, 0.03],
   [WING]: [0.95, 0.9, 0.35],
   [TAIL]: [0.7, 0.2, 1],
+  [BURST]: [1, 0.85, 0.6],
 };
 
 const at = new THREE.Vector3();
@@ -178,7 +180,7 @@ export class DragonView {
         role = e.pos.y < -0.05 ? 'fly' : 'lunge';
         break;
       case 'windup':
-        role = e.move === BREATH || e.move === FIREBALLS ? 'lunge' : 'strike';
+        role = e.move === BREATH || e.move === FIREBALLS || e.move === BURST ? 'lunge' : 'strike';
         break;
       case 'breath':
         role = 'lunge';
@@ -209,7 +211,7 @@ export class DragonView {
     a.lunge.timeScale = screaming ? SCREAM / Math.max(0.3, v.screamTime) : held || a.lunge.time >= LUNGE ? 0 : LUNGE / dragonWindup(e, e.move);
     // Claws out through the swoop.
     a.strike.timeScale = e.phase === 'windup' ? STRIKE / dragonWindup(e, e.move) : e.phase === 'charge' && a.strike.time >= STRIKE ? 0 : 1;
-    a.fly.timeScale = e.stage > 0 ? 1.3 : 1;
+    a.fly.timeScale = e.phase === 'sky' ? 1.7 : e.stage > 0 ? 1.3 : 1;
     // Killed: the pose freezes in the air.
     a.down.timeScale = a.down.time >= DOWN ? 0 : 1;
     this.mixer!.update(dt);

@@ -11,12 +11,18 @@
 // Update 0.0.15 — the boss room replaces the exit room (and its trapdoor): the way down is now a wooden gate in its far
 // wall, onto the dark (floorPlan.ts stamps the gate and the dark beyond it).
 // Update 0.0.20 — L: a lava pit (lavaRooms.ts); a template may wait for a floor (`from`).
+// Update 0.0.21 — U: a perch (a high ledge where a spitter stands: keepRooms.ts); a template may stop at a floor
+// (`until`).
 import type { Rng } from '../../core/rng';
 import { FIGHT_ROOMS as FIRST_ROOMS, quarter } from './fightRooms';
 import { LAVA_ROOMS } from './lavaRooms';
+import { KEEP_ROOMS } from './keepRooms';
 
-/** Every fight room (Update 0.0.20: the lava rooms too, from their floor on). */
-export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...LAVA_ROOMS];
+/** Every fight room (Update 0.0.20: the lava rooms too, from their floor on; Update 0.0.21: floor 3's). */
+export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...LAVA_ROOMS, ...KEEP_ROOMS];
+
+/** Update 0.0.21 — the rooms floor `floor` has. */
+export const onFloor = (t: RoomTemplate, floor: number) => (t.from ?? 1) <= floor && floor <= (t.until ?? Infinity);
 
 export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava';
 export type RoomKind = 'start' | 'fight' | 'boss' | 'shop';
@@ -25,8 +31,9 @@ export interface RoomTemplate {
   id: string;
   kind: RoomKind;
   rows: string[];
-  /** Update 0.0.20 — the first floor it comes on (1 when not given). */
+  /** Update 0.0.20 — the first floor it comes on (1 when not given). Update 0.0.21 — and the last. */
   from?: number;
+  until?: number;
 }
 
 const CHAR: Record<string, Cell> = {
@@ -44,6 +51,7 @@ const CHAR: Record<string, Cell> = {
   T: 'floor',
   S: 'tile',
   L: 'lava',
+  U: 'highLedge',
 };
 
 export const START_ROOM: RoomTemplate = {
@@ -108,6 +116,8 @@ export interface RoomLayout {
   /** Update 0.0.13 — where a chest may stand, and the shop's display tiles (in reading order). */
   chestSpots: [number, number][];
   tiles: [number, number][];
+  /** Update 0.0.21 — perches (on high ledges): where spitters stand. */
+  perches: [number, number][];
 }
 
 /** The template's characters, turned and mirrored: what's at (col, row) of the varied room. */
@@ -132,14 +142,16 @@ export function layOut(t: RoomTemplate, rng: Rng): RoomLayout {
   const spawns: [number, number][] = [];
   const chestSpots: [number, number][] = [];
   const tiles: [number, number][] = [];
+  const perches: [number, number][] = [];
   for (let row = 0; row < h; row++) {
     for (let col = 0; col < w; col++) {
       const ch = sourceChar(t, col, row, turn, flipX, flipZ);
       if (ch === 'E') spawns.push([col, row]);
       if (ch === 'T') chestSpots.push([col, row]);
       if (ch === 'S') tiles.push([col, row]);
+      if (ch === 'U') perches.push([col, row]);
       cells.push(ch === '?' ? (rng() < 0.5 ? 'low' : 'floor') : CHAR[ch] ?? 'floor');
     }
   }
-  return { template: t, w, h, cells, spawns, chestSpots, tiles };
+  return { template: t, w, h, cells, spawns, chestSpots, tiles, perches };
 }

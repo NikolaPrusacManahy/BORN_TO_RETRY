@@ -36,7 +36,10 @@ function bonusSig(combat: CombatState): number {
   for (const k of BONUS_KINDS) sig = sig * 64 + Math.ceil((combat.bonuses[k] / bonusLength(k)) * BONUS_STEP);
   return sig;
 }
-import type { DebugInfo, HudStore, MapView } from './hudStore';
+import type { DebugInfo, HudStore } from './hudStore';
+import { mapOf } from './mapFeed';
+import { enemiesLeft } from '../sim/dungeon/enemyCount';
+import type { DungeonRun } from '../sim/dungeon/roomLoop';
 import { CELL, GRID } from '../world/dungeon/floorPlan';
 
 /** HUD refresh interval (s); hits, hurts and health changes push at once. */
@@ -60,8 +63,11 @@ export class HudFeed {
   constructor(private readonly hud: HudStore) {}
 
   /** `hits`: how many times you've been hurt, and your shield hit (each new one flashes the screen's edge). */
-  push(real: number, p: PlayerState, fb: CombatFeedback, hits: { hurts: number; shields: number }, combat: CombatState, map: MapView | null, yaw: number, show: ShowHud, keyPick: KeyKind | '') {
+  /** Update 0.0.21 — `run`: the floor (null: the Lab), for its minimap and the enemies left. */
+  push(real: number, p: PlayerState, fb: CombatFeedback, hits: { hurts: number; shields: number }, combat: CombatState, run: DungeonRun | null, yaw: number, show: ShowHud, keyPick: KeyKind | '') {
     const cur = this.hud.get();
+    const map = run ? mapOf(run) : null;
+    const left = enemiesLeft(run, combat);
     const hp = Math.ceil(p.hp);
     const shield = Math.ceil(p.shield);
     const weapon = combat.weapon;
@@ -78,7 +84,7 @@ export class HudFeed {
     const rings = cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.greenRings === it.greenRings && cur.purpleRings === it.purpleRings;
     const sig = slotSig(combat);
     const bonus = bonusSig(combat);
-    if (this.timer > 0 && same && shown && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map) return;
+    if (this.timer > 0 && same && shown && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left) return;
     this.bonus = bonus;
     const bonusLeft: Record<string, number> = {};
     for (const k of BONUS_KINDS) bonusLeft[k] = Math.ceil((combat.bonuses[k] / bonusLength(k)) * BONUS_STEP) / BONUS_STEP;
@@ -121,6 +127,7 @@ export class HudFeed {
       veil: show.veil,
       floorName: show.floorName,
       poisoned: p.poison > 0 && !p.dead,
+      enemiesLeft: left,
     });
   }
 }

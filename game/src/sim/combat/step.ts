@@ -25,6 +25,7 @@ import { aim, resolvePunch } from './punch';
 import { slamImpact } from './slamHit';
 import { updateCoins } from './coins';
 import { updateQuakes } from './quakes';
+import { updateBombs } from './bombs';
 import { updateDrops } from '../items/drops';
 import { updateBonuses } from '../items/bonuses';
 import { attackRate } from '../items/items';
@@ -92,6 +93,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   }
   updateEnemies(state.enemies, player, state, world, dt);
   updateQuakes(state.quakes, player, events, dt);
+  updateBombs(state.bombs, player, events, dt);
   updateWaves(state.waves, state.enemies, spawns, player, state.rng, events, dt);
   updateThrown(state, world, dt);
   state.money = updateCoins(state.coins, player, state.money, events, dt);

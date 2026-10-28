@@ -29,6 +29,18 @@ function RingIcon({ gem }: { gem: string }) {
   );
 }
 
+/** Update 0.0.21 — the enemies-left count's mark. */
+function Skull() {
+  return (
+    <svg className="rb-hud-skull" viewBox="0 0 24 24" aria-hidden>
+      <path d="M12 2C6.5 2 3 5.8 3 10.4c0 2.8 1.3 4.7 3 5.9V20a1 1 0 0 0 1 1h2v-2h2v2h2v-2h2v2h2a1 1 0 0 0 1-1v-3.7c1.7-1.2 3-3.1 3-5.9C21 5.8 17.5 2 12 2z" fill="currentColor" />
+      <circle cx="8.6" cy="11" r="2.3" fill="#120c10" />
+      <circle cx="15.4" cy="11" r="2.3" fill="#120c10" />
+      <path d="M12 13.6l-1.4 2.4h2.8z" fill="#120c10" />
+    </svg>
+  );
+}
+
 function Carried({ n, children }: { n: number; children: JSX.Element }) {
   if (n <= 0) return null;
   return (
@@ -48,6 +60,14 @@ export function Hud({ store }: { store: HudStore }) {
       {s.hurts > 0 && <div key={`h${s.hurts}`} className="rb-hud-hurt" />}
       {s.shields > 0 && <div key={`s${s.shields}`} className="rb-hud-shieldhit" />}
       {s.poisoned && <div className="rb-hud-poison" />}
+      {s.enemiesLeft >= 0 && s.bossHp < 0 && (
+        <div className="rb-hud-left">
+          <Skull />
+          <span key={s.enemiesLeft} className="rb-hud-left-n">
+            {s.enemiesLeft}
+          </span>
+        </div>
+      )}
       {s.map && <Minimap map={s.map} x={s.mapX} z={s.mapZ} yaw={s.mapYaw} />}
       <div className="rb-hud-money">
         <i className="rb-hud-coin" />

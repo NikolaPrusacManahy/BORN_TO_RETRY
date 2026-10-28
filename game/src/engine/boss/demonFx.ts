@@ -9,7 +9,7 @@ import type { CombatState } from '../../sim/combat/state';
 import { windupOf } from '../../sim/enemies/demon';
 import { CHARGE } from '../../sim/enemies/demonMoves';
 import { dragonWindup } from '../../sim/enemies/dragon';
-import { CLAWS, TAIL, WING } from '../../sim/enemies/dragonMoves';
+import { BURST, CLAWS, TAIL, WING } from '../../sim/enemies/dragonMoves';
 import { RADIUS } from '../../sim/enemies/kinds';
 import { DRAGON } from '../../tuning/dragon';
 import { QUAKE_POOL } from '../../sim/combat/quakes';
@@ -80,7 +80,7 @@ export class DemonFx {
     if (d && swooping) this.showLane(d.pos, d.facing, d.t, Math.min(1, d.t / dragonWindup(d, CLAWS)), dv.dragonHeight * 0.4, dv.clawRange);
     // Where its leap lands; how far the Dragon's wing or tail will sweep.
     const leaping = !!e && e.phase === 'leap';
-    const swinging = !!d && d.phase === 'windup' && (d.move === WING || d.move === TAIL);
+    const swinging = !!d && d.phase === 'windup' && (d.move === WING || d.move === TAIL || d.move === BURST);
     this.landing.visible = leaping || swinging;
     if (e && leaping) {
       const k = Math.min(1, e.t / v.leapAir);
@@ -91,7 +91,7 @@ export class DemonFx {
     if (d && swinging) {
       const k = Math.min(1, d.t / dragonWindup(d, d.move));
       this.landing.position.set(d.pos.x, d.pos.y + 0.06, d.pos.z);
-      this.landing.scale.setScalar((d.move === WING ? dv.wingReach : dv.tailReach) + RADIUS.dragon);
+      this.landing.scale.setScalar((d.move === WING ? dv.wingReach : d.move === BURST ? dv.burstRadius : dv.tailReach) + RADIUS.dragon);
       (this.landing.material as THREE.MeshBasicMaterial).opacity = 0.3 + 0.7 * k;
     }
     // The quake rings: a band of light as far out as each has rolled, fading as it goes.

@@ -23,6 +23,8 @@ export const FIREBALLS = 1;
 export const CLAWS = 2;
 export const WING = 3;
 export const TAIL = 4;
+/** Update 0.0.21 — its flame burst (when you've stayed close too long). */
+export const BURST = 5;
 /** A swoop ending with nothing in its way: a short stop (s). */
 const RUN_OUT = 0.6;
 /** Its mouth: this share of its height up (above its hover), this share of its radius in front. */
@@ -144,6 +146,17 @@ export function wingSwing(d: Enemy, index: number, player: PlayerState, w: Enemy
   const off = Math.abs(Math.atan2(Math.sin(toward - d.facing), Math.cos(toward - d.facing)));
   if (dist > v.wingReach + radiusOf(d) || off > (v.wingArc * Math.PI) / 360 || player.pos.y - d.pos.y > v.dragonHeight) return;
   if (damagePlayer(player, v.wingDamage)) throwOff(player, dx, dz, dist, d, v.wingShove, 4);
+}
+
+/** Update 0.0.21 — it bursts into flame: within Burst reach round it you're hurt and thrown far (run). */
+export function flameBurst(d: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
+  const v = DRAGON.v;
+  w.events.push('dragonBurst', index, d.pos.x, d.pos.y + 0.1, d.pos.z);
+  const dx = player.pos.x - d.pos.x;
+  const dz = player.pos.z - d.pos.z;
+  const dist = Math.hypot(dx, dz);
+  if (dist > v.burstRadius + radiusOf(d) || player.pos.y - d.pos.y > v.dragonHeight) return;
+  if (damagePlayer(player, v.burstDamage)) throwOff(player, dx, dz, dist, d, v.burstShove, 7);
 }
 
 /** It spins: the tail sweeps all round it, low (jump it). */

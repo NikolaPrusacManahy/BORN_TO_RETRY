@@ -6,6 +6,7 @@ import type { EventQueue } from '../../src/core/eventQueue';
 import type { CombatEvent } from '../../src/sim/combat/state';
 import { createOrbs } from '../../src/sim/combat/targets';
 import { createQuakes } from '../../src/sim/combat/quakes';
+import { createBombs } from '../../src/sim/combat/bombs';
 import { createRng } from '../../src/core/rng';
 import { createFlow } from '../../src/sim/enemies/chase';
 import type { Enemy, EnemyWorld } from '../../src/sim/enemies/enemy';
@@ -21,7 +22,7 @@ export const OPEN_WORLD = new FlatWorld();
 export const OPEN_ARENA: Arena = { name: 'open', boxes: [], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] };
 
 export function worldFor(events: EventQueue<CombatEvent>, small: NavGrid, large: NavGrid = small, air: NavGrid = small, enemies: Enemy[] = []): EnemyWorld {
-  return { nav: { small, large, air }, flow: { small: createFlow(small), large: createFlow(large), air: createFlow(air) }, orbs: createOrbs(), quakes: createQuakes(), rng: createRng(1), events, enemies };
+  return { nav: { small, large, air }, flow: { small: createFlow(small), large: createFlow(large), air: createFlow(air) }, orbs: createOrbs(), quakes: createQuakes(), rng: createRng(1), events, enemies, bombs: createBombs() };
 }
 
 /** An arena's grids for both sizes. */

@@ -211,7 +211,7 @@ export class CombatFeedback {
           this.f.targets.respawned(state, e.x, e.z);
           break;
         default:
-          foes2Feedback(this.f, e.kind, at, back, this.nearHere);
+          foes2Feedback(this.f, e.kind, e.value, at, back, this.nearHere);
           break;
       }
     }

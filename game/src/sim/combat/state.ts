@@ -15,6 +15,7 @@ import { createFlow, Flow } from '../enemies/chase';
 import { createEnemies, Enemy } from '../enemies/enemy';
 import { Coin, createCoins } from './coins';
 import { Quake, clearQuakes, createQuakes } from './quakes';
+import { Bomb, clearBombs, createBombs } from './bombs';
 import { createDrops, Drop } from '../items/drops';
 import { Bonuses, createBonuses } from '../items/bonuses';
 import { createBag } from '../weapons/slots';
@@ -148,6 +149,10 @@ export type CombatEvent =
   | 'dragonTail'
   | 'dragonScream'
   | 'burnt'
+  // Update 0.0.21 — the Dragon throwing a fire bomb from the sky, a bomb bursting (value = its radius), its flame burst.
+  | 'dragonBomb'
+  | 'bombBlast'
+  | 'dragonBurst'
   // M2 — weapons: picked up (value = its uses), dropped, worn out, a throw begun and let go, broken on impact, back
   // on the stand.
   | 'pickup'
@@ -167,6 +172,8 @@ export interface CombatState {
   waves: Waves;
   /** Update 0.0.15 — quake rings rolling over the floor. */
   quakes: Quake[];
+  /** Update 0.0.21 — the Dragon's fire bombs falling. */
+  bombs: Bomb[];
   /** Update 0.0.11 — where enemies can walk (built once from the arena, one grid per size), and the way from anywhere
    *  to the player. */
   nav: Record<SizeClass, NavGrid>;
@@ -218,6 +225,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     enemies: createEnemies(),
     waves: createWaves(),
     quakes: createQuakes(),
+    bombs: createBombs(),
     nav,
     flow: { small: createFlow(nav.small), large: createFlow(nav.large), air: createFlow(nav.air) },
     weapon: null,
@@ -251,6 +259,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   for (const e of state.enemies) e.alive = false;
   state.waves = createWaves();
   clearQuakes(state.quakes);
+  clearBombs(state.bombs);
   state.flow.small.target = state.flow.large.target = state.flow.air.target = -1;
   state.weapon = null;
   state.bag = createBag();

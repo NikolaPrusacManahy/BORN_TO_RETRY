@@ -163,7 +163,14 @@ function sendWave(run: DungeonRun, i: number, player: PlayerState, combat: Comba
   const kinds = room.waves[run.rooms[i].wave];
   const far = room.spawns.filter((s) => Math.hypot(s.x - player.pos.x, s.z - player.pos.z) >= SPAWN_CLEAR);
   let pool: Spot[] = [...(far.length > 0 ? far : room.spawns)];
+  // Update 0.0.21 — spitters take the perches no one stands on, first.
+  const perches = room.perches.filter((p) => !combat.enemies.some((e) => isLive(e) && e.perch > 0 && Math.hypot(e.pos.x - p.x, e.pos.z - p.z) < 0.5));
   for (const kind of kinds) {
+    if (kind === 'spitter' && perches.length > 0) {
+      const slot = spawnAt(combat.enemies, kind, perches, player, rng, combat.events);
+      if (slot >= 0) combat.enemies[slot].perch = combat.enemies[slot].pos.y;
+      continue;
+    }
     if (pool.length === 0) pool = [...room.spawns];
     spawnAt(combat.enemies, kind, pool, player, rng, combat.events);
   }

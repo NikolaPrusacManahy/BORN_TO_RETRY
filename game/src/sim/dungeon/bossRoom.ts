@@ -4,7 +4,8 @@
 // every grunt dies with it; its body hangs, sinks and bursts (demon.ts), leaving coins, a key and a heart; then the
 // wooden gate swings open onto the dark (the way down), and the room's own gates lift. Pure and seeded.
 // Update 0.0.18 — each floor its boss (kinds.ts bossOf): floor 2's is the Dragon. It screams as its stance starts (the
-// view shakes), and raging it calls wasps.
+// view shakes). Update 0.0.21 (the designer) — the Dragon calls no wasps (raging, it bombs you from the sky); its bombs
+// go with it when it dies.
 import type { Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import { BOSS } from '../../tuning/boss';
@@ -13,6 +14,7 @@ import { CINEMA } from '../../tuning/cinema';
 import { burstCoins } from '../combat/coins';
 import { coinsFor } from '../items/bonuses';
 import { clearQuakes } from '../combat/quakes';
+import { clearBombs } from '../combat/bombs';
 import type { CombatState } from '../combat/state';
 import { hitEnemy, isLive, setPhase, spawnEnemy } from '../enemies/enemy';
 import { ENEMY_STATS, EnemyKind } from '../enemies/kinds';
@@ -50,23 +52,23 @@ export function createBossRun(kind: EnemyKind = 'demon'): BossRun {
   return { kind, stance: false, beat: 'waiting', t: 0, slot: -1, summon: 0, calling: false };
 }
 
-/** Update 0.0.18 — who a boss calls once it rages, how many, how often (s), and the coins it leaves. */
+/** Update 0.0.18 — who a boss calls once it rages, how many and how often (s) (Update 0.0.21: only the Demon calls). */
 interface Calls {
   kind: EnemyKind;
   count: number;
   every: number;
-  coins: number;
 }
-const CALLS: Calls = { kind: 'grunt', count: 0, every: 0, coins: 0 };
+const CALLS: Calls = { kind: 'grunt', count: 0, every: 0 };
 
-function callsOf(kind: EnemyKind): Calls {
-  const dragon = kind === 'dragon';
-  CALLS.kind = dragon ? 'wasp' : 'grunt';
-  CALLS.count = dragon ? DRAGON.v.summonWasps : BOSS.v.summonGrunts;
-  CALLS.every = dragon ? DRAGON.v.summonEvery : BOSS.v.summonEvery;
-  CALLS.coins = dragon ? DRAGON.v.dragonCoins : BOSS.v.demonCoins;
+function callsOf(kind: EnemyKind): Calls | null {
+  if (kind !== 'demon') return null;
+  CALLS.count = BOSS.v.summonGrunts;
+  CALLS.every = BOSS.v.summonEvery;
   return CALLS;
 }
+
+/** The coins a boss leaves. */
+const coinsOf = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : BOSS.v.demonCoins);
 
 /** The show's beats, in seconds from stepping in. */
 export interface IntroBeats {
@@ -174,13 +176,13 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
         break;
       }
       // Once it rages, it calls grunts: at once, then every so often while few are left.
-      if (boss.stage > 0 && !b.calling) {
+      if (calls && boss.stage > 0 && !b.calling) {
         b.calling = true;
         b.summon = 0;
       }
       if (b.calling) {
         b.summon -= dt;
-        if (b.summon <= 0 && minions(combat, b.slot) < CALL_UNDER) {
+        if (calls && b.summon <= 0 && minions(combat, b.slot) < CALL_UNDER) {
           b.summon = calls.every;
           call(spawns, player, combat, rng, calls);
         }
@@ -190,7 +192,7 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
       if (!boss || !boss.struck) break;
       // Its body has burst: what it leaves you.
       mid.set(boss.pos.x, boss.pos.y + height * 0.5, boss.pos.z);
-      combat.money += burstCoins(combat.coins, mid, coinsFor(calls.coins, combat, rng), rng);
+      combat.money += burstCoins(combat.coins, mid, coinsFor(coinsOf(b.kind), combat, rng), rng);
       for (const kind of LOOT) {
         takeItem(kind, player, combat);
         ev.push('bossLoot', ITEM_KINDS.indexOf(kind), mid.x, mid.y, mid.z);
@@ -227,6 +229,7 @@ function down(b: BossRun, slot: number, combat: CombatState) {
     ev.push('orbPop', 0, o.pos.x, o.pos.y, o.pos.z);
   }
   clearQuakes(combat.quakes);
+  clearBombs(combat.bombs);
 }
 
 function minions(combat: CombatState, slot: number): number {

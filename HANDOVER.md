@@ -2,7 +2,17 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.0.20
+## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.0.21
+- **Update 0.0.21 — floor 3's rooms, the Dragon's sky phase, enemies left** (the designer's list; spec `MD_UPDATES/M3_KEEP.md`).
+  - **ASSETS:** the 14 monsters in the game moved to `Ultimate Monsters/used_monster/{Boss,mini_boss,flying,blobs}/`, each with the atlas. What's left elsewhere is unused.
+  - **HUD:** enemies left in the fight (alive plus waves to come), top middle.
+  - **Dragon:**
+    - No wasps.
+    - At half health it flies up for 5–8 s and lobs fire bombs, their landing rings shown.
+    - Stay within 6 m of it for 30 s in all and it charges a flame burst (9 m).
+  - **Floor 3:**
+    - Only its own rooms: the three lava rooms plus the keep, ramparts, towers and bridgeworks. Each new room has an upper floor (2.5 m) with steps, pads and walls up to it.
+    - Perched spitters (2 a wave) stay up there and shoot down.
 - **Update 0.0.20 — lava rooms, floor 3's look, Dragon and snake balance** (the designer's list; spec `MD_UPDATES/M3_FLOOR3.md`).
   - **Frog and snake:** the Frog is 1.5× smaller (0.75 m). The snake is 1.5× faster (10.5 m/s), bites for half (4), and bites the moment it's close (0.1 s warning).
   - **Dragon:**

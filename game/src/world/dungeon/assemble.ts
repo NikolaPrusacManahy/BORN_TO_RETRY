@@ -85,6 +85,8 @@ export interface DungeonRoom {
   tiles: Spot[];
   /** Update 0.0.16 — its waves (a fight room's, planned with the floor). */
   waves: EnemyKind[][];
+  /** Update 0.0.21 — its perches: high-ledge spots where spitters stand (y: the ledge's top). */
+  perches: Spot[];
 }
 
 export interface DungeonLevel {
@@ -214,6 +216,7 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
       arena: { name: `room ${r.index}`, boxes: [floor, ...near, ...mine.map((g) => gates[g]), ...(r.index === out.room ? [woodGate] : [])], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] },
       chest: chests.findIndex((c) => c.room === r.index),
       tiles: r.layout.tiles.map(([c, row]) => ({ x: cellX(r.x0 + c), y: 0, z: cellZ(r.z0 + row) })),
+      perches: r.layout.perches.map(([c, row]) => ({ x: cellX(r.x0 + c), y: HEIGHT.highLedge!, z: cellZ(r.z0 + row) })),
       waves: r.waves,
     };
   });

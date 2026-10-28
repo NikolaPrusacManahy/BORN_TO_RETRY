@@ -46,7 +46,8 @@ const cams = [
 // Each lava room: from a corner high up, and from the walkway at eye height looking across the lava.
 for (const r of level.rooms) {
   const id = level.plan.rooms[r.index].layout.template.id;
-  if (!id.startsWith('lava') && id !== 'gauntlet') continue;
+  // (Update 0.0.21 — and floor 3's two-level rooms.)
+  if (!id.startsWith('lava') && !['gauntlet', 'the keep', 'ramparts', 'towers', 'bridgeworks'].includes(id)) continue;
   const m = { x: (r.min.x + r.max.x) / 2, z: (r.min.z + r.max.z) / 2 };
   cams.push({ name: `${id.replace(' ', '-')}-high`, at: [r.min.x + 3, 14, r.min.z + 3], to: [m.x, -1, m.z] });
   cams.push({ name: `${id.replace(' ', '-')}-eye`, at: [r.min.x + 5, 1.6, m.z + 1], to: [m.x, 0, m.z] });
