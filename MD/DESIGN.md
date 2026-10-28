@@ -116,11 +116,24 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 
 - **Constant pressure (Update 0.1.0, the designer):** a fight room never lets its field fall under 5 enemies while it has more to send: its first wave (at least 5), then one more each time one falls, until its plan is spent.
 - **Execution Power meter (Update 0.1.0, the designer):** a bar just above the dash charges, filled by kills (10 to fill). Update 0.1.1: twice the size, with the dash charges.
-- **Executions (Update 0.1.1, the designer: like Doom Eternal's):** with the meter full, **E** near an enemy you can execute (it pulses crimson; within 2.6 m, 60° of where you look) grabs it and empties the meter. Only the snake so far:
-  - Both hands seize its tail (like a rope or a bat: left hand on the tip, right beside it, arms never crossed), slam it into the floor ahead, swing it round your right and slam it there, then throw it 9 m ahead (short of a wall).
-  - Until you let go you can't be hurt and the world holds still; your view is turned with the moves.
-  - It dies where it lands (its kill doesn't refill the meter); enemies within 2.5 m take 40 and are knocked back.
-  - Spec: `MD_UPDATES/U011_EXECUTION.md`. **(placeholders)**
+- **Executions (Update 0.1.1, the designer: like Doom Eternal's):** with the meter full, **E** near an enemy you can execute (it pulses crimson; within 2.6 m of its edge, 60° of where you look) grabs it and empties the meter.
+  - Until you let go (or it dies in your hands) you can't be hurt and the world holds still; your view is turned with the moves.
+  - It dies as one kill (which doesn't refill the meter); enemies within 2.5 m of where it dies take 40 and are knocked back.
+  - **Update 0.1.2 — every enemy has one** (the designer: "it needs to look like the hands of the player are performing the move"), the bosses none:
+    - **Snake:** both hands round its tail (left on the tip, right beside it, arms never crossed); slam ahead, swing round your right, slam there, throw 9 m.
+    - **Orc:** both hands round one ankle; the snake's moves.
+    - **Wizard:** both palms on its sides; swung round your right and thrown at the nearest wall (16 m), where it bursts into pieces.
+    - **Ninja:** pulled in, each fist on a forearm; both arms torn off and flung aside; the right fist punches its face and it flies.
+    - **Slime:** both fists clasped into a hammer overhead, smashed down; it's left flat.
+    - **Frog:** its tongue shoots to your right hand; yanked up and whirled twice overhead; thrown high into the air.
+    - **Armabee:** both fists round its middle; smashed on the floor twice; it's left there.
+    - **Ghost:** both palms on its sides, crushed to a third of its width, thrown away.
+    - **Wasp:** left fist on its thorax, right on its abdomen; torn in half; both halves thrown on the floor.
+    - **Yeti:** the right fist drawn back, trembling; one punch to the belly; it bursts into pieces.
+    - **Spider:** three legs chopped off one by one (open hands); the hammer smashes it flat.
+    - **Blue Demon:** 30 punches, left and right in turn; one last; it bursts into pieces.
+  - Pieces are cut from the enemy's own model where its bones divide; they fly, bounce and lie for 6 s.
+  - Specs: `MD_UPDATES/U011_EXECUTION.md`, `MD_UPDATES/U012_EXECUTIONS.md`. **(placeholders)**
 - **Enemies left (Update 0.0.21, the designer):** in a fight, a skull and the number of enemies left (alive and still to come), top middle.
 
 ## 8. Shop and chests (Update 0.0.13, the designer)

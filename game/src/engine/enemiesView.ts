@@ -14,7 +14,7 @@
 // Wasp's model faces sideways; a charge plays the 'air' clip (the Blue Demon runs).
 // Update 0.0.19 — the newer pack's are measured from their skinned bodies (bodyMeasure.ts: the snake and the slime were
 // drawn 3 to 10 times too big).
-// Update 0.1.1 — one held in an execution is placed by it (execView.ts: its tail in your hands), thrashing; one you
+// Update 0.1.1 — one held in an execution is placed by it (exec/execScene.ts, after this), thrashing; one you
 // could execute now pulses crimson.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -28,7 +28,8 @@ import { FOES } from '../tuning/foes';
 import { FOES2 } from '../tuning/foes2';
 import { posedBounds } from './bodyMeasure';
 import { TongueView } from './tongueView';
-import { gripOf, holdStill, placeHeld, stillOf } from './execView';
+import { gripOf, stillOf } from './exec/body';
+import { moveOf } from '../sim/combat/execution';
 
 type Role = 'idle' | 'move' | 'attack' | 'hit' | 'death' | 'air';
 const ROLES: Role[] = ['idle', 'move', 'attack', 'hit', 'death', 'air'];
@@ -234,23 +235,20 @@ export class EnemiesView {
       b.root.scale.setScalar(scale);
       // The model faces +z; a facing of 0 faces −z.
       const turn = e.facing + Math.PI + (look.turn ?? 0);
-      if (e.phase === 'held' && state.exec.active && state.exec.target === i && b.root.userData.grip) placeHeld(b.root, state.exec, scale, b.root.userData.grip, turn, b.root.userData.lowest);
-      else {
-        b.root.position.copy(this.at.copy(e.prev).lerp(e.pos, alpha));
-        b.root.position.y -= b.root.userData.lowest * scale;
-        b.root.rotation.set(0, turn, 0);
-      }
+      b.root.position.copy(this.at.copy(e.prev).lerp(e.pos, alpha));
+      b.root.position.y -= b.root.userData.lowest * scale;
+      b.root.rotation.set(0, turn, 0);
       const attack = b.actions.attack;
       // A clip restarts when it changes, or when the same phase starts over (hit again mid-flinch); a wind-up's
       // attack carries on through the recovery.
       const again = slot.phase === e.phase && e.t < slot.t;
-      const want = roleFor(e.phase, attack.time >= attack.getClip().duration - 0.01);
+      // Update 0.1.2 — one standing in an execution stands still (one held thrashes).
+      const want = e.phase === 'held' && !moveOf(e.kind).held ? 'idle' : roleFor(e.phase, attack.time >= attack.getClip().duration - 0.01);
       if (want !== b.role || (again && ONCE.includes(want))) this.play(b, want);
       attack.timeScale = look.lands / windup;
       b.actions.move.timeScale = e.phase === 'held' ? 3 : 1;
       const ice = e.frozen > 0 ? 1 : 0;
-      if (!ice) b.mixer.update(dt);
-      if (e.phase === 'held') holdStill(b.root);
+      if (!ice && !b.root.userData.kept) b.mixer.update(dt);
       // Update 0.1.1 — you could execute it: a crimson pulse.
       const mark = state.execTarget === i ? 0.5 + 0.5 * Math.sin(e.t * 12) : 0;
       const flash = e.flash / 0.12 + mark * 0.3;
@@ -274,6 +272,12 @@ export class EnemiesView {
     if (b.role && b.role !== role) b.actions[b.role].fadeOut(FADE);
     next.reset().setEffectiveWeight(1).fadeIn(b.role ? FADE : 0).play();
     b.role = role;
+  }
+
+  /** Update 0.1.2 — the body drawn for enemy slot `i` (null if none). */
+  rootOf(i: number): THREE.Object3D | null {
+    const slot = this.slots[i];
+    return slot?.kind ? (slot.bodies[slot.kind]?.root ?? null) : null;
   }
 
   dispose() {

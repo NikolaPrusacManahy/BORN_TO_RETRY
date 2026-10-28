@@ -276,7 +276,7 @@ export class Run {
     tv.update(this.combat, this.camera.position, gameDt);
     this.arms.chest.update(tv.reach.k, tv.reach.left, tv.reach.right, this.camera, this.arms.camera);
     this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt, this.clock.alpha);
-    followHeld(this.combat.exec, execHeld(this.combat.exec), this.look, this.arms, this.camera, real);
+    followHeld(this.combat, this.look, this.arms, this.camera, real);
     const d = this.level.dungeon;
     if (d) this.view.update?.(gameDt, d, this.camera.position);
     const f = this.combat.fists;

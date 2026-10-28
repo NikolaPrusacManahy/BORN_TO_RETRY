@@ -6,7 +6,8 @@
 // Update 0.0.13 — kneeling at a chest, both fists reach for the lid and lift it (chestReach.ts); a held weapon is put
 // out of sight meanwhile.
 // Update 0.0.16 — in front of a chest, the left hand comes up palm open with the key you'll use (palm.ts).
-// Update 0.1.1 — in an execution, both hands hold the tail (heldGrip.ts), wrists bent to the grip.
+// Update 0.1.1 — in an execution, the hands do its moves (heldGrip.ts: gripping, punching, pressing, open or shut),
+// wrists bent to the grip. (Update 0.1.2: every execution's.)
 import * as THREE from 'three';
 import { ARMS } from '../../tuning/arms';
 import type { PlayerState } from '../../sim/player/state';
@@ -190,8 +191,8 @@ export class Viewmodel {
     const left = this.poseArm(rig, 'L', this.chargeVis, charge >= 1, armed * (1 - palm));
     if (palm > 0) mixArm(left, this.palm.pose(rig), palm, left);
     if (reach > 0) this.toChest(rig, 'L', left, reach);
-    rig.apply('L', left, v.wristBend + (1 - v.wristBend) * Math.max(palm, this.grip.weight));
-    rig.openHand('L', palm);
+    rig.apply('L', left, v.wristBend + (1 - v.wristBend) * Math.max(palm, this.grip.bend('L')));
+    rig.openHand('L', Math.max(palm, this.grip.open('L')));
     const right = this.poseArm(rig, 'R', this.chargeVis, charge >= 1, armed);
     if (armed > 0) {
       mixArm(right, this.poseSword(rig, charge >= 1), armed, right);
@@ -199,8 +200,9 @@ export class Viewmodel {
       rig.apply('R', right, v.wristBend + (1 - v.wristBend) * armed, this.elbow);
     } else {
       if (reach > 0) this.toChest(rig, 'R', right, reach);
-      rig.apply('R', right, v.wristBend + (1 - v.wristBend) * this.grip.weight);
+      rig.apply('R', right, v.wristBend + (1 - v.wristBend) * this.grip.bend('R'));
     }
+    rig.openHand('R', this.grip.open('R'));
     if (this.weapon) {
       this.weapon.visible = reach < 0.2;
       rig.holdMatrix(this.swordPose.tilt, v.weaponScale, v.swordGripSlide, this.weapon.matrix);
@@ -248,7 +250,7 @@ export class Viewmodel {
   private toChest(rig: ArmsRig, side: Side, out: ArmPose, k: number) {
     const r = this.reachPose;
     this.camera.updateMatrixWorld(true);
-    if (this.grip.weight > 0) return mixArm(out, this.grip.pose(rig, side, this.holder, this.camera, r), smooth(k), out);
+    if (this.grip.weight > 0) return mixArm(out, this.grip.pose(rig, side, this.holder, this.camera, out, r), smooth(k), out);
     this.holder.worldToLocal(this.camera.localToWorld(r.fist.copy(this.chest.aim[side])));
     r.knuckles.subVectors(r.fist, rig.between).normalize();
     r.back.set(0, 1, 0);

@@ -5,14 +5,14 @@
 // violet one all round (dust thrown up); a fireball leaves in sparks; an enemy caught in the beam bursts.
 // Update 0.0.21 — its fire bombs bursting (a ring as wide as each, dust, a jolt felt more the closer), its flame burst
 // (a great ring of fire, a hard jolt).
-// Update 0.1.1 — an execution: each slam into the floor (dust, chips, a ring, a hard jolt: the second harder), the
-// landing (a burst of dust).
+// Update 0.1.2 — an execution's are execFeedback.ts's.
 import * as THREE from 'three';
 import type { CombatEvent } from '../sim/combat/state';
 import { RADIUS } from '../sim/enemies/kinds';
 import { DRAGON } from '../tuning/dragon';
 import { FOES2 } from '../tuning/foes2';
 import type { FeedbackParts } from './combatFeedback';
+import { execFeedback } from './execFeedback';
 
 const UP = new THREE.Vector3(0, 1, 0);
 
@@ -57,18 +57,6 @@ export function foes2Feedback(f: FeedbackParts, kind: CombatEvent, value: number
       f.sparks.spawn(at, UP, 40, 1.8);
       f.rig.shake.add(0.8 * near(25));
       break;
-    case 'execSlam':
-      f.waves.spawn(at, 2.2, 0xffe0c0);
-      f.chunks.spawn(at, UP, 18, 1.1);
-      f.sparks.spawn(at, UP, 14, 1.2);
-      f.rig.shake.add(value >= 2 ? 0.75 : 0.55);
-      f.rig.kick(value >= 2 ? 2.6 : 1.8);
-      break;
-    case 'execLand':
-      f.chunks.spawn(at, UP, 20, 1.2);
-      f.waves.spawn(at, 3, 0xff8060);
-      f.rig.shake.add(0.3 * near(20));
-      break;
     case 'burnt':
       f.chunks.spawn(at, UP, 12, 1);
       f.sparks.spawn(at, back, 14, 1.2);
@@ -81,6 +69,7 @@ export function foes2Feedback(f: FeedbackParts, kind: CombatEvent, value: number
       f.sparks.spawn(at, back, 6, 0.9);
       break;
     default:
+      execFeedback(f, kind, value, at, back, near);
       break;
   }
 }

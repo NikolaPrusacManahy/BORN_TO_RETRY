@@ -159,6 +159,9 @@ export type CombatEvent =
   | 'execSlam'
   | 'execThrow'
   | 'execLand'
+  // Update 0.1.2 — a blow (value = which: execMoves.ts BLOWS), and it bursts or dies where it is (value = its slot).
+  | 'execBlow'
+  | 'execBurst'
   // M2 — weapons: picked up (value = its uses), dropped, worn out, a throw begun and let go, broken on impact, back
   // on the stand.
   | 'pickup'

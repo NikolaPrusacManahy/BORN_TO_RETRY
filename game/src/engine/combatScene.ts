@@ -4,6 +4,7 @@
 // Update 0.0.12 — and shockwaves (slams).
 // Update 0.0.15 — and the Demon (boss/demonView.ts) and what its moves draw (boss/demonFx.ts).
 // Update 0.0.18 — and the Dragon (boss/dragonView.ts). Update 0.0.21 — and its fire bombs (boss/bombView.ts).
+// Update 0.1.2 — and executions (exec/execScene.ts: the body, its pieces, the frog's tongue).
 import * as THREE from 'three';
 import type { AudioEngine } from '../audio/audio';
 import { CombatSounds } from '../audio/combatSounds';
@@ -16,6 +17,7 @@ import { DemonView } from './boss/demonView';
 import { DragonView } from './boss/dragonView';
 import { BombView } from './boss/bombView';
 import { EnemiesView } from './enemiesView';
+import { ExecScene } from './exec/execScene';
 import { Shockwaves } from './fx/shockwave';
 import { CoinsView } from './coinsView';
 import { TargetsView } from './targetsView';
@@ -25,6 +27,8 @@ import type { Viewmodel } from './viewmodel/viewmodel';
 export class CombatScene {
   readonly targets: TargetsView;
   readonly enemies: EnemiesView;
+  readonly exec: ExecScene;
+  private readonly rootOf = (i: number) => this.enemies.rootOf(i);
   private readonly waves = new Shockwaves();
   private readonly coins: CoinsView;
   readonly weapons: WeaponsView;
@@ -39,6 +43,7 @@ export class CombatScene {
   constructor(scene: THREE.Scene, state: CombatState, audio: AudioEngine, rig: CameraRig, arms: Viewmodel) {
     this.targets = new TargetsView(scene, state);
     this.enemies = new EnemiesView(scene);
+    this.exec = new ExecScene(scene);
     this.demon = new DemonView(scene);
     this.demonFx = new DemonFx(scene);
     this.dragon = new DragonView(scene);
@@ -61,6 +66,7 @@ export class CombatScene {
     state.events.clear();
     this.targets.update(state, playerChest, gameDt);
     this.enemies.update(state, alpha, gameDt);
+    this.exec.update(state, this.rootOf, gameDt);
     this.demon.update(state, listener, alpha, gameDt);
     this.dragon.update(state, listener, alpha, gameDt);
     this.bombs.update(state, gameDt);
@@ -77,11 +83,13 @@ export class CombatScene {
     this.waves.clear();
     this.demonFx.clear();
     this.bombs.clear();
+    this.exec.clear();
   }
 
   dispose() {
     this.targets.dispose();
     this.enemies.dispose();
+    this.exec.dispose();
     this.demon.dispose();
     this.dragon.dispose();
     this.bombs.dispose();

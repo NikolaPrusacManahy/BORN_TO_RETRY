@@ -2,7 +2,25 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.1.1
+## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.1.2
+- **Update 0.1.2 — an execution for every enemy** (the designer's list; spec `MD_UPDATES/U012_EXECUTIONS.md`).
+  - **All 11 regular enemies:**
+    - orc (ankle, the snake's moves);
+    - wizard (thrown at the nearest wall, bursts);
+    - ninja (arms torn off, face punched);
+    - slime (hammer, flattened);
+    - frog (tongue lasso);
+    - armabee (smashed twice);
+    - ghost (crushed, thrown);
+    - wasp (torn in half);
+    - yeti (charged belly punch, bursts);
+    - spider (three legs chopped, hammered flat);
+    - Blue Demon (30-punch barrage, bursts).
+  - **How:**
+    - the moves are data (`sim/combat/execMoves.ts`);
+    - the hands are keyframes on the enemy's real bones (`engine/exec/handMoves.ts`), posed as rope grips, fists, the clasped hammer, palms or chops (`viewmodel/heldGrip.ts`);
+    - torn, chopped and burst pieces are cut from the enemy's own model (`engine/exec/pieces.ts`).
+  - **Checked** as renders of every one (`tools/exec-shots.ts <out> [kinds]`) and by `test-executions.ts`. The motion, pace, sounds and effects are unseen in the game.
 - **Update 0.1.1 — bigger bars, more enemies per floor, the snake execution** (the designer's list; spec `MD_UPDATES/U011_EXECUTION.md`).
   - **Bars:** the dash charges and the Execution Power meter are twice the size.
   - **Enemies per room:** 8 + 3 per room deeper + 3 per floor down (floor 2 starts at 11, floor 3 at 14), at most 2 mini bosses. The point budget is gone.
@@ -10,7 +28,7 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   - **The grip** (the designer: no crossed arms, really grab the tail): both hands hold the tail like a rope (`viewmodel/heldGrip.ts`, `ArmsRig.gripPose` for either hand). The left hand holds the tip, the right is beside it, and the snake is turned about its body line so its tail runs to your right. The tail joints are held still; the body thrashes. `test-exec-grip.ts` checks it with the real models.
   - **Lab:** the panel's **Meter** (on at first) keeps the Execution Power meter full, in the Lab only.
   - Key poses checked as Blender renders (`tools/exec-shots.ts`): as you see it and from the side. The motion, timing, sounds and effects are unseen.
-  - **Files over the split limit:** `engine/Game.ts` (336 lines), `App.tsx` (347), `sim/combat/state.ts` (312), `engine/run.ts` (305), `engine/viewmodel/viewmodel.ts` (301) and `sim/enemies/enemy.ts` (300). Split them before adding more.
+  - **Files over the split limit:** `engine/Game.ts` (336 lines), `App.tsx` (347), `sim/combat/state.ts` (312), `engine/run.ts` (305), `engine/viewmodel/viewmodel.ts` (303), `engine/viewmodel/armsRig.ts` (300) and `sim/enemies/enemy.ts` (300). Split them before adding more.
 - **Update 0.1.0 — constant pressure, the Execution Power meter** (the designer's list; spec `MD_UPDATES/U010_PRESSURE.md`).
   - **Rooms:**
     - A room's planned enemies come as one stream: an opening of at least 5, then one more whenever fewer than 5 are fighting (every 0.35 s), until the room's plan is all sent.
@@ -301,7 +319,8 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 7. ~~What the side rooms hold~~: the shop (Update 0.0.13); the boss room ends the way (Update 0.0.15). Still open: reward rooms.
 8. **Update 0.0.13 placeholders to confirm:** five tiles for six items (the key always offered, four of the other five); E to buy and to open a chest (the design's E: "pick up, buy, open"); a chest opens only when its room isn't fighting; one chest a floor (35%: two); chest odds (coins 40%, then a plate, a heart or a ring alike); the shield caps at a full bar (two plates), rings stack; the blue ring speeds running and sliding, not the dash; buying the gold sword drops your sword at your feet; the new enemies' numbers (Leaper & fliers tab); bigger room budgets.
 
-12. **Update 0.1.1:** which enemies get executions next, and whether each gets its own moves or one shared set (the snake's are keyframes in `sim/combat/execution.ts`).
+13. **Update 0.1.2 placeholders to confirm:** every execution's timing and poses; the orc held by one ankle; the ninja's torn arms flung aside before the punch; the frog's whirl tilted towards you; the wizard's 16 m wall search (none: it bursts landing ahead); pieces lie 6 s; the barrage's punches freeze for no time.
+12. ~~Update 0.1.1: which enemies get executions next~~: all of them (Update 0.1.2).
 11. **Update 0.0.17 placeholders to confirm:**
    - bonuses: at most 2 a room, 20 s on the floor;
    - the snowflake never freezing a boss, and only from punches and swings (not throws or the slam);
@@ -341,6 +360,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 
 ## Not verified
 Claude has seen and heard none of this in the game: the feel, the arms on screen, the targets, effects, sounds and menus are all unverified until played. The tests check the rules, the collision, and that the shipped arms pose correctly.
+- **Every execution (Update 0.1.2):** seen only as still renders of the real rules and view code at their keys and blows (`tools/exec-shots.ts`, flat light, no textures). Unseen in the game: the moves in motion and their pace, the hands between keys, the pieces flying and bouncing, the burst and blow effects and synth sounds, the frog's whirl at speed, the barrage's rhythm.
 - **The snake execution (Update 0.1.1):** seen only as still renders of the real rules and view code (`tools/exec-shots.ts`, flat light, a tiled floor). Unseen in the game: the moves in motion and their pace, the view turning, the hands on the tail in motion (checked as stills and by `test-exec-grip.ts`), the snake's thrash (its walk clip 3× fast), the crimson pulse, the slam freezes, rings, debris and shake, the synth sounds, the flight and the landing. `test-execution.ts` checks the target rules, the grab, the world holding still, the two slams reaching the floor, the body never passing through your head, the view looking down at each slam, invulnerability, the throw short of a wall, the one-shot kill and the splash.
 - **The main menu:** only the Blender previews of the scene were seen. In the browser, unseen: the logo and buttons over the scene, the statues, crates and trees under the game's own lighting, the lighting itself (torch and campfire flicker, gate light, shadows, fog), the dust, the gate's pace, the fade to black and back, and the gate's synth grind. `test-menu.ts` checks the scene's nodes, the menu shot's framing, that the gate is open before the fade (and never pokes out of the wall's top), and the timing.
 - **Health and rebinding (Update 0.0.6):** unseen in the browser: the health bar, its trail and low pulse, the hurt flash and shake, the hurt and death sounds, the spikes, the death slow motion and fade, and the controls screen (binding a mouse button, the wheel, Esc to cancel). `test-health.ts` checks the health rules, orbs, spikes and the death timing (blood heal was removed in Update 0.0.13: a real punch now heals nothing); `test-bindings.ts` checks that any key, mouse button and wheel direction binds, with swaps.

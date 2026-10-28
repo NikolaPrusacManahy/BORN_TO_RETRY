@@ -6,7 +6,7 @@ import { check, near, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
 import { emptyCombatIntent } from '../src/sim/combat/fists';
 import { stepCombat } from '../src/sim/combat/step';
-import { HALF, heldFor } from '../src/sim/combat/execution';
+import { heldFor, moveOf } from '../src/sim/combat/execution';
 import { FOES2 } from '../src/tuning/foes2';
 import { ENEMY_STATS } from '../src/sim/enemies/kinds';
 import { createPlayer } from '../src/sim/player/state';
@@ -106,7 +106,7 @@ section('Execution — the snake (Update 0.1.1)');
   for (let k = 0; k < ticks(heldFor() - 0.02); k++) {
     tick(c, p, DT);
     // The body (tail to head) never passes through your head.
-    for (let u = 0; u <= 1; u += 0.1) close = Math.min(close, along.copy(c.exec.grip).addScaledVector(c.exec.dir, u * 2 * HALF * FOES2.v.snakeHeight).distanceTo(eye));
+    for (let u = 0; u <= 1; u += 0.1) close = Math.min(close, along.copy(c.exec.grip).addScaledVector(c.exec.dir, u * 2 * moveOf('snake').half * FOES2.v.snakeHeight).distanceTo(eye));
     if (c.exec.slams > slams) slamLook.push((c.exec.lookPitch * 180) / Math.PI);
     slams = c.exec.slams;
     lowest = Math.min(lowest, c.exec.middle.y);
