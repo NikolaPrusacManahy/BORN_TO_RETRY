@@ -13,8 +13,8 @@ import { ArenaView, buildArenaView } from './arenaView';
 import { DungeonView } from './dungeonView';
 
 export interface LevelView extends ArenaView {
-  /** The dungeon's gates (shut or open, as level.gates) and its torch lights near `at`. */
-  update?(dt: number, shut: readonly boolean[], at: THREE.Vector3): void;
+  /** The dungeon's gates (shut or open), the boss room's show (Update 0.0.15) and its torch lights near `at`. */
+  update?(dt: number, run: DungeonRun, at: THREE.Vector3): void;
 }
 
 export interface Level {

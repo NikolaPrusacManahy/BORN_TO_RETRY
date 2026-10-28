@@ -4,17 +4,21 @@
 // player pushed out of them. Each kind's own behaviour is in grunt.ts, spitter.ts and brute.ts. Pure.
 // Update 0.0.13 — the leaper's leap and the stinger's dive (a start and an aim), fliers (pushed out of walls on their
 // own grid, their bodies falling when they die), and bodies at different heights not pushing each other.
+// Update 0.0.15 — the Demon's phases (its charge, stunned, its roar, its entrance) and which move it winds up; a boss's
+// body doesn't fall when it dies (its death show places it); a hit on a stunned boss is worth more.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
 import type { CollisionWorld, MoveResult } from '../collisionWorld';
 import type { CombatEvent } from '../combat/state';
 import type { Orb } from '../combat/targets';
+import type { Quake } from '../combat/quakes';
+import type { Rng } from '../../core/rng';
 import type { PlayerState } from '../player/state';
 import type { Flow } from './chase';
 import { ENEMY_STATS, EnemyKind, flies, SizeClass } from './kinds';
 
-export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive';
+export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive' | 'charge' | 'stun' | 'roar' | 'intro';
 
 export interface Enemy {
   /** The slot is in use (a live enemy, or a body still lying there). */
@@ -42,13 +46,19 @@ export interface Enemy {
   from: Vector3;
   aim: Vector3;
   struck: boolean;
+  /** Update 0.0.15 — a boss: the move it winds up (demon.ts), and its stage (0, then 1 once it rages). */
+  move: number;
+  stage: number;
 }
 
-/** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events. */
+/** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
+ *  Update 0.0.15 — the quake rings, and the fight's seeded RNG (the Demon picks its moves with it). */
 export interface EnemyWorld {
   nav: Record<SizeClass, NavGrid>;
   flow: Record<SizeClass, Flow>;
   orbs: Orb[];
+  quakes: Quake[];
+  rng: Rng;
   events: EventQueue<CombatEvent>;
 }
 
@@ -80,6 +90,8 @@ export function createEnemies(): Enemy[] {
     from: new Vector3(),
     aim: new Vector3(),
     struck: false,
+    move: 0,
+    stage: 0,
   }));
 }
 
@@ -105,6 +117,8 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.from.copy(at);
   e.aim.copy(at);
   e.struck = false;
+  e.move = 0;
+  e.stage = 0;
   return i;
 }
 
@@ -154,8 +168,8 @@ export function beginTick(e: Enemy, nav: NavGrid, dt: number): boolean {
   e.flash = Math.max(0, e.flash - dt);
   e.cooldown = Math.max(0, e.cooldown - dt);
   if (e.phase === 'dead') {
-    // A body in the air falls.
-    if (e.pos.y > 0) {
+    // A body in the air falls (a boss's is placed by its death show).
+    if (e.pos.y > 0 && !ENEMY_STATS[e.kind]().boss) {
       e.vel.y -= FALL * dt;
       e.pos.y = Math.max(0, e.pos.y + e.vel.y * dt);
     }
@@ -188,7 +202,7 @@ export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, 
   if (!isLive(e)) return false;
   const s = ENEMY_STATS[e.kind]();
   e.flash = 0.12;
-  e.hp -= damage;
+  e.hp -= e.phase === 'stun' ? damage * s.stunned : damage;
   e.vel.x += dirX * knock * s.knock;
   e.vel.z += dirZ * knock * s.knock;
   if (e.hp > 0) {
@@ -197,6 +211,9 @@ export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, 
   }
   e.hp = 0;
   e.vel.y = 0;
+  // Where it died (a boss's death show starts there).
+  e.from.copy(e.pos);
+  e.struck = false;
   setPhase(e, 'dead');
   return true;
 }

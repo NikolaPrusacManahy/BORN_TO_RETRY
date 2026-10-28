@@ -4,8 +4,12 @@
 // walk grid. Pure.
 // Update 0.0.13 — chests (a box the size of the model, set back against its wall, facing into the room) and the shop's
 // display tiles.
+// Update 0.0.15 — the boss room: where its walls start (a smaller room, against the wall you come in by) and where
+// they slide back to, the portal in its middle, the wooden gate in its far wall (shut until the boss is dead) and the
+// dark beyond it.
 import type { Arena, ArenaBox, BoxKind, JumpPad, Spot } from '../arena';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, PlacedRoom, Side } from './floorPlan';
+import { OPPOSITE } from './wayOut';
 import type { Cell, RoomKind } from './rooms';
 
 /** Heights of what stands on a cell (m); the floor's top is y = 0. */
@@ -21,6 +25,30 @@ const GATE_DEPTH = 0.6;
 export const CHEST_W = 1.2;
 export const CHEST_D = 0.9;
 const CHEST_BACK = 0.4;
+/** The boss room before its walls slide back: this many cells across the entrance wall, and deep. */
+export const BOSS_START_W = 16;
+export const BOSS_START_D = 14;
+
+export interface Rect {
+  min: { x: number; z: number };
+  max: { x: number; z: number };
+}
+
+/** Update 0.0.15 — the boss room's layout. */
+export interface BossLayout {
+  room: number;
+  /** The side you come in by. */
+  entrance: Side;
+  /** Its inside before the walls slide back, and after (m). */
+  start: Rect;
+  end: Rect;
+  portal: { x: number; z: number };
+  /** The wooden gate: its index in DungeonLevel.gates, where it stands, its turn, the way it opens (outward, into the
+   *  dark), and the dark beyond it. */
+  gate: number;
+  gateAt: { x: number; z: number; rot: number; ox: number; oz: number };
+  dark: Rect;
+}
 
 /** Update 0.0.13 — a chest: where it stands, its turn (its front, +z, into the room) and the way its front faces. */
 export interface ChestSpot {
@@ -59,6 +87,7 @@ export interface DungeonLevel {
   rooms: DungeonRoom[];
   exit: { x: number; z: number; radius: number };
   chests: ChestSpot[];
+  boss: BossLayout;
 }
 
 const hasFloor = (c: Cell) => c !== 'void' && c !== 'wall';
@@ -116,6 +145,24 @@ function chestSpot(r: PlacedRoom): ChestSpot {
   return { room: r.index, x: cellX(r.x0 + col) - fx * CHEST_BACK, z: cellZ(r.z0 + row) - fz * CHEST_BACK, rot: Math.atan2(fx, fz), fx, fz };
 }
 
+/** The boss room's inside before its walls slide back: BOSS_START_W × BOSS_START_D cells against its entrance wall. */
+function bossStart(end: Rect, entrance: Side): Rect {
+  const across = (BOSS_START_W * CELL) / 2;
+  const deep = BOSS_START_D * CELL;
+  const mx = (end.min.x + end.max.x) / 2;
+  const mz = (end.min.z + end.max.z) / 2;
+  switch (entrance) {
+    case 'n':
+      return { min: { x: mx - across, z: end.min.z }, max: { x: mx + across, z: end.min.z + deep } };
+    case 's':
+      return { min: { x: mx - across, z: end.max.z - deep }, max: { x: mx + across, z: end.max.z } };
+    case 'w':
+      return { min: { x: end.min.x, z: mz - across }, max: { x: end.min.x + deep, z: mz + across } };
+    case 'e':
+      return { min: { x: end.max.x - deep, z: mz - across }, max: { x: end.max.x, z: mz + across } };
+  }
+}
+
 export function buildDungeon(plan: FloorPlan): DungeonLevel {
   const boxes: ArenaBox[] = [];
   merge(plan, hasFloor, (col, row, w, h) => cellsBox(col, row, w, h, -1, 0, 'floor'), boxes);
@@ -133,6 +180,10 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
   for (let row = 0; row < GRID; row++) {
     for (let col = 0; col < GRID; col++) if (cellAt(plan, col, row) === 'pad') pads.push({ x: cellX(col), y: 0, z: cellZ(row), radius: CELL * 0.45, launch: PAD_LAUNCH });
   }
+  // The wooden gate: its box goes after every door's (their order is the dressing's), and into the boss room's arena.
+  const out = plan.wayOut;
+  const bossRoom = plan.rooms[out.room];
+  const woodGate = gateBox(bossRoom, out.side);
   const gates: ArenaBox[] = [];
   const rooms: DungeonRoom[] = plan.rooms.map((r) => {
     const min = { x: cellX(r.x0) - CELL / 2, z: cellZ(r.z0) - CELL / 2 };
@@ -152,11 +203,25 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
       spawns: r.layout.spawns.map(([c, row]) => ({ x: cellX(r.x0 + c), y: 0, z: cellZ(r.z0 + row) })),
       gates: mine,
       sides: [...r.doors],
-      arena: { name: `room ${r.index}`, boxes: [floor, ...near, ...mine.map((g) => gates[g])], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] },
+      arena: { name: `room ${r.index}`, boxes: [floor, ...near, ...mine.map((g) => gates[g]), ...(r.index === out.room ? [woodGate] : [])], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] },
       chest: chests.findIndex((c) => c.room === r.index),
       tiles: r.layout.tiles.map(([c, row]) => ({ x: cellX(r.x0 + c), y: 0, z: cellZ(r.z0 + row) })),
     };
   });
   const arena: Arena = { name: `Dungeon ${plan.level}`, boxes, pads, playerStart: { ...plan.start }, spawns: [], dummies: [], turrets: [] };
-  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests };
+  const gate = gates.push(woodGate) - 1;
+  const br = rooms[out.room];
+  const end: Rect = { min: br.min, max: br.max };
+  const [ox, oz] = out.side === 'n' ? [0, -1] : out.side === 's' ? [0, 1] : out.side === 'w' ? [-1, 0] : [1, 0];
+  const boss: BossLayout = {
+    room: out.room,
+    entrance: OPPOSITE[out.side],
+    start: bossStart(end, OPPOSITE[out.side]),
+    end,
+    portal: { x: (end.min.x + end.max.x) / 2, z: (end.min.z + end.max.z) / 2 },
+    gate,
+    gateAt: { x: woodGate.x, z: woodGate.z, rot: oz !== 0 ? 0 : Math.PI / 2, ox, oz },
+    dark: { min: { x: cellX(out.x0) - CELL / 2, z: cellZ(out.z0) - CELL / 2 }, max: { x: cellX(out.x1) + CELL / 2, z: cellZ(out.z1) + CELL / 2 } },
+  };
+  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests, boss };
 }

@@ -8,12 +8,20 @@
 // filling the shade, a pale haze far off instead of black fog; the torches stay as warm accents. Dungeon light tab.
 // The walls and ledges have solid dark cores and the floor a dark slab under it, so no notch between the kit's pieces
 // shows the sky.
+// Update 0.0.15 — the boss room: its walls sliding back (boss/shell.ts), the portal (boss/portal.ts), the wooden gate
+// and the dark beyond it (boss/woodGate.ts), all following the room's show; no more glow over a trapdoor.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { portalOpen, wallsOpen } from '../sim/dungeon/bossRoom';
+import type { DungeonRun } from '../sim/dungeon/roomLoop';
+import { CINEMA } from '../tuning/cinema';
 import type { DungeonLevel } from '../world/dungeon/assemble';
 import { BARS_SCALE, dress, Dressing, KIT, Placement } from '../world/dungeon/dressing';
 import { LIGHT } from '../tuning/light';
 import type { ArenaView } from './arenaView';
+import { Portal } from './boss/portal';
+import { Shell } from './boss/shell';
+import { WoodGate } from './boss/woodGate';
 
 export const KIT_URL = '/models/dungeon/kit.glb';
 /** The sky (the background and the haze), and the sky light's colours above and from the ground. */
@@ -29,6 +37,8 @@ const SHADOW_REACH = 40;
  *  far under the floor the slab is (m). */
 const CORE = new THREE.Color().setRGB(0.196, 0.147, 0.096);
 const UNDER = new THREE.Color().setRGB(0.045, 0.043, 0.062);
+/** Update 0.0.15 — the boss room's sliding walls: dark masses seen from above (their faces are brick). */
+const SHELL = new THREE.Color().setRGB(0.06, 0.048, 0.04);
 const UNDER_Y = -0.45;
 /** Torch lights that follow you, and how often they move to the nearest torches (s). */
 const LIGHTS = 8;
@@ -56,6 +66,9 @@ export class DungeonView implements ArenaView {
   private readonly sky: THREE.HemisphereLight;
   private readonly sun: THREE.DirectionalLight;
   private readonly haze: THREE.Fog;
+  private readonly shell: Shell;
+  private readonly portal: Portal;
+  private readonly woodGate: WoodGate;
   private relight = 0;
 
   constructor(
@@ -86,8 +99,14 @@ export class DungeonView implements ArenaView {
       this.group.add(l);
     }
     this.pads();
-    this.exitGlow();
-    this.solid();
+    const box = this.solid();
+    const b = level.boss;
+    const shellMat = new THREE.MeshStandardMaterial({ color: SHELL, roughness: 1 });
+    this.mats.push(shellMat);
+    this.shell = new Shell(b.start, b.end, shellMat, box);
+    this.portal = new Portal(b.portal);
+    this.woodGate = new WoodGate(scene, b, `FLOOR ${level.plan.level + 1}`);
+    this.group.add(this.shell.group, this.portal.group);
     this.loaded = loadKit
       ? new GLTFLoader()
           .loadAsync(KIT_URL)
@@ -148,6 +167,7 @@ export class DungeonView implements ArenaView {
         this.barsY.push(HIDDEN);
       }
     }
+    this.shell.build(kit, (src) => this.material(src));
   }
 
   /** The kit's flat colours, a little rough; fire glows. */
@@ -163,8 +183,9 @@ export class DungeonView implements ArenaView {
     return mat;
   }
 
-  /** The walls' and ledges' cores, and the slab under the whole floor. */
-  private solid() {
+  /** The walls' and ledges' cores, and the slab under the whole floor. Returns the unit box (the boss room's sliding
+   *  walls are made of it too). */
+  private solid(): THREE.BufferGeometry {
     const cores = this.dressing.cores;
     const box = new THREE.BoxGeometry(1, 1, 1);
     const coreMat = new THREE.MeshStandardMaterial({ color: CORE, roughness: 1 });
@@ -184,6 +205,7 @@ export class DungeonView implements ArenaView {
     this.group.add(inst, under);
     this.mats.push(coreMat, underMat);
     this.geos.push(box, plane);
+    return box;
   }
 
   private pads() {
@@ -198,22 +220,15 @@ export class DungeonView implements ArenaView {
     }
   }
 
-  private exitGlow() {
-    const e = this.level.exit;
-    const mat = new THREE.MeshBasicMaterial({ color: 0x9a4dff, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending });
-    const geo = new THREE.CylinderGeometry(1.6, 1.6, 0.05, 32);
-    this.mats.push(mat);
-    this.geos.push(geo);
-    const glow = new THREE.Mesh(geo, mat);
-    glow.position.set(e.x, 0.06, e.z);
-    const light = new THREE.PointLight(0xa060ff, 40, 12, 1.5);
-    light.position.set(e.x, 1.2, e.z);
-    this.group.add(glow, light);
-  }
-
-  /** `shut`: each gate (as level.gates) shut or open; `at`: the camera, for the sun's shadows and the torch lights. */
-  update(dt: number, shut: readonly boolean[], at: THREE.Vector3) {
+  /** `run`: its gates (shut or open) and the boss room's show; `at`: the camera, for the sun's shadows and the torch
+   *  lights. */
+  update(dt: number, run: DungeonRun, at: THREE.Vector3) {
+    const shut = run.shut;
     this.daylight(at);
+    const b = run.boss;
+    this.shell.set(wallsOpen(b));
+    this.portal.update(dt, portalOpen(b));
+    this.woodGate.update(b.beat === 'open' ? Math.min(1, b.t / CINEMA.v.gateSwing) : 0);
     for (let i = 0; i < this.bars.length; i++) {
       const want = shut[i] ? 0 : HIDDEN;
       const y = this.barsY[i];
@@ -261,6 +276,8 @@ export class DungeonView implements ArenaView {
 
   dispose() {
     this.scene.remove(this.group);
+    this.portal.dispose();
+    this.woodGate.dispose();
     for (const mat of this.mats) mat.dispose();
     for (const g of this.geos) g.dispose();
     this.scene.fog = null;

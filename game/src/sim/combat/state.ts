@@ -1,6 +1,7 @@
 // M1 step 6 — everything the combat rules remember between ticks, and the events they report.
 // M2 — and the grunts and their waves, the weapon you hold, weapons on the ground and in flight, and the seeded RNG
 // that drops and spawns use.
+// Update 0.0.15 — the Demon's quake rings, and the boss's events (its moves, its show, its death, the wooden gate).
 import { EventQueue } from '../../core/eventQueue';
 import { Rng, createRng } from '../../core/rng';
 import { Vector3 } from 'three';
@@ -10,6 +11,7 @@ import { HeldWeapon, Pickup, Stand, Thrown, createPickups, createStands, createT
 import { createFlow, Flow } from '../enemies/chase';
 import { createEnemies, Enemy } from '../enemies/enemy';
 import { Coin, createCoins } from './coins';
+import { Quake, clearQuakes, createQuakes } from './quakes';
 import { createInventory, Inventory } from '../items/items';
 import { GRID_RADIUS, SizeClass } from '../enemies/kinds';
 import { AIR, buildNavGrid, NavGrid } from '../../world/navGrid';
@@ -65,6 +67,26 @@ export type CombatEvent =
   | 'stingerDive'
   | 'wraithWindup'
   | 'wraithCast'
+  // Update 0.0.15 — the Demon (value = which enemy, or the move for its warning: 0 charge, 1 leap, 2 volley): its
+  // warning, its charge running into you or into a wall (stunned), its leap and landing, its volley, its roar; a quake
+  // ring rolling under you (value = damage).
+  | 'demonWindup'
+  | 'demonCharge'
+  | 'demonGore'
+  | 'demonCrash'
+  | 'demonLeap'
+  | 'demonSlam'
+  | 'demonVolley'
+  | 'demonRoar'
+  | 'quakeHit'
+  // Update 0.0.15 — the boss room (value = the boss's slot): its show starts, the boss rises out of the portal, it's
+  // killed, its body bursts, what it leaves you (value = the item), the wooden gate swings open.
+  | 'bossIntro'
+  | 'bossRise'
+  | 'bossDown'
+  | 'bossBurst'
+  | 'bossLoot'
+  | 'woodGateOpen'
   // Update 0.0.12 — your ground slam landing (value = its radius), and what it hit. A coin reaching you (value = your
   // money after).
   | 'slamImpact'
@@ -100,6 +122,8 @@ export interface CombatState {
   orbs: Orb[];
   enemies: Enemy[];
   waves: Waves;
+  /** Update 0.0.15 — quake rings rolling over the floor. */
+  quakes: Quake[];
   /** Update 0.0.11 — where enemies can walk (built once from the arena, one grid per size), and the way from anywhere
    *  to the player. */
   nav: Record<SizeClass, NavGrid>;
@@ -141,6 +165,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     orbs: createOrbs(),
     enemies: createEnemies(),
     waves: createWaves(),
+    quakes: createQuakes(),
     nav,
     flow: { small: createFlow(nav.small), large: createFlow(nav.large), air: createFlow(nav.air) },
     weapon: null,
@@ -167,6 +192,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   for (const o of state.orbs) o.alive = false;
   for (const e of state.enemies) e.alive = false;
   state.waves = createWaves();
+  clearQuakes(state.quakes);
   state.flow.small.target = state.flow.large.target = state.flow.air.target = -1;
   state.weapon = null;
   for (const p of state.pickups) p.alive = false;

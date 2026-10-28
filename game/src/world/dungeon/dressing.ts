@@ -9,6 +9,8 @@
 // brick faces have jagged edges, so where two meet at a corner, or a wall meets the floor, notches opened onto the empty
 // cell behind. A plain dark block now fills each wall and ledge cell, set just behind its faces (only on the sides that
 // have faces: next to another wall it reaches the cell's edge, so no crack runs through), so a notch shows shadow.
+// Update 0.0.15 — no trapdoor: the way down is the boss room's wooden gate (drawn by engine/bossRoomView.ts, with the
+// dark beyond it); here, the wall over its doorway and a torch either side. The dark gets no tiles and no wall faces.
 import { createRng } from '../../core/rng';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, Side } from './floorPlan';
 import { HEIGHT } from './assemble';
@@ -55,7 +57,6 @@ export const KIT = {
   crate: 'kit_p1_Crate',
   broken: 'kit_p2_Column_Broken2',
   spikes: 'kit_p1_Trap_spikes',
-  trapdoor: 'kit_p1_Trapdoor_open',
   torch: 'kit_p2_Torch_wall',
   banner: 'kit_p1_Banner_wall',
   carpet: 'kit_p2_Carpet',
@@ -74,6 +75,8 @@ export const CORE_INSET = 0.2;
 export const CORE_BOTTOM = -0.5;
 const CORE_TOP_GAP: Partial<Record<Cell, number>> = { wall: 0.02, ledge: 0.3, highLedge: 0.3 };
 const TORCH_REACH = 0.55;
+/** No wall torch closer than this to the wooden gate (m): its own two frame it. */
+const GATE_TORCHES = 9;
 const TORCH_Y = 2.2;
 
 /** A turn that points a piece's front (+z) along a direction. */
@@ -85,7 +88,7 @@ const DIRS: [number, number, Side][] = [
   [-1, 0, 'w'],
 ];
 
-const surface = (c: Cell) => c !== 'void' && c !== 'wall';
+const surface = (c: Cell) => c !== 'void' && c !== 'wall' && c !== 'dark';
 const height = (c: Cell) => HEIGHT[c] ?? 0;
 
 export function dress(plan: FloorPlan): Dressing {
@@ -117,7 +120,9 @@ export function dress(plan: FloorPlan): Dressing {
             for (let k = 0; k < 3; k++) put(KIT.wall, fx, k * WALL_PIECE, fz, FACING[side]);
             put(KIT.cap, fx, 3 * WALL_PIECE, fz, FACING[side]);
             const room = inRoom[(row + dr) * GRID + col + dc];
-            if (room >= 0 && (col * 3 + row * 5) % 7 === 0 && !nearDoor(col + dc, row + dr)) {
+            // (Not beside the wooden gate: it has its own pair.)
+            const byGate = Math.hypot(x - plan.wayOut.doorX, z - plan.wayOut.doorZ) < GATE_TORCHES;
+            if (room >= 0 && (col * 3 + row * 5) % 7 === 0 && !nearDoor(col + dc, row + dr) && !byGate) {
               const tx = x + dc * (CELL / 2 + TORCH_REACH);
               const tz = z + dr * (CELL / 2 + TORCH_REACH);
               put(KIT.torch, tx, TORCH_Y, tz, FACING[side] - Math.PI / 2);
@@ -208,8 +213,25 @@ export function dress(plan: FloorPlan): Dressing {
       put(KIT.candelabrum, Math.max(...xs) + CELL, 0, midZ);
     }
   }
-  // The way down.
-  put(KIT.trapdoor, plan.exit.x, 0.01, plan.exit.z);
+  // The way down: the wall over the wooden gate's doorway (on the room's side), a torch either side of it.
+  const out = plan.wayOut;
+  const ns = out.side === 'n' || out.side === 's';
+  const [ox, oz] = out.side === 'n' ? [0, -1] : out.side === 's' ? [0, 1] : out.side === 'w' ? [-1, 0] : [1, 0];
+  const inward: Side = out.side === 'n' ? 's' : out.side === 's' ? 'n' : out.side === 'w' ? 'e' : 'w';
+  const gx = out.doorX;
+  const gz = out.doorZ;
+  const fx = gx - ox * (CELL / 2 - WALL_DEPTH / 2);
+  const fz = gz - oz * (CELL / 2 - WALL_DEPTH / 2);
+  for (const k of [-1, 1]) {
+    const ax = ns ? fx + (k * CELL) / 2 : fx;
+    const az = ns ? fz : fz + (k * CELL) / 2;
+    put(KIT.wall, ax, 2 * WALL_PIECE, az, FACING[inward]);
+    put(KIT.cap, ax, 3 * WALL_PIECE, az, FACING[inward]);
+    const tx = ns ? gx + k * 1.6 * CELL : gx - ox * (CELL / 2 + TORCH_REACH);
+    const tz = ns ? gz - oz * (CELL / 2 + TORCH_REACH) : gz + k * 1.6 * CELL;
+    put(KIT.torch, tx, TORCH_Y, tz, FACING[inward] - Math.PI / 2);
+    torches.push({ x: ns ? tx : gx - ox * (CELL / 2 + 0.95), y: TORCH_Y + 1.2, z: ns ? gz - oz * (CELL / 2 + 0.95) : tz });
+  }
   return { pieces, gates, torches, cores: coresOf(plan) };
 }
 

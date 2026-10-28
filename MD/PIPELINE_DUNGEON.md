@@ -22,7 +22,7 @@ Drawn from above, one character per 2 m cell, only the inside (the walls round i
 | `B` high cover, broken column (2.9 m) | `p` ledge (1 m) |
 | `P` high ledge (2.5 m) | `^` spikes |
 | `J` jump pad | `?` low cover or floor, chosen per run |
-| `E` where enemies may appear | `X` the way down (exit room) |
+| `E` where enemies may appear | (`X`, the way down, is gone: Update 0.0.15's boss room has a wooden gate instead) |
 | `T` where a chest may stand (against a wall, floor in front) | `S` a shop's display tile |
 
 Update 0.0.13: fight rooms are drawn as their **top-left quarter** in `fightRooms.ts` (mirrored right and down): the quarter's last column (rows 0–1) and last row (columns 0–1) stay clear for the doors. At most `MAX_ROOM` (36) cells a side. Rules: even width and height; the middle two cells of every side clear (`.` or `E`) two deep; at least 6 `E`; at least one `T`. Run `npm run verify:quick`: `test-dungeon.ts` lays out 40 floors and says if a room has a cell nobody can reach, a stuck spawn point or a pocket the grunts can't get into.
@@ -33,4 +33,5 @@ npx tsx tools/dungeon-shots.ts <out folder> [seed] [floor]
 blender --background --python tools/blender/render_dungeon.py -- --json <out folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <out folder>
 ```
 An overview from above (`overview.png`) and eye-height views from the start and the first fight room, with the gates' bars down. Flat light: it shows the layout and the pieces, not the game's lighting. Update 0.0.13 — add `--day` for Blender's sun and sky in the game's daylight colours and strengths (EEVEE): a rough stand-in for how bright the game's daylight is. Update 0.0.14 — the walls' and ledges' solid cores are drawn too, and two close shots of the start room's corner (`corner`, `corner-up`): where the sky used to show through.
+- **Update 0.0.15 — the boss room:** `npx tsx tools/boss-shots.ts <out folder> [seed] [k] [--open]` writes the floor plus the boss room's sliding walls at `k` (0: before the show, 1: slid back), the wooden gate (shut, or open with `--open`) and the dark, and the show's own camera shots (`boss-door`, `boss-high`, `boss-stance`, `boss-gate`, `boss-gate-close`). Render it with `render_dungeon.py ... --day --demon public/models/enemies/demon.glb` to stand the Demon in its stance at the portal.
 - **Kit pieces don't meet perfectly** (jagged brick edges). Anything you can see between them must have something solid behind it: walls and ledges get cores (`dressing.ts`), the floor a slab underneath (`dungeonView.ts`).

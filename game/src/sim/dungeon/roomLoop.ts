@@ -8,6 +8,8 @@
 // Update 0.0.13 — each floor's shop and chests (treasure.ts). Bigger budgets for rooms twice the size; waves picked
 // from every kind the room may have (weighted), the leaper and the stinger from the second room, the wraith and the
 // brute from the third (all of them from floor 2).
+// Update 0.0.15 — the boss room at the end of the way (bossRoom.ts) instead of waves; its wooden gate is shut from the
+// start and opens once the boss is dead; the way down is the dark beyond it.
 import { createRng, Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import type { DungeonLevel } from '../../world/dungeon/assemble';
@@ -18,6 +20,7 @@ import { isLive } from '../enemies/enemy';
 import { ENEMY_KINDS, GRID_RADIUS, EnemyKind, SizeClass } from '../enemies/kinds';
 import { spawnAt } from '../enemies/waves';
 import type { PlayerState } from '../player/state';
+import { BossRun, createBossRun, startShow, stepBoss } from './bossRoom';
 import { createTreasure, Treasure } from './treasure';
 
 export type RoomState = 'idle' | 'fighting' | 'cleared';
@@ -44,6 +47,8 @@ export interface DungeonRun {
   exited: boolean;
   /** Update 0.0.13 — the shop's offers and the chests. */
   treasure: Treasure;
+  /** Update 0.0.15 — the boss room. */
+  boss: BossRun;
 }
 
 /** Seconds from the gates shutting to the first wave, and between waves. */
@@ -53,21 +58,24 @@ export const NEXT_WAVE = 0.9;
 const SPAWN_CLEAR = 6;
 /** No more than this many in one wave. */
 const WAVE_CAP = 8;
-const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3 };
-/** How often each kind is picked, and the first room (on floor 1) it comes in. **(placeholders)** */
-const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1 };
-const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3 };
+const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3, demon: 99 };
+/** How often each kind is picked, and the first room (on floor 1) it comes in. **(placeholders)** The Demon is never
+ *  bought: it's the boss room's. */
+const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1, demon: 0 };
+const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3, demon: Infinity };
 
 export function createDungeonRun(level: DungeonLevel): DungeonRun {
   return {
     level,
-    rooms: level.rooms.map((r) => ({ state: r.kind === 'fight' ? 'idle' : 'cleared', wave: 0, waves: 0, delay: 0 })),
+    rooms: level.rooms.map((r) => ({ state: r.kind === 'fight' || r.kind === 'boss' ? 'idle' : 'cleared', wave: 0, waves: 0, delay: 0 })),
     current: -1,
     visited: level.rooms.map(() => false),
-    shut: level.gates.map(() => false),
+    // The wooden gate is shut until the boss is dead.
+    shut: level.gates.map((_, i) => i === level.boss.gate),
     nav: level.rooms.map(() => null),
     exited: false,
     treasure: createTreasure(level, createRng(level.plan.seed * 131 + level.plan.level * 17)),
+    boss: createBossRun(),
   };
 }
 
@@ -81,7 +89,7 @@ export function roomBudget(depth: number, floor: number): { budget: number; wave
 export function buyWave(budget: number, depth: number, floor: number, rng: Rng): EnemyKind[] {
   const out: EnemyKind[] = [];
   let left = budget;
-  const can = (k: EnemyKind) => (floor >= 2 || depth >= FROM[k]) && COST[k] <= left;
+  const can = (k: EnemyKind) => WEIGHT[k] > 0 && (floor >= 2 || depth >= FROM[k]) && COST[k] <= left;
   while (left > 0 && out.length < WAVE_CAP) {
     let total = 0;
     for (const k of ENEMY_KINDS) if (can(k)) total += WEIGHT[k];
@@ -120,6 +128,20 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
       for (const g of room.gates) run.shut[g] = true;
       enterNav(run, i, combat);
       ev.push('gatesShut', i, (room.min.x + room.max.x) / 2, 1, (room.min.z + room.max.z) / 2);
+      if (room.kind === 'boss') startShow(run.boss, combat, run.level.boss.portal);
+    }
+    if (room.kind === 'boss') {
+      // Its show's clock runs on once the room is cleared (the gate swinging, the view turned to it): Update 0.0.15
+      // fix, it stopped there and the view stayed locked on you.
+      if (run.boss.beat !== 'waiting' && stepBoss(run.boss, run.level.boss.portal, room.spawns, player, combat, rng, dt)) {
+        // The boss is dead: the wooden gate swings open, and the room's own gates lift.
+        rr.state = 'cleared';
+        run.shut[run.level.boss.gate] = false;
+        for (const g of room.gates) run.shut[g] = false;
+        ev.push('woodGateOpen', i, run.level.boss.gateAt.x, 2, run.level.boss.gateAt.z);
+        ev.push('gatesOpen', i, (room.min.x + room.max.x) / 2, 1, (room.min.z + room.max.z) / 2);
+      }
+      continue;
     }
     if (rr.state !== 'fighting') continue;
     let live = false;
@@ -138,7 +160,7 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
     ev.push('gatesOpen', i, (room.min.x + room.max.x) / 2, 1, (room.min.z + room.max.z) / 2);
   }
   const ex = run.level.exit;
-  if (!run.exited && player.grounded && Math.hypot(player.pos.x - ex.x, player.pos.z - ex.z) <= ex.radius) {
+  if (!run.exited && run.boss.beat === 'open' && player.grounded && Math.hypot(player.pos.x - ex.x, player.pos.z - ex.z) <= ex.radius) {
     run.exited = true;
     ev.push('floorExit', run.level.plan.level, ex.x, 0, ex.z);
   }
@@ -152,7 +174,7 @@ function navFor(run: DungeonRun, i: number): Record<SizeClass, NavGrid> {
 
 /** Every fight room's walk grids, made up front (when the floor loads) so going into a room never stalls. */
 export function prepareNav(run: DungeonRun) {
-  run.level.rooms.forEach((r, i) => r.kind === 'fight' && navFor(run, i));
+  run.level.rooms.forEach((r, i) => (r.kind === 'fight' || r.kind === 'boss') && navFor(run, i));
 }
 
 /** The room's enemies walk its own grid. */

@@ -36,6 +36,7 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `tuning/movement.ts`, `camera.ts`, `combat.ts`, `health.ts`, `enemies.ts`, `weapons.ts`, `arms.ts`, `lab.ts` | The knob groups |
 | `tuning/light.ts` | Update 0.0.13 — the dungeon's daylight: sun, sky light, torches, haze, sun shadows |
 | `tuning/foes.ts`, `tuning/items.ts` | Update 0.0.13 — the Leaper, Stinger and Wraith ("Leaper & fliers"); the shop's prices and items, chests ("Shop & chests") |
+| `tuning/boss.ts`, `tuning/cinema.ts` | Update 0.0.15 — the Demon ("Demon (boss)": its moves, rage, death show, Lab demon); the boss room's show ("Boss show": its beats, the view's height and boss shot, the death's slow motion, the gate, the fade into the dark) |
 | `tuning/store.ts` | Group list, export/import, saving overrides |
 
 ### Enemies and weapons (pure) — M2
@@ -45,6 +46,8 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `sim/enemies/kinds.ts` | Update 0.0.12 — the enemy catalog: each kind's numbers (from `tuning/enemies.ts`), radius and walk-grid size; `Record<EnemyKind, …>` so a new kind is asked for everywhere |
 | `sim/enemies/grunt.ts`, `spitter.ts`, `brute.ts` | Each kind's moves: the grunt's chase and warned swing; the spitter's ring round you, warned spit and cooldown; the brute's walk, warned slam (on the ground inside its ring) and winded recovery |
 | `sim/enemies/leaper.ts`, `stinger.ts`, `wraith.ts` | Update 0.0.13 — the leaper's warned leap (an arc to where you stood; hurts on landing) and stuck recovery; the stinger's warned dive through you and dazed recovery; the wraith's distance, warned fan of orbs |
+| `sim/enemies/demon.ts`, `demonMoves.ts` | Update 0.0.15 — the Demon: picking a move by your distance (seeded), each warned; its rage at half health (once); its death show (rises, hangs, sinks, bursts). Its moves: the charge (throws you once; a wall or column stuns it), the leap (lands where you stood, starts a quake), the volley (a fan; two raging) |
+| `sim/combat/quakes.ts` | Update 0.0.15 — quake rings rolling out over the floor: hurt you once on the ground as they pass, never in the air |
 | `sim/enemies/fly.ts` | Update 0.0.13 — what fliers share: keeping their height, seeing you through the air (a ray), coming closer on their own grid, circling you |
 | `sim/enemies/update.ts` | Update 0.0.12 — one tick of every enemy, in a fixed order: the ways to the player per size, each one's shared start, its kind's moves, then pushing apart |
 | `sim/enemies/chase.ts` | Update 0.0.11 — the way to the player for floor-bound enemies: a flow field over the walk grid, and the steering that reads it (straight when it can, else the farthest cell down the flow in a straight line) |
@@ -59,13 +62,15 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 ### The dungeon (pure) — Update 0.0.12
 | Module | Owns |
 |---|---|
-| `world/dungeon/rooms.ts` | The room legend, the start, exit and shop rooms (Update 0.0.13), and the per-run variations (mirrored, turned, optional cover); chest spots and shop tiles |
+| `world/dungeon/rooms.ts` | The room legend, the start, boss (Update 0.0.15: was the exit room) and shop rooms (Update 0.0.13), and the per-run variations (mirrored, turned, optional cover); chest spots and shop tiles |
 | `world/dungeon/fightRooms.ts` | Update 0.0.13 — the nine fight rooms at twice the size, each drawn as its top-left quarter and mirrored |
-| `world/dungeon/floorPlan.ts` | A floor from a seed: rooms on a 5 × 5 board (the way, the shop and maybe a fight off it; Update 0.0.13 — columns and rows as wide as their rooms), chests, doors, corridors, all stamped on one grid of 2 m cells |
-| `world/dungeon/assemble.ts` | The floor as a level: merged collision boxes, jump pads, a gate per doorway, and per room its inside, spawns, gates and its own arena (for its walk grid) |
-| `world/dungeon/dressing.ts` | Where each Modular Dungeon Pack piece goes (walls three high with caps, floor tiles, arches, columns, crates, ledges, spikes, torches, banners, litter); Update 0.0.14 — the walls' and ledges' solid cores |
-| `sim/dungeon/roomLoop.ts` | The room loop: in a fight room its gates shut, waves bought from its budget (Update 0.0.13: weighted over the kinds open to the room), gates open when it's clear; the way down; rooms visited; each room's walk grids (walkers, the brute, fliers) |
+| `world/dungeon/floorPlan.ts` | A floor from a seed: rooms on a 5 × 5 board (the way, the shop and maybe a fight off it; Update 0.0.13 — columns and rows as wide as their rooms), chests, doors, corridors, all stamped on one grid of 2 m cells. Update 0.0.15 — the way ends in the boss room |
+| `world/dungeon/wayOut.ts` | Update 0.0.15 — the way down: the wooden gate's doorway opposite the boss room's door, the dark beyond it, walled round |
+| `world/dungeon/assemble.ts` | The floor as a level: merged collision boxes, jump pads, a gate per doorway, and per room its inside, spawns, gates and its own arena (for its walk grid). Update 0.0.15 — the boss room's layout: where its walls start and end, the portal, the wooden gate (the last gate), the dark |
+| `world/dungeon/dressing.ts` | Where each Modular Dungeon Pack piece goes (walls three high with caps, floor tiles, arches, columns, crates, ledges, spikes, torches, banners, litter); Update 0.0.14 — the walls' and ledges' solid cores. Update 0.0.15 — no trapdoor; the wall over the wooden gate, a torch either side |
+| `sim/dungeon/roomLoop.ts` | The room loop: in a fight room its gates shut, waves bought from its budget (Update 0.0.13: weighted over the kinds open to the room), gates open when it's clear; the boss room (Update 0.0.15: `bossRoom.ts`); the way down (once the boss is dead); rooms visited; each room's walk grids (walkers, the brute, fliers) |
 | `sim/dungeon/treasure.ts` | Update 0.0.13 — the shop's offers (always a key) and buying with E; the chests' loot (seeded), opening one with a key (you kneel), its loot coming out as the lid is up |
+| `sim/dungeon/bossRoom.ts` | Update 0.0.15 — the boss room: the show's beats (`introBeats`, shared with the view), the walls sliding (`wallsOpen`), the portal (`portalOpen`), the boss rising out of it, the fight (its calls for grunts once it rages), its death (grunts die with it, its loot when its body bursts), the wooden gate opening |
 | `sim/items/items.ts` | Update 0.0.13 — the items (heart, plate, gold sword, rings, key), what each does when taken, what you carry (keys, rings) and the damage and speed it gives |
 
 ### Characters (pure)
@@ -109,7 +114,7 @@ Update 0.0.12: `slamHit.ts` (your ground slam's blast: every target in reach, ha
 | `engine/Game.ts` | The shell: renderer, input, sound, mouse lock, fullscreen, and the frame loop in three modes: `menu` (the gate scene), `intro` (Start pressed: the gate opening), `play` (the lab, run by `LabRun`) |
 | `engine/run.ts` | The play loop (was labRun.ts): player, fists, targets, camera, arms; ticks, events, render, death and respawn. Update 0.0.12 — plays a level: the lab, or a dungeon floor with its room loop; the way down loads the next floor (health, coins and weapon kept), a death a new run |
 | `engine/level.ts` | Update 0.0.12 — a level: arena, physics, how it's drawn, the room loop (dungeon); the lab and dungeon floors; a run's seed |
-| `engine/dungeonView.ts` | Update 0.0.12 — a dungeon floor drawn from the kit as instanced meshes; the gates' bars; pads; the way down's glow; torch lights that follow you. Update 0.0.13 — day time: a sun whose shadows follow you, a sky light, a pale haze |
+| `engine/dungeonView.ts` | Update 0.0.12 — a dungeon floor drawn from the kit as instanced meshes; the gates' bars; pads; torch lights that follow you. Update 0.0.13 — day time: a sun whose shadows follow you, a sky light, a pale haze. Update 0.0.15 — the boss room's sliding walls, portal and wooden gate (`boss/`), following its show |
 | `engine/mapFeed.ts`, `screens/Minimap.tsx` | Update 0.0.12 — the minimap: known, visited and current rooms, corridors, you |
 | `engine/deathFlow.ts` | M1 step 8 — the death timing: slow motion, then respawn once the fade is black |
 | `engine/overlayFeed.ts` | What the HUD and the F2 overlay show, read from the sim once a frame |
@@ -131,13 +136,16 @@ Update 0.0.12: `slamHit.ts` (your ground slam's blast: every target in reach, ha
 | `engine/coinsView.ts`, `engine/fx/shockwave.ts` | Update 0.0.12 — the flying coins (instanced); slam shockwave rings |
 | `engine/treasureView.ts` | Update 0.0.13 — the shop's tiles, turning items and price tags; the chests and their lids; items flying into you; where an opening lid's front edge is (for the hands) |
 | `engine/viewmodel/chestReach.ts` | Update 0.0.13 — both fists on a chest's lid while you kneel: the lid's edge carried from the world camera to the arms camera, nudged until the knuckles are on it |
+| `engine/boss/shell.ts`, `portal.ts`, `woodGate.ts` | Update 0.0.15 — the boss room's sliding walls (dark masses with the kit's brick faces, updated in place), the portal (shaders, sparks, a light), the wooden gate (boxes) and the black dark behind it with the next floor's name. Drawn by `DungeonView` |
+| `engine/boss/demonView.ts`, `demonFx.ts` | Update 0.0.15 — the Demon's body (its clips by phase, fitted to its warnings), its aura, its warning glows, its frozen pose and white flicker when killed; the charge's lane, the leap's landing ring, the quake rings, the burst's flash. Drawn by `CombatScene` (`EnemiesView` skips the Demon) |
+| `engine/boss/cinema.ts`, `bossShow.ts` | Update 0.0.15 — the show's shots (eased between, pure maths); the run's side of it: taking the view, holding you still, facing you to the boss at the end, the death's slow motion, the gate shot, the fade into the dark, and what the HUD shows (`screens/BossHud.tsx`) |
 | `engine/weaponsView.ts` | M2 — weapons on the ground (turning above a glowing ring), the lab stand, weapons in flight (spinning), and the one in hand (given to the arms) |
 | `engine/fx/burst.ts` | Pooled instanced pieces (sparks, chunks) |
 | `engine/viewmodel/viewmodel.ts` | The arms' own scene and camera, sway, bob, landing dip, dash/slide poses, punch aim; draws over the world. M2: with a weapon, the left arm drops out of view and the right holds the sword |
 | `engine/viewmodel/armsRig.ts`, `armsMath.ts`, `armsAnim.ts`, `guard.ts` | Loading and posing the arms (IK, bone aiming, ported from `cut_arms.py`); punch timelines; the approved guard. M2: the grip in the right fist, and the arm pose that holds a sword where a pose says |
 | `engine/viewmodel/swordAnim.ts`, `swordPoses.ts` | Update 0.0.10 — the sword arm's moves (ready, the pierce's charge, forehand and backhand slashes, the pierce, the throw) and their key poses |
 | `engine/hudStore.ts` | HUD state (dash, hit marker, hurt flash) and live debug numbers |
-| `audio/audio.ts`, `synth.ts`, `moveSounds.ts`, `combatSounds.ts` | Buses; placeholder synth sounds; movement and combat sounds |
+| `audio/audio.ts`, `synth.ts`, `moveSounds.ts`, `combatSounds.ts` | Buses; placeholder synth sounds; movement and combat sounds. Update 0.0.15 — `bossSounds.ts` (the Demon and its room) |
 | `screens/*` | App shell (`App.tsx`: menu → intro → playing ⇄ paused; the menu's gate and camp views), main menu, the camp's settings screen (`CampMenu.tsx`), pause menu, the options both show (`Options.tsx`: General / Controls tabs), shared settings fields, the controls screen (`KeyBindings.tsx`, key names in `keyLabel.ts`), HUD (health bottom left), F1 tuning panel, F2 debug overlay |
 
 ### Asset tools (`game/tools/`)
@@ -154,6 +162,7 @@ Update 0.0.12: `slamHit.ts` (your ground slam's blast: every target in reach, ha
 | `tools/blender/export_items.py` | Update 0.0.13 — the shop's and chests' things (RPG pack items, the dungeon chest's base and hinged lid, a display tile) to `public/models/items/items.glb` |
 | `tools/dungeon-shots.ts`, `tools/blender/render_dungeon.py` | Update 0.0.12 — a floor for a seed drawn by Blender with the real kit: an overview and eye-height views |
 | `tools/view-shots.ts` (+ `view-shots-list.ts`), `tools/blender/render_view.py` | Update 0.0.10 — the first-person arms posed by the game's own code for a list of moments, rendered by Blender (no browser); prints each shot's wrist bend and where the sword's tip lands |
+| `tools/boss-shots.ts` | Update 0.0.15 — the boss room for a seed with its walls at k, the gate shut or open, the Demon in its stance, from the show's own shots; drawn by `render_dungeon.py --day --demon public/models/enemies/demon.glb` |
 | `tools/contact_sheet.py` | Tiles preview renders into one labelled sheet to compare variants (Python 3 + Pillow) |
 
 ## Contracts
@@ -177,6 +186,8 @@ Update 0.0.12: `slamHit.ts` (your ground slam's blast: every target in reach, ha
 - **Health (M1 step 8):** `PlayerState` holds `hp`, `hurtTime` and `dead`. Everything that hurts the player goes through `damagePlayer`, which a dash (`invuln`), the hurt invincibility (`hurtTime`, set by each hit) and F4 (`LAB.god`) all stop; it pushes `'hurt'` (value = damage) and, at 0 HP, `'death'` once. `killPlayer` (falling out) ignores dashes. Blood heal: `stepCombat` heals `bloodHeal` × the punch's damage when it lands within `bloodRange`. The dead read no input. `LabRun` turns `'death'` into `DeathFlow`: the sim slows to `deathSlow` and the App fades to black over `deathFade`; then `restart()` puts you back with full health and the black clears.
 - **Bindings (M1 step 9):** a binding is any `KeyboardEvent.code`, `Mouse0`..`Mouse4`, or `WheelUp` / `WheelDown`. The wheel has no held state: a notch is a press that also counts as held until the tick that reads it. The controls screen listens in the capture phase and stops the event, so menus, dev keys and the game never see the key being bound; Esc cancels.
 - **One way to hit things (M2):** punches, sword swings and thrown weapons all find their target with `nearestTarget` and land with `landHit` (strike.ts): the hit event, then on a kill the 'kill' event, the kill hit-stop, and a grunt's drop roll. A new target kind is added there once.
+- **The boss room (Update 0.0.15):** the way's last room is kind `'boss'`; its wooden gate is the last of `DungeonLevel.gates` (no bars: the dressing's gates are only the doors'), shut from the start, opened by `stepBoss` with the room's own gates. The show's beats (`introBeats`) are the one timeline: the sim spawns and raises the boss and starts the fight by them, the view slides the walls, opens the portal and moves the camera by them. `BossShow.locked` blanks your intents and the mouse during the show, the gate shot and the fade into the dark. The way down (`floorExit`) only fires once the gate is open. A boss's slot stays in use while its death show plays (`EnemyStats.boss`: its body doesn't fall; `doomDemon` places it and pushes 'bossBurst' once, marked by `Enemy.struck`).
+- **`EnemyWorld` (Update 0.0.15)** carries the quake rings and the fight's RNG too (the Demon picks its moves with it); `CombatState` is one.
 - **Every enemy is one Enemy (Update 0.0.12):** kinds live in `kinds.ts`; `updateEnemies` runs them in slot order; hits, coins and drops go through `strike.ts` for every kind. Only grunts drop a weapon. Every attack warns for its full wind-up ('gruntWindup', 'spitterWindup', 'bruteWindup', and Update 0.0.13's 'leaperWindup', 'stingerWindup', 'wraithWindup').
 - **Fliers (Update 0.0.13):** size class 'air' has its own grid (`AIR` band) and flow; `pos.y` is their height. What needs a clear line in the air (a dive, a cast) asks the `CollisionWorld` (`updateEnemies` gets it). Walls push a walker only on the ground (a leap carries it over); bodies at different heights don't push each other.
 - **One damage factor (Update 0.0.13):** every hit you land goes through `landHit`, which multiplies it by the red rings (`damageFactor`). Run speed reads `PlayerState.speedMul`, set each tick from the blue rings.

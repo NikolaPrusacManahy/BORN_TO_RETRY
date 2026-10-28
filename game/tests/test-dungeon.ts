@@ -3,6 +3,8 @@
 // fight rooms with side rooms, every room and spawn reachable, the same for the same seed and different between
 // seeds; the level built from it stands up; the room loop shuts the gates, sends its waves, opens them, and the way
 // down ends the floor.
+// Update 0.0.15 — the way ends in the boss room (no exit room): its wooden gate in the far wall, the dark beyond it on
+// empty ground, walled round; the gate is one more gate.
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { DungeonView } from '../src/engine/dungeonView';
@@ -18,7 +20,8 @@ import { buyWave, createDungeonRun, roomBudget, stepRooms, FIRST_WAVE, NEXT_WAVE
 import { createPlayer } from '../src/sim/player/state';
 import { buildDungeon } from '../src/world/dungeon/assemble';
 import { CELL, cellAt, cellX, cellZ, colAt, FloorPlan, GRID, MAX_ROOM, PATH_FIGHTS, planFloor, rowAt } from '../src/world/dungeon/floorPlan';
-import { Cell, EXIT_ROOM, FIGHT_ROOMS, layOut, SHOP_ROOM, START_ROOM } from '../src/world/dungeon/rooms';
+import { DARK_DEPTH, OPPOSITE } from '../src/world/dungeon/wayOut';
+import { BOSS_ROOM, Cell, FIGHT_ROOMS, layOut, SHOP_ROOM, START_ROOM } from '../src/world/dungeon/rooms';
 import { CORE_INSET, dress, KIT } from '../src/world/dungeon/dressing';
 import { HEIGHT } from '../src/world/dungeon/assemble';
 import { buildNavGrid, colOf, freeAt, rowOf } from '../src/world/navGrid';
@@ -26,7 +29,7 @@ import { buildNavGrid, colOf, freeAt, rowOf } from '../src/world/navGrid';
 section('Dungeon — the rooms');
 {
   check(`at least 8 fight rooms (${FIGHT_ROOMS.length})`, FIGHT_ROOMS.length >= 8 && new Set(FIGHT_ROOMS.map((r) => r.id)).size === FIGHT_ROOMS.length);
-  for (const t of [...FIGHT_ROOMS, START_ROOM, EXIT_ROOM, SHOP_ROOM]) {
+  for (const t of [...FIGHT_ROOMS, START_ROOM, BOSS_ROOM, SHOP_ROOM]) {
     const w = t.rows[0].length;
     const h = t.rows.length;
     const even = w % 2 === 0 && h % 2 === 0 && t.rows.every((r) => r.length === w);
@@ -76,7 +79,7 @@ section('Dungeon — a floor');
 {
   const plan = planFloor(12345, 1);
   const way = plan.rooms.filter((r) => r.depth <= PATH_FIGHTS + 1 && r.kind !== 'fight' || r.depth <= PATH_FIGHTS);
-  check(`a start, ${PATH_FIGHTS} fight rooms on the way and the way down`, plan.rooms[0].kind === 'start' && plan.rooms[PATH_FIGHTS + 1].kind === 'exit' && plan.rooms.slice(1, PATH_FIGHTS + 1).every((r) => r.kind === 'fight') && way.length >= 7);
+  check(`a start, ${PATH_FIGHTS} fight rooms on the way and the boss room`, plan.rooms[0].kind === 'start' && plan.rooms[PATH_FIGHTS + 1].kind === 'boss' && plan.rooms.slice(1, PATH_FIGHTS + 1).every((r) => r.kind === 'fight') && way.length >= 7);
   const sides = plan.rooms.length - (PATH_FIGHTS + 2);
   // Update 0.0.13 — the shop, and maybe a fight.
   check('and side rooms: the shop, maybe a fight', sides >= 1 && sides <= 2 && plan.rooms.slice(PATH_FIGHTS + 2).some((r) => r.kind === 'shop'), `${sides}`);
@@ -98,12 +101,12 @@ section('Dungeon — a floor');
     for (const r of plan.rooms) {
       for (let row = 0; row < r.layout.h; row++) for (let col = 0; col < r.layout.w; col++) {
         const c = cellAt(plan, r.x0 + col, r.z0 + row);
-        if ((c === 'floor' || c === 'pad' || c === 'exit') && !seen[(r.z0 + row) * GRID + r.x0 + col]) bad ||= `seed ${seed}: in room ${r.index} (${r.layout.template.id}) cell ${col},${row} is cut off`;
+        if ((c === 'floor' || c === 'pad') && !seen[(r.z0 + row) * GRID + r.x0 + col]) bad ||= `seed ${seed}: in room ${r.index} (${r.layout.template.id}) cell ${col},${row} is cut off`;
       }
     }
     const level = buildDungeon(plan);
     for (const room of level.rooms) {
-      if (room.kind !== 'fight') continue;
+      if (room.kind !== 'fight' && room.kind !== 'boss') continue;
       const nav = buildNavGrid(room.arena, GRID_RADIUS.small);
       const flow = createFlow(nav);
       const first = room.spawns[0];
@@ -120,6 +123,32 @@ section('Dungeon — a floor');
   }
   check('40 floors: every floor cell of every room reachable, every spawn point free, no pocket the grunts cannot reach', !bad, bad);
 }
+{
+  // Update 0.0.15 — the dark beyond the boss room's wooden gate: opposite its door, on ground nothing else uses, walled
+  // round, reached through the gate.
+  let bad = '';
+  for (let seed = 1; seed <= 60 && !bad; seed++) {
+    const plan = planFloor(seed * 7, 1 + (seed % 3));
+    const o = plan.wayOut;
+    const r = plan.rooms[o.room];
+    if (r.kind !== 'boss' || r.doors.length !== 1 || o.side !== OPPOSITE[r.doors[0]]) bad ||= `seed ${seed}: the gate isn't opposite the boss room's door`;
+    let dark = 0;
+    for (let row = o.z0; row <= o.z1; row++) for (let col = o.x0; col <= o.x1; col++) dark += cellAt(plan, col, row) === 'dark' ? 1 : 0;
+    if (dark !== 2 * DARK_DEPTH) bad ||= `seed ${seed}: ${dark} dark cells`;
+    // Nothing else stands there: no room (walls included) and no corridor (walls included) overlaps it.
+    const overlaps = (x0: number, z0: number, x1: number, z1: number) => o.x0 <= x1 && o.x1 >= x0 && o.z0 <= z1 && o.z1 >= z0;
+    for (const q of plan.rooms) if (overlaps(q.x0 - 1, q.z0 - 1, q.x0 + q.layout.w, q.z0 + q.layout.h)) bad ||= `seed ${seed}: the dark runs into room ${q.index}`;
+    for (const c of plan.corridors) if (overlaps(c.x0 - 1, c.z0 - 1, c.x1 + 1, c.z1 + 1)) bad ||= `seed ${seed}: the dark runs into a corridor`;
+    // Walled round: every neighbour of a dark cell is dark, the doorway or wall.
+    for (let row = o.z0 - 1; row <= o.z1 + 1; row++) for (let col = o.x0 - 1; col <= o.x1 + 1; col++) {
+      const c = cellAt(plan, col, row);
+      if (c !== 'dark' && c !== 'wall' && c !== 'door') bad ||= `seed ${seed}: a ${c} beside the dark`;
+    }
+    const seen = reach(plan);
+    if (!seen[o.z0 * GRID + o.x0] && !seen[o.z1 * GRID + o.x1]) bad ||= `seed ${seed}: the dark can't be reached`;
+  }
+  check('60 floors: the dark beyond the wooden gate is opposite the door, on empty ground, walled round, reachable', !bad, bad);
+}
 
 section('Dungeon — the level');
 {
@@ -129,10 +158,11 @@ section('Dungeon — the level');
   check('you start on open floor in the start room', startCell === 'floor' && level.plan.rooms[0].kind === 'start');
   const inBox = level.arena.boxes.some((b) => b.kind !== 'floor' && Math.abs(s.x - b.x) < b.w / 2 && Math.abs(s.z - b.z) < b.d / 2);
   check('nothing stands where you start', !inBox);
-  check('a gate for every doorway', level.gates.length === level.plan.links.length * 2);
-  check('cells merged into a manageable number of boxes', level.arena.boxes.length < 900, `${level.arena.boxes.length} boxes`);
+  check('a gate for every doorway, and the wooden gate', level.gates.length === level.plan.links.length * 2 + 1 && level.boss.gate === level.gates.length - 1);
+  // (Update 0.0.15 — 1000, was 900: the boss room's twelve pillars and the dark's walls.)
+  check('cells merged into a manageable number of boxes', level.arena.boxes.length < 1000, `${level.arena.boxes.length} boxes`);
   const exitCell = cellAt(level.plan, colAt(level.exit.x - 0.5), rowAt(level.exit.z - 0.5));
-  check('the way down is in the exit room', exitCell === 'exit');
+  check('the way down is the dark beyond the boss room', exitCell === 'dark' && level.rooms[level.boss.room].kind === 'boss');
 }
 
 section('Dungeon — the room loop');
@@ -152,7 +182,7 @@ section('Dungeon — the room loop');
     }
   };
   tick(0.1);
-  check('the start room is calm', run.current === 0 && !run.shut.some(Boolean) && !combat.enemies.some(isLive));
+  check('the start room is calm (only the wooden gate shut)', run.current === 0 && !run.shut.some((s, i) => s && i !== level.boss.gate) && !combat.enemies.some(isLive));
   const fight = level.rooms[1];
   const r1 = run.rooms[1];
   // Through the doorway: not in yet.
@@ -177,7 +207,7 @@ section('Dungeon — the room loop');
   check('a cleared room stays quiet', !seen.slice(before).includes('gatesShut'));
   p.pos.set(level.exit.x, 0, level.exit.z);
   tick(DT);
-  check('stepping onto the way down ends the floor', run.exited && seen.includes('floorExit'));
+  check('the way down stays shut while the boss lives (test-boss.ts opens it)', !run.exited && !seen.includes('floorExit'));
 }
 {
   const a = roomBudget(1, 1);
@@ -204,12 +234,13 @@ section('Dungeon — the look');
   check('torches light every room', level.rooms.every((r) => look.torches.some((t) => t.x > r.min.x - 3 && t.x < r.max.x + 3 && t.z > r.min.z - 3 && t.z < r.max.z + 3)));
   // Each gate's bars stand in its doorway, where its collision box is.
   const aligned = look.gates.every((g) => level.gates.some((b) => Math.abs(b.x - g.x) < 0.01 && Math.abs(b.z - g.z) < 0.01));
-  check('the bars stand where the gates block', look.gates.length === level.gates.length && aligned);
+  // (Update 0.0.15 — the wooden gate has no bars: engine/boss/woodGate.ts draws it.)
+  check('the bars stand where the gates block', look.gates.length === level.gates.length - 1 && aligned);
   // Update 0.0.13 — day time (the designer: far too dark): a light sky, a sun with shadows following you, a bright sky
   // light, the haze far off.
   const scene = new THREE.Scene();
   const view = new DungeonView(scene, level, false);
-  view.update(0, level.gates.map(() => false), new THREE.Vector3(10, 1.6, -20));
+  view.update(0, createDungeonRun(level), new THREE.Vector3(10, 1.6, -20));
   const sky = scene.background as THREE.Color;
   const sun = view.group.children.find((o): o is THREE.DirectionalLight => o instanceof THREE.DirectionalLight);
   const fill = view.group.children.find((o): o is THREE.HemisphereLight => o instanceof THREE.HemisphereLight);
@@ -241,7 +272,7 @@ section('Dungeon — the look');
         const edge = dc !== 0 ? core.x + (dc * core.w) / 2 : core.z + (dr * core.d) / 2;
         const boundary = (dc !== 0 ? x : z) + ((dc || dr) * CELL) / 2;
         const back = (boundary - edge) * (dc || dr);
-        const faced = n !== 'void' && n !== 'wall' && n !== 'door' && !(solid(n) && (HEIGHT[n] ?? 0) >= (HEIGHT[cellAt(level.plan, col, row)] ?? 0));
+        const faced = n !== 'void' && n !== 'wall' && n !== 'door' && n !== 'dark' && !(solid(n) && (HEIGHT[n] ?? 0) >= (HEIGHT[cellAt(level.plan, col, row)] ?? 0));
         if (faced ? back < CORE_INSET - 1e-6 : back > 1e-6) poking++;
       }
     }

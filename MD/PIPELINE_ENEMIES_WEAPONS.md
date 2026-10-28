@@ -25,6 +25,15 @@ blender --background --disable-autoexec --python tools/blender/export_items.py -
 - Each monster's frame where its blow lands (printed by `export_monster.py`) goes into `LOOKS` in `engine/enemiesView.ts`: Ninja Duck 44/30, Armabee Headbutt 9/30, Ghost Punch 12/30.
 - The dungeon chest's pieces are hidden from renders in its `.blend`; `export_items.py` shows them. Its lid keeps its origin on the hinge.
 
+## Update 0.0.15 — the Demon (the first boss)
+```
+blender --background --disable-autoexec --python tools/blender/export_monster.py -- --blend "<Ultimate Monsters>/big/…/Demon.blend" --glb public/models/enemies/demon.glb --previews <folder> --attack Weapon
+```
+- The `big` Demon (the one with the trident; the `flying` folder has another). Clips: Death, Duck, HitReact, Idle, Jump, Jump_Idle, Jump_Land, No, Punch, Run, Walk, Wave, Weapon, Yes.
+- A boss is drawn by its own view (`engine/boss/demonView.ts`, `DEMON_CLIPS`), not `enemiesView.ts`. Its trident thrust lands at 16/30 (Weapon). Its stance is Wave, the roar Punch (arms wide), stunned No, the charge Duck then Run, the leap Jump, Jump_Idle, Jump_Land.
+- It's 2.9 m tall as it comes; the game scales it to `BOSS.demonHeight` (6.5 m).
+- Rule tests parse it with its textures taken out (`tests/fakes/glb.ts`): Node can't decode images.
+
 ## A held weapon: `game/tools/blender/export_weapon.py`
 Exports one weapon with its origin in the middle of the grip, the blade (or head) pointing up and the edge across x, scaled to a set length. The grip is found from the shape: past the pommel, up the narrow handle to where the guard (or the head) widens.
 

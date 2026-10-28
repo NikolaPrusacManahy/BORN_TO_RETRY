@@ -61,7 +61,7 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - 100 HP. **(placeholder)** No regeneration. Shown bottom left: the number and a bar.
 - A short invincibility follows each hit (0.6 s **(placeholder)**), and the dash's invincibility stops damage too.
 - **Death:** the world slows and fades to black. In the Feel Lab you're straight back at the start; in a run, death ends the run (M3).
-- **Healing (Update 0.0.13, the designer): only from the shop.** The heart heals half your health (a chest can hold one too). Hits you land heal nothing (blood heal is gone). Later: a part-heal after each boss.
+- **Healing (Update 0.0.13, the designer): only from the shop.** The heart heals half your health (a chest can hold one too). Hits you land heal nothing (blood heal is gone). After a boss (Update 0.0.15): it leaves a heart.
 - **The shield (Update 0.0.13, the designer):** the silver armour plate gives a shield of half your health, shown as a blue bar just above the health bar. A hit takes the shield first, then your health. At most a full bar (two plates). **(placeholder cap)**
 
 ### Fists (always available, never break)
@@ -99,7 +99,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 ---
 
 ## 7. Money and style
-- Kills give money (Update 0.0.12): coins burst out of what you kill and fly to you: a grunt **2**, a spitter **4**, a brute **10**. Elites and bosses will give more. Your coins show just above the health bar. **(placeholder amounts)**
+- Kills give money (Update 0.0.12): coins burst out of what you kill and fly to you: a grunt **2**, a spitter **4**, a brute **10**, the Demon **60** (out of its burst, Update 0.0.15). Elites will give more. Your coins show just above the health bar. **(placeholder amounts)**
 - **Style meter (D → C → B → A → S):** rises with variety, air kills, parries, throw kills and not getting hit; drops when you're hit or stop fighting.
 - Style multiplies money from ×1.0 at D to ×2.0 at S. **(placeholder)**
 - Money resets at the end of every run.
@@ -129,22 +129,31 @@ Rule: every attack is telegraphed (a flash and a sound) before it can hit, and e
 
 Models come from Quaternius's Bestiary/Dungeon Monsters and Ultimate Monsters packs.
 
-### Bosses **(placeholder)**
-One per floor, three in total, each with 2 phases. Designs to come from the designer.
+### Bosses
+One per floor, three in total, each with 2 phases. Floors 2 and 3's designs are to come from the designer; until then the Demon guards every floor.
+
+**The Demon (Update 0.0.15, the designer: build it as pitched, bigger, with an aura; spec `MD_UPDATES/M3_BOSS.md`).** The Demon from Ultimate Monsters, 6.5 m tall, 1200 health, never flinches. Its aura: a glow behind it, embers, a ring of fire at its feet, a red light. Every pause it picks a move by how far you are, each warned (glow, sound, a mark on the floor):
+- **Charge:** lowers its head (red), then runs straight across the room: 25 and thrown aside if it hits you; into a wall or a column it's stunned 2.2 s and takes 1.5× damage.
+- **Leap:** crouches (orange), leaps to where you stood (a ring shows where): 30 close by; a **quake ring** rolls out over the floor (15 unless you jump it).
+- **Volley:** raises its trident, then a fan of five fire orbs.
+- **Phase 2 (half health):** it roars and calls grunts (again every 18 s while few are left); quicker warnings, shorter pauses, faster; a charge runs into a leap; two fans. **(placeholder numbers)**
+- **Death:** the world slows; it hangs frozen in the air, sinks flickering white and bursts: 60 coins, a key, a heart.
+
+**The boss room (Update 0.0.15, the designer):** stepping in, the view leaves your eyes and rises over the room; its walls slide back as it grows; a portal opens in the middle and the boss rises out of it, takes its stance beside its name; the view glides back and the fight starts. Once it's dead, a wooden gate in the far wall swings open onto the dark: the way down.
 
 ---
 
 ## 10. The run
-- **A floor (Update 0.0.12, the designer: like Soul Knight's levels):** a map of rooms joined by corridors that you explore. From the start room a winding way of five fight rooms leads to the way down; side rooms branch off it: the shop (Update 0.0.13) and sometimes a fight. One or two fight rooms hold a chest. A small minimap (top right) shows the rooms you've been in and the ones beside them (the shop in gold). (Later: the boss room at the end of the way, and reward rooms.)
+- **A floor (Update 0.0.12, the designer: like Soul Knight's levels):** a map of rooms joined by corridors that you explore. From the start room a winding way of five fight rooms leads to the way down; side rooms branch off it: the shop (Update 0.0.13) and sometimes a fight. One or two fight rooms hold a chest. A small minimap (top right) shows the rooms you've been in and the ones beside them (the shop in gold, the boss room in red). **The way ends in the boss room (Update 0.0.15).** (Later: reward rooms.)
 - **A room:** you step in → its doors slam shut → 2–3 waves of enemies → room cleared → the doors open.
-- **The way down** (a trapdoor in the exit room) takes you to the next floor, with your health, coins and weapon. Dying starts a new run on a new floor plan. (Earlier plan: choose one of two doors showing their rewards; replaced by the explored floor.)
-- **After a boss:** a part-heal, then the next floor.
+- **The way down** (Update 0.0.15: the dark beyond the boss room's wooden gate, which opens once the boss is dead; it was a trapdoor in an exit room) fades to black and takes you to the next floor, its name showing as the black clears, with your health, coins and weapon. Dying starts a new run on a new floor plan. (Earlier plan: choose one of two doors showing their rewards; replaced by the explored floor.)
+- **After a boss:** a part-heal (Update 0.0.15: the heart it leaves), then the next floor.
 - **Win:** beat the floor 3 boss. The run ends and the next character unlocks.
 - **Lose:** you die. You see a run summary (rooms cleared, kills, best style, time, seed) and return to the hub.
 
 ## 11. Procedural generation
 Arenas are **hand-made templates assembled from a seed**, not random geometry, because random shapes play badly at high speed.
-1. **Room pool (Update 0.0.12):** nine hand-made fight rooms (colonnade, crossfire, altar, spike hall, ledges, maze, arena, twin, crypt), a start room and an exit room, drawn as text layouts on a 2 m grid and built from the Modular Dungeon Pack (parts 1 and 2: we're in dungeons). No room twice on a floor. **Update 0.0.13 (the designer): the fight rooms are twice the size** (24–36 cells, 48–72 m a side), with more long walls to wall-run and hide behind; the shop room.
+1. **Room pool (Update 0.0.12):** nine hand-made fight rooms (colonnade, crossfire, altar, spike hall, ledges, maze, arena, twin, crypt), a start room and an exit room (Update 0.0.15: the boss room, 60 m square), drawn as text layouts on a 2 m grid and built from the Modular Dungeon Pack (parts 1 and 2: we're in dungeons). No room twice on a floor. **Update 0.0.13 (the designer): the fight rooms are twice the size** (24–36 cells, 48–72 m a side), with more long walls to wall-run and hide behind; the shop room.
 2. **Variation per room:** mirroring and quarter turns, optional cover on or off, and where enemies appear, all chosen from the seed.
 3. **The floor plan:** rooms on a 5 × 5 board; the way and its side rooms laid out from the seed; 4 m corridors join arched doorways in the middle of the walls.
 4. **Enemy budget:** each room has a budget that grows with how deep the room is and the floor number (Update 0.0.13: 6 + 3 × depth + 4 × (floor − 1), in 2 waves, 3 from 18), spent from a weighted table and split into waves. Costs: grunt 1, spitter 2, leaper 2, stinger 2, wraith 3, brute 4. On floor 1 the leaper and the stinger come from the second room, the wraith and the brute from the third. **(placeholders)**
@@ -182,7 +191,7 @@ Browser game: Three.js + Rapier, React for menus and HUD, Blender scripts for as
 |---|---|---|
 | **M1** | **Feel lab:** one gray-box arena, movement, fists, two simple enemies, tuning panel | The core feels great, and the browser can deliver it. **Done (2026-10-27); browser kept.** |
 | M2 | Combat sandbox: the enemy roster, weapons with durability and throwing, style meter, money | Fighting stays fun for minutes |
-| M3 | Run structure: rooms, doors, procedural assembly, shop, first boss | One floor is a real roguelike run. **Started (Update 0.0.12): the dungeon floors, the room loop, the minimap. Update 0.0.13: rooms twice the size, the shop, chests.** |
+| M3 | Run structure: rooms, doors, procedural assembly, shop, first boss | One floor is a real roguelike run. **Started (Update 0.0.12): the dungeon floors, the room loop, the minimap. Update 0.0.13: rooms twice the size, the shop, chests. Update 0.0.15: the first boss (the Demon), its room and its show, the wooden gate onto the dark.** |
 | M4 | Art pass: Quaternius models, arena kits, first-person arms, real sound effects | It looks and sounds like a game |
 | M5 | Full run: 3 floors, 3 bosses, characters and unlocks, hub, saves | The complete game loop |
 | M6 | Steam prep: Electron build, Steam achievements and cloud saves, store assets | Ready to sell |
@@ -191,5 +200,5 @@ Browser game: Three.js + Rapier, React for menus and HUD, Blender scripts for as
 1. ~~The name~~ — decided: **Born To Retry** (2026-10-27).
 2. The theme: are dark ruins and monsters right, or something else (sci-fi, hell, modern)?
 3. Firearms: in the game from the start, or melee-only at first?
-4. Boss ideas for floors 1–3.
+4. Boss ideas for floors 2 and 3 (floor 1: the Demon, Update 0.0.15).
 5. The starter character and the unlock order.

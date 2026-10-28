@@ -26,5 +26,8 @@ import './test-dungeon';
 import './test-sword';
 import './test-shop';
 import './test-foes';
+import './test-boss';
+import './test-boss-room';
+import './test-boss-show';
 
 process.exit(summary() > 0 ? 1 : 0);

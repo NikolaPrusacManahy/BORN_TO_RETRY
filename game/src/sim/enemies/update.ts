@@ -3,11 +3,13 @@
 // then all of them pushed apart. The order is fixed so the same inputs give the same fight.
 // Update 0.0.13 — the Leaper, the Stinger and the Wraith; the fliers' way to you on their own grid; the collision
 // world for what needs a clear line in the air (a dive, a cast).
+// Update 0.0.15 — the Demon, and a dead boss's death show (its body is placed until it bursts).
 import type { CollisionWorld } from '../collisionWorld';
 import type { PlayerState } from '../player/state';
 import { updateFlow } from './chase';
 import { beginTick, Enemy, EnemyWorld, isLive, separateEnemies } from './enemy';
 import { updateBrute } from './brute';
+import { doomDemon, updateDemon } from './demon';
 import { updateGrunt } from './grunt';
 import { ENEMY_STATS, EnemyKind } from './kinds';
 import { updateLeaper } from './leaper';
@@ -17,7 +19,9 @@ import { updateWraith } from './wraith';
 
 export type Update = (e: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number, world: CollisionWorld) => void;
 
-const UPDATE: Record<EnemyKind, Update> = { grunt: updateGrunt, spitter: updateSpitter, brute: updateBrute, leaper: updateLeaper, stinger: updateStinger, wraith: updateWraith };
+const UPDATE: Record<EnemyKind, Update> = { grunt: updateGrunt, spitter: updateSpitter, brute: updateBrute, leaper: updateLeaper, stinger: updateStinger, wraith: updateWraith, demon: updateDemon };
+/** A dead boss's show, each tick until its slot frees. */
+const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld) => void>> = { demon: doomDemon };
 
 export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWorld, world: CollisionWorld, dt: number) {
   let any = false;
@@ -36,6 +40,7 @@ export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWor
   for (let i = 0; i < enemies.length; i++) {
     const e = enemies[i];
     if (beginTick(e, w.nav[ENEMY_STATS[e.kind]().size], dt)) UPDATE[e.kind](e, i, player, w, dt, world);
+    else if (e.alive && e.phase === 'dead') DOOM[e.kind]?.(e, i, w);
   }
   separateEnemies(enemies, w.nav);
 }

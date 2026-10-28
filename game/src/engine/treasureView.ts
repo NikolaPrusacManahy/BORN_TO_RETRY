@@ -2,6 +2,7 @@
 // (tools/blender/export_items.py): each shop tile with its item turning above it and its price over it (red when you
 // can't pay), a sold tile left bare; each chest, its lid swinging up on its hinge as you lift it; an item you buy or find
 // flying into you. It also says where the opening lid's front edge is, for the hands that lift it.
+// Update 0.0.15 — and what the boss leaves you, flying from its burst.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { CombatState } from '../sim/combat/state';
@@ -156,7 +157,7 @@ export class TreasureView {
     const t = this.treasure;
     for (let i = 0; i < state.events.length; i++) {
       const e = state.events.at(i);
-      if ((e.kind === 'buy' || e.kind === 'chestLoot') && e.value >= 0) this.fly(ITEM_KINDS[e.value], e.x, e.y, e.z);
+      if ((e.kind === 'buy' || e.kind === 'chestLoot' || e.kind === 'bossLoot') && e.value >= 0) this.fly(ITEM_KINDS[e.value], e.x, e.y, e.z);
     }
     const poor = state.money < ITEMS.v.price;
     for (let i = 0; i < this.items.length; i++) {

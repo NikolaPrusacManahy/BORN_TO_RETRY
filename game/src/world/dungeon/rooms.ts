@@ -3,18 +3,20 @@
 // any side a corridor reaches, are added when the floor is laid out (floorPlan.ts). North (the top row) is −z.
 //   .  floor           #  wall (6 m)        C  column (5 m)       b  low cover (crates, 1.3 m)
 //   B  high cover (2.9 m)  p  ledge (1 m)   P  high ledge (2.5 m) ^  spikes        J  jump pad
-//   ?  low cover or floor, chosen per run   E  where enemies may appear (floor)    X  the way down (exit)
+//   ?  low cover or floor, chosen per run   E  where enemies may appear (floor)
 //   T  where a chest may stand (floor)      S  a shop's display tile (floor)
 // The middle two cells of every side are kept clear two deep for the doors. Variations per run: mirrored either way,
 // turned a quarter (square rooms), and every ? decided.
 // Update 0.0.13 — the fight rooms are twice the size (fightRooms.ts); chests (T) and the shop room.
+// Update 0.0.15 — the boss room replaces the exit room (and its trapdoor): the way down is now a wooden gate in its far
+// wall, onto the dark (floorPlan.ts stamps the gate and the dark beyond it).
 import type { Rng } from '../../core/rng';
-import { FIGHT_ROOMS } from './fightRooms';
+import { FIGHT_ROOMS, quarter } from './fightRooms';
 
 export { FIGHT_ROOMS };
 
-export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'exit' | 'tile' | 'chest';
-export type RoomKind = 'start' | 'fight' | 'exit' | 'shop';
+export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest';
+export type RoomKind = 'start' | 'fight' | 'boss' | 'shop';
 
 export interface RoomTemplate {
   id: string;
@@ -34,7 +36,6 @@ const CHAR: Record<string, Cell> = {
   J: 'pad',
   E: 'floor',
   '?': 'floor',
-  X: 'exit',
   T: 'floor',
   S: 'tile',
 };
@@ -45,27 +46,29 @@ export const START_ROOM: RoomTemplate = {
   rows: ['............', '............', '..b......b..', '............', '............', '............', '............', '............', '............', '..b......b..', '............', '............'],
 };
 
-export const EXIT_ROOM: RoomTemplate = {
-  id: 'exit',
-  kind: 'exit',
-  rows: [
-    '................',
-    '.C............C.',
-    '................',
-    '................',
-    '....C......C....',
-    '................',
-    '................',
-    '.......XX.......',
-    '.......XX.......',
-    '................',
-    '................',
-    '....C......C....',
-    '................',
-    '................',
-    '.C............C.',
-    '................',
-  ],
+/** Update 0.0.15 — the boss room (the designer: the walls slide back as the boss arrives): 60 m square, open in the
+ *  middle (the portal), four columns and eight broken ones to run its charge into, a pad in each corner, and spots by
+ *  the walls for the grunts it calls. Drawn as its top-left quarter. */
+export const BOSS_ROOM: RoomTemplate = {
+  id: 'boss',
+  kind: 'boss',
+  rows: quarter([
+    '...............',
+    '...............',
+    '.........E.....',
+    '...J...........',
+    '...............',
+    '............B..',
+    '...............',
+    '...............',
+    '........C......',
+    '..E............',
+    '...............',
+    '...............',
+    '.....B.........',
+    '...............',
+    '...............',
+  ]),
 };
 
 /** Update 0.0.13 — the shop (the designer: a room with five floor tiles, each showing something to buy). */

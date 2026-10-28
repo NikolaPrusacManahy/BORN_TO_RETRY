@@ -1,0 +1,194 @@
+/* Update 0.0.15 — the boss room's show (the designer: a cinematic presentation; the boss's name beside it). While the
+   view isn't yours the rest of the HUD fades out and black bars slide in; the name card sits right of the middle,
+   where the shot leaves room for it; the boss's health runs along the top edge in the fight; the way down fades to
+   black and the next floor's name shows as it clears (above the crosshair, never over it). */
+.rb-hud > * {
+  transition: opacity 0.4s ease;
+}
+
+.rb-hud.is-cine > :not(.rb-show-bars):not(.rb-show-card):not(.rb-show-veil):not(.rb-show-floor) {
+  opacity: 0;
+}
+
+.rb-show-bars .rb-show-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 11%;
+  background: #000;
+  transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.rb-show-bar.is-top {
+  top: 0;
+  transform: translateY(-100%);
+}
+
+.rb-show-bar.is-bottom {
+  bottom: 0;
+  transform: translateY(100%);
+}
+
+.rb-show-bars.is-on .rb-show-bar {
+  transform: none;
+}
+
+.rb-show-card {
+  position: absolute;
+  left: 56%;
+  top: 38%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  opacity: 0;
+  transform: translateX(60px) skewX(-8deg);
+  transition: opacity 0.5s ease, transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rb-show-card.is-on {
+  opacity: 1;
+  transform: skewX(-8deg);
+}
+
+.rb-show-card-title {
+  font-family: var(--rb-font);
+  font-size: 22px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #ffb08a;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+}
+
+.rb-show-card-name {
+  font-family: 'Anton', var(--rb-font);
+  font-size: 108px;
+  line-height: 0.95;
+  letter-spacing: 0.04em;
+  color: #fff4ec;
+  text-shadow:
+    0 0 26px rgba(255, 60, 20, 0.85),
+    0 4px 0 #5a0c06,
+    0 8px 18px rgba(0, 0, 0, 0.8);
+}
+
+.rb-show-card-rule {
+  width: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ff4a1a, rgba(255, 74, 26, 0));
+  transition: width 1.1s 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rb-show-card.is-on .rb-show-card-rule {
+  width: 520px;
+}
+
+.rb-boss-bar {
+  --fill: 1;
+  --rage: 0.5;
+  position: absolute;
+  top: 34px;
+  left: 50%;
+  width: 760px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  animation: rb-boss-bar-in 0.6s ease-out;
+}
+
+.rb-boss-bar-name {
+  font-family: 'Anton', var(--rb-font);
+  font-size: 26px;
+  letter-spacing: 0.12em;
+  color: #ffe6da;
+  text-shadow: 0 0 12px rgba(255, 60, 20, 0.7), 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+.rb-boss-bar-track {
+  position: relative;
+  width: 100%;
+  height: 14px;
+  overflow: hidden;
+  transform: skewX(-20deg);
+  background: rgba(60, 0, 0, 0.55);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.7);
+}
+
+.rb-boss-bar-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  transform: scaleX(var(--fill));
+  background: linear-gradient(#ff6a3a, #b3120a);
+  box-shadow: 0 0 14px rgba(255, 50, 20, 0.8);
+  transition: transform 0.15s ease-out;
+}
+
+.rb-boss-bar-rage {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--rage) * 100%);
+  width: 3px;
+  background: rgba(255, 230, 200, 0.85);
+}
+
+@keyframes rb-boss-bar-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-16px);
+  }
+}
+
+.rb-show-veil {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.2s ease;
+}
+
+.rb-show-veil.is-on {
+  opacity: 1;
+  transition-duration: 0.8s;
+}
+
+.rb-show-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 26%;
+  text-align: center;
+  font-family: 'Anton', var(--rb-font);
+  font-size: 84px;
+  letter-spacing: 0.35em;
+  color: #fff0e2;
+  text-shadow: 0 0 24px rgba(255, 120, 60, 0.6), 0 4px 10px rgba(0, 0, 0, 0.9);
+  animation: rb-show-floor 2.2s ease forwards;
+}
+
+/* The boss room on the minimap: red. */
+.rb-map-room.is-boss {
+  stroke: #ff5a3a;
+  fill: rgba(255, 70, 40, 0.22);
+}
+
+@keyframes rb-show-floor {
+  0% {
+    opacity: 0;
+    letter-spacing: 0.6em;
+  }
+  25% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    letter-spacing: 0.3em;
+  }
+}

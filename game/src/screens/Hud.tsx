@@ -6,8 +6,10 @@
 // minimap top right.
 // Update 0.0.13 — the shield: a blue bar just above the health bar (a hit on it flashes the edge blue); keys and rings
 // you carry beside your coins.
+// Update 0.0.15 — the boss room's show (BossHud.tsx); while it has the view, the rest fades out.
 import { CSSProperties, useSyncExternalStore } from 'react';
 import type { HudStore } from '../engine/hudStore';
+import { BossHud } from './BossHud';
 import { Minimap } from './Minimap';
 
 /** At or below this share of max health the bar pulses. */
@@ -44,7 +46,7 @@ function Carried({ n, children }: { n: number; children: JSX.Element }) {
 export function Hud({ store }: { store: HudStore }) {
   const s = useSyncExternalStore(store.subscribe, store.get);
   return (
-    <div className="rb-hud">
+    <div className={`rb-hud${s.cine ? ' is-cine' : ''}`}>
       <div className="rb-hud-cross" />
       {s.hits > 0 && <div key={`m${s.hits}`} className={`rb-hud-marker is-${s.marker}`} />}
       {s.hurts > 0 && <div key={`h${s.hurts}`} className="rb-hud-hurt" />}
@@ -90,6 +92,7 @@ export function Hud({ store }: { store: HudStore }) {
           <span key={i} className="rb-hud-pip" style={{ '--fill': Math.max(0, Math.min(1, s.dashCharges - i)) } as CSSProperties} />
         ))}
       </div>
+      <BossHud s={s} />
     </div>
   );
 }

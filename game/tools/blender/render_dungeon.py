@@ -4,6 +4,8 @@
 #   blender --background --python tools/blender/render_dungeon.py -- --json <folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <folder>
 # Update 0.0.13 — `--day`: Blender's sun and sky in place of the flat studio light, a rough stand-in for the game's
 # daylight (engine/dungeonView.ts): the same sky colour and sun direction, not its renderer.
+# Update 0.0.15 — the boss room (tools/boss-shots.ts): coloured boxes by their game matrices (the wooden gate, the
+# dark), and the Demon in its stance (`--demon` <its .glb>).
 import argparse
 import json
 import math
@@ -11,7 +13,7 @@ import os
 import sys
 
 import bpy
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 
 def parse_args():
@@ -22,7 +24,65 @@ def parse_args():
     p.add_argument('--out', required=True)
     p.add_argument('--width', type=int, default=1280)
     p.add_argument('--day', action='store_true')
+    p.add_argument('--demon', default='')
     return p.parse_args(argv)
+
+
+# Game (y up) to Blender (z up): (x, y, z) → (x, −z, y).
+TO_B = Matrix(((1, 0, 0, 0), (0, 0, -1, 0), (0, 1, 0, 0), (0, 0, 0, 1)))
+
+
+def game_boxes(boxes):
+    """Unit cubes placed by game matrices (column-major, as Three.js writes them), each in its colour; black ones
+    shadeless (the dark)."""
+    for i, b in enumerate(boxes):
+        e = b['m']
+        gm = Matrix([[e[c * 4 + r] for c in range(4)] for r in range(4)])
+        bpy.ops.mesh.primitive_cube_add(size=1)
+        o = bpy.context.active_object
+        o.matrix_world = TO_B @ gm @ TO_B.inverted()
+        mat = bpy.data.materials.new(f'Box{i}')
+        mat.use_nodes = True
+        col = (*b['color'], 1)
+        bsdf = mat.node_tree.nodes['Principled BSDF']
+        bsdf.inputs['Base Color'].default_value = col
+        if sum(b['color']) == 0:
+            # The dark: drawn from the inside only, as the game does (its near side never hides what's in it).
+            bsdf.inputs['Roughness'].default_value = 1
+            bsdf.inputs['Specular IOR Level'].default_value = 0
+            mat.use_backface_culling = True
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.flip_normals()
+            bpy.ops.object.mode_set(mode='OBJECT')
+        mat.diffuse_color = col
+        o.data.materials.append(mat)
+
+
+def demon_at(path, d):
+    """The Demon in its stance (Wave, trident raised), scaled to its size, facing as the game turns it."""
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=os.path.abspath(path))
+    new = [o for o in bpy.data.objects if o not in before]
+    arm = next((o for o in new if o.type == 'ARMATURE'), None)
+    root = next((o for o in new if o.parent is None), new[0])
+    if arm and arm.animation_data is None:
+        arm.animation_data_create()
+    act = next((a for a in bpy.data.actions if a.name.endswith('Wave')), None)
+    if arm and act:
+        arm.animation_data.action = act
+        bpy.context.scene.frame_set(30)
+    bpy.context.view_layer.update()
+    zs = [(o.matrix_world @ Vector(c)).z for o in new if o.type == 'MESH' for c in o.bound_box]
+    h = max(zs) - min(zs) if zs else 1
+    k = d['height'] / h
+    root.scale = (k, k, k)
+    root.location = to_blender(d['x'], 0, d['z'])
+    root.rotation_mode = 'XYZ'
+    root.rotation_euler.z = d['yaw'] + math.pi
+    bpy.context.view_layer.update()
+    zs = [(o.matrix_world @ Vector(c)).z for o in new if o.type == 'MESH' for c in o.bound_box]
+    if zs:
+        root.location.z -= min(zs)
 
 
 def daylight(scene):
@@ -103,6 +163,9 @@ def main():
         bpy.context.scene.collection.objects.link(cores)
         bpy.ops.mesh.primitive_plane_add(size=1000, location=(0, 0, -0.45))
         bpy.context.active_object.data.materials.append(core_mat)
+    game_boxes(data.get('boxes', []))
+    if args.demon and data.get('demon'):
+        demon_at(args.demon, data['demon'])
     for pad in data['pads']:
         bpy.ops.mesh.primitive_cylinder_add(radius=0.85, depth=0.08, location=to_blender(pad['x'], 0.04, pad['z']))
     scene = bpy.context.scene

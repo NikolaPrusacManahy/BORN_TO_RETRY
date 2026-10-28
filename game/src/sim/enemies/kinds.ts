@@ -2,14 +2,16 @@
 // kind is a new entry here (the compiler then asks for it everywhere: its update, its model, its sounds).
 // Update 0.0.13 — the Leaper, and two fliers: the Stinger and the Wraith (tuning/foes.ts). Fliers find their way on
 // their own grid (only walls and columns reach up to them).
+// Update 0.0.15 — the Demon, the first boss (tuning/boss.ts): big, never flinches, takes more while stunned.
+import { BOSS } from '../../tuning/boss';
 import { ENEMIES } from '../../tuning/enemies';
 import { FOES } from '../../tuning/foes';
 
-export type EnemyKind = 'grunt' | 'spitter' | 'brute' | 'leaper' | 'stinger' | 'wraith';
+export type EnemyKind = 'grunt' | 'spitter' | 'brute' | 'leaper' | 'stinger' | 'wraith' | 'demon';
 /** Which grid it finds its way on: the big ones need wider gaps; fliers go over low things. */
 export type SizeClass = 'small' | 'large' | 'air';
 
-export const ENEMY_KINDS: readonly EnemyKind[] = ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith'];
+export const ENEMY_KINDS: readonly EnemyKind[] = ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith', 'demon'];
 export const SIZE_CLASSES: readonly SizeClass[] = ['small', 'large', 'air'];
 
 export interface EnemyStats {
@@ -26,16 +28,19 @@ export interface EnemyStats {
   deathTime: number;
   coins: number;
   size: SizeClass;
+  /** Update 0.0.15 — a boss (its death is a show: boss.ts), and what a hit on it while stunned is worth. */
+  boss: boolean;
+  stunned: number;
 }
 
 /** Body radii (m). Not knobs: the walk grids are built for them. */
-export const RADIUS: Record<EnemyKind, number> = { grunt: 0.45, spitter: 0.4, brute: 0.85, leaper: 0.45, stinger: 0.5, wraith: 0.55 };
+export const RADIUS: Record<EnemyKind, number> = { grunt: 0.45, spitter: 0.4, brute: 0.85, leaper: 0.45, stinger: 0.5, wraith: 0.55, demon: 1.7 };
 /** The grid each size class walks: blocked for this radius (a little less than the brute's, so 2 m gaps stay open:
  *  the push out of walls keeps its body clear anyway). */
 export const GRID_RADIUS: Record<SizeClass, number> = { small: 0.45, large: 0.65, air: 0.6 };
 
-const blank = (size: SizeClass): EnemyStats => ({ hp: 0, radius: 0, height: 0, speed: 0, knock: 0, stagger: 0, flinch: 0, deathTime: 0, coins: 0, size });
-const CACHE: Record<EnemyKind, EnemyStats> = { grunt: blank('small'), spitter: blank('small'), brute: blank('large'), leaper: blank('small'), stinger: blank('air'), wraith: blank('air') };
+const blank = (size: SizeClass, boss = false): EnemyStats => ({ hp: 0, radius: 0, height: 0, speed: 0, knock: 0, stagger: 0, flinch: 0, deathTime: 0, coins: 0, size, boss, stunned: 1 });
+const CACHE: Record<EnemyKind, EnemyStats> = { grunt: blank('small'), spitter: blank('small'), brute: blank('large'), leaper: blank('small'), stinger: blank('air'), wraith: blank('air'), demon: blank('large', true) };
 
 function fill(s: EnemyStats, hp: number, radius: number, height: number, speed: number, knock: number, stagger: number, flinch: number, deathTime: number, coins: number): EnemyStats {
   s.hp = hp;
@@ -76,7 +81,19 @@ export const ENEMY_STATS: Record<EnemyKind, () => EnemyStats> = {
     const v = FOES.v;
     return fill(CACHE.wraith, v.wraithHp, RADIUS.wraith, v.wraithHeight, v.wraithSpeed, v.wraithKnock, 0, v.wraithFlinch, 1.4, v.wraithCoins);
   },
+  demon: () => {
+    const v = BOSS.v;
+    // Never flinches, barely slides; its coins burst out when its body does (bossRoom.ts), not on the killing hit.
+    const s = fill(CACHE.demon, v.demonHp, RADIUS.demon, v.demonHeight, v.demonSpeed, 0.05, Infinity, 0, doomTime() + DOOM_AFTER, 0);
+    s.stunned = v.stunBonus;
+    return s;
+  },
 };
+
+/** Update 0.0.15 — a boss's death show: up, hanging, sinking (s); its body bursts at the end, and its slot frees this
+ *  long after. */
+export const doomTime = () => BOSS.v.doomRise + BOSS.v.doomHang + BOSS.v.doomDrop;
+export const DOOM_AFTER = 0.1;
 
 /** Fliers (they stay up; their bodies fall when they die). */
 export const flies = (kind: EnemyKind) => CACHE[kind].size === 'air';

@@ -4,6 +4,7 @@
 // M2 — first the weapon in hand (E picks one up; Q throws it, and so does the next attack once it's broken: a short
 // wind-up, then it flies), and its swings; after the targets, the grunts and the lab's waves of them, weapons in
 // flight, and the lab's stands.
+// Update 0.0.15 — quake rings roll after the enemies move (a landing starts one).
 import { Vector3 } from 'three';
 import type { Spot } from '../../world/arena';
 import type { CollisionWorld } from '../collisionWorld';
@@ -20,6 +21,7 @@ import { updateOrbs } from './orbs';
 import { aim, resolvePunch } from './punch';
 import { slamImpact } from './slamHit';
 import { updateCoins } from './coins';
+import { updateQuakes } from './quakes';
 import type { CombatState } from './state';
 import { updateTurret } from './turret';
 
@@ -76,6 +78,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     player.slamImpact = 0;
   }
   updateEnemies(state.enemies, player, state, world, dt);
+  updateQuakes(state.quakes, player, events, dt);
   updateWaves(state.waves, state.enemies, spawns, player, state.rng, events, dt);
   updateThrown(state, world, dt);
   state.money = updateCoins(state.coins, player, state.money, events, dt);

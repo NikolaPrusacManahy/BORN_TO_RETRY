@@ -7,6 +7,7 @@
 // Update 0.0.13 — the Leaper is the Ninja, the Stinger the Armabee, the Wraith the Ghost (Ultimate Monsters); a leap
 // or a dive plays the kind's 'air' clip; bodies are placed by their lowest point (the fliers' models float above
 // their origin).
+// Update 0.0.15 — not the Demon: a boss is drawn by boss/demonView.ts (its aura, its death show).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -32,7 +33,7 @@ interface Look {
   glow: [number, number, number];
 }
 
-const LOOKS: Record<EnemyKind, Look> = {
+const LOOKS: Record<EnemyKind, Look | null> = {
   grunt: { url: '/models/enemies/orc.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Run' }, lands: 16 / 30, windup: () => ENEMIES.v.gruntWindup, glow: [0.9, 0.06, 0.04] },
   spitter: { url: '/models/enemies/wizard.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', air: 'Walk' }, lands: 7 / 30, windup: () => ENEMIES.v.spitterWindup, glow: [0.35, 0.9, 0.1] },
   brute: { url: '/models/enemies/yeti.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Walk' }, lands: 15 / 30, windup: () => ENEMIES.v.bruteWindup, glow: [1, 0.25, 0.05] },
@@ -41,6 +42,7 @@ const LOOKS: Record<EnemyKind, Look> = {
   leaper: { url: '/models/enemies/ninja.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Duck', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 44 / 30, windup: () => FOES.v.leaperWindup, glow: [0.65, 0.2, 1] },
   stinger: { url: '/models/enemies/armabee.glb', clips: { idle: 'Flying_Idle', move: 'Fast_Flying', attack: 'Headbutt', hit: 'HitReact', death: 'Death', air: 'Fast_Flying' }, lands: 9 / 30, windup: () => FOES.v.stingerWindup, glow: [1, 0.15, 0.05] },
   wraith: { url: '/models/enemies/ghost.glb', clips: { idle: 'Flying_Idle', move: 'Flying_Idle', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Flying_Idle' }, lands: 12 / 30, windup: () => FOES.v.wraithWindup, glow: [0.7, 0.85, 1] },
+  demon: null,
 };
 
 interface Body {
@@ -76,6 +78,14 @@ function roleFor(phase: EnemyPhase, attackOver: boolean): Role {
     case 'leap':
     case 'dive':
       return 'air';
+    // (The Demon's own phases: drawn by boss/demonView.ts.)
+    case 'charge':
+      return 'move';
+    case 'stun':
+      return 'hit';
+    case 'roar':
+    case 'intro':
+      return 'idle';
   }
 }
 
@@ -99,9 +109,9 @@ export class EnemiesView {
     const loader = new GLTFLoader();
     this.loaded = loadModels
       ? Promise.all(
-          ENEMY_KINDS.map((kind) =>
+          ENEMY_KINDS.filter((kind) => LOOKS[kind]).map((kind) =>
             loader
-              .loadAsync(LOOKS[kind].url)
+              .loadAsync(LOOKS[kind]!.url)
               .then((gltf) => this.attach(kind, gltf.scene, gltf.animations))
               .catch((err) => console.error(`${kind} model failed to load`, err)),
           ),
@@ -120,6 +130,7 @@ export class EnemiesView {
     const height = geo?.boundingBox ? geo.boundingBox.max.y - geo.boundingBox.min.y : 2;
     const lowest = geo?.boundingBox ? geo.boundingBox.min.y : 0;
     const look = LOOKS[kind];
+    if (!look) return;
     const find = (name: string) => animations.find((a) => a.name === name || a.name.endsWith(`|${name}`));
     for (const slot of this.slots) {
       const root = cloneSkinned(model);
@@ -163,8 +174,8 @@ export class EnemiesView {
       }
       const b = slot.kind ? slot.bodies[slot.kind] : undefined;
       slot.ring.visible = false;
-      if (!e.alive || !b) continue;
       const look = LOOKS[e.kind];
+      if (!e.alive || !b || !look) continue;
       b.root.visible = true;
       const scale = ENEMY_STATS[e.kind]().height / b.root.userData.height;
       b.root.scale.setScalar(scale);

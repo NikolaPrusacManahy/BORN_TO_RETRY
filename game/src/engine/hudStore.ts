@@ -50,6 +50,15 @@ export interface HudState {
   mapX: number;
   mapZ: number;
   mapYaw: number;
+  /** Update 0.0.15 — the boss room's show: the letterbox (the view isn't yours; the rest of the HUD hides), the boss's
+   *  name card, its health (0..1; −1: no bar), the black of the way down, and the next floor's name. */
+  cine: boolean;
+  card: boolean;
+  bossName: string;
+  bossTitle: string;
+  bossHp: number;
+  veil: boolean;
+  floorName: string;
 }
 
 export interface HudStore {
@@ -59,7 +68,7 @@ export interface HudStore {
 }
 
 export function createHudStore(): HudStore {
-  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, map: null, mapX: 0, mapZ: 0, mapYaw: 0 };
+  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '' };
   const subs = new Set<() => void>();
   return {
     get: () => state,

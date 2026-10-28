@@ -2,9 +2,11 @@
 // at spawn points away from the player. Spawns are picked with the seeded RNG (never Math.random in sim/).
 // Update 0.0.12 — a wave mixes grunts, spitters and brutes (Lab grunts, Lab spitters, Lab brutes).
 // Update 0.0.13 — and leapers, stingers and wraiths (Lab leapers, Lab stingers, Lab wraiths).
+// Update 0.0.15 — and the Demon (Lab demon), to try the boss fight.
 import { Vector3 } from 'three';
 import type { Rng } from '../../core/rng';
 import type { EventQueue } from '../../core/eventQueue';
+import { BOSS } from '../../tuning/boss';
 import { ENEMIES } from '../../tuning/enemies';
 import { FOES } from '../../tuning/foes';
 import type { Spot } from '../../world/arena';
@@ -40,13 +42,15 @@ export function spawnAt(enemies: Enemy[], kind: EnemyKind, pool: Spot[], player:
 export function updateWaves(w: Waves, enemies: Enemy[], spots: readonly Spot[], player: PlayerState, rng: Rng, events: EventQueue<CombatEvent>, dt: number) {
   const v = ENEMIES.v;
   const f = FOES.v;
-  if (v.labGrunts + v.labSpitters + v.labBrutes + f.labLeapers + f.labStingers + f.labWraiths <= 0 || spots.length === 0) return;
+  const demons = BOSS.v.labDemons;
+  if (v.labGrunts + v.labSpitters + v.labBrutes + f.labLeapers + f.labStingers + f.labWraiths + demons <= 0 || spots.length === 0) return;
   for (const e of enemies) if (isLive(e)) return;
   w.timer -= dt;
   if (w.timer > 0) return;
   w.timer = v.labWaveDelay;
   const far = spots.filter((s) => Math.hypot(s.x - player.pos.x, s.z - player.pos.z) >= SPAWN_MIN_DIST);
   const pool = far.length > 0 ? far : [...spots];
+  for (let n = 0; n < demons; n++) spawnAt(enemies, 'demon', pool, player, rng, events);
   for (let n = 0; n < v.labBrutes; n++) spawnAt(enemies, 'brute', pool, player, rng, events);
   for (let n = 0; n < f.labWraiths; n++) spawnAt(enemies, 'wraith', pool, player, rng, events);
   for (let n = 0; n < f.labStingers; n++) spawnAt(enemies, 'stinger', pool, player, rng, events);

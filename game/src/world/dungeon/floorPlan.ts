@@ -6,8 +6,12 @@
 // Update 0.0.13 — rooms twice the size: each column of the board is as wide as its widest room and each row as tall as
 // its tallest (so corridors stay short between rooms of different sizes). A shop hangs off the way, and one or two
 // fight rooms hold a chest.
+// Update 0.0.15 — the way ends in the boss room. The way down is a wooden gate in its far wall onto the dark
+// (wayOut.ts): stepping into the dark ends the floor. The board's margin grew so that dark fits beside a room on the
+// board's edge.
 import { createRng, Rng } from '../../core/rng';
-import { Cell, EXIT_ROOM, FIGHT_ROOMS, layOut, RoomKind, RoomLayout, SHOP_ROOM, START_ROOM } from './rooms';
+import { BOSS_ROOM, Cell, FIGHT_ROOMS, layOut, RoomKind, RoomLayout, SHOP_ROOM, START_ROOM } from './rooms';
+import { NO_WAY_OUT, stampWayOut, WayOut } from './wayOut';
 
 /** Metres per cell; slots on the board; the largest room's side (cells); cells between neighbouring rooms' insides
  *  (their walls and the corridor); the floor grid's side (cells). */
@@ -15,7 +19,7 @@ export const CELL = 2;
 export const SLOTS = 5;
 export const MAX_ROOM = 36;
 const GAP = 6;
-const MARGIN = 2;
+const MARGIN = 4;
 export const GRID = SLOTS * (MAX_ROOM + GAP) + MARGIN * 2;
 /** Fight rooms on the way from the start to the way down. */
 export const PATH_FIGHTS = 5;
@@ -56,9 +60,11 @@ export interface FloorPlan {
   rooms: PlacedRoom[];
   links: [number, number][];
   corridors: Corridor[];
-  /** Where you start (feet, world m) facing the start room's door; the middle of the way down. */
+  /** Where you start (feet, world m) facing the start room's door; the middle of the way down (the dark). */
   start: { x: number; y: number; z: number; yaw: number };
   exit: { x: number; z: number };
+  /** Update 0.0.15 — the wooden gate and the dark beyond it. */
+  wayOut: WayOut;
 }
 
 /** A cell's centre in the world (m): the grid is centred on the origin. */
@@ -118,13 +124,13 @@ export function planFloor(seed: number, level: number): FloorPlan {
   const links: [number, number][] = [];
   const taken = new Set<number>();
   const add = (kind: RoomKind, slot: [number, number], depth: number) => {
-    const t = kind === 'start' ? START_ROOM : kind === 'exit' ? EXIT_ROOM : kind === 'shop' ? SHOP_ROOM : fights[rooms.filter((r) => r.kind === 'fight').length % fights.length];
+    const t = kind === 'start' ? START_ROOM : kind === 'boss' ? BOSS_ROOM : kind === 'shop' ? SHOP_ROOM : fights[rooms.filter((r) => r.kind === 'fight').length % fights.length];
     rooms.push({ index: rooms.length, kind, layout: layOut(t, rng), slot, x0: 0, z0: 0, doors: [], depth, chest: null });
     taken.add(key(slot));
     return rooms.length - 1;
   };
   way.forEach((slot, i) => {
-    add(i === 0 ? 'start' : i === way.length - 1 ? 'exit' : 'fight', slot, i);
+    add(i === 0 ? 'start' : i === way.length - 1 ? 'boss' : 'fight', slot, i);
     if (i > 0) links.push([i - 1, i]);
   });
   // Side rooms off the fight rooms on the way: the shop (off the second to fourth fight room when it can), then
@@ -152,14 +158,15 @@ export function planFloor(seed: number, level: number): FloorPlan {
     rooms[b].doors.push(sb);
   }
   placeRooms(rooms);
-  const plan: FloorPlan = { seed, level, cells: new Array<Cell>(GRID * GRID).fill('void'), rooms, links, corridors: [], start: { x: 0, y: 0, z: 0, yaw: 0 }, exit: { x: 0, z: 0 } };
+  const plan: FloorPlan = { seed, level, cells: new Array<Cell>(GRID * GRID).fill('void'), rooms, links, corridors: [], start: { x: 0, y: 0, z: 0, yaw: 0 }, exit: { x: 0, z: 0 }, wayOut: NO_WAY_OUT };
   for (const r of rooms) stampRoom(plan, r);
   for (const [a, b] of links) stampCorridor(plan, rooms[a], rooms[b]);
+  plan.wayOut = stampWayOut(plan, rooms[way.length - 1]);
   const s = rooms[0];
   const yaw: Record<Side, number> = { n: 0, s: Math.PI, w: Math.PI / 2, e: -Math.PI / 2 };
   plan.start = { x: cellX(s.x0) + ((s.layout.w - 1) * CELL) / 2, y: 0, z: cellZ(s.z0) + ((s.layout.h - 1) * CELL) / 2, yaw: yaw[s.doors[0]] };
-  const e = rooms[way.length - 1];
-  plan.exit = { x: cellX(e.x0) + ((e.layout.w - 1) * CELL) / 2, z: cellZ(e.z0) + ((e.layout.h - 1) * CELL) / 2 };
+  const o = plan.wayOut;
+  plan.exit = { x: (cellX(o.x0) + cellX(o.x1)) / 2, z: (cellZ(o.z0) + cellZ(o.z1)) / 2 };
   return plan;
 }
 

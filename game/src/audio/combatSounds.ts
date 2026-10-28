@@ -2,11 +2,13 @@
 // the turret's warning, shot and orb pops. Real samples replace them in M4.
 // M2 — sword swings and hits, throws and breaks, pickups, and the grunts: the growl that warns of a swing (every
 // attack is telegraphed by a sound), the swing itself, and their arrival.
+// Update 0.0.15 — the boss's sounds are in bossSounds.ts.
 import type { CombatEvent } from '../sim/combat/state';
 import { FISTS } from '../tuning/combat';
 import { ENEMIES } from '../tuning/enemies';
 import { FOES } from '../tuning/foes';
 import type { AudioEngine } from './audio';
+import { playBoss } from './bossSounds';
 import { noise, tone } from './synth';
 
 /** Sounds from far targets are quieter (m at which they're half as loud). */
@@ -209,6 +211,7 @@ export class CombatSounds {
         tone(a, { from: 1320, to: 2640, dur: 0.35, gain: 0.08, type: 'triangle' });
         break;
       default:
+        playBoss(a, kind, value, far);
         break;
     }
   }

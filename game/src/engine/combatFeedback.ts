@@ -3,6 +3,8 @@
 // M2 — and sword slashes, pierces and throws (the sword arm's moves), weapons breaking, and enemies arriving.
 // Update 0.0.12 — the slams (yours and the brute's) and the spitter's spit.
 // Update 0.0.13 — the leaper's landing, the stinger's dive and the wraith's cast; a chest's loot bursting out.
+// Update 0.0.15 — the Demon: its charge crashing, its landing, its roar, its gore and the quakes (felt more the closer
+// you are); its show's rumble; killed, a heavy jolt; its body bursting (chunks, sparks, a ring); the wooden gate.
 import * as THREE from 'three';
 import type { CombatSounds } from '../audio/combatSounds';
 import type { CombatState } from '../sim/combat/state';
@@ -43,6 +45,11 @@ export class CombatFeedback {
     this.f.rig.kick(kick);
     this.hits++;
     this.marker = marker;
+  }
+
+  /** 1 at `at`, falling to 0 `far` m away. */
+  private near(at: THREE.Vector3, listener: THREE.Vector3, far: number) {
+    return Math.max(0, 1 - at.distanceTo(listener) / far);
   }
 
   /** `listener`: the camera position (sparks fly back towards it; far sounds are quieter). */
@@ -121,6 +128,39 @@ export class CombatFeedback {
           break;
         case 'chestLoot':
           this.f.sparks.spawn(at, UP, 24, 1.2);
+          break;
+        case 'demonCrash':
+          this.f.chunks.spawn(at, back, 22, 1.2);
+          this.f.rig.shake.add(0.55 * this.near(at, listener, 30));
+          break;
+        case 'demonSlam':
+          this.f.chunks.spawn(at, UP, 26, 1.3);
+          this.f.rig.shake.add(0.7 * this.near(at, listener, 30));
+          break;
+        case 'demonRoar':
+          this.f.rig.shake.add(0.5);
+          break;
+        case 'demonGore':
+        case 'quakeHit':
+          this.f.rig.shake.add(0.45);
+          break;
+        case 'bossRise':
+          this.f.chunks.spawn(at, UP, 30, 1.4);
+          break;
+        case 'bossDown':
+          this.f.rig.shake.add(0.8);
+          this.f.sparks.spawn(at, back, 40, 1.6);
+          this.hits++;
+          this.marker = 'kill';
+          break;
+        case 'bossBurst':
+          this.f.chunks.spawn(at, UP, 80, 2.2);
+          this.f.sparks.spawn(at, UP, 120, 2.4);
+          this.f.waves.spawn(at.set(at.x, 0, at.z), 14, 0xffd0a0);
+          this.f.rig.shake.add(0.9);
+          break;
+        case 'woodGateOpen':
+          this.f.rig.shake.add(0.2);
           break;
         case 'hitSlam':
           this.hit(1.6, fb.shakeJab, fb.kickJab, 'heavy');

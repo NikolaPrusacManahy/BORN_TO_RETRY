@@ -2,7 +2,30 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.0.14
+## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.0.15
+- **Update 0.0.15 — the first boss, the Demon** (the designer: build it as pitched, bigger, with an aura; a cinematic entrance; a death that hangs, flickers and bursts; a wooden gate onto the dark). Spec: `MD_UPDATES/M3_BOSS.md`.
+  - **The boss room** replaces the exit room at the end of the way: 60 m square, four columns and eight broken ones, a pad in each corner, red on the minimap. You walk into a smaller room built against the wall you came in by.
+  - **The show:**
+    - Stepping in shuts the gates, and the view rises out of your eyes over the room (black bars, the HUD fades).
+    - The walls slide back to the real walls with a grinding rumble.
+    - A portal opens in the middle (a swirling red-violet disc, a column of light, sparks, a light flooding the room), and the Demon rises out of it.
+    - The view comes down in front of it as it raises its trident, its name card on the right (**THE DEMON**, "Warden of Floor 1").
+    - The view glides back into your eyes, facing it, and the fight starts (about 8 s).
+    - You don't move during it.
+  - **The Demon:** 6.5 m tall, 1200 health, never flinches. Its aura: a glow, embers, a ring of fire, a red light.
+    - **Charge:** red warning and a red lane on the floor, then a run straight across the room. 25 damage and thrown if it hits you. Into a wall or a column it is stunned 2.2 s and takes 1.5× damage.
+    - **Leap:** orange warning, then it lands where you stood (a ring shows where). 30 damage close by, and a quake ring rolls out over the floor (15 damage): jump it.
+    - **Volley:** a fan of five fire orbs.
+    - **Rage, at half health:** it roars and calls four grunts (again later while few are left). Quicker warnings and shorter pauses, faster, a charge into a leap, two fans.
+    - **Death:** the world slows. It rises, hangs frozen, sinks flickering white faster and faster, and bursts: 60 coins, a key and a heart.
+  - **The wooden gate:**
+    - A timber frame with two iron-bound plank doors, a torch on each side, in the middle of the far wall.
+    - It swings open into pure black a moment after the burst; the view turns to it and back, and the room's own gates lift.
+    - "FLOOR 2" glows faintly in the dark.
+    - Stepping into the dark fades to black, and the next floor loads with its name as the black clears.
+  - **Every floor's boss is the Demon** for now; floor 3's doesn't end the run yet (M5).
+  - **Fixed after the designer's first play:** after the boss died the screen froze and the gate shot never came. The room's clock stopped once the room was cleared, so the gate shot stayed at its first frame and kept you locked. It runs on now (`test-boss-room.ts`, `test-boss-show.ts` regression checks).
+  - **Tuning tabs:** "Demon (boss)" (every number, Lab demon to try it in the Feel Lab) and "Boss show" (the show's timings, the view's height, the slow motion, the gate shot, the fade).
 - **Update 0.0.14 — no sky through the walls** (the designer's screenshots: pale lines in the room corners and along the feet of the walls, a pale crack up a corner seen close). In daylight the gaps between the kit's pieces showed the sky behind them: the brick faces have jagged edges, and nothing filled the wall cells behind them (the old black fog hid it). Now every wall and ledge cell has a solid core in the kit's darkest brick colour, set just behind its faces where it has them and flush with the walls beside it, and a dark slab lies under the whole floor. A notch now reads as a mortar line. Seen in Blender (`render_dungeon.py --day`, before and after, a room corner close up), not in the game. `test-dungeon.ts` checks every wall and ledge cell is filled and the cores never poke out past the faces (and fails with them flush everywhere).
 - **Update 0.0.13 — bigger rooms, three new enemies, the shop and chests, no blood heal** (the designer's list).
   - **Rooms twice the size** (the designer: more walls to use, more room to fight in): the nine fight rooms are redrawn at twice the width and length (24–36 cells a side, 48–72 m), each drawn as a quarter and mirrored (`world/dungeon/fightRooms.ts`), with more long inner walls to wall-run along and hide behind, and pads to launch from. The start room is 12 × 12 cells, the exit 16 × 16. Each column of the floor's board is as wide as its widest room, so corridors stay short. Room budgets are bigger to fill them (6 + 3 × depth + 4 × (floor − 1); 3 waves from 18). Fog pushed back to 20–95 m, eight torch lights, the minimap shows twice the area.
@@ -74,6 +97,15 @@ Run `START_GAME.bat`. The main menu opens on the gate.
   - Left click: jab combo. Hold it to keep punching: left, right, then a left finisher that knocks back.
   - Right click: hold 1 s (the fist draws back and trembles, a cue sounds when ready), then let go to punch. Letting go sooner cancels.
 - **Targets:** four dummies in front of the start (they wobble, slide back, break, and return 2 s later).
+- **Update 0.0.15:** clear the five fight rooms (or F4 and run) to the boss room at the end of the way (red on the minimap). Watch the show, then fight:
+  - Bait its charge into a column and punish it while it's stunned.
+  - Jump the quake ring after its leap.
+  - Sidestep the fire fans.
+  - At half health, deal with the grunts it calls.
+  - Kill it and watch it hang, flicker and burst.
+  - Walk through the wooden gate into the dark for floor 2.
+
+  F1 → Demon (boss) → Lab demon 1 sends one into the Feel Lab (F9) to practise without the show.
 - **Update 0.0.13:** the rooms are twice the size: try wall runs along their inner walls. From the second room on, leapers (jump their landing, punch them while they're stuck), stingers (sidestep or dash the dive, punch them low and dazed) and, from the third, wraiths (step out of the fan; jump or wall-run up to them). Your hits don't heal you now. Find the shop (gold on the minimap): stand by a tile, E buys (70 each); buy the key, find the chest (in a fight room, once it's clear) and press E in front of it. The shield is the blue bar above your health. In the lab (F9) a leaper, a stinger and a wraith come with every wave.
 - **The dungeon (Update 0.0.12):** Play → you start in a small room facing its door. Walk into the next room: the gates crash down and the waves come. Clear it, follow the corridors (watch the minimap), find the trapdoor in the exit room and step on it for the next floor. Try the slam (F) off a ledge or after a jump pad into a crowd; jump the brute's slam; dodge the spitter's orbs. F9 swaps to the Feel Lab and back; F3 lays the floor out again from its start.
 - **Grunts and the sword (Updates 0.0.9 and 0.0.10):** wait 3 s for the first three Orcs. The sword stands right of the start: E to take it, left click to slash (tap for a forehand, keep going for forehand and backhand by turns), hold right click to point it and let go to pierce, Q to throw. Kill grunts with it until it breaks, then throw it; pick up what they drop. F1 → Enemies (set "Lab grunts" to 0 to practise movement in peace) and Weapons (pierce reach and width, throw wind-up, throw spin); the Arms tab moves the sword arm, slides it in the fist, and times its slash, its return, the pierce and the swap.
@@ -119,6 +151,8 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `MD_UPDATES/M3_DUNGEON.md` | M3's first slice: the dungeon floors, their rooms, the room loop and the minimap |
 | `MD/PIPELINE_DUNGEON.md` | How the dungeon kit is exported, how a room is drawn, and how to look at a floor without a browser |
 | `MD_UPDATES/M3_SHOP_CHESTS.md` | Update 0.0.13: the shop, the chests, the items, the shield, and rooms twice the size |
+| `MD_UPDATES/M3_BOSS.md` | Update 0.0.15: the Demon, the boss room and its show, the wooden gate onto the dark |
+| `game/tools/boss-shots.ts` | Renders the boss room (walls at any point of their slide, the gate shut or open, the Demon's stance) from the show's own shots, without a browser |
 | `game/tools/view-shots.ts`, `game/tools/blender/render_view.py` | Renders the first-person arms (the game's own code and models) at chosen moments, without a browser |
 | `MD/PIPELINE_MENU_SCENE.md` | How the menu's scenes (the gate, the settings camp, the prison corridor) are built, and how to change them |
 | `DEVELOPMENT.md` | Module map and contracts |
@@ -142,6 +176,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 - **No healing from hits (Update 0.0.13, the designer): only the shop's heart (and a chest's) heals.** Blood heal and its knobs are gone.
 - **The shop and chests (Update 0.0.13, the designer):** five tiles; heart, silver armour plate (a blue shield bar), gold sword (40 hits), red-gem ring (+25% damage), blue-gem ring (+20% speed), key (opens a chest); all 70. Chests hold 50–80 coins, a plate, a heart or any ring; you kneel and open them with both hands.
 - **Rooms twice the size (Update 0.0.13, the designer).** Three more enemies: the Leaper, and two fliers, the Stinger and the Wraith.
+- **The first boss is the Demon (Update 0.0.15, the designer):** bigger, with an aura; a cinematic entrance (walls sliding back, a portal, its stance beside its name); a death that hangs in the air, flickers white and bursts; a wooden gate onto the dark as the way down (no trapdoor, no exit room).
 - **The roster (Update 0.0.8):** Joseph (the Adventurer), Fallen King (King), William Rich (Suit), Alpha Team (Swat), in that cell order. Only Joseph is playable for now. The first list also had a Cowboy and a Horse Guy; the designer's later list names these four.
 - The name is **Born To Retry**. The main menu is the gate scene; Start opens the gate and fades to black (Update 0.0.4: the first-person walk-in was cut).
 - **No hints players already understand** on any interface: no key labels beside buttons, no how-to text, no status notes (Update 0.0.4).
@@ -151,11 +186,23 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 1. ~~The game's name~~: decided, **Born To Retry**.
 2. The theme: dark ruins and monsters, or something else?
 3. Firearms from the start, or melee only at first?
-4. Boss ideas for floors 1–3.
+4. Boss ideas for floors 2 and 3 (floor 1: the Demon). Until then the Demon guards every floor.
 5. The starter character and the unlock order.
 6. ~~F with a sword~~: decided, the quick punch is gone; F is the ground slam (Update 0.0.12).
-7. ~~What the side rooms hold~~: the shop (Update 0.0.13). Still open: the boss at the end of the way, reward rooms.
+7. ~~What the side rooms hold~~: the shop (Update 0.0.13); the boss room ends the way (Update 0.0.15). Still open: reward rooms.
 8. **Update 0.0.13 placeholders to confirm:** five tiles for six items (the key always offered, four of the other five); E to buy and to open a chest (the design's E: "pick up, buy, open"); a chest opens only when its room isn't fighting; one chest a floor (35%: two); chest odds (coins 40%, then a plate, a heart or a ring alike); the shield caps at a full bar (two plates), rings stack; the blue ring speeds running and sliding, not the dash; buying the gold sword drops your sword at your feet; the new enemies' numbers (Leaper & fliers tab); bigger room budgets.
+
+9. **Update 0.0.15 placeholders to confirm:**
+   - the boss's name and title (THE DEMON, "Warden of Floor N");
+   - all the Demon's numbers (Demon (boss) tab), and how it picks its moves (by distance);
+   - its loot (60 coins, a key, a heart; the heart is the design's part-heal);
+   - the room's size and pillars, and the small room you walk into (16 × 14 cells);
+   - the show's timings and shots (Boss show tab), and whether the gate shot should stay;
+   - the room's gates lifting with the wooden gate (you can go back to the shop);
+   - the wooden gate swinging outward into the dark, and "FLOOR 2" in the dark;
+   - the floor's name on arrival;
+   - the Demon on every floor;
+   - floor 3's boss not ending the run yet.
 
 ## Browser checks (filled in during M1)
 | Check | Result |
@@ -176,4 +223,8 @@ Claude has seen and heard none of this in the game: the feel, the arms on screen
 - **Grunts and walls (Update 0.0.11):** unseen in the browser. `test-nav.ts` checks the lab's grid, a grunt going round a wall and out of a pen, never inside a wall (running, knocked, shoved, spawned in one), no swing through a wall, waiting at the foot of a block you're on, and grunts from every lab spawn reaching you at the start, behind the low cover and between the pillars.
 - **The dungeon, the Spitter, the Brute, coins and the slam (Update 0.0.12):** nothing seen in the browser. Seen only as Blender renders of the game's own floor plans with the real kit (`tools/dungeon-shots.ts`): an overview and a few eye-height views, flat light. Unseen: the dungeon under the game's lights (torch lights following you, fog, the exit glow: the brightness is a guess), the bars crashing and sinking, the minimap, the Wizard and the Yeti in motion (their scale, clips, the swing timing, the glow, the brute's ring), the slam's shockwave and dust, the coins flying in, and every new sound. Load time per floor measured at about 35 ms in Node. `test-dungeon.ts` (rooms, floor plans over 40 seeds, the level, the room loop, the kit), `test-enemies.ts`, `test-slam.ts`, `test-money.ts` check the rules.
 - **Bigger rooms, the Leaper, the Stinger, the Wraith, the shop, chests, the shield, rings (Update 0.0.13):** nothing seen in the browser. Seen only as Blender renders: a floor's overview and an eye-height view with the real kit (the rooms at their new size), the item models (`export_items.py` previews: the chest's lid swung open on its hinge), and the new monsters' previews. Daylight seen only as a Blender stand-in (`render_dungeon.py --day`: the same sky colour, sun direction and strengths, not the game's renderer): bright and readable there; the game's real brightness, the shadows' look and their cost per frame are unverified. Unseen: the shop under the game's lights (tiles, turning items, price tags), the chest opening (the kneel, the view turning, the hands on the lid: a rule test checks through the game's own arms and cameras that both fists land on the lid's front edge on screen, within a fifth of the screen), items flying in, the shield bar and its blue flash, the HUD's keys and rings, the three new enemies in motion (their scale, clips, timing, glows, the leaper's arc, the stinger's dive, the wraith's fan), their sounds, and how the bigger rooms play. A floor now loads in about 10 ms in Node (the walk grids are built faster: identical cells, checked over 525 grids). `test-shop.ts`, `test-foes.ts`, and new checks in `test-dungeon.ts` and `test-health.ts` check the rules.
-- **Known limits:** walkers walk the floor only (no climbing, no steps: on a block, a ledge or the steps you're out of their reach; the leaper only leaps along the floor), and the walk grids are at floor height (the dungeon builds three per room: walkers, the brute, fliers). Fliers keep below the 6 m walls and have no ceiling to mind (there is none). The way down swaps floors at once (no fade yet). No boss or reward rooms yet. Fine for the lab; rooms with levels (M3) will want grids per floor or links between them.
+- **The first boss (Update 0.0.15):** nothing seen in the browser.
+  - **Seen only as Blender renders** of the game's own code (`tools/boss-shots.ts`, `render_dungeon.py --day`): the room with its walls at 0, ½ and 1 (the small room you walk into, brick-faced); the gate shut and open (black behind it); the Demon's stance shot from the show's camera, standing left of the middle.
+  - **Unseen:** the show in motion (the camera's glide, the walls sliding, the portal's shaders and sparks, the rise, the name card and black bars, the glide back); the Demon in motion (its clips, the warnings' glows, the charge lane, the landing ring, the quake rings); its aura (a shader glow, embers, the fire ring, the light); the death show (slow motion, the frozen pose, the white flicker, the burst's flash); the gate swinging; the fade into the dark and the floor's name; every new sound; and whether the fight is fun or fair.
+  - `test-boss.ts` and `test-boss-show.ts` check the rules, the model's clips and size, the camera's path, the walls, the gate and the run's side.
+- **Known limits:** walkers walk the floor only (no climbing, no steps: on a block, a ledge or the steps you're out of their reach; the leaper only leaps along the floor), and the walk grids are at floor height (the dungeon builds three per room: walkers, the brute, fliers). Fliers keep below the 6 m walls and have no ceiling to mind (there is none). The way down fades to black now (Update 0.0.15). No reward rooms yet. The boss room's show has no player body (the view never looks back at you). Fine for the lab; rooms with levels (M3) will want grids per floor or links between them.
