@@ -112,6 +112,9 @@ export function Hud({ store }: { store: HudStore }) {
       </div>
       <WeaponSlots slots={s.slots} slot={s.slot} />
       <Bonuses left={s.bonusLeft} />
+      <div className={`rb-hud-exec${s.execution >= 1 ? ' is-full' : ''}`} style={{ '--fill': s.execution } as CSSProperties}>
+        <i className="rb-hud-exec-fill" />
+      </div>
       <div className="rb-hud-dash">
         {Array.from({ length: s.dashMax }, (_, i) => (
           <span key={i} className="rb-hud-pip" style={{ '--fill': Math.max(0, Math.min(1, s.dashCharges - i)) } as CSSProperties} />

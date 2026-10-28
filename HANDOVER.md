@@ -2,7 +2,12 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.0.21
+## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.1.0
+- **Update 0.1.0 — constant pressure, the Execution Power meter** (the designer's list; spec `MD_UPDATES/U010_PRESSURE.md`).
+  - **Rooms:**
+    - A room's planned enemies come as one stream: an opening of at least 5, then one more whenever fewer than 5 are fighting (every 0.35 s), until the room's plan is all sent.
+    - No more emptying the room between waves.
+  - **Execution Power meter:** a crimson bar above the dash charges. Kills fill it (10 to full), it carries between floors, and it does nothing yet.
 - **Update 0.0.21 — floor 3's rooms, the Dragon's sky phase, enemies left** (the designer's list; spec `MD_UPDATES/M3_KEEP.md`).
   - **ASSETS:** the 14 monsters in the game moved to `Ultimate Monsters/used_monster/{Boss,mini_boss,flying,blobs}/`, each with the atlas. What's left elsewhere is unused.
   - **HUD:** enemies left in the fight (alive plus waves to come), top middle.

@@ -114,6 +114,8 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 - Style multiplies money from ×1.0 at D to ×2.0 at S. **(placeholder)**
 - Money resets at the end of every run.
 
+- **Constant pressure (Update 0.1.0, the designer):** a fight room never lets its field fall under 5 enemies while it has more to send: its first wave (at least 5), then one more each time one falls, until its plan is spent.
+- **Execution Power meter (Update 0.1.0, the designer):** a bar just above the dash charges, filled by kills (10 to fill). What it pays for is to come.
 - **Enemies left (Update 0.0.21, the designer):** in a fight, a skull and the number of enemies left (alive and still to come), top middle.
 
 ## 8. Shop and chests (Update 0.0.13, the designer)

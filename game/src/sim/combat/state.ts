@@ -195,6 +195,8 @@ export interface CombatState {
   coins: Coin[];
   /** Update 0.0.13 — keys and rings you carry. */
   items: Inventory;
+  /** Update 0.1.0 — the Execution Power meter (0..1: kills fill it). */
+  execution: number;
   /** Update 0.0.16 — items on the floor, and the keys the room you're fighting in still gives (a Yeti drops one). */
   drops: Drop[];
   keyDrops: number;
@@ -240,6 +242,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     money: 0,
     coins: createCoins(),
     items: createInventory(),
+    execution: 0,
     drops: createDrops(),
     keyDrops: 0,
     hitStop: new HitStop(),
@@ -273,6 +276,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.money = 0;
   for (const c of state.coins) c.alive = false;
   state.items = createInventory();
+  state.execution = 0;
   for (const d of state.drops) d.alive = false;
   state.keyDrops = 0;
   stockStands(state);
@@ -288,4 +292,5 @@ export function carryOver(from: CombatState, to: CombatState) {
   to.slot = from.slot;
   to.money = from.money;
   to.items = from.items;
+  to.execution = from.execution;
 }

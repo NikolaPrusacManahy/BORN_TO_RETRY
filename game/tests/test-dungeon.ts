@@ -16,7 +16,8 @@ import { createCombat } from '../src/sim/combat/state';
 import { createFlow, updateFlow } from '../src/sim/enemies/chase';
 import { hitEnemy, isLive } from '../src/sim/enemies/enemy';
 import { GRID_RADIUS } from '../src/sim/enemies/kinds';
-import { buyWave, createDungeonRun, roomBudget, stepRooms, FIRST_WAVE, NEXT_WAVE } from '../src/sim/dungeon/roomLoop';
+import { buyWave, createDungeonRun, roomBudget, stepRooms, FIRST_WAVE } from '../src/sim/dungeon/roomLoop';
+import { ROOMS } from '../src/tuning/rooms';
 import { createPlayer } from '../src/sim/player/state';
 import { buildDungeon } from '../src/world/dungeon/assemble';
 import { CELL, cellAt, cellX, cellZ, colAt, FloorPlan, GRID, MAX_ROOM, PATH_FIGHTS, planFloor, rowAt } from '../src/world/dungeon/floorPlan';
@@ -195,14 +196,25 @@ section('Dungeon — the room loop');
   check('a moment before the first wave', !combat.enemies.some(isLive));
   tick(FIRST_WAVE * 0.6);
   const first = combat.enemies.filter(isLive);
-  check('then the first wave comes', first.length > 0 && seen.includes('enemySpawn'), `${first.length} enemies`);
+  check(`then the first wave comes, at least ${ROOMS.v.fieldMin} (Update 0.1.0)`, first.length >= Math.min(ROOMS.v.fieldMin, r1.total) && seen.includes('enemySpawn'), `${first.length} enemies`);
   check(`none closer than 6 m to you`, first.every((e) => Math.hypot(e.pos.x - p.pos.x, e.pos.z - p.pos.z) >= 6 - 1e-6));
-  const waves = r1.waves;
-  for (let w = 0; w < waves; w++) {
-    for (const e of combat.enemies) if (isLive(e)) hitEnemy(e, 1e6, 0, 0, 1);
-    tick(NEXT_WAVE + 0.1);
+  // Update 0.1.0 (the designer: never fewer than 5 on the field, constant pressure; it was waves that waited for the last
+  // one to die) — kill them one at a time: while the room has more to send, the field is kept full.
+  let thin = '';
+  let kills = 0;
+  for (let k = 0; k < 300 && r1.state === 'fighting'; k++) {
+    const live = combat.enemies.filter(isLive);
+    const more = r1.total - r1.sent;
+    if (more > 0 && live.length < ROOMS.v.fieldMin) thin ||= `${live.length} fighting with ${more} still to come`;
+    if (live.length) {
+      hitEnemy(live[0], 1e6, 0, 0, 1);
+      live[0].alive = false;
+      kills++;
+    }
+    tick(ROOMS.v.reinforceGap + 0.05);
   }
-  check(`after ${waves} waves the room is cleared and its gates open`, r1.state === 'cleared' && fight.gates.every((g) => !run.shut[g]) && seen.includes('gatesOpen'));
+  check(`while it has more to send, at least ${ROOMS.v.fieldMin} are fighting`, !thin, thin);
+  check(`once all ${r1.total} are sent and dead, the room is cleared and its gates open`, kills === r1.total && r1.state === 'cleared' && fight.gates.every((g) => !run.shut[g]) && seen.includes('gatesOpen'));
   const before = seen.length;
   tick(1);
   check('a cleared room stays quiet', !seen.slice(before).includes('gatesShut'));

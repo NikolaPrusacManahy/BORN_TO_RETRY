@@ -10,6 +10,7 @@ import { FEEDBACK } from '../../tuning/combat';
 import { enemyAxis, hitEnemy, isLive, radiusOf } from '../enemies/enemy';
 import { dropWeapon } from '../weapons/weapons';
 import { ENEMY_STATS, MINI_BOSSES } from '../enemies/kinds';
+import { EXECUTION } from '../../tuning/execution';
 import { burstCoins } from './coins';
 import { damageFactor, keyFor } from '../items/items';
 import { dropItem } from '../items/drops';
@@ -92,6 +93,8 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   state.events.push('kill', 0, p.x, p.y, p.z);
   state.hitStop.request(FEEDBACK.v.stopKill);
   if (t.kind !== 'enemy') return true;
+  // Update 0.1.0 — every kill of yours fills the Execution Power meter.
+  state.execution = Math.min(1, state.execution + 1 / Math.max(1, EXECUTION.v.killsToFill));
   const e = state.enemies[t.index];
   if (e.kind === 'grunt' && state.rng() < ENEMIES.v.gruntDrop) dropWeapon(state.pickups, 'sword', e.pos, state.events);
   if (MINI_BOSSES.includes(e.kind) && state.keyDrops > 0) {

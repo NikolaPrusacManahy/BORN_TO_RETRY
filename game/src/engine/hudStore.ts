@@ -83,6 +83,8 @@ export interface HudState {
   poisoned: boolean;
   /** Update 0.0.21 — enemies left in the fight (−1: no count). */
   enemiesLeft: number;
+  /** Update 0.1.0 — the Execution Power meter (0..1, in steps of a kill). */
+  execution: number;
 }
 
 export interface HudStore {
@@ -92,7 +94,7 @@ export interface HudStore {
 }
 
 export function createHudStore(): HudStore {
-  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, purpleRings: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1 };
+  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, purpleRings: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, execution: 0 };
   const subs = new Set<() => void>();
   return {
     get: () => state,

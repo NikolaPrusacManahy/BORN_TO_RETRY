@@ -12,6 +12,10 @@
 // start and opens once the boss is dead; the way down is the dark beyond it.
 // Update 0.0.16 — a room's waves come from its plan (wavePlan.ts, made with the floor); a room with a Yeti gives one
 // key, whichever Yeti dies first (CombatState.keyDrops).
+// Update 0.1.0 (the designer: never fewer than 5 enemies on the field, constant pressure) — a room's waves come as one
+// stream: the opening brings its first wave, and at least Enemies on field (tuning/rooms.ts); after that, whenever fewer
+// than that are fighting, the next of its plan comes in (one every Reinforcement gap), away from you, until all are sent.
+// The room is won when they're all sent and dead.
 import { createRng, Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import type { DungeonLevel } from '../../world/dungeon/assemble';
@@ -23,6 +27,8 @@ import { GRID_RADIUS, SizeClass } from '../enemies/kinds';
 import { spawnAt } from '../enemies/waves';
 import { hasYeti } from './wavePlan';
 import { BONUS } from '../../tuning/bonus';
+import { ROOMS } from '../../tuning/rooms';
+import type { EnemyKind } from '../enemies/kinds';
 import type { PlayerState } from '../player/state';
 import { BossRun, createBossRun, startShow, stepBoss } from './bossRoom';
 import { bossOf } from '../enemies/kinds';
@@ -32,9 +38,9 @@ export type RoomState = 'idle' | 'fighting' | 'cleared';
 
 export interface RoomRun {
   state: RoomState;
-  /** Waves sent so far, and in all; time until the next one. */
-  wave: number;
-  waves: number;
+  /** Update 0.1.0 — enemies of its plan sent so far, and in all; time until the next may come. */
+  sent: number;
+  total: number;
   delay: number;
 }
 
@@ -56,9 +62,8 @@ export interface DungeonRun {
   boss: BossRun;
 }
 
-/** Seconds from the gates shutting to the first wave, and between waves. */
+/** Seconds from the gates shutting to the first wave. */
 export const FIRST_WAVE = 0.7;
-export const NEXT_WAVE = 0.9;
 /** Enemies never appear closer to you than this, if the room has room (m). */
 const SPAWN_CLEAR = 6;
 export { buyWave, roomBudget } from './wavePlan';
@@ -66,7 +71,7 @@ export { buyWave, roomBudget } from './wavePlan';
 export function createDungeonRun(level: DungeonLevel): DungeonRun {
   return {
     level,
-    rooms: level.rooms.map((r) => ({ state: r.kind === 'fight' || r.kind === 'boss' ? 'idle' : 'cleared', wave: 0, waves: 0, delay: 0 })),
+    rooms: level.rooms.map((r) => ({ state: r.kind === 'fight' || r.kind === 'boss' ? 'idle' : 'cleared', sent: 0, total: 0, delay: 0 })),
     current: -1,
     visited: level.rooms.map(() => false),
     // The wooden gate is shut until the boss is dead.
@@ -93,8 +98,8 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
     const room = run.level.rooms[i];
     if (rr.state === 'idle' && run.current === i && !player.dead) {
       rr.state = 'fighting';
-      rr.waves = room.waves.length;
-      rr.wave = 0;
+      rr.total = room.waves.reduce((n, w) => n + w.length, 0);
+      rr.sent = 0;
       combat.keyDrops = hasYeti(room.waves) ? 1 : 0;
       combat.bonusDrops = BONUS.v.perRoom;
       rr.delay = FIRST_WAVE;
@@ -117,17 +122,19 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
       continue;
     }
     if (rr.state !== 'fighting') continue;
-    let live = false;
-    for (const e of combat.enemies) live ||= isLive(e);
-    if (live) continue;
+    let live = 0;
+    for (const e of combat.enemies) if (isLive(e)) live++;
     rr.delay -= dt;
-    if (rr.delay > 0) continue;
-    if (rr.wave < rr.waves) {
-      sendWave(run, i, player, combat, rng);
-      rr.wave++;
-      rr.delay = NEXT_WAVE;
+    if (rr.sent < rr.total) {
+      // Keep the field full: the opening (its first wave, at least Enemies on field), then one at a time.
+      const min = ROOMS.v.fieldMin;
+      if (rr.delay <= 0 && live < min) {
+        send(run, i, player, combat, rng, rr.sent === 0 ? Math.max(room.waves[0]?.length ?? 0, min) : 1);
+        rr.delay = ROOMS.v.reinforceGap;
+      }
       continue;
     }
+    if (live > 0) continue;
     rr.state = 'cleared';
     for (const g of room.gates) run.shut[g] = false;
     ev.push('gatesOpen', i, (room.min.x + room.max.x) / 2, 1, (room.min.z + room.max.z) / 2);
@@ -157,10 +164,24 @@ function enterNav(run: DungeonRun, i: number, combat: CombatState) {
   combat.flow = { small: createFlow(nav.small), large: createFlow(nav.large), air: createFlow(nav.air) };
 }
 
-function sendWave(run: DungeonRun, i: number, player: PlayerState, combat: CombatState, rng: Rng) {
+/** The `k`th enemy of a room's plan (its waves one after another). */
+function nth(waves: readonly EnemyKind[][], k: number): EnemyKind {
+  for (const w of waves) {
+    if (k < w.length) return w[k];
+    k -= w.length;
+  }
+  return 'grunt';
+}
+
+const kinds: EnemyKind[] = [];
+
+/** The next `n` of room `i`'s plan come in, at its spawn spots away from you (spitters on its free perches first). */
+function send(run: DungeonRun, i: number, player: PlayerState, combat: CombatState, rng: Rng, n: number) {
   const room = run.level.rooms[i];
-  // Its plan has the dearest first, so brutes get the spots furthest from you.
-  const kinds = room.waves[run.rooms[i].wave];
+  const rr = run.rooms[i];
+  // Its plan has the dearest first in each wave, so brutes get the spots furthest from you.
+  kinds.length = 0;
+  for (; n > 0 && rr.sent < rr.total; n--) kinds.push(nth(room.waves, rr.sent++));
   const far = room.spawns.filter((s) => Math.hypot(s.x - player.pos.x, s.z - player.pos.z) >= SPAWN_CLEAR);
   let pool: Spot[] = [...(far.length > 0 ? far : room.spawns)];
   // Update 0.0.21 — spitters take the perches no one stands on, first.

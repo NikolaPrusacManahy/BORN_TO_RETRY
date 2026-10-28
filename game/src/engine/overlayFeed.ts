@@ -68,6 +68,7 @@ export class HudFeed {
     const cur = this.hud.get();
     const map = run ? mapOf(run) : null;
     const left = enemiesLeft(run, combat);
+    const execution = Math.round(combat.execution * 100) / 100;
     const hp = Math.ceil(p.hp);
     const shield = Math.ceil(p.shield);
     const weapon = combat.weapon;
@@ -84,7 +85,7 @@ export class HudFeed {
     const rings = cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.greenRings === it.greenRings && cur.purpleRings === it.purpleRings;
     const sig = slotSig(combat);
     const bonus = bonusSig(combat);
-    if (this.timer > 0 && same && shown && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left) return;
+    if (this.timer > 0 && same && shown && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution) return;
     this.bonus = bonus;
     const bonusLeft: Record<string, number> = {};
     for (const k of BONUS_KINDS) bonusLeft[k] = Math.ceil((combat.bonuses[k] / bonusLength(k)) * BONUS_STEP) / BONUS_STEP;
@@ -128,6 +129,7 @@ export class HudFeed {
       floorName: show.floorName,
       poisoned: p.poison > 0 && !p.dead,
       enemiesLeft: left,
+      execution,
     });
   }
 }

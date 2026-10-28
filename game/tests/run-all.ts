@@ -36,5 +36,6 @@ import './test-dragon';
 import './test-lab';
 import './test-lava';
 import './test-floor3';
+import './test-execution';
 
 process.exit(summary() > 0 ? 1 : 0);

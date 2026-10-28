@@ -13,10 +13,7 @@ export function enemiesLeft(run: DungeonRun | null, combat: CombatState): number
   for (let i = 0; i < run.rooms.length; i++) {
     const rr = run.rooms[i];
     if (rr.state !== 'fighting' || run.level.rooms[i].kind !== 'fight') continue;
-    const waves = run.level.rooms[i].waves;
-    let later = 0;
-    for (let w = rr.wave; w < waves.length; w++) later += waves[w].length;
-    return live + later;
+    return live + rr.total - rr.sent;
   }
   return -1;
 }
