@@ -2,6 +2,7 @@
 // camera kick, hit markers, the hurt flash and sounds.
 // M2 — and sword slashes, pierces and throws (the sword arm's moves), weapons breaking, and enemies arriving.
 // Update 0.0.12 — the slams (yours and the brute's) and the spitter's spit.
+// Update 0.0.13 — the leaper's landing, the stinger's dive and the wraith's cast; a chest's loot bursting out.
 import * as THREE from 'three';
 import type { CombatSounds } from '../audio/combatSounds';
 import type { CombatState } from '../sim/combat/state';
@@ -10,6 +11,7 @@ import type { CameraRig } from './cameraRig';
 import type { Burst } from './fx/burst';
 import type { Shockwaves } from './fx/shockwave';
 import { ENEMIES } from '../tuning/enemies';
+import { FOES } from '../tuning/foes';
 import type { MarkerKind } from './hudStore';
 import type { TargetsView } from './targetsView';
 import { Viewmodel } from './viewmodel/viewmodel';
@@ -105,7 +107,20 @@ export class CombatFeedback {
           this.f.rig.shake.add(0.35);
           break;
         case 'spit':
+        case 'wraithCast':
           this.f.sparks.spawn(at, back, 5, 0.8);
+          break;
+        case 'leaperLand': {
+          this.f.waves.spawn(at, FOES.v.leaperReach, 0xb070ff);
+          this.f.chunks.spawn(at, UP, 10, 0.9);
+          this.f.rig.shake.add(0.3 * Math.max(0, 1 - at.distanceTo(listener) / 12));
+          break;
+        }
+        case 'stingerDive':
+          this.f.sparks.spawn(at, back, 6, 1);
+          break;
+        case 'chestLoot':
+          this.f.sparks.spawn(at, UP, 24, 1.2);
           break;
         case 'hitSlam':
           this.hit(1.6, fb.shakeJab, fb.kickJab, 'heavy');

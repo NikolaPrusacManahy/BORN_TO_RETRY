@@ -32,7 +32,7 @@ const STOP: Record<PunchKind, () => number> = {
 const HIT_EVENT: Record<PunchKind, CombatEvent> = { jab: 'hitJab', finisher: 'hitFinisher', heavy: 'hitHeavy', slash: 'hitSlash', pierce: 'hitPierce' };
 
 /** Resolves a thrown punch or swing: hit or whiff. Pushes events and hit-stop requests. Returns how far from the eye
- *  it landed (m), or −1 for a whiff (M1 step 8: blood heal needs the distance). */
+ *  it landed (m), or −1 for a whiff. */
 export function resolvePunch(punch: Punch, state: CombatState, eye: Vector3, dir: Vector3, world: CollisionWorld): number {
   const reach = Math.min(punch.reach, world.rayDistance(eye, dir, punch.reach) + punch.radius);
   end.copy(eye).addScaledVector(dir, reach);

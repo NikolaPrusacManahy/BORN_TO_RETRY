@@ -39,6 +39,13 @@ export interface HudState {
   uses: number;
   /** Update 0.0.12 — your coins; the dungeon's minimap (null in the lab) and you on it (cells, facing). */
   money: number;
+  /** Update 0.0.13 — the shield (rounded up) on the health bar's scale, hits on it (a counter, like `hurts`), and the
+   *  keys and rings you carry. */
+  shield: number;
+  shields: number;
+  keys: number;
+  redRings: number;
+  blueRings: number;
   map: MapView | null;
   mapX: number;
   mapZ: number;
@@ -52,7 +59,7 @@ export interface HudStore {
 }
 
 export function createHudStore(): HudStore {
-  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, money: 0, map: null, mapX: 0, mapZ: 0, mapYaw: 0 };
+  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, map: null, mapX: 0, mapZ: 0, mapYaw: 0 };
   const subs = new Set<() => void>();
   return {
     get: () => state,

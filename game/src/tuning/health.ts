@@ -1,11 +1,9 @@
-// M1 step 8 — the player's health: how much, blood heal, the hurt that follows a hit, the lab's spikes, and the
-// death that sends you back to the start.
+// M1 step 8 — the player's health: how much, the hurt that follows a hit, the lab's spikes, and the death that sends
+// you back to the start. Update 0.0.13 — no blood heal any more (the designer: you only heal from the shop).
 import { group, knob } from './schema';
 
 export const HEALTH = group('health', 'Health', {
   maxHp: knob(100, 10, 500, 5, 'Max health', 'HP. No regeneration.'),
-  bloodHeal: knob(0.2, 0, 1, 0.01, 'Blood heal', 'Share of the damage you deal that heals you.'),
-  bloodRange: knob(5, 1, 20, 0.5, 'Blood heal range', 'm. Damage dealt further away heals nothing.'),
   hurtInvuln: knob(0.6, 0, 2, 0.05, 'Hurt invincibility', 'Seconds after a hit when nothing can hurt you again.'),
   spikeDamage: knob(25, 1, 100, 1, 'Spike damage', 'The lab spikes, per touch.'),
   spikeBounce: knob(8, 0, 20, 0.5, 'Spike pop', 'Upward speed a spike touch throws you (m/s).'),

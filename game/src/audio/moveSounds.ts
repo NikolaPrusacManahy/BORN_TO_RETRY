@@ -57,6 +57,15 @@ export class MoveSounds {
         tone(a, { from: 210, to: 70, dur: 0.16, gain: 0.45, type: 'square' });
         noise(a, { dur: 0.12, gain: 0.35, filter: 'lowpass', from: 2200, to: 300 });
         break;
+      // Update 0.0.13 — a hit on the shield rings like plate; losing it cracks.
+      case 'shieldHit':
+        tone(a, { from: 1250, to: 900, dur: 0.18, gain: 0.18, type: 'triangle' });
+        noise(a, { dur: 0.08, gain: 0.25, filter: 'highpass', from: 4000, to: 2000 });
+        break;
+      case 'shieldBreak':
+        noise(a, { dur: 0.3, gain: 0.4, filter: 'highpass', from: 6000, to: 1200 });
+        tone(a, { from: 700, to: 180, dur: 0.25, gain: 0.15, type: 'square' });
+        break;
       case 'death':
         tone(a, { from: 110, to: 22, dur: 0.9, gain: 0.8, type: 'sawtooth' });
         noise(a, { dur: 0.7, gain: 0.4, filter: 'lowpass', from: 900, to: 60 });

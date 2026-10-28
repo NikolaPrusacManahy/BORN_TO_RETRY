@@ -3,6 +3,8 @@
 // brick walls three high with a cap on every face that looks into a room or corridor, arches over the doorways (the
 // iron bars in them are the gates), columns, crates, broken columns, spike traps, stone ledges, the trapdoor that is
 // the way down, wall torches, a few banners, and bones, skulls and rocks along the walls. Pure and seeded.
+// Update 0.0.13 — the shop: a red carpet before its tiles and a tall candelabrum at each end of them (the tiles, their
+// items and the chests are drawn by engine/treasureView.ts).
 import { createRng } from '../../core/rng';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, Side } from './floorPlan';
 import { HEIGHT } from './assemble';
@@ -49,6 +51,8 @@ export const KIT = {
   trapdoor: 'kit_p1_Trapdoor_open',
   torch: 'kit_p2_Torch_wall',
   banner: 'kit_p1_Banner_wall',
+  carpet: 'kit_p2_Carpet',
+  candelabrum: 'kit_p2_Candelabrum_tall',
 } as const;
 const LITTER = ['kit_p1_Skull', 'kit_p2_Bones', 'kit_p2_Bones2', 'kit_p2_Rock1', 'kit_p2_Rock2', 'kit_p2_Rock3', 'kit_p1_Vase', 'kit_p1_Bucket'];
 
@@ -172,6 +176,24 @@ export function dress(plan: FloorPlan): Dressing {
           put(KIT.cap, fx, 3 * WALL_PIECE, fz, facing);
         }
       }
+    }
+  }
+  // The shop: a carpet in front of the row of tiles, a candelabrum at each end.
+  for (const r of plan.rooms) {
+    const tiles = r.layout.tiles;
+    if (r.kind !== 'shop' || tiles.length === 0) continue;
+    const row = tiles[0][1];
+    const along = tiles.every((t) => t[1] === row);
+    const xs = tiles.map((t) => cellX(r.x0 + t[0]));
+    const zs = tiles.map((t) => cellZ(r.z0 + t[1]));
+    const midX = (Math.min(...xs) + Math.max(...xs)) / 2;
+    const midZ = (Math.min(...zs) + Math.max(...zs)) / 2;
+    // Towards the room's middle from the tiles.
+    const inward = cellZ(r.z0 + r.layout.h / 2) - CELL / 2 > midZ ? 1 : -1;
+    if (along) {
+      put(KIT.carpet, midX, 0.01, midZ + inward * 3.4, Math.PI / 2, 1.4, 1, 1.4);
+      put(KIT.candelabrum, Math.min(...xs) - CELL, 0, midZ);
+      put(KIT.candelabrum, Math.max(...xs) + CELL, 0, midZ);
     }
   }
   // The way down.

@@ -4,6 +4,9 @@
 // or slowed so the blow lands as the wind-up ends), a hit reaction on a flinch, its death. A wind-up glows in the
 // kind's colour until the blow; a hit flashes white; a winding-up brute shows its slam's reach as a ring on the
 // ground. Animations run on game time, so hit-stop freezes them.
+// Update 0.0.13 — the Leaper is the Ninja, the Stinger the Armabee, the Wraith the Ghost (Ultimate Monsters); a leap
+// or a dive plays the kind's 'air' clip; bodies are placed by their lowest point (the fliers' models float above
+// their origin).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -11,9 +14,10 @@ import type { CombatState } from '../sim/combat/state';
 import { ENEMY_POOL, EnemyPhase } from '../sim/enemies/enemy';
 import { ENEMY_KINDS, ENEMY_STATS, EnemyKind } from '../sim/enemies/kinds';
 import { ENEMIES } from '../tuning/enemies';
+import { FOES } from '../tuning/foes';
 
-type Role = 'idle' | 'move' | 'attack' | 'hit' | 'death';
-const ROLES: Role[] = ['idle', 'move', 'attack', 'hit', 'death'];
+type Role = 'idle' | 'move' | 'attack' | 'hit' | 'death' | 'air';
+const ROLES: Role[] = ['idle', 'move', 'attack', 'hit', 'death', 'air'];
 const ONCE: Role[] = ['attack', 'hit', 'death'];
 /** Cross-fade between clips (s). */
 const FADE = 0.12;
@@ -29,9 +33,14 @@ interface Look {
 }
 
 const LOOKS: Record<EnemyKind, Look> = {
-  grunt: { url: '/models/enemies/orc.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Weapon', hit: 'HitReact', death: 'Death' }, lands: 16 / 30, windup: () => ENEMIES.v.gruntWindup, glow: [0.9, 0.06, 0.04] },
-  spitter: { url: '/models/enemies/wizard.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death' }, lands: 7 / 30, windup: () => ENEMIES.v.spitterWindup, glow: [0.35, 0.9, 0.1] },
-  brute: { url: '/models/enemies/yeti.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Weapon', hit: 'HitReact', death: 'Death' }, lands: 15 / 30, windup: () => ENEMIES.v.bruteWindup, glow: [1, 0.25, 0.05] },
+  grunt: { url: '/models/enemies/orc.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Run' }, lands: 16 / 30, windup: () => ENEMIES.v.gruntWindup, glow: [0.9, 0.06, 0.04] },
+  spitter: { url: '/models/enemies/wizard.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', air: 'Walk' }, lands: 7 / 30, windup: () => ENEMIES.v.spitterWindup, glow: [0.35, 0.9, 0.1] },
+  brute: { url: '/models/enemies/yeti.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Walk' }, lands: 15 / 30, windup: () => ENEMIES.v.bruteWindup, glow: [1, 0.25, 0.05] },
+  // Update 0.0.13 — the Leaper crouches (Duck: deepest as the leap goes) and flies (Jump_Idle); the Stinger rears for a
+  // headbutt and dives (Fast_Flying); the Wraith casts with a punch. export_monster.py timed the frames.
+  leaper: { url: '/models/enemies/ninja.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Duck', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 44 / 30, windup: () => FOES.v.leaperWindup, glow: [0.65, 0.2, 1] },
+  stinger: { url: '/models/enemies/armabee.glb', clips: { idle: 'Flying_Idle', move: 'Fast_Flying', attack: 'Headbutt', hit: 'HitReact', death: 'Death', air: 'Fast_Flying' }, lands: 9 / 30, windup: () => FOES.v.stingerWindup, glow: [1, 0.15, 0.05] },
+  wraith: { url: '/models/enemies/ghost.glb', clips: { idle: 'Flying_Idle', move: 'Flying_Idle', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Flying_Idle' }, lands: 12 / 30, windup: () => FOES.v.wraithWindup, glow: [0.7, 0.85, 1] },
 };
 
 interface Body {
@@ -64,6 +73,9 @@ function roleFor(phase: EnemyPhase, attackOver: boolean): Role {
       return 'hit';
     case 'dead':
       return 'death';
+    case 'leap':
+    case 'dive':
+      return 'air';
   }
 }
 
@@ -106,11 +118,13 @@ export class EnemiesView {
     const geo = (skinned as THREE.SkinnedMesh | null)?.geometry;
     geo?.computeBoundingBox();
     const height = geo?.boundingBox ? geo.boundingBox.max.y - geo.boundingBox.min.y : 2;
+    const lowest = geo?.boundingBox ? geo.boundingBox.min.y : 0;
     const look = LOOKS[kind];
     const find = (name: string) => animations.find((a) => a.name === name || a.name.endsWith(`|${name}`));
     for (const slot of this.slots) {
       const root = cloneSkinned(model);
       root.userData.height = height;
+      root.userData.lowest = lowest;
       root.visible = false;
       const mats: THREE.MeshStandardMaterial[] = [];
       root.traverse((o) => {
@@ -152,8 +166,10 @@ export class EnemiesView {
       if (!e.alive || !b) continue;
       const look = LOOKS[e.kind];
       b.root.visible = true;
-      b.root.scale.setScalar(ENEMY_STATS[e.kind]().height / b.root.userData.height);
+      const scale = ENEMY_STATS[e.kind]().height / b.root.userData.height;
+      b.root.scale.setScalar(scale);
       b.root.position.copy(this.at.copy(e.prev).lerp(e.pos, alpha));
+      b.root.position.y -= b.root.userData.lowest * scale;
       // The model faces +z; a facing of 0 faces −z.
       b.root.rotation.y = e.facing + Math.PI;
       const attack = b.actions.attack;

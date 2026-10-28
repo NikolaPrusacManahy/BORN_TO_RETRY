@@ -3,9 +3,10 @@
 // arrow. Drawn in floor-grid cells, scaled to the box.
 import type { MapView } from '../engine/hudStore';
 
-/** The map's box (px) and the cells shown across it (it follows you, a few rooms around). */
+/** The map's box (px) and the cells shown across it (it follows you, a few rooms around). Update 0.0.13 — twice the
+ *  span, for rooms twice the size. */
 const SIZE = 220;
-const SPAN = 70;
+const SPAN = 130;
 
 export function Minimap({ map, x, z, yaw }: { map: MapView; x: number; z: number; yaw: number }) {
   const s = SIZE / SPAN;

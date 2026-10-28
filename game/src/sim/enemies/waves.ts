@@ -1,10 +1,12 @@
 // M2 — the Feel Lab's waves: a few enemies at a time; once the last one dies, the next wave comes after a short delay
 // at spawn points away from the player. Spawns are picked with the seeded RNG (never Math.random in sim/).
 // Update 0.0.12 — a wave mixes grunts, spitters and brutes (Lab grunts, Lab spitters, Lab brutes).
+// Update 0.0.13 — and leapers, stingers and wraiths (Lab leapers, Lab stingers, Lab wraiths).
 import { Vector3 } from 'three';
 import type { Rng } from '../../core/rng';
 import type { EventQueue } from '../../core/eventQueue';
 import { ENEMIES } from '../../tuning/enemies';
+import { FOES } from '../../tuning/foes';
 import type { Spot } from '../../world/arena';
 import type { CombatEvent } from '../combat/state';
 import type { PlayerState } from '../player/state';
@@ -37,7 +39,8 @@ export function spawnAt(enemies: Enemy[], kind: EnemyKind, pool: Spot[], player:
 
 export function updateWaves(w: Waves, enemies: Enemy[], spots: readonly Spot[], player: PlayerState, rng: Rng, events: EventQueue<CombatEvent>, dt: number) {
   const v = ENEMIES.v;
-  if (v.labGrunts + v.labSpitters + v.labBrutes <= 0 || spots.length === 0) return;
+  const f = FOES.v;
+  if (v.labGrunts + v.labSpitters + v.labBrutes + f.labLeapers + f.labStingers + f.labWraiths <= 0 || spots.length === 0) return;
   for (const e of enemies) if (isLive(e)) return;
   w.timer -= dt;
   if (w.timer > 0) return;
@@ -45,6 +48,9 @@ export function updateWaves(w: Waves, enemies: Enemy[], spots: readonly Spot[], 
   const far = spots.filter((s) => Math.hypot(s.x - player.pos.x, s.z - player.pos.z) >= SPAWN_MIN_DIST);
   const pool = far.length > 0 ? far : [...spots];
   for (let n = 0; n < v.labBrutes; n++) spawnAt(enemies, 'brute', pool, player, rng, events);
+  for (let n = 0; n < f.labWraiths; n++) spawnAt(enemies, 'wraith', pool, player, rng, events);
+  for (let n = 0; n < f.labStingers; n++) spawnAt(enemies, 'stinger', pool, player, rng, events);
+  for (let n = 0; n < f.labLeapers; n++) spawnAt(enemies, 'leaper', pool, player, rng, events);
   for (let n = 0; n < v.labSpitters; n++) spawnAt(enemies, 'spitter', pool, player, rng, events);
   for (let n = 0; n < v.labGrunts; n++) spawnAt(enemies, 'grunt', pool, player, rng, events);
 }

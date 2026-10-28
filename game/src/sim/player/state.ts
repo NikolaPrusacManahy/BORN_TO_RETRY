@@ -23,7 +23,10 @@ export type MoveEvent =
   | 'wallRunJump'
   // M1 step 8 — health: value = the amount.
   | 'hurt'
-  | 'death';
+  | 'death'
+  // Update 0.0.13 — the shield took a hit (value = how much), and it's gone.
+  | 'shieldHit'
+  | 'shieldBreak';
 
 export interface PlayerState {
   /** Feet position. */
@@ -78,6 +81,14 @@ export interface PlayerState {
   hp: number;
   hurtTime: number;
   dead: boolean;
+  /** Update 0.0.13 — the shield (armour plates) that takes a hit before your health does. */
+  shield: number;
+  /** Update 0.0.13 — run speed times this (the blue rings). */
+  speedMul: number;
+  /** Update 0.0.13 — kneeling at a chest: seconds left (0: not), the spot you're eased onto, and the way you face. */
+  kneel: number;
+  kneelAt: Vector3;
+  kneelYaw: number;
   /** What happened this tick, for the camera, sound and HUD. */
   events: EventQueue<MoveEvent>;
 }
@@ -116,11 +127,16 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     hp: HEALTH.v.maxHp,
     hurtTime: 0,
     dead: false,
+    shield: 0,
+    speedMul: 1,
+    kneel: 0,
+    kneelAt: new Vector3(),
+    kneelYaw: 0,
     events: new EventQueue<MoveEvent>(32, 'none'),
   };
 }
 
-/** Back to the start, standing still, everything refilled (health too). */
+/** Back to the start, standing still, everything refilled (health too; no shield). */
 export function resetPlayer(p: PlayerState, x: number, y: number, z: number, yaw: number) {
   p.pos.set(x, y, z);
   p.vel.set(0, 0, 0);
@@ -128,6 +144,7 @@ export function resetPlayer(p: PlayerState, x: number, y: number, z: number, yaw
   p.grounded = false;
   p.coyote = p.jumpBuffer = p.dashTime = p.slamBounce = p.slamImpact = p.invuln = p.slideTime = p.wallRunTime = p.wallRunCooldown = p.hurtTime = 0;
   p.hp = HEALTH.v.maxHp;
+  p.shield = p.kneel = 0;
   p.dead = false;
   p.dashCharges = DASH.v.charges;
   p.sliding = p.slamming = p.onWall = p.slideArmed = p.wallRunning = p.lastWallSet = false;

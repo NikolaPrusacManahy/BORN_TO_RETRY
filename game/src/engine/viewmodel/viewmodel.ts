@@ -3,12 +3,16 @@
 // landing dip, and the dash and slide poses.
 // M2 — holding a weapon, the arms change over: the left drops out of view and the right holds the sword, its grip through the curled fingers, posed from where the sword should be
 // (swordAnim.ts: ready, slashes, the pierce and its charge, the throw).
+// Update 0.0.13 — kneeling at a chest, both fists reach for the lid and lift it (chestReach.ts); a held weapon is put
+// out of sight meanwhile.
 import * as THREE from 'three';
 import { ARMS } from '../../tuning/arms';
 import type { PlayerState } from '../../sim/player/state';
 import { flatSpeed } from '../../sim/player/state';
 import { ArmPose, ArmsRig } from './armsRig';
 import { ArmsAnim, PunchStyle } from './armsAnim';
+import { mixArm, pose } from './armsMath';
+import { ChestReach } from './chestReach';
 import { FORWARD, GUARD, REST_BACK, Side } from './guard';
 import { SwordAnim, SwordMove } from './swordAnim';
 import { emptySword } from './swordPoses';
@@ -31,17 +35,6 @@ const LOWERED_KNUCKLES = new THREE.Vector3(0, -1, 0.25).normalize();
 const ease = (rate: number, dt: number) => 1 - Math.exp(-rate * dt);
 const smooth = (x: number) => x * x * (3 - 2 * x);
 
-function pose(): ArmPose {
-  return { fist: new THREE.Vector3(), knuckles: new THREE.Vector3(), back: new THREE.Vector3() };
-}
-
-/** `a` → `b` by `k` into `out` (which may be `a` or `b`). */
-function mixArm(a: ArmPose, b: ArmPose, k: number, out: ArmPose) {
-  out.fist.lerpVectors(a.fist, b.fist, k);
-  out.knuckles.lerpVectors(a.knuckles, b.knuckles, k).normalize();
-  out.back.lerpVectors(a.back, b.back, k).normalize();
-}
-
 /** A point (`point`) or direction from the arms camera's view (before sway) into the model's space. */
 function viewToModel(v: THREE.Vector3, eye: THREE.Vector3 | null) {
   const y = v.y * COS_P + v.z * SIN_P;
@@ -55,6 +48,10 @@ export class Viewmodel {
   readonly camera = new THREE.PerspectiveCamera(60, 16 / 9, 0.01, 10);
   readonly anim = new ArmsAnim();
   readonly swordAnim = new SwordAnim();
+  readonly chest = new ChestReach();
+  private readonly reachPose = pose();
+  private readonly knuckleL = new THREE.Vector3();
+  private readonly knuckleR = new THREE.Vector3();
   private readonly pivot = new THREE.Object3D();
   private readonly holder = new THREE.Object3D();
   private rig: ArmsRig | null = null;
@@ -192,20 +189,28 @@ export class Viewmodel {
     if (!rig) return;
     // The holder puts the model's eye at the camera.
     this.holder.position.add(this.toStrike.set(rig.eye.x, -rig.eye.y, rig.eye.z));
-    const armed = smooth(this.armedVis);
+    const reach = this.chest.weight;
+    if (reach > 0) this.chest.aimed();
+    const armed = smooth(this.armedVis) * (1 - reach);
     const left = this.poseArm(rig, 'L', this.chargeVis, charge >= 1, armed);
+    if (reach > 0) this.toChest(rig, 'L', left, reach);
     rig.apply('L', left);
     const right = this.poseArm(rig, 'R', this.chargeVis, charge >= 1, armed);
     if (armed > 0) {
       mixArm(right, this.poseSword(rig, charge >= 1), armed, right);
       this.elbow.copy(GUARD.R.pole).lerp(this.swordPose.elbow, armed);
       rig.apply('R', right, v.wristBend + (1 - v.wristBend) * armed, this.elbow);
-    } else rig.apply('R', right);
+    } else {
+      if (reach > 0) this.toChest(rig, 'R', right, reach);
+      rig.apply('R', right);
+    }
     if (this.weapon) {
+      this.weapon.visible = reach < 0.2;
       rig.holdMatrix(this.swordPose.tilt, v.weaponScale, v.swordGripSlide, this.weapon.matrix);
       this.weapon.matrixWorldNeedsUpdate = true;
     }
     this.camera.updateMatrixWorld(true);
+    if (reach > 0) this.chest.settle(this.camera.worldToLocal(rig.knuckle('L', this.knuckleL)), this.camera.worldToLocal(rig.knuckle('R', this.knuckleR)));
   }
 
   /** The fists' pose for one arm. `charge`: how far the right fist is drawn back (0..1); `ready`: the charge is full
@@ -238,6 +243,17 @@ export class Viewmodel {
       out.fist.y += Math.sin(t * 2.3 + 1) * shake;
     }
     return out;
+  }
+
+  /** Update 0.0.13 — one fist towards its spot on the chest's lid by `k`: knuckles ahead, the back of the hand up. The
+   *  spot is on screen, so it's carried into the model exactly (through the camera, the tilt and the holder). */
+  private toChest(rig: ArmsRig, side: Side, out: ArmPose, k: number) {
+    const r = this.reachPose;
+    this.camera.updateMatrixWorld(true);
+    this.holder.worldToLocal(this.camera.localToWorld(r.fist.copy(this.chest.aim[side])));
+    r.knuckles.subVectors(r.fist, rig.between).normalize();
+    r.back.set(0, 1, 0);
+    mixArm(out, r, smooth(k), out);
   }
 
   /** M2 — the right arm holding the sword where the sword arm's move has it (a charging pierce trembles too). */

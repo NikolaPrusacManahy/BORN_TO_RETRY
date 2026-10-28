@@ -4,12 +4,42 @@
 // M2 — the weapon in hand bottom right: its name and uses left (red and pulsing at 0: the next attack throws it).
 // Update 0.0.12 — your coins, just above the health (the designer); the number pops when it goes up. In the dungeon, the
 // minimap top right.
+// Update 0.0.13 — the shield: a blue bar just above the health bar (a hit on it flashes the edge blue); keys and rings
+// you carry beside your coins.
 import { CSSProperties, useSyncExternalStore } from 'react';
 import type { HudStore } from '../engine/hudStore';
 import { Minimap } from './Minimap';
 
 /** At or below this share of max health the bar pulses. */
 const LOW_HEALTH = 0.25;
+
+function KeyIcon() {
+  return (
+    <svg viewBox="0 0 32 32">
+      <circle cx="9" cy="16" r="6" fill="none" stroke="#c9a57a" strokeWidth="3.5" />
+      <path d="M15 16h14M24 16v5M28 16v4" stroke="#c9a57a" strokeWidth="3.5" fill="none" />
+    </svg>
+  );
+}
+
+function RingIcon({ gem }: { gem: string }) {
+  return (
+    <svg viewBox="0 0 32 32">
+      <circle cx="16" cy="19" r="9" fill="none" stroke="#e8b931" strokeWidth="3.5" />
+      <path d="M11 9l5-6 5 6-5 4z" fill={gem} stroke="#7a5a10" strokeWidth="1" />
+    </svg>
+  );
+}
+
+function Carried({ n, children }: { n: number; children: JSX.Element }) {
+  if (n <= 0) return null;
+  return (
+    <span className="rb-hud-item">
+      {children}
+      {n > 1 && <span className="rb-hud-item-n">{n}</span>}
+    </span>
+  );
+}
 
 export function Hud({ store }: { store: HudStore }) {
   const s = useSyncExternalStore(store.subscribe, store.get);
@@ -18,16 +48,35 @@ export function Hud({ store }: { store: HudStore }) {
       <div className="rb-hud-cross" />
       {s.hits > 0 && <div key={`m${s.hits}`} className={`rb-hud-marker is-${s.marker}`} />}
       {s.hurts > 0 && <div key={`h${s.hurts}`} className="rb-hud-hurt" />}
+      {s.shields > 0 && <div key={`s${s.shields}`} className="rb-hud-shieldhit" />}
       {s.map && <Minimap map={s.map} x={s.mapX} z={s.mapZ} yaw={s.mapYaw} />}
       <div className="rb-hud-money">
         <i className="rb-hud-coin" />
         <span key={s.money} className="rb-hud-money-n">{s.money}</span>
+        <span className="rb-hud-items">
+          <Carried n={s.keys}>
+            <KeyIcon />
+          </Carried>
+          <Carried n={s.redRings}>
+            <RingIcon gem="#e2321e" />
+          </Carried>
+          <Carried n={s.blueRings}>
+            <RingIcon gem="#4d6bff" />
+          </Carried>
+        </span>
       </div>
       <div className={`rb-hud-health${s.hp <= s.maxHp * LOW_HEALTH ? ' is-low' : ''}`}>
         <span className="rb-hud-hp">{s.hp}</span>
-        <div className="rb-hud-bar" style={{ '--fill': s.maxHp > 0 ? s.hp / s.maxHp : 0 } as CSSProperties}>
-          <i className="rb-hud-bar-trail" />
-          <i className="rb-hud-bar-fill" />
+        <div className="rb-hud-bars">
+          {s.shield > 0 && (
+            <div className="rb-hud-shield" style={{ '--fill': s.maxHp > 0 ? Math.min(1, s.shield / s.maxHp) : 0 } as CSSProperties}>
+              <i className="rb-hud-shield-fill" />
+            </div>
+          )}
+          <div className="rb-hud-bar" style={{ '--fill': s.maxHp > 0 ? s.hp / s.maxHp : 0 } as CSSProperties}>
+            <i className="rb-hud-bar-trail" />
+            <i className="rb-hud-bar-fill" />
+          </div>
         </div>
       </div>
       {s.weapon && (

@@ -2,6 +2,8 @@
 // walls forever and got stuck in blocks). The floor is cut into square cells; a cell is blocked off the floor, or
 // where a body of `radius` standing there would touch a wall: any box whose top is above a step and whose bottom is
 // below head height, and spike strips. The walls' floor footprints push a body back out; line tests run over the grid. Pure.
+// Update 0.0.13 — a grid for fliers too (`AIR`): only what reaches up to where they fly blocks them (walls, columns);
+// they pass over crates, broken columns, ledges and spikes.
 import { Quaternion, Vector3 } from 'three';
 import type { Arena, ArenaBox } from './arena';
 
@@ -32,6 +34,18 @@ export interface NavGrid {
  *  a wall. */
 const HEAD = 2;
 const STEP = 0.3;
+
+/** Which boxes block: those reaching above `low` and starting below `high` (m above the floor); spikes too, if
+ *  `hazards`. */
+export interface NavBand {
+  low: number;
+  high: number;
+  hazards: boolean;
+}
+
+/** On foot (the default), and flying (Update 0.0.13: fliers keep above 3 m). */
+export const FOOT: NavBand = { low: STEP, high: HEAD, hazards: true };
+export const AIR: NavBand = { low: 3, high: 12, hazards: false };
 const corner = new Vector3();
 const q = new Quaternion();
 
@@ -59,8 +73,8 @@ function distanceTo(f: Footprint, x: number, z: number): number {
   return Math.hypot(dx, dz);
 }
 
-/** The grid for bodies of `radius` walking the floor at `floorY`. */
-export function buildNavGrid(arena: Arena, radius: number, floorY = 0, cell = 0.5): NavGrid {
+/** The grid for bodies of `radius` walking (or flying, `band`) over the floor at `floorY`. */
+export function buildNavGrid(arena: Arena, radius: number, floorY = 0, cell = 0.5, band: NavBand = FOOT): NavGrid {
   const floors: Footprint[] = [];
   const walls: Footprint[] = [];
   for (const b of arena.boxes) {
@@ -68,7 +82,7 @@ export function buildNavGrid(arena: Arena, radius: number, floorY = 0, cell = 0.
     const f = { minX: r.minX, maxX: r.maxX, minZ: r.minZ, maxZ: r.maxZ };
     if (b.kind === 'floor' && Math.abs(r.maxY - floorY) < 0.05) floors.push(f);
     // Spikes are low, but a grunt walks round them rather than stand in them.
-    else if (b.kind === 'hazard' || (r.maxY > floorY + STEP && r.minY < floorY + HEAD)) walls.push(f);
+    else if ((band.hazards && b.kind === 'hazard') || (r.maxY > floorY + band.low && r.minY < floorY + band.high)) walls.push(f);
   }
   const grid: NavGrid = { floorY, radius, cell, minX: 0, minZ: 0, cols: 0, rows: 0, blocked: new Uint8Array(0), walls };
   if (floors.length === 0) return grid;
@@ -76,17 +90,29 @@ export function buildNavGrid(arena: Arena, radius: number, floorY = 0, cell = 0.
   grid.minZ = Math.min(...floors.map((f) => f.minZ));
   grid.cols = Math.ceil((Math.max(...floors.map((f) => f.maxX)) - grid.minX) / cell);
   grid.rows = Math.ceil((Math.max(...floors.map((f) => f.maxZ)) - grid.minZ) / cell);
+  // A cell is free when its middle is on a floor and further than `radius` from every wall. Update 0.0.13 — each
+  // footprint marks only the cells near it (rooms twice the size made testing every cell against every box slow).
+  const onFloor = new Uint8Array(grid.cols * grid.rows);
+  const nearWall = new Uint8Array(grid.cols * grid.rows);
+  for (const f of floors) mark(grid, f, 0, (d) => d === 0, onFloor);
+  for (const f of walls) mark(grid, f, radius, (d) => d < radius, nearWall);
   grid.blocked = new Uint8Array(grid.cols * grid.rows);
-  for (let r = 0; r < grid.rows; r++) {
-    for (let c = 0; c < grid.cols; c++) {
-      const x = grid.minX + (c + 0.5) * cell;
-      const z = grid.minZ + (r + 0.5) * cell;
-      const onFloor = floors.some((f) => distanceTo(f, x, z) === 0);
-      const nearWall = walls.some((f) => distanceTo(f, x, z) < radius);
-      grid.blocked[r * grid.cols + c] = onFloor && !nearWall ? 0 : 1;
+  for (let i = 0; i < grid.blocked.length; i++) grid.blocked[i] = onFloor[i] && !nearWall[i] ? 0 : 1;
+  return grid;
+}
+
+/** Sets `out` for every cell whose middle is within `reach` of footprint `f` and passes `hit` (its distance to it). */
+function mark(g: NavGrid, f: Footprint, reach: number, hit: (d: number) => boolean, out: Uint8Array) {
+  // One cell to spare each way (rounding); `hit` makes the exact call.
+  const c0 = Math.max(0, Math.ceil((f.minX - reach - g.minX) / g.cell - 0.5) - 1);
+  const c1 = Math.min(g.cols - 1, Math.floor((f.maxX + reach - g.minX) / g.cell - 0.5) + 1);
+  const r0 = Math.max(0, Math.ceil((f.minZ - reach - g.minZ) / g.cell - 0.5) - 1);
+  const r1 = Math.min(g.rows - 1, Math.floor((f.maxZ + reach - g.minZ) / g.cell - 0.5) + 1);
+  for (let r = r0; r <= r1; r++) {
+    for (let c = c0; c <= c1; c++) {
+      if (hit(distanceTo(f, g.minX + (c + 0.5) * g.cell, g.minZ + (r + 0.5) * g.cell))) out[r * g.cols + c] = 1;
     }
   }
-  return grid;
 }
 
 /** True when the grid has cells (an arena with a floor). */

@@ -3,16 +3,28 @@
 // thousands of pieces stays cheap), the gates' iron bars (they crash down when a room shuts and sink back into the
 // floor when it's cleared), the jump pads, the glow over the way down, dim cold light and fog, and a handful of warm
 // torch lights that follow you from torch to torch (no shadows: torchlight and fog carry the mood).
+// Update 0.0.13 — the fog pushed back and two more torch lights, for rooms twice the size. Then day time (the designer:
+// way too dark to play): the dungeon is open to the sky, so a sun overhead (its shadows follow you), a bright sky light
+// filling the shade, a pale haze far off instead of black fog; the torches stay as warm accents. Dungeon light tab.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { DungeonLevel } from '../world/dungeon/assemble';
 import { BARS_SCALE, dress, Dressing, KIT, Placement } from '../world/dungeon/dressing';
+import { LIGHT } from '../tuning/light';
 import type { ArenaView } from './arenaView';
 
 export const KIT_URL = '/models/dungeon/kit.glb';
-const FOG = 0x0b090e;
+/** The sky (the background and the haze), and the sky light's colours above and from the ground. */
+const SKY = 0xc8d8e8;
+const SKY_LIGHT = 0xe8f0ff;
+const GROUND_LIGHT = 0x7d6a55;
+/** The sun's colour; the way to it (from the ground: high, a little to the south-west); how far round you its
+ *  shadows reach (m). */
+const SUN = 0xfff0d6;
+const SUN_DIR = new THREE.Vector3(-0.45, 1, 0.35).normalize();
+const SHADOW_REACH = 40;
 /** Torch lights that follow you, and how often they move to the nearest torches (s). */
-const LIGHTS = 6;
+const LIGHTS = 8;
 const RELIGHT = 0.25;
 /** Bars: how fast they crash down and sink back (m/s); how far below the floor they hide (m). */
 const SLAM_SPEED = 30;
@@ -34,6 +46,9 @@ export class DungeonView implements ArenaView {
   private readonly lights: THREE.PointLight[] = [];
   private readonly mats: THREE.Material[] = [];
   private readonly geos: THREE.BufferGeometry[] = [];
+  private readonly sky: THREE.HemisphereLight;
+  private readonly sun: THREE.DirectionalLight;
+  private readonly haze: THREE.Fog;
   private relight = 0;
 
   constructor(
@@ -43,11 +58,23 @@ export class DungeonView implements ArenaView {
   ) {
     this.dressing = dress(level.plan);
     scene.add(this.group);
-    scene.background = new THREE.Color(FOG);
-    scene.fog = new THREE.Fog(FOG, 14, 62);
-    this.group.add(new THREE.HemisphereLight(0x8d86a8, 0x1a1216, 0.55));
+    scene.background = new THREE.Color(SKY);
+    this.haze = new THREE.Fog(SKY, LIGHT.v.hazeNear, LIGHT.v.hazeFar);
+    scene.fog = this.haze;
+    this.sky = new THREE.HemisphereLight(SKY_LIGHT, GROUND_LIGHT, LIGHT.v.sky);
+    this.sun = new THREE.DirectionalLight(SUN, LIGHT.v.sun);
+    this.sun.castShadow = LIGHT.v.shadows >= 1;
+    this.sun.shadow.mapSize.set(2048, 2048);
+    const sc = this.sun.shadow.camera;
+    sc.left = sc.bottom = -SHADOW_REACH;
+    sc.right = sc.top = SHADOW_REACH;
+    sc.near = 1;
+    sc.far = 200;
+    this.sun.shadow.bias = -0.0005;
+    this.sun.shadow.normalBias = 0.03;
+    this.group.add(this.sky, this.sun, this.sun.target);
     for (let i = 0; i < LIGHTS; i++) {
-      const l = new THREE.PointLight(0xff9a48, 30, 16, 1.6);
+      const l = new THREE.PointLight(0xff9a48, LIGHT.v.torches, 16, 1.6);
       this.lights.push(l);
       this.group.add(l);
     }
@@ -89,6 +116,10 @@ export class DungeonView implements ArenaView {
           inst.setMatrixAt(i, m.compose(pos, q, scale).multiply(local));
         });
         inst.computeBoundingSphere();
+        // Update 0.0.13 — in the sun: everything takes shadows; the floor tiles cast none (they're flat and most of
+        // the pieces).
+        inst.castShadow = name !== KIT.floor;
+        inst.receiveShadow = true;
         this.group.add(inst);
       });
     }
@@ -100,7 +131,9 @@ export class DungeonView implements ArenaView {
         b.rotation.y = g.rot;
         b.scale.set(...BARS_SCALE);
         b.traverse((o) => {
-          if (o instanceof THREE.Mesh) o.material = this.material(o.material as THREE.MeshStandardMaterial);
+          if (!(o instanceof THREE.Mesh)) return;
+          o.material = this.material(o.material as THREE.MeshStandardMaterial);
+          o.castShadow = o.receiveShadow = true;
         });
         this.group.add(b);
         this.bars.push(b);
@@ -147,8 +180,9 @@ export class DungeonView implements ArenaView {
     this.group.add(glow, light);
   }
 
-  /** `shut`: each gate (as level.gates) shut or open; `at`: the camera, for the torch lights. */
+  /** `shut`: each gate (as level.gates) shut or open; `at`: the camera, for the sun's shadows and the torch lights. */
   update(dt: number, shut: readonly boolean[], at: THREE.Vector3) {
+    this.daylight(at);
     for (let i = 0; i < this.bars.length; i++) {
       const want = shut[i] ? 0 : HIDDEN;
       const y = this.barsY[i];
@@ -179,6 +213,19 @@ export class DungeonView implements ArenaView {
       l.userData.torch = best;
       if (best >= 0) l.position.set(t[best].x, t[best].y, t[best].z);
     }
+  }
+
+  /** The light knobs as they are now, and the sun's shadows kept round you. */
+  private daylight(at: THREE.Vector3) {
+    const v = LIGHT.v;
+    this.sky.intensity = v.sky;
+    this.sun.intensity = v.sun;
+    this.sun.castShadow = v.shadows >= 1;
+    this.haze.near = v.hazeNear;
+    this.haze.far = v.hazeFar;
+    for (const l of this.lights) l.intensity = v.torches;
+    this.sun.target.position.set(at.x, 0, at.z);
+    this.sun.position.set(at.x + SUN_DIR.x * 100, SUN_DIR.y * 100, at.z + SUN_DIR.z * 100);
   }
 
   dispose() {

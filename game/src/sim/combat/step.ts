@@ -1,5 +1,6 @@
-// M1 step 6 — one combat tick: the fists (and the punch they throw, and its blood heal), then the dummies, the
-// turrets and the orbs. Each part lives in its own module; this file only decides the order.
+// M1 step 6 — one combat tick: the fists (and the punch they throw), then the dummies, the turrets and the orbs. Each
+// part lives in its own module; this file only decides the order. (Update 0.0.13 — no blood heal any more: the
+// designer.)
 // M2 — first the weapon in hand (E picks one up; Q throws it, and so does the next attack once it's broken: a short
 // wind-up, then it flies), and its swings; after the targets, the grunts and the lab's waves of them, weapons in
 // flight, and the lab's stands.
@@ -8,7 +9,6 @@ import type { Spot } from '../../world/arena';
 import type { CollisionWorld } from '../collisionWorld';
 import { updateEnemies } from '../enemies/update';
 import { updateWaves } from '../enemies/waves';
-import { bloodHeal } from '../player/health';
 import type { PlayerState } from '../player/state';
 import { asPierce, updateSlashes, usesFor } from '../weapons/swing';
 import { updateThrown } from '../weapons/thrown';
@@ -32,6 +32,8 @@ const IDLE = emptyCombatIntent();
 /** `spawns`: where the lab's grunts may come from (none: no waves). */
 export function stepCombat(state: CombatState, player: PlayerState, intent: CombatIntent, world: CollisionWorld, dt: number, spawns: readonly Spot[] = []) {
   const events = state.events;
+  // Update 0.0.13 — kneeling at a chest, you don't fight.
+  if (player.kneel > 0) intent = IDLE;
   const throwing = state.weapon !== null && state.weapon.throwing >= 0;
   if (intent.interactPressed && !throwing) state.weapon = tryPickup(state.weapon, state.pickups, state.stands, player, events);
   const held = state.weapon;
@@ -59,7 +61,6 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     aim(player, intent.yaw, intent.pitch, eye, dir);
     const landed = resolvePunch(punch, state, eye, dir, world);
     if (landed >= 0) {
-      bloodHeal(player, punch.damage, landed);
       if (w && (punch.kind === 'slash' || punch.kind === 'pierce')) {
         w.uses = Math.max(0, w.uses - usesFor(w, punch.kind));
         if (w.uses === 0) events.push('weaponBroken');
@@ -74,7 +75,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     slamImpact(state, player.pos, player.slamImpact);
     player.slamImpact = 0;
   }
-  updateEnemies(state.enemies, player, state, dt);
+  updateEnemies(state.enemies, player, state, world, dt);
   updateWaves(state.waves, state.enemies, spawns, player, state.rng, events, dt);
   updateThrown(state, world, dt);
   state.money = updateCoins(state.coins, player, state.money, events, dt);

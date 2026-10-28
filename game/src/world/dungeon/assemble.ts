@@ -2,12 +2,14 @@
 // merged into big boxes), jump pads, a gate for every doorway (shut while its room fights), and per room: where its
 // inside is, where enemies may appear, its gates, and an arena of just that room (with its gates shut) for the enemies'
 // walk grid. Pure.
+// Update 0.0.13 — chests (a box the size of the model, set back against its wall, facing into the room) and the shop's
+// display tiles.
 import type { Arena, ArenaBox, BoxKind, JumpPad, Spot } from '../arena';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, PlacedRoom, Side } from './floorPlan';
 import type { Cell, RoomKind } from './rooms';
 
 /** Heights of what stands on a cell (m); the floor's top is y = 0. */
-export const HEIGHT: Partial<Record<Cell, number>> = { wall: 6, column: 4.9, low: 1.3, high: 2.85, ledge: 1, highLedge: 2.5, spikes: 0.3 };
+export const HEIGHT: Partial<Record<Cell, number>> = { wall: 6, column: 4.9, low: 1.3, high: 2.85, ledge: 1, highLedge: 2.5, spikes: 0.3, chest: 0.9 };
 const BOX_KIND: Partial<Record<Cell, BoxKind>> = { wall: 'wall', column: 'block', low: 'block', high: 'block', ledge: 'block', highLedge: 'block', spikes: 'hazard' };
 /** How far a jump pad throws you (m/s up): onto the high ledges with room to spare. */
 export const PAD_LAUNCH = 15;
@@ -15,6 +17,20 @@ export const PAD_LAUNCH = 15;
 const INSIDE = 1.5;
 /** A gate's thickness (m), standing in the middle of its wall. */
 const GATE_DEPTH = 0.6;
+/** A chest's footprint (m: across its front, and front to back) and how far it sits back from its cell's middle. */
+export const CHEST_W = 1.2;
+export const CHEST_D = 0.9;
+const CHEST_BACK = 0.4;
+
+/** Update 0.0.13 — a chest: where it stands, its turn (its front, +z, into the room) and the way its front faces. */
+export interface ChestSpot {
+  room: number;
+  x: number;
+  z: number;
+  rot: number;
+  fx: number;
+  fz: number;
+}
 
 export interface DungeonRoom {
   index: number;
@@ -31,6 +47,9 @@ export interface DungeonRoom {
   sides: Side[];
   /** Just this room, gates shut: what its enemies walk on. */
   arena: Arena;
+  /** Update 0.0.13 — its chest (an index into DungeonLevel.chests, −1: none) and its display tiles (the shop). */
+  chest: number;
+  tiles: Spot[];
 }
 
 export interface DungeonLevel {
@@ -39,6 +58,7 @@ export interface DungeonLevel {
   gates: ArenaBox[];
   rooms: DungeonRoom[];
   exit: { x: number; z: number; radius: number };
+  chests: ChestSpot[];
 }
 
 const hasFloor = (c: Cell) => c !== 'void' && c !== 'wall';
@@ -81,10 +101,34 @@ function gateBox(r: PlacedRoom, side: Side): ArenaBox {
   return { x: cellX(col), y: wallH / 2, z: cellZ(r.z0 + h / 2) - CELL / 2, w: GATE_DEPTH, h: wallH, d: 2 * CELL, kind: 'wall' };
 }
 
+/** A chest against the wall nearest its cell, its front into the room (a cell off any wall faces the middle). */
+function chestSpot(r: PlacedRoom): ChestSpot {
+  const [col, row] = r.chest!;
+  const { w, h } = r.layout;
+  let fx = 0;
+  let fz = 0;
+  if (row === 0) fz = 1;
+  else if (row === h - 1) fz = -1;
+  else if (col === 0) fx = 1;
+  else if (col === w - 1) fx = -1;
+  else if (Math.abs(col + 0.5 - w / 2) > Math.abs(row + 0.5 - h / 2)) fx = col < w / 2 ? 1 : -1;
+  else fz = row < h / 2 ? 1 : -1;
+  return { room: r.index, x: cellX(r.x0 + col) - fx * CHEST_BACK, z: cellZ(r.z0 + row) - fz * CHEST_BACK, rot: Math.atan2(fx, fz), fx, fz };
+}
+
 export function buildDungeon(plan: FloorPlan): DungeonLevel {
   const boxes: ArenaBox[] = [];
   merge(plan, hasFloor, (col, row, w, h) => cellsBox(col, row, w, h, -1, 0, 'floor'), boxes);
   merge(plan, (c) => BOX_KIND[c] !== undefined, (col, row, w, h, c) => cellsBox(col, row, w, h, 0, HEIGHT[c]!, BOX_KIND[c]!), boxes);
+  // Chests: a box the size of the model (not the whole cell).
+  const chests: ChestSpot[] = [];
+  for (const r of plan.rooms) {
+    if (!r.chest) continue;
+    const c = chestSpot(r);
+    chests.push(c);
+    const across = c.fz !== 0;
+    boxes.push({ x: c.x, y: HEIGHT.chest! / 2, z: c.z, w: across ? CHEST_W : CHEST_D, h: HEIGHT.chest!, d: across ? CHEST_D : CHEST_W, kind: 'block' });
+  }
   const pads: JumpPad[] = [];
   for (let row = 0; row < GRID; row++) {
     for (let col = 0; col < GRID; col++) if (cellAt(plan, col, row) === 'pad') pads.push({ x: cellX(col), y: 0, z: cellZ(row), radius: CELL * 0.45, launch: PAD_LAUNCH });
@@ -109,8 +153,10 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
       gates: mine,
       sides: [...r.doors],
       arena: { name: `room ${r.index}`, boxes: [floor, ...near, ...mine.map((g) => gates[g])], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] },
+      chest: chests.findIndex((c) => c.room === r.index),
+      tiles: r.layout.tiles.map(([c, row]) => ({ x: cellX(r.x0 + c), y: 0, z: cellZ(r.z0 + row) })),
     };
   });
   const arena: Arena = { name: `Dungeon ${plan.level}`, boxes, pads, playerStart: { ...plan.start }, spawns: [], dummies: [], turrets: [] };
-  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL } };
+  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests };
 }

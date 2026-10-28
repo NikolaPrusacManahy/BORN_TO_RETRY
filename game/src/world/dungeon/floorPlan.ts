@@ -1,19 +1,27 @@
 // Update 0.0.12 — a floor of the dungeon, laid out from the run's seed (the designer: every run a bit different, the
 // way Soul Knight's levels are). Rooms sit on a 5 × 5 board of slots: from the start room (bottom row) a winding path
-// of five fight rooms leads to the way down, and one or two side rooms branch off it. Each room is a hand-made layout
-// (rooms.ts), varied per run; neighbours are joined by 4 m corridors through doors in the middle of their walls.
+// of five fight rooms leads to the way down, and side rooms branch off it. Each room is a hand-made layout
+// (rooms.ts), varied per run; neighbours are joined by corridors through doors in the middle of their walls.
 // Everything is stamped onto one grid of 2 m cells (the kit's module). Pure and seeded: the same seed, the same floor.
+// Update 0.0.13 — rooms twice the size: each column of the board is as wide as its widest room and each row as tall as
+// its tallest (so corridors stay short between rooms of different sizes). A shop hangs off the way, and one or two
+// fight rooms hold a chest.
 import { createRng, Rng } from '../../core/rng';
-import { Cell, EXIT_ROOM, FIGHT_ROOMS, layOut, RoomKind, RoomLayout, START_ROOM } from './rooms';
+import { Cell, EXIT_ROOM, FIGHT_ROOMS, layOut, RoomKind, RoomLayout, SHOP_ROOM, START_ROOM } from './rooms';
 
-/** Metres per cell; slots on the board; cells from one slot's centre to the next; the floor grid's side (cells). */
+/** Metres per cell; slots on the board; the largest room's side (cells); cells between neighbouring rooms' insides
+ *  (their walls and the corridor); the floor grid's side (cells). */
 export const CELL = 2;
 export const SLOTS = 5;
-export const PITCH = 22;
+export const MAX_ROOM = 36;
+const GAP = 6;
 const MARGIN = 2;
-export const GRID = SLOTS * PITCH + MARGIN * 2;
+export const GRID = SLOTS * (MAX_ROOM + GAP) + MARGIN * 2;
 /** Fight rooms on the way from the start to the way down. */
 export const PATH_FIGHTS = 5;
+/** Chance of a fight room off the way (besides the shop), and of a second chest on the floor. */
+const SIDE_FIGHT = 0.6;
+const SECOND_CHEST = 0.35;
 
 export type Side = 'n' | 's' | 'w' | 'e';
 
@@ -28,6 +36,8 @@ export interface PlacedRoom {
   doors: Side[];
   /** Rooms from the start along the way (a side room: one more than the room it hangs off). */
   depth: number;
+  /** Update 0.0.13 — its chest's cell (col, row inside the room), or null. */
+  chest: [number, number] | null;
 }
 
 export interface Corridor {
@@ -108,11 +118,8 @@ export function planFloor(seed: number, level: number): FloorPlan {
   const links: [number, number][] = [];
   const taken = new Set<number>();
   const add = (kind: RoomKind, slot: [number, number], depth: number) => {
-    const t = kind === 'start' ? START_ROOM : kind === 'exit' ? EXIT_ROOM : fights[rooms.filter((r) => r.kind === 'fight').length % fights.length];
-    const layout = layOut(t, rng);
-    const cx = MARGIN + slot[0] * PITCH + PITCH / 2;
-    const cz = MARGIN + slot[1] * PITCH + PITCH / 2;
-    rooms.push({ index: rooms.length, kind, layout, slot, x0: cx - layout.w / 2, z0: cz - layout.h / 2, doors: [], depth });
+    const t = kind === 'start' ? START_ROOM : kind === 'exit' ? EXIT_ROOM : kind === 'shop' ? SHOP_ROOM : fights[rooms.filter((r) => r.kind === 'fight').length % fights.length];
+    rooms.push({ index: rooms.length, kind, layout: layOut(t, rng), slot, x0: 0, z0: 0, doors: [], depth, chest: null });
     taken.add(key(slot));
     return rooms.length - 1;
   };
@@ -120,24 +127,31 @@ export function planFloor(seed: number, level: number): FloorPlan {
     add(i === 0 ? 'start' : i === way.length - 1 ? 'exit' : 'fight', slot, i);
     if (i > 0) links.push([i - 1, i]);
   });
-  // One or two side rooms off the fight rooms on the way.
-  const sides = 1 + (rng() < 0.6 ? 1 : 0);
-  for (let n = 0; n < sides; n++) {
-    const hosts = rooms.filter((r) => r.kind === 'fight' && r.depth <= PATH_FIGHTS);
+  // Side rooms off the fight rooms on the way: the shop (off the second to fourth fight room when it can), then
+  // maybe a fight.
+  const sideRoom = (kind: RoomKind, minDepth: number, maxDepth: number) => {
     const options: [number, [number, number]][] = [];
-    for (const h of hosts) for (const [dc, dr] of STEPS) {
-      const s: [number, number] = [h.slot[0] + dc, h.slot[1] + dr];
-      if (inBoard(s[0], s[1]) && !taken.has(key(s))) options.push([h.index, s]);
+    for (const h of rooms) {
+      if (h.kind !== 'fight' || h.depth < minDepth || h.depth > maxDepth) continue;
+      for (const [dc, dr] of STEPS) {
+        const s: [number, number] = [h.slot[0] + dc, h.slot[1] + dr];
+        if (inBoard(s[0], s[1]) && !taken.has(key(s))) options.push([h.index, s]);
+      }
     }
-    if (options.length === 0) break;
+    if (options.length === 0) return false;
     const [host, slot] = options[Math.floor(rng() * options.length)];
-    links.push([host, add('fight', slot, rooms[host].depth + 1)]);
-  }
+    links.push([host, add(kind, slot, rooms[host].depth + 1)]);
+    return true;
+  };
+  if (!sideRoom('shop', 2, 4)) sideRoom('shop', 1, PATH_FIGHTS);
+  if (rng() < SIDE_FIGHT) sideRoom('fight', 1, PATH_FIGHTS);
+  placeChests(rooms, rng);
   for (const [a, b] of links) {
     const [sa, sb] = sideTo(rooms[a].slot, rooms[b].slot);
     rooms[a].doors.push(sa);
     rooms[b].doors.push(sb);
   }
+  placeRooms(rooms);
   const plan: FloorPlan = { seed, level, cells: new Array<Cell>(GRID * GRID).fill('void'), rooms, links, corridors: [], start: { x: 0, y: 0, z: 0, yaw: 0 }, exit: { x: 0, z: 0 } };
   for (const r of rooms) stampRoom(plan, r);
   for (const [a, b] of links) stampCorridor(plan, rooms[a], rooms[b]);
@@ -147,6 +161,45 @@ export function planFloor(seed: number, level: number): FloorPlan {
   const e = rooms[way.length - 1];
   plan.exit = { x: cellX(e.x0) + ((e.layout.w - 1) * CELL) / 2, z: cellZ(e.z0) + ((e.layout.h - 1) * CELL) / 2 };
   return plan;
+}
+
+/** Update 0.0.13 — one chest on the floor, sometimes two, each in a different fight room at one of its chest spots. */
+function placeChests(rooms: PlacedRoom[], rng: Rng) {
+  const hosts = rooms.filter((r) => r.kind === 'fight' && r.layout.chestSpots.length > 0);
+  const count = Math.min(hosts.length, 1 + (rng() < SECOND_CHEST ? 1 : 0));
+  for (let n = 0; n < count; n++) {
+    const i = n + Math.floor(rng() * (hosts.length - n));
+    [hosts[n], hosts[i]] = [hosts[i], hosts[n]];
+    const r = hosts[n];
+    const spot = r.layout.chestSpots[Math.floor(rng() * r.layout.chestSpots.length)];
+    r.layout.cells[spot[1] * r.layout.w + spot[0]] = 'chest';
+    r.chest = spot;
+  }
+}
+
+/** Each board column as wide as its widest room, each row as tall as its tallest; rooms centred in their slot. */
+function placeRooms(rooms: PlacedRoom[]) {
+  const colW = new Array<number>(SLOTS).fill(0);
+  const rowH = new Array<number>(SLOTS).fill(0);
+  for (const r of rooms) {
+    colW[r.slot[0]] = Math.max(colW[r.slot[0]], r.layout.w);
+    rowH[r.slot[1]] = Math.max(rowH[r.slot[1]], r.layout.h);
+  }
+  const mids = (sizes: number[]) => {
+    const out: number[] = [];
+    let at = MARGIN;
+    for (const s of sizes) {
+      out.push(at + s / 2);
+      if (s > 0) at += s + GAP;
+    }
+    return out;
+  };
+  const cx = mids(colW);
+  const cz = mids(rowH);
+  for (const r of rooms) {
+    r.x0 = cx[r.slot[0]] - r.layout.w / 2;
+    r.z0 = cz[r.slot[1]] - r.layout.h / 2;
+  }
 }
 
 function set(plan: FloorPlan, col: number, row: number, c: Cell) {

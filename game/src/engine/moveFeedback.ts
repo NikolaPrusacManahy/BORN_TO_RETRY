@@ -1,4 +1,5 @@
 // M1 — turns movement events into camera kicks and sounds. M1 step 8 — and the player's hurts and death.
+// Update 0.0.13 — and hits on the shield.
 import type { EventQueue } from '../core/eventQueue';
 import type { MoveEvent } from '../sim/player/state';
 import { SHAKE } from '../tuning/camera';
@@ -10,9 +11,8 @@ import type { Viewmodel } from './viewmodel/viewmodel';
 /** Landings slower than this don't dip the view. */
 const DIP_MIN_SPEED = 2;
 
-/** Returns how many times the player was hurt (for the HUD's hurt flash). */
-export function applyMoveEvents(events: EventQueue<MoveEvent>, rig: CameraRig, sounds: MoveSounds, arms: Viewmodel): number {
-  let hurts = 0;
+/** Counts the player's hurts and shield hits into `hits` (for the HUD's flashes). */
+export function applyMoveEvents(events: EventQueue<MoveEvent>, rig: CameraRig, sounds: MoveSounds, arms: Viewmodel, hits: { hurts: number; shields: number }) {
   for (let i = 0; i < events.length; i++) {
     const { kind, value } = events.at(i);
     sounds.play(kind, value);
@@ -30,10 +30,12 @@ export function applyMoveEvents(events: EventQueue<MoveEvent>, rig: CameraRig, s
       rig.shake.add(SHAKE.v.dash);
     } else if (kind === 'hurt') {
       rig.shake.add(HEALTH.v.shakeHurt);
-      hurts++;
+      hits.hurts++;
+    } else if (kind === 'shieldHit') {
+      rig.shake.add(HEALTH.v.shakeHurt * 0.6);
+      hits.shields++;
     } else if (kind === 'death') {
       rig.shake.add(1);
     }
   }
-  return hurts;
 }

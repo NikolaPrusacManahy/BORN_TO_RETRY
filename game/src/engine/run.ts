@@ -5,6 +5,8 @@
 // Update 0.0.12 (was labRun.ts) — it plays a level (level.ts): the Feel Lab, or a dungeon floor with its room loop.
 // Taking the way down loads the next floor (your health, coins and weapon come with you); dying in the dungeon starts
 // a new run on a new floor plan.
+// Update 0.0.13 — the shop and the chests (E at one comes before picking up a weapon); kneeling at a chest turns the
+// view to it; your shield, keys and rings come down with you too.
 import * as THREE from 'three';
 import { FixedStep } from '../core/fixedStep';
 import type { FrameStats } from '../core/frameStats';
@@ -18,6 +20,8 @@ import { CombatState, createCombat, resetCombat } from '../sim/combat/state';
 import { stepCombat } from '../sim/combat/step';
 import { AIM_HEIGHT } from '../sim/combat/turret';
 import { stepRooms } from '../sim/dungeon/roomLoop';
+import { stepTreasure } from '../sim/dungeon/treasure';
+import { speedFactor } from '../sim/items/items';
 import { pushPlayerOut } from '../sim/enemies/enemy';
 import { BODY } from '../sim/player/body';
 import { checkHazards } from '../sim/player/hazards';
@@ -26,6 +30,7 @@ import { PlayerIntent, emptyIntent } from '../sim/player/intent';
 import { PlayerState, createPlayer, resetPlayer } from '../sim/player/state';
 import { stepPlayer } from '../sim/player/step';
 import type { Settings } from '../state/settings';
+import { CAMERA } from '../tuning/camera';
 import { FISTS } from '../tuning/combat';
 import { LAB } from '../tuning/lab';
 import { ArenaBox, hazardsOf } from '../world/arena';
@@ -36,6 +41,7 @@ import type { DebugInfo, HudStore } from './hudStore';
 import { readCombatIntent, readPlayerIntent } from './intents';
 import type { Level, LevelView } from './level';
 import { Look } from './look';
+import { TreasureView } from './treasureView';
 import { mapOf } from './mapFeed';
 import { applyMoveEvents } from './moveFeedback';
 import { HudFeed, fillDebug } from './overlayFeed';
@@ -84,8 +90,12 @@ export class Run {
   private combat!: CombatState;
   private combatScene!: CombatScene;
   private hazards: ArenaBox[] = [];
-  /** Counts hits on you, for the HUD's hurt flash. */
-  private hurts = 0;
+  /** Counts hits on you (and, Update 0.0.13, on your shield), for the HUD's flashes. */
+  private readonly hits = { hurts: 0, shields: 0 };
+  /** Update 0.0.13 — the shop and the chests (dungeon floors only). */
+  private treasureView: TreasureView | null = null;
+  /** Is a dungeon room fighting (made once: no closure per tick). */
+  private readonly fighting = (room: number) => this.level.dungeon?.rooms[room].state === 'fighting';
 
   constructor(
     level: Level,
@@ -113,13 +123,16 @@ export class Run {
   load(level: Level, keep: boolean) {
     const old = this.combat;
     const hp = this.player.hp;
+    const shield = this.player.shield;
     if (this.level) {
       this.combatScene.dispose();
       this.view.dispose();
+      this.treasureView?.dispose();
       if (this.level.physics !== level.physics) this.level.physics.dispose();
     }
     this.level = level;
     this.view = level.draw(this.scene, this.renderer);
+    this.treasureView = level.dungeon ? new TreasureView(this.scene, level.dungeon.treasure) : null;
     this.hazards = hazardsOf(level.arena);
     this.combat = createCombat(level.arena, !level.dungeon);
     this.combat.rng = createRng(level.fightSeed);
@@ -127,8 +140,10 @@ export class Run {
     this.restartHere();
     if (keep && old) {
       this.player.hp = hp;
+      this.player.shield = shield;
       this.combat.weapon = old.weapon;
       this.combat.money = old.money;
+      this.combat.items = old.items;
     }
   }
 
@@ -183,6 +198,8 @@ export class Run {
       readPlayerIntent(input, this.look, this.intent, !p.dead);
       readCombatIntent(input, this.look, this.combatIntent, !p.dead);
       updateHealth(p, stepDt);
+      p.speedMul = speedFactor(this.combat.items);
+      if (d && stepTreasure(d.treasure, p, this.combat, this.combatIntent.interactPressed, this.fighting, stepDt)) this.combatIntent.interactPressed = false;
       stepPlayer(p, this.intent, this.level.physics, this.level.arena.pads, stepDt);
       checkHazards(p, this.hazards);
       stepCombat(this.combat, p, this.combatIntent, this.level.physics, stepDt, d ? [] : this.level.arena.spawns);
@@ -209,20 +226,23 @@ export class Run {
   }
 
   frame(real: number, input: Input, settings: Settings, aspect: number, renderer: THREE.WebGLRenderer, stats: FrameStats, debug: DebugInfo) {
+    const p = this.player;
     const locked = input.locked;
-    const mouseDx = locked ? input.mouseDX : 0;
-    const mouseDy = locked ? input.mouseDY : 0;
-    if (locked) this.look.apply(mouseDx, mouseDy, settings);
+    // Update 0.0.13 — kneeling at a chest, the view turns to it and the mouse waits.
+    const kneeling = p.kneel > 0;
+    const mouseDx = locked && !kneeling ? input.mouseDX : 0;
+    const mouseDy = locked && !kneeling ? input.mouseDY : 0;
+    if (locked && !kneeling) this.look.apply(mouseDx, mouseDy, settings);
+    if (kneeling) this.turnTo(p.kneelYaw, (CAMERA.v.kneelPitch * Math.PI) / 180, real);
     input.clearMouse();
 
-    const p = this.player;
     const frozen = this.combat.hitStop.tick(real);
     const scale = LAB.v.timeScale * this.death.timeScale;
     const gameDt = frozen ? 0 : real * scale;
     const steps = frozen ? 0 : this.tick(gameDt, input);
     stats.push(real * 1000, steps, this.clock.dropped);
 
-    this.hurts += applyMoveEvents(p.events, this.rig, this.sounds, this.arms);
+    applyMoveEvents(p.events, this.rig, this.sounds, this.arms, this.hits);
     p.events.clear();
     if (p.dead && !this.death.active) {
       this.death.start();
@@ -232,6 +252,10 @@ export class Run {
     this.sounds.setWallRunning(p.wallRunning);
     this.rig.update(real * scale, this.clock.alpha, this.prev, p, this.look, settings.fov, aspect);
     this.chest.set(p.pos.x, p.pos.y + AIM_HEIGHT, p.pos.z);
+    // The shop and chests read this frame's events before the combat scene clears them; the hands follow a lid.
+    const tv = this.treasureView;
+    tv?.update(this.combat, this.camera.position, gameDt);
+    this.arms.chest.update(tv ? tv.reach.k : -1, tv ? tv.reach.left : this.chest, tv ? tv.reach.right : this.chest, this.camera, this.arms.camera);
     this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt, this.clock.alpha);
     const d = this.level.dungeon;
     if (d) this.view.update?.(gameDt, d.shut, this.camera.position);
@@ -242,7 +266,7 @@ export class Run {
     this.arms.render(renderer, aspect);
 
     fillDebug(debug, p, this.combat);
-    this.hudFeed.push(real, p, this.combatScene.feedback, this.hurts, this.combat.weapon, this.combat.money, d ? mapOf(d) : null, this.look.yaw);
+    this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d ? mapOf(d) : null, this.look.yaw);
     // Dead: once it's black, a new run (the dungeon) or the lab's start. The way down: the next floor.
     if (this.death.update(real)) {
       if (d) this.load(this.levels.fresh(), false);
@@ -250,9 +274,18 @@ export class Run {
     } else if (d?.exited) this.load(this.levels.next(this.level), true);
   }
 
+  /** Eases the view towards (yaw, pitch), the short way round. */
+  private turnTo(yaw: number, pitch: number, dt: number) {
+    const k = 1 - Math.exp(-CAMERA.v.kneelTurn * dt);
+    const d = Math.atan2(Math.sin(yaw - this.look.yaw), Math.cos(yaw - this.look.yaw));
+    this.look.yaw += d * k;
+    this.look.pitch += (pitch - this.look.pitch) * k;
+  }
+
   dispose() {
     this.combatScene.dispose();
     this.view.dispose();
+    this.treasureView?.dispose();
     this.level.physics.dispose();
   }
 }

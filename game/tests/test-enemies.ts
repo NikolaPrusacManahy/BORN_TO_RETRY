@@ -6,7 +6,7 @@
 import { Vector3 } from 'three';
 import { check, near, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
-import { arenaWorld } from './fakes/enemyWorld';
+import { arenaWorld, OPEN_WORLD } from './fakes/enemyWorld';
 import { EventQueue } from '../src/core/eventQueue';
 import { updateOrbs } from '../src/sim/combat/orbs';
 import type { CombatEvent } from '../src/sim/combat/state';
@@ -47,7 +47,7 @@ function run(f: Fight, secs: number, each?: () => void) {
   for (let i = 0; i < ticks(secs); i++) {
     each?.();
     const hp = f.p.hp;
-    updateEnemies(f.all, f.p, f.w, DT);
+    updateEnemies(f.all, f.p, f.w, OPEN_WORLD, DT);
     updateOrbs(f.w.orbs, f.p, world, events, DT);
     f.p.hurtTime = Math.max(0, f.p.hurtTime - DT);
     seen.push(...kinds());

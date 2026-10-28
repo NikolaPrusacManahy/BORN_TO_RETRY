@@ -5,6 +5,7 @@
 import type { CombatEvent } from '../sim/combat/state';
 import { FISTS } from '../tuning/combat';
 import { ENEMIES } from '../tuning/enemies';
+import { FOES } from '../tuning/foes';
 import type { AudioEngine } from './audio';
 import { noise, tone } from './synth';
 
@@ -159,6 +160,53 @@ export class CombatSounds {
       case 'hitSlam':
         tone(a, { from: 140, to: 40, dur: 0.18, gain: 0.45 });
         noise(a, { dur: 0.1, gain: 0.3, filter: 'lowpass', from: 3000, to: 300 });
+        break;
+      // Update 0.0.13 — the leaper's warning (a rising hiss) and its leap and landing; the stinger's warning (a buzz
+      // swelling) and its dive; the wraith's warning (a wail) and its cast.
+      case 'leaperWindup':
+        noise(a, { dur: FOES.v.leaperWindup, gain: 0.2 * far, filter: 'highpass', from: 2500, to: 6000 });
+        break;
+      case 'leaperLeap':
+        noise(a, { dur: 0.25, gain: 0.25 * far, filter: 'bandpass', from: 600, to: 2400, q: 1.2 });
+        break;
+      case 'leaperLand':
+        tone(a, { from: 110, to: 40, dur: 0.25, gain: 0.55 * far });
+        noise(a, { dur: 0.2, gain: 0.35 * far, filter: 'lowpass', from: 1800, to: 150 });
+        break;
+      case 'stingerWindup':
+        tone(a, { from: 180, to: 330, dur: FOES.v.stingerWindup, gain: 0.16 * far, type: 'sawtooth' });
+        tone(a, { from: 186, to: 340, dur: FOES.v.stingerWindup, gain: 0.12 * far, type: 'square' });
+        break;
+      case 'stingerDive':
+        noise(a, { dur: 0.35, gain: 0.3 * far, filter: 'bandpass', from: 3000, to: 900, q: 1.5 });
+        break;
+      case 'wraithWindup':
+        tone(a, { from: 520, to: 780, dur: FOES.v.wraithWindup, gain: 0.12 * far, type: 'sine' });
+        tone(a, { from: 528, to: 760, dur: FOES.v.wraithWindup, gain: 0.08 * far, type: 'triangle' });
+        break;
+      case 'wraithCast':
+        tone(a, { from: 900, to: 300, dur: 0.25, gain: 0.15 * far, type: 'triangle' });
+        noise(a, { dur: 0.2, gain: 0.15 * far, filter: 'bandpass', from: 2400, to: 700, q: 2 });
+        break;
+      // Update 0.0.13 — the shop and chests: a purse's jingle, a dull buzz (can't), the lid creaking up, a locked
+      // rattle, and a sparkle when something is yours.
+      case 'buy':
+        for (let k = 0; k < 4; k++) tone(a, { from: 1700 + k * 230, to: 2300 + k * 230, dur: 0.06 + k * 0.03, gain: 0.07, type: 'triangle' });
+        break;
+      case 'buyFail':
+        tone(a, { from: 140, to: 120, dur: 0.22, gain: 0.25, type: 'square' });
+        break;
+      case 'chestOpen':
+        noise(a, { dur: 0.6, gain: 0.18, filter: 'bandpass', from: 300, to: 900, q: 6 });
+        tone(a, { from: 160, to: 240, dur: 0.6, gain: 0.08, type: 'sawtooth' });
+        break;
+      case 'chestLocked':
+        for (let k = 0; k < 3; k++) noise(a, { dur: 0.05 + k * 0.03, gain: 0.25, filter: 'bandpass', from: 2400, to: 1200, q: 3 });
+        break;
+      case 'chestLoot':
+      case 'item':
+        tone(a, { from: 880, to: 1760, dur: 0.25, gain: 0.12, type: 'triangle' });
+        tone(a, { from: 1320, to: 2640, dur: 0.35, gain: 0.08, type: 'triangle' });
         break;
       default:
         break;

@@ -4,6 +4,8 @@
 // seeds; the level built from it stands up; the room loop shuts the gates, sends its waves, opens them, and the way
 // down ends the floor.
 import { readFileSync } from 'node:fs';
+import * as THREE from 'three';
+import { DungeonView } from '../src/engine/dungeonView';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { check, section } from './harness';
 import { DT, ticks } from './fakes/flatWorld';
@@ -15,15 +17,15 @@ import { GRID_RADIUS } from '../src/sim/enemies/kinds';
 import { buyWave, createDungeonRun, roomBudget, stepRooms, FIRST_WAVE, NEXT_WAVE } from '../src/sim/dungeon/roomLoop';
 import { createPlayer } from '../src/sim/player/state';
 import { buildDungeon } from '../src/world/dungeon/assemble';
-import { cellAt, colAt, FloorPlan, GRID, PATH_FIGHTS, planFloor, rowAt } from '../src/world/dungeon/floorPlan';
-import { Cell, EXIT_ROOM, FIGHT_ROOMS, layOut, START_ROOM } from '../src/world/dungeon/rooms';
+import { cellAt, colAt, FloorPlan, GRID, MAX_ROOM, PATH_FIGHTS, planFloor, rowAt } from '../src/world/dungeon/floorPlan';
+import { Cell, EXIT_ROOM, FIGHT_ROOMS, layOut, SHOP_ROOM, START_ROOM } from '../src/world/dungeon/rooms';
 import { dress, KIT } from '../src/world/dungeon/dressing';
 import { buildNavGrid, colOf, freeAt, rowOf } from '../src/world/navGrid';
 
 section('Dungeon — the rooms');
 {
   check(`at least 8 fight rooms (${FIGHT_ROOMS.length})`, FIGHT_ROOMS.length >= 8 && new Set(FIGHT_ROOMS.map((r) => r.id)).size === FIGHT_ROOMS.length);
-  for (const t of [...FIGHT_ROOMS, START_ROOM, EXIT_ROOM]) {
+  for (const t of [...FIGHT_ROOMS, START_ROOM, EXIT_ROOM, SHOP_ROOM]) {
     const w = t.rows[0].length;
     const h = t.rows.length;
     const even = w % 2 === 0 && h % 2 === 0 && t.rows.every((r) => r.length === w);
@@ -35,6 +37,10 @@ section('Dungeon — the rooms');
     const spawns = t.rows.join('').split('E').length - 1;
     check(`${t.id}: even and square-edged, doorways clear${t.kind === 'fight' ? `, ${spawns} spawn points` : ''}`, even && doors && (t.kind !== 'fight' || spawns >= 6));
   }
+  // Update 0.0.13 — twice the size (the designer): 0.0.12's were 12–16 cells a side, these 24–36 (48–72 m).
+  const sizes = FIGHT_ROOMS.map((t) => [t.rows[0].length, t.rows.length]);
+  check(`fight rooms twice the size: 24–${MAX_ROOM} cells a side`, sizes.every(([w, h]) => Math.min(w, h) >= 24 && Math.max(w, h) <= MAX_ROOM), sizes.map(([w, h]) => `${w}×${h}`).join(' '));
+  check('every fight room has a spot for a chest; the shop has five tiles', FIGHT_ROOMS.every((t) => layOut(t, createRng(1)).chestSpots.length > 0) && layOut(SHOP_ROOM, createRng(1)).tiles.length === 5);
   const a = layOut(FIGHT_ROOMS[0], createRng(3));
   const b = layOut(FIGHT_ROOMS[0], createRng(3));
   check('a room varies by the seed, the same for the same seed', a.cells.join() === b.cells.join());
@@ -71,7 +77,8 @@ section('Dungeon — a floor');
   const way = plan.rooms.filter((r) => r.depth <= PATH_FIGHTS + 1 && r.kind !== 'fight' || r.depth <= PATH_FIGHTS);
   check(`a start, ${PATH_FIGHTS} fight rooms on the way and the way down`, plan.rooms[0].kind === 'start' && plan.rooms[PATH_FIGHTS + 1].kind === 'exit' && plan.rooms.slice(1, PATH_FIGHTS + 1).every((r) => r.kind === 'fight') && way.length >= 7);
   const sides = plan.rooms.length - (PATH_FIGHTS + 2);
-  check('and one or two side rooms', sides >= 1 && sides <= 2, `${sides}`);
+  // Update 0.0.13 — the shop, and maybe a fight.
+  check('and side rooms: the shop, maybe a fight', sides >= 1 && sides <= 2 && plan.rooms.slice(PATH_FIGHTS + 2).some((r) => r.kind === 'shop'), `${sides}`);
   const slots = new Set(plan.rooms.map((r) => r.slot.join()));
   check('one room per slot', slots.size === plan.rooms.length);
   const fights = plan.rooms.filter((r) => r.kind === 'fight').map((r) => r.layout.template.id);
@@ -197,4 +204,17 @@ section('Dungeon — the look');
   // Each gate's bars stand in its doorway, where its collision box is.
   const aligned = look.gates.every((g) => level.gates.some((b) => Math.abs(b.x - g.x) < 0.01 && Math.abs(b.z - g.z) < 0.01));
   check('the bars stand where the gates block', look.gates.length === level.gates.length && aligned);
+  // Update 0.0.13 — day time (the designer: far too dark): a light sky, a sun with shadows following you, a bright sky
+  // light, the haze far off.
+  const scene = new THREE.Scene();
+  const view = new DungeonView(scene, level, false);
+  view.update(0, level.gates.map(() => false), new THREE.Vector3(10, 1.6, -20));
+  const sky = scene.background as THREE.Color;
+  const sun = view.group.children.find((o): o is THREE.DirectionalLight => o instanceof THREE.DirectionalLight);
+  const fill = view.group.children.find((o): o is THREE.HemisphereLight => o instanceof THREE.HemisphereLight);
+  const fog = scene.fog as THREE.Fog;
+  check('day time: a light sky, the haze far off', sky.r + sky.g + sky.b > 2 && fog.near >= 40);
+  check('a sun overhead, its shadows round you', !!sun && sun.castShadow && sun.intensity >= 2 && sun.position.y > 50 && Math.hypot(sun.target.position.x - 10, sun.target.position.z + 20) < 1e-6);
+  check('a bright sky light filling the shade', !!fill && fill.intensity >= 1);
+  view.dispose();
 }

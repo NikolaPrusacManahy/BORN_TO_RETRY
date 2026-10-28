@@ -2,6 +2,8 @@
 # kit.glb): every placement as a linked copy of its kit piece, the gates' bars down (as when a room fights), then an
 # overview from above and the camera spots it lists. The game is y up, Blender z up: (x, y, z) → (x, −z, y).
 #   blender --background --python tools/blender/render_dungeon.py -- --json <folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <folder>
+# Update 0.0.13 — `--day`: Blender's sun and sky in place of the flat studio light, a rough stand-in for the game's
+# daylight (engine/dungeonView.ts): the same sky colour and sun direction, not its renderer.
 import argparse
 import json
 import math
@@ -19,7 +21,27 @@ def parse_args():
     p.add_argument('--kit', required=True)
     p.add_argument('--out', required=True)
     p.add_argument('--width', type=int, default=1280)
+    p.add_argument('--day', action='store_true')
     return p.parse_args(argv)
+
+
+def daylight(scene):
+    """EEVEE with a sun (the game's direction, from the south-west) and a pale sky lighting the shade."""
+    scene.render.engine = 'BLENDER_EEVEE'
+    sun = bpy.data.objects.new('Sun', bpy.data.lights.new('Sun', 'SUN'))
+    sun.data.energy = 3.0
+    sun.data.color = (1.0, 0.94, 0.84)
+    sun.data.angle = math.radians(2)
+    # The game's way to the sun: (-0.45, 1, 0.35) y up → Blender (-0.45, -0.35, 1).
+    to_sun = Vector((-0.45, -0.35, 1)).normalized()
+    sun.rotation_euler = to_sun.to_track_quat('Z', 'Y').to_euler()
+    scene.collection.objects.link(sun)
+    if scene.world is None:
+        scene.world = bpy.data.worlds.new('W')
+    scene.world.use_nodes = True
+    bg = scene.world.node_tree.nodes['Background']
+    bg.inputs['Color'].default_value = (0.58, 0.69, 0.79, 1)
+    bg.inputs['Strength'].default_value = 1.0
 
 
 def to_blender(x, y, z):
@@ -76,6 +98,8 @@ def main():
     if scene.world is None:
         scene.world = bpy.data.worlds.new('W')
     scene.world.color = (0.03, 0.025, 0.035)
+    if args.day:
+        daylight(scene)
     scene.render.resolution_x = args.width
     scene.render.resolution_y = round(args.width * 9 / 16)
     scene.render.image_settings.file_format = 'PNG'

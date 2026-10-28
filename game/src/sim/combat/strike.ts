@@ -8,6 +8,7 @@ import { enemyAxis, hitEnemy, isLive, radiusOf } from '../enemies/enemy';
 import { dropWeapon } from '../weapons/weapons';
 import { ENEMY_STATS } from '../enemies/kinds';
 import { burstCoins } from './coins';
+import { damageFactor } from '../items/items';
 import { hitDummy } from './dummy';
 import { segmentDistance } from './geometry';
 import type { CombatEvent, CombatState } from './state';
@@ -76,9 +77,10 @@ export function hitTarget(state: CombatState, t: TargetHit, damage: number, knoc
 }
 
 /** Lands a hit: applies it, reports it (`event`, with `value`, at the hit point), and on a kill reports that too, asks
- *  for the kill hit-stop, and lets a grunt drop a sword (seeded RNG). Returns true on a kill. */
+ *  for the kill hit-stop, and lets a grunt drop a sword (seeded RNG). Returns true on a kill.
+ *  Update 0.0.13 — every hit you land is stronger with each red ring you carry. */
 export function landHit(state: CombatState, t: TargetHit, damage: number, knock: number, dirX: number, dirZ: number, event: CombatEvent, value: number): boolean {
-  const killed = hitTarget(state, t, damage, knock, dirX, dirZ);
+  const killed = hitTarget(state, t, damage * damageFactor(state.items), knock, dirX, dirZ);
   const p = t.point;
   state.events.push(event, value, p.x, p.y, p.z);
   if (!killed) return false;

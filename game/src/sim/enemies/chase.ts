@@ -31,6 +31,18 @@ export function createFlow(g: NavGrid): Flow {
 const clampCol = (g: NavGrid, x: number) => Math.max(0, Math.min(g.cols - 1, colOf(g, x)));
 const clampRow = (g: NavGrid, z: number) => Math.max(0, Math.min(g.rows - 1, rowOf(g, z)));
 
+/** Update 0.0.13 — the middle of the free cell nearest (x, z) (within a few metres) into `out`; false if none. */
+export function freeSpotNear(g: NavGrid, x: number, z: number, out: Vector3): boolean {
+  if (!hasCells(g)) {
+    out.set(x, out.y, z);
+    return true;
+  }
+  const n = nearestFree(g, clampCol(g, x), clampRow(g, z), NEAREST);
+  if (n < 0) return false;
+  out.set(centreX(g, n % g.cols), out.y, centreZ(g, Math.floor(n / g.cols)));
+  return true;
+}
+
 /** The free cell nearest (col, row) within `reach` cells (its index), or −1. */
 function nearestFree(g: NavGrid, col: number, row: number, reach: number): number {
   if (freeCell(g, col, row)) return row * g.cols + col;

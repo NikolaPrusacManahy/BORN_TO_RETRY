@@ -1,10 +1,10 @@
 // M1 — what the HUD and the F2 debug overlay show, read from the sim once a frame. The HUD store only changes every
 // HUD_EVERY seconds, or at once on a hit or a hurt, so React doesn't re-render every frame.
 // Update 0.0.4 — moved out of Game.ts when the main menu joined it.
+// Update 0.0.13 — the shield, keys and rings.
 import type { CombatState } from '../sim/combat/state';
 import { PlayerState, flatSpeed, moveMode } from '../sim/player/state';
 import { WEAPON_NAME } from '../sim/weapons/catalog';
-import type { HeldWeapon } from '../sim/weapons/weapons';
 import { HEALTH } from '../tuning/health';
 import { LAB } from '../tuning/lab';
 import { DASH } from '../tuning/movement';
@@ -31,15 +31,41 @@ export class HudFeed {
 
   constructor(private readonly hud: HudStore) {}
 
-  /** `hurts`: how many times the player has been hurt (each new one flashes the screen's edge). `weapon`: in hand. */
-  push(real: number, p: PlayerState, fb: CombatFeedback, hurts: number, weapon: HeldWeapon | null, money: number, map: MapView | null, yaw: number) {
+  /** `hits`: how many times you've been hurt, and your shield hit (each new one flashes the screen's edge). */
+  push(real: number, p: PlayerState, fb: CombatFeedback, hits: { hurts: number; shields: number }, combat: CombatState, map: MapView | null, yaw: number) {
     const cur = this.hud.get();
     const hp = Math.ceil(p.hp);
+    const shield = Math.ceil(p.shield);
+    const weapon = combat.weapon;
     const name = weapon ? WEAPON_NAME[weapon.kind] : '';
     const uses = weapon ? weapon.uses : 0;
+    const money = combat.money;
+    const it = combat.items;
     this.timer -= real;
-    if (this.timer > 0 && cur.hits === fb.hits && cur.hurts === hurts && cur.hp === hp && cur.weapon === name && cur.uses === uses && cur.money === money && cur.map === map) return;
+    const same = cur.hits === fb.hits && cur.hurts === hits.hurts && cur.shields === hits.shields && cur.hp === hp && cur.shield === shield && cur.weapon === name && cur.uses === uses && cur.money === money;
+    if (this.timer > 0 && same && cur.keys === it.keys && cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.map === map) return;
     this.timer = HUD_EVERY;
-    this.hud.set({ dashCharges: Math.floor(p.dashCharges * 20) / 20, dashMax: DASH.v.charges, mode: moveMode(p), hits: fb.hits, marker: fb.marker, hurts, hp, maxHp: HEALTH.v.maxHp, weapon: name, uses, money, map, mapX: p.pos.x / CELL + GRID / 2, mapZ: p.pos.z / CELL + GRID / 2, mapYaw: yaw });
+    this.hud.set({
+      dashCharges: Math.floor(p.dashCharges * 20) / 20,
+      dashMax: DASH.v.charges,
+      mode: moveMode(p),
+      hits: fb.hits,
+      marker: fb.marker,
+      hurts: hits.hurts,
+      hp,
+      maxHp: HEALTH.v.maxHp,
+      weapon: name,
+      uses,
+      money,
+      shield,
+      shields: hits.shields,
+      keys: it.keys,
+      redRings: it.redRings,
+      blueRings: it.blueRings,
+      map,
+      mapX: p.pos.x / CELL + GRID / 2,
+      mapZ: p.pos.z / CELL + GRID / 2,
+      mapYaw: yaw,
+    });
   }
 }

@@ -5,9 +5,10 @@
 import type { Vector3 } from 'three';
 import { MOVE } from '../../tuning/movement';
 
-export function airMove(vel: Vector3, wishX: number, wishZ: number, dt: number) {
+/** `speedMul`: run speed times this (Update 0.0.13 — the blue rings). */
+export function airMove(vel: Vector3, wishX: number, wishZ: number, dt: number, speedMul = 1) {
   if (wishX === 0 && wishZ === 0) return;
-  const run = MOVE.v.runSpeed;
+  const run = MOVE.v.runSpeed * speedMul;
   const along = vel.x * wishX + vel.z * wishZ;
   if (along >= run) return;
   const before = Math.hypot(vel.x, vel.z);

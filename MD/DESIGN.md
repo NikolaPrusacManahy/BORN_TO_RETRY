@@ -9,7 +9,7 @@ A first-person action roguelike. You start every run with your bare hands, tear 
 
 ## 2. Pillars
 1. **Feel first.** Movement, punching and hit feedback come before everything else. A feature that hurts feel is cut.
-2. **Aggression pays.** You heal by fighting up close, style earns more money, and breaking a weapon is a payoff.
+2. **Aggression pays.** Style earns more money, and breaking a weapon is a payoff. (Update 0.0.13, the designer: you no longer heal by fighting; healing comes from the shop.)
 3. **Every run is different.** Hand-made arenas, combined and populated from a seed.
 4. **Short runs.** A full run takes about 20–25 minutes.
 
@@ -19,7 +19,7 @@ A first-person action roguelike. You start every run with your bare hands, tear 
 | Camera | First person |
 | Players | Solo |
 | Platform | Desktop browser; Steam later via Electron |
-| Art | Quaternius low-poly (CC0): dark ruins, fog, rim light |
+| Art | Quaternius low-poly (CC0): dark ruins, fog, rim light. **The dungeon is in daylight (Update 0.0.13, the designer: it was far too dark to play): open to the sky, sunlit, a pale haze.** |
 | Run | 3 floors × (5 rooms + a boss) = 18 rooms |
 | Carries over between runs | Character unlocks and stats only. Money resets. |
 
@@ -61,8 +61,8 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - 100 HP. **(placeholder)** No regeneration. Shown bottom left: the number and a bar.
 - A short invincibility follows each hit (0.6 s **(placeholder)**), and the dash's invincibility stops damage too.
 - **Death:** the world slows and fades to black. In the Feel Lab you're straight back at the start; in a run, death ends the run (M3).
-- **Blood heal:** damage you deal within a few metres heals you a little. Aggression is the main way to heal. **(placeholder amounts)**
-- Other healing: health drops, shop, a part-heal after each boss.
+- **Healing (Update 0.0.13, the designer): only from the shop.** The heart heals half your health (a chest can hold one too). Hits you land heal nothing (blood heal is gone). Later: a part-heal after each boss.
+- **The shield (Update 0.0.13, the designer):** the silver armour plate gives a shield of half your health, shown as a blue bar just above the health bar. A hit takes the shield first, then your health. At most a full bar (two plates). **(placeholder cap)**
 
 ### Fists (always available, never break)
 - **Jab combo** (left click, barehanded): fast alternating punches; the third hit knocks back.
@@ -80,10 +80,21 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - **Durability** counts uses (hits or shots). A weapon you pick up has **4 uses** (the designer, Update 0.0.12); shop weapons are sturdier. **(placeholder)** Misses cost nothing.
 - **The Sword (M2):** held in the right hand; the left arm drops out of view. Left click slashes: a cut from the upper right through the middle to low left, straight back to ready. Holding right click points the tip at the crosshair; letting go pierces (longer and narrower than a slash, costs 2 uses). Q throws it after a short wind-up (drawn back, then thrust): it flies tip first, 70 damage and a hit-stop on the first thing it hits. Picking up uses E. **(placeholder numbers)**
 - **Breaking is a payoff:** when durability hits 0, your next attack throws the weapon for a big hit. You can also throw it any time with Q.
+- **The Gold Sword (Update 0.0.13, the designer):** the shop's sword: the sword's moves and damage, **40 uses**. Buying it puts it in your hand (the weapon you held drops at your feet).
 - Families: **melee** (swords, axes, maces from the Fantasy Props kit) and **firearms** (Ultimate Guns, rarer). **(placeholder mix)**
 
-### Items **(placeholder list)**
-- Health orb (heals), coins, Rage (more damage for 10 s), Second Wind (refills dash charges).
+### Items (Update 0.0.13, the designer)
+From the shop (70 coins each) and chests (Ultimate RPG Pack models):
+| Item | Does |
+|---|---|
+| Heart | Heals half your health. |
+| Silver armour plate | A shield of half your health (the blue bar). |
+| Gold sword | A sword with 40 uses, into your hand. |
+| Ring with a red gem | +25% damage, for the rest of the run. Rings stack. **(placeholder: stacking)** |
+| Ring with blue gems | +20% run speed (running and sliding; not the dash), for the rest of the run. **(placeholder: what it speeds)** |
+| Key | Opens a chest. |
+
+What you carry (keys, rings, the shield) goes down to the next floor with you and is lost when you die.
 
 ---
 
@@ -93,9 +104,12 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - Style multiplies money from ×1.0 at D to ×2.0 at S. **(placeholder)**
 - Money resets at the end of every run.
 
-## 8. Shop
-- Appears as a door choice at least once per floor (guaranteed by room 4). **(placeholder)**
-- Sells: healing, fist upgrades, sturdier weapons, weapon repair, an extra dash charge. **(placeholder list and prices)**
+## 8. Shop and chests (Update 0.0.13, the designer)
+- **The shop** is a room with **five floor tiles**, each showing something to buy, turning above it with its price. One on every floor, a side room off the second to fourth fight room. **(placeholder: where)**
+- Everything costs **70**. Six items for five tiles: the **key is always there** (every floor has a chest), plus four of the other five, chosen per floor. **(placeholder)**
+- Stand by a tile and press E to buy. Not enough coins, or an item that would do nothing (a heart at full health, a plate with a full shield): a buzz, nothing taken. **(placeholder)**
+- **Chests** stand in some fight rooms: one on every floor, sometimes two (35%). **(placeholder)** With a key, E in front of one (once its room isn't fighting) **kneels you down and you open it with both hands**: the view lowers and turns to it, the fists lift the lid, and what's inside comes out as it opens (about 1.3 s). Without a key it rattles.
+- A chest holds **50–80 coins**, a **silver plate**, a **heart** or **a ring** (either). Coins 40%, the rest alike. **(placeholder odds)**
 
 ---
 
@@ -107,7 +121,9 @@ Rule: every attack is telegraphed (a flash and a sound) before it can hit, and e
 | Grunt | Melee chaser in groups. Fodder. **(M2: the Orc from Ultimate Monsters; 40 HP, 7 m/s, a 0.45 s warned wind-up, 15 damage; any hit flinches it; drops a sword 15%.)** |
 | Spitter | Keeps distance and fires slow orbs that can be parried. **(Update 0.0.12: the Wizard from Ultimate Monsters; 30 HP; holds 7–16 m from you, coming closer when it can't see you, backing off when you're close, circling between; a 0.6 s warning (it rears, glows green, gurgles), then a 13 m/s orb for 12; a hit cancels the shot; 1.8 s between shots.)** |
 | Brute | Slow and heavy, telegraphed ground slam. **(Update 0.0.12: the Yeti from Ultimate Monsters, 2.8 m; 160 HP, 3.5 m/s; in 3 m it rears up for 0.9 s while a ring on the ground shows its 3.6 m reach, then slams: 30 damage and thrown away if you're on the ground inside (jump it); 1.2 s winded after; only a hit of 40 or more staggers it. Drops no weapon: the designer.)** |
-| Leaper | Jumps at you from range; punish it on landing. |
+| Leaper | Jumps at you from range; punish it on landing. **(Update 0.0.13: the Ninja from Ultimate Monsters; 45 HP, 8 m/s; within 13 m with nothing tall between (it leaps over low cover) it crouches 0.55 s (glows violet, hisses), then leaps a 2.6 m arc to where you stood: 18 and thrown if you're on or beside the landing (jump it); then 0.9 s stuck; too close, it backs off; a hit knocks it out of the air; 2.2 s between leaps.)** |
+| Stinger | **(Update 0.0.13, the designer: a flier.)** The Armabee: 25 HP, flies 3.4 m up. Within 10 m with a clear line it rears back 0.6 s (glows red, buzzes), then dives at 20 m/s through where your chest was and on: 14 and a knock if it goes through you. The dive ends on the floor, a wall or a crate: 1 s low and dazed (punch it). A hit cancels the dive. |
+| Wraith | **(Update 0.0.13, the designer: a flier.)** The Ghost: 35 HP, floats 3.6 m up, keeps 8–18 m from you (closer over cover, away when you're close, circling between). 0.7 s warning (glows pale, wails), then a fan of three slow orbs (11 m/s, 10 each, 14° apart). A hit cancels the cast. |
 | Shieldbearer | Blocks attacks from the front; a charged punch breaks the shield. |
 | Elites | Glowing versions with more health and one extra trick. Always drop a weapon. |
 
@@ -119,7 +135,7 @@ One per floor, three in total, each with 2 phases. Designs to come from the desi
 ---
 
 ## 10. The run
-- **A floor (Update 0.0.12, the designer: like Soul Knight's levels):** a map of rooms joined by corridors that you explore. From the start room a winding way of five fight rooms leads to the way down; one or two side rooms branch off it. A small minimap (top right) shows the rooms you've been in and the ones beside them. (Later: the boss room at the end of the way, and the shop and reward rooms as side rooms.)
+- **A floor (Update 0.0.12, the designer: like Soul Knight's levels):** a map of rooms joined by corridors that you explore. From the start room a winding way of five fight rooms leads to the way down; side rooms branch off it: the shop (Update 0.0.13) and sometimes a fight. One or two fight rooms hold a chest. A small minimap (top right) shows the rooms you've been in and the ones beside them (the shop in gold). (Later: the boss room at the end of the way, and reward rooms.)
 - **A room:** you step in → its doors slam shut → 2–3 waves of enemies → room cleared → the doors open.
 - **The way down** (a trapdoor in the exit room) takes you to the next floor, with your health, coins and weapon. Dying starts a new run on a new floor plan. (Earlier plan: choose one of two doors showing their rewards; replaced by the explored floor.)
 - **After a boss:** a part-heal, then the next floor.
@@ -128,11 +144,11 @@ One per floor, three in total, each with 2 phases. Designs to come from the desi
 
 ## 11. Procedural generation
 Arenas are **hand-made templates assembled from a seed**, not random geometry, because random shapes play badly at high speed.
-1. **Room pool (Update 0.0.12):** nine hand-made fight rooms (colonnade, crossfire, altar, spike hall, ledges, maze, arena, twin, crypt), a start room and an exit room, drawn as text layouts on a 2 m grid and built from the Modular Dungeon Pack (parts 1 and 2: we're in dungeons). No room twice on a floor.
+1. **Room pool (Update 0.0.12):** nine hand-made fight rooms (colonnade, crossfire, altar, spike hall, ledges, maze, arena, twin, crypt), a start room and an exit room, drawn as text layouts on a 2 m grid and built from the Modular Dungeon Pack (parts 1 and 2: we're in dungeons). No room twice on a floor. **Update 0.0.13 (the designer): the fight rooms are twice the size** (24–36 cells, 48–72 m a side), with more long walls to wall-run and hide behind; the shop room.
 2. **Variation per room:** mirroring and quarter turns, optional cover on or off, and where enemies appear, all chosen from the seed.
 3. **The floor plan:** rooms on a 5 × 5 board; the way and its side rooms laid out from the seed; 4 m corridors join arched doorways in the middle of the walls.
-4. **Enemy budget:** each room has a budget that grows with how deep the room is and the floor number (grunt 1, spitter 2, brute 4; no brutes before the third room of floor 1), spent from a weighted table and split into waves.
-5. **Rewards:** reward rooms drawn from a weighted table, with guarantees (one shop per floor). **(later)**
+4. **Enemy budget:** each room has a budget that grows with how deep the room is and the floor number (Update 0.0.13: 6 + 3 × depth + 4 × (floor − 1), in 2 waves, 3 from 18), spent from a weighted table and split into waves. Costs: grunt 1, spitter 2, leaper 2, stinger 2, wraith 3, brute 4. On floor 1 the leaper and the stinger come from the second room, the wraith and the brute from the third. **(placeholders)**
+5. **Rewards:** one shop per floor and one or two chests (Update 0.0.13); reward rooms drawn from a weighted table **(later)**.
 6. **Same seed, same run.** The seed shows on the run summary, so daily or shared-seed runs are easy later.
 
 ## 12. Characters **(placeholder)**
@@ -166,7 +182,7 @@ Browser game: Three.js + Rapier, React for menus and HUD, Blender scripts for as
 |---|---|---|
 | **M1** | **Feel lab:** one gray-box arena, movement, fists, two simple enemies, tuning panel | The core feels great, and the browser can deliver it. **Done (2026-10-27); browser kept.** |
 | M2 | Combat sandbox: the enemy roster, weapons with durability and throwing, style meter, money | Fighting stays fun for minutes |
-| M3 | Run structure: rooms, doors, procedural assembly, shop, first boss | One floor is a real roguelike run. **Started (Update 0.0.12): the dungeon floors, the room loop, the minimap.** |
+| M3 | Run structure: rooms, doors, procedural assembly, shop, first boss | One floor is a real roguelike run. **Started (Update 0.0.12): the dungeon floors, the room loop, the minimap. Update 0.0.13: rooms twice the size, the shop, chests.** |
 | M4 | Art pass: Quaternius models, arena kits, first-person arms, real sound effects | It looks and sounds like a game |
 | M5 | Full run: 3 floors, 3 bosses, characters and unlocks, hub, saves | The complete game loop |
 | M6 | Steam prep: Electron build, Steam achievements and cloud saves, store assets | Ready to sell |

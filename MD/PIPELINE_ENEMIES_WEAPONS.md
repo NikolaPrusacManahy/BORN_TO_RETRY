@@ -13,6 +13,18 @@ blender --background --disable-autoexec --python tools/blender/export_monster.py
 - Previews: `Idle.png`, and `Weapon.png` at the landing frame.
 - The game scales it to `ENEMIES.gruntHeight` (its hit capsule's height) and finds clips by name.
 
+## Update 0.0.13 — the new monsters and items
+```
+blender --background --disable-autoexec --python tools/blender/export_monster.py -- --blend "<Ultimate Monsters>/big/…/Ninja.blend" --glb public/models/enemies/ninja.glb --previews <folder> --attack Duck
+blender --background --disable-autoexec --python tools/blender/export_monster.py -- --blend "<Ultimate Monsters>/flying/…/Armabee.blend" --glb public/models/enemies/armabee.glb --previews <folder> --attack Headbutt
+blender --background --disable-autoexec --python tools/blender/export_monster.py -- --blend "<Ultimate Monsters>/flying/…/Ghost.blend" --glb public/models/enemies/ghost.glb --previews <folder> --attack Punch
+blender --background --disable-autoexec --python tools/blender/export_weapon.py -- --blend "<Ultimate RPG Pack>/Sword_Golden.blend" --glb public/models/weapons/gold_sword.glb --length 1.05 --previews <folder>
+blender --background --disable-autoexec --python tools/blender/export_items.py -- --rpg "<Ultimate RPG Pack>" --dungeon "<Modular Dungeon Pack - part 1>" --glb public/models/items/items.glb --previews <folder>
+```
+- The flying monsters' meshes float above their origin; the game places every body by its lowest point.
+- Each monster's frame where its blow lands (printed by `export_monster.py`) goes into `LOOKS` in `engine/enemiesView.ts`: Ninja Duck 44/30, Armabee Headbutt 9/30, Ghost Punch 12/30.
+- The dungeon chest's pieces are hidden from renders in its `.blend`; `export_items.py` shows them. Its lid keeps its origin on the hinge.
+
 ## A held weapon: `game/tools/blender/export_weapon.py`
 Exports one weapon with its origin in the middle of the grip, the blade (or head) pointing up and the edge across x, scaled to a set length. The grip is found from the shape: past the pommel, up the narrow handle to where the guard (or the head) widens.
 

@@ -23,12 +23,13 @@ Drawn from above, one character per 2 m cell, only the inside (the walls round i
 | `P` high ledge (2.5 m) | `^` spikes |
 | `J` jump pad | `?` low cover or floor, chosen per run |
 | `E` where enemies may appear | `X` the way down (exit room) |
+| `T` where a chest may stand (against a wall, floor in front) | `S` a shop's display tile |
 
-Rules: even width and height; the middle two cells of every side clear (`.` or `E`) two deep; at least 6 `E`. Run `npm run verify:quick`: `test-dungeon.ts` lays out 40 floors and says if a room has a cell nobody can reach, a stuck spawn point or a pocket the grunts can't get into.
+Update 0.0.13: fight rooms are drawn as their **top-left quarter** in `fightRooms.ts` (mirrored right and down): the quarter's last column (rows 0–1) and last row (columns 0–1) stay clear for the doors. At most `MAX_ROOM` (36) cells a side. Rules: even width and height; the middle two cells of every side clear (`.` or `E`) two deep; at least 6 `E`; at least one `T`. Run `npm run verify:quick`: `test-dungeon.ts` lays out 40 floors and says if a room has a cell nobody can reach, a stuck spawn point or a pocket the grunts can't get into.
 
 ## Looking at a floor without a browser
 ```
 npx tsx tools/dungeon-shots.ts <out folder> [seed] [floor]
 blender --background --python tools/blender/render_dungeon.py -- --json <out folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <out folder>
 ```
-An overview from above (`overview.png`) and eye-height views from the start and the first fight room, with the gates' bars down. Flat light: it shows the layout and the pieces, not the game's lighting.
+An overview from above (`overview.png`) and eye-height views from the start and the first fight room, with the gates' bars down. Flat light: it shows the layout and the pieces, not the game's lighting. Update 0.0.13 — add `--day` for Blender's sun and sky in the game's daylight colours and strengths (EEVEE): a rough stand-in for how bright the game's daylight is.

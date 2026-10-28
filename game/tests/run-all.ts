@@ -24,5 +24,7 @@ import './test-enemies';
 import './test-money';
 import './test-dungeon';
 import './test-sword';
+import './test-shop';
+import './test-foes';
 
 process.exit(summary() > 0 ? 1 : 0);

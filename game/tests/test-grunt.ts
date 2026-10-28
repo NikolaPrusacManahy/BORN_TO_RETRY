@@ -13,11 +13,12 @@ import { emptyTargetHit, landHit, nearestTarget } from '../src/sim/combat/strike
 import { createEnemies, hitEnemy, isLive, pushPlayerOut, separateEnemies, spawnEnemy } from '../src/sim/enemies/enemy';
 import { RADIUS } from '../src/sim/enemies/kinds';
 import { updateEnemies } from '../src/sim/enemies/update';
-import { arenaWorld } from './fakes/enemyWorld';
+import { arenaWorld, OPEN_WORLD } from './fakes/enemyWorld';
 import { SPAWN_MIN_DIST } from '../src/sim/enemies/waves';
 import { BODY } from '../src/sim/player/body';
 import { createPlayer } from '../src/sim/player/state';
 import { FISTS, TARGETS } from '../src/tuning/combat';
+import { FOES } from '../src/tuning/foes';
 import { ENEMIES } from '../src/tuning/enemies';
 import { HEALTH } from '../src/tuning/health';
 import { WEAPONS } from '../src/tuning/weapons';
@@ -47,7 +48,7 @@ function tick(s: ReturnType<typeof face>, n: number, each?: (t: number) => void)
   for (let i = 0; i < n; i++) {
     each?.(i * DT);
     const hp = s.p.hp;
-    updateEnemies(s.grunts, s.p, OPEN, DT);
+    updateEnemies(s.grunts, s.p, OPEN, OPEN_WORLD, DT);
     s.p.hurtTime = Math.max(0, s.p.hurtTime - DT);
     if (s.p.hp < hp && hurtAt < 0) hurtAt = (i + 1) * DT;
   }
@@ -154,6 +155,9 @@ section('Grunt — in the lab');
       state.events.clear();
     }
   };
+  // (The original mix; the leaper and the fliers have their own lab check in test-foes.ts.)
+  const foes = { ...FOES.v };
+  FOES.v.labLeapers = FOES.v.labStingers = FOES.v.labWraiths = 0;
   step(ticks(v.labWaveDelay * 0.5));
   check('no enemies until the wave delay passes', !state.enemies.some(isLive));
   step(ticks(v.labWaveDelay * 0.6));
@@ -166,6 +170,7 @@ section('Grunt — in the lab');
   check('when the last one dies, the next wave waits', !state.enemies.some(isLive));
   step(ticks(v.labWaveDelay));
   check('then comes', state.enemies.filter(isLive).length === v.labGrunts + v.labSpitters + v.labBrutes);
+  Object.assign(FOES.v, foes);
 }
 {
   const grunts = createEnemies();
@@ -188,6 +193,6 @@ section('Grunt — in the lab');
   p.hp = 50;
   stepCombat(state, p, { ...emptyCombatIntent(), attackPressed: true }, new FlatWorld(), DT);
   check('a jab hits a grunt (and flinches it)', state.enemies[0].hp === v.gruntHp - FISTS.v.jabDamage && state.enemies[0].phase === 'flinch');
-  check('and heals you like any hit (blood heal)', p.hp > 50);
+  check('and heals you nothing (no blood heal since Update 0.0.13: the designer)', p.hp === 50);
   check('dummies are still there to hit too', TARGETS.v.dummyHp > 0);
 }

@@ -51,7 +51,8 @@ export class CameraRig {
     const v = CAMERA.v;
     this.at.lerpVectors(prev, p.pos, alpha);
 
-    this.eye += ((p.sliding ? v.slideEyeHeight : v.eyeHeight) - this.eye) * ease(v.eyeRate, dt);
+    const eye = p.kneel > 0 ? v.kneelEyeHeight : p.sliding ? v.slideEyeHeight : v.eyeHeight;
+    this.eye += (eye - this.eye) * ease(v.eyeRate, dt);
     this.stepOffset *= 1 - ease(STEP_EASE, dt);
     const accel = -v.springStiffness * this.dipY - v.springDamping * this.dipV;
     this.dipV += accel * dt;

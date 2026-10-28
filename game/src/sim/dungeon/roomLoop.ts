@@ -5,16 +5,20 @@
 // room is and the floor you're on: grunts are cheap, spitters dearer, brutes dearest (and only from the third room).
 // Stepping onto the way down in the exit room ends the floor. Rooms you've been in, and their neighbours, show on the
 // minimap. Pure and seeded.
-import type { Rng } from '../../core/rng';
+// Update 0.0.13 — each floor's shop and chests (treasure.ts). Bigger budgets for rooms twice the size; waves picked
+// from every kind the room may have (weighted), the leaper and the stinger from the second room, the wraith and the
+// brute from the third (all of them from floor 2).
+import { createRng, Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import type { DungeonLevel } from '../../world/dungeon/assemble';
-import { buildNavGrid, NavGrid } from '../../world/navGrid';
+import { AIR, buildNavGrid, NavGrid } from '../../world/navGrid';
 import type { CombatState } from '../combat/state';
 import { createFlow } from '../enemies/chase';
 import { isLive } from '../enemies/enemy';
-import { GRID_RADIUS, EnemyKind, SizeClass } from '../enemies/kinds';
+import { ENEMY_KINDS, GRID_RADIUS, EnemyKind, SizeClass } from '../enemies/kinds';
 import { spawnAt } from '../enemies/waves';
 import type { PlayerState } from '../player/state';
+import { createTreasure, Treasure } from './treasure';
 
 export type RoomState = 'idle' | 'fighting' | 'cleared';
 
@@ -38,6 +42,8 @@ export interface DungeonRun {
   nav: (Record<SizeClass, NavGrid> | null)[];
   /** You've taken the way down. */
   exited: boolean;
+  /** Update 0.0.13 — the shop's offers and the chests. */
+  treasure: Treasure;
 }
 
 /** Seconds from the gates shutting to the first wave, and between waves. */
@@ -47,7 +53,10 @@ export const NEXT_WAVE = 0.9;
 const SPAWN_CLEAR = 6;
 /** No more than this many in one wave. */
 const WAVE_CAP = 8;
-const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4 };
+const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3 };
+/** How often each kind is picked, and the first room (on floor 1) it comes in. **(placeholders)** */
+const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1 };
+const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3 };
 
 export function createDungeonRun(level: DungeonLevel): DungeonRun {
   return {
@@ -58,23 +67,32 @@ export function createDungeonRun(level: DungeonLevel): DungeonRun {
     shut: level.gates.map(() => false),
     nav: level.rooms.map(() => null),
     exited: false,
+    treasure: createTreasure(level, createRng(level.plan.seed * 131 + level.plan.level * 17)),
   };
 }
 
 /** A room's fight: its budget (enemy cost to spend) and how many waves it comes in. */
 export function roomBudget(depth: number, floor: number): { budget: number; waves: number } {
-  const budget = 4 + 2 * depth + 3 * (floor - 1);
-  return { budget, waves: budget >= 10 ? 3 : 2 };
+  const budget = 6 + 3 * depth + 4 * (floor - 1);
+  return { budget, waves: budget >= 18 ? 3 : 2 };
 }
 
 /** The kinds of one wave, bought from `budget` (seeded). */
 export function buyWave(budget: number, depth: number, floor: number, rng: Rng): EnemyKind[] {
   const out: EnemyKind[] = [];
   let left = budget;
-  const brutes = depth >= 3 || floor >= 2;
+  const can = (k: EnemyKind) => (floor >= 2 || depth >= FROM[k]) && COST[k] <= left;
   while (left > 0 && out.length < WAVE_CAP) {
-    const roll = rng();
-    const kind: EnemyKind = brutes && left >= COST.brute && roll < 0.15 ? 'brute' : left >= COST.spitter && roll < 0.45 ? 'spitter' : 'grunt';
+    let total = 0;
+    for (const k of ENEMY_KINDS) if (can(k)) total += WEIGHT[k];
+    let roll = rng() * total;
+    let kind: EnemyKind = 'grunt';
+    for (const k of ENEMY_KINDS) {
+      if (!can(k)) continue;
+      kind = k;
+      roll -= WEIGHT[k];
+      if (roll < 0) break;
+    }
     out.push(kind);
     left -= COST[kind];
   }
@@ -129,7 +147,7 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
 /** A room's walk grids (made once). */
 function navFor(run: DungeonRun, i: number): Record<SizeClass, NavGrid> {
   const arena = run.level.rooms[i].arena;
-  return (run.nav[i] ??= { small: buildNavGrid(arena, GRID_RADIUS.small), large: buildNavGrid(arena, GRID_RADIUS.large) });
+  return (run.nav[i] ??= { small: buildNavGrid(arena, GRID_RADIUS.small), large: buildNavGrid(arena, GRID_RADIUS.large), air: buildNavGrid(arena, GRID_RADIUS.air, 0, 0.5, AIR) });
 }
 
 /** Every fight room's walk grids, made up front (when the floor loads) so going into a room never stalls. */
@@ -141,7 +159,7 @@ export function prepareNav(run: DungeonRun) {
 function enterNav(run: DungeonRun, i: number, combat: CombatState) {
   const nav = navFor(run, i);
   combat.nav = nav;
-  combat.flow = { small: createFlow(nav.small), large: createFlow(nav.large) };
+  combat.flow = { small: createFlow(nav.small), large: createFlow(nav.large), air: createFlow(nav.air) };
 }
 
 function sendWave(run: DungeonRun, i: number, player: PlayerState, combat: CombatState, rng: Rng) {

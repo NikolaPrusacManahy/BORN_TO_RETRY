@@ -21,6 +21,8 @@ interface ArmRest {
   upper: BoneRest;
   fore: BoneRest;
   hand: BoneRest;
+  /** Update 0.0.13 — the middle finger's knuckle (where a fist meets what it touches). */
+  knuckle: THREE.Bone;
   upperLen: number;
   foreLen: number;
 }
@@ -105,7 +107,7 @@ export class ArmsRig {
       const fore = find(boneName('LowerArm', side));
       const hand = find(boneName('Hand', side));
       const knuckle = find(boneName('Middle2', side));
-      const r = { parentQuat: (upper.parent ?? root).getWorldQuaternion(new THREE.Quaternion()), upper: rest(upper, fore), fore: rest(fore, hand), hand: rest(hand, knuckle), upperLen: 0, foreLen: 0 };
+      const r = { parentQuat: (upper.parent ?? root).getWorldQuaternion(new THREE.Quaternion()), upper: rest(upper, fore), fore: rest(fore, hand), hand: rest(hand, knuckle), knuckle, upperLen: 0, foreLen: 0 };
       r.upperLen = r.fore.pos.distanceTo(r.upper.pos);
       r.foreLen = r.hand.pos.distanceTo(r.fore.pos);
       return r;
@@ -152,6 +154,11 @@ export class ArmsRig {
   /** From an already-loaded model (tests parse the .glb themselves). */
   static fromScene(root: THREE.Object3D): ArmsRig {
     return new ArmsRig(root);
+  }
+
+  /** Update 0.0.13 — where a fist's middle knuckle is now (world space of the arms' scene) into `out`. */
+  knuckle(side: Side, out: THREE.Vector3): THREE.Vector3 {
+    return this.arms[side].knuckle.getWorldPosition(out);
   }
 
   /** M2 — the right hand's bone (a held weapon hangs off it). */

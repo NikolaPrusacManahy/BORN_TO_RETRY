@@ -1,0 +1,69 @@
+/* Update 0.0.13 — the shield and what you carry (the designer: the armour plate's shield is a blue bar, more defence on
+   top of your health). The shield bar sits just above the health bar, on the same scale (half your health fills half
+   of it); a hit on it flashes the screen's edge blue. Keys and rings sit beside your coins. */
+.rb-hud-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rb-hud-shield {
+  --fill: 0;
+  position: relative;
+  width: 440px;
+  height: 12px;
+  overflow: hidden;
+  transform: skewX(-20deg);
+  background: rgba(120, 180, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.55);
+}
+
+.rb-hud-shield-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  transform: scaleX(var(--fill));
+  background: linear-gradient(#9fd2ff, #3b8cff);
+  box-shadow: 0 0 12px rgba(80, 160, 255, 0.8);
+  transition: transform 0.12s ease-out;
+}
+
+.rb-hud-shieldhit {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 140px 30px rgba(60, 150, 255, 0.7);
+  animation: rb-hurt-fade 0.4s ease-out forwards;
+}
+
+.rb-hud-items {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: 18px;
+}
+
+.rb-hud-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rb-hud-item svg {
+  width: 30px;
+  height: 30px;
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.6));
+}
+
+.rb-hud-item-n {
+  font-family: 'Anton', var(--rb-font);
+  font-size: 26px;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.7);
+}
+
+/* The shop on the minimap: gold. */
+.rb-map-room.is-shop {
+  stroke: #f2c14e;
+  fill: rgba(242, 193, 78, 0.22);
+}

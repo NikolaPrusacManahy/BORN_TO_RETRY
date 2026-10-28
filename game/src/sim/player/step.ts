@@ -8,6 +8,7 @@ import { airMove, applyGravity } from './air';
 import { refillDash, tryStartDash, updateDash } from './dash';
 import { groundMove } from './ground';
 import type { PlayerIntent } from './intent';
+import { updateKneel } from './kneel';
 import { tryGroundJump, updateJumpTimers } from './jump';
 import { checkPads } from './jumpPad';
 import { landSlam, tryStartSlam, updateSlam } from './slam';
@@ -38,6 +39,8 @@ export function wishDirection(moveX: number, moveZ: number, yaw: number, out: Ve
 }
 
 export function stepPlayer(p: PlayerState, intent: PlayerIntent, world: CollisionWorld, pads: readonly JumpPad[], dt: number) {
+  // Update 0.0.13 — kneeling at a chest, nothing else moves you.
+  if (updateKneel(p, world, dt)) return;
   p.yaw = intent.yaw;
   updateJumpTimers(p, intent.jumpPressed, dt);
   p.slamBounce = Math.max(0, p.slamBounce - dt);
@@ -63,8 +66,8 @@ export function stepPlayer(p: PlayerState, intent: PlayerIntent, world: Collisio
   else if (p.slamming) updateSlam(p);
   else if (!(p.wallRunning && updateWallRun(p, intent, world, dt))) {
     if (p.sliding) updateSlide(p, wish, dt);
-    else if (p.grounded) groundMove(p.vel, wish.x, wish.z, dt);
-    else airMove(p.vel, wish.x, wish.z, dt);
+    else if (p.grounded) groundMove(p.vel, wish.x, wish.z, dt, p.speedMul);
+    else airMove(p.vel, wish.x, wish.z, dt, p.speedMul);
     if (!p.grounded) {
       applyGravity(p.vel, dt);
       applyWallSlide(p, wish);

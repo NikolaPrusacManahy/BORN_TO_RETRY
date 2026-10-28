@@ -5,6 +5,10 @@ export const CAMERA = group('camera', 'Camera', {
   eyeHeight: knob(1.62, 1.2, 1.8, 0.01, 'Eye height', 'Metres above the feet, standing.'),
   slideEyeHeight: knob(0.85, 0.4, 1.2, 0.01, 'Slide eye height', 'Metres above the feet, sliding.'),
   eyeRate: knob(14, 2, 40, 1, 'Crouch speed', 'How fast the eye moves between heights.'),
+  // Update 0.0.13 — kneeling at a chest.
+  kneelEyeHeight: knob(1.0, 0.5, 1.5, 0.01, 'Kneel eye height', 'Metres above the feet, kneeling at a chest.'),
+  kneelPitch: knob(-28, -60, 0, 1, 'Kneel look', 'Degrees the view looks down at a chest while you open it.'),
+  kneelTurn: knob(10, 2, 30, 1, 'Kneel turn', 'How fast the view turns to the chest.'),
   dashFovKick: knob(8, 0, 30, 0.5, 'Dash FOV kick', 'Degrees added during a dash.'),
   speedFov: knob(0.25, 0, 1.5, 0.05, 'Speed FOV', 'Degrees added per m/s above run speed.'),
   speedFovMax: knob(10, 0, 30, 0.5, 'Speed FOV cap', 'Degrees.'),

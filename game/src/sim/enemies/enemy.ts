@@ -2,6 +2,8 @@
 // Brute): the pool, spawning, its hit capsule, taking a hit (a flinch cancels its attack; a brute only flinches from
 // a hard hit), walking the floor (always ending outside walls: Update 0.0.11), turning, enemies pushing apart, and the
 // player pushed out of them. Each kind's own behaviour is in grunt.ts, spitter.ts and brute.ts. Pure.
+// Update 0.0.13 — the leaper's leap and the stinger's dive (a start and an aim), fliers (pushed out of walls on their
+// own grid, their bodies falling when they die), and bodies at different heights not pushing each other.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
@@ -10,9 +12,9 @@ import type { CombatEvent } from '../combat/state';
 import type { Orb } from '../combat/targets';
 import type { PlayerState } from '../player/state';
 import type { Flow } from './chase';
-import { ENEMY_STATS, EnemyKind, SizeClass } from './kinds';
+import { ENEMY_STATS, EnemyKind, flies, SizeClass } from './kinds';
 
-export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead';
+export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive';
 
 export interface Enemy {
   /** The slot is in use (a live enemy, or a body still lying there). */
@@ -36,6 +38,10 @@ export interface Enemy {
   /** Which way it circles you, +1 or −1 (the spitter), and time until it turns round. */
   strafe: number;
   strafeTime: number;
+  /** Update 0.0.13 — where a leap or a dive began, where it's headed, and whether this dive has hit you. */
+  from: Vector3;
+  aim: Vector3;
+  struck: boolean;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events. */
@@ -49,6 +55,12 @@ export interface EnemyWorld {
 export const ENEMY_POOL = 16;
 /** Knockback slide dies away at this rate (1/s). */
 const SLIDE_FRICTION = 7;
+/** A floor-bound body this far up (m) is in the air (a leap): walls don't push it. */
+const OFF_GROUND = 0.3;
+/** A falling body's gravity (m/s²). */
+const FALL = 25;
+/** Bodies further apart in height than this (m) don't push each other. */
+const LEVELS_APART = 1.5;
 
 export function createEnemies(): Enemy[] {
   return Array.from({ length: ENEMY_POOL }, () => ({
@@ -65,6 +77,9 @@ export function createEnemies(): Enemy[] {
     cooldown: 0,
     strafe: 1,
     strafeTime: 0,
+    from: new Vector3(),
+    aim: new Vector3(),
+    struck: false,
   }));
 }
 
@@ -87,6 +102,9 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.cooldown = 1;
   e.strafe = i % 2 === 0 ? 1 : -1;
   e.strafeTime = 2;
+  e.from.copy(at);
+  e.aim.copy(at);
+  e.struck = false;
   return i;
 }
 
@@ -94,6 +112,9 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
 export const isLive = (e: Enemy) => e.alive && e.phase !== 'dead';
 
 export const radiusOf = (e: Enemy) => ENEMY_STATS[e.kind]().radius;
+
+/** Walls push it: always a flier (on its own grid), a walker only on the ground. */
+export const grounded = (e: Enemy) => flies(e.kind) || e.pos.y < OFF_GROUND;
 
 /** The bottom and top of its hit capsule's axis. */
 export function enemyAxis(e: Enemy, bottom: Vector3, top: Vector3) {
@@ -133,10 +154,21 @@ export function beginTick(e: Enemy, nav: NavGrid, dt: number): boolean {
   e.flash = Math.max(0, e.flash - dt);
   e.cooldown = Math.max(0, e.cooldown - dt);
   if (e.phase === 'dead') {
+    // A body in the air falls.
+    if (e.pos.y > 0) {
+      e.vel.y -= FALL * dt;
+      e.pos.y = Math.max(0, e.pos.y + e.vel.y * dt);
+    }
     if (e.t >= ENEMY_STATS[e.kind]().deathTime) e.alive = false;
     return false;
   }
-  pushOutOfWalls(nav, e.pos, radiusOf(e));
+  // A walker in the air with no leap to carry it (knocked out of one) falls.
+  if (!flies(e.kind) && e.phase !== 'leap' && e.pos.y > 0) {
+    e.vel.y -= FALL * dt;
+    e.pos.y = Math.max(0, e.pos.y + e.vel.y * dt);
+    if (e.pos.y === 0) e.vel.y = 0;
+  }
+  if (grounded(e)) pushOutOfWalls(nav, e.pos, radiusOf(e));
   const slide = Math.hypot(e.vel.x, e.vel.z);
   if (slide > 0.01) {
     walk(e, e.vel.x / slide, e.vel.z / slide, slide * dt, nav);
@@ -164,6 +196,7 @@ export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, 
     return false;
   }
   e.hp = 0;
+  e.vel.y = 0;
   setPhase(e, 'dead');
   return true;
 }
@@ -175,7 +208,7 @@ export function separateEnemies(enemies: Enemy[], nav: Record<SizeClass, NavGrid
     if (!isLive(a)) continue;
     for (let j = i + 1; j < enemies.length; j++) {
       const b = enemies[j];
-      if (!isLive(b)) continue;
+      if (!isLive(b) || Math.abs(a.pos.y - b.pos.y) > LEVELS_APART) continue;
       const min = radiusOf(a) + radiusOf(b);
       const dx = b.pos.x - a.pos.x;
       const dz = b.pos.z - a.pos.z;
@@ -191,7 +224,7 @@ export function separateEnemies(enemies: Enemy[], nav: Record<SizeClass, NavGrid
       b.pos.z += nz * (min - d) * (1 - wa);
     }
   }
-  for (const e of enemies) if (isLive(e)) pushOutOfWalls(nav[ENEMY_STATS[e.kind]().size], e.pos, radiusOf(e));
+  for (const e of enemies) if (isLive(e) && grounded(e)) pushOutOfWalls(nav[ENEMY_STATS[e.kind]().size], e.pos, radiusOf(e));
 }
 
 const shove = new Vector3();

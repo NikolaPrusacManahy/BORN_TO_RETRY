@@ -22,7 +22,7 @@ export function startSlide(p: PlayerState, wish: Vector3) {
   if (speed > 1) p.slideDir.set(p.vel.x / speed, 0, p.vel.z / speed);
   else if (wish.x !== 0 || wish.z !== 0) p.slideDir.set(wish.x, 0, wish.z);
   else p.slideDir.set(-Math.sin(p.yaw), 0, -Math.cos(p.yaw));
-  p.slideSpeed = Math.max(speed, SLIDE.v.speedFloor);
+  p.slideSpeed = Math.max(speed, SLIDE.v.speedFloor * p.speedMul);
   p.slideCur = speed;
   p.slideTime = 0;
   p.sliding = true;
@@ -44,7 +44,7 @@ export function updateSlide(p: PlayerState, wish: Vector3, dt: number) {
     p.slideDir.set(x, 0, z);
   }
   p.slideTime += dt;
-  p.slideSpeed = Math.max(MOVE.v.runSpeed, p.slideSpeed - SLIDE.v.friction * dt);
+  p.slideSpeed = Math.max(MOVE.v.runSpeed * p.speedMul, p.slideSpeed - SLIDE.v.friction * dt);
   const ramp = SLIDE.v.rampTime > 0 ? (SLIDE.v.speedFloor / SLIDE.v.rampTime) * dt : Infinity;
   p.slideCur = Math.min(p.slideSpeed, p.slideCur + ramp);
   p.vel.x = p.slideDir.x * p.slideCur;

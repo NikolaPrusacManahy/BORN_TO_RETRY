@@ -1,5 +1,7 @@
-// M1 step 8 — health: damage and what stops it (a dash, the moment after a hit, F4), healing up to the max, blood
-// heal from punches up close, death (once), the lab's spikes, and the death timing (slow, fade, respawn).
+// M1 step 8 — health: damage and what stops it (a dash, the moment after a hit, F4), healing up to the max, death
+// (once), the lab's spikes, and the death timing (slow, fade, respawn).
+// Update 0.0.13 — no blood heal (the designer: only the shop heals; a deliberate change, its checks replaced), and the
+// shield that takes hits first.
 import { check, near, section } from './harness';
 import { DT, FlatWorld } from './fakes/flatWorld';
 import { DeathFlow } from '../src/engine/deathFlow';
@@ -8,7 +10,7 @@ import { fireOrb } from '../src/sim/combat/orbs';
 import { createCombat } from '../src/sim/combat/state';
 import { stepCombat } from '../src/sim/combat/step';
 import { checkHazards } from '../src/sim/player/hazards';
-import { bloodHeal, damagePlayer, healPlayer, killPlayer, updateHealth } from '../src/sim/player/health';
+import { addShield, damagePlayer, healPlayer, killPlayer, maxShield, updateHealth } from '../src/sim/player/health';
 import { PlayerState, createPlayer, resetPlayer } from '../src/sim/player/state';
 import { Vector3 } from 'three';
 import { FISTS, TARGETS } from '../src/tuning/combat';
@@ -47,9 +49,6 @@ section('Health — healing');
   p.hp = 50;
   check('healing adds health', healPlayer(p, 20) === 20 && p.hp === 70);
   check('never past the max', healPlayer(p, 500) === HEALTH.v.maxHp - 70 && p.hp === HEALTH.v.maxHp);
-  p.hp = 50;
-  check(`blood heal: ${HEALTH.v.bloodHeal * 100}% of the damage dealt up close`, near(bloodHeal(p, 40, 2), 40 * HEALTH.v.bloodHeal, 1e-9));
-  check('nothing from further than the blood heal range', bloodHeal(p, 40, HEALTH.v.bloodRange + 0.5) === 0);
 }
 {
   // A real punch: the player at half health jabs a dummy in reach.
@@ -58,7 +57,26 @@ section('Health — healing');
   p.hp = 50;
   const s = createCombat(arena);
   stepCombat(s, p, { ...emptyCombatIntent(), attackPressed: true }, new FlatWorld(), DT);
-  check('a jab that lands heals you', s.dummies[0].hp < TARGETS.v.dummyHp && near(p.hp, 50 + FISTS.v.jabDamage * HEALTH.v.bloodHeal, 1e-9), `hp ${p.hp}`);
+  check('a jab that lands heals nothing (no blood heal: the designer)', s.dummies[0].hp < TARGETS.v.dummyHp && p.hp === 50, `hp ${p.hp}`);
+  check('(the jab did its damage)', near(TARGETS.v.dummyHp - s.dummies[0].hp, FISTS.v.jabDamage, 1e-9));
+}
+
+section('Health — the shield (Update 0.0.13)');
+{
+  const p = fresh();
+  check('no shield to start with', p.shield === 0);
+  check('a plate adds shield', addShield(p, 50) === 50 && p.shield === 50);
+  check('never past the cap', addShield(p, 500) === maxShield() - 50 && p.shield === maxShield());
+  p.shield = 20;
+  p.events.clear();
+  check('a hit takes the shield first', damagePlayer(p, 15) && p.shield === 5 && p.hp === HEALTH.v.maxHp && kinds(p).includes('shieldHit') && !kinds(p).includes('hurt'));
+  p.hurtTime = 0;
+  p.events.clear();
+  check('then the rest comes off your health', damagePlayer(p, 15) && p.shield === 0 && p.hp === HEALTH.v.maxHp - 10 && kinds(p).includes('shieldBreak') && kinds(p).includes('hurt'));
+  p.hurtTime = 0;
+  check('a hit on the shield still gives you a moment untouchable', (p.shield = 30) > 0 && damagePlayer(p, 5) && !damagePlayer(p, 5) && p.shield === 25);
+  resetPlayer(p, 0, 0, 0, 0);
+  check('a fresh start has no shield', p.shield === 0);
 }
 
 section('Health — death');

@@ -2,6 +2,7 @@
 // previews): two-bone IK for the elbow, and turning a bone so it points one way with the back of the hand
 // facing another. Scratch objects only, so posing makes no garbage.
 import { Matrix4, Quaternion, Vector3 } from 'three';
+import type { ArmPose } from './armsRig';
 
 const u = new Vector3();
 const p = new Vector3();
@@ -42,4 +43,16 @@ export function aimBone(restQuat: Quaternion, restDir: Vector3, restBack: Vector
   frameQuat(dir, back, target);
   frameQuat(restDir, restBack, restFrame).invert();
   return out.copy(target).multiply(restFrame).multiply(restQuat);
+}
+
+/** A blank arm pose. (Moved here from viewmodel.ts in Update 0.0.13.) */
+export function pose(): ArmPose {
+  return { fist: new Vector3(), knuckles: new Vector3(), back: new Vector3() };
+}
+
+/** `a` → `b` by `k` into `out` (which may be `a` or `b`). */
+export function mixArm(a: ArmPose, b: ArmPose, k: number, out: ArmPose) {
+  out.fist.lerpVectors(a.fist, b.fist, k);
+  out.knuckles.lerpVectors(a.knuckles, b.knuckles, k).normalize();
+  out.back.lerpVectors(a.back, b.back, k).normalize();
 }

@@ -10,8 +10,9 @@ import { HeldWeapon, Pickup, Stand, Thrown, createPickups, createStands, createT
 import { createFlow, Flow } from '../enemies/chase';
 import { createEnemies, Enemy } from '../enemies/enemy';
 import { Coin, createCoins } from './coins';
+import { createInventory, Inventory } from '../items/items';
 import { GRID_RADIUS, SizeClass } from '../enemies/kinds';
-import { buildNavGrid, NavGrid } from '../../world/navGrid';
+import { AIR, buildNavGrid, NavGrid } from '../../world/navGrid';
 import { Waves, createWaves } from '../enemies/waves';
 import { FistState, createFists } from './fists';
 import { HitStop } from './hitStop';
@@ -55,6 +56,15 @@ export type CombatEvent =
   | 'spit'
   | 'bruteWindup'
   | 'bruteSlam'
+  // Update 0.0.13 — the leaper's crouch, its leap and its landing; the stinger's warning and its dive; the wraith's
+  // warning and its cast.
+  | 'leaperWindup'
+  | 'leaperLeap'
+  | 'leaperLand'
+  | 'stingerWindup'
+  | 'stingerDive'
+  | 'wraithWindup'
+  | 'wraithCast'
   // Update 0.0.12 — your ground slam landing (value = its radius), and what it hit. A coin reaching you (value = your
   // money after).
   | 'slamImpact'
@@ -65,6 +75,14 @@ export type CombatEvent =
   | 'gatesShut'
   | 'gatesOpen'
   | 'floorExit'
+  // Update 0.0.13 — an item is yours (value = its index in ITEM_KINDS); bought (value = the same), or not (value = the
+  // offer); a chest begins opening, is locked (no key), lets out its loot (value = its item, −1: coins).
+  | 'item'
+  | 'buy'
+  | 'buyFail'
+  | 'chestOpen'
+  | 'chestLocked'
+  | 'chestLoot'
   // M2 — weapons: picked up (value = its uses), dropped, worn out, a throw begun and let go, broken on impact, back
   // on the stand.
   | 'pickup'
@@ -95,6 +113,8 @@ export interface CombatState {
   /** Update 0.0.12 — your coins, and the ones still flying. */
   money: number;
   coins: Coin[];
+  /** Update 0.0.13 — keys and rings you carry. */
+  items: Inventory;
   hitStop: HitStop;
   events: EventQueue<CombatEvent>;
 }
@@ -113,7 +133,7 @@ function stockStands(state: CombatState) {
  *  you go in (Update 0.0.12), so it passes false: a whole floor's grid would take seconds to build. */
 export function createCombat(arena: Arena, walkGrid = true): CombatState {
   const ground = walkGrid ? arena : { ...arena, boxes: [] };
-  const nav = { small: buildNavGrid(ground, GRID_RADIUS.small), large: buildNavGrid(ground, GRID_RADIUS.large) };
+  const nav = { small: buildNavGrid(ground, GRID_RADIUS.small), large: buildNavGrid(ground, GRID_RADIUS.large), air: buildNavGrid(ground, GRID_RADIUS.air, 0, 0.5, AIR) };
   const state: CombatState = {
     fists: createFists(),
     dummies: arena.dummies.map(createDummy),
@@ -122,7 +142,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     enemies: createEnemies(),
     waves: createWaves(),
     nav,
-    flow: { small: createFlow(nav.small), large: createFlow(nav.large) },
+    flow: { small: createFlow(nav.small), large: createFlow(nav.large), air: createFlow(nav.air) },
     weapon: null,
     pickups: createPickups(),
     stands: createStands(arena.stands),
@@ -130,6 +150,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     rng: createRng(LAB_SEED),
     money: 0,
     coins: createCoins(),
+    items: createInventory(),
     hitStop: new HitStop(),
     events: new EventQueue<CombatEvent>(64, 'none'),
   };
@@ -146,7 +167,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   for (const o of state.orbs) o.alive = false;
   for (const e of state.enemies) e.alive = false;
   state.waves = createWaves();
-  state.flow.small.target = state.flow.large.target = -1;
+  state.flow.small.target = state.flow.large.target = state.flow.air.target = -1;
   state.weapon = null;
   for (const p of state.pickups) p.alive = false;
   for (const t of state.thrown) t.alive = false;
@@ -154,6 +175,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.rng = createRng(LAB_SEED);
   state.money = 0;
   for (const c of state.coins) c.alive = false;
+  state.items = createInventory();
   stockStands(state);
   state.hitStop.remaining = 0;
   state.events.clear();

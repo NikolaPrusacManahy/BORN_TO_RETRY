@@ -9,7 +9,7 @@ import type { CombatEvent } from '../src/sim/combat/state';
 import { createEnemies, Enemy, hitEnemy, separateEnemies, spawnEnemy } from '../src/sim/enemies/enemy';
 import { RADIUS } from '../src/sim/enemies/kinds';
 import { updateEnemies } from '../src/sim/enemies/update';
-import { worldFor } from './fakes/enemyWorld';
+import { worldFor, OPEN_WORLD } from './fakes/enemyWorld';
 import { createPlayer, PlayerState } from '../src/sim/player/state';
 import { ENEMIES } from '../src/tuning/enemies';
 import { Arena, ArenaBox, boxAt } from '../src/world/arena';
@@ -45,7 +45,7 @@ function chase(nav: NavGrid, from: Vector3, p: PlayerState, secs: number) {
   const g = grunts[0];
   let deepest = 0;
   for (let i = 0; i < ticks(secs); i++) {
-    updateEnemies(grunts, p, w, DT);
+    updateEnemies(grunts, p, w, OPEN_WORLD, DT);
     events.clear();
     deepest = Math.max(deepest, inWall(nav, g.pos.x, g.pos.z));
     if (g.phase === 'windup') return { g, windupAt: (i + 1) * DT, deepest };
@@ -94,7 +94,7 @@ section('Grunt — round walls');
   const p = createPlayer(0, 0, 0.65, 0);
   const grunts = createEnemies();
   spawnEnemy(grunts, 'grunt', new Vector3(0, 0, -0.65), 0);
-  updateEnemies(grunts, p, worldFor(events, nav), DT);
+  updateEnemies(grunts, p, worldFor(events, nav), OPEN_WORLD, DT);
   events.clear();
   check('in reach but behind a wall: no wind-up, it heads round', grunts[0].phase === 'chase');
 }
@@ -106,7 +106,7 @@ section('Grunt — never stuck in a wall');
   const p = createPlayer(0, 0, 10, 0);
   const grunts = createEnemies();
   spawnEnemy(grunts, 'grunt', new Vector3(0.2, 0, 0.1), 0);
-  updateEnemies(grunts, p, w, DT);
+  updateEnemies(grunts, p, w, OPEN_WORLD, DT);
   check('one that finds itself inside a block is out of it the next tick', inWall(nav, grunts[0].pos.x, grunts[0].pos.z) <= MM);
   // Knocked hard into the block.
   const g = grunts[0];
@@ -114,7 +114,7 @@ section('Grunt — never stuck in a wall');
   hitEnemy(g, 1, 40, 0, -1);
   let deepest = 0;
   for (let i = 0; i < ticks(1); i++) {
-    updateEnemies(grunts, p, w, DT);
+    updateEnemies(grunts, p, w, OPEN_WORLD, DT);
     deepest = Math.max(deepest, inWall(nav, g.pos.x, g.pos.z));
   }
   events.clear();

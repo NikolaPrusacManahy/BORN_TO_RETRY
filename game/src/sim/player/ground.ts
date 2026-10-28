@@ -17,9 +17,10 @@ export function moveToward(vel: Vector3, tx: number, tz: number, maxDelta: numbe
   }
 }
 
-/** `wishX/Z`: the wanted direction, length 1 (or 0 for no input). */
-export function groundMove(vel: Vector3, wishX: number, wishZ: number, dt: number) {
-  const run = MOVE.v.runSpeed;
+/** `wishX/Z`: the wanted direction, length 1 (or 0 for no input). `speedMul`: run speed times this (Update 0.0.13 —
+ *  the blue rings). */
+export function groundMove(vel: Vector3, wishX: number, wishZ: number, dt: number, speedMul = 1) {
+  const run = MOVE.v.runSpeed * speedMul;
   if (wishX === 0 && wishZ === 0) {
     moveToward(vel, 0, 0, (run / MOVE.v.stopTime) * dt);
     return;
