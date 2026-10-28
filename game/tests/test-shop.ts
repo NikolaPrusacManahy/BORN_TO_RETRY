@@ -2,6 +2,9 @@
 // everything costs 70; the heart heals half, the plate gives a shield of half, the gold sword lasts 40 hits, the red
 // ring +25% damage, the blue ring +20% speed; chests in some rooms open with a key (kneeling, both hands), holding
 // 50–80 coins, a plate, a heart or a ring. Your hits no longer heal you.
+// Update 0.0.16 (the designer, deliberate changes): the shop always has a heart and a plate, its other three tiles drawn
+// (a key is no longer always there); a chest's loot goes by rarity and key (test-keys.ts); every room with a Yeti has
+// a chest, and one or two more stand in other fight rooms.
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -27,6 +30,7 @@ import { ITEMS } from '../src/tuning/items';
 import { MOVE } from '../src/tuning/movement';
 import { TARGETS } from '../src/tuning/combat';
 import { buildDungeon, DungeonLevel } from '../src/world/dungeon/assemble';
+import { hasYeti } from '../src/sim/dungeon/wavePlan';
 import { planFloor } from '../src/world/dungeon/floorPlan';
 import { buildNavGrid, freeAt } from '../src/world/navGrid';
 import type { Arena } from '../src/world/arena';
@@ -44,8 +48,13 @@ section('Shop — every floor');
     const t = createTreasure(level, createRng(seed));
     if (shops.length !== 1) bad ||= `seed ${seed}: ${shops.length} shops`;
     else if (shops[0].tiles.length !== SHOP_TILES) bad ||= `seed ${seed}: ${shops[0].tiles.length} tiles`;
-    else if (t.offers.length !== SHOP_TILES || !t.offers.some((o) => o.kind === 'key') || new Set(t.offers.map((o) => o.kind)).size !== SHOP_TILES) bad ||= `seed ${seed}: offers ${t.offers.map((o) => o.kind)}`;
-    if (level.chests.length < 1 || level.chests.length > 2) bad ||= `seed ${seed}: ${level.chests.length} chests`;
+    else if (t.offers.length !== SHOP_TILES || !t.offers.some((o) => o.kind === 'heart') || !t.offers.some((o) => o.kind === 'plate') || new Set(t.offers.map((o) => o.kind)).size !== SHOP_TILES) bad ||= `seed ${seed}: offers ${t.offers.map((o) => o.kind)}`;
+    const yetis = level.rooms.filter((r) => r.kind === 'fight' && hasYeti(r.waves));
+    if (yetis.some((r) => r.chest < 0)) bad ||= `seed ${seed}: a room with a Yeti and no chest`;
+    const more = level.chests.length - yetis.length;
+    // (One or two more, unless every fight room already has one: floor 3 can have a Yeti in each.)
+    const free = level.rooms.some((r) => r.kind === 'fight' && r.chest < 0);
+    if (more > 2 || (more < 1 && free)) bad ||= `seed ${seed}: ${level.chests.length} chests for ${yetis.length} Yeti rooms`;
     for (const c of level.chests) {
       if (level.rooms[c.room].kind !== 'fight') bad ||= `seed ${seed}: a chest outside a fight room`;
       // You can stand where you kneel to open it, and it stands in the room's walk grid as an obstacle.
@@ -54,19 +63,19 @@ section('Shop — every floor');
       if (freeAt(nav, c.x, c.z)) bad ||= `seed ${seed}: a chest you can walk through`;
     }
   }
-  check('30 floors: one shop of five tiles (a key and four others), one or two chests in fight rooms you can kneel at', !bad, bad);
+  check('30 floors: one shop of five tiles (a heart, a plate and three others), a chest in every Yeti room and one or two more, all in fight rooms you can kneel at', !bad, bad);
   const level = buildDungeon(planFloor(9, 1));
   const run = createDungeonRun(level);
   const shop = level.rooms.findIndex((r) => r.kind === 'shop');
   check('the shop never fights', run.rooms[shop].state === 'cleared' && level.rooms[shop].spawns.length === 0);
   const a = createTreasure(level, createRng(4));
   const b = createTreasure(level, createRng(4));
-  check('the same seed, the same shop and chests', JSON.stringify(a.offers) === JSON.stringify(b.offers) && a.chests.map((c) => c.loot + c.coins).join() === b.chests.map((c) => c.loot + c.coins).join());
+  check('the same seed, the same shop and chests', JSON.stringify(a.offers) === JSON.stringify(b.offers) && a.chests.map((c) => c.rolls.join()).join() === b.chests.map((c) => c.rolls.join()).join());
 }
 
 /** A shop of one offer at (0, -1) and you at the origin with `money`. */
 function shopWith(kind: Treasure['offers'][number]['kind'], money: number) {
-  const t: Treasure = { shop: 0, offers: [{ kind, sold: false, x: 0, z: -1 }], chests: [] };
+  const t: Treasure = { shop: 0, offers: [{ kind, sold: false, x: 0, z: -1 }], chests: [], choosing: -1 };
   const p = createPlayer(0, 0, 0, 0);
   p.grounded = true;
   const c = createCombat(bare);
@@ -77,19 +86,19 @@ function shopWith(kind: Treasure['offers'][number]['kind'], money: number) {
 section('Shop — buying');
 {
   const { t, p, c } = shopWith('redRing', ITEMS.v.price - 1);
-  check('E by a tile without the coins buys nothing', stepTreasure(t, p, c, true, never, DT) && !t.offers[0].sold && c.money === ITEMS.v.price - 1 && events(c).includes('buyFail'));
+  check('E by a tile without the coins buys nothing', stepTreasure(t, p, c, true, false, never, DT) && !t.offers[0].sold && c.money === ITEMS.v.price - 1 && events(c).includes('buyFail'));
   c.money = ITEMS.v.price + 5;
   c.events.clear();
-  check(`with ${ITEMS.v.price} it's yours`, stepTreasure(t, p, c, true, never, DT) && t.offers[0].sold && c.money === 5 && c.items.redRings === 1 && events(c).includes('buy'));
+  check(`with ${ITEMS.v.price} it's yours`, stepTreasure(t, p, c, true, false, never, DT) && t.offers[0].sold && c.money === 5 && c.items.redRings === 1 && events(c).includes('buy'));
   c.money = 500;
-  check('and it cannot be bought twice', !stepTreasure(t, p, c, true, never, DT) && c.money === 500);
+  check('and it cannot be bought twice', !stepTreasure(t, p, c, true, false, never, DT) && c.money === 500);
   const far = shopWith('key', 500);
   far.p.pos.set(0, 0, 5);
-  check('too far from the tile, E does nothing here (a weapon could be picked up)', !stepTreasure(far.t, far.p, far.c, true, never, DT) && far.c.money === 500);
+  check('too far from the tile, E does nothing here (a weapon could be picked up)', !stepTreasure(far.t, far.p, far.c, true, false, never, DT) && far.c.money === 500);
   const full = shopWith('heart', 500);
-  check('no heart at full health', stepTreasure(full.t, full.p, full.c, true, never, DT) && !full.t.offers[0].sold && full.c.money === 500);
+  check('no heart at full health', stepTreasure(full.t, full.p, full.c, true, false, never, DT) && !full.t.offers[0].sold && full.c.money === 500);
   full.p.hp = 20;
-  stepTreasure(full.t, full.p, full.c, true, never, DT);
+  stepTreasure(full.t, full.p, full.c, true, false, never, DT);
   check(`a heart heals half your health (${HEALTH.v.maxHp * ITEMS.v.heartHeal})`, full.t.offers[0].sold && full.p.hp === 20 + HEALTH.v.maxHp * ITEMS.v.heartHeal);
 }
 {
@@ -151,11 +160,11 @@ section('Chests');
   p.pos.set(0, 0, -1.6);
   check('not from behind it', chestInReach(t, p) === -1);
   p.pos.set(0.3, 0, 1.6);
-  check('without a key it stays shut (the lid rattles)', stepTreasure(t, p, c, true, never, DT) && t.chests[0].state === 'shut' && events(c).includes('chestLocked') && p.kneel === 0);
+  check('without a key it stays shut (the lid rattles)', stepTreasure(t, p, c, true, false, never, DT) && t.chests[0].state === 'shut' && events(c).includes('chestLocked') && p.kneel === 0);
   c.items.keys = 1;
-  check('not while its room is fighting', !stepTreasure(t, p, c, true, () => true, DT) && t.chests[0].state === 'shut' && c.items.keys === 1);
+  check('not while its room is fighting', !stepTreasure(t, p, c, true, false, () => true, DT) && t.chests[0].state === 'shut' && c.items.keys === 1);
   c.events.clear();
-  stepTreasure(t, p, c, true, never, DT);
+  stepTreasure(t, p, c, true, false, never, DT);
   check('with a key: it opens, the key is used, you kneel', t.chests[0].state === 'opening' && c.items.keys === 0 && p.kneel > 0 && events(c).includes('chestOpen'));
   // Kneeling: you're eased onto the spot in front of it, facing it, and you don't fight.
   const w = new FlatWorld();
@@ -166,7 +175,7 @@ section('Chests');
   let still = true;
   for (; p.kneel > 0 && i < ticks(5); i++) {
     c.events.clear();
-    stepTreasure(t, p, c, false, never, DT);
+    stepTreasure(t, p, c, false, false, never, DT);
     stepPlayer(p, { ...emptyIntent(), moveZ: 1, jumpPressed: true }, w, [], DT);
     stepCombat(c, p, { ...emptyCombatIntent(), attackPressed: true }, w, DT);
     if (events(c).includes('chestLoot') && lootAt < 0) lootAt = (i + 1) * DT;
@@ -177,25 +186,13 @@ section('Chests');
   check(`kneeling lasts the opening (${ITEMS.v.chestTime} s)`, near(i * DT, ITEMS.v.chestTime, DT * 1.5), `${(i * DT).toFixed(2)} s`);
   check('kneeling, you are eased in front of it, facing it', Math.hypot(p.pos.x, p.pos.z - KNEEL_DIST) < 0.05 && p.yaw === 0);
   check('and you neither walk, jump nor punch meanwhile', !attacked && still, `attacked ${attacked}, y ${p.pos.y}`);
-  for (let k = 0; k < 3; k++) stepTreasure(t, p, c, false, never, DT);
+  for (let k = 0; k < 3; k++) stepTreasure(t, p, c, false, false, never, DT);
   check('what it holds comes out as the lid is up', lootAt >= ITEMS.v.chestTime * LOOT_AT - DT * 2 && lootAt <= ITEMS.v.chestTime * LOOT_AT + DT * 2, `${lootAt.toFixed(2)} s`);
   check('then it stays open', t.chests[0].state === 'open' && chestInReach(t, p) === -1);
-  const loot = t.chests[0].loot;
+  const loot = t.chests[0].loot!;
   const coinsOut = c.coins.filter((q) => q.alive).length + c.money - moneyBefore;
-  const got = loot === 'coins' ? coinsOut === t.chests[0].coins : true;
-  check(`its loot is yours (${loot})`, got);
-}
-{
-  // Over many chests: coins in the range, and every kind turns up.
-  const seen = new Set<string>();
-  let bad = '';
-  for (let s = 0; s < 200; s++) {
-    const level = { chests: [{ room: 0, x: 0, z: 0, rot: 0, fx: 0, fz: 1 }], rooms: [] } as unknown as DungeonLevel;
-    const c = createTreasure(level, createRng(s)).chests[0];
-    seen.add(c.loot);
-    if (c.loot === 'coins' && (c.coins < ITEMS.v.chestCoinsMin || c.coins > ITEMS.v.chestCoinsMax)) bad ||= `${c.coins} coins`;
-  }
-  check(`a chest holds ${ITEMS.v.chestCoinsMin}–${ITEMS.v.chestCoinsMax} coins, a plate, a heart or a ring`, !bad && ['coins', 'plate', 'heart', 'redRing', 'blueRing'].every((k) => seen.has(k)), bad || [...seen].join(', '));
+  const got = loot.item ? true : coinsOut === loot.coins;
+  check(`its loot is yours (${loot.rarity}: ${loot.item ?? `${loot.coins} coins`})`, got);
 }
 
 section('Shop and chests — the look');
@@ -203,7 +200,8 @@ section('Shop and chests — the look');
   // The items (export_items.py): every item, the chest's base and lid, the shop's tile.
   const buf = readFileSync(new URL('../public/models/items/items.glb', import.meta.url));
   const items = await new GLTFLoader().parseAsync(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer, '');
-  const names = [...ITEM_KINDS.map((k) => `item_${k}`), 'item_chestBase', 'item_chestLid', 'item_tile'];
+  // (Update 0.0.16 — the white and gold keys are the key, recoloured in code: keyLooks.ts.)
+  const names = [...ITEM_KINDS.filter((k) => k !== 'whiteKey' && k !== 'goldKey').map((k) => `item_${k}`), 'item_chestBase', 'item_chestLid', 'item_tile'];
   const missing = names.filter((n) => !items.scene.getObjectByName(n));
   check('every item, the chest (base and lid) and the tile are in items.glb', missing.length === 0, missing.join(', '));
   const lid = items.scene.getObjectByName('item_chestLid')!;

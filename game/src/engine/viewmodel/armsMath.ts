@@ -50,6 +50,21 @@ export function pose(): ArmPose {
   return { fist: new Vector3(), knuckles: new Vector3(), back: new Vector3() };
 }
 
+/** The approved previews looked ~10° down at the guard; the arms tilt up by the same so the game frames it alike.
+ *  (Moved here from viewmodel.ts in Update 0.0.16.) */
+export const PREVIEW_PITCH = Math.atan(0.18);
+const COS_P = Math.cos(PREVIEW_PITCH);
+const SIN_P = Math.sin(PREVIEW_PITCH);
+
+/** A point (`eye`: the model's eye) or direction (`eye` null) from the arms camera's view (before sway) into the model's
+ *  space. */
+export function viewToModel(v: Vector3, eye: Vector3 | null) {
+  const y = v.y * COS_P + v.z * SIN_P;
+  const z = -v.y * SIN_P + v.z * COS_P;
+  v.set(-v.x, y, -z);
+  if (eye) v.add(eye);
+}
+
 /** `a` → `b` by `k` into `out` (which may be `a` or `b`). */
 export function mixArm(a: ArmPose, b: ArmPose, k: number, out: ArmPose) {
   out.fist.lerpVectors(a.fist, b.fist, k);

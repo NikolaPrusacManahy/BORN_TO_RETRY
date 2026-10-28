@@ -1,5 +1,7 @@
 // The moments tools/view-shots.ts poses (see there): the guard, and the sword arm's moves part way through.
+// Update 0.0.16 — the open palm with each key (barehanded and with a sword).
 import type * as THREE from 'three';
+import type { KeyKind } from '../src/sim/items/items';
 import type { Viewmodel } from '../src/engine/viewmodel/viewmodel';
 import type { PlayerState } from '../src/sim/player/state';
 import { ARMS } from '../src/tuning/arms';
@@ -14,6 +16,20 @@ const STEP = 1 / 120;
 /** Runs the arms for `secs` of game time with this charge (−1: none). */
 function play(vm: Viewmodel, p: PlayerState, secs: number, charge = -1) {
   for (let t = 0; t < secs - 1e-9; t += STEP) vm.update(STEP, STEP, 0, 0, p, charge);
+}
+
+/** Update 0.0.16 — the keys' looks (view-shots.ts sets them from items.glb). */
+export const KEYS: { look: (kind: KeyKind) => THREE.Object3D | null } = { look: () => null };
+
+/** The palm out with `kind` on it, settled. */
+function palm(kind: KeyKind, withSword: boolean) {
+  return (vm: Viewmodel, s: THREE.Object3D, p: PlayerState) => {
+    if (withSword) armed(vm, s, p);
+    for (let t = 0; t < 1; t += STEP) {
+      vm.palm.update(kind, KEYS.look, STEP);
+      vm.update(STEP, STEP, 0, 0, p, -1);
+    }
+  };
 }
 
 /** Sword in hand, settled in the ready pose. */
@@ -43,6 +59,9 @@ export const FILMS: Shot[] = [...film('forehand', 0.03, 12), ...film('backhand',
 
 export const SHOTS: Shot[] = [
   { name: 'fists', run: (vm, _s, p) => play(vm, p, 0.5) },
+  { name: 'palm-key', run: palm('key', false) },
+  { name: 'palm-white', run: palm('whiteKey', false) },
+  { name: 'palm-gold-armed', run: palm('goldKey', true) },
   { name: 'ready', run: armed },
   ...[0.02, 0.04, 0.07, 0.3].map((t) => ({
     name: `forehand-${Math.round(t * 1000)}ms`,

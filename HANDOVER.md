@@ -2,7 +2,25 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.0.15
+## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.0.16
+- **Update 0.0.16 — keys, loot by rarity, the Yeti's key, a shuffled shop** (the designer's list; spec `MD_UPDATES/M3_KEYS_LOOT.md`).
+  - **Chest loot by rarity:**
+    - common 45%: 20, 35, 45 or 70 coins;
+    - uncommon 30%: a heart or a plate;
+    - rare 15%: the gold sword;
+    - epic 8%: a ring;
+    - legendary 2%: nothing yet, so an epic.
+  - **As the lid comes up**, a coloured light and column rise from the chest: none for common, green, blue, purple; yellow is ready for legendary items.
+  - **Three keys:** the normal key, the **white key** (no common or uncommon; pale silver in a blue aura) and the **gold key** (only epic or legendary; gold in a yellow aura).
+  - **At a chest:** your keys show in a row low in the middle. The **mouse wheel** (Switch key, rebindable) changes the key you'll use, and **your left hand comes up palm open with that key lying on it**. E uses it.
+  - **The Yeti is the mini boss:**
+    - Every room with a Yeti has a chest.
+    - The first Yeti killed there drops a key (normal/white/gold 70/25/5%), one per room however many Yetis. Walk over it to take it.
+    - Rooms' waves are now planned with the floor, so this is known up front.
+  - **The shop:**
+    - Always a heart and an armour plate; three more drawn from the gold sword, the rings and a key (normal/white/gold 70/25/5%), all shuffled.
+    - A key is no longer always on offer.
+    - Keys stand on end and turn on their tiles.
 - **Update 0.0.15 — the first boss, the Demon** (the designer: build it as pitched, bigger, with an aura; a cinematic entrance; a death that hangs, flickers and bursts; a wooden gate onto the dark). Spec: `MD_UPDATES/M3_BOSS.md`.
   - **The boss room** replaces the exit room at the end of the way: 60 m square, four columns and eight broken ones, a pad in each corner, red on the minimap. You walk into a smaller room built against the wall you came in by.
   - **The show:**
@@ -152,6 +170,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `MD/PIPELINE_DUNGEON.md` | How the dungeon kit is exported, how a room is drawn, and how to look at a floor without a browser |
 | `MD_UPDATES/M3_SHOP_CHESTS.md` | Update 0.0.13: the shop, the chests, the items, the shield, and rooms twice the size |
 | `MD_UPDATES/M3_BOSS.md` | Update 0.0.15: the Demon, the boss room and its show, the wooden gate onto the dark |
+| `MD_UPDATES/M3_KEYS_LOOT.md` | Update 0.0.16: keys, loot by rarity, the Yeti's key, the shuffled shop, the open palm |
 | `game/tools/boss-shots.ts` | Renders the boss room (walls at any point of their slide, the gate shut or open, the Demon's stance) from the show's own shots, without a browser |
 | `game/tools/view-shots.ts`, `game/tools/blender/render_view.py` | Renders the first-person arms (the game's own code and models) at chosen moments, without a browser |
 | `MD/PIPELINE_MENU_SCENE.md` | How the menu's scenes (the gate, the settings camp, the prison corridor) are built, and how to change them |
@@ -192,6 +211,14 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 7. ~~What the side rooms hold~~: the shop (Update 0.0.13); the boss room ends the way (Update 0.0.15). Still open: reward rooms.
 8. **Update 0.0.13 placeholders to confirm:** five tiles for six items (the key always offered, four of the other five); E to buy and to open a chest (the design's E: "pick up, buy, open"); a chest opens only when its room isn't fighting; one chest a floor (35%: two); chest odds (coins 40%, then a plate, a heart or a ring alike); the shield caps at a full bar (two plates), rings stack; the blue ring speeds running and sliding, not the dash; buying the gold sword drops your sword at your feet; the new enemies' numbers (Leaper & fliers tab); bigger room budgets.
 
+10. **Update 0.0.16 placeholders to confirm:**
+   - the Yeti's key odds (the shop's 70/25/5);
+   - one or two extra chests beside the Yeti rooms;
+   - the shop no longer always selling a key;
+   - the normal key picked first, the wheel going normal → white → gold;
+   - E opening with the picked key at once (no confirm);
+   - legendary rolls giving an epic until there are legendary items;
+   - where the open palm sits.
 9. **Update 0.0.15 placeholders to confirm:**
    - the boss's name and title (THE DEMON, "Warden of Floor N");
    - all the Demon's numbers (Demon (boss) tab), and how it picks its moves (by distance);
@@ -223,6 +250,10 @@ Claude has seen and heard none of this in the game: the feel, the arms on screen
 - **Grunts and walls (Update 0.0.11):** unseen in the browser. `test-nav.ts` checks the lab's grid, a grunt going round a wall and out of a pen, never inside a wall (running, knocked, shoved, spawned in one), no swing through a wall, waiting at the foot of a block you're on, and grunts from every lab spawn reaching you at the start, behind the low cover and between the pillars.
 - **The dungeon, the Spitter, the Brute, coins and the slam (Update 0.0.12):** nothing seen in the browser. Seen only as Blender renders of the game's own floor plans with the real kit (`tools/dungeon-shots.ts`): an overview and a few eye-height views, flat light. Unseen: the dungeon under the game's lights (torch lights following you, fog, the exit glow: the brightness is a guess), the bars crashing and sinking, the minimap, the Wizard and the Yeti in motion (their scale, clips, the swing timing, the glow, the brute's ring), the slam's shockwave and dust, the coins flying in, and every new sound. Load time per floor measured at about 35 ms in Node. `test-dungeon.ts` (rooms, floor plans over 40 seeds, the level, the room loop, the kit), `test-enemies.ts`, `test-slam.ts`, `test-money.ts` check the rules.
 - **Bigger rooms, the Leaper, the Stinger, the Wraith, the shop, chests, the shield, rings (Update 0.0.13):** nothing seen in the browser. Seen only as Blender renders: a floor's overview and an eye-height view with the real kit (the rooms at their new size), the item models (`export_items.py` previews: the chest's lid swung open on its hinge), and the new monsters' previews. Daylight seen only as a Blender stand-in (`render_dungeon.py --day`: the same sky colour, sun direction and strengths, not the game's renderer): bright and readable there; the game's real brightness, the shadows' look and their cost per frame are unverified. Unseen: the shop under the game's lights (tiles, turning items, price tags), the chest opening (the kneel, the view turning, the hands on the lid: a rule test checks through the game's own arms and cameras that both fists land on the lid's front edge on screen, within a fifth of the screen), items flying in, the shield bar and its blue flash, the HUD's keys and rings, the three new enemies in motion (their scale, clips, timing, glows, the leaper's arc, the stinger's dive, the wraith's fan), their sounds, and how the bigger rooms play. A floor now loads in about 10 ms in Node (the walk grids are built faster: identical cells, checked over 525 grids). `test-shop.ts`, `test-foes.ts`, and new checks in `test-dungeon.ts` and `test-health.ts` check the rules.
+- **Keys and loot (Update 0.0.16):** nothing seen in the browser.
+  - **Seen only as renders** of the game's own arms code (`tools/view-shots.ts`: the open palm with each key, barehanded and with a sword; all three keys the same size).
+  - **Unseen:** the palm in motion (coming up, switching keys, closing as you kneel); the keys' auras (sprites, not in the renders); the chest lights; the keys standing and turning on the shop's tiles and on the floor; the key picker on the HUD; the new sounds.
+  - `test-keys.ts` and `test-shop.ts` check the rules, the palm's pose and the key sizes.
 - **The first boss (Update 0.0.15):** nothing seen in the browser.
   - **Seen only as Blender renders** of the game's own code (`tools/boss-shots.ts`, `render_dungeon.py --day`): the room with its walls at 0, ½ and 1 (the small room you walk into, brick-faced); the gate shut and open (black behind it); the Demon's stance shot from the show's camera, standing left of the middle.
   - **Unseen:** the show in motion (the camera's glide, the walls sliding, the portal's shaders and sparks, the rise, the name card and black bars, the glide back); the Demon in motion (its clips, the warnings' glows, the charge lane, the landing ring, the quake rings); its aura (a shader glow, embers, the fire ring, the light); the death show (slow motion, the frozen pose, the white flicker, the burst's flash); the gate swinging; the fade into the dark and the floor's name; every new sound; and whether the fight is fun or fair.

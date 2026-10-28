@@ -5,8 +5,9 @@
 // browser frees the mouse on it), the OS keys, and the dev keys while the dev tools are on.
 // Update 0.0.10 — the quick punch (F) is gone (the designer). An old save's binding for it is dropped.
 // Update 0.0.12 — F is the ground slam (the designer).
+// Update 0.0.16 — Switch key (the wheel): the key you'll use at a chest.
 
-export type Action = 'forward' | 'back' | 'left' | 'right' | 'jump' | 'dash' | 'slide' | 'slam' | 'attack' | 'heavy' | 'throw' | 'interact';
+export type Action = 'forward' | 'back' | 'left' | 'right' | 'jump' | 'dash' | 'slide' | 'slam' | 'attack' | 'heavy' | 'throw' | 'interact' | 'switchKey';
 export type Bindings = Record<Action, string>;
 
 /** Order shown in settings. */
@@ -23,6 +24,7 @@ export const ACTIONS: { id: Action; label: string }[] = [
   { id: 'heavy', label: 'Heavy' },
   { id: 'throw', label: 'Throw' },
   { id: 'interact', label: 'Interact' },
+  { id: 'switchKey', label: 'Switch key' },
 ];
 
 export const DEFAULT_BINDINGS: Bindings = {
@@ -38,6 +40,7 @@ export const DEFAULT_BINDINGS: Bindings = {
   heavy: 'Mouse2',
   throw: 'KeyQ',
   interact: 'KeyE',
+  switchKey: 'WheelDown',
 };
 
 /** Dev tools (dev build only): F1 / ` tuning panel, F2 debug overlay, F3 respawn enemies, F4 invincibility, F9 the

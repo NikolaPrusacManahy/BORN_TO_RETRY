@@ -1,5 +1,7 @@
 // M1 step 6 — the loaded arms: finds the arm bones, remembers their rest pose, and poses each arm from a fist
 // target (IK elbow, then upper arm → forearm → hand). Fingers are already closed in the model.
+// Update 0.0.16 — a hand can open (its finger bones turned back by the curl cut_arms.py baked in: 1.4 rad a joint),
+// and says where it is and which way its back faces (for the key shown on the palm).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ARMS } from '../../tuning/arms';
@@ -46,6 +48,18 @@ const elbow = new THREE.Vector3();
 const dir = new THREE.Vector3();
 const upperBack = new THREE.Vector3();
 const handDir = new THREE.Vector3();
+/** cut_arms.py's finger curl, per joint (rad), and its left thumb's tuck (rad about z; mirrored on the right). */
+const CURL = 1.4;
+const THUMB = 0.9;
+const X_AXIS = new THREE.Vector3(1, 0, 0);
+const Z_AXIS = new THREE.Vector3(0, 0, 1);
+const turnQ = new THREE.Quaternion();
+const handQ = new THREE.Quaternion();
+
+interface Finger {
+  bone: THREE.Bone;
+  rest: THREE.Quaternion;
+}
 
 /** M2 — where a held weapon sits in the right fist, worked out once from the rest pose (model space). */
 interface HoldRest {
@@ -89,6 +103,12 @@ export class ArmsRig {
   readonly between = new THREE.Vector3();
   private readonly arms: Record<Side, ArmRest>;
   private readonly hold: HoldRest;
+  /** Update 0.0.16 — each hand's finger joints (rest: the baked fist), the way that opens them, the back of the hand in
+   *  the hand bone's own space. */
+  private readonly fingers: Record<Side, Finger[]>;
+  private readonly thumbs: Record<Side, Finger[]>;
+  private readonly openSign: Record<Side, number>;
+  private readonly backLocal: Record<Side, THREE.Vector3>;
 
   private constructor(root: THREE.Object3D) {
     this.root = root;
@@ -136,6 +156,27 @@ export class ArmsRig {
       offset: new THREE.Vector3(off.dot(x), off.dot(y), off.dot(z)),
       sign: Math.sign(thumb.dot(x)),
     };
+    // Update 0.0.16 — the fingers: which way opens them is the way that takes the middle finger's tip from the wrist.
+    const fingersOf = (side: Side) => ['Index', 'Middle', 'Ring', 'Pinky'].flatMap((f) => [2, 3, 4].map((j) => find(boneName(`${f}${j}`, side)))).map((bone) => ({ bone, rest: bone.quaternion.clone() }));
+    this.fingers = { L: fingersOf('L'), R: fingersOf('R') };
+    const thumbOf = (side: Side) => [2, 3].map((j) => find(boneName(`Thumb${j}`, side))).map((bone) => ({ bone, rest: bone.quaternion.clone() }));
+    this.thumbs = { L: thumbOf('L'), R: thumbOf('R') };
+    const reachOf = (side: Side, angle: number) => {
+      for (const j of [2, 3]) {
+        const b = find(boneName(`Middle${j}`, side));
+        b.quaternion.multiply(turnQ.setFromAxisAngle(X_AXIS, angle));
+      }
+      root.updateMatrixWorld(true);
+      const d = find(boneName('Middle4', side)).getWorldPosition(dir).distanceTo(this.arms[side].hand.pos);
+      for (const f of this.fingers[side]) f.bone.quaternion.copy(f.rest);
+      root.updateMatrixWorld(true);
+      return d;
+    };
+    this.openSign = { L: reachOf('L', 0.5) > reachOf('L', -0.5) ? 1 : -1, R: reachOf('R', 0.5) > reachOf('R', -0.5) ? 1 : -1 };
+    this.backLocal = {
+      L: REST_BACK.clone().applyQuaternion(this.arms.L.hand.quat.clone().invert()),
+      R: REST_BACK.clone().applyQuaternion(this.arms.R.hand.quat.clone().invert()),
+    };
     root.traverse((o) => {
       if (o instanceof THREE.Mesh) {
         o.frustumCulled = false; // posed arms leave their bind-pose bounds
@@ -159,6 +200,24 @@ export class ArmsRig {
   /** Update 0.0.13 — where a fist's middle knuckle is now (world space of the arms' scene) into `out`. */
   knuckle(side: Side, out: THREE.Vector3): THREE.Vector3 {
     return this.arms[side].knuckle.getWorldPosition(out);
+  }
+
+  /** Update 0.0.16 — opens a hand by `k` (0: the baked fist, 1: open, fingers straight). */
+  openHand(side: Side, k: number) {
+    turnQ.setFromAxisAngle(X_AXIS, this.openSign[side] * CURL * k);
+    for (const f of this.fingers[side]) f.bone.quaternion.copy(f.rest).multiply(turnQ);
+    // The thumb untucks.
+    turnQ.setFromAxisAngle(Z_AXIS, -THUMB * (side === 'L' ? 1 : -1) * k);
+    for (const f of this.thumbs[side]) f.bone.quaternion.copy(f.rest).multiply(turnQ);
+  }
+
+  /** Update 0.0.16 — where a hand is now (its wrist and its middle knuckle) and which way its back faces (world space
+   *  of the arms' scene). */
+  handFrame(side: Side, wristOut: THREE.Vector3, knuckleOut: THREE.Vector3, backOut: THREE.Vector3) {
+    const hand = this.arms[side].hand.bone;
+    hand.getWorldPosition(wristOut);
+    this.arms[side].knuckle.getWorldPosition(knuckleOut);
+    backOut.copy(this.backLocal[side]).applyQuaternion(hand.getWorldQuaternion(handQ));
   }
 
   /** M2 — the right hand's bone (a held weapon hangs off it). */

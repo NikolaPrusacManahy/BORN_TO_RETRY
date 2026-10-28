@@ -11,6 +11,7 @@ import type { Arena, ArenaBox, BoxKind, JumpPad, Spot } from '../arena';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, PlacedRoom, Side } from './floorPlan';
 import { OPPOSITE } from './wayOut';
 import type { Cell, RoomKind } from './rooms';
+import type { EnemyKind } from '../../sim/enemies/kinds';
 
 /** Heights of what stands on a cell (m); the floor's top is y = 0. */
 export const HEIGHT: Partial<Record<Cell, number>> = { wall: 6, column: 4.9, low: 1.3, high: 2.85, ledge: 1, highLedge: 2.5, spikes: 0.3, chest: 0.9 };
@@ -78,6 +79,8 @@ export interface DungeonRoom {
   /** Update 0.0.13 — its chest (an index into DungeonLevel.chests, −1: none) and its display tiles (the shop). */
   chest: number;
   tiles: Spot[];
+  /** Update 0.0.16 — its waves (a fight room's, planned with the floor). */
+  waves: EnemyKind[][];
 }
 
 export interface DungeonLevel {
@@ -206,6 +209,7 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
       arena: { name: `room ${r.index}`, boxes: [floor, ...near, ...mine.map((g) => gates[g]), ...(r.index === out.room ? [woodGate] : [])], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] },
       chest: chests.findIndex((c) => c.room === r.index),
       tiles: r.layout.tiles.map(([c, row]) => ({ x: cellX(r.x0 + c), y: 0, z: cellZ(r.z0 + row) })),
+      waves: r.waves,
     };
   });
   const arena: Arena = { name: `Dungeon ${plan.level}`, boxes, pads, playerStart: { ...plan.start }, spawns: [], dummies: [], turrets: [] };

@@ -3,12 +3,16 @@
 // can't pay), a sold tile left bare; each chest, its lid swinging up on its hinge as you lift it; an item you buy or find
 // flying into you. It also says where the opening lid's front edge is, for the hands that lift it.
 // Update 0.0.15 — and what the boss leaves you, flying from its burst.
+// Update 0.0.16 — the three keys (keyLooks.ts: on end, the white and gold ones in their auras), items on the floor and
+// each chest's light by its rarity (treasureFx.ts).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { CombatState } from '../sim/combat/state';
 import type { Treasure } from '../sim/dungeon/treasure';
 import { ITEM_KINDS, ItemKind } from '../sim/items/items';
 import { ITEMS } from '../tuning/items';
+import { itemLooks } from './keyLooks';
+import { ChestGlows, DropsView } from './treasureFx';
 
 export const ITEMS_URL = '/models/items/items.glb';
 /** An item turns this high over its tile (m) at this speed (rad/s); its price floats above it. */
@@ -53,6 +57,8 @@ export class TreasureView {
   private chests: ChestBody[] = [];
   private flyers: Partial<Record<ItemKind, Flyer>> = {};
   private protos: Partial<Record<ItemKind, THREE.Object3D>> = {};
+  private readonly drops = new DropsView(() => this.protos);
+  private readonly glows = new ChestGlows();
   private readonly dear: THREE.SpriteMaterial;
   private readonly cheap: THREE.SpriteMaterial;
   private readonly textures: THREE.Texture[] = [];
@@ -66,6 +72,7 @@ export class TreasureView {
     loadModels = true,
   ) {
     scene.add(this.group);
+    this.group.add(this.drops.group, this.glows.group);
     this.cheap = new THREE.SpriteMaterial({ map: this.priceTexture('#ffd76a'), depthWrite: false, transparent: true });
     this.dear = new THREE.SpriteMaterial({ map: this.priceTexture('#ff5a4a'), depthWrite: false, transparent: true });
     this.loaded = loadModels
@@ -105,10 +112,12 @@ export class TreasureView {
 
   attach(model: THREE.Object3D) {
     const get = (name: string) => model.getObjectByName(name);
+    const found: Partial<Record<ItemKind, THREE.Object3D>> = {};
     for (const kind of ITEM_KINDS) {
       const proto = get(`item_${kind}`);
-      if (proto) this.protos[kind] = proto;
+      if (proto) found[kind] = proto;
     }
+    this.protos = itemLooks(found);
     const tile = get('item_tile');
     for (const o of this.treasure.offers) {
       if (tile) {
@@ -159,6 +168,8 @@ export class TreasureView {
       const e = state.events.at(i);
       if ((e.kind === 'buy' || e.kind === 'chestLoot' || e.kind === 'bossLoot') && e.value >= 0) this.fly(ITEM_KINDS[e.value], e.x, e.y, e.z);
     }
+    this.drops.update(state.drops, dt);
+    this.glows.update(t.chests, dt);
     const poor = state.money < ITEMS.v.price;
     for (let i = 0; i < this.items.length; i++) {
       const o = t.offers[i];
@@ -209,8 +220,14 @@ export class TreasureView {
     f.obj.position.copy(f.from);
   }
 
+  /** Update 0.0.16 — an item's look (the keys built in code), for the hand that shows it. */
+  look(kind: ItemKind): THREE.Object3D | null {
+    return this.protos[kind] ?? null;
+  }
+
   dispose() {
     this.group.removeFromParent();
+    this.glows.dispose();
     this.cheap.dispose();
     this.dear.dispose();
     this.textures.forEach((t) => t.dispose());

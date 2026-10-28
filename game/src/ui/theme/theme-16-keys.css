@@ -1,0 +1,60 @@
+/* Update 0.0.16 — the keys (the designer: white and gold keys; at a chest, pick the key to use). The white key glows
+   blue, the gold key yellow. In front of a chest the keys you carry sit in a row low in the middle, above the dash
+   pips (never over the crosshair); the one you'll use is raised, bigger and lit. */
+.rb-key-icon.is-whiteKey {
+  filter: drop-shadow(0 0 5px rgba(77, 157, 255, 0.95)) drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.6));
+}
+
+.rb-key-icon.is-goldKey {
+  filter: drop-shadow(0 0 5px rgba(255, 210, 58, 0.95)) drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.6));
+}
+
+.rb-keys-pick {
+  position: absolute;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 8px 16px;
+  background: rgba(10, 8, 12, 0.45);
+  border-radius: 6px;
+  animation: rb-keys-pick-in 0.25s ease-out;
+}
+
+.rb-keys-pick-slot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  opacity: 0.45;
+  transform: scale(0.85);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.rb-keys-pick-slot svg {
+  width: 40px;
+  height: 40px;
+}
+
+.rb-keys-pick-slot.is-picked {
+  opacity: 1;
+  transform: translateY(-6px) scale(1.2);
+}
+
+.rb-keys-pick-n {
+  position: absolute;
+  right: -8px;
+  bottom: -6px;
+  font-family: 'Anton', var(--rb-font);
+  font-size: 18px;
+  color: #fff;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+}
+
+@keyframes rb-keys-pick-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+}

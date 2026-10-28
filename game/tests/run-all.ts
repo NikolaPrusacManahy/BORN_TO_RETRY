@@ -25,6 +25,7 @@ import './test-money';
 import './test-dungeon';
 import './test-sword';
 import './test-shop';
+import './test-keys';
 import './test-foes';
 import './test-boss';
 import './test-boss-room';

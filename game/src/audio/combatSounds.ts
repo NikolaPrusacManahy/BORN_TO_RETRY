@@ -3,6 +3,8 @@
 // M2 — sword swings and hits, throws and breaks, pickups, and the grunts: the growl that warns of a swing (every
 // attack is telegraphed by a sound), the swing itself, and their arrival.
 // Update 0.0.15 — the boss's sounds are in bossSounds.ts.
+// Update 0.0.16 — a key switched (a click), a key falling to the floor (a clink), a chest's rarity as its lid comes up
+// (a chime: nothing for common, one note more for each rarity above it).
 import type { CombatEvent } from '../sim/combat/state';
 import { FISTS } from '../tuning/combat';
 import { ENEMIES } from '../tuning/enemies';
@@ -204,6 +206,16 @@ export class CombatSounds {
         break;
       case 'chestLocked':
         for (let k = 0; k < 3; k++) noise(a, { dur: 0.05 + k * 0.03, gain: 0.25, filter: 'bandpass', from: 2400, to: 1200, q: 3 });
+        break;
+      case 'keySwitch':
+        tone(a, { from: 1250, to: 1500, dur: 0.05, gain: 0.08, type: 'triangle' });
+        break;
+      case 'itemDrop':
+        tone(a, { from: 2100, to: 1600, dur: 0.12, gain: 0.12 * far, type: 'triangle' });
+        tone(a, { from: 2600, to: 2000, dur: 0.18, gain: 0.08 * far, type: 'triangle' });
+        break;
+      case 'chestRarity':
+        for (let k = 0; k < value; k++) tone(a, { from: 520 * 1.26 ** (k + value), to: 780 * 1.26 ** (k + value), dur: 0.25 + 0.1 * k, gain: 0.07, type: 'sine' });
         break;
       case 'chestLoot':
       case 'item':

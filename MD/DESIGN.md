@@ -93,6 +93,8 @@ From the shop (70 coins each) and chests (Ultimate RPG Pack models):
 | Ring with a red gem | +25% damage, for the rest of the run. Rings stack. **(placeholder: stacking)** |
 | Ring with blue gems | +20% run speed (running and sliding; not the dash), for the rest of the run. **(placeholder: what it speeds)** |
 | Key | Opens a chest. |
+| White key (Update 0.0.16) | Opens a chest: rare or better. Pale silver, a blue aura. |
+| Gold key (Update 0.0.16) | Opens a chest: epic or legendary. Gold, a yellow aura. |
 
 What you carry (keys, rings, the shield) goes down to the next floor with you and is lost when you die.
 
@@ -106,9 +108,11 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 
 ## 8. Shop and chests (Update 0.0.13, the designer)
 - **The shop** is a room with **five floor tiles**, each showing something to buy, turning above it with its price. One on every floor, a side room off the second to fourth fight room. **(placeholder: where)**
-- Everything costs **70**. Six items for five tiles: the **key is always there** (every floor has a chest), plus four of the other five, chosen per floor. **(placeholder)**
+- Everything costs **70**. **Update 0.0.16 (the designer):** the **heart and the armour plate are always there**; the other three tiles are drawn from the gold sword, the two rings and a key (normal 70%, white 25%, gold 5%), and the five are shuffled. Keys float on their tiles, standing on end, and turn.
 - Stand by a tile and press E to buy. Not enough coins, or an item that would do nothing (a heart at full health, a plate with a full shield): a buzz, nothing taken. **(placeholder)**
-- **Chests** stand in some fight rooms: one on every floor, sometimes two (35%). **(placeholder)** With a key, E in front of one (once its room isn't fighting) **kneels you down and you open it with both hands**: the view lowers and turns to it, the fists lift the lid, and what's inside comes out as it opens (about 1.3 s). Without a key it rattles.
+- **Chests** stand in some fight rooms: **every room with a Yeti** (Update 0.0.16, the designer: the Yeti carries its key), and one more, sometimes two (35%). **(placeholder)** With a key, E in front of one (once its room isn't fighting) **kneels you down and you open it with both hands**: the view lowers and turns to it, the fists lift the lid, and what's inside comes out as it opens (about 1.3 s). Without a key it rattles.
+- **Picking the key (Update 0.0.16, the designer):** in front of a chest with keys, your left hand comes up palm open with the key you'll use on it, and your keys show in a row low in the middle; Switch key (the mouse wheel) goes to the next kind you carry; E uses it.
+- **What a chest holds (Update 0.0.16, the designer), by rarity:** common 45% (20, 35, 45 or 70 coins), uncommon 30% (a heart or a plate), rare 15% (the gold sword), epic 8% (a ring), legendary 2% (nothing yet: an epic instead). A **white key** never gives common or uncommon; a **gold key** only epic or legendary. As the lid comes up, a light in its rarity's colour: none for common, green, blue, purple, yellow for legendary.
 - A chest holds **50–80 coins**, a **silver plate**, a **heart** or **a ring** (either). Coins 40%, the rest alike. **(placeholder odds)**
 
 ---
@@ -120,7 +124,7 @@ Rule: every attack is telegraphed (a flash and a sound) before it can hit, and e
 |---|---|
 | Grunt | Melee chaser in groups. Fodder. **(M2: the Orc from Ultimate Monsters; 40 HP, 7 m/s, a 0.45 s warned wind-up, 15 damage; any hit flinches it; drops a sword 15%.)** |
 | Spitter | Keeps distance and fires slow orbs that can be parried. **(Update 0.0.12: the Wizard from Ultimate Monsters; 30 HP; holds 7–16 m from you, coming closer when it can't see you, backing off when you're close, circling between; a 0.6 s warning (it rears, glows green, gurgles), then a 13 m/s orb for 12; a hit cancels the shot; 1.8 s between shots.)** |
-| Brute | Slow and heavy, telegraphed ground slam. **(Update 0.0.12: the Yeti from Ultimate Monsters, 2.8 m; 160 HP, 3.5 m/s; in 3 m it rears up for 0.9 s while a ring on the ground shows its 3.6 m reach, then slams: 30 damage and thrown away if you're on the ground inside (jump it); 1.2 s winded after; only a hit of 40 or more staggers it. Drops no weapon: the designer.)** |
+| Brute | Slow and heavy, telegraphed ground slam. **(Update 0.0.12: the Yeti from Ultimate Monsters, 2.8 m; 160 HP, 3.5 m/s; in 3 m it rears up for 0.9 s while a ring on the ground shows its 3.6 m reach, then slams: 30 damage and thrown away if you're on the ground inside (jump it); 1.2 s winded after; only a hit of 40 or more staggers it. Drops no weapon: the designer. Update 0.0.16 (the designer): the mini boss; a room with a Yeti has a chest, and the first Yeti killed there drops a key, normal, white or gold (70 / 25 / 5%), one per room.)** |
 | Leaper | Jumps at you from range; punish it on landing. **(Update 0.0.13: the Ninja from Ultimate Monsters; 45 HP, 8 m/s; within 13 m with nothing tall between (it leaps over low cover) it crouches 0.55 s (glows violet, hisses), then leaps a 2.6 m arc to where you stood: 18 and thrown if you're on or beside the landing (jump it); then 0.9 s stuck; too close, it backs off; a hit knocks it out of the air; 2.2 s between leaps.)** |
 | Stinger | **(Update 0.0.13, the designer: a flier.)** The Armabee: 25 HP, flies 3.4 m up. Within 10 m with a clear line it rears back 0.6 s (glows red, buzzes), then dives at 20 m/s through where your chest was and on: 14 and a knock if it goes through you. The dive ends on the floor, a wall or a crate: 1 s low and dazed (punch it). A hit cancels the dive. |
 | Wraith | **(Update 0.0.13, the designer: a flier.)** The Ghost: 35 HP, floats 3.6 m up, keeps 8–18 m from you (closer over cover, away when you're close, circling between). 0.7 s warning (glows pale, wails), then a fan of three slow orbs (11 m/s, 10 each, 14° apart). A hit cancels the cast. |

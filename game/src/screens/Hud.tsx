@@ -7,22 +7,15 @@
 // Update 0.0.13 — the shield: a blue bar just above the health bar (a hit on it flashes the edge blue); keys and rings
 // you carry beside your coins.
 // Update 0.0.15 — the boss room's show (BossHud.tsx); while it has the view, the rest fades out.
+// Update 0.0.16 — white and gold keys beside the normal ones; at a chest, the key picker (KeyPicker.tsx).
 import { CSSProperties, useSyncExternalStore } from 'react';
 import type { HudStore } from '../engine/hudStore';
 import { BossHud } from './BossHud';
+import { KeyIcon, KeyPicker } from './KeyPicker';
 import { Minimap } from './Minimap';
 
 /** At or below this share of max health the bar pulses. */
 const LOW_HEALTH = 0.25;
-
-function KeyIcon() {
-  return (
-    <svg viewBox="0 0 32 32">
-      <circle cx="9" cy="16" r="6" fill="none" stroke="#c9a57a" strokeWidth="3.5" />
-      <path d="M15 16h14M24 16v5M28 16v4" stroke="#c9a57a" strokeWidth="3.5" fill="none" />
-    </svg>
-  );
-}
 
 function RingIcon({ gem }: { gem: string }) {
   return (
@@ -57,7 +50,13 @@ export function Hud({ store }: { store: HudStore }) {
         <span key={s.money} className="rb-hud-money-n">{s.money}</span>
         <span className="rb-hud-items">
           <Carried n={s.keys}>
-            <KeyIcon />
+            <KeyIcon kind="key" />
+          </Carried>
+          <Carried n={s.whiteKeys}>
+            <KeyIcon kind="whiteKey" />
+          </Carried>
+          <Carried n={s.goldKeys}>
+            <KeyIcon kind="goldKey" />
           </Carried>
           <Carried n={s.redRings}>
             <RingIcon gem="#e2321e" />
@@ -92,6 +91,7 @@ export function Hud({ store }: { store: HudStore }) {
           <span key={i} className="rb-hud-pip" style={{ '--fill': Math.max(0, Math.min(1, s.dashCharges - i)) } as CSSProperties} />
         ))}
       </div>
+      <KeyPicker counts={{ key: s.keys, whiteKey: s.whiteKeys, goldKey: s.goldKeys }} pick={s.keyPick} />
       <BossHud s={s} />
     </div>
   );

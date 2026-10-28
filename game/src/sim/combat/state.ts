@@ -2,6 +2,7 @@
 // M2 — and the grunts and their waves, the weapon you hold, weapons on the ground and in flight, and the seeded RNG
 // that drops and spawns use.
 // Update 0.0.15 — the Demon's quake rings, and the boss's events (its moves, its show, its death, the wooden gate).
+// Update 0.0.16 — items on the floor (the Yeti's key) and how many keys the room you're in still holds.
 import { EventQueue } from '../../core/eventQueue';
 import { Rng, createRng } from '../../core/rng';
 import { Vector3 } from 'three';
@@ -12,6 +13,7 @@ import { createFlow, Flow } from '../enemies/chase';
 import { createEnemies, Enemy } from '../enemies/enemy';
 import { Coin, createCoins } from './coins';
 import { Quake, clearQuakes, createQuakes } from './quakes';
+import { createDrops, Drop } from '../items/drops';
 import { createInventory, Inventory } from '../items/items';
 import { GRID_RADIUS, SizeClass } from '../enemies/kinds';
 import { AIR, buildNavGrid, NavGrid } from '../../world/navGrid';
@@ -105,6 +107,11 @@ export type CombatEvent =
   | 'chestOpen'
   | 'chestLocked'
   | 'chestLoot'
+  // Update 0.0.16 — the key to use switched (value = its item), a chest's rarity as its lid is up (value = its index in
+  // RARITIES), an item falling to the floor (value = the item: a Yeti's key).
+  | 'keySwitch'
+  | 'chestRarity'
+  | 'itemDrop'
   // M2 — weapons: picked up (value = its uses), dropped, worn out, a throw begun and let go, broken on impact, back
   // on the stand.
   | 'pickup'
@@ -139,6 +146,9 @@ export interface CombatState {
   coins: Coin[];
   /** Update 0.0.13 — keys and rings you carry. */
   items: Inventory;
+  /** Update 0.0.16 — items on the floor, and the keys the room you're fighting in still gives (a Yeti drops one). */
+  drops: Drop[];
+  keyDrops: number;
   hitStop: HitStop;
   events: EventQueue<CombatEvent>;
 }
@@ -176,6 +186,8 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     money: 0,
     coins: createCoins(),
     items: createInventory(),
+    drops: createDrops(),
+    keyDrops: 0,
     hitStop: new HitStop(),
     events: new EventQueue<CombatEvent>(64, 'none'),
   };
@@ -202,6 +214,8 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.money = 0;
   for (const c of state.coins) c.alive = false;
   state.items = createInventory();
+  for (const d of state.drops) d.alive = false;
+  state.keyDrops = 0;
   stockStands(state);
   state.hitStop.remaining = 0;
   state.events.clear();

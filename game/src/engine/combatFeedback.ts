@@ -5,6 +5,7 @@
 // Update 0.0.13 — the leaper's landing, the stinger's dive and the wraith's cast; a chest's loot bursting out.
 // Update 0.0.15 — the Demon: its charge crashing, its landing, its roar, its gore and the quakes (felt more the closer
 // you are); its show's rumble; killed, a heavy jolt; its body bursting (chunks, sparks, a ring); the wooden gate.
+// Update 0.0.16 — a key falling to the floor, and more sparks from a chest the rarer what's in it.
 import * as THREE from 'three';
 import type { CombatSounds } from '../audio/combatSounds';
 import type { CombatState } from '../sim/combat/state';
@@ -128,6 +129,12 @@ export class CombatFeedback {
           break;
         case 'chestLoot':
           this.f.sparks.spawn(at, UP, 24, 1.2);
+          break;
+        case 'chestRarity':
+          if (e.value > 0) this.f.sparks.spawn(at, UP, 12 * e.value, 1 + 0.2 * e.value);
+          break;
+        case 'itemDrop':
+          this.f.sparks.spawn(at, UP, 14, 0.9);
           break;
         case 'demonCrash':
           this.f.chunks.spawn(at, back, 22, 1.2);

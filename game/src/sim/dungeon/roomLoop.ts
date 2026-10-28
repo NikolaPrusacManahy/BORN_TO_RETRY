@@ -10,6 +10,8 @@
 // brute from the third (all of them from floor 2).
 // Update 0.0.15 — the boss room at the end of the way (bossRoom.ts) instead of waves; its wooden gate is shut from the
 // start and opens once the boss is dead; the way down is the dark beyond it.
+// Update 0.0.16 — a room's waves come from its plan (wavePlan.ts, made with the floor); a room with a Yeti gives one
+// key, whichever Yeti dies first (CombatState.keyDrops).
 import { createRng, Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import type { DungeonLevel } from '../../world/dungeon/assemble';
@@ -17,8 +19,9 @@ import { AIR, buildNavGrid, NavGrid } from '../../world/navGrid';
 import type { CombatState } from '../combat/state';
 import { createFlow } from '../enemies/chase';
 import { isLive } from '../enemies/enemy';
-import { ENEMY_KINDS, GRID_RADIUS, EnemyKind, SizeClass } from '../enemies/kinds';
+import { GRID_RADIUS, SizeClass } from '../enemies/kinds';
 import { spawnAt } from '../enemies/waves';
+import { hasYeti } from './wavePlan';
 import type { PlayerState } from '../player/state';
 import { BossRun, createBossRun, startShow, stepBoss } from './bossRoom';
 import { createTreasure, Treasure } from './treasure';
@@ -56,13 +59,7 @@ export const FIRST_WAVE = 0.7;
 export const NEXT_WAVE = 0.9;
 /** Enemies never appear closer to you than this, if the room has room (m). */
 const SPAWN_CLEAR = 6;
-/** No more than this many in one wave. */
-const WAVE_CAP = 8;
-const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3, demon: 99 };
-/** How often each kind is picked, and the first room (on floor 1) it comes in. **(placeholders)** The Demon is never
- *  bought: it's the boss room's. */
-const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1, demon: 0 };
-const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3, demon: Infinity };
+export { buyWave, roomBudget } from './wavePlan';
 
 export function createDungeonRun(level: DungeonLevel): DungeonRun {
   return {
@@ -77,34 +74,6 @@ export function createDungeonRun(level: DungeonLevel): DungeonRun {
     treasure: createTreasure(level, createRng(level.plan.seed * 131 + level.plan.level * 17)),
     boss: createBossRun(),
   };
-}
-
-/** A room's fight: its budget (enemy cost to spend) and how many waves it comes in. */
-export function roomBudget(depth: number, floor: number): { budget: number; waves: number } {
-  const budget = 6 + 3 * depth + 4 * (floor - 1);
-  return { budget, waves: budget >= 18 ? 3 : 2 };
-}
-
-/** The kinds of one wave, bought from `budget` (seeded). */
-export function buyWave(budget: number, depth: number, floor: number, rng: Rng): EnemyKind[] {
-  const out: EnemyKind[] = [];
-  let left = budget;
-  const can = (k: EnemyKind) => WEIGHT[k] > 0 && (floor >= 2 || depth >= FROM[k]) && COST[k] <= left;
-  while (left > 0 && out.length < WAVE_CAP) {
-    let total = 0;
-    for (const k of ENEMY_KINDS) if (can(k)) total += WEIGHT[k];
-    let roll = rng() * total;
-    let kind: EnemyKind = 'grunt';
-    for (const k of ENEMY_KINDS) {
-      if (!can(k)) continue;
-      kind = k;
-      roll -= WEIGHT[k];
-      if (roll < 0) break;
-    }
-    out.push(kind);
-    left -= COST[kind];
-  }
-  return out;
 }
 
 export function roomAt(run: DungeonRun, x: number, z: number): number {
@@ -122,8 +91,9 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
     const room = run.level.rooms[i];
     if (rr.state === 'idle' && run.current === i && !player.dead) {
       rr.state = 'fighting';
-      rr.waves = roomBudget(room.depth, run.level.plan.level).waves;
+      rr.waves = room.waves.length;
       rr.wave = 0;
+      combat.keyDrops = hasYeti(room.waves) ? 1 : 0;
       rr.delay = FIRST_WAVE;
       for (const g of room.gates) run.shut[g] = true;
       enterNav(run, i, combat);
@@ -186,10 +156,8 @@ function enterNav(run: DungeonRun, i: number, combat: CombatState) {
 
 function sendWave(run: DungeonRun, i: number, player: PlayerState, combat: CombatState, rng: Rng) {
   const room = run.level.rooms[i];
-  const { budget, waves } = roomBudget(room.depth, run.level.plan.level);
-  const kinds = buyWave(Math.ceil(budget / waves), room.depth, run.level.plan.level, rng);
-  // Brutes first, so they get the spots furthest from you.
-  kinds.sort((a, b) => COST[b] - COST[a]);
+  // Its plan has the dearest first, so brutes get the spots furthest from you.
+  const kinds = room.waves[run.rooms[i].wave];
   const far = room.spawns.filter((s) => Math.hypot(s.x - player.pos.x, s.z - player.pos.z) >= SPAWN_CLEAR);
   let pool: Spot[] = [...(far.length > 0 ? far : room.spawns)];
   for (const kind of kinds) {

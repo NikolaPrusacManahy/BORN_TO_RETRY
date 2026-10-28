@@ -9,7 +9,11 @@
 // Update 0.0.15 — the way ends in the boss room. The way down is a wooden gate in its far wall onto the dark
 // (wayOut.ts): stepping into the dark ends the floor. The board's margin grew so that dark fits beside a room on the
 // board's edge.
+// Update 0.0.16 — each fight room's waves are planned here (its own seed, wavePlan.ts): every room with a Yeti gets a
+// chest (the Yeti carries its key); one more chest in another fight room, sometimes two.
 import { createRng, Rng } from '../../core/rng';
+import type { EnemyKind } from '../../sim/enemies/kinds';
+import { hasYeti, planWaves } from '../../sim/dungeon/wavePlan';
 import { BOSS_ROOM, Cell, FIGHT_ROOMS, layOut, RoomKind, RoomLayout, SHOP_ROOM, START_ROOM } from './rooms';
 import { NO_WAY_OUT, stampWayOut, WayOut } from './wayOut';
 
@@ -42,6 +46,8 @@ export interface PlacedRoom {
   depth: number;
   /** Update 0.0.13 — its chest's cell (col, row inside the room), or null. */
   chest: [number, number] | null;
+  /** Update 0.0.16 — a fight room's waves (none for the others). */
+  waves: EnemyKind[][];
 }
 
 export interface Corridor {
@@ -125,7 +131,7 @@ export function planFloor(seed: number, level: number): FloorPlan {
   const taken = new Set<number>();
   const add = (kind: RoomKind, slot: [number, number], depth: number) => {
     const t = kind === 'start' ? START_ROOM : kind === 'boss' ? BOSS_ROOM : kind === 'shop' ? SHOP_ROOM : fights[rooms.filter((r) => r.kind === 'fight').length % fights.length];
-    rooms.push({ index: rooms.length, kind, layout: layOut(t, rng), slot, x0: 0, z0: 0, doors: [], depth, chest: null });
+    rooms.push({ index: rooms.length, kind, layout: layOut(t, rng), slot, x0: 0, z0: 0, doors: [], depth, chest: null, waves: [] });
     taken.add(key(slot));
     return rooms.length - 1;
   };
@@ -151,6 +157,7 @@ export function planFloor(seed: number, level: number): FloorPlan {
   };
   if (!sideRoom('shop', 2, 4)) sideRoom('shop', 1, PATH_FIGHTS);
   if (rng() < SIDE_FIGHT) sideRoom('fight', 1, PATH_FIGHTS);
+  for (const r of rooms) if (r.kind === 'fight') r.waves = planWaves(r.depth, level, createRng(seed * 7717 + level * 131 + r.index * 17));
   placeChests(rooms, rng);
   for (const [a, b] of links) {
     const [sa, sb] = sideTo(rooms[a].slot, rooms[b].slot);
@@ -170,17 +177,21 @@ export function planFloor(seed: number, level: number): FloorPlan {
   return plan;
 }
 
-/** Update 0.0.13 — one chest on the floor, sometimes two, each in a different fight room at one of its chest spots. */
+/** Update 0.0.13 — chests at one of their rooms' chest spots: Update 0.0.16, in every room with a Yeti; then one in
+ *  another fight room, sometimes two. */
 function placeChests(rooms: PlacedRoom[], rng: Rng) {
-  const hosts = rooms.filter((r) => r.kind === 'fight' && r.layout.chestSpots.length > 0);
+  const put = (r: PlacedRoom) => {
+    const spot = r.layout.chestSpots[Math.floor(rng() * r.layout.chestSpots.length)];
+    r.layout.cells[spot[1] * r.layout.w + spot[0]] = 'chest';
+    r.chest = spot;
+  };
+  for (const r of rooms) if (r.kind === 'fight' && r.layout.chestSpots.length > 0 && hasYeti(r.waves)) put(r);
+  const hosts = rooms.filter((r) => r.kind === 'fight' && r.layout.chestSpots.length > 0 && !r.chest);
   const count = Math.min(hosts.length, 1 + (rng() < SECOND_CHEST ? 1 : 0));
   for (let n = 0; n < count; n++) {
     const i = n + Math.floor(rng() * (hosts.length - n));
     [hosts[n], hosts[i]] = [hosts[i], hosts[n]];
-    const r = hosts[n];
-    const spot = r.layout.chestSpots[Math.floor(rng() * r.layout.chestSpots.length)];
-    r.layout.cells[spot[1] * r.layout.w + spot[0]] = 'chest';
-    r.chest = spot;
+    put(hosts[n]);
   }
 }
 

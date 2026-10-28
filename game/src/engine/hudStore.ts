@@ -1,6 +1,7 @@
 // M1 — what the HUD shows, pushed by the game a few times a second (React never runs per frame). Hit markers
 // and hurt flashes are counters: each new number restarts their animation.
 import type { MoveMode } from '../sim/player/state';
+import type { KeyKind } from '../sim/items/items';
 import type { RoomKind } from '../world/dungeon/rooms';
 
 export type MarkerKind = 'hit' | 'heavy' | 'kill';
@@ -46,6 +47,10 @@ export interface HudState {
   keys: number;
   redRings: number;
   blueRings: number;
+  /** Update 0.0.16 — white and gold keys, and the key you'll use at the chest in front of you ('': none). */
+  whiteKeys: number;
+  goldKeys: number;
+  keyPick: KeyKind | '';
   map: MapView | null;
   mapX: number;
   mapZ: number;
@@ -68,7 +73,7 @@ export interface HudStore {
 }
 
 export function createHudStore(): HudStore {
-  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '' };
+  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '' };
   const subs = new Set<() => void>();
   return {
     get: () => state,

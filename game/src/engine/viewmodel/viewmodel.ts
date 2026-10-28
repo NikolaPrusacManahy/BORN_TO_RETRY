@@ -5,23 +5,21 @@
 // (swordAnim.ts: ready, slashes, the pierce and its charge, the throw).
 // Update 0.0.13 — kneeling at a chest, both fists reach for the lid and lift it (chestReach.ts); a held weapon is put
 // out of sight meanwhile.
+// Update 0.0.16 — in front of a chest, the left hand comes up palm open with the key you'll use (palm.ts).
 import * as THREE from 'three';
 import { ARMS } from '../../tuning/arms';
 import type { PlayerState } from '../../sim/player/state';
 import { flatSpeed } from '../../sim/player/state';
 import { ArmPose, ArmsRig } from './armsRig';
 import { ArmsAnim, PunchStyle } from './armsAnim';
-import { mixArm, pose } from './armsMath';
+import { mixArm, pose, PREVIEW_PITCH, viewToModel } from './armsMath';
 import { ChestReach } from './chestReach';
 import { FORWARD, GUARD, REST_BACK, Side } from './guard';
+import { KeyPalm } from './palm';
 import { SwordAnim, SwordMove } from './swordAnim';
 import { emptySword } from './swordPoses';
 
 export const ARMS_URL = '/models/arms/adventurer.glb';
-/** The approved previews looked ~10° down at the guard; the arms tilt up by the same so the game frames it alike. */
-const PREVIEW_PITCH = Math.atan(0.18);
-const COS_P = Math.cos(PREVIEW_PITCH);
-const SIN_P = Math.sin(PREVIEW_PITCH);
 /** Punches aim a little below the eye line and spread apart so the two fists don't meet in the middle (m). */
 const STRIKE_DROP = 0.06;
 const STRIKE_SPREAD = 0.05;
@@ -35,20 +33,13 @@ const LOWERED_KNUCKLES = new THREE.Vector3(0, -1, 0.25).normalize();
 const ease = (rate: number, dt: number) => 1 - Math.exp(-rate * dt);
 const smooth = (x: number) => x * x * (3 - 2 * x);
 
-/** A point (`point`) or direction from the arms camera's view (before sway) into the model's space. */
-function viewToModel(v: THREE.Vector3, eye: THREE.Vector3 | null) {
-  const y = v.y * COS_P + v.z * SIN_P;
-  const z = -v.y * SIN_P + v.z * COS_P;
-  v.set(-v.x, y, -z);
-  if (eye) v.add(eye);
-}
-
 export class Viewmodel {
   readonly scene = new THREE.Scene();
   readonly camera = new THREE.PerspectiveCamera(60, 16 / 9, 0.01, 10);
   readonly anim = new ArmsAnim();
   readonly swordAnim = new SwordAnim();
   readonly chest = new ChestReach();
+  readonly palm = new KeyPalm();
   private readonly reachPose = pose();
   private readonly knuckleL = new THREE.Vector3();
   private readonly knuckleR = new THREE.Vector3();
@@ -81,7 +72,7 @@ export class Viewmodel {
     this.scene.add(new THREE.HemisphereLight(0xcfc6dd, 0x2a2026, 1.1));
     const key = new THREE.DirectionalLight(0xffe2c8, 1.6);
     key.position.set(-1, 2, 1.5);
-    this.scene.add(key, this.camera);
+    this.scene.add(key, this.camera, this.palm.holder);
     this.camera.add(this.pivot);
     this.pivot.add(this.holder);
     // The model faces +z; the camera looks down −z.
@@ -192,9 +183,12 @@ export class Viewmodel {
     const reach = this.chest.weight;
     if (reach > 0) this.chest.aimed();
     const armed = smooth(this.armedVis) * (1 - reach);
-    const left = this.poseArm(rig, 'L', this.chargeVis, charge >= 1, armed);
+    const palm = this.palm.mix;
+    const left = this.poseArm(rig, 'L', this.chargeVis, charge >= 1, armed * (1 - palm));
+    if (palm > 0) mixArm(left, this.palm.pose(rig), palm, left);
     if (reach > 0) this.toChest(rig, 'L', left, reach);
-    rig.apply('L', left);
+    rig.apply('L', left, v.wristBend + (1 - v.wristBend) * palm);
+    rig.openHand('L', palm);
     const right = this.poseArm(rig, 'R', this.chargeVis, charge >= 1, armed);
     if (armed > 0) {
       mixArm(right, this.poseSword(rig, charge >= 1), armed, right);
@@ -210,6 +204,7 @@ export class Viewmodel {
       this.weapon.matrixWorldNeedsUpdate = true;
     }
     this.camera.updateMatrixWorld(true);
+    this.palm.place(rig);
     if (reach > 0) this.chest.settle(this.camera.worldToLocal(rig.knuckle('L', this.knuckleL)), this.camera.worldToLocal(rig.knuckle('R', this.knuckleR)));
   }
 

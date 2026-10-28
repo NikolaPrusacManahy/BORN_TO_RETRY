@@ -5,6 +5,7 @@
 // wind-up, then it flies), and its swings; after the targets, the grunts and the lab's waves of them, weapons in
 // flight, and the lab's stands.
 // Update 0.0.15 — quake rings roll after the enemies move (a landing starts one).
+// Update 0.0.16 — you take an item on the floor by walking over it.
 import { Vector3 } from 'three';
 import type { Spot } from '../../world/arena';
 import type { CollisionWorld } from '../collisionWorld';
@@ -22,6 +23,7 @@ import { aim, resolvePunch } from './punch';
 import { slamImpact } from './slamHit';
 import { updateCoins } from './coins';
 import { updateQuakes } from './quakes';
+import { updateDrops } from '../items/drops';
 import type { CombatState } from './state';
 import { updateTurret } from './turret';
 
@@ -82,5 +84,6 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   updateWaves(state.waves, state.enemies, spawns, player, state.rng, events, dt);
   updateThrown(state, world, dt);
   state.money = updateCoins(state.coins, player, state.money, events, dt);
+  updateDrops(state, player);
   updateStands(state.stands, state.pickups, events, dt);
 }

@@ -11,7 +11,9 @@ import { ArmsRig } from '../src/engine/viewmodel/armsRig';
 import { Viewmodel } from '../src/engine/viewmodel/viewmodel';
 import { createPlayer } from '../src/sim/player/state';
 import { ARMS } from '../src/tuning/arms';
-import { FILMS, SHOTS } from './view-shots-list';
+import { FILMS, KEYS, SHOTS } from './view-shots-list';
+import { itemLooks } from '../src/engine/keyLooks';
+import type { ItemKind } from '../src/sim/items/items';
 
 const ASPECT = 16 / 9;
 
@@ -28,6 +30,10 @@ mkdirSync(out, { recursive: true });
 
 const v = new THREE.Vector3();
 const shots = [];
+// Update 0.0.16 — the keys, for the palm shots.
+const items = await load('../public/models/items/items.glb');
+const looks = itemLooks({ key: items.scene.getObjectByName('item_key') ?? undefined } as Partial<Record<ItemKind, THREE.Object3D>>);
+KEYS.look = (k) => looks[k] ?? null;
 for (const shot of [...SHOTS, ...FILMS]) {
   if (!picked(shot.name)) continue;
   // A fresh model per shot, so one shot's pose never leaks into the next.

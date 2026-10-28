@@ -34,7 +34,8 @@ section('Bindings — anything the player wants');
   setDevKeysReserved(false);
   check('in a real build the dev keys are free to bind', isBindable('F1') && isBindable('F4') && isBindable('Backquote'));
   setDevKeysReserved(true);
-  const codes = ['WheelUp', 'WheelDown', 'Mouse3', 'Mouse4', 'ControlLeft', 'KeyZ', 'Tab', 'CapsLock', 'ArrowUp', 'Numpad0', 'KeyX', 'AltLeft'];
+  // (Update 0.0.16 — one more for Switch key.)
+  const codes = ['WheelUp', 'WheelDown', 'Mouse3', 'Mouse4', 'ControlLeft', 'KeyZ', 'Tab', 'CapsLock', 'ArrowUp', 'Numpad0', 'KeyX', 'AltLeft', 'KeyV'];
   let b = DEFAULT_BINDINGS;
   for (const [i, a] of ACTIONS.entries()) b = rebind(b, a.id, codes[i]);
   check('every action can take a key at once, all different', new Set(Object.values(b)).size === ACTIONS.length && ACTIONS.every((a, i) => b[a.id] === codes[i]));

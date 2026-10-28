@@ -3,6 +3,7 @@
 // Update 0.0.4 — moved out of Game.ts when the main menu joined it.
 // Update 0.0.13 — the shield, keys and rings.
 // Update 0.0.15 — the boss room's show (letterbox, name card, the boss's health, the black, the floor's name).
+// Update 0.0.16 — white and gold keys, and the key you'd use at a chest.
 import type { CombatState } from '../sim/combat/state';
 import { PlayerState, flatSpeed, moveMode } from '../sim/player/state';
 import { WEAPON_NAME } from '../sim/weapons/catalog';
@@ -11,6 +12,7 @@ import { LAB } from '../tuning/lab';
 import { DASH } from '../tuning/movement';
 import type { CombatFeedback } from './combatFeedback';
 import type { ShowHud } from './boss/bossShow';
+import type { KeyKind } from '../sim/items/items';
 import type { DebugInfo, HudStore, MapView } from './hudStore';
 import { CELL, GRID } from '../world/dungeon/floorPlan';
 
@@ -34,7 +36,7 @@ export class HudFeed {
   constructor(private readonly hud: HudStore) {}
 
   /** `hits`: how many times you've been hurt, and your shield hit (each new one flashes the screen's edge). */
-  push(real: number, p: PlayerState, fb: CombatFeedback, hits: { hurts: number; shields: number }, combat: CombatState, map: MapView | null, yaw: number, show: ShowHud) {
+  push(real: number, p: PlayerState, fb: CombatFeedback, hits: { hurts: number; shields: number }, combat: CombatState, map: MapView | null, yaw: number, show: ShowHud, keyPick: KeyKind | '') {
     const cur = this.hud.get();
     const hp = Math.ceil(p.hp);
     const shield = Math.ceil(p.shield);
@@ -48,7 +50,8 @@ export class HudFeed {
     // The boss's bar moves in steps of 1%.
     const bossHp = show.bossHp < 0 ? -1 : Math.ceil(show.bossHp * 100) / 100;
     const shown = cur.cine === show.cine && cur.card === show.card && cur.bossHp === bossHp && cur.veil === show.veil && cur.floorName === show.floorName && cur.bossTitle === show.bossTitle;
-    if (this.timer > 0 && same && shown && cur.keys === it.keys && cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.map === map) return;
+    const keys = cur.keys === it.keys && cur.whiteKeys === it.whiteKeys && cur.goldKeys === it.goldKeys && cur.keyPick === keyPick;
+    if (this.timer > 0 && same && shown && keys && cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.map === map) return;
     this.timer = HUD_EVERY;
     this.hud.set({
       dashCharges: Math.floor(p.dashCharges * 20) / 20,
@@ -65,6 +68,9 @@ export class HudFeed {
       shield,
       shields: hits.shields,
       keys: it.keys,
+      whiteKeys: it.whiteKeys,
+      goldKeys: it.goldKeys,
+      keyPick,
       redRings: it.redRings,
       blueRings: it.blueRings,
       map,

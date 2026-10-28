@@ -25,6 +25,8 @@ export interface CombatIntent {
   /** M2 — Q: throw the held weapon; E: pick one up. */
   throwPressed: boolean;
   interactPressed: boolean;
+  /** Update 0.0.16 — the next key you carry, in front of a chest. */
+  switchKeyPressed: boolean;
   yaw: number;
   pitch: number;
 }
@@ -47,7 +49,7 @@ export function createFists(): FistState {
 }
 
 export function emptyCombatIntent(): CombatIntent {
-  return { attackHeld: false, attackPressed: false, heavyHeld: false, throwPressed: false, interactPressed: false, yaw: 0, pitch: 0 };
+  return { attackHeld: false, attackPressed: false, heavyHeld: false, throwPressed: false, interactPressed: false, switchKeyPressed: false, yaw: 0, pitch: 0 };
 }
 
 export function emptyPunch(): Punch {

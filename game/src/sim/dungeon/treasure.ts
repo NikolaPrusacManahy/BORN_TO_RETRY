@@ -1,17 +1,21 @@
 // Update 0.0.13 — the shop and the chests (the designer). The shop is a side room with five display tiles, each showing
-// something to buy for 70 coins: always a key (every floor has a chest), and four of the heart, the armour plate, the
-// gold sword and the two rings. Stand by one and press E: it's yours, if you can pay and it would do something (no
+// something to buy for 70 coins. Stand by one and press E: it's yours, if you can pay and it would do something (no
 // heart at full health). Chests stand in some fight rooms: with a key, E (once the room isn't fighting) kneels you in
-// front of it and you lift the lid with both hands; what's inside (50–80 coins, a plate, a heart or a ring) comes out
-// as the lid opens. Without a key the lid rattles. Pure and seeded.
+// front of it and you lift the lid with both hands; what's inside comes out as the lid opens. Without a key the lid
+// rattles. Pure and seeded.
+// Update 0.0.16 (the designer) — the shop always has a heart and an armour plate; its other three tiles are drawn from
+// the gold sword, the two rings and a key (normal, white or gold by its odds), and the five are shuffled. A chest's
+// loot goes by rarity and by the key you open it with (loot.ts). In front of a chest with keys, you pick which key
+// (the Switch key action goes to the next one you carry); E uses it.
 import type { Rng } from '../../core/rng';
 import { ITEMS } from '../../tuning/items';
 import type { ChestSpot, DungeonLevel } from '../../world/dungeon/assemble';
 import { burstCoins } from '../combat/coins';
 import type { CombatState } from '../combat/state';
-import { ITEM_KINDS, ItemKind, takeItem, useful } from '../items/items';
+import { anyKey, checkPick, ITEM_KINDS, ItemKind, keyFor, KeyKind, nextKey, takeItem, useful, useKey } from '../items/items';
 import { startKneel } from '../player/kneel';
 import type { PlayerState } from '../player/state';
+import { Loot, LootRolls, RARITIES, rollLoot } from './loot';
 import { Vector3 } from 'three';
 
 export interface Offer {
@@ -22,7 +26,6 @@ export interface Offer {
   z: number;
 }
 
-export type Loot = 'coins' | 'plate' | 'heart' | 'redRing' | 'blueRing';
 export type ChestState = 'shut' | 'opening' | 'open';
 
 export interface Chest {
@@ -30,9 +33,10 @@ export interface Chest {
   state: ChestState;
   /** Seconds since it began opening. */
   t: number;
-  loot: Loot;
-  /** Its coins, if it holds coins. */
-  coins: number;
+  /** Update 0.0.16 — its rolls (made with the floor), the key it was opened with and what that gave (null: shut). */
+  rolls: LootRolls;
+  key: KeyKind | null;
+  loot: Loot | null;
   /** Its loot has come out. */
   given: boolean;
 }
@@ -42,6 +46,8 @@ export interface Treasure {
   shop: number;
   offers: Offer[];
   chests: Chest[];
+  /** Update 0.0.16 — the chest you're picking a key for (in front of it, keys in hand; −1: none). */
+  choosing: number;
 }
 
 /** You kneel this far in front of a chest (m). */
@@ -50,36 +56,29 @@ export const KNEEL_DIST = 1.15;
 export const LOOT_AT = 0.62;
 /** Tiles in a shop. */
 export const SHOP_TILES = 5;
+/** Always in the shop; the rest of its tiles are drawn from the others ('key': a key by its odds). */
+const SHOP_ALWAYS: readonly ItemKind[] = ['heart', 'plate'];
+const SHOP_DRAWN: readonly ItemKind[] = ['goldSword', 'redRing', 'blueRing', 'key'];
 
 const at = new Vector3();
 
-/** The shop's offers and the chests' loot for a floor (seeded). */
-export function createTreasure(level: DungeonLevel, rng: Rng): Treasure {
-  const shop = level.rooms.find((r) => r.kind === 'shop');
-  const others: ItemKind[] = ['heart', 'plate', 'goldSword', 'redRing', 'blueRing'];
-  for (let i = others.length - 1; i > 0; i--) {
+function shuffle<T>(list: T[], rng: Rng): T[] {
+  for (let i = list.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
-    [others[i], others[j]] = [others[j], others[i]];
+    [list[i], list[j]] = [list[j], list[i]];
   }
-  const kinds: ItemKind[] = ['key', ...others.slice(0, SHOP_TILES - 1)];
-  // The key's tile varies too.
-  const k = Math.floor(rng() * kinds.length);
-  [kinds[0], kinds[k]] = [kinds[k], kinds[0]];
-  const offers = shop ? shop.tiles.slice(0, SHOP_TILES).map((t, i) => ({ kind: kinds[i], sold: false, x: t.x, z: t.z })) : [];
-  const chests = level.chests.map((spot) => {
-    const loot = rollLoot(rng);
-    const v = ITEMS.v;
-    const coins = loot === 'coins' ? Math.round(v.chestCoinsMin + rng() * (v.chestCoinsMax - v.chestCoinsMin)) : 0;
-    return { spot, state: 'shut' as ChestState, t: 0, loot, coins, given: false };
-  });
-  return { shop: shop ? shop.index : -1, offers, chests };
+  return list;
 }
 
-/** Coins (Chest: coins), else a plate, a heart or a ring (red or blue), alike. */
-function rollLoot(rng: Rng): Loot {
-  if (rng() < ITEMS.v.chestCoinOdds) return 'coins';
-  const r = rng() * 4;
-  return r < 1 ? 'plate' : r < 2 ? 'heart' : r < 3 ? 'redRing' : 'blueRing';
+/** The shop's offers and the chests' rolls for a floor (seeded). */
+export function createTreasure(level: DungeonLevel, rng: Rng): Treasure {
+  const shop = level.rooms.find((r) => r.kind === 'shop');
+  const drawn = shuffle([...SHOP_DRAWN], rng).slice(0, SHOP_TILES - SHOP_ALWAYS.length);
+  // A key on offer is a normal, white or gold one.
+  const kinds = shuffle([...SHOP_ALWAYS, ...drawn.map((k) => (k === 'key' ? keyFor(rng()) : k))], rng);
+  const offers = shop ? shop.tiles.slice(0, SHOP_TILES).map((t, i) => ({ kind: kinds[i], sold: false, x: t.x, z: t.z })) : [];
+  const chests = level.chests.map((spot): Chest => ({ spot, state: 'shut', t: 0, rolls: [rng(), rng(), rng()], key: null, loot: null, given: false }));
+  return { shop: shop ? shop.index : -1, offers, chests, choosing: -1 };
 }
 
 /** The chest you could open from where you stand: in reach and in front of it (−1: none). */
@@ -110,9 +109,9 @@ export function offerInReach(t: Treasure, player: PlayerState): number {
   return best;
 }
 
-/** One tick: chests opening, and E at a chest or a shop tile. `fighting(room)`: that room is mid-fight. Returns true if
- *  E was used here (so it doesn't also pick up a weapon). */
-export function stepTreasure(t: Treasure, player: PlayerState, state: CombatState, interact: boolean, fighting: (room: number) => boolean, dt: number): boolean {
+/** One tick: chests opening, picking a key in front of one, and E at a chest or a shop tile. `fighting(room)`: that room
+ *  is mid-fight. Returns true if E was used here (so it doesn't also pick up a weapon). */
+export function stepTreasure(t: Treasure, player: PlayerState, state: CombatState, interact: boolean, switchKey: boolean, fighting: (room: number) => boolean, dt: number): boolean {
   const T = ITEMS.v.chestTime;
   for (const c of t.chests) {
     if (c.state !== 'opening') continue;
@@ -120,22 +119,36 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
     if (!c.given && c.t >= T * LOOT_AT) giveLoot(c, player, state);
     if (c.t >= T) c.state = 'open';
   }
-  if (!interact || player.dead || player.kneel > 0) return false;
-  const ci = chestInReach(t, player);
-  if (ci >= 0 && player.grounded) {
+  t.choosing = -1;
+  if (player.dead || player.kneel > 0) return false;
+  const ci = player.grounded ? chestInReach(t, player) : -1;
+  const inv = state.items;
+  if (ci >= 0 && !fighting(t.chests[ci].spot.room)) {
     const c = t.chests[ci];
-    if (fighting(c.spot.room)) return false;
-    if (state.items.keys <= 0) {
+    if (anyKey(inv)) {
+      t.choosing = ci;
+      checkPick(inv);
+      if (switchKey) {
+        const was = inv.keyPick;
+        nextKey(inv);
+        if (inv.keyPick !== was) state.events.push('keySwitch', ITEM_KINDS.indexOf(inv.keyPick), c.spot.x, 0.6, c.spot.z);
+      }
+    }
+    if (!interact) return false;
+    if (!anyKey(inv)) {
       state.events.push('chestLocked', ci, c.spot.x, 0.6, c.spot.z);
       return true;
     }
-    state.items.keys--;
+    c.key = useKey(inv);
+    c.loot = rollLoot(c.key, c.rolls);
     c.state = 'opening';
     c.t = 0;
+    t.choosing = -1;
     startKneel(player, c.spot.x + c.spot.fx * KNEEL_DIST, c.spot.z + c.spot.fz * KNEEL_DIST, c.spot.rot, T);
     state.events.push('chestOpen', ci, c.spot.x, 0.6, c.spot.z);
     return true;
   }
+  if (!interact) return false;
   const oi = offerInReach(t, player);
   if (oi < 0) return false;
   const o = t.offers[oi];
@@ -150,12 +163,14 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
   return true;
 }
 
-/** The lid is up: coins burst out and fly to you, or the item is yours. */
+/** The lid is up: its glow (by rarity), then coins burst out and fly to you, or the item is yours. */
 function giveLoot(c: Chest, player: PlayerState, state: CombatState) {
   c.given = true;
-  state.events.push('chestLoot', c.loot === 'coins' ? -1 : ITEM_KINDS.indexOf(c.loot), c.spot.x, 0.8, c.spot.z);
-  if (c.loot === 'coins') {
+  const loot = c.loot!;
+  state.events.push('chestRarity', RARITIES.indexOf(loot.rarity), c.spot.x, 0.8, c.spot.z);
+  state.events.push('chestLoot', loot.item ? ITEM_KINDS.indexOf(loot.item) : -1, c.spot.x, 0.8, c.spot.z);
+  if (!loot.item) {
     at.set(c.spot.x, 0, c.spot.z);
-    state.money += burstCoins(state.coins, at, c.coins, state.rng);
-  } else takeItem(c.loot, player, state);
+    state.money += burstCoins(state.coins, at, loot.coins, state.rng);
+  } else takeItem(loot.item, player, state);
 }

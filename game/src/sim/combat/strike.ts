@@ -1,6 +1,7 @@
 // M2 — what a sweep hits: the nearest live target (dummy, turret or enemy) along a segment, and applying a hit to it.
 // Punches, sword swings and thrown weapons all use these, so every target takes every attack the same way.
 // Update 0.0.12 — every enemy kind is a target; only grunts drop a weapon (15%: the designer); every kill drops coins.
+// Update 0.0.16 — a Yeti (the brute) drops its room's key: one per room, whichever Yeti dies first (the designer).
 import { Vector3 } from 'three';
 import { ENEMIES } from '../../tuning/enemies';
 import { FEEDBACK } from '../../tuning/combat';
@@ -8,7 +9,8 @@ import { enemyAxis, hitEnemy, isLive, radiusOf } from '../enemies/enemy';
 import { dropWeapon } from '../weapons/weapons';
 import { ENEMY_STATS } from '../enemies/kinds';
 import { burstCoins } from './coins';
-import { damageFactor } from '../items/items';
+import { damageFactor, keyFor } from '../items/items';
+import { dropItem } from '../items/drops';
 import { hitDummy } from './dummy';
 import { segmentDistance } from './geometry';
 import type { CombatEvent, CombatState } from './state';
@@ -89,6 +91,10 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   if (t.kind !== 'enemy') return true;
   const e = state.enemies[t.index];
   if (e.kind === 'grunt' && state.rng() < ENEMIES.v.gruntDrop) dropWeapon(state.pickups, 'sword', e.pos, state.events);
+  if (e.kind === 'brute' && state.keyDrops > 0) {
+    state.keyDrops--;
+    dropItem(state.drops, keyFor(state.rng()), e.pos, state.events);
+  }
   // Update 0.0.12 — its coins burst out (any the pool can't hold go straight to your money).
   state.money += burstCoins(state.coins, e.pos, ENEMY_STATS[e.kind]().coins, state.rng);
   return true;
