@@ -66,7 +66,7 @@ export interface DungeonRun {
 export const FIRST_WAVE = 0.7;
 /** Enemies never appear closer to you than this, if the room has room (m). */
 const SPAWN_CLEAR = 6;
-export { buyWave, roomBudget } from './wavePlan';
+export { buyWave, roomCount } from './wavePlan';
 
 export function createDungeonRun(level: DungeonLevel): DungeonRun {
   return {

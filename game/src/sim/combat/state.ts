@@ -16,6 +16,7 @@ import { createEnemies, Enemy } from '../enemies/enemy';
 import { Coin, createCoins } from './coins';
 import { Quake, clearQuakes, createQuakes } from './quakes';
 import { Bomb, clearBombs, createBombs } from './bombs';
+import { createExecution, Execution } from './execution';
 import { createDrops, Drop } from '../items/drops';
 import { Bonuses, createBonuses } from '../items/bonuses';
 import { createBag } from '../weapons/slots';
@@ -153,6 +154,11 @@ export type CombatEvent =
   | 'dragonBomb'
   | 'bombBlast'
   | 'dragonBurst'
+  // Update 0.1.1 — an execution: the grab (value = the enemy's slot), each slam (value = which), the throw, the landing.
+  | 'execGrab'
+  | 'execSlam'
+  | 'execThrow'
+  | 'execLand'
   // M2 — weapons: picked up (value = its uses), dropped, worn out, a throw begun and let go, broken on impact, back
   // on the stand.
   | 'pickup'
@@ -195,8 +201,13 @@ export interface CombatState {
   coins: Coin[];
   /** Update 0.0.13 — keys and rings you carry. */
   items: Inventory;
-  /** Update 0.1.0 — the Execution Power meter (0..1: kills fill it). */
+  /** Update 0.1.0 — the Execution Power meter (0..1: kills fill it). Update 0.1.1 — an execution under way, and the
+   *  enemy you could execute now (−1: none). */
   execution: number;
+  exec: Execution;
+  execTarget: number;
+  /** Update 0.1.1 — the Lab's Meter: the Execution Power meter kept full. */
+  fullMeter: boolean;
   /** Update 0.0.16 — items on the floor, and the keys the room you're fighting in still gives (a Yeti drops one). */
   drops: Drop[];
   keyDrops: number;
@@ -243,6 +254,9 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     coins: createCoins(),
     items: createInventory(),
     execution: 0,
+    exec: createExecution(),
+    execTarget: -1,
+    fullMeter: false,
     drops: createDrops(),
     keyDrops: 0,
     hitStop: new HitStop(),
@@ -277,6 +291,8 @@ export function resetCombat(state: CombatState, arena: Arena) {
   for (const c of state.coins) c.alive = false;
   state.items = createInventory();
   state.execution = 0;
+  state.exec.active = false;
+  state.execTarget = -1;
   for (const d of state.drops) d.alive = false;
   state.keyDrops = 0;
   stockStands(state);

@@ -16,7 +16,8 @@ import { createCombat } from '../src/sim/combat/state';
 import { createFlow, updateFlow } from '../src/sim/enemies/chase';
 import { hitEnemy, isLive } from '../src/sim/enemies/enemy';
 import { GRID_RADIUS } from '../src/sim/enemies/kinds';
-import { buyWave, createDungeonRun, roomBudget, stepRooms, FIRST_WAVE } from '../src/sim/dungeon/roomLoop';
+import { buyWave, createDungeonRun, roomCount, stepRooms, FIRST_WAVE } from '../src/sim/dungeon/roomLoop';
+import { MINI_BOSSES } from '../src/sim/enemies/kinds';
 import { ROOMS } from '../src/tuning/rooms';
 import { createPlayer } from '../src/sim/player/state';
 import { buildDungeon } from '../src/world/dungeon/assemble';
@@ -223,10 +224,23 @@ section('Dungeon — the room loop');
   check('the way down stays shut while the boss lives (test-boss.ts opens it)', !run.exited && !seen.includes('floorExit'));
 }
 {
-  const a = roomBudget(1, 1);
-  const b = roomBudget(5, 1);
-  const c = roomBudget(1, 3);
-  check('deeper rooms and lower floors bring more', b.budget > a.budget && c.budget > a.budget);
+  // Update 0.1.1 (the designer: floor 1 starts at 8 and then 11; floor 2 at 11 then 14, and so on) — counts, not budgets.
+  check('floor 1: 8, 11, 14, 17, 20 enemies along the way', [1, 2, 3, 4, 5].map((d) => roomCount(d, 1)).join() === '8,11,14,17,20');
+  check('floor 2 starts at 11, then 14; floor 3 at 14', roomCount(1, 2) === 11 && roomCount(2, 2) === 14 && roomCount(1, 3) === 14);
+  let off = '';
+  let bigs = 0;
+  for (let seed = 1; seed <= 12; seed++) {
+    for (const floor of [1, 2, 3]) {
+      for (const r of planFloor(seed, floor).rooms) {
+        if (r.kind !== 'fight') continue;
+        const n = r.waves.flat().length;
+        if (n !== roomCount(r.depth, floor)) off ||= `seed ${seed} floor ${floor} room ${r.index}: ${n}, not ${roomCount(r.depth, floor)}`;
+        bigs = Math.max(bigs, r.waves.flat().filter((k) => MINI_BOSSES.includes(k)).length);
+      }
+    }
+  }
+  check('every fight room sends exactly its count (floor 3’s perched spitters among them)', !off, off);
+  check(`never more than ${ROOMS.v.bigMax} mini bosses in a room`, bigs <= ROOMS.v.bigMax, `${bigs}`);
   const early = buyWave(20, 1, 1, createRng(1));
   check('no brutes in the first rooms of floor 1', !early.includes('brute'));
   // (Update 0.0.18 — floor 2 has no brutes: floor 1's last room.)

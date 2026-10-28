@@ -49,6 +49,7 @@ Status: built (2026-10-28), from the designer's list:
 - **Heal** fills your health and ends poison.
 - **Waves** switches the Feel Lab's own waves on or off.
 - **God** switches invincibility on or off (as F4 does).
+- **Meter** (Update 0.1.1, the designer: "max execution gauge, only inside the Lab") keeps the Execution Power meter full. It's on at first, works only in the Lab and the rooms and floors started from it, never in a normal run.
 
 **Also fixed on the way:** items on the floor are now drawn outside the dungeon too. Kill bonuses dropped in the Feel Lab were invisible.
 

@@ -3,6 +3,8 @@
 // kind appear in front of you (several side by side), facing you; an item or a kill bonus falls at your feet; a weapon
 // lies in front of you; a chest stands in front of you, its lid towards you; Clear takes every enemy, shot and thing
 // on the floor away; Heal fills your health and ends poison. Pure.
+// Update 0.1.1 — Meter (the designer: "max execution gauge, only inside the Lab"): on, the Execution Power meter stays
+// full.
 import { Vector3 } from 'three';
 import type { CombatState } from '../combat/state';
 import { clearQuakes } from '../combat/quakes';
@@ -22,7 +24,8 @@ export type LabCommand =
   | { kind: 'weapon'; weapon: WeaponKind }
   | { kind: 'chest' }
   | { kind: 'clear' }
-  | { kind: 'heal' };
+  | { kind: 'heal' }
+  | { kind: 'meter'; on: boolean };
 
 /** How far in front of you (m) things appear: an enemy by its size (a boss further), items, a weapon, a chest. */
 const AHEAD = { small: 7, large: 10, air: 8, boss: 16, item: 2.5, weapon: 2.5, chest: 3 };
@@ -84,5 +87,9 @@ export function runLab(cmd: LabCommand, state: CombatState, player: PlayerState,
       player.hp = maxHpOf(player);
       player.poison = 0;
       return 1;
+    case 'meter':
+      state.fullMeter = cmd.on;
+      if (cmd.on) state.execution = 1;
+      return 0;
   }
 }

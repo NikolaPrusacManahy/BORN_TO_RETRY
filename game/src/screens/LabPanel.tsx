@@ -14,6 +14,8 @@ interface Props {
   /** In a boss room or on a floor started from the Lab. */
   away: boolean;
   waves: boolean;
+  /** Update 0.1.1 — the Execution Power meter kept full. */
+  meter: boolean;
   god: boolean;
   /** `stay`: keep the panel open (shift-click). */
   onCommand(cmd: LabCommand, stay: boolean): void;
@@ -21,6 +23,7 @@ interface Props {
   onFloor(floor: number): void;
   onBack(): void;
   onWaves(): void;
+  onMeter(): void;
   onGod(): void;
 }
 
@@ -63,7 +66,7 @@ const FLOORS = [1, 2, 3];
 /** The count picked last (kept between openings). */
 let lastCount = 1;
 
-export function LabPanel({ away, waves, god, onCommand, onBossRoom, onFloor, onBack, onWaves, onGod }: Props) {
+export function LabPanel({ away, waves, meter, god, onCommand, onBossRoom, onFloor, onBack, onWaves, onMeter, onGod }: Props) {
   const [count, setCount] = useState(lastCount);
   const pick = (n: number) => {
     lastCount = n;
@@ -151,6 +154,9 @@ export function LabPanel({ away, waves, god, onCommand, onBossRoom, onFloor, onB
             </button>
             <button className={`rb-lab-btn is-tool${god ? ' is-on' : ''}`} onClick={onGod}>
               God
+            </button>
+            <button className={`rb-lab-btn is-tool${meter ? ' is-on' : ''}`} onClick={onMeter}>
+              Meter
             </button>
             {away && (
               <button className="rb-lab-btn is-tool" onClick={onBack}>

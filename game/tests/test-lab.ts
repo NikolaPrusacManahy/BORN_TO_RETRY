@@ -18,6 +18,9 @@ import { emptyTreasure, stepTreasure } from '../src/sim/dungeon/treasure';
 import { isLive } from '../src/sim/enemies/enemy';
 import { updateEnemies } from '../src/sim/enemies/update';
 import { LAB_CHESTS, runLab } from '../src/sim/lab/labCommands';
+import { heldFor } from '../src/sim/combat/execution';
+import { spawnEnemy } from '../src/sim/enemies/enemy';
+import { EXECUTION } from '../src/tuning/execution';
 import { maxHpOf } from '../src/sim/player/health';
 import { createPlayer } from '../src/sim/player/state';
 import { devKeyAction } from '../src/state/devTools';
@@ -53,6 +56,32 @@ section('Lab — enemies on demand');
   const before = snakes.map(far);
   for (let i = 0; i < ticks(0.5); i++) updateEnemies(c.enemies, p, c, OPEN_WORLD, DT);
   check('and they come for you', isLive(dragon!) && snakes.every((e, i) => far(e) < before[i] - 1));
+}
+
+section('Lab — Meter: the Execution Power meter kept full (Update 0.1.1)');
+{
+  const { c, p, t } = fresh();
+  const step = (secs: number, press = false) => {
+    for (let k = 0; k < ticks(secs); k++) {
+      const i = emptyCombatIntent();
+      i.interactPressed = press && k === 0;
+      stepCombat(c, p, i, new FlatWorld(), DT);
+      c.events.clear();
+      c.hitStop.remaining = 0;
+    }
+  };
+  check('a fight starts with it empty (and so does every run)', c.execution === 0 && !c.fullMeter);
+  runLab({ kind: 'meter', on: true }, c, p, YAW, t);
+  check('Meter on: it’s full at once', c.execution === 1);
+  spawnEnemy(c.enemies, 'snake', new THREE.Vector3(p.pos.x, 0, p.pos.z - 1.8), 0);
+  step(DT, true);
+  check('E: you execute a snake with it…', c.exec.active);
+  step(heldFor() + EXECUTION.v.flight + 0.1);
+  check('…and once it’s done the meter is full again', !c.exec.active && c.execution === 1);
+  runLab({ kind: 'meter', on: false }, c, p, YAW, t);
+  c.execution = 0;
+  step(0.2);
+  check('Meter off: it’s no longer kept full', c.execution === 0);
 }
 
 section('Lab — items, weapons and chests');

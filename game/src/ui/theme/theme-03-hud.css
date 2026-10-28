@@ -18,19 +18,20 @@
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
 }
 
+/* Update 0.1.1 — twice the size (the designer). */
 .rb-hud-dash {
   position: absolute;
   left: 50%;
   bottom: 42px;
   transform: translateX(-50%);
   display: flex;
-  gap: 6px;
+  gap: 12px;
 }
 
 .rb-hud-pip {
   --fill: 1;
-  width: 46px;
-  height: 7px;
+  width: 92px;
+  height: 14px;
   transform: skewX(-20deg);
   background: linear-gradient(90deg, #4fc3ff calc(var(--fill) * 100%), rgba(255, 255, 255, 0.14) calc(var(--fill) * 100%));
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);

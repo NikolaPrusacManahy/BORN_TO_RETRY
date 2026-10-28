@@ -37,5 +37,6 @@ import './test-lab';
 import './test-lava';
 import './test-floor3';
 import './test-execution';
+import './test-exec-grip';
 
 process.exit(summary() > 0 ? 1 : 0);

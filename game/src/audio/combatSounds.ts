@@ -6,7 +6,8 @@
 // Update 0.0.16 — a key switched (a click), a key falling to the floor (a clink), a chest's rarity as its lid comes up
 // (a chime: nothing for common, one note more for each rarity above it).
 // Update 0.0.17 — a kill bonus taken (its own sound each), a hit that freezes (a crack of ice), a weapon swap (a draw).
-// Update 0.0.18 — floor 2's enemies are in foeSounds.ts, its boss in dragonSounds.ts.
+// Update 0.0.18 — floor 2's enemies are in foeSounds.ts, its boss in dragonSounds.ts. Update 0.1.1 — executions in
+// execSounds.ts.
 import type { CombatEvent } from '../sim/combat/state';
 import { FISTS } from '../tuning/combat';
 import { ENEMIES } from '../tuning/enemies';
@@ -15,6 +16,7 @@ import type { AudioEngine } from './audio';
 import { playBoss } from './bossSounds';
 import { playDragon } from './dragonSounds';
 import { playFoes2 } from './foeSounds';
+import { playExec } from './execSounds';
 import { noise, tone } from './synth';
 
 /** Sounds from far targets are quieter (m at which they're half as loud). */
@@ -242,7 +244,7 @@ export class CombatSounds {
         tone(a, { from: 1320, to: 2640, dur: 0.35, gain: 0.08, type: 'triangle' });
         break;
       default:
-        if (!playFoes2(a, kind, value, far) && !playDragon(a, kind, value, far)) playBoss(a, kind, value, far);
+        if (!playFoes2(a, kind, value, far) && !playDragon(a, kind, value, far) && !playExec(a, kind, value, far)) playBoss(a, kind, value, far);
         break;
     }
   }

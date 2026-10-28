@@ -1,12 +1,12 @@
 /* Update 0.1.0 — the Execution Power meter: a thin crimson bar just above the dash charges, as wide as they are, filling
-   with kills; full, it burns brighter and pulses. */
+   with kills; full, it burns brighter and pulses. Update 0.1.1 — twice the size, as the dash charges are now. */
 .rb-hud-exec {
   --fill: 0;
   position: absolute;
   left: 50%;
-  bottom: 56px;
-  width: 150px;
-  height: 5px;
+  bottom: 66px;
+  width: 300px;
+  height: 10px;
   transform: translateX(-50%) skewX(-20deg);
   background: rgba(255, 255, 255, 0.12);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);

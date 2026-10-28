@@ -11,7 +11,8 @@
 // death, the gate shot; the way down is the dark beyond the wooden gate, faded to black, the next floor's name after.
 // Update 0.0.19 — the Lab: every level has its treasure (the Lab's starts empty: its panel adds chests; items on the
 // floor show there too), the Lab's waves can be off, the world holds still while its panel is open, and its panel's
-// commands (sim/lab/labCommands.ts).
+// commands (sim/lab/labCommands.ts). Update 0.1.1 — an execution holds you (no moving, fighting or looking) while the
+// view follows the body and the fists grip it (execView.ts).
 import * as THREE from 'three';
 import { FixedStep } from '../core/fixedStep';
 import type { FrameStats } from '../core/frameStats';
@@ -27,6 +28,8 @@ import { AIM_HEIGHT } from '../sim/combat/turret';
 import { stepRooms } from '../sim/dungeon/roomLoop';
 import { emptyTreasure, stepTreasure, Treasure } from '../sim/dungeon/treasure';
 import { lavaStep } from '../sim/dungeon/lava';
+import { execHeld } from '../sim/combat/execution';
+import { followHeld } from './execView';
 import { LabCommand, runLab } from '../sim/lab/labCommands';
 import { hpBonusOf, KeyKind, speedFactor } from '../sim/items/items';
 import { hasteFactor } from '../sim/items/bonuses';
@@ -204,7 +207,7 @@ export class Run {
       this.prev.copy(p.pos);
       const wasGrounded = p.grounded;
       // The dead don't steer or punch; nor does anyone during the boss room's show.
-      const free = !p.dead && !this.show.locked;
+      const free = !p.dead && !this.show.locked && !execHeld(this.combat.exec);
       readPlayerIntent(input, this.look, this.intent, free);
       readCombatIntent(input, this.look, this.combatIntent, free);
       updateHealth(p, stepDt);
@@ -243,7 +246,7 @@ export class Run {
     const locked = input.locked;
     // Update 0.0.13 — kneeling at a chest, the view turns to it and the mouse waits (and during the boss room's show).
     const kneeling = p.kneel > 0;
-    const still = kneeling || this.show.locked;
+    const still = kneeling || this.show.locked || execHeld(this.combat.exec);
     const mouseDx = locked && !still ? input.mouseDX : 0;
     const mouseDy = locked && !still ? input.mouseDY : 0;
     if (locked && !still) this.look.apply(mouseDx, mouseDy, settings);
@@ -273,6 +276,7 @@ export class Run {
     tv.update(this.combat, this.camera.position, gameDt);
     this.arms.chest.update(tv.reach.k, tv.reach.left, tv.reach.right, this.camera, this.arms.camera);
     this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt, this.clock.alpha);
+    followHeld(this.combat.exec, execHeld(this.combat.exec), this.look, this.arms, this.camera, real);
     const d = this.level.dungeon;
     if (d) this.view.update?.(gameDt, d, this.camera.position);
     const f = this.combat.fists;

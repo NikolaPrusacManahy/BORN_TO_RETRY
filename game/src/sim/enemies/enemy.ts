@@ -11,7 +11,7 @@
 // (the beam burns them).
 // Update 0.0.21 — the Dragon up in the sky (a phase of its own: it doesn't fall), its fire bombs, and how long you've
 // stayed close to it. A perched enemy (a spitter on a high ledge, floor 3) stands on its ledge: it falls only to it,
-// and hits don't slide it off.
+// and hits don't slide it off. Update 0.1.1 — held in an execution (its own phase: the execution places it).
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
@@ -25,7 +25,7 @@ import type { PlayerState } from '../player/state';
 import type { Flow } from './chase';
 import { ENEMY_STATS, EnemyKind, flies, SizeClass } from './kinds';
 
-export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive' | 'charge' | 'stun' | 'roar' | 'intro' | 'breath' | 'sky';
+export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive' | 'charge' | 'stun' | 'roar' | 'intro' | 'breath' | 'sky' | 'held';
 
 export interface Enemy {
   /** The slot is in use (a live enemy, or a body still lying there). */
@@ -207,7 +207,7 @@ export function beginTick(e: Enemy, nav: NavGrid, dt: number): boolean {
     return false;
   }
   // A walker in the air with no leap to carry it (knocked out of one) falls.
-  if (!flies(e.kind) && e.phase !== 'leap' && e.phase !== 'sky' && e.pos.y > e.perch) {
+  if (!flies(e.kind) && e.phase !== 'leap' && e.phase !== 'sky' && e.phase !== 'held' && e.pos.y > e.perch) {
     e.vel.y -= FALL * dt;
     e.pos.y = Math.max(e.perch, e.pos.y + e.vel.y * dt);
     if (e.pos.y === e.perch) e.vel.y = 0;
@@ -254,10 +254,10 @@ export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, 
 export function separateEnemies(enemies: Enemy[], nav: Record<SizeClass, NavGrid>) {
   for (let i = 0; i < enemies.length; i++) {
     const a = enemies[i];
-    if (!isLive(a)) continue;
+    if (!isLive(a) || a.phase === 'held') continue;
     for (let j = i + 1; j < enemies.length; j++) {
       const b = enemies[j];
-      if (!isLive(b) || Math.abs(a.pos.y - b.pos.y) > LEVELS_APART) continue;
+      if (!isLive(b) || b.phase === 'held' || Math.abs(a.pos.y - b.pos.y) > LEVELS_APART) continue;
       const min = radiusOf(a) + radiusOf(b);
       const dx = b.pos.x - a.pos.x;
       const dz = b.pos.z - a.pos.z;
@@ -285,7 +285,7 @@ const PUSH_PASSES = 3;
 export function pushPlayerOut(player: PlayerState, enemies: Enemy[], world: CollisionWorld, radius: number, out: MoveResult) {
   for (let pass = 0; pass < PUSH_PASSES; pass++) {
     for (const e of enemies) {
-      if (!isLive(e)) continue;
+      if (!isLive(e) || e.phase === 'held') continue;
       const min = radiusOf(e) + radius;
       const dx = player.pos.x - e.pos.x;
       const dz = player.pos.z - e.pos.z;

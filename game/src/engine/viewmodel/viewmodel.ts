@@ -6,6 +6,7 @@
 // Update 0.0.13 — kneeling at a chest, both fists reach for the lid and lift it (chestReach.ts); a held weapon is put
 // out of sight meanwhile.
 // Update 0.0.16 — in front of a chest, the left hand comes up palm open with the key you'll use (palm.ts).
+// Update 0.1.1 — in an execution, both hands hold the tail (heldGrip.ts), wrists bent to the grip.
 import * as THREE from 'three';
 import { ARMS } from '../../tuning/arms';
 import type { PlayerState } from '../../sim/player/state';
@@ -14,6 +15,7 @@ import { ArmPose, ArmsRig } from './armsRig';
 import { ArmsAnim, PunchStyle } from './armsAnim';
 import { mixArm, pose, PREVIEW_PITCH, viewToModel } from './armsMath';
 import { ChestReach } from './chestReach';
+import { HeldGrip } from './heldGrip';
 import { FORWARD, GUARD, REST_BACK, Side } from './guard';
 import { KeyPalm } from './palm';
 import { SwordAnim, SwordMove } from './swordAnim';
@@ -39,6 +41,7 @@ export class Viewmodel {
   readonly anim = new ArmsAnim();
   readonly swordAnim = new SwordAnim();
   readonly chest = new ChestReach();
+  readonly grip = new HeldGrip();
   readonly palm = new KeyPalm();
   private readonly reachPose = pose();
   private readonly knuckleL = new THREE.Vector3();
@@ -180,14 +183,14 @@ export class Viewmodel {
     if (!rig) return;
     // The holder puts the model's eye at the camera.
     this.holder.position.add(this.toStrike.set(rig.eye.x, -rig.eye.y, rig.eye.z));
-    const reach = this.chest.weight;
-    if (reach > 0) this.chest.aimed();
+    const reach = Math.max(this.chest.weight, this.grip.weight);
+    if (this.chest.weight > 0) this.chest.aimed();
     const armed = smooth(this.armedVis) * (1 - reach);
     const palm = this.palm.mix;
     const left = this.poseArm(rig, 'L', this.chargeVis, charge >= 1, armed * (1 - palm));
     if (palm > 0) mixArm(left, this.palm.pose(rig), palm, left);
     if (reach > 0) this.toChest(rig, 'L', left, reach);
-    rig.apply('L', left, v.wristBend + (1 - v.wristBend) * palm);
+    rig.apply('L', left, v.wristBend + (1 - v.wristBend) * Math.max(palm, this.grip.weight));
     rig.openHand('L', palm);
     const right = this.poseArm(rig, 'R', this.chargeVis, charge >= 1, armed);
     if (armed > 0) {
@@ -196,7 +199,7 @@ export class Viewmodel {
       rig.apply('R', right, v.wristBend + (1 - v.wristBend) * armed, this.elbow);
     } else {
       if (reach > 0) this.toChest(rig, 'R', right, reach);
-      rig.apply('R', right);
+      rig.apply('R', right, v.wristBend + (1 - v.wristBend) * this.grip.weight);
     }
     if (this.weapon) {
       this.weapon.visible = reach < 0.2;
@@ -205,7 +208,7 @@ export class Viewmodel {
     }
     this.camera.updateMatrixWorld(true);
     this.palm.place(rig);
-    if (reach > 0) this.chest.settle(this.camera.worldToLocal(rig.knuckle('L', this.knuckleL)), this.camera.worldToLocal(rig.knuckle('R', this.knuckleR)));
+    if (this.chest.weight > 0) this.chest.settle(this.camera.worldToLocal(rig.knuckle('L', this.knuckleL)), this.camera.worldToLocal(rig.knuckle('R', this.knuckleR)));
   }
 
   /** The fists' pose for one arm. `charge`: how far the right fist is drawn back (0..1); `ready`: the charge is full
@@ -245,6 +248,7 @@ export class Viewmodel {
   private toChest(rig: ArmsRig, side: Side, out: ArmPose, k: number) {
     const r = this.reachPose;
     this.camera.updateMatrixWorld(true);
+    if (this.grip.weight > 0) return mixArm(out, this.grip.pose(rig, side, this.holder, this.camera, r), smooth(k), out);
     this.holder.worldToLocal(this.camera.localToWorld(r.fist.copy(this.chest.aim[side])));
     r.knuckles.subVectors(r.fist, rig.between).normalize();
     r.back.set(0, 1, 0);

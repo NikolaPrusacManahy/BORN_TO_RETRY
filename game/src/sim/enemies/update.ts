@@ -62,7 +62,8 @@ export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWor
   if (air) updateFlow(w.flow.air, w.nav.air, player.pos.x, player.pos.z);
   for (let i = 0; i < enemies.length; i++) {
     const e = enemies[i];
-    if (beginTick(e, w.nav[ENEMY_STATS[e.kind]().size], dt)) UPDATE[e.kind](e, i, player, w, dt, world);
+    // (Update 0.1.1 — one held in an execution is placed by it.)
+    if (beginTick(e, w.nav[ENEMY_STATS[e.kind]().size], dt) && e.phase !== 'held') UPDATE[e.kind](e, i, player, w, dt, world);
     else if (e.alive && e.phase === 'dead') DOOM[e.kind]?.(e, i, w);
   }
   separateEnemies(enemies, w.nav);

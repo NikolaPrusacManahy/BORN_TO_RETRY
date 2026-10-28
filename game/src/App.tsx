@@ -57,6 +57,7 @@ export default function App() {
   const [labOpen, setLabOpen] = useState(false);
   const labRef = useRef(false);
   const [labWaves, setLabWaves] = useState(false);
+  const [labMeter, setLabMeter] = useState(true);
   /** Re-draws the panel when invincibility is switched (it's a knob, not React state). */
   const [, setGodTick] = useState(0);
   const view = useRef<GameHandle>(null);
@@ -134,6 +135,7 @@ export default function App() {
       g.setLabHold(open);
       if (open) {
         setLabWaves(g.labWavesOn);
+        setLabMeter(g.labMeterOn);
         g.unlock();
         return;
       }
@@ -309,6 +311,7 @@ export default function App() {
         <LabPanel
           away={getGame()?.labAway ?? false}
           waves={labWaves}
+          meter={labMeter}
           god={LAB.v.god >= 1}
           onCommand={labCommand}
           onBossRoom={(kind) => {
@@ -326,6 +329,10 @@ export default function App() {
           onWaves={() => {
             getGame()?.setLabWaves(!labWaves);
             setLabWaves(!labWaves);
+          }}
+          onMeter={() => {
+            getGame()?.setLabMeter(!labMeter);
+            setLabMeter(!labMeter);
           }}
           onGod={() => {
             setKnob(LAB, 'god', LAB.v.god >= 1 ? 0 : 1);

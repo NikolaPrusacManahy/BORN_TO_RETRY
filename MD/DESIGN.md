@@ -115,7 +115,12 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 - Money resets at the end of every run.
 
 - **Constant pressure (Update 0.1.0, the designer):** a fight room never lets its field fall under 5 enemies while it has more to send: its first wave (at least 5), then one more each time one falls, until its plan is spent.
-- **Execution Power meter (Update 0.1.0, the designer):** a bar just above the dash charges, filled by kills (10 to fill). What it pays for is to come.
+- **Execution Power meter (Update 0.1.0, the designer):** a bar just above the dash charges, filled by kills (10 to fill). Update 0.1.1: twice the size, with the dash charges.
+- **Executions (Update 0.1.1, the designer: like Doom Eternal's):** with the meter full, **E** near an enemy you can execute (it pulses crimson; within 2.6 m, 60° of where you look) grabs it and empties the meter. Only the snake so far:
+  - Both hands seize its tail (like a rope or a bat: left hand on the tip, right beside it, arms never crossed), slam it into the floor ahead, swing it round your right and slam it there, then throw it 9 m ahead (short of a wall).
+  - Until you let go you can't be hurt and the world holds still; your view is turned with the moves.
+  - It dies where it lands (its kill doesn't refill the meter); enemies within 2.5 m take 40 and are knocked back.
+  - Spec: `MD_UPDATES/U011_EXECUTION.md`. **(placeholders)**
 - **Enemies left (Update 0.0.21, the designer):** in a fight, a skull and the number of enemies left (alive and still to come), top middle.
 
 ## 8. Shop and chests (Update 0.0.13, the designer)
@@ -199,7 +204,7 @@ Arenas are **hand-made templates assembled from a seed**, not random geometry, b
 1. **Room pool (Update 0.0.12):** nine hand-made fight rooms (colonnade, crossfire, altar, spike hall, ledges, maze, arena, twin, crypt), a start room and an exit room (Update 0.0.15: the boss room, 60 m square), drawn as text layouts on a 2 m grid and built from the Modular Dungeon Pack (parts 1 and 2: we're in dungeons). No room twice on a floor. **Update 0.0.13 (the designer): the fight rooms are twice the size** (24–36 cells, 48–72 m a side), with more long walls to wall-run and hide behind; the shop room.
 2. **Variation per room:** mirroring and quarter turns, optional cover on or off, and where enemies appear, all chosen from the seed.
 3. **The floor plan:** rooms on a 5 × 5 board; the way and its side rooms laid out from the seed; 4 m corridors join arched doorways in the middle of the walls.
-4. **Enemy budget:** each room has a budget that grows with how deep the room is and the floor number (Update 0.0.13: 6 + 3 × depth + 4 × (floor − 1), in 2 waves, 3 from 18), spent from a weighted table and split into waves. Costs: grunt 1, spitter 2, leaper 2, stinger 2, wraith 3, brute 4. On floor 1 the leaper and the stinger come from the second room, the wraith and the brute from the third. **(placeholders)**
+4. **Enemies per room (Update 0.1.1, the designer; was a point budget):** a fight room sends **8 + 3 per room deeper + 3 per floor down** (floor 1: 8, 11, 14…; floor 2: 11, 14…; floor 3: 14, 17…), drawn from a weighted table (the cheap kinds more often), at most 2 mini bosses, in 2 waves (3 from 18). On floor 1 the leaper and the stinger come from the second room, the wraith and the brute from the third. **(placeholders)**
 5. **Rewards:** one shop per floor and one or two chests (Update 0.0.13); reward rooms drawn from a weighted table **(later)**.
 6. **Same seed, same run.** The seed shows on the run summary, so daily or shared-seed runs are easy later.
 

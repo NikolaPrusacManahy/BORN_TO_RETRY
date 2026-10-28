@@ -8,6 +8,8 @@
 // Update 0.0.16 — you take an item on the floor by walking over it.
 // Update 0.0.17 — weapon slots (the number keys; a weapon picked up goes into the next free one), green rings' quicker
 // attacks, kill bonuses counting down.
+// Update 0.1.1 — E near an enemy you can execute (the meter full) executes it (before picking up a weapon); while you
+// hold it, nothing else moves.
 import { Vector3 } from 'three';
 import type { Spot } from '../../world/arena';
 import type { CollisionWorld } from '../collisionWorld';
@@ -31,6 +33,7 @@ import { updateBonuses } from '../items/bonuses';
 import { attackRate } from '../items/items';
 import { emptyHand, giveWeapon, selectSlot, settleHand } from '../weapons/slots';
 import type { CombatState } from './state';
+import { execHeld, execTarget, stepExecution, tryExecute } from './execution';
 import { updateTurret } from './turret';
 
 const eye = new Vector3();
@@ -46,7 +49,17 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   if (player.kneel > 0) intent = IDLE;
   settleHand(state);
   const throwing = state.weapon !== null && state.weapon.throwing >= 0;
-  if (intent.interactPressed && !throwing) {
+  if (state.fullMeter) state.execution = 1;
+  state.execTarget = execTarget(state, player, intent.yaw);
+  const executing = intent.interactPressed && !throwing && tryExecute(state, player, intent.yaw, intent.pitch);
+  if (execHeld(state.exec)) {
+    // The world holds still while you hold it.
+    stepExecution(state, dt);
+    state.money = updateCoins(state.coins, player, state.money, events, dt);
+    return;
+  }
+  stepExecution(state, dt);
+  if (intent.interactPressed && !throwing && !executing) {
     const got = tryPickup(state.pickups, state.stands, player, events);
     if (got) giveWeapon(state, got, player.pos);
   }

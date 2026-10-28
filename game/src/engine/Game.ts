@@ -58,6 +58,8 @@ export class Game {
   private inLab = false;
   /** Update 0.0.19 — the Lab's waves (the Feel Lab's knobs) are on. */
   private labWaves = false;
+  /** Update 0.1.1 — the Lab's Meter: its Execution Power meter kept full (on at first; never outside the Lab). */
+  private labMeter = true;
   private readonly levels: Levels = {
     fresh: () => (this.inLab ? labLevel() : dungeonLevel(newSeed(), 1)),
     next: (l: Level) => (this.inLab && l.bossRoom ? labLevel() : dungeonLevel(l.seed, l.floor + 1)),
@@ -185,6 +187,10 @@ export class Game {
     return this.labWaves;
   }
 
+  get labMeterOn(): boolean {
+    return this.labMeter;
+  }
+
   /** Update 0.0.19 — the Lab's panel asked for something. */
   labCommand(cmd: LabCommand) {
     if (this.lab) this.run?.labCommand(cmd);
@@ -210,6 +216,11 @@ export class Game {
     if (this.run && this.inLab) this.run.waves = on;
   }
 
+  setLabMeter(on: boolean) {
+    this.labMeter = on;
+    if (this.inLab) this.run?.labCommand({ kind: 'meter', on });
+  }
+
   /** Update 0.0.19 — the world holds still (the Lab's panel is open). */
   setLabHold(on: boolean) {
     if (this.run) this.run.hold = on;
@@ -219,6 +230,7 @@ export class Game {
     this.run?.dispose();
     this.run = new Run(level, this.audio, this.renderer, this.hud, this.cb, this.levels);
     this.run.waves = !this.inLab || this.labWaves;
+    if (this.inLab) this.run.labCommand({ kind: 'meter', on: this.labMeter });
   }
 
   /** F9 (dev): swap between the Feel Lab and a fresh dungeon run. */
