@@ -8,12 +8,14 @@ export function devToolsEnabled(isDev: boolean): boolean {
 
 /** Which dev panel a key opens or closes (null: not a dev key). F1 has ` as a fallback, because some
  *  browsers open their help page on F1. */
-export function devKeyAction(code: string): 'tuning' | 'debug' | 'respawn' | 'god' | 'lab' | null {
+export function devKeyAction(code: string): 'tuning' | 'debug' | 'respawn' | 'god' | 'lab' | 'labPanel' | null {
   if (code === 'F1' || code === 'Backquote') return 'tuning';
   if (code === 'F2') return 'debug';
   if (code === 'F3') return 'respawn';
   if (code === 'F4') return 'god';
   // Update 0.0.12 — Play starts the dungeon; F9 swaps to the Feel Lab (and back).
   if (code === 'F9') return 'lab';
+  // Update 0.0.19 — F8 opens the Lab's panel (in the Lab).
+  if (code === 'F8') return 'labPanel';
   return null;
 }

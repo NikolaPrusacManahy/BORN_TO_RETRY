@@ -4,6 +4,7 @@
 // back. Stepping into the dark fades to black; the next floor loads under it and its name shows as the black clears.
 // What the HUD shows of all this (the letterbox, the boss's name card and health bar, the black, the floor's name).
 // Update 0.0.18 — each floor's boss its name; the Dragon's scream in its stance shakes the view.
+// Update 0.0.19 — a boss brought into the Lab shows its name and health bar too.
 import * as THREE from 'three';
 import { BossBeat, introBeats } from '../../sim/dungeon/bossRoom';
 import type { DungeonRun } from '../../sim/dungeon/roomLoop';
@@ -91,7 +92,10 @@ export class BossShow {
     const h = this.hud;
     h.cine = h.card = false;
     h.bossHp = -1;
-    if (!run || !this.cinema) return out;
+    if (!run || !this.cinema) {
+      this.labBoss(combat);
+      return out;
+    }
     const b = run.boss;
     camera.getWorldDirection(dir);
     eye.copy(camera.position);
@@ -130,6 +134,15 @@ export class BossShow {
       out.descend = this.exiting >= CINEMA.v.floorFade;
     } else h.veil = false;
     return out;
+  }
+
+  /** A boss fought outside a boss room (the Lab): its name and health. */
+  private labBoss(combat: CombatState) {
+    const boss = bossIn(combat);
+    if (!boss || boss.phase === 'dead') return;
+    this.hud.bossName = BOSS_NAMES[boss.kind] ?? BOSS_NAME;
+    this.hud.bossTitle = '';
+    this.hud.bossHp = Math.max(0, boss.hp / ENEMY_STATS[boss.kind]().hp);
   }
 
   /** Update 0.0.18 — the Dragon screams as it takes its stance: the view shakes, hardest mid-scream. */

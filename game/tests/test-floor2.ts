@@ -2,10 +2,15 @@
 // range, the Snake's bite and the Wasp's sting poison you, and the big ones, the Spider (leaps, bites) and the Blue
 // Demon (charges, throws fire), carry their room's key. Poison eats your health a while, past your shield. Floor 2
 // sends its own kinds. Shop prices: 50 / 70 / 100 by grade, 15% more on every floor down.
+import * as THREE from 'three';
 import { Vector3 } from 'three';
 import { check, near, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
 import { arenaWorld, OPEN_ARENA, OPEN_WORLD } from './fakes/enemyWorld';
+import { parseUntextured } from './fakes/glb';
+import { skinnedBounds } from '../src/engine/bodyMeasure';
+import { EnemiesView } from '../src/engine/enemiesView';
+import { ENEMY_STATS } from '../src/sim/enemies/kinds';
 import { EventQueue } from '../src/core/eventQueue';
 import { updateOrbs } from '../src/sim/combat/orbs';
 import { createCombat, CombatEvent } from '../src/sim/combat/state';
@@ -42,10 +47,11 @@ function fight(kind: Enemy['kind'], at: Vector3): Fight {
 }
 
 /** Ticks for `secs`: the events, and whether you were hurt. */
-function run(f: Fight, secs: number) {
+function run(f: Fight, secs: number, each?: () => void) {
   const seen: string[] = [];
   const hp = f.p.hp;
   for (let i = 0; i < ticks(secs); i++) {
+    each?.();
     updateEnemies(f.all, f.p, f.w, OPEN_WORLD, DT);
     updateOrbs(f.w.orbs, f.p, new FlatWorld(), events, DT);
     updateHealth(f.p, DT);
@@ -93,9 +99,20 @@ section('Floor 2 — the Snake and the Wasp: poison');
   const after = f.p.hp;
   run(f, 1);
   check('until the dose wears off', f.p.poison === 0 && f.p.hp === after);
+  // Update 0.0.19 (the designer: it shot venom; it should sting you) — it swoops down to you and stabs.
   const w = fight('wasp', new Vector3(0, 0, -10));
-  const b = run(w, v.waspWindup + 1);
-  check('the wasp warns, stings from afar, and the sting poisons', b.seen.includes('waspWindup') && b.seen.includes('waspSting') && b.hurt && w.p.poison > 0);
+  let low = Infinity;
+  const swoop = run(w, 3, () => {
+    if (w.e.phase === 'windup') low = Math.min(low, Math.abs(w.e.pos.y + v.waspHeight / 2 - (w.p.pos.y + 1.2)));
+  });
+  check('the wasp swoops down in front of you, warns, then stings: hurt and poisoned', swoop.seen.includes('waspWindup') && swoop.seen.includes('waspSting') && swoop.hurt && w.p.poison > 0 && low < 0.6 && !swoop.seen.includes('orbFire'));
+  check('no venom shots: nothing flies', w.w.orbs.every((o) => !o.alive));
+  const d = fight('wasp', new Vector3(0, 0, -10));
+  const dodge = run(d, 3, () => {
+    if (d.e.phase === 'windup') d.p.pos.z = 6;
+  });
+  check('dash away while it curls its sting and it stabs the air', dodge.seen.includes('waspSting') && !dodge.hurt);
+  check('then it climbs away', d.e.pos.y > 1.5 || d.e.phase === 'chase');
   const p = createPlayer(0, 0, 0, 0);
   p.shield = 50;
   poisonPlayer(p, 4, 2);
@@ -156,4 +173,31 @@ section('Shop prices by floor');
   check('floor 1: a normal item 50, a better one 70, the best 100', priceOf('heart', 1) === 50 && priceOf('plate', 1) === 50 && priceOf('goldPlate', 1) === 70 && priceOf('whiteKey', 1) === 70 && priceOf('goldKey', 1) === 100);
   check('floor 2: 15% more (58, 81, 115)', priceOf('heart', 2) === 58 && priceOf('goldPlate', 2) === 81 && priceOf('goldKey', 2) === 115);
   check('floor 3: 15% more again (66, 93, 132)', priceOf('heart', 3) === 66 && priceOf('goldPlate', 3) === 93 && priceOf('goldKey', 3) === 132);
+}
+
+section('Floor 2 — drawn at their size');
+{
+  // Update 0.0.19 (the designer: the snake and the slime were far too big) — the newer pack's meshes are stored turned
+  // on their side, so their raw mesh box measured them 3–10 times too short and they were scaled up that much. Each
+  // body, as drawn, is now its kind's height.
+  const scene = new THREE.Scene();
+  const view = new EnemiesView(scene, false);
+  const files: [Enemy['kind'], string][] = [['slime', 'slime'], ['snake', 'snake'], ['frog', 'frog'], ['wasp', 'wasp'], ['spider', 'spider'], ['blueDemon', 'bluedemon']];
+  for (const [kind, file] of files) {
+    const g = await parseUntextured(new URL(`../public/models/enemies/${file}.glb`, import.meta.url));
+    view.attach(kind, g.scene, g.animations);
+  }
+  const c = createCombat(OPEN_ARENA, false);
+  const box = new THREE.Box3();
+  for (const [kind] of files) {
+    for (const e of c.enemies) e.alive = false;
+    spawnEnemy(c.enemies, kind, new Vector3(0, 0, -5), 0);
+    view.update(c, 1, 0);
+    const body = view.group.children.find((o) => o.visible && o.userData.height);
+    if (body) skinnedBounds(body, box);
+    const h = box.max.y - box.min.y;
+    const want = ENEMY_STATS[kind]().height;
+    check(`the ${kind} is drawn ${want} m tall`, !!body && near(h, want, want * 0.12), `${h.toFixed(2)} m`);
+  }
+  view.dispose();
 }

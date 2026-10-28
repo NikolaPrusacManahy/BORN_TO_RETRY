@@ -9,6 +9,9 @@
 // view to it; your shield, keys and rings come down with you too.
 // Update 0.0.15 — the boss room's show (boss/bossShow.ts): its view, no moving or fighting meanwhile, the boss's slow
 // death, the gate shot; the way down is the dark beyond the wooden gate, faded to black, the next floor's name after.
+// Update 0.0.19 — the Lab: every level has its treasure (the Lab's starts empty: its panel adds chests; items on the
+// floor show there too), the Lab's waves can be off, the world holds still while its panel is open, and its panel's
+// commands (sim/lab/labCommands.ts).
 import * as THREE from 'three';
 import { FixedStep } from '../core/fixedStep';
 import type { FrameStats } from '../core/frameStats';
@@ -22,7 +25,8 @@ import { carryOver, CombatState, createCombat, resetCombat } from '../sim/combat
 import { stepCombat } from '../sim/combat/step';
 import { AIM_HEIGHT } from '../sim/combat/turret';
 import { stepRooms } from '../sim/dungeon/roomLoop';
-import { stepTreasure } from '../sim/dungeon/treasure';
+import { emptyTreasure, stepTreasure, Treasure } from '../sim/dungeon/treasure';
+import { LabCommand, runLab } from '../sim/lab/labCommands';
 import { hpBonusOf, KeyKind, speedFactor } from '../sim/items/items';
 import { hasteFactor } from '../sim/items/bonuses';
 import { pushPlayerOut } from '../sim/enemies/enemy';
@@ -43,6 +47,7 @@ import { DeathFlow } from './deathFlow';
 import type { DebugInfo, HudStore } from './hudStore';
 import { readCombatIntent, readPlayerIntent } from './intents';
 import type { Level, LevelView } from './level';
+import type { Levels, RunCallbacks } from './runLinks';
 import { Look } from './look';
 import { BossShow } from './boss/bossShow';
 import { TreasureView } from './treasureView';
@@ -55,23 +60,6 @@ import { Viewmodel } from './viewmodel/viewmodel';
 const STEP_MIN = 0.1;
 /** Fall below this and you die (m). */
 const KILL_Y = -20;
-
-export interface RunCallbacks {
-  /** You died: start the fade to black (it lasts HEALTH.deathFade). */
-  onDeath(): void;
-  /** You're back at the start: clear the black. */
-  onRespawn(): void;
-}
-
-/** Where the next level comes from (the Game makes them). */
-export interface Levels {
-  /** A new run from its first floor (after a death). */
-  fresh(): Level;
-  /** The next floor down. */
-  next(current: Level): Level;
-  /** This floor again from its start (F3, Restart). */
-  again(current: Level): Level;
-}
 
 export class Run {
   private readonly scene = new THREE.Scene();
@@ -96,13 +84,17 @@ export class Run {
   private hazards: ArenaBox[] = [];
   /** Counts hits on you (and, Update 0.0.13, on your shield), for the HUD's flashes. */
   private readonly hits = { hurts: 0, shields: 0 };
-  /** Update 0.0.13 — the shop and the chests (dungeon floors only). */
-  private treasureView: TreasureView | null = null;
+  /** Update 0.0.13 — the shop and the chests. Update 0.0.19 — every level's (the Lab's: chests from its panel). */
+  private treasure: Treasure = emptyTreasure();
+  private treasureView!: TreasureView;
+  /** Update 0.0.19 — the Lab's waves come (the Feel Lab's knobs); the world holds still (the Lab's panel is open). */
+  waves = true;
+  hold = false;
   private show = new BossShow(null);
   /** Update 0.0.16 — a key's look, for the palm (made once). */
-  private readonly keyLook = (kind: KeyKind) => this.treasureView?.look(kind) ?? null;
-  /** Is a dungeon room fighting (made once: no closure per tick). */
-  private readonly fighting = (room: number) => this.level.dungeon?.rooms[room].state === 'fighting';
+  private readonly keyLook = (kind: KeyKind) => this.treasureView.look(kind);
+  /** Is a dungeon room fighting (made once: no closure per tick; −1: the Lab's chests, never). */
+  private readonly fighting = (room: number) => this.level.dungeon?.rooms[room]?.state === 'fighting';
 
   constructor(
     level: Level,
@@ -126,6 +118,11 @@ export class Run {
     return this.level.floor;
   }
 
+  /** Update 0.0.19 — the Lab's boss room. */
+  get bossRoom(): boolean {
+    return !!this.level.bossRoom;
+  }
+
   /** Into `level`. `keep`: your health, coins and weapon come along (the way down); otherwise a fresh start. */
   load(level: Level, keep: boolean) {
     const old = this.combat;
@@ -134,14 +131,16 @@ export class Run {
     if (this.level) {
       this.combatScene.dispose();
       this.view.dispose();
-      this.treasureView?.dispose();
+      this.treasureView.dispose();
       if (this.level.physics !== level.physics) this.level.physics.dispose();
     }
     this.level = level;
     this.view = level.draw(this.scene, this.renderer);
-    this.treasureView = level.dungeon ? new TreasureView(this.scene, level.dungeon.treasure) : null;
+    this.treasure = level.dungeon?.treasure ?? emptyTreasure();
+    this.treasureView = new TreasureView(this.scene, this.treasure);
     this.show = new BossShow(level.dungeon);
-    if (keep) this.show.arrive(level.floor);
+    // (Back to the Lab from its boss room: no floor's name.)
+    if (keep && level.dungeon) this.show.arrive(level.floor);
     this.hazards = hazardsOf(level.arena);
     this.combat = createCombat(level.arena, !level.dungeon);
     this.combat.rng = createRng(level.fightSeed);
@@ -179,6 +178,11 @@ export class Run {
     else this.restartHere();
   }
 
+  /** Update 0.0.19 — the Lab's panel asked for something (in front of where you look). */
+  labCommand(cmd: LabCommand) {
+    runLab(cmd, this.combat, this.player, this.look.yaw, this.treasure);
+  }
+
   /** The mouse was freed: a charge in progress is cancelled rather than thrown. */
   cancelCharge() {
     this.combat.fists.charging = false;
@@ -209,10 +213,10 @@ export class Run {
       p.speedMul = speedFactor(this.combat.items) * hasteFactor(this.combat.bonuses);
       p.hpBonus = hpBonusOf(this.combat.items);
       const ci = this.combatIntent;
-      if (d && stepTreasure(d.treasure, p, this.combat, ci.interactPressed, ci.switchKeyPressed, this.fighting, stepDt)) ci.interactPressed = false;
+      if (stepTreasure(this.treasure, p, this.combat, ci.interactPressed, ci.switchKeyPressed, this.fighting, stepDt)) ci.interactPressed = false;
       stepPlayer(p, this.intent, this.level.physics, this.level.arena.pads, stepDt);
       checkHazards(p, this.hazards);
-      stepCombat(this.combat, p, this.combatIntent, this.level.physics, stepDt, d ? [] : this.level.arena.spawns);
+      stepCombat(this.combat, p, this.combatIntent, this.level.physics, stepDt, d || !this.waves ? [] : this.level.arena.spawns);
       if (d) {
         stepRooms(d, p, this.combat, this.combat.rng, stepDt);
         this.level.physics.setGates(d.shut);
@@ -247,7 +251,7 @@ export class Run {
     if (kneeling) this.look.turnTo(p.kneelYaw, (CAMERA.v.kneelPitch * Math.PI) / 180, CAMERA.v.kneelTurn, real);
     input.clearMouse();
 
-    const frozen = this.combat.hitStop.tick(real);
+    const frozen = this.combat.hitStop.tick(real) || this.hold;
     const scale = LAB.v.timeScale * this.death.timeScale * this.show.timeScale;
     const gameDt = frozen ? 0 : real * scale;
     const steps = frozen ? 0 : this.tick(gameDt, input);
@@ -267,20 +271,21 @@ export class Run {
     this.chest.set(p.pos.x, p.pos.y + AIM_HEIGHT, p.pos.z);
     // The shop and chests read this frame's events before the combat scene clears them; the hands follow a lid.
     const tv = this.treasureView;
-    tv?.update(this.combat, this.camera.position, gameDt);
-    this.arms.chest.update(tv ? tv.reach.k : -1, tv ? tv.reach.left : this.chest, tv ? tv.reach.right : this.chest, this.camera, this.arms.camera);
+    tv.update(this.combat, this.camera.position, gameDt);
+    this.arms.chest.update(tv.reach.k, tv.reach.left, tv.reach.right, this.camera, this.arms.camera);
     this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt, this.clock.alpha);
     const d = this.level.dungeon;
     if (d) this.view.update?.(gameDt, d, this.camera.position);
     const f = this.combat.fists;
-    this.arms.palm.update(d && d.treasure.choosing >= 0 ? this.combat.items.keyPick : null, this.keyLook, real);
+    const choosing = this.treasure.choosing >= 0 ? this.combat.items.keyPick : null;
+    this.arms.palm.update(choosing, this.keyLook, real);
     this.arms.update(gameDt, real, mouseDx, mouseDy, p, f.charging ? f.charge / FISTS.v.chargeTime : -1);
 
     renderer.render(this.scene, this.camera);
     if (!shot.cinematic) this.arms.render(renderer, aspect);
 
     fillDebug(debug, p, this.combat);
-    this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d ? mapOf(d) : null, this.look.yaw, this.show.hud, d && d.treasure.choosing >= 0 ? this.combat.items.keyPick : '');
+    this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d ? mapOf(d) : null, this.look.yaw, this.show.hud, choosing ?? '');
     // Dead: once it's black, a new run (the dungeon) or the lab's start. The way down: the next floor.
     if (this.death.update(real)) {
       if (d) this.load(this.levels.fresh(), false);
@@ -291,7 +296,7 @@ export class Run {
   dispose() {
     this.combatScene.dispose();
     this.view.dispose();
-    this.treasureView?.dispose();
+    this.treasureView.dispose();
     this.level.physics.dispose();
   }
 }

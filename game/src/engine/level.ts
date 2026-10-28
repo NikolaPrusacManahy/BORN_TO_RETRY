@@ -1,6 +1,7 @@
 // Update 0.0.12 — what a run plays in. The Feel Lab and each dungeon floor are levels: an arena (the collision, and the
 // enemies' walk grids), its physics, how it's drawn and, in the dungeon, the room loop. The engine makes them; a run's
 // seed is picked here (the sim never picks its own randomness).
+// Update 0.0.19 — the Lab's boss room: a floor laid out as usual, you standing just inside its boss room.
 import * as THREE from 'three';
 import { RapierWorld } from '../physics/rapierWorld';
 import { LAB_SEED } from '../sim/combat/state';
@@ -9,6 +10,7 @@ import type { Arena } from '../world/arena';
 import { FEEL_LAB } from '../world/arenas/feelLab';
 import { buildDungeon } from '../world/dungeon/assemble';
 import { planFloor } from '../world/dungeon/floorPlan';
+import { bossRoomStart } from '../world/dungeon/bossStart';
 import { ArenaView, buildArenaView } from './arenaView';
 import { DungeonView } from './dungeonView';
 
@@ -25,6 +27,8 @@ export interface Level {
   seed: number;
   floor: number;
   fightSeed: number;
+  /** Update 0.0.19 — the Lab's boss room (you start inside it). */
+  bossRoom?: boolean;
   draw(scene: THREE.Scene, renderer: THREE.WebGLRenderer): LevelView;
 }
 
@@ -40,6 +44,13 @@ export function dungeonLevel(seed: number, floor: number): Level {
   const dungeon = createDungeonRun(d);
   prepareNav(dungeon);
   return { arena: d.arena, physics, dungeon, seed, floor, fightSeed: seed * 13 + floor, draw: (scene) => new DungeonView(scene, d) };
+}
+
+/** Update 0.0.19 — floor `floor`'s boss room straight away (the Lab): you stand just inside it, facing the portal. */
+export function bossRoomLevel(seed: number, floor: number): Level {
+  const l = dungeonLevel(seed, floor);
+  const start = bossRoomStart(l.dungeon!.level);
+  return { ...l, arena: { ...l.arena, playerStart: start }, bossRoom: true };
 }
 
 /** A new run's seed: the one thing not picked from a seed. */

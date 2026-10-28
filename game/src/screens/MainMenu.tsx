@@ -2,6 +2,7 @@
 // left over the dark wall, the version bottom right. Enter or Space starts too. Once Start (or Settings) is pressed
 // it slides away. No hints a player already knows (the designer's rule).
 // Update 0.0.7 — Settings goes to the night camp (CampMenu), where the controls are too.
+// Update 0.0.19 — Lab (dev builds): straight into the Lab.
 import { useEffect } from 'react';
 import { version } from '../../package.json';
 
@@ -11,6 +12,8 @@ interface Props {
   leaving: boolean;
   onStart(): void;
   onSettings(): void;
+  /** Update 0.0.19 — dev builds only. */
+  onLab?: () => void;
 }
 
 /** The retry arrow beside the logo: a clockwise arc and its head; it turns slowly. */
@@ -23,7 +26,7 @@ function RetryArrow() {
   );
 }
 
-export function MainMenu({ ready, leaving, onStart, onSettings }: Props) {
+export function MainMenu({ ready, leaving, onStart, onSettings, onLab }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.repeat || leaving) return;
@@ -69,6 +72,11 @@ export function MainMenu({ ready, leaving, onStart, onSettings }: Props) {
         <button className="rb-menu-btn" disabled={!ready || leaving} onClick={onSettings}>
           <span>Settings</span>
         </button>
+        {onLab && (
+          <button className="rb-menu-btn" disabled={!ready || leaving} onClick={onLab}>
+            <span>Lab</span>
+          </button>
+        )}
       </nav>
 
       <div className="rb-menu-foot">v{version}</div>

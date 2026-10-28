@@ -1,0 +1,151 @@
+// Update 0.0.19 — the Lab's panel (dev builds, F8 in the Lab; the designer: "pick what to do there and test stuff,
+// spawn objects, fight actual enemies I pick, even bosses"). Click an enemy (×1, ×3 or ×5), an item, a bonus, a
+// weapon or a chest and it's in front of you as the panel closes (shift-click keeps it open). A boss can come here,
+// or you go to its boss room (its show and its fight). Clear, Heal, the Lab's waves, invincibility; Back leaves a boss
+// room for the Lab. The world holds still while it's open.
+import { useState } from 'react';
+import type { EnemyKind } from '../sim/enemies/kinds';
+import type { DropKind } from '../sim/items/drops';
+import type { LabCommand } from '../sim/lab/labCommands';
+import type { WeaponKind } from '../sim/weapons/catalog';
+
+interface Props {
+  bossRoom: boolean;
+  waves: boolean;
+  god: boolean;
+  /** `stay`: keep the panel open (shift-click). */
+  onCommand(cmd: LabCommand, stay: boolean): void;
+  onBossRoom(kind: 'demon' | 'dragon'): void;
+  onBack(): void;
+  onWaves(): void;
+  onGod(): void;
+}
+
+const ENEMIES: [EnemyKind, string][] = [
+  ['grunt', 'Grunt'],
+  ['spitter', 'Spitter'],
+  ['brute', 'Yeti'],
+  ['leaper', 'Leaper'],
+  ['stinger', 'Stinger'],
+  ['wraith', 'Wraith'],
+  ['slime', 'Slime'],
+  ['frog', 'Frog'],
+  ['snake', 'Snake'],
+  ['wasp', 'Wasp'],
+  ['spider', 'Spider'],
+  ['blueDemon', 'Blue Demon'],
+];
+const ITEMS: [DropKind, string][] = [
+  ['heart', 'Heart'],
+  ['plate', 'Plate'],
+  ['goldPlate', 'Gold armour'],
+  ['redRing', 'Red ring'],
+  ['purpleRing', 'Purple ring'],
+  ['greenRing', 'Green ring'],
+  ['blueRing', 'Blue ring'],
+  ['key', 'Key'],
+  ['whiteKey', 'White key'],
+  ['goldKey', 'Gold key'],
+  ['snowflake', 'Snowflake'],
+  ['goldIngots', 'Gold ingots'],
+  ['bluePotion', 'Blue potion'],
+];
+const WEAPONS: [WeaponKind, string][] = [
+  ['sword', 'Sword'],
+  ['goldSword', 'Gold sword'],
+];
+const COUNTS = [1, 3, 5];
+
+/** The count picked last (kept between openings). */
+let lastCount = 1;
+
+export function LabPanel({ bossRoom, waves, god, onCommand, onBossRoom, onBack, onWaves, onGod }: Props) {
+  const [count, setCount] = useState(lastCount);
+  const pick = (n: number) => {
+    lastCount = n;
+    setCount(n);
+  };
+  const run = (cmd: LabCommand) => (e: React.MouseEvent) => onCommand(cmd, e.shiftKey);
+  return (
+    <div className="rb-lab">
+      <div className="rb-panel rb-lab-panel">
+        <h2 className="rb-lab-title">Lab</h2>
+        <section className="rb-lab-sec">
+          <h3 className="rb-lab-head">
+            Enemies
+            <span className="rb-lab-counts">
+              {COUNTS.map((n) => (
+                <button key={n} className={`rb-lab-count${n === count ? ' is-on' : ''}`} onClick={() => pick(n)}>
+                  ×{n}
+                </button>
+              ))}
+            </span>
+          </h3>
+          <div className="rb-lab-grid">
+            {ENEMIES.map(([kind, label]) => (
+              <button key={kind} className="rb-lab-btn" onClick={run({ kind: 'enemy', enemy: kind, count })}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </section>
+        <section className="rb-lab-sec">
+          <h3 className="rb-lab-head">Bosses</h3>
+          <div className="rb-lab-grid">
+            <button className="rb-lab-btn is-boss" onClick={run({ kind: 'enemy', enemy: 'demon', count: 1 })}>
+              Demon
+            </button>
+            <button className="rb-lab-btn is-boss" onClick={() => onBossRoom('demon')}>
+              Demon room
+            </button>
+            <button className="rb-lab-btn is-boss" onClick={run({ kind: 'enemy', enemy: 'dragon', count: 1 })}>
+              Dragon
+            </button>
+            <button className="rb-lab-btn is-boss" onClick={() => onBossRoom('dragon')}>
+              Dragon room
+            </button>
+          </div>
+        </section>
+        <section className="rb-lab-sec">
+          <h3 className="rb-lab-head">Items</h3>
+          <div className="rb-lab-grid">
+            {ITEMS.map(([kind, label]) => (
+              <button key={kind} className="rb-lab-btn" onClick={run({ kind: 'item', item: kind })}>
+                {label}
+              </button>
+            ))}
+            {WEAPONS.map(([kind, label]) => (
+              <button key={kind} className="rb-lab-btn" onClick={run({ kind: 'weapon', weapon: kind })}>
+                {label}
+              </button>
+            ))}
+            <button className="rb-lab-btn" onClick={run({ kind: 'chest' })}>
+              Chest
+            </button>
+          </div>
+        </section>
+        <section className="rb-lab-sec">
+          <div className="rb-lab-grid">
+            <button className="rb-lab-btn is-tool" onClick={run({ kind: 'clear' })}>
+              Clear
+            </button>
+            <button className="rb-lab-btn is-tool" onClick={run({ kind: 'heal' })}>
+              Heal
+            </button>
+            <button className={`rb-lab-btn is-tool${waves ? ' is-on' : ''}`} onClick={onWaves}>
+              Waves
+            </button>
+            <button className={`rb-lab-btn is-tool${god ? ' is-on' : ''}`} onClick={onGod}>
+              God
+            </button>
+            {bossRoom && (
+              <button className="rb-lab-btn is-tool" onClick={onBack}>
+                Back
+              </button>
+            )}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}

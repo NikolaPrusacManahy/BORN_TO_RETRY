@@ -8,8 +8,6 @@ import { TARGETS } from '../tuning/combat';
 const DUMMY_COLOR = 0xb49a76;
 const TURRET_COLOR = 0x4a4652;
 const ORB_COLOR = 0xff7a2a;
-/** Update 0.0.18 — a poisoned orb (the wasp's sting). */
-const POISON_COLOR = 0x7cff3a;
 /** How long a respawning target takes to pop back in (s). */
 const POP_IN = 0.18;
 
@@ -32,7 +30,6 @@ export class TargetsView {
   private readonly turrets: TurretView[] = [];
   private readonly orbs: THREE.Mesh[] = [];
   private readonly orbMat = new THREE.MeshBasicMaterial({ color: ORB_COLOR });
-  private readonly poisonMat = new THREE.MeshBasicMaterial({ color: POISON_COLOR });
   private readonly geos: THREE.BufferGeometry[] = [];
   private readonly look = new THREE.Vector3();
 
@@ -142,7 +139,6 @@ export class TargetsView {
       const m = this.orbs[i];
       m.visible = o.alive;
       if (!o.alive) continue;
-      m.material = o.poison > 0 ? this.poisonMat : this.orbMat;
       m.position.copy(o.pos);
       m.scale.setScalar(r * (1 + 0.12 * Math.sin(o.life * 30)));
     }
@@ -150,7 +146,6 @@ export class TargetsView {
 
   dispose() {
     this.group.removeFromParent();
-    this.poisonMat.dispose();
     this.geos.forEach((g) => g.dispose());
     this.group.traverse((o) => {
       if (o instanceof THREE.Mesh) (o.material as THREE.Material).dispose();

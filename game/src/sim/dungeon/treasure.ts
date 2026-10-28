@@ -86,6 +86,9 @@ export function createTreasure(level: DungeonLevel, rng: Rng): Treasure {
   return { shop: shop ? shop.index : -1, offers, chests, choosing: -1 };
 }
 
+/** Update 0.0.19 — no shop and no chests yet (the Lab's: its panel adds chests). */
+export const emptyTreasure = (): Treasure => ({ shop: -1, offers: [], chests: [], choosing: -1 });
+
 /** The chest you could open from where you stand: in reach and in front of it (−1: none). */
 export function chestInReach(t: Treasure, player: PlayerState): number {
   for (let i = 0; i < t.chests.length; i++) {

@@ -45,8 +45,6 @@ export interface Orb {
   damage: number;
   /** Seconds left before it fizzles. */
   life: number;
-  /** Update 0.0.18 — seconds of poison it gives (0: none; a wasp's sting). */
-  poison: number;
 }
 
 export const ORB_POOL = 24;
@@ -61,7 +59,7 @@ export function createTurret(s: Spot): Turret {
 }
 
 export function createOrbs(): Orb[] {
-  return Array.from({ length: ORB_POOL }, () => ({ alive: false, pos: new Vector3(), vel: new Vector3(), damage: 0, life: 0, poison: 0 }));
+  return Array.from({ length: ORB_POOL }, () => ({ alive: false, pos: new Vector3(), vel: new Vector3(), damage: 0, life: 0 }));
 }
 
 /** The bottom and top of a dummy's capsule axis right now. */

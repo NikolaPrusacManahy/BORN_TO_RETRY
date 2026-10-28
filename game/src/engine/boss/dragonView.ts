@@ -4,6 +4,7 @@
 // when stunned; its scream is the whole lunge), each warning glowing in its move's colour. Its aura (aura.ts) burns
 // gold, then red once it rages; its beam (beamView.ts) runs from its head to where the fire stops. Killed, its death
 // show is the Demon's (bossTint.ts, demonFx.ts). Clips run on game time.
+// Update 0.0.19 — measured from its skinned body (bodyMeasure.ts), as the newer pack's are.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { CombatState } from '../../sim/combat/state';
@@ -12,6 +13,7 @@ import { BREATH, CLAWS, FIREBALLS, TAIL, WING } from '../../sim/enemies/dragonMo
 import type { Enemy } from '../../sim/enemies/enemy';
 import { doomTime } from '../../sim/enemies/kinds';
 import { DRAGON } from '../../tuning/dragon';
+import { posedBounds } from '../bodyMeasure';
 import { Aura } from './aura';
 import { BeamView } from './beamView';
 import { tintBoss } from './bossTint';
@@ -81,24 +83,21 @@ export class DragonView {
   }
 
   attach(model: THREE.Object3D, animations: THREE.AnimationClip[]) {
-    let skinned: THREE.SkinnedMesh | null = null;
     model.traverse((o) => {
       if (o.name === 'Head') this.headBone = o;
-      if (o instanceof THREE.SkinnedMesh && (!skinned || o.geometry.attributes.position.count > skinned.geometry.attributes.position.count)) skinned = o;
       if (!(o instanceof THREE.Mesh)) return;
       o.castShadow = true;
       o.frustumCulled = false;
       o.material = (o.material as THREE.MeshStandardMaterial).clone();
       this.mats.push(o.material as THREE.MeshStandardMaterial);
     });
-    const geo = (skinned as THREE.SkinnedMesh | null)?.geometry;
-    geo?.computeBoundingBox();
-    if (geo?.boundingBox) {
-      this.height = geo.boundingBox.max.y - geo.boundingBox.min.y;
-      this.lowest = geo.boundingBox.min.y;
+    const find = (name: string) => animations.find((a) => a.name === name || a.name.endsWith(`|${name}`)) ?? animations[0];
+    const box = posedBounds(model, find(CLIPS.fly), new THREE.Box3());
+    if (!box.isEmpty()) {
+      this.height = box.max.y - box.min.y;
+      this.lowest = box.min.y;
     }
     this.mixer = new THREE.AnimationMixer(model);
-    const find = (name: string) => animations.find((a) => a.name === name || a.name.endsWith(`|${name}`)) ?? animations[0];
     for (const role of Object.keys(CLIPS) as Role[]) {
       const a = this.mixer.clipAction(find(CLIPS[role]));
       if (ONCE.includes(role)) {

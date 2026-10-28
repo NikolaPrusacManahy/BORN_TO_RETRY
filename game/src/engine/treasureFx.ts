@@ -102,6 +102,11 @@ export class ChestGlows {
       g.column.position.set(c.spot.x, 0.5, c.spot.z);
       g.column.scale.set(0.6 + 0.4 * k, 0.4 + 0.6 * k, 0.6 + 0.4 * k);
     }
+    // Update 0.0.19 — chests taken away (the Lab's Clear): their glows go too.
+    for (let i = chests.length; i < this.glows.length; i++) {
+      this.glows[i].t = -1;
+      this.glows[i].light.visible = this.glows[i].column.visible = false;
+    }
   }
 
   dispose() {

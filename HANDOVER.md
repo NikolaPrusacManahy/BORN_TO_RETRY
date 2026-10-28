@@ -2,7 +2,19 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.0.18
+## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.0.19
+- **Update 0.0.19 — the Lab, the wasp's sting, enemy sizes** (the designer's list; spec `MD_UPDATES/M3_LAB.md`).
+  - **Sizes fixed:** the Slime and the Snake were drawn about 3× and 10× too big. The newer pack's meshes are stored turned on their side, so their mesh box measured them wrong. They (and the Frog, Wasp, Spider and Dragon) are now measured from their skinned body in their idle pose (`engine/bodyMeasure.ts`), and `test-floor2.ts` checks each drawn height.
+  - **The Wasp stings:**
+    - It swoops down in front of your chest, buzzes, then stabs (poison). Dash away during the warning.
+    - Its venom shots and the poisoned-orb code are gone.
+  - **The Lab (dev builds):**
+    - The main menu's **Lab** goes straight into the Feel Lab, with its waves off.
+    - **F8** opens its panel and the world holds still. It spawns any enemy (×1/×3/×5) or boss in front of you, any item, bonus, weapon or a chest.
+    - **Demon room / Dragon room** plays that boss's real room (show and fight); leaving or dying returns to the Lab.
+    - Clear, Heal, Waves and God toggles.
+    - Floor items are now drawn outside the dungeon too.
+    - F9's lab is the Lab now (its waves off until switched on).
 - **Update 0.0.18 — floor 2's enemies, the Dragon, prices by floor** (the designer's list; spec `MD_UPDATES/M3_FLOOR2.md`).
   - **Each floor sends its own:** floor 2 has floor 1's small ones plus four new small ones and two big ones (no Yeti); floor 3 has floor 2's for now.
   - **Six new enemies** (Ultimate Monsters' newer set):

@@ -57,8 +57,8 @@ export const DEFAULT_BINDINGS: Bindings = {
 };
 
 /** Dev tools (dev build only): F1 / ` tuning panel, F2 debug overlay, F3 respawn enemies, F4 invincibility, F9 the
- *  Feel Lab instead of the dungeon. */
-export const DEV_KEYS = ['F1', 'F2', 'F3', 'F4', 'F9', 'Backquote'];
+ *  Feel Lab instead of the dungeon, F8 the Lab's panel (Update 0.0.19). */
+export const DEV_KEYS = ['F1', 'F2', 'F3', 'F4', 'F8', 'F9', 'Backquote'];
 
 /** Never bindable: Esc pauses (the browser owns it), Win/Cmd and the menu key belong to the OS. */
 export const RESERVED = ['Escape', 'MetaLeft', 'MetaRight', 'ContextMenu'];

@@ -12,6 +12,8 @@
 // Update 0.0.18 — floor 2's (Ultimate Monsters' newer pack: clip names carry the monster's name, no hit clips, so a
 // flinch stands): the Slime swells as it winds up and is gone once it bursts; the Frog's tongue (tongueView.ts); the
 // Wasp's model faces sideways; a charge plays the 'air' clip (the Blue Demon runs).
+// Update 0.0.19 — the newer pack's are measured from their skinned bodies (bodyMeasure.ts: the snake and the slime were
+// drawn 3 to 10 times too big).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -22,6 +24,7 @@ import { blueWindup } from '../sim/enemies/blueDemon';
 import { ENEMIES } from '../tuning/enemies';
 import { FOES } from '../tuning/foes';
 import { FOES2 } from '../tuning/foes2';
+import { posedBounds } from './bodyMeasure';
 import { TongueView } from './tongueView';
 
 type Role = 'idle' | 'move' | 'attack' | 'hit' | 'death' | 'air';
@@ -41,6 +44,8 @@ interface Look {
   glow: [number, number, number];
   /** Update 0.0.18 — a model that doesn't face +z: its turn (rad). */
   turn?: number;
+  /** Update 0.0.19 — measured from its skinned body (the newer pack's meshes are stored turned). */
+  posed?: boolean;
 }
 
 /** Update 0.0.18 — a newer-pack monster's clips (`<Name>_Idle`, …); `move` and `air` name their own. */
@@ -65,11 +70,11 @@ const LOOKS: Record<EnemyKind, Look | null> = {
   demon: null,
   dragon: null,
   // Update 0.0.18 — floor 2's (export_monster.py timed the frames, 24 fps; the Slime's whole clip fills its fuse).
-  slime: { url: '/models/enemies/slime.glb', clips: newer('Slime', 'Walk', 'Walk'), lands: 15 / 24, windup: () => FOES2.v.slimeFuse, glow: [0.35, 1, 0.1] },
-  frog: { url: '/models/enemies/frog.glb', clips: newer('Frog', 'Jump', 'Jump'), lands: 11 / 24, windup: () => FOES2.v.frogWindup, glow: [1, 0.75, 0.1] },
-  snake: { url: '/models/enemies/snake.glb', clips: newer('Snake', 'Walk', 'Jump'), lands: 9 / 24, windup: () => FOES2.v.snakeWindup, glow: [0.4, 1, 0.15] },
-  wasp: { url: '/models/enemies/wasp.glb', clips: { ...newer('Wasp', 'Flying', 'Flying'), idle: 'Wasp_Flying', hit: 'Wasp_Flying' }, lands: 11 / 24, windup: () => FOES2.v.waspWindup, glow: [0.5, 1, 0.1], turn: -Math.PI / 2 },
-  spider: { url: '/models/enemies/spider.glb', clips: newer('Spider', 'Walk', 'Jump'), lands: 10 / 24, windup: () => FOES2.v.spiderWindup, glow: [1, 0.1, 0.1] },
+  slime: { url: '/models/enemies/slime.glb', clips: newer('Slime', 'Walk', 'Walk'), lands: 15 / 24, windup: () => FOES2.v.slimeFuse, glow: [0.35, 1, 0.1], posed: true },
+  frog: { url: '/models/enemies/frog.glb', clips: newer('Frog', 'Jump', 'Jump'), lands: 11 / 24, windup: () => FOES2.v.frogWindup, glow: [1, 0.75, 0.1], posed: true },
+  snake: { url: '/models/enemies/snake.glb', clips: newer('Snake', 'Walk', 'Jump'), lands: 9 / 24, windup: () => FOES2.v.snakeWindup, glow: [0.4, 1, 0.15], posed: true },
+  wasp: { url: '/models/enemies/wasp.glb', clips: { ...newer('Wasp', 'Flying', 'Flying'), idle: 'Wasp_Flying', hit: 'Wasp_Flying' }, lands: 11 / 24, windup: () => FOES2.v.waspWindup, glow: [0.5, 1, 0.1], turn: -Math.PI / 2, posed: true },
+  spider: { url: '/models/enemies/spider.glb', clips: newer('Spider', 'Walk', 'Jump'), lands: 10 / 24, windup: () => FOES2.v.spiderWindup, glow: [1, 0.1, 0.1], posed: true },
   blueDemon: { url: '/models/enemies/bluedemon.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Run' }, lands: 17 / 30, windup: blueWindup, glow: [0.2, 0.55, 1] },
 };
 
@@ -157,13 +162,14 @@ export class EnemiesView {
     model.traverse((o) => {
       if (o instanceof THREE.SkinnedMesh && (!skinned || o.geometry.attributes.position.count > skinned.geometry.attributes.position.count)) skinned = o;
     });
-    const geo = (skinned as THREE.SkinnedMesh | null)?.geometry;
-    geo?.computeBoundingBox();
-    const height = geo?.boundingBox ? geo.boundingBox.max.y - geo.boundingBox.min.y : 2;
-    const lowest = geo?.boundingBox ? geo.boundingBox.min.y : 0;
     const look = LOOKS[kind];
     if (!look) return;
     const find = (name: string) => animations.find((a) => a.name === name || a.name.endsWith(`|${name}`));
+    const geo = (skinned as THREE.SkinnedMesh | null)?.geometry;
+    geo?.computeBoundingBox();
+    const box = look.posed ? posedBounds(model, find(look.clips.idle), new THREE.Box3()) : geo?.boundingBox;
+    const height = box && !box.isEmpty() ? box.max.y - box.min.y : 2;
+    const lowest = box && !box.isEmpty() ? box.min.y : 0;
     for (const slot of this.slots) {
       const root = cloneSkinned(model);
       root.userData.height = height;

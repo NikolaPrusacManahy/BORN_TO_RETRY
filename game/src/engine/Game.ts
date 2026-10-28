@@ -6,6 +6,9 @@
 // Update 0.0.8 — and a third: the prison corridor, the character select, which the gate opens onto.
 // Update 0.0.12 — Play starts a dungeon run (a new floor plan from a new seed); the way down makes the next floor; a
 // death starts a new run. The Feel Lab is a dev key away (F9).
+// Update 0.0.19 — the Lab (dev builds: the main menu's Lab): the Feel Lab with its panel (F8): what it asks for
+// appears in front of you, and a boss room is a click away (its show, its fight; leaving it, or dying, is back to the
+// Lab). The Lab's own waves are off unless switched on.
 import * as THREE from 'three';
 import { MAX_FRAME } from '../core/fixedStep';
 import { FrameStats } from '../core/frameStats';
@@ -17,8 +20,10 @@ import { setLeaveGuard } from '../platform/leaveGuard';
 import { CharacterId, ROSTER } from '../sim/characters';
 import type { Settings } from '../state/settings';
 import { DebugInfo, HudStore, createDebugInfo } from './hudStore';
-import { dungeonLevel, labLevel, Level, newSeed } from './level';
-import { Levels, Run, RunCallbacks } from './run';
+import { bossRoomLevel, dungeonLevel, labLevel, Level, newSeed } from './level';
+import type { LabCommand } from '../sim/lab/labCommands';
+import { Run } from './run';
+import type { Levels, RunCallbacks } from './runLinks';
 import { CampScene } from './menu/campScene';
 import { MenuScene } from './menu/menuScene';
 import { PrisonScene } from './menu/prisonScene';
@@ -47,12 +52,14 @@ export class Game {
   private readonly input: Input;
   private readonly audio: AudioEngine;
   private run: Run | null = null;
-  /** F9 (dev): the lab instead of the dungeon. */
+  /** F9 (dev): the lab instead of the dungeon. Update 0.0.19 — and the Lab (its boss rooms lead back to it). */
   private inLab = false;
+  /** Update 0.0.19 — the Lab's waves (the Feel Lab's knobs) are on. */
+  private labWaves = false;
   private readonly levels: Levels = {
-    fresh: () => dungeonLevel(newSeed(), 1),
-    next: (l: Level) => dungeonLevel(l.seed, l.floor + 1),
-    again: (l: Level) => dungeonLevel(l.seed, l.floor),
+    fresh: () => (this.inLab ? labLevel() : dungeonLevel(newSeed(), 1)),
+    next: (l: Level) => (this.inLab ? labLevel() : dungeonLevel(l.seed, l.floor + 1)),
+    again: (l: Level) => (l.bossRoom ? bossRoomLevel(l.seed, l.floor) : dungeonLevel(l.seed, l.floor)),
   };
   private readonly menu: MenuScene;
   private readonly camp: CampScene;
@@ -153,9 +160,58 @@ export class Game {
     this.cb.onRunStart(document.pointerLockElement === this.host);
   }
 
+  /** Update 0.0.19 — into the Lab (the main menu's Lab, dev builds). Call once the screen is black. */
+  startLab() {
+    this.inLab = true;
+    this.mode = 'play';
+    this.newRun(labLevel());
+    this.input.clear();
+    this.cb.onRunStart(document.pointerLockElement === this.host);
+  }
+
+  /** Update 0.0.19 — in the Lab (or one of its boss rooms). */
+  get lab(): boolean {
+    return this.mode === 'play' && this.inLab;
+  }
+
+  /** Update 0.0.19 — in one of the Lab's boss rooms. */
+  get labBossRoom(): boolean {
+    return this.lab && !!this.run?.bossRoom;
+  }
+
+  get labWavesOn(): boolean {
+    return this.labWaves;
+  }
+
+  /** Update 0.0.19 — the Lab's panel asked for something. */
+  labCommand(cmd: LabCommand) {
+    if (this.lab) this.run?.labCommand(cmd);
+  }
+
+  /** Update 0.0.19 — the Demon's (floor 1) or the Dragon's (floor 2) boss room, from the Lab. */
+  labBoss(kind: 'demon' | 'dragon') {
+    if (this.lab) this.newRun(bossRoomLevel(newSeed(), kind === 'demon' ? 1 : 2));
+  }
+
+  /** Update 0.0.19 — back to the Lab from a boss room. */
+  backToLab() {
+    if (this.lab) this.newRun(labLevel());
+  }
+
+  setLabWaves(on: boolean) {
+    this.labWaves = on;
+    if (this.run && this.inLab) this.run.waves = on;
+  }
+
+  /** Update 0.0.19 — the world holds still (the Lab's panel is open). */
+  setLabHold(on: boolean) {
+    if (this.run) this.run.hold = on;
+  }
+
   private newRun(level: Level) {
     this.run?.dispose();
     this.run = new Run(level, this.audio, this.renderer, this.hud, this.cb, this.levels);
+    this.run.waves = !this.inLab || this.labWaves;
   }
 
   /** F9 (dev): swap between the Feel Lab and a fresh dungeon run. */
@@ -167,6 +223,7 @@ export class Game {
   /** Back to the main menu (the pause menu's Main menu): the mouse freed, the gate shut. */
   toMenu() {
     this.mode = 'menu';
+    this.inLab = false;
     this.showMenuView('gate');
     this.menu.reset();
     this.run?.silence();

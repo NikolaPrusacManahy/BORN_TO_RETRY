@@ -57,6 +57,8 @@ export class TreasureView {
   private items: THREE.Object3D[] = [];
   private prices: THREE.Sprite[] = [];
   private chests: ChestBody[] = [];
+  /** Update 0.0.19 — the chest's parts, kept to build a body for each chest as it comes (the Lab's). */
+  private chestParts: { base: THREE.Object3D | null; lid: THREE.Object3D | null } | null = null;
   private flyers: Partial<Record<ItemKind, Flyer>> = {};
   private protos: Partial<Record<DropKind, THREE.Object3D>> = {};
   private readonly drops = new DropsView(() => this.protos);
@@ -148,18 +150,8 @@ export class TreasureView {
       this.group.add(price);
       this.prices.push(price);
     }
-    const base = get('item_chestBase');
-    const lid = get('item_chestLid');
-    for (const c of this.treasure.chests) {
-      const root = new THREE.Group();
-      root.position.set(c.spot.x, 0, c.spot.z);
-      root.rotation.y = c.spot.rot;
-      if (base) root.add(base.clone());
-      const l = lid ? lid.clone() : new THREE.Object3D();
-      root.add(l);
-      this.group.add(root);
-      this.chests.push({ root, lid: l });
-    }
+    this.chestParts = { base: get('item_chestBase') ?? null, lid: get('item_chestLid') ?? null };
+    this.syncChests();
     for (const kind of ITEM_KINDS) {
       const proto = this.protos[kind];
       if (!proto) continue;
@@ -193,7 +185,8 @@ export class TreasureView {
       this.prices[i].material = state.money < o.price ? tag.dear : tag.cheap;
     }
     this.reach.k = -1;
-    for (let i = 0; i < this.chests.length; i++) {
+    this.syncChests();
+    for (let i = 0; i < t.chests.length && i < this.chests.length; i++) {
       const c = t.chests[i];
       const body = this.chests[i];
       const k = c.state === 'shut' ? 0 : c.state === 'open' ? 1 : c.t / ITEMS.v.chestTime;
@@ -213,6 +206,32 @@ export class TreasureView {
         f.t = -1;
         f.obj.visible = false;
       }
+    }
+  }
+
+  /** A body for every chest, each at its spot (Update 0.0.19: the Lab adds chests as you go; Clear takes them away). */
+  private syncChests() {
+    const parts = this.chestParts;
+    if (!parts) return;
+    const chests = this.treasure.chests;
+    while (this.chests.length < chests.length) {
+      const root = new THREE.Group();
+      if (parts.base) root.add(parts.base.clone());
+      const lid = parts.lid ? parts.lid.clone() : new THREE.Object3D();
+      root.add(lid);
+      root.traverse((o) => {
+        if (o instanceof THREE.Mesh) o.castShadow = true;
+      });
+      this.group.add(root);
+      this.chests.push({ root, lid });
+    }
+    for (let i = 0; i < this.chests.length; i++) {
+      const c = chests[i];
+      const root = this.chests[i].root;
+      root.visible = !!c;
+      if (!c) continue;
+      root.position.set(c.spot.x, 0, c.spot.z);
+      root.rotation.y = c.spot.rot;
     }
   }
 

@@ -63,6 +63,7 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - 100 HP. **(placeholder)** No regeneration. Shown bottom left: the number and a bar.
 - A short invincibility follows each hit (0.6 s **(placeholder)**), and the dash's invincibility stops damage too.
 - **Death:** the world slows and fades to black. In the Feel Lab you're straight back at the start; in a run, death ends the run (M3).
+- **The Lab (Update 0.0.19, the designer; dev builds only):** the main menu's Lab goes straight into the Feel Lab. Its panel (F8) spawns any enemy or boss in front of you, any item, bonus, weapon or a chest, and takes you to a boss's real room (its show and fight, then back to the Lab). It also has Clear, Heal, the Lab's waves and invincibility. Spec `MD_UPDATES/M3_LAB.md`.
 - **Healing (Update 0.0.13, the designer): only from the shop.** The heart heals half your health (a chest can hold one too). Hits you land heal nothing (blood heal is gone). After a boss (Update 0.0.15): it leaves a heart.
 - **Poison (Update 0.0.18):** the snake's bite and the wasp's sting poison you: 3 a second for 4 s, past your shield. **(placeholder)**
 - **The shield (Update 0.0.13, the designer):** the silver armour plate gives a shield of half your health, shown as a blue bar just above the health bar. A hit takes the shield first, then your health. At most a full bar (two plates). **(placeholder cap)**
@@ -138,7 +139,7 @@ Rule: every attack is telegraphed (a flash and a sound) before it can hit, and e
 | Slime | **(Update 0.0.18, the designer: floor 2, kamikaze.)** 20 HP. Slides at you; within 2.2 m it swells and glows green (0.6 s), then bursts: 22 and thrown within 3 m (not through a wall). It's gone, no coins; killed first, it just dies. |
 | Frog | **(Update 0.0.18, the designer: floor 2, mid range.)** 35 HP. Hops about 4.5–9 m from you; its throat glows (0.5 s, its aim locking for the end of it), then its tongue shoots 9 m in a line: 12 and pulled to it. Step off the line. |
 | Snake | **(Update 0.0.18, the designer: floor 2, its bite poisons.)** 30 HP. Slithers at you; rears and hisses (0.35 s), then bites: 8 and poisoned. |
-| Wasp | **(Update 0.0.18, the designer: floor 2, poison stings; a flier.)** 20 HP, 3.2 m up, 6–14 m off. Buzzes (0.45 s), then a green sting: 6 and poisoned. |
+| Wasp | **(Update 0.0.18, the designer: floor 2, poison stings; a flier.)** 20 HP, 3.2 m up, 6–14 m off. **Update 0.0.19 (the designer: it stings, it doesn't shoot):** it swoops down in front of your chest, buzzes (0.45 s), then stabs: 6 and poisoned within 1.6 m. Dash away during the warning; down there your fists reach it. |
 | Spider | **(Update 0.0.18, the designer: floor 2's big one.)** 140 HP. From 5–13 m it rears (0.6 s) and leaps to where you stood: 22 and thrown (jump it); close up it bites (16). Only a hit of 40+ staggers it. A mini boss: its room has a chest and it carries the key. |
 | Blue Demon | **(Update 0.0.18, the designer: floor 2's big one.)** 160 HP, 2.8 m. Warns (blue glow), then charges (20, thrown; a wall stuns it 1.6 s) or, from afar, throws a fireball (14). Only a hit of 40+ staggers it. A mini boss like the Spider. |
 | Shieldbearer | Blocks attacks from the front; a charged punch breaks the shield. |
