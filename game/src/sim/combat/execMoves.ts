@@ -2,6 +2,9 @@
 // from Update 0.1.1): where its body goes (held in your hands, or standing where it's pulled to), where you look, its
 // blows (each a freeze), and how it ends: thrown ahead, thrown at the nearest wall, or dying where it is. The hands are
 // the view's (engine/exec/handMoves.ts), timed to these. Pure.
+// Update 0.1.3 — the designer's second pass (spec MD_UPDATES/U013_EXECUTIONS.md): the orc tossed up by its head and
+// burst by an uppercut; the ninja's arms off one by one, three punches; the armabee in one hand; the ghost punched
+// away; the frog let go higher; the spider's chops harder; the blue demon's last blow to the face.
 import { ENEMY_STATS, EnemyKind } from '../enemies/kinds';
 
 export type V3 = readonly [number, number, number];
@@ -13,7 +16,7 @@ export const BLOWS: readonly Blow[] = ['punch', 'chop', 'tear', 'crush', 'smash'
  *  line); standing: where it stands (`grip` on the floor). Both as (right, up, ahead) of where you stood, in the frame
  *  turned `aim` of the way to where it's thrown (the wall). `grip` null: where it was. `look`: where you look (degrees
  *  left of the frame and above the horizon; null: where you looked). `hit`: it slams into the floor here (eased into).
- *  `glide`: straight through, not eased (a whirl). */
+ *  `glide`: straight through, not eased (a whirl); `snap`: sped into and out of, as a slam is, with no slam (a toss). */
 export interface BodyKey {
   t: number;
   grip: V3 | null;
@@ -22,6 +25,7 @@ export interface BodyKey {
   hit?: boolean;
   aim?: number;
   glide?: boolean;
+  snap?: boolean;
 }
 
 /** A blow at `t`, freezing `stop` s; `at`: where (right, up, ahead of where you stood; the body's middle if none). */
@@ -64,20 +68,6 @@ const SNAKE: BodyKey[] = [
   { t: 1.3, grip: [0.2, 1.6, 1.15], dir: [0, 0.15, 1], look: [0, -3] },
 ];
 
-/** The orc's: the snake's moves for a 2 m body held by the ankle (held higher, its slams flatter, so its head meets the
- *  floor). */
-const ORC: BodyKey[] = [
-  { t: 0, grip: null, dir: [0, 1, 0], look: null },
-  { t: 0.22, grip: [0.25, 1.95, 0.95], dir: [0, -0.9, 0.45], look: [0, -8] },
-  { t: 0.38, grip: [0.2, 1.85, 0.85], dir: [0.1, 0.95, 0.25], look: [0, 18] },
-  { t: 0.5, grip: [0.15, 1.3, 0.9], dir: [0, -0.55, 0.83], look: [0, -30], hit: true },
-  { t: 0.68, grip: [0.25, 1.7, 0.8], dir: [0.65, 0.55, 0.5], look: [-10, 6] },
-  { t: 0.84, grip: [0.1, 1.85, 0.8], dir: [0.15, 0.95, 0.2], look: [0, 18] },
-  { t: 1, grip: [0.35, 1.3, 0.8], dir: [0.75, -0.58, 0.3], look: [-14, -30], hit: true },
-  { t: 1.15, grip: [0.35, 1.7, 0.45], dir: [0.75, 0.3, -0.6], look: [-18, 0] },
-  { t: 1.3, grip: [0.2, 1.6, 1.15], dir: [0, 0.15, 1], look: [0, -3] },
-];
-
 /** The frog's whirl: yanked up in front of you, then twice round overhead on its tongue (a ring tilted down in front, so
  *  you see it pass), its head to your hand; let go in front. */
 function frogKeys(): BodyKey[] {
@@ -95,12 +85,12 @@ function frogKeys(): BodyKey[] {
     return [[c[0] + r * out[0], c[1] + r * out[1], c[2] + r * out[2]], out];
   };
   const [p0, d0] = at(Math.PI / 2);
-  keys.push({ t: 0.45, grip: p0, dir: d0, look: [0, 16] });
+  keys.push({ t: 0.45, grip: p0, dir: d0, look: [0, 26] });
   // Two turns, a key every 30°, from in front round by your right.
   const steps = 24;
   for (let i = 1; i <= steps; i++) {
     const [p, d] = at(Math.PI / 2 - (i * Math.PI * 2 * 2) / steps);
-    keys.push({ t: 0.45 + (i * 1.05) / steps, grip: p, dir: d, look: [0, 18], glide: true });
+    keys.push({ t: 0.45 + (i * 1.05) / steps, grip: p, dir: d, look: [0, 28], glide: true });
   }
   return keys;
 }
@@ -112,14 +102,28 @@ export const BARRAGE = 30;
 function barrage(): Beat[] {
   const beats: Beat[] = [];
   for (let i = 0; i < BARRAGE; i++) beats.push({ t: BARRAGE_FROM + i * BARRAGE_GAP, blow: 'punch', stop: 0 });
-  beats.push({ t: 2, blow: 'punch', stop: 0.16 });
+  // The last, to its face.
+  beats.push({ t: 2, blow: 'punch', stop: 0.18, at: [0, 2.2, 1.8] });
   return beats;
 }
 
 /** Every kind you can execute (more to come: the bosses have none). */
 export const EXEC_MOVES: Partial<Record<EnemyKind, ExecMove>> = {
   snake: { held: true, keys: SNAKE, beats: [], end: 'throw', endAt: 1.3, half: 0.42 },
-  grunt: { held: true, keys: ORC, beats: [], end: 'throw', endAt: 1.3, half: 0.5 },
+  grunt: {
+    held: true,
+    keys: [
+      { t: 0, grip: null, dir: [0, -1, 0], look: null },
+      { t: 0.25, grip: [0.1, 2.05, 1.2], dir: [0, -1, 0.1], look: [0, 12] },
+      { t: 0.45, grip: [0.05, 2.75, 1.25], dir: [0, -1, 0.15], look: [0, 30], snap: true },
+      { t: 0.65, grip: [-0.6, 3.1, 1.4], dir: [0.8, 0.3, -0.5], look: [0, 42] },
+      { t: 0.85, grip: [-0.95, 2.0, 1.15], dir: [1, 0.1, 0], look: [0, 28], snap: true },
+    ],
+    beats: [{ t: 0.85, blow: 'punch', stop: 0.2, at: [0, 2.05, 1.15] }],
+    end: 'burst',
+    endAt: 0.88,
+    half: 0.5,
+  },
   spitter: {
     held: true,
     keys: [
@@ -138,17 +142,23 @@ export const EXEC_MOVES: Partial<Record<EnemyKind, ExecMove>> = {
     held: false,
     keys: [
       { t: 0, grip: null, look: null },
-      { t: 0.2, grip: [0, 0, 1.3], look: [0, -16] },
-      { t: 0.5, grip: [0, 0, 1.4], look: [0, -16] },
-      { t: 0.56, grip: [0, 0, 1.25], look: [0, -14] },
-      { t: 0.85, grip: [0, 0, 1.2], look: [0, -4] },
+      { t: 0.2, grip: [0, 0, 1.3], look: [-8, -16] },
+      { t: 0.45, grip: [0, 0, 1.4], look: [-8, -16] },
+      { t: 0.5, grip: [0, 0, 1.3], look: [6, -12] },
+      { t: 0.72, grip: [0, 0, 1.3], look: [8, -12] },
+      { t: 0.85, grip: [0, 0, 1.3], look: [0, -4] },
+      { t: 1.0, grip: [0, 0, 1.35], look: [0, -4] },
+      { t: 1.2, grip: [0, 0, 1.35], look: [0, -2] },
     ],
     beats: [
-      { t: 0.55, blow: 'tear', stop: 0.1, at: [0, 1.3, 0.9] },
-      { t: 0.85, blow: 'punch', stop: 0.12, at: [0, 1.65, 1.0] },
+      { t: 0.45, blow: 'tear', stop: 0.1, at: [0.45, 1.2, 0.9] },
+      { t: 0.72, blow: 'chop', stop: 0.09, at: [-0.7, 1.2, 1.2] },
+      { t: 0.85, blow: 'punch', stop: 0.06, at: [0, 1.35, 1.15] },
+      { t: 1.0, blow: 'punch', stop: 0.06, at: [0, 1.35, 1.2] },
+      { t: 1.2, blow: 'punch', stop: 0.14, at: [0, 1.35, 1.2] },
     ],
     end: 'throw',
-    endAt: 0.85,
+    endAt: 1.2,
     half: 0.5,
     lob: 0.6,
   },
@@ -170,17 +180,17 @@ export const EXEC_MOVES: Partial<Record<EnemyKind, ExecMove>> = {
   stinger: {
     held: true,
     keys: [
-      { t: 0, grip: null, dir: UP, look: null },
-      { t: 0.22, grip: [0, 1.15, 1.1], dir: UP, look: [0, -12] },
-      { t: 0.42, grip: [0.05, 1.85, 0.85], dir: [0, 0.6, -0.8], look: [0, 18] },
-      { t: 0.55, grip: [0.05, 0.3, 1.25], dir: [0, 0.1, 1], look: [0, -38], hit: true },
-      { t: 0.75, grip: [0.05, 1.8, 0.85], dir: [0, 0.6, -0.8], look: [0, 16] },
-      { t: 0.9, grip: [0.05, 0.25, 1.3], dir: [0, 0.05, 1], look: [0, -40], hit: true },
+      { t: 0, grip: null, dir: [0, -1, 0], look: null },
+      { t: 0.22, grip: [0.25, 1.6, 1.0], dir: [0, -1, 0.05], look: [0, -4] },
+      { t: 0.42, grip: [0.3, 2.05, 0.6], dir: [0, 0.4, -0.9], look: [0, 18] },
+      { t: 0.55, grip: [0.2, 0.75, 1.15], dir: [0, -0.6, 0.8], look: [0, -34], hit: true },
+      { t: 0.75, grip: [0.3, 2.0, 0.65], dir: [0, 0.4, -0.9], look: [0, 16] },
+      { t: 0.9, grip: [0.2, 0.72, 1.2], dir: [0, -0.55, 0.83], look: [0, -36], hit: true },
     ],
     beats: [],
     end: 'burst',
     endAt: 0.95,
-    half: 0.1,
+    half: 0.3,
   },
   wraith: {
     held: true,
@@ -188,12 +198,13 @@ export const EXEC_MOVES: Partial<Record<EnemyKind, ExecMove>> = {
       { t: 0, grip: null, dir: UP, look: null },
       { t: 0.22, grip: [0, 1.45, 0.75], dir: UP, look: [0, -4] },
       { t: 0.75, grip: [0, 1.4, 0.7], dir: UP, look: [0, -6] },
-      { t: 0.92, grip: [0.15, 1.6, 0.45], dir: [0.2, 1, -0.2], look: [-4, 0] },
-      { t: 1.05, grip: [0, 1.55, 1.1], dir: [0, 1, 0.4], look: [0, 0] },
+      { t: 0.92, grip: [-0.05, 1.42, 0.72], dir: UP, look: [0, -4] },
+      { t: 1.05, grip: [0, 1.45, 0.85], dir: [0, 1, 0.3], look: [0, -2], snap: true },
     ],
     beats: [
       { t: 0.5, blow: 'crush', stop: 0.05 },
       { t: 0.72, blow: 'crush', stop: 0.08 },
+      { t: 1.05, blow: 'punch', stop: 0.1 },
     ],
     end: 'throw',
     endAt: 1.05,
@@ -236,13 +247,13 @@ export const EXEC_MOVES: Partial<Record<EnemyKind, ExecMove>> = {
       { t: 0.15, grip: [0, 0, 1.9], look: [-12, -24] },
       { t: 0.45, grip: [0, 0, 1.9], look: [12, -24] },
       { t: 0.7, grip: [0, 0, 1.9], look: [-14, -26] },
-      { t: 1.05, grip: [0, 0, 1.9], look: [0, 20] },
-      { t: 1.25, grip: [0, 0, 1.9], look: [0, -40] },
+      { t: 1.05, grip: [0, 0, 1.9], look: [0, 22] },
+      { t: 1.25, grip: [0, 0, 1.9], look: [0, -38] },
     ],
     beats: [
-      { t: 0.25, blow: 'chop', stop: 0.06, at: [0.7, 0.75, 1.15] },
-      { t: 0.5, blow: 'chop', stop: 0.06, at: [-0.7, 0.75, 1.15] },
-      { t: 0.75, blow: 'chop', stop: 0.06, at: [0.9, 0.8, 1.6] },
+      { t: 0.25, blow: 'chop', stop: 0.1, at: [0.7, 0.75, 1.15] },
+      { t: 0.5, blow: 'chop', stop: 0.1, at: [-0.7, 0.75, 1.15] },
+      { t: 0.75, blow: 'chop', stop: 0.1, at: [0.9, 0.8, 1.6] },
       { t: 1.25, blow: 'smash', stop: 0.14, at: [0, 0.6, 1.9] },
     ],
     end: 'burst',
@@ -254,7 +265,9 @@ export const EXEC_MOVES: Partial<Record<EnemyKind, ExecMove>> = {
     keys: [
       { t: 0, grip: null, look: null },
       { t: 0.15, grip: [0, 0, 2.0], look: [0, -2] },
-      { t: 2.05, grip: [0, 0, 2.05], look: [0, 0] },
+      { t: 1.85, grip: [0, 0, 2.0], look: [0, -2] },
+      { t: 2.0, grip: [0, 0, 2.0], look: [0, 14] },
+      { t: 2.05, grip: [0, 0, 2.05], look: [0, 14] },
     ],
     beats: barrage(),
     end: 'burst',

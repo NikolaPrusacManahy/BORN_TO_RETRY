@@ -47,9 +47,13 @@ const v = new THREE.Vector3();
 /** Where each key's hands were last worked out while it was held (per key list: for after it's let go). */
 const kept = new Map<readonly HandKey[], { at: THREE.Vector3[]; way: THREE.Vector3[]; ok: boolean[] }>();
 
+/** Where each hand last was on the body while it was held (for a key that comes only after it's let go). */
+const last = { L: { at: new THREE.Vector3(), way: new THREE.Vector3(), ok: false }, R: { at: new THREE.Vector3(), way: new THREE.Vector3(), ok: false } };
+
 /** A new execution: nothing kept yet. */
 export function resetHands() {
   for (const k of kept.values()) k.ok.fill(false);
+  last.L.ok = last.R.ok = false;
 }
 
 /** Both hands at `t` s into `keys` (`held`: the body is still in your hands). Returns false once they're done. */
@@ -91,10 +95,17 @@ function resolve(h: HandAt, slot: number, side: Side, t: number, ex: Execution, 
   out.slide = h.slide ?? 0;
   if (h.mode === 'guard') return;
   const onBody = !!h.on || (!!h.to && !h.way);
-  if (onBody && (!held || !drawn.root || folded(drawn.root, h.on)) && store.ok[slot]) {
-    out.at.copy(store.at[slot]);
-    out.way.copy(store.way[slot]);
-    return;
+  if (onBody && (!held || !drawn.root || folded(drawn.root, h.on))) {
+    if (store.ok[slot]) {
+      out.at.copy(store.at[slot]);
+      out.way.copy(store.way[slot]);
+      return;
+    }
+    if (last[side].ok) {
+      out.at.copy(last[side].at);
+      out.way.copy(last[side].way);
+      return;
+    }
   }
   // Where.
   if (h.on === '@grip') out.at.copy(drawn.tip).addScaledVector(drawn.line, TIP);
@@ -129,5 +140,8 @@ function resolve(h: HandAt, slot: number, side: Side, t: number, ex: Execution, 
     store.at[slot].copy(out.at);
     store.way[slot].copy(out.way);
     store.ok[slot] = true;
+    last[side].at.copy(out.at);
+    last[side].way.copy(out.way);
+    last[side].ok = true;
   }
 }

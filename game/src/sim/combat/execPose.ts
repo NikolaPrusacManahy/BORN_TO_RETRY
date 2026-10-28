@@ -67,7 +67,7 @@ export function pose(ex: Execution, t: number) {
   const k0 = keys[i];
   const k1 = keys[i + 1];
   const w = Math.max(0, Math.min(1, (t - k0.t) / (k1.t - k0.t)));
-  const u = k1.glide ? w : eased(w, !!k1.hit, !!k0.hit);
+  const u = k1.glide ? w : eased(w, !!(k1.hit || k1.snap), !!(k0.hit || k0.snap));
   local(ex, k0, move.held, a);
   local(ex, k1, move.held, b);
   if (move.held) {

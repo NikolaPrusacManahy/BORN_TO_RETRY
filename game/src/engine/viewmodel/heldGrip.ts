@@ -24,6 +24,9 @@ const FAR = 1.25;
 const MAX_LEAN = 1;
 /** An open palm's middle is this far back from its knuckles (m). */
 const PALM = 0.05;
+/** Update 0.1.3 — the clasped hammer's fists this far either side of its spot, in the arms' own view (m): side by
+ *  side, touching, whatever the distance (set in the world they met and passed through each other). */
+const CLASP = 0.056;
 const UP = new THREE.Vector3(0, 1, 0);
 const OPEN: Record<HandSub['mode'], number> = { guard: 0, rope: 0, fist: 0, hammer: 0, palm: 1, chop: 1 };
 
@@ -94,6 +97,7 @@ export class HeldGrip {
       p.addScaledVector(way, s.slide);
       if (side === 'L') this.along.copy(way);
     }
+    if (s.mode === 'hammer') p.x += side === 'L' ? -CLASP : CLASP;
     // Into the model.
     held.grip.copy(holder.worldToLocal(camera.localToWorld(p)));
     holder.getWorldQuaternion(q).invert();

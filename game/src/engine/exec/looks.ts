@@ -23,8 +23,8 @@ export interface ExecLook {
   grip?: { at: string; to: string; line?: string | V3; face?: V3 };
   /** Joints held still (at rest) while it's held. */
   still?: readonly string[];
-  /** Its arms reach for your hands until they're torn off: its upper arm and forearm for your left and right hand. */
-  reach?: Record<Side, readonly [string, string]>;
+  /** Its arm reaches for your hand until the first piece comes off: its upper arm and forearm for that hand. */
+  reach?: Partial<Record<Side, readonly [string, string]>>;
   /** The pieces it can be cut into: each the bones listed and all below them. */
   pieces?: readonly (readonly string[])[];
   cuts?: readonly Cut[];
@@ -48,21 +48,24 @@ const HUMANOID: (readonly string[])[] = [['Neck'], ['ShoulderL'], ['ShoulderR'],
 
 export const EXEC_LOOKS: Partial<Record<EnemyKind, ExecLook>> = {
   snake: { grip: { at: 'Tail3', to: 'Head', line: 'Tail2' }, still: ['Tail', 'Tail1', 'Tail2', 'Tail3'] },
-  grunt: { grip: { at: 'FootL', to: 'Head', line: [0, 0, 1] }, still: ['UpperLegL', 'LowerLegL', 'FootL'] },
+  // Update 0.1.3 — held by its head (its body hanging, its front to you); it bursts.
+  grunt: { grip: { at: 'Head', to: 'Hips', face: [0, 0, 1] }, pieces: HUMANOID, burst: true },
   spitter: { grip: { at: 'Head', to: 'Head3', face: [0, 0, 1] }, pieces: [['Head'], ['Head2'], ['Head3']], burst: true },
   leaper: {
     still: ['ShoulderL', 'UpperArmL', 'LowerArmL', 'ShoulderR', 'UpperArmR', 'LowerArmR'],
-    reach: { L: ['UpperArmR', 'LowerArmR'], R: ['UpperArmL', 'LowerArmL'] },
+    // Update 0.1.3 — the arm on your right reaches into your right fist and is torn off, flung aside; the one on your
+    // left (still held out) is chopped off.
+    reach: { R: ['UpperArmL', 'LowerArmL'] },
     pieces: [['ShoulderR'], ['ShoulderL']],
-    // Torn off, then flung aside, out of the way of the punch.
     cuts: [
-      { t: 0.55, pieces: [0], hand: 'L', drop: 0.64, fling: [-3.5, 1.5, -0.5] },
-      { t: 0.55, pieces: [1], hand: 'R', drop: 0.62, fling: [3.5, 1.5, -0.5] },
+      { t: 0.45, pieces: [1], hand: 'R', drop: 0.53, fling: [4, 1.5, -0.3] },
+      { t: 0.72, pieces: [0], fling: [-5, 2.5, 1] },
     ],
   },
   slime: { squash: flatAt(0.5, 0.06, 0.12, 1.6), keep: true },
   frog: { grip: { at: 'Head', to: 'Back', face: [0, 1, 0] }, tongue: { from: 'Head', out: 0.15 } },
-  stinger: { grip: { at: 'Torso', to: 'Head', face: [0, 0, 1] }, keep: true },
+  // Update 0.1.3 — held by its neck in one fist, its body hanging.
+  stinger: { grip: { at: 'Neck', to: 'Torso', face: [0, 0, 1] }, keep: true },
   wraith: {
     grip: { at: 'Torso', to: 'Head', face: [0, 0, 1] },
     squash: (t) => {
@@ -83,10 +86,11 @@ export const EXEC_LOOKS: Partial<Record<EnemyKind, ExecLook>> = {
       ['FrontLegR', 'FrontFoot2R'],
       ['MidFrontLegL', 'MidFrontFootL'],
     ],
+    // Update 0.1.3 — chopped off hard: flung far, spinning.
     cuts: [
-      { t: 0.25, pieces: [0], fling: [4, 3, 0.5] },
-      { t: 0.5, pieces: [1], fling: [-4, 3, 0.5] },
-      { t: 0.75, pieces: [2], fling: [4.5, 3, 1] },
+      { t: 0.25, pieces: [0], fling: [7, 4.5, 1] },
+      { t: 0.5, pieces: [1], fling: [-7, 4.5, 1] },
+      { t: 0.75, pieces: [2], fling: [7.5, 4, 1.5] },
     ],
     squash: flatAt(1.25, 0.06, 0.2, 1.3),
     keep: true,

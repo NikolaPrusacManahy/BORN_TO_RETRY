@@ -173,8 +173,8 @@ export class ExecScene {
     const hand = (side: Side) => w.lerpVectors(hands[side].a.at, hands[side].b.at, hands[side].u);
     if (root && look.reach && !this.cut[0]) {
       for (const side of ['L', 'R'] as const) {
-        const [upper, fore] = look.reach[side];
-        reachArm(root, upper, fore, hand(side));
+        const arm = look.reach[side];
+        if (arm) reachArm(root, arm[0], arm[1], hand(side));
       }
     }
     F.set(-Math.sin(ex.yaw), 0, -Math.cos(ex.yaw));

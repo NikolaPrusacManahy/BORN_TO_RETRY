@@ -31,9 +31,11 @@ export function execFeedback(f: FeedbackParts, kind: CombatEvent, value: number,
           f.rig.shake.add(0.12);
           break;
         case 'chop':
-          f.sparks.spawn(at, back, 12, 1.2);
-          f.chunks.spawn(at, UP, 6, 0.8);
-          f.rig.shake.add(0.3);
+          // Update 0.1.3 — harder.
+          f.sparks.spawn(at, back, 20, 1.5);
+          f.chunks.spawn(at, UP, 14, 1.1);
+          f.rig.shake.add(0.5);
+          f.rig.kick(1.6);
           break;
         case 'tear':
           f.chunks.spawn(at, back, 16, 1.1);

@@ -1,5 +1,5 @@
 // Update 0.1.1 — the hands in the snake execution (the designer: "the player's arms are doing that cross arms stance,
-// let's make it accurate and make it grab the snake's tail"). Update 0.1.2 — and the orc's ankle: played and drawn as
+// let's make it accurate and make it grab the snake's tail"). Update 0.1.2 — played and drawn as
 // the game does it (tests/fakes/execRig.ts, the real models): while you hold it, both fists sit on the line they hold
 // (on screen), it lies across each fist's curled fingers (never out through the back of the hand), leaning in the grip
 // no more than a sword's blade does, and your arms never cross.
@@ -12,8 +12,8 @@ import { execHeld } from '../src/sim/combat/execution';
 /** A fist's width on screen (the same units as its height). */
 const FIST = 0.05;
 
-for (const kind of ['snake', 'grunt'] as const) {
-  section(`Execution — your hands on the ${kind === 'snake' ? 'snake’s tail' : 'orc’s ankle'}`);
+for (const kind of ['snake'] as const) {
+  section('Execution — your hands on the snake’s tail');
   const r = await execRig(kind);
   // On screen, x in the same units as y.
   const screen = (v: THREE.Vector3, camera: THREE.Camera) => {

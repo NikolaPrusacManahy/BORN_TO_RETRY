@@ -3,7 +3,7 @@
 // in your hands; your hands do the move; every blow and slam lands; it dies (thrown and landing, or where it is) as one
 // kill; a torn or chopped piece comes off and the body is left without it; a burst leaves no body, only its pieces; a
 // smashed or flattened one stays as it was left; the frog's tongue reaches your hand; the wizard is thrown at the
-// nearest wall and bursts there.
+// nearest wall and bursts there. Update 0.1.3 — your fists never pass through each other.
 import * as THREE from 'three';
 import { check, section } from './harness';
 import { DT } from './fakes/flatWorld';
@@ -36,6 +36,11 @@ for (const kind of EXECUTABLE) {
   let cutOk = true;
   let goneSeen = 0;
   let goneOk = true;
+  // Update 0.1.3 — your fists never pass through each other (the clasped hammer's sit side by side, touching).
+  const kl = new THREE.Vector3();
+  const kr = new THREE.Vector3();
+  let closest = Infinity;
+  let clasped = 0;
   const end = move.endAt + (move.end === 'burst' ? 0 : r.c.exec.flight || 2.5) + 0.3;
   for (let t = DT; t < end + 0.6; t += DT) {
     r.step();
@@ -54,6 +59,12 @@ for (const kind of EXECUTABLE) {
       if (r.vm.grip.weight > 0 && (r.vm.grip.bend('L') > 0.9 || r.vm.grip.bend('R') > 0.9)) hands++;
       r.p.hurtTime = 0;
     }
+    if (r.vm.grip.bend('L') > 0.9 && r.vm.grip.bend('R') > 0.9) {
+      const gap = r.rig.knuckle('L', kl).distanceTo(r.rig.knuckle('R', kr));
+      closest = Math.min(closest, gap);
+      const h = r.vm.grip.hand;
+      if (h.L.b.mode === 'hammer' && h.R.b.mode === 'hammer' && h.L.u > 0.95) clasped = Math.max(clasped, gap);
+    }
     piecesSeen = Math.max(piecesSeen, visiblePieces(r.exec.pieces.group));
     tongue ||= r.exec.group.children.some((c) => c.type === 'Mesh' && c.visible);
   }
@@ -62,6 +73,8 @@ for (const kind of EXECUTABLE) {
   const slams = r.seen.filter((s) => s.startsWith('execSlam')).length;
   check('nothing hurts you while it’s in your hands', safe);
   check('your hands do the move', hands > 20, `${hands} frames posed`);
+  if (closest < Infinity) check('your fists never pass through each other', closest > 0.09, `${closest.toFixed(3)} m apart at the closest`);
+  if (clasped > 0) check('clasped, they sit side by side', clasped < 0.16, `${clasped.toFixed(3)} m apart`);
   check(`its ${move.beats.length} blows and ${move.keys.filter((k) => k.hit).length} slams all land`, blows === move.beats.length && slams === move.keys.filter((k) => k.hit).length, `${blows} blows, ${slams} slams`);
   check(move.end === 'burst' ? 'it dies where it is' : 'it’s thrown, and dies where it lands', e.phase === 'dead');
   check('it ends as one kill that doesn’t refill the meter', r.seen.filter((s) => s.startsWith('kill:')).length === 1 && r.c.execution === 0);

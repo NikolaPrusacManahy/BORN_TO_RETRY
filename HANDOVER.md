@@ -2,7 +2,17 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.1.2
+## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.1.3
+- **Update 0.1.3 — executions, the designer's second pass** (spec `MD_UPDATES/U013_EXECUTIONS.md`):
+  - orc grabbed by the head, tossed up, burst by an uppercut;
+  - ninja's arms off one by one (torn, then chopped), three face punches;
+  - armabee in one fist;
+  - ghost punched away;
+  - frog's whirl higher;
+  - the clasped fists apart; the wasp held at its ends;
+  - the spider's chops harder and its smash the slime's;
+  - the blue demon's last blow to the face.
+  - Checked as renders; the motion is unseen.
 - **Update 0.1.2 — an execution for every enemy** (the designer's list; spec `MD_UPDATES/U012_EXECUTIONS.md`).
   - **All 11 regular enemies:**
     - orc (ankle, the snake's moves);
