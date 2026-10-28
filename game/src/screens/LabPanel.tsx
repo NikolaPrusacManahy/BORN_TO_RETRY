@@ -59,6 +59,7 @@ const ITEMS: [DropKind, string][] = [
 const WEAPONS: [WeaponKind, string][] = [
   ['sword', 'Sword'],
   ['goldSword', 'Gold sword'],
+  ['grimoire', 'Grimoire'],
 ];
 const COUNTS = [1, 3, 5];
 const FLOORS = [1, 2, 3];

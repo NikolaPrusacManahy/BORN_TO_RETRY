@@ -2,7 +2,16 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.1.3
+## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.1.4
+- **Update 0.1.4 — the Grimoire** (the designer's new weapon and two reference images; spec `MD_UPDATES/U014_GRIMOIRE.md`):
+  - the open book from the Ultimate RPG pack (`Book3_Open`, `tools/blender/export_book.py` → `public/models/weapons/grimoire.glb`; the shop's and floor's look in `items.glb`);
+  - held: right hand palm up under the open book, left palm up with fire on it (flames, embers, an orange light) (`engine/viewmodel/bookArms.ts`);
+  - left click: the palm thrusts out, fingers up, and a fireball flies (`sim/weapons/fireballs.ts`, `engine/fireView.ts`: core, trail, embers, burst, two fixed lights);
+  - right click held (the designer's second pass): a Ki-blast charge (`sim/weapons/kiCharge.ts`): the palm held out, the ball growing, a use each half second up to 10 (third pass: 50% faster, was a second); 2.5 s bursts across half a room, 5 s the whole room; the idle hand curled round a held fireball;
+  - 25 uses (the designer's third pass; was 12);
+  - in the shop and rare chests; the Lab's weapon list; a book icon in the slots bar; synth sounds (`audio/fireSounds.ts`).
+  - Checked as renders of the real arms code (`tools/book-shots.ts`); the fire's glow and the motion are unseen. `test-grimoire.ts` checks the rules.
+  - The sword's arm moved out of `viewmodel.ts` into `viewmodel/swordArm.ts`, and the combat events out of `sim/combat/state.ts` into `sim/combat/events.ts` (re-exported), with no change in behaviour, to keep both under 300 lines.
 - **Update 0.1.3 — executions, the designer's second pass** (spec `MD_UPDATES/U013_EXECUTIONS.md`):
   - orc grabbed by the head, tossed up, burst by an uppercut;
   - ninja's arms off one by one (torn, then chopped), three face punches;
@@ -38,7 +47,7 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   - **The grip** (the designer: no crossed arms, really grab the tail): both hands hold the tail like a rope (`viewmodel/heldGrip.ts`, `ArmsRig.gripPose` for either hand). The left hand holds the tip, the right is beside it, and the snake is turned about its body line so its tail runs to your right. The tail joints are held still; the body thrashes. `test-exec-grip.ts` checks it with the real models.
   - **Lab:** the panel's **Meter** (on at first) keeps the Execution Power meter full, in the Lab only.
   - Key poses checked as Blender renders (`tools/exec-shots.ts`): as you see it and from the side. The motion, timing, sounds and effects are unseen.
-  - **Files over the split limit:** `engine/Game.ts` (336 lines), `App.tsx` (347), `sim/combat/state.ts` (312), `engine/run.ts` (305), `engine/viewmodel/viewmodel.ts` (303), `engine/viewmodel/armsRig.ts` (300) and `sim/enemies/enemy.ts` (300). Split them before adding more.
+  - **Files over the split limit:** `engine/Game.ts` (336 lines), `App.tsx` (347), `engine/run.ts` (305), `engine/viewmodel/armsRig.ts` (300) and `sim/enemies/enemy.ts` (300). Split them before adding more.
 - **Update 0.1.0 — constant pressure, the Execution Power meter** (the designer's list; spec `MD_UPDATES/U010_PRESSURE.md`).
   - **Rooms:**
     - A room's planned enemies come as one stream: an opening of at least 5, then one more whenever fewer than 5 are fighting (every 0.35 s), until the room's plan is all sent.
@@ -290,6 +299,8 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `MD_UPDATES/M3_KEYS_LOOT.md` | Update 0.0.16: keys, loot by rarity, the Yeti's key, the shuffled shop, the open palm |
 | `MD_UPDATES/M3_LOADOUT.md` | Update 0.0.17: less gold, armour and rings reworked, melee reach, kill bonuses, weapon slots |
 | `game/tools/boss-shots.ts` | Renders the boss room (walls at any point of their slide, the gate shut or open, the Demon's stance) from the show's own shots, without a browser |
+| `MD_UPDATES/U014_GRIMOIRE.md` | Update 0.1.4: the Grimoire (the book, the stance, fireballs, numbers) |
+| `game/tools/book-shots.ts` | Renders the Grimoire in your hands (held, the cast, the charge, the great cast) from the game's own arms code, without a browser |
 | `game/tools/view-shots.ts`, `game/tools/blender/render_view.py` | Renders the first-person arms (the game's own code and models) at chosen moments, without a browser |
 | `MD/PIPELINE_MENU_SCENE.md` | How the menu's scenes (the gate, the settings camp, the prison corridor) are built, and how to change them |
 | `DEVELOPMENT.md` | Module map and contracts |
@@ -370,6 +381,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 
 ## Not verified
 Claude has seen and heard none of this in the game: the feel, the arms on screen, the targets, effects, sounds and menus are all unverified until played. The tests check the rules, the collision, and that the shipped arms pose correctly.
+- **The Grimoire (Update 0.1.4):** the designer played the first version (the palm light washed the left hand out white; now kept off the hand and dimmer). The second pass is seen only as still renders of the game's own arms code holding the real book (`tools/book-shots.ts`, flat light, no textures, each flame drawn as a flat square, the glow spheres drawn solid): the curled hand round its ball, the cast, the charge after one step, at the big charge and at the full one, the release (shot at the first timing, 1 s a charge; the ball's size follows the charge's share of the big and full charges, so the shots stand at 0.5 s a charge). Unseen in the game: the flames' glow, the palm light's brightness, the trembling, the ball growing and pulsing, a charged fireball's size in flight, the charged bursts (the swelling ball of fire, the 15 m and 30 m rings, the flash, the shake, the freeze), the synth sounds, and how charging feels.
 - **Every execution (Update 0.1.2):** seen only as still renders of the real rules and view code at their keys and blows (`tools/exec-shots.ts`, flat light, no textures). Unseen in the game: the moves in motion and their pace, the hands between keys, the pieces flying and bouncing, the burst and blow effects and synth sounds, the frog's whirl at speed, the barrage's rhythm.
 - **The snake execution (Update 0.1.1):** seen only as still renders of the real rules and view code (`tools/exec-shots.ts`, flat light, a tiled floor). Unseen in the game: the moves in motion and their pace, the view turning, the hands on the tail in motion (checked as stills and by `test-exec-grip.ts`), the snake's thrash (its walk clip 3× fast), the crimson pulse, the slam freezes, rings, debris and shake, the synth sounds, the flight and the landing. `test-execution.ts` checks the target rules, the grab, the world holding still, the two slams reaching the floor, the body never passing through your head, the view looking down at each slam, invulnerability, the throw short of a wall, the one-shot kill and the splash.
 - **The main menu:** only the Blender previews of the scene were seen. In the browser, unseen: the logo and buttons over the scene, the statues, crates and trees under the game's own lighting, the lighting itself (torch and campfire flicker, gate light, shadows, fog), the dust, the gate's pace, the fade to black and back, and the gate's synth grind. `test-menu.ts` checks the scene's nodes, the menu shot's framing, that the gate is open before the fade (and never pokes out of the wall's top), and the timing.

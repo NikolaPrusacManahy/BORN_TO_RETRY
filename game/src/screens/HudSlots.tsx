@@ -13,6 +13,17 @@ function FistIcon() {
   );
 }
 
+/** Update 0.1.4 — the Grimoire: an open book, a flame over it. */
+function BookIcon() {
+  return (
+    <svg viewBox="0 0 32 32" className="rb-slot-icon">
+      <path d="M3 10l13 3 13-3v16l-13 3-13-3z" fill="#6a4628" stroke="#2a2018" strokeWidth="1.5" />
+      <path d="M5 11l11 2.5V27L5 24.5zM27 11l-11 2.5V27l11-2.5z" fill="#f1e2c0" />
+      <path d="M16 2c3 3 4 5 1 8 0-2-1-3-2-3 1 2 0 3-1 4-2-3 0-6 2-9z" fill="#ff8a3a" />
+    </svg>
+  );
+}
+
 function SwordIcon({ gold }: { gold: boolean }) {
   const blade = gold ? '#ffcf4a' : '#d6dde6';
   return (
@@ -34,7 +45,7 @@ export function WeaponSlots({ slots, slot }: { slots: (HudSlot | null)[]; slot: 
         s ? (
           <span key={i} className={`rb-slot${slot === i + 1 ? ' is-on' : ''}${s.uses <= 0 ? ' is-broken' : ''}`}>
             <i className="rb-slot-n">{i + 2}</i>
-            <SwordIcon gold={s.kind === 'goldSword'} />
+            {s.kind === 'grimoire' ? <BookIcon /> : <SwordIcon gold={s.kind === 'goldSword'} />}
             <b className="rb-slot-uses">{s.uses}</b>
           </span>
         ) : null,

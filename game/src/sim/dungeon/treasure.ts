@@ -62,7 +62,8 @@ export const LOOT_AT = 0.62;
 export const SHOP_TILES = 5;
 /** Always in the shop; the rest of its tiles are drawn from the others ('key': a key by its odds). */
 const SHOP_ALWAYS: readonly ItemKind[] = ['heart', 'plate'];
-const SHOP_DRAWN: readonly ItemKind[] = ['goldSword', 'goldPlate', 'redRing', 'blueRing', 'greenRing', 'purpleRing', 'key'];
+// Update 0.1.4 — and the Grimoire.
+const SHOP_DRAWN: readonly ItemKind[] = ['goldSword', 'grimoire', 'goldPlate', 'redRing', 'blueRing', 'greenRing', 'purpleRing', 'key'];
 
 const at = new Vector3();
 

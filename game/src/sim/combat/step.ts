@@ -10,6 +10,8 @@
 // attacks, kill bonuses counting down.
 // Update 0.1.1 — E near an enemy you can execute (the meter full) executes it (before picking up a weapon); while you
 // hold it, nothing else moves.
+// Update 0.1.4 — the Grimoire casts fireballs instead of swinging: left click, and right click held charges one
+// (kiCharge.ts) cast as it's let go; fireballs fly after the enemies move.
 import { Vector3 } from 'three';
 import type { Spot } from '../../world/arena';
 import type { CollisionWorld } from '../collisionWorld';
@@ -18,6 +20,9 @@ import { updateWaves } from '../enemies/waves';
 import type { PlayerState } from '../player/state';
 import { asPierce, updateSlashes, usesFor } from '../weapons/swing';
 import { updateThrown } from '../weapons/thrown';
+import { castFireball, updateCasts, updateFireballs } from '../weapons/fireballs';
+import { dropKi, updateKi } from '../weapons/kiCharge';
+import { CASTS } from '../weapons/catalog';
 import { throwWeapon, tryPickup, updateStands } from '../weapons/weapons';
 import { WEAPONS } from '../../tuning/weapons';
 import { updateDummy } from './dummy';
@@ -53,7 +58,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   state.execTarget = execTarget(state, player, intent.yaw);
   const executing = intent.interactPressed && !throwing && tryExecute(state, player, intent.yaw, intent.pitch);
   if (execHeld(state.exec)) {
-    // The world holds still while you hold it.
+    // The world holds still while you hold it (and a Grimoire's charge is dropped).
+    dropKi(state.ki);
     stepExecution(state, dt);
     state.money = updateCoins(state.coins, player, state.money, events, dt);
     return;
@@ -63,9 +69,11 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     const got = tryPickup(state.pickups, state.stands, player, events);
     if (got) giveWeapon(state, got, player.pos);
   }
-  if (intent.slotPressed >= 0 && !throwing && !state.fists.charging) selectSlot(state, intent.slotPressed);
+  if (intent.slotPressed >= 0 && !throwing && !state.fists.charging && !state.ki.charging) selectSlot(state, intent.slotPressed);
   const held = state.weapon;
-  if (held && !throwing && (intent.throwPressed || (held.uses <= 0 && (intent.attackPressed || intent.heavyHeld)))) {
+  // (A charge that has burnt the book's last use is still let go as a cast, not a throw.)
+  const spent = held !== null && held.uses <= 0 && !state.ki.charging && (intent.attackPressed || intent.heavyHeld);
+  if (held && !throwing && (intent.throwPressed || spent)) {
     held.throwing = 0;
     state.fists.charging = state.fists.chargeReady = false;
     events.push('throwStart');
@@ -83,9 +91,23 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   const w = state.weapon;
   const busy = w !== null && w.throwing >= 0;
   const rate = attackRate(state.items);
-  let swung = updateFists(state.fists, busy ? IDLE : intent, events, dt, punch, w !== null, rate);
+  const casts = w !== null && CASTS[w.kind];
+  // (The Grimoire's right click is its own charge, not the fists'.)
+  let swung = updateFists(state.fists, busy || casts ? IDLE : intent, events, dt, punch, w !== null, rate);
+  if (casts && w && !busy) {
+    const ki = state.ki;
+    if (updateKi(state, w, intent, dt)) {
+      // Let go: a quick tap is a plain fireball (a use); a charge has paid as it built.
+      aim(player, intent.yaw, intent.pitch, eye, dir);
+      castFireball(state, w, eye, dir, ki.paid > 0 ? ki.t : 0, ki.paid > 0 ? 0 : 1);
+      dropKi(ki);
+    } else if (!ki.charging && w.uses > 0 && updateCasts(w, intent, dt, rate)) {
+      aim(player, intent.yaw, intent.pitch, eye, dir);
+      castFireball(state, w, eye, dir, 0, 1);
+    }
+  } else dropKi(state.ki);
   if (swung && punch.kind === 'pierce' && w) asPierce(w, punch);
-  if (!swung && w && !busy && !state.fists.charging) swung = updateSlashes(w, intent, events, dt, punch, rate);
+  if (!swung && w && !casts && !busy && !state.fists.charging) swung = updateSlashes(w, intent, events, dt, punch, rate);
   if (swung) {
     aim(player, intent.yaw, intent.pitch, eye, dir);
     const landed = resolvePunch(punch, state, eye, dir, world);
@@ -109,6 +131,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   updateBombs(state.bombs, player, events, dt);
   updateWaves(state.waves, state.enemies, spawns, player, state.rng, events, dt);
   updateThrown(state, world, dt);
+  updateFireballs(state, world, dt);
   state.money = updateCoins(state.coins, player, state.money, events, dt);
   updateDrops(state, player, dt);
   updateBonuses(state.bonuses, dt);

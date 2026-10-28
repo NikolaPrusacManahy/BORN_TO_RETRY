@@ -6,6 +6,7 @@
 // Update 0.0.13 — kneeling at a chest, both fists reach for the lid and lift it (chestReach.ts); a held weapon is put
 // out of sight meanwhile.
 // Update 0.0.16 — in front of a chest, the left hand comes up palm open with the key you'll use (palm.ts).
+// Update 0.1.4 — holding the Grimoire, both hands hold it: the book open on the right palm, fire on the left (bookArms.ts).
 // Update 0.1.1 — in an execution, the hands do its moves (heldGrip.ts: gripping, punching, pressing, open or shut),
 // wrists bent to the grip. (Update 0.1.2: every execution's.)
 import * as THREE from 'three';
@@ -14,8 +15,10 @@ import type { PlayerState } from '../../sim/player/state';
 import { flatSpeed } from '../../sim/player/state';
 import { ArmPose, ArmsRig } from './armsRig';
 import { ArmsAnim, PunchStyle } from './armsAnim';
-import { mixArm, pose, PREVIEW_PITCH, viewToModel } from './armsMath';
+import { mixArm, pose, PREVIEW_PITCH } from './armsMath';
+import { swordArm } from './swordArm';
 import { ChestReach } from './chestReach';
+import { BookArms } from './bookArms';
 import { HeldGrip } from './heldGrip';
 import { FORWARD, GUARD, REST_BACK, Side } from './guard';
 import { KeyPalm } from './palm';
@@ -44,6 +47,8 @@ export class Viewmodel {
   readonly chest = new ChestReach();
   readonly grip = new HeldGrip();
   readonly palm = new KeyPalm();
+  readonly book = new BookArms(this.scene);
+  private readonly bookPose = pose();
   private readonly reachPose = pose();
   private readonly knuckleL = new THREE.Vector3();
   private readonly knuckleR = new THREE.Vector3();
@@ -187,28 +192,35 @@ export class Viewmodel {
     const reach = Math.max(this.chest.weight, this.grip.weight);
     if (this.chest.weight > 0) this.chest.aimed();
     const armed = smooth(this.armedVis) * (1 - reach);
+    const book = this.weapon?.userData.hold === 'book' ? armed : 0;
     const palm = this.palm.mix;
-    const left = this.poseArm(rig, 'L', this.chargeVis, charge >= 1, armed * (1 - palm));
+    const left = this.poseArm(rig, 'L', this.chargeVis, charge >= 1, (armed - book) * (1 - palm));
+    if (book > 0) mixArm(left, this.book.pose(rig, 'L', this.bookPose), book, left);
     if (palm > 0) mixArm(left, this.palm.pose(rig), palm, left);
     if (reach > 0) this.toChest(rig, 'L', left, reach);
-    rig.apply('L', left, v.wristBend + (1 - v.wristBend) * Math.max(palm, this.grip.bend('L')));
-    rig.openHand('L', Math.max(palm, this.grip.open('L')));
+    rig.apply('L', left, v.wristBend + (1 - v.wristBend) * Math.max(palm, book, this.grip.bend('L')));
+    rig.openHand('L', Math.max(palm, book * this.book.open('L'), this.grip.open('L')));
     const right = this.poseArm(rig, 'R', this.chargeVis, charge >= 1, armed);
-    if (armed > 0) {
-      mixArm(right, this.poseSword(rig, charge >= 1), armed, right);
+    if (book > 0) {
+      mixArm(right, this.book.pose(rig, 'R', this.bookPose), book, right);
+      rig.apply('R', right, v.wristBend + (1 - v.wristBend) * book);
+    } else if (armed > 0) {
+      mixArm(right, swordArm(rig, this.swordAnim, this.chargeVis, charge >= 1, this.time, this.swordPose, this.swordArm), armed, right);
       this.elbow.copy(GUARD.R.pole).lerp(this.swordPose.elbow, armed);
       rig.apply('R', right, v.wristBend + (1 - v.wristBend) * armed, this.elbow);
     } else {
       if (reach > 0) this.toChest(rig, 'R', right, reach);
       rig.apply('R', right, v.wristBend + (1 - v.wristBend) * this.grip.bend('R'));
     }
-    rig.openHand('R', this.grip.open('R'));
+    rig.openHand('R', Math.max(book * this.book.open('R'), this.grip.open('R')));
     if (this.weapon) {
       this.weapon.visible = reach < 0.2;
-      rig.holdMatrix(this.swordPose.tilt, v.weaponScale, v.swordGripSlide, this.weapon.matrix);
+      if (book > 0) this.book.bookMatrix(rig, this.weapon.matrix);
+      else rig.holdMatrix(this.swordPose.tilt, v.weaponScale, v.swordGripSlide, this.weapon.matrix);
       this.weapon.matrixWorldNeedsUpdate = true;
     }
     this.camera.updateMatrixWorld(true);
+    this.book.update(gameDt, book, rig, this.camera);
     this.palm.place(rig);
     if (this.chest.weight > 0) this.chest.settle(this.camera.worldToLocal(rig.knuckle('L', this.knuckleL)), this.camera.worldToLocal(rig.knuckle('R', this.knuckleR)));
   }
@@ -257,26 +269,6 @@ export class Viewmodel {
     mixArm(out, r, smooth(k), out);
   }
 
-  /** M2 — the right arm holding the sword where the sword arm's move has it (a charging pierce trembles too). */
-  private poseSword(rig: ArmsRig, ready: boolean): ArmPose {
-    const v = ARMS.v;
-    const s = this.swordAnim.pose(this.chargeVis, this.swordPose);
-    s.grip.x += v.swordSide;
-    s.grip.y += v.swordUp;
-    s.grip.z -= v.swordForward;
-    if (this.chargeVis > 0.001 && this.swordAnim.current === 'ready') {
-      const t = this.time * 60;
-      const shake = v.chargeTremble * this.chargeVis * (ready ? 2 : 1);
-      s.grip.x += Math.sin(t * 1.7) * shake;
-      s.grip.y += Math.sin(t * 2.3 + 1) * shake;
-    }
-    viewToModel(s.grip, rig.eye);
-    viewToModel(s.blade, null);
-    viewToModel(s.edge, null);
-    viewToModel(s.elbow, null);
-    return rig.gripPose(s, this.swordArm);
-  }
-
   /** Draws the arms over the world already on screen: depth cleared, colour kept. */
   render(renderer: THREE.WebGLRenderer, aspect: number) {
     this.setLens(aspect);
@@ -297,6 +289,7 @@ export class Viewmodel {
   reset() {
     this.anim.reset();
     this.swordAnim.reset();
+    this.book.clear();
     this.armedVis = this.weapon ? 1 : 0;
     this.swayX = this.swayY = this.dipY = this.dipV = this.pullZ = this.dropY = this.chargeVis = 0;
   }

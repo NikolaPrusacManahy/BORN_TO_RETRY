@@ -84,6 +84,16 @@ export class CombatFeedback {
         case 'pierce':
           this.f.arms.sword('pierce');
           break;
+        // Update 0.1.4 — the Grimoire's cast: the left palm thrusts out (value: its charge); each charge: the ball pulses.
+        // (Their kicks and shakes are execFeedback.ts's.)
+        case 'cast':
+          this.f.arms.book.cast(e.value);
+          foes2Feedback(this.f, e.kind, e.value, at, back, this.nearHere);
+          break;
+        case 'kiCharge':
+          this.f.arms.book.pulse();
+          foes2Feedback(this.f, e.kind, e.value, at, back, this.nearHere);
+          break;
         case 'throwStart':
           this.f.arms.sword('throw');
           break;

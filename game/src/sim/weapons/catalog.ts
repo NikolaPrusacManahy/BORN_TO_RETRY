@@ -2,14 +2,18 @@
 // is a new kind here (the compiler then asks for its stats everywhere) plus its model.
 // Update 0.0.13 — the Gold Sword (the designer: a sword that lasts 40 hits; from the shop): the sword's moves and
 // numbers, its own uses.
+// Update 0.1.4 — the Grimoire (the designer): an open book in the right hand, fire in the left; it casts fireballs
+// (weapons/fireballs.ts) instead of swinging. `CASTS` says which kinds cast.
 import { ITEMS } from '../../tuning/items';
 import { WEAPONS } from '../../tuning/weapons';
 
-export type WeaponKind = 'sword' | 'goldSword';
-export const WEAPON_KINDS: readonly WeaponKind[] = ['sword', 'goldSword'];
+export type WeaponKind = 'sword' | 'goldSword' | 'grimoire';
+export const WEAPON_KINDS: readonly WeaponKind[] = ['sword', 'goldSword', 'grimoire'];
 
 /** What the HUD calls each weapon. */
-export const WEAPON_NAME: Record<WeaponKind, string> = { sword: 'Sword', goldSword: 'Gold Sword' };
+export const WEAPON_NAME: Record<WeaponKind, string> = { sword: 'Sword', goldSword: 'Gold Sword', grimoire: 'Grimoire' };
+/** Update 0.1.4 — it casts fire (left click a fireball, the charge a great one) rather than swinging. */
+export const CASTS: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: true };
 
 export interface WeaponStats {
   name: string;
@@ -51,4 +55,6 @@ function swordStats(name: string, uses: number): WeaponStats {
 export const WEAPON_STATS: Record<WeaponKind, () => WeaponStats> = {
   sword: () => swordStats(WEAPON_NAME.sword, WEAPONS.v.swordUses),
   goldSword: () => swordStats(WEAPON_NAME.goldSword, ITEMS.v.goldSwordUses),
+  // (Its swing numbers are never used: it casts.)
+  grimoire: () => ({ ...swordStats(WEAPON_NAME.grimoire, WEAPONS.v.grimoireUses), interval: WEAPONS.v.castInterval }),
 };

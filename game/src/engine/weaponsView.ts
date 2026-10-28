@@ -11,7 +11,8 @@ import { PICKUP_POOL, THROWN_POOL } from '../sim/weapons/weapons';
 import type { Viewmodel } from './viewmodel/viewmodel';
 
 export const SWORD_URL = '/models/weapons/sword.glb';
-export const WEAPON_URL: Record<WeaponKind, string> = { sword: SWORD_URL, goldSword: '/models/weapons/gold_sword.glb' };
+// Update 0.1.4 — the Grimoire: the pack's Book3_Open (grimoire.glb, export_book.py), held open in the right hand.
+export const WEAPON_URL: Record<WeaponKind, string> = { sword: SWORD_URL, goldSword: '/models/weapons/gold_sword.glb', grimoire: '/models/weapons/grimoire.glb' };
 const KINDS = Object.keys(WEAPON_URL) as WeaponKind[];
 /** A weapon lying in reach floats this high above the floor (m) and turns this fast (rad/s). */
 const FLOAT = 0.9;
@@ -116,6 +117,8 @@ export class WeaponsView {
     this.pickups[kind] = copies(PICKUP_POOL);
     this.thrown[kind] = copies(THROWN_POOL);
     this.held[kind] = model.clone();
+    // Update 0.1.4 — the Grimoire lies open on the right palm (viewmodel/bookArms.ts).
+    if (kind === 'grimoire') this.held[kind]!.userData.hold = 'book';
   }
 
   update(state: CombatState, dt: number) {

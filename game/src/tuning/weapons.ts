@@ -1,5 +1,6 @@
 // M2 — weapons (design §6): the sword's swings, its uses, throwing, and picking weapons up. Placeholders the designer
 // tunes (M2_COMBAT_SANDBOX.md).
+// Update 0.1.4 — the Grimoire's fire (MD_UPDATES/U014_GRIMOIRE.md).
 import { group, knob } from './schema';
 
 export const WEAPONS = group('weapons', 'Weapons', {
@@ -23,4 +24,29 @@ export const WEAPONS = group('weapons', 'Weapons', {
   throwSpin: knob(0, 0, 60, 1, 'Throw spin', 'End over end in flight (rad/s; looks only). 0 flies tip first.'),
   pickupRange: knob(2, 0.5, 5, 0.1, 'Pickup range', 'How close a weapon on the ground must be to pick it up with E (m).'),
   standRespawn: knob(3, 0.5, 30, 0.5, 'Stand respawn', 'Seconds before the lab stand has a sword again.'),
+  // Update 0.1.4 — the designer: a Grimoire has 25 charges (was 12).
+  grimoireUses: knob(25, 1, 100, 1, 'Grimoire uses', 'Casts a Grimoire holds (each step of a charge burns one more).'),
+  castInterval: knob(0.5, 0.15, 2, 0.01, 'Cast interval', 'Seconds between fireballs while left click is held.'),
+  fireSpeed: knob(34, 5, 80, 1, 'Fireball speed', 'How fast a fireball flies (m/s).'),
+  fireLife: knob(1.5, 0.3, 4, 0.1, 'Fireball range', 'Seconds a fireball flies before it bursts on its own.'),
+  fireDamage: knob(30, 1, 200, 1, 'Fireball damage', 'To what it hits.'),
+  fireKnock: knob(6, 0, 40, 0.5, 'Fireball knock', 'How hard it (and its burst) pushes (m/s).'),
+  fireRadius: knob(1.6, 0, 5, 0.1, 'Fireball burst', 'How far its burst reaches (m).'),
+  fireSplash: knob(15, 0, 200, 1, 'Fireball burst damage', 'To each enemy its burst reaches.'),
+  // Update 0.1.4 — the designer: right click charges it like a Ki blast, as long as you hold (seconds and uses); 5 s
+  // hits about half a room, 10 s is twice that and nukes the room. (Was a fixed great fireball: 80, 3 m, 3 uses.) Then
+  // (the designer): charging 50% faster, 0.5 s a charge (was 1 s): the big one at 2.5 s, the full one at 5 s.
+  kiStep: knob(0.5, 0.1, 3, 0.05, 'Charge step', 'Seconds of right click per charge; each charge burns a use.'),
+  kiCharges: knob(10, 1, 30, 1, 'Max charges', 'Charges a fireball can hold (full charge: step × this).'),
+  kiMidCharges: knob(5, 1, 30, 1, 'Big charge', 'Charges for the big fireball (its burst about half a room).'),
+  kiMidDamage: knob(8, 1, 50, 0.5, 'Big charge damage', 'Times the damage of a plain fireball (hit and burst), at the big charge.'),
+  kiMidBurst: knob(15, 1, 60, 0.5, 'Big charge burst', 'How far the burst reaches at the big charge (m): about half a room.'),
+  kiMidSize: knob(1.2, 0.3, 5, 0.1, 'Big charge size', 'How big the fireball is at the big charge (m).'),
+  kiMidSpeed: knob(24, 5, 80, 1, 'Big charge speed', 'How fast it flies at the big charge (m/s).'),
+  kiFullDamage: knob(20, 1, 100, 0.5, 'Full charge damage', 'Times the damage of a plain fireball (hit and burst), at the full charge.'),
+  kiFullBurst: knob(30, 1, 100, 0.5, 'Full charge burst', 'How far the burst reaches at the full charge (m): the whole room.'),
+  kiFullSize: knob(2.4, 0.3, 8, 0.1, 'Full charge size', 'How big the fireball is at the full charge (m).'),
+  kiFullSpeed: knob(18, 5, 80, 1, 'Full charge speed', 'How fast it flies at the full charge (m/s).'),
+  kiFullKnock: knob(30, 0, 80, 1, 'Full charge knock', 'How hard the full charge pushes (m/s).'),
+  kiStop: knob(220, 0, 600, 10, 'Full charge hit-stop', 'Freeze (ms) when a full charge bursts (less for less charge).'),
 });

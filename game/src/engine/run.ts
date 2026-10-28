@@ -58,6 +58,7 @@ import { TreasureView } from './treasureView';
 import { applyMoveEvents } from './moveFeedback';
 import { HudFeed, fillDebug } from './overlayFeed';
 import { Viewmodel } from './viewmodel/viewmodel';
+import { cancelCharges } from '../sim/weapons/kiCharge';
 
 /** A height change bigger than this in one tick on the ground is a step: the camera smooths it (m). */
 const STEP_MIN = 0.1;
@@ -184,10 +185,9 @@ export class Run {
     runLab(cmd, this.combat, this.player, this.look.yaw, this.treasure);
   }
 
-  /** The mouse was freed: a charge in progress is cancelled rather than thrown. */
+  /** The mouse was freed: a charge in progress is cancelled rather than thrown (Update 0.1.4: and the Grimoire's). */
   cancelCharge() {
-    this.combat.fists.charging = false;
-    this.combat.fists.chargeReady = false;
+    cancelCharges(this.combat);
   }
 
   /** Loops off (leaving for the menu). */
