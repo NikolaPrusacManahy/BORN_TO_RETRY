@@ -2,7 +2,32 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.0.17
+## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.0.18
+- **Update 0.0.18 — floor 2's enemies, the Dragon, prices by floor** (the designer's list; spec `MD_UPDATES/M3_FLOOR2.md`).
+  - **Each floor sends its own:** floor 2 has floor 1's small ones plus four new small ones and two big ones (no Yeti); floor 3 has floor 2's for now.
+  - **Six new enemies** (Ultimate Monsters' newer set):
+    - **Slime:** a kamikaze; it swells, then bursts.
+    - **Frog:** mid range; its tongue lashes along a line and pulls you in; its aim locks late, so step off the line.
+    - **Snake:** its bite poisons.
+    - **Wasp:** a flier; its sting poisons.
+    - **Spider:** big; it leaps to where you stood, or bites.
+    - **Blue Demon:** big; it charges or throws fire.
+    - The Spider and the Blue Demon are floor 2's mini bosses (a chest in their room; the first killed drops the key).
+  - **Poison:** 3 a second for 4 s, past the shield; the screen's edge pulses green.
+  - **The Dragon**, floor 2's boss (and floor 3's for now):
+    - The Demon's show, but it **screams** in its stance and the view shakes.
+    - A fire beam that follows you slowly and burns away any enemy in its line.
+    - Fireballs, a claw swoop, a wing swing in front, a tail spin all round (jump it).
+    - Rage at half health: it screams and calls wasps.
+    - Its name card is THE DRAGON.
+  - **Prices:** normal 50, better 70, best 100, +15% every floor down (58/81/115, then 66/93/132).
+  - **Tuning tabs:** "Floor 2 enemies" (with Lab counts) and "Dragon (boss)" (with Lab dragon).
+  - **Feel and looks unverified:**
+    - the models' sizes, facings and clip choices (the Wasp turned 90°);
+    - the Dragon's hover and its beam lining up with its mouth;
+    - the scream shake;
+    - the tongue;
+    - the slime's swell.
 - **Update 0.0.17 — less gold, reworked rings, kill bonuses, weapon slots** (the designer's list; spec `MD_UPDATES/M3_LOADOUT.md`).
   - **Gold:**
     - chests hold 10/20/30/40 coins;

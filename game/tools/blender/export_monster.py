@@ -87,10 +87,9 @@ def main():
     arm.animation_data.action = bpy.data.actions.get('Idle')
     bpy.context.scene.frame_set(0)
 
-    bpy.ops.object.select_all(action='DESELECT')
+    # Update 0.0.18 — some packs were saved in pose mode, where the select operator won't run: select by hand.
     for o in bpy.context.scene.objects:
-        if o.type in ('MESH', 'ARMATURE'):
-            o.select_set(True)
+        o.select_set(o.type in ('MESH', 'ARMATURE'))
     os.makedirs(os.path.dirname(os.path.abspath(args.glb)), exist_ok=True)
     bpy.ops.export_scene.gltf(filepath=args.glb, export_format='GLB', use_selection=True, export_yup=True, export_apply=False,
                               export_animations=True, export_animation_mode='ACTIONS', export_skins=True, export_lights=False, export_cameras=False)

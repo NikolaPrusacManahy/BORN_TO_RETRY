@@ -9,7 +9,7 @@ import { ENEMIES } from '../../tuning/enemies';
 import { FEEDBACK } from '../../tuning/combat';
 import { enemyAxis, hitEnemy, isLive, radiusOf } from '../enemies/enemy';
 import { dropWeapon } from '../weapons/weapons';
-import { ENEMY_STATS } from '../enemies/kinds';
+import { ENEMY_STATS, MINI_BOSSES } from '../enemies/kinds';
 import { burstCoins } from './coins';
 import { damageFactor, keyFor } from '../items/items';
 import { dropItem } from '../items/drops';
@@ -94,7 +94,7 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   if (t.kind !== 'enemy') return true;
   const e = state.enemies[t.index];
   if (e.kind === 'grunt' && state.rng() < ENEMIES.v.gruntDrop) dropWeapon(state.pickups, 'sword', e.pos, state.events);
-  if (e.kind === 'brute' && state.keyDrops > 0) {
+  if (MINI_BOSSES.includes(e.kind) && state.keyDrops > 0) {
     state.keyDrops--;
     dropItem(state.drops, keyFor(state.rng()), e.pos, state.events);
   }

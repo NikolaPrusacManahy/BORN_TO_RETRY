@@ -131,7 +131,7 @@ section('Keys — the Yeti');
   // A floor with a Yeti room.
   let level: DungeonLevel | null = null;
   for (let seed = 1; !level && seed < 200; seed++) {
-    const l = buildDungeon(planFloor(seed, 2));
+    const l = buildDungeon(planFloor(seed, 1));
     if (l.rooms.some((r) => r.kind === 'fight' && r.waves.filter((w) => w.includes('brute')).length > 0)) level = l;
   }
   const room = level!.rooms.find((r) => r.kind === 'fight' && hasYeti(r.waves))!;

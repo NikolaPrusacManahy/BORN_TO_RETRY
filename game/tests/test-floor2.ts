@@ -1,0 +1,159 @@
+// Update 0.0.18 — floor 2's enemies (the designer): the Slime bursts (kamikaze), the Frog lashes its tongue from mid
+// range, the Snake's bite and the Wasp's sting poison you, and the big ones, the Spider (leaps, bites) and the Blue
+// Demon (charges, throws fire), carry their room's key. Poison eats your health a while, past your shield. Floor 2
+// sends its own kinds. Shop prices: 50 / 70 / 100 by grade, 15% more on every floor down.
+import { Vector3 } from 'three';
+import { check, near, section } from './harness';
+import { DT, FlatWorld, ticks } from './fakes/flatWorld';
+import { arenaWorld, OPEN_ARENA, OPEN_WORLD } from './fakes/enemyWorld';
+import { EventQueue } from '../src/core/eventQueue';
+import { updateOrbs } from '../src/sim/combat/orbs';
+import { createCombat, CombatEvent } from '../src/sim/combat/state';
+import { emptyTargetHit, landHit } from '../src/sim/combat/strike';
+import { hasYeti, rosterOf } from '../src/sim/dungeon/wavePlan';
+import { BLUE_CHARGE, BLUE_FIRE } from '../src/sim/enemies/blueDemon';
+import { createEnemies, Enemy, EnemyWorld, hitEnemy, setPhase, spawnEnemy } from '../src/sim/enemies/enemy';
+import { updateEnemies } from '../src/sim/enemies/update';
+import { priceOf } from '../src/sim/items/items';
+import { poisonPlayer, updateHealth } from '../src/sim/player/health';
+import { createPlayer, PlayerState } from '../src/sim/player/state';
+import { FOES2 } from '../src/tuning/foes2';
+
+const v = FOES2.v;
+const events = new EventQueue<CombatEvent>(256, 'none');
+const kinds = () => Array.from({ length: events.length }, (_, i) => events.at(i).kind);
+
+interface Fight {
+  w: EnemyWorld;
+  p: PlayerState;
+  all: Enemy[];
+  e: Enemy;
+}
+
+function fight(kind: Enemy['kind'], at: Vector3): Fight {
+  const w = arenaWorld(events);
+  const p = createPlayer(0, 0, 0, 0);
+  p.grounded = true;
+  const all = createEnemies();
+  spawnEnemy(all, kind, at, Math.atan2(at.x, at.z));
+  all[0].cooldown = 0;
+  events.clear();
+  return { w, p, all, e: all[0] };
+}
+
+/** Ticks for `secs`: the events, and whether you were hurt. */
+function run(f: Fight, secs: number) {
+  const seen: string[] = [];
+  const hp = f.p.hp;
+  for (let i = 0; i < ticks(secs); i++) {
+    updateEnemies(f.all, f.p, f.w, OPEN_WORLD, DT);
+    updateOrbs(f.w.orbs, f.p, new FlatWorld(), events, DT);
+    updateHealth(f.p, DT);
+    seen.push(...kinds());
+    events.clear();
+  }
+  return { seen, hurt: f.p.hp < hp };
+}
+
+section('Floor 2 — the Slime');
+{
+  const f = fight('slime', new Vector3(0, 0, -6));
+  const a = run(f, 0.7);
+  check('it slides at you and, close, swells (the warning)', a.seen.includes('slimeWindup') && !a.seen.includes('slimeBlast'));
+  const b = run(f, v.slimeFuse);
+  check('then bursts: you’re hurt, it’s gone, no kill of yours', b.seen.includes('slimeBlast') && b.hurt && f.e.phase === 'dead' && f.e.struck && !b.seen.includes('kill'));
+  const g = fight('slime', new Vector3(0, 0, -20));
+  hitEnemy(g.e, 1e6, 0, 0, 0);
+  check('killed first, it just dies (no burst)', g.e.phase === 'dead' && !g.e.struck);
+}
+
+section('Floor 2 — the Frog');
+{
+  const f = fight('frog', new Vector3(0, 0, -8));
+  const a = run(f, v.frogWindup + 0.05);
+  check('in range it warns, then its tongue lashes and pulls you in', a.seen.includes('frogWindup') && a.seen.includes('frogTongue') && a.hurt && f.p.vel.z < 0);
+  const g = fight('frog', new Vector3(0, 0, -8));
+  run(g, v.frogWindup * (1 - v.frogLock) + 0.03);
+  g.p.pos.x = 2.5;
+  const b = run(g, v.frogWindup * v.frogLock + 0.05);
+  check('its aim locks at the end of the warning: step off the line and it misses', b.seen.includes('frogTongue') && !b.hurt);
+}
+
+section('Floor 2 — the Snake and the Wasp: poison');
+{
+  const f = fight('snake', new Vector3(0, 0, -1.5));
+  const a = run(f, v.snakeWindup + 0.02);
+  check('the snake rears (the warning), then bites and poisons you', a.seen.includes('snakeWindup') && a.seen.includes('snakeBite') && a.hurt && f.p.poison > 0);
+  // (The snake gone, so only the poison hurts.)
+  f.e.alive = false;
+  const hp = f.p.hp;
+  run(f, 1);
+  check(`poisoned, you lose ${v.poisonDps} a second`, near(hp - f.p.hp, v.poisonDps, 0.05), `${(hp - f.p.hp).toFixed(2)}`);
+  run(f, v.poisonTime);
+  const after = f.p.hp;
+  run(f, 1);
+  check('until the dose wears off', f.p.poison === 0 && f.p.hp === after);
+  const w = fight('wasp', new Vector3(0, 0, -10));
+  const b = run(w, v.waspWindup + 1);
+  check('the wasp warns, stings from afar, and the sting poisons', b.seen.includes('waspWindup') && b.seen.includes('waspSting') && b.hurt && w.p.poison > 0);
+  const p = createPlayer(0, 0, 0, 0);
+  p.shield = 50;
+  poisonPlayer(p, 4, 2);
+  for (let i = 0; i < ticks(1); i++) updateHealth(p, DT);
+  check('poison goes past your shield', p.shield === 50 && near(p.hp, 96, 0.05) && p.events.length > 0);
+}
+
+section('Floor 2 — the Spider');
+{
+  const f = fight('spider', new Vector3(0, 0, -9));
+  const a = run(f, v.spiderWindup + v.spiderAir + 0.1);
+  check('from mid range it rears, leaps, and lands where you stood: hurt and thrown', ['spiderWindup', 'spiderLeap', 'spiderLand'].every((k) => a.seen.includes(k)) && a.hurt);
+  const g = fight('spider', new Vector3(0, 0, -2));
+  const b = run(g, v.spiderWindup + 0.05);
+  check('close up it bites', b.seen.includes('spiderWindup') && b.seen.includes('spiderBite') && !b.seen.includes('spiderLeap') && b.hurt);
+  const h = fight('spider', new Vector3(0, 0, -20));
+  hitEnemy(h.e, 5, 0, 0, 0);
+  check('a light hit doesn’t stagger it', h.e.phase !== 'flinch');
+}
+
+section('Floor 2 — the Blue Demon');
+{
+  const f = fight('blueDemon', new Vector3(0, 0, -10));
+  f.e.move = BLUE_CHARGE;
+  setPhase(f.e, 'windup');
+  const a = run(f, v.blueChargeWindup + 0.9);
+  check('it warns, then charges through you: hurt and thrown', a.seen.includes('demonCharge') && a.hurt && Math.hypot(f.p.vel.x, f.p.vel.z) > 5);
+  const g = fight('blueDemon', new Vector3(0, 0, -12));
+  g.e.move = BLUE_FIRE;
+  setPhase(g.e, 'windup');
+  const b = run(g, v.blueFireWindup + 1.2);
+  check('or throws a fireball at you', b.seen.includes('blueFireball') && b.hurt);
+}
+
+section('Floor 2 — mini bosses and the roster');
+{
+  check('a room with a Spider or a Blue Demon has its chest', hasYeti([['grunt', 'spider']]) && hasYeti([['blueDemon']]) && !hasYeti([['snake', 'wasp', 'frog', 'slime']]));
+  for (const kind of ['spider', 'blueDemon'] as const) {
+    const c = createCombat(OPEN_ARENA, false);
+    c.keyDrops = 1;
+    const i = spawnEnemy(c.enemies, kind, new Vector3(5, 0, 0), 0);
+    const hit = emptyTargetHit();
+    hit.kind = 'enemy';
+    hit.index = i;
+    hit.point.copy(c.enemies[i].pos);
+    landHit(c, hit, 1e6, 0, 0, 1, 'hitJab', 1);
+    check(`killed, the ${kind} drops the room’s key`, c.keyDrops === 0 && c.drops.some((d) => d.alive && (d.kind === 'key' || d.kind === 'whiteKey' || d.kind === 'goldKey')));
+  }
+  const one = rosterOf(1);
+  const two = rosterOf(2);
+  check('floor 1 sends its own (the Yeti, none of floor 2’s)', one.includes('brute') && !one.includes('slime') && !one.includes('spider'));
+  check('floor 2: floor 1’s small ones and the six new, no Yeti', ['grunt', 'spitter', 'leaper', 'stinger', 'wraith', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon'].every((k) => two.includes(k as Enemy['kind'])) && !two.includes('brute'));
+  check('floor 3 has floor 2’s for now', rosterOf(3) === two);
+}
+
+section('Shop prices by floor');
+{
+  check('floor 1: a normal item 50, a better one 70, the best 100', priceOf('heart', 1) === 50 && priceOf('plate', 1) === 50 && priceOf('goldPlate', 1) === 70 && priceOf('whiteKey', 1) === 70 && priceOf('goldKey', 1) === 100);
+  check('floor 2: 15% more (58, 81, 115)', priceOf('heart', 2) === 58 && priceOf('goldPlate', 2) === 81 && priceOf('goldKey', 2) === 115);
+  check('floor 3: 15% more again (66, 93, 132)', priceOf('heart', 3) === 66 && priceOf('goldPlate', 3) === 93 && priceOf('goldKey', 3) === 132);
+}

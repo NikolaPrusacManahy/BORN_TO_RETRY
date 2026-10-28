@@ -25,6 +25,7 @@ import { hasYeti } from './wavePlan';
 import { BONUS } from '../../tuning/bonus';
 import type { PlayerState } from '../player/state';
 import { BossRun, createBossRun, startShow, stepBoss } from './bossRoom';
+import { bossOf } from '../enemies/kinds';
 import { createTreasure, Treasure } from './treasure';
 
 export type RoomState = 'idle' | 'fighting' | 'cleared';
@@ -73,7 +74,7 @@ export function createDungeonRun(level: DungeonLevel): DungeonRun {
     nav: level.rooms.map(() => null),
     exited: false,
     treasure: createTreasure(level, createRng(level.plan.seed * 131 + level.plan.level * 17)),
-    boss: createBossRun(),
+    boss: createBossRun(bossOf(level.plan.level)),
   };
 }
 

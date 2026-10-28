@@ -7,6 +7,8 @@
 // Update 0.0.15 — the Demon's phases (its charge, stunned, its roar, its entrance) and which move it winds up; a boss's
 // body doesn't fall when it dies (its death show places it); a hit on a stunned boss is worth more.
 // Update 0.0.17 — frozen (the snowflake bonus): it stands still, its attack paused, until the ice wears off.
+// Update 0.0.18 — the Dragon's fire beam (a phase of its own) and a burst's shots; the enemy world knows every enemy
+// (the beam burns them).
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
@@ -19,7 +21,7 @@ import type { PlayerState } from '../player/state';
 import type { Flow } from './chase';
 import { ENEMY_STATS, EnemyKind, flies, SizeClass } from './kinds';
 
-export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive' | 'charge' | 'stun' | 'roar' | 'intro';
+export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive' | 'charge' | 'stun' | 'roar' | 'intro' | 'breath';
 
 export interface Enemy {
   /** The slot is in use (a live enemy, or a body still lying there). */
@@ -52,6 +54,8 @@ export interface Enemy {
   /** Update 0.0.15 — a boss: the move it winds up (demon.ts), and its stage (0, then 1 once it rages). */
   move: number;
   stage: number;
+  /** Update 0.0.18 — shots fired in this burst (the Dragon's fireballs). */
+  shots: number;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -63,6 +67,7 @@ export interface EnemyWorld {
   quakes: Quake[];
   rng: Rng;
   events: EventQueue<CombatEvent>;
+  enemies: Enemy[];
 }
 
 export const ENEMY_POOL = 16;
@@ -96,6 +101,7 @@ export function createEnemies(): Enemy[] {
     struck: false,
     move: 0,
     stage: 0,
+    shots: 0,
   }));
 }
 
@@ -124,6 +130,7 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.struck = false;
   e.move = 0;
   e.stage = 0;
+  e.shots = 0;
   return i;
 }
 

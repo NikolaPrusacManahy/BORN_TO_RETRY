@@ -227,7 +227,9 @@ section('Fliers and the leaper in the rooms');
   check('from the second room, leapers and stingers', second.has('leaper') && second.has('stinger') && !second.has('wraith') && !second.has('brute'));
   const third = sample(3, 1);
   check('from the third, wraiths and brutes too', third.has('wraith') && third.has('brute'));
+  // Update 0.0.18 — floor 2 sends its own (the designer): every one of them from its first room, and no Yeti.
   const deep = sample(1, 2);
-  check('every kind from floor 2 on', ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith'].every((k) => deep.has(k as Enemy['kind'])));
+  const floor2: Enemy['kind'][] = ['grunt', 'spitter', 'leaper', 'stinger', 'wraith', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon'];
+  check('floor 2: every kind of its own from the first room, no Yeti', floor2.every((k) => deep.has(k)) && !deep.has('brute'), [...deep].join());
   check('(they live)', isLive(fight('wraith', new Vector3(0, 0, -5)).e));
 }

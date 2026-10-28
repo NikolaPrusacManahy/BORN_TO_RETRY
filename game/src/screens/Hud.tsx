@@ -47,6 +47,7 @@ export function Hud({ store }: { store: HudStore }) {
       {s.hits > 0 && <div key={`m${s.hits}`} className={`rb-hud-marker is-${s.marker}`} />}
       {s.hurts > 0 && <div key={`h${s.hurts}`} className="rb-hud-hurt" />}
       {s.shields > 0 && <div key={`s${s.shields}`} className="rb-hud-shieldhit" />}
+      {s.poisoned && <div className="rb-hud-poison" />}
       {s.map && <Minimap map={s.map} x={s.mapX} z={s.mapZ} yaw={s.mapYaw} />}
       <div className="rb-hud-money">
         <i className="rb-hud-coin" />

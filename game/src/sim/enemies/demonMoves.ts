@@ -2,6 +2,7 @@
 // straight run that throws you aside; a wall or a column in its way stuns it), the leap (an arc to where you stood; the
 // landing hurts close by and sends a quake ring rolling out), and the volley (a fan of fire orbs at you; two once it
 // rages). Pure.
+// Update 0.0.18 — the charge takes its numbers as a spec (the Blue Demon charges too, with its own).
 import { Vector3 } from 'three';
 import { BOSS } from '../../tuning/boss';
 import { fireOrb } from '../combat/orbs';
@@ -34,6 +35,28 @@ const dir = new Vector3();
 /** Its walk and charge speed now (faster once it rages). */
 export const pace = (d: Enemy) => (d.stage > 0 ? BOSS.v.rageSpeed : 1);
 
+/** A charge's numbers: how fast (m/s), how far (m), what it does to you, and how tall the charger is (m). */
+export interface ChargeSpec {
+  speed: number;
+  range: number;
+  damage: number;
+  shove: number;
+  height: number;
+}
+
+const DEMON_CHARGE: ChargeSpec = { speed: 0, range: 0, damage: 0, shove: 0, height: 0 };
+
+/** The Demon's charge as the knobs say now (one object, refilled). */
+export function demonCharge(d: Enemy): ChargeSpec {
+  const v = BOSS.v;
+  DEMON_CHARGE.speed = v.chargeSpeed * pace(d);
+  DEMON_CHARGE.range = v.chargeRange;
+  DEMON_CHARGE.damage = v.chargeDamage;
+  DEMON_CHARGE.shove = v.chargeShove;
+  DEMON_CHARGE.height = v.demonHeight;
+  return DEMON_CHARGE;
+}
+
 /** Off it runs along the way it faces (locked now). */
 export function startCharge(d: Enemy, index: number, w: EnemyWorld) {
   d.from.copy(d.pos);
@@ -44,9 +67,8 @@ export function startCharge(d: Enemy, index: number, w: EnemyWorld) {
 }
 
 /** One tick of the charge. Returns 'crash' (it ran into something), 'out' (it ran its length) or 'on'. */
-export function stepCharge(d: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number): 'crash' | 'out' | 'on' {
-  const v = BOSS.v;
-  const dist = v.chargeSpeed * pace(d) * dt;
+export function stepCharge(d: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number, spec: ChargeSpec = demonCharge(d)): 'crash' | 'out' | 'on' {
+  const dist = spec.speed * dt;
   was.copy(d.pos);
   d.pos.x += d.aim.x * dist;
   d.pos.z += d.aim.z * dist;
@@ -58,23 +80,22 @@ export function stepCharge(d: Enemy, index: number, player: PlayerState, w: Enem
     w.events.push('demonCrash', index, d.pos.x + d.aim.x * radiusOf(d), d.pos.y + 2, d.pos.z + d.aim.z * radiusOf(d));
     return 'crash';
   }
-  if (!d.struck) gore(d, index, player, w);
-  if (Math.hypot(d.pos.x - d.from.x, d.pos.z - d.from.z) >= v.chargeRange) return 'out';
+  if (!d.struck) gore(d, index, player, w, spec);
+  if (Math.hypot(d.pos.x - d.from.x, d.pos.z - d.from.z) >= spec.range) return 'out';
   return 'on';
 }
 
 /** Running into you: hurt and thrown aside, away from its line (once a charge). */
-function gore(d: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
-  const v = BOSS.v;
+function gore(d: Enemy, index: number, player: PlayerState, w: EnemyWorld, spec: ChargeSpec) {
   const dx = player.pos.x - d.pos.x;
   const dz = player.pos.z - d.pos.z;
-  if (Math.hypot(dx, dz) > radiusOf(d) + BODY.radius || player.pos.y - d.pos.y > v.demonHeight * 0.8) return;
+  if (Math.hypot(dx, dz) > radiusOf(d) + BODY.radius || player.pos.y - d.pos.y > spec.height * 0.8) return;
   d.struck = true;
-  if (!damagePlayer(player, v.chargeDamage)) return;
+  if (!damagePlayer(player, spec.damage)) return;
   // Which side of its line you're on decides where you're thrown; mostly forward with it.
   const side = Math.sign(dx * -d.aim.z + dz * d.aim.x) || 1;
-  player.vel.x += (d.aim.x * 0.7 - d.aim.z * side * 0.7) * v.chargeShove;
-  player.vel.z += (d.aim.z * 0.7 + d.aim.x * side * 0.7) * v.chargeShove;
+  player.vel.x += (d.aim.x * 0.7 - d.aim.z * side * 0.7) * spec.shove;
+  player.vel.z += (d.aim.z * 0.7 + d.aim.x * side * 0.7) * spec.shove;
   player.vel.y = Math.max(player.vel.y, 7);
   player.grounded = false;
   w.events.push('demonGore', index, player.pos.x, player.pos.y + 1, player.pos.z);

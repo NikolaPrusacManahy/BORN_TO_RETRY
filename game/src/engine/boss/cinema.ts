@@ -5,7 +5,7 @@
 // vectors (no rendering), so it's tested headless.
 import * as THREE from 'three';
 import { introBeats } from '../../sim/dungeon/bossRoom';
-import { BOSS } from '../../tuning/boss';
+import { ENEMY_STATS, EnemyKind } from '../../sim/enemies/kinds';
 import { CINEMA } from '../../tuning/cinema';
 import type { BossLayout } from '../../world/dungeon/assemble';
 
@@ -39,7 +39,11 @@ export class Cinema {
   endYaw = 0;
   endPitch = 0;
 
-  constructor(private readonly layout: BossLayout) {
+  /** Update 0.0.18 — `kind`: the boss (its height frames the shots). */
+  constructor(
+    private readonly layout: BossLayout,
+    private readonly kind: EnemyKind = 'demon',
+  ) {
     const e = layout.entrance;
     this.fwd.set(e === 'w' ? 1 : e === 'e' ? -1 : 0, 0, e === 'n' ? 1 : e === 's' ? -1 : 0);
     this.right.set(-this.fwd.z, 0, this.fwd.x);
@@ -49,7 +53,7 @@ export class Cinema {
   start(eye: THREE.Vector3, dir: THREE.Vector3) {
     const c = CINEMA.v;
     const p = this.layout.portal;
-    const h = BOSS.v.demonHeight;
+    const h = ENEMY_STATS[this.kind]().height;
     this.eye.pos.copy(eye);
     this.eye.look.copy(eye).addScaledVector(dir, 20);
     // High over the room, a little in front of you, looking at its middle.

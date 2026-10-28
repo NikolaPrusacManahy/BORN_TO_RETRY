@@ -2,13 +2,19 @@
 // a charge, a red lane along the way it will run, brighter as it comes; while it's in the air, a ring where it will land
 // as wide as its landing's reach; its quake rings rolling out (a glowing band as wide as they are far); and the flash
 // of light when its body bursts. Pooled and updated in place.
+// Update 0.0.18 — the Dragon's too: its swoop's lane while it winds up its claws, and a ring as far as its wing or
+// its tail reaches while it winds those up; any boss's burst flashes.
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
 import { windupOf } from '../../sim/enemies/demon';
 import { CHARGE } from '../../sim/enemies/demonMoves';
+import { dragonWindup } from '../../sim/enemies/dragon';
+import { CLAWS, TAIL, WING } from '../../sim/enemies/dragonMoves';
+import { RADIUS } from '../../sim/enemies/kinds';
+import { DRAGON } from '../../tuning/dragon';
 import { QUAKE_POOL } from '../../sim/combat/quakes';
 import { BOSS } from '../../tuning/boss';
-import { demonIn } from './demonView';
+import { bossIn } from './demonView';
 
 /** The burst's flash: how long (s), how big it grows (m), how bright its light. */
 const FLASH = 0.6;
@@ -62,24 +68,30 @@ export class DemonFx {
       this.flash.position.set(ev.x, ev.y, ev.z);
       this.flashLight.position.set(ev.x, ev.y, ev.z);
     }
-    const e = demonIn(state);
-    // The charge's lane, along the way it faces.
+    const boss = bossIn(state);
+    const e = boss?.kind === 'demon' ? boss : null;
+    const d = boss?.kind === 'dragon' ? boss : null;
+    const dv = DRAGON.v;
+    // The charge's lane (the Dragon's swoop's), along the way it faces.
     const charging = !!e && e.phase === 'windup' && e.move === CHARGE;
-    this.lane.visible = charging;
-    if (e && charging) {
-      const k = Math.min(1, e.t / windupOf(e, CHARGE));
-      this.lane.position.set(e.pos.x, 0.05, e.pos.z);
-      this.lane.rotation.y = e.facing;
-      this.lane.scale.set(v.demonHeight * 0.5, 1, v.chargeRange);
-      (this.lane.material as THREE.MeshBasicMaterial).opacity = 0.15 + 0.45 * k * (0.75 + 0.25 * Math.sin(e.t * 30));
-    }
-    // Where its leap lands.
+    const swooping = !!d && d.phase === 'windup' && d.move === CLAWS;
+    this.lane.visible = charging || swooping;
+    if (e && charging) this.showLane(e.pos, e.facing, e.t, Math.min(1, e.t / windupOf(e, CHARGE)), v.demonHeight * 0.5, v.chargeRange);
+    if (d && swooping) this.showLane(d.pos, d.facing, d.t, Math.min(1, d.t / dragonWindup(d, CLAWS)), dv.dragonHeight * 0.4, dv.clawRange);
+    // Where its leap lands; how far the Dragon's wing or tail will sweep.
     const leaping = !!e && e.phase === 'leap';
-    this.landing.visible = leaping;
+    const swinging = !!d && d.phase === 'windup' && (d.move === WING || d.move === TAIL);
+    this.landing.visible = leaping || swinging;
     if (e && leaping) {
       const k = Math.min(1, e.t / v.leapAir);
       this.landing.position.set(e.aim.x, e.aim.y + 0.06, e.aim.z);
       this.landing.scale.setScalar(v.slamReach);
+      (this.landing.material as THREE.MeshBasicMaterial).opacity = 0.3 + 0.7 * k;
+    }
+    if (d && swinging) {
+      const k = Math.min(1, d.t / dragonWindup(d, d.move));
+      this.landing.position.set(d.pos.x, d.pos.y + 0.06, d.pos.z);
+      this.landing.scale.setScalar((d.move === WING ? dv.wingReach : dv.tailReach) + RADIUS.dragon);
       (this.landing.material as THREE.MeshBasicMaterial).opacity = 0.3 + 0.7 * k;
     }
     // The quake rings: a band of light as far out as each has rolled, fading as it goes.
@@ -106,6 +118,14 @@ export class DemonFx {
       this.flashLight.intensity = FLASH_LIGHT * (1 - k) ** 2;
     } else this.flashLight.intensity = 0;
     this.flashLight.visible = this.flashLight.intensity > 0;
+  }
+
+  /** A lane `width` m wide and `length` m long from `pos` the way `facing` faces; brighter as `k` nears 1. */
+  private showLane(pos: THREE.Vector3, facing: number, t: number, k: number, width: number, length: number) {
+    this.lane.position.set(pos.x, 0.05, pos.z);
+    this.lane.rotation.y = facing;
+    this.lane.scale.set(width, 1, length);
+    (this.lane.material as THREE.MeshBasicMaterial).opacity = 0.15 + 0.45 * k * (0.75 + 0.25 * Math.sin(t * 30));
   }
 
   clear() {

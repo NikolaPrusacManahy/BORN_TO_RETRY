@@ -3,15 +3,19 @@
 // starts as the view comes back to you (engine/cinema.ts reads the same beats). Once it rages it calls grunts. Killed,
 // every grunt dies with it; its body hangs, sinks and bursts (demon.ts), leaving coins, a key and a heart; then the
 // wooden gate swings open onto the dark (the way down), and the room's own gates lift. Pure and seeded.
+// Update 0.0.18 — each floor its boss (kinds.ts bossOf): floor 2's is the Dragon. It screams as its stance starts (the
+// view shakes), and raging it calls wasps.
 import type { Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import { BOSS } from '../../tuning/boss';
+import { DRAGON } from '../../tuning/dragon';
 import { CINEMA } from '../../tuning/cinema';
 import { burstCoins } from '../combat/coins';
 import { coinsFor } from '../items/bonuses';
 import { clearQuakes } from '../combat/quakes';
 import type { CombatState } from '../combat/state';
 import { hitEnemy, isLive, setPhase, spawnEnemy } from '../enemies/enemy';
+import { ENEMY_STATS, EnemyKind } from '../enemies/kinds';
 import { spawnAt } from '../enemies/waves';
 import { ITEM_KINDS, ItemKind, takeItem } from '../items/items';
 import type { PlayerState } from '../player/state';
@@ -20,6 +24,9 @@ import { Vector3 } from 'three';
 export type BossBeat = 'waiting' | 'intro' | 'fight' | 'dying' | 'loot' | 'open';
 
 export interface BossRun {
+  /** Update 0.0.18 — which boss (the floor's), and whether its stance has started (the Dragon screams). */
+  kind: EnemyKind;
+  stance: boolean;
   beat: BossBeat;
   /** Seconds into the beat. */
   t: number;
@@ -39,8 +46,26 @@ const CALL_CLEAR = 8;
 /** After the show, a moment before its first move (s). */
 const FIRST_MOVE = 1;
 
-export function createBossRun(): BossRun {
-  return { beat: 'waiting', t: 0, slot: -1, summon: 0, calling: false };
+export function createBossRun(kind: EnemyKind = 'demon'): BossRun {
+  return { kind, stance: false, beat: 'waiting', t: 0, slot: -1, summon: 0, calling: false };
+}
+
+/** Update 0.0.18 — who a boss calls once it rages, how many, how often (s), and the coins it leaves. */
+interface Calls {
+  kind: EnemyKind;
+  count: number;
+  every: number;
+  coins: number;
+}
+const CALLS: Calls = { kind: 'grunt', count: 0, every: 0, coins: 0 };
+
+function callsOf(kind: EnemyKind): Calls {
+  const dragon = kind === 'dragon';
+  CALLS.kind = dragon ? 'wasp' : 'grunt';
+  CALLS.count = dragon ? DRAGON.v.summonWasps : BOSS.v.summonGrunts;
+  CALLS.every = dragon ? DRAGON.v.summonEvery : BOSS.v.summonEvery;
+  CALLS.coins = dragon ? DRAGON.v.dragonCoins : BOSS.v.demonCoins;
+  return CALLS;
 }
 
 /** The show's beats, in seconds from stepping in. */
@@ -107,7 +132,8 @@ const mid = new Vector3();
 
 /** One tick of the boss room once its show has started. Returns true the tick the wooden gate opens. */
 export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: readonly Spot[], player: PlayerState, combat: CombatState, rng: Rng, dt: number): boolean {
-  const v = BOSS.v;
+  const height = ENEMY_STATS[b.kind]().height;
+  const calls = callsOf(b.kind);
   const ev = combat.events;
   b.t += dt;
   const boss = b.slot >= 0 ? combat.enemies[b.slot] : null;
@@ -115,8 +141,8 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
     case 'intro': {
       const s = introBeats();
       if (!boss && b.t >= s.riseFrom) {
-        mid.set(portal.x, -v.demonHeight, portal.z);
-        b.slot = spawnEnemy(combat.enemies, 'demon', mid, Math.atan2(-(player.pos.x - portal.x), -(player.pos.z - portal.z)));
+        mid.set(portal.x, -height, portal.z);
+        b.slot = spawnEnemy(combat.enemies, b.kind, mid, Math.atan2(-(player.pos.x - portal.x), -(player.pos.z - portal.z)));
         if (b.slot >= 0) {
           setPhase(combat.enemies[b.slot], 'intro');
           ev.push('bossRise', b.slot, portal.x, 0, portal.z);
@@ -126,7 +152,12 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
       if (!boss) break;
       // Up out of the portal, slowing as it arrives.
       const k = Math.max(0, Math.min(1, (b.t - s.riseFrom) / (s.riseTo - s.riseFrom)));
-      boss.pos.y = -v.demonHeight * (1 - k) * (1 - k);
+      boss.pos.y = -height * (1 - k) * (1 - k);
+      // The Dragon screams as it takes its stance.
+      if (!b.stance && b.t >= s.riseTo) {
+        b.stance = true;
+        if (b.kind === 'dragon') ev.push('dragonScream', b.slot, boss.pos.x, height * 0.8, boss.pos.z);
+      }
       if (b.t >= s.end) {
         boss.pos.y = 0;
         setPhase(boss, 'chase');
@@ -150,16 +181,16 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
       if (b.calling) {
         b.summon -= dt;
         if (b.summon <= 0 && minions(combat, b.slot) < CALL_UNDER) {
-          b.summon = v.summonEvery;
-          call(spawns, player, combat, rng);
+          b.summon = calls.every;
+          call(spawns, player, combat, rng, calls);
         }
       }
       break;
     case 'dying':
       if (!boss || !boss.struck) break;
       // Its body has burst: what it leaves you.
-      mid.set(boss.pos.x, boss.pos.y + v.demonHeight * 0.5, boss.pos.z);
-      combat.money += burstCoins(combat.coins, mid, coinsFor(v.demonCoins, combat, rng), rng);
+      mid.set(boss.pos.x, boss.pos.y + height * 0.5, boss.pos.z);
+      combat.money += burstCoins(combat.coins, mid, coinsFor(calls.coins, combat, rng), rng);
       for (const kind of LOOT) {
         takeItem(kind, player, combat);
         ev.push('bossLoot', ITEM_KINDS.indexOf(kind), mid.x, mid.y, mid.z);
@@ -184,7 +215,7 @@ function down(b: BossRun, slot: number, combat: CombatState) {
   const boss = combat.enemies[slot];
   b.beat = 'dying';
   b.t = 0;
-  ev.push('bossDown', slot, boss.pos.x, boss.pos.y + BOSS.v.demonHeight * 0.5, boss.pos.z);
+  ev.push('bossDown', slot, boss.pos.x, boss.pos.y + ENEMY_STATS[boss.kind]().height * 0.5, boss.pos.z);
   combat.enemies.forEach((e, i) => {
     if (i === slot || !isLive(e)) return;
     hitEnemy(e, e.hp, 0, 0, 0);
@@ -206,9 +237,9 @@ function minions(combat: CombatState, slot: number): number {
   return n;
 }
 
-/** Grunts at the room's spawn spots, away from you (seeded). */
-function call(spawns: readonly Spot[], player: PlayerState, combat: CombatState, rng: Rng) {
+/** Its minions at the room's spawn spots, away from you (seeded). */
+function call(spawns: readonly Spot[], player: PlayerState, combat: CombatState, rng: Rng, calls: Calls) {
   const far = spawns.filter((s) => Math.hypot(s.x - player.pos.x, s.z - player.pos.z) >= CALL_CLEAR);
   const pool = [...(far.length > 0 ? far : spawns)];
-  for (let n = 0; n < BOSS.v.summonGrunts && pool.length > 0; n++) spawnAt(combat.enemies, 'grunt', pool, player, rng, combat.events);
+  for (let n = 0; n < calls.count && pool.length > 0; n++) spawnAt(combat.enemies, calls.kind, pool, player, rng, combat.events);
 }

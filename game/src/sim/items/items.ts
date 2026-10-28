@@ -7,6 +7,8 @@
 // Update 0.0.17 — the designer's rework: the silver plate gives 20 shield, the gold armour 40; the red ring +15 max
 // health, the purple ring +25% damage, the green ring +15% melee attack speed, the blue ring +15% run speed (rings
 // last the run); the gold sword goes into a weapon slot (slots.ts).
+// Update 0.0.18 — what each costs (the designer): a normal one 50, a better version 70, the best 100, then 15% more on
+// every floor down (rounded to whole coins).
 import { ITEMS } from '../../tuning/items';
 import type { CombatState } from '../combat/state';
 import { addShield, healPlayer, maxHpOf, maxShield } from '../player/health';
@@ -76,6 +78,30 @@ export function keyFor(roll: number): KeyKind {
   let r = roll * (v.keyOdds + v.whiteKeyOdds + v.goldKeyOdds);
   if ((r -= v.keyOdds) < 0) return 'key';
   return r - v.whiteKeyOdds < 0 ? 'whiteKey' : 'goldKey';
+}
+
+/** How good a version each item is: a normal one, a better version of a normal one, the best. */
+export type Grade = 'normal' | 'better' | 'best';
+export const GRADE: Record<ItemKind, Grade> = {
+  heart: 'normal',
+  plate: 'normal',
+  goldPlate: 'better',
+  goldSword: 'better',
+  redRing: 'normal',
+  blueRing: 'normal',
+  greenRing: 'normal',
+  purpleRing: 'normal',
+  key: 'normal',
+  whiteKey: 'better',
+  goldKey: 'best',
+};
+
+/** What `kind` costs in the shop on floor `floor` (1, 2, …), to the nearest coin (a half rounds up: 50 × 1.15 is 58,
+ *  though floating point makes it 57.4999…). */
+export function priceOf(kind: ItemKind, floor: number): number {
+  const v = ITEMS.v;
+  const base = GRADE[kind] === 'best' ? v.priceBest : GRADE[kind] === 'better' ? v.priceBetter : v.priceNormal;
+  return Math.round(base * (1 + v.priceRise) ** Math.max(0, floor - 1) + 1e-6);
 }
 
 export const isKey = (kind: ItemKind): kind is KeyKind => kind === 'key' || kind === 'whiteKey' || kind === 'goldKey';

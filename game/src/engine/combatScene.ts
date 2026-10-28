@@ -3,6 +3,7 @@
 // M2 — and the enemies (enemiesView.ts) and weapons on the ground, in flight and in hand (weaponsView.ts).
 // Update 0.0.12 — and shockwaves (slams).
 // Update 0.0.15 — and the Demon (boss/demonView.ts) and what its moves draw (boss/demonFx.ts).
+// Update 0.0.18 — and the Dragon (boss/dragonView.ts).
 import * as THREE from 'three';
 import type { AudioEngine } from '../audio/audio';
 import { CombatSounds } from '../audio/combatSounds';
@@ -12,6 +13,7 @@ import { CombatFeedback } from './combatFeedback';
 import { Burst } from './fx/burst';
 import { DemonFx } from './boss/demonFx';
 import { DemonView } from './boss/demonView';
+import { DragonView } from './boss/dragonView';
 import { EnemiesView } from './enemiesView';
 import { Shockwaves } from './fx/shockwave';
 import { CoinsView } from './coinsView';
@@ -30,12 +32,14 @@ export class CombatScene {
   private readonly chunks: Burst;
   private readonly demon: DemonView;
   private readonly demonFx: DemonFx;
+  private readonly dragon: DragonView;
 
   constructor(scene: THREE.Scene, state: CombatState, audio: AudioEngine, rig: CameraRig, arms: Viewmodel) {
     this.targets = new TargetsView(scene, state);
     this.enemies = new EnemiesView(scene);
     this.demon = new DemonView(scene);
     this.demonFx = new DemonFx(scene);
+    this.dragon = new DragonView(scene);
     this.coins = new CoinsView(scene);
     scene.add(this.waves.group);
     this.weapons = new WeaponsView(scene, state, arms, rig.camera);
@@ -55,6 +59,7 @@ export class CombatScene {
     this.targets.update(state, playerChest, gameDt);
     this.enemies.update(state, alpha, gameDt);
     this.demon.update(state, listener, alpha, gameDt);
+    this.dragon.update(state, listener, alpha, gameDt);
     this.waves.update(gameDt);
     this.coins.update(state.coins, gameDt);
     this.weapons.update(state, gameDt);
@@ -73,6 +78,7 @@ export class CombatScene {
     this.targets.dispose();
     this.enemies.dispose();
     this.demon.dispose();
+    this.dragon.dispose();
     this.demonFx.dispose();
     this.waves.dispose();
     this.coins.dispose();

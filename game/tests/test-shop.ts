@@ -21,7 +21,7 @@ import { createCombat } from '../src/sim/combat/state';
 import { stepCombat } from '../src/sim/combat/step';
 import { createDungeonRun } from '../src/sim/dungeon/roomLoop';
 import { chestInReach, createTreasure, KNEEL_DIST, LOOT_AT, SHOP_TILES, stepTreasure, Treasure } from '../src/sim/dungeon/treasure';
-import { createInventory, damageFactor, ITEM_KINDS, speedFactor, takeItem } from '../src/sim/items/items';
+import { createInventory, damageFactor, ITEM_KINDS, priceOf, speedFactor, takeItem } from '../src/sim/items/items';
 import { emptyIntent } from '../src/sim/player/intent';
 import { createPlayer, PlayerState } from '../src/sim/player/state';
 import { stepPlayer } from '../src/sim/player/step';
@@ -75,7 +75,7 @@ section('Shop — every floor');
 
 /** A shop of one offer at (0, -1) and you at the origin with `money`. */
 function shopWith(kind: Treasure['offers'][number]['kind'], money: number) {
-  const t: Treasure = { shop: 0, offers: [{ kind, sold: false, x: 0, z: -1 }], chests: [], choosing: -1 };
+  const t: Treasure = { shop: 0, offers: [{ kind, price: priceOf(kind, 1), sold: false, x: 0, z: -1 }], chests: [], choosing: -1 };
   const p = createPlayer(0, 0, 0, 0);
   p.grounded = true;
   const c = createCombat(bare);
@@ -85,11 +85,13 @@ function shopWith(kind: Treasure['offers'][number]['kind'], money: number) {
 
 section('Shop — buying');
 {
-  const { t, p, c } = shopWith('redRing', ITEMS.v.price - 1);
-  check('E by a tile without the coins buys nothing', stepTreasure(t, p, c, true, false, never, DT) && !t.offers[0].sold && c.money === ITEMS.v.price - 1 && events(c).includes('buyFail'));
-  c.money = ITEMS.v.price + 5;
+  // (Update 0.0.18 — each offer has its price: a ring is a normal item, 50 on floor 1.)
+  const price = priceOf('redRing', 1);
+  const { t, p, c } = shopWith('redRing', price - 1);
+  check('E by a tile without the coins buys nothing', stepTreasure(t, p, c, true, false, never, DT) && !t.offers[0].sold && c.money === price - 1 && events(c).includes('buyFail'));
+  c.money = price + 5;
   c.events.clear();
-  check(`with ${ITEMS.v.price} it's yours`, stepTreasure(t, p, c, true, false, never, DT) && t.offers[0].sold && c.money === 5 && c.items.redRings === 1 && events(c).includes('buy'));
+  check(`with ${price} it's yours`, stepTreasure(t, p, c, true, false, never, DT) && t.offers[0].sold && c.money === 5 && c.items.redRings === 1 && events(c).includes('buy'));
   c.money = 500;
   check('and it cannot be bought twice', !stepTreasure(t, p, c, true, false, never, DT) && c.money === 500);
   const far = shopWith('key', 500);

@@ -8,10 +8,15 @@
 // Update 0.0.17 (the designer): chest coins 10, 20, 30 or 40; the silver plate gives 20 shield, the gold armour 40; the
 // red ring +15 max health, the purple ring +25% damage, the green ring +15% melee attack speed, the blue ring +15% run
 // speed (rings last the run).
+// Update 0.0.18 (the designer): prices by how good the item is — a normal one 50, a better version 70, the best 100
+// (the silver plate 50 and the gold armour 70; the keys 50, 70, 100) — and 15% more on every floor down.
 import { group, knob } from './schema';
 
 export const ITEMS = group('items', 'Shop & chests', {
-  price: knob(70, 0, 500, 5, 'Price', 'Coins for anything in the shop.'),
+  priceNormal: knob(50, 0, 500, 5, 'Price: normal', 'Coins for a normal item (a heart, the silver plate, a ring, a key) on floor 1.'),
+  priceBetter: knob(70, 0, 500, 5, 'Price: better', 'Coins for a better version (the gold armour, the gold sword, the white key) on floor 1.'),
+  priceBest: knob(100, 0, 500, 5, 'Price: best', 'Coins for the best version (the gold key) on floor 1.'),
+  priceRise: knob(0.15, 0, 1, 0.01, 'Price rise', 'Prices go up this share on every floor down (0.15: +15%, on top of the last).'),
   heartHeal: knob(0.5, 0.05, 1, 0.05, 'Heart heal', 'Share of max health a heart heals.'),
   silverShield: knob(20, 1, 200, 1, 'Silver plate shield', 'Shield points the silver armour plate gives.'),
   goldShield: knob(40, 1, 200, 1, 'Gold armour shield', 'Shield points the gold armour gives.'),

@@ -1,0 +1,17 @@
+/* Update 0.0.18 — poisoned: a sickly green edge, pulsing while the poison lasts. */
+.rb-hud-poison {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 120px 24px rgba(90, 220, 40, 0.45);
+  animation: rb-poison-pulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes rb-poison-pulse {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 1;
+  }
+}

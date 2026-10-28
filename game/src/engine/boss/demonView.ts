@@ -4,15 +4,17 @@
 // warning glowing in its move's colour. Its aura: a glow behind it, embers rising round it, a ring of fire at its
 // feet and a red light; all of it fiercer once it rages. Killed, its pose freezes in the air and it flickers white,
 // faster and faster as it sinks, until it bursts (the flash: demonFx.ts). Clips run on game time.
+// Update 0.0.18 — its aura is aura.ts (the Dragon has one too); a boss in play is any kind (bossIn).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { CombatState } from '../../sim/combat/state';
 import { windupOf } from '../../sim/enemies/demon';
 import { CHARGE, LEAP, VOLLEY } from '../../sim/enemies/demonMoves';
 import type { Enemy } from '../../sim/enemies/enemy';
-import { doomTime } from '../../sim/enemies/kinds';
+import { doomTime, ENEMY_STATS } from '../../sim/enemies/kinds';
 import { BOSS } from '../../tuning/boss';
-import { Dust } from '../fx/dust';
+import { Aura } from './aura';
+import { tintBoss } from './bossTint';
 
 export const DEMON_URL = '/models/enemies/demon.glb';
 
@@ -39,6 +41,12 @@ export function demonIn(state: CombatState): Enemy | null {
   return null;
 }
 
+/** Update 0.0.18 — the boss in play, whichever it is. */
+export function bossIn(state: CombatState): Enemy | null {
+  for (const e of state.enemies) if (e.alive && ENEMY_STATS[e.kind]().boss) return e;
+  return null;
+}
+
 export class DemonView {
   readonly group = new THREE.Group();
   readonly loaded: Promise<void>;
@@ -50,31 +58,11 @@ export class DemonView {
   private height = 1;
   private lowest = 0;
   private time = 0;
-  /** The aura. */
-  private readonly glow: THREE.Mesh;
-  private readonly glowMat: THREE.ShaderMaterial;
-  private readonly ring: THREE.Mesh;
-  private readonly light = new THREE.PointLight(0xff3a18, 0, 18, 1.5);
-  private readonly embers: Dust;
-  private readonly geos: THREE.BufferGeometry[] = [];
+  private readonly aura = new Aura({ calm: [1, 0.28, 0.05], rage: [1, 0.1, 0.12], ring: 0xff4a10, light: 0xff3a18, embers: 0xff5a20 });
 
   constructor(scene: THREE.Scene, loadModel = true) {
     scene.add(this.group);
-    this.glowMat = new THREE.ShaderMaterial({
-      uniforms: { color: { value: new THREE.Color(1, 0.25, 0.05) }, power: { value: 0 } },
-      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-      fragmentShader: 'uniform vec3 color; uniform float power; varying vec2 vUv; void main() { float r = length(vUv * 2.0 - 1.0); float k = pow(max(0.0, 1.0 - r), 2.2); gl_FragColor = vec4(color * k * power, 1.0); }',
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    });
-    const plane = new THREE.PlaneGeometry(1, 1);
-    const ringGeo = new THREE.RingGeometry(0.75, 1, 48).rotateX(-Math.PI / 2);
-    this.geos.push(plane, ringGeo);
-    this.glow = new THREE.Mesh(plane, this.glowMat);
-    this.ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0xff4a10, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
-    this.embers = new Dust(90, new THREE.Vector3(-2.6, 0, -2.6), new THREE.Vector3(2.6, 7, 2.6), { color: 0xff5a20, size: 0.13, opacity: 0.9, rise: [1.5, 4] });
-    this.group.add(this.glow, this.ring, this.light, this.embers.points);
+    this.group.add(this.aura.group);
     this.group.visible = false;
     this.loaded = loadModel
       ? new GLTFLoader()
@@ -140,21 +128,7 @@ export class DemonView {
     // The aura, round its chest; brighter and redder once it rages, dying away as it sinks.
     chest.set(at.x, at.y + v.demonHeight * 0.5, at.z);
     const fade = dead ? Math.max(0, 1 - e.t / doomTime()) : 1;
-    const pulse = 0.85 + 0.15 * Math.sin(this.time * (rage ? 7 : 4));
-    this.glow.position.copy(chest);
-    this.glow.lookAt(camera);
-    this.glow.scale.setScalar(v.demonHeight * (rage ? 1.75 : 1.45));
-    this.glowMat.uniforms.power.value = (rage ? 1.1 : 0.7) * pulse * fade;
-    (this.glowMat.uniforms.color.value as THREE.Color).setRGB(1, rage ? 0.1 : 0.28, rage ? 0.12 : 0.05);
-    this.ring.position.set(at.x, Math.max(0.05, at.y + 0.05), at.z);
-    this.ring.scale.setScalar(2.4 + 0.25 * Math.sin(this.time * 3));
-    this.ring.rotation.y = this.time * 0.8;
-    (this.ring.material as THREE.MeshBasicMaterial).opacity = (rage ? 0.85 : 0.5) * pulse * fade * (at.y > 0.5 ? 0.3 : 1);
-    this.light.position.copy(chest);
-    this.light.intensity = (rage ? 55 : 32) * pulse * fade;
-    this.embers.points.position.set(at.x, at.y, at.z);
-    (this.embers.points.material as THREE.PointsMaterial).opacity = (rage ? 1 : 0.7) * fade;
-    this.embers.update(dt * (rage ? 1.6 : 1));
+    this.aura.update(at, chest, v.demonHeight, rage, fade, camera, dt);
   }
 
   /** The clip its phase plays; its speed fitted so the move's moment lands as the warning ends. */
@@ -204,31 +178,9 @@ export class DemonView {
     this.mixer!.update(dt);
   }
 
-  /** Its glow: a hit's white flash, a warning in its move's colour, a stunned pulse, its rage's embers; killed, a white
-   *  flicker quickening as it sinks. */
+  /** Its glow (bossTint.ts), a warning in its move's colour. */
   private tint(e: Enemy) {
-    const v = BOSS.v;
-    let r = e.flash / 0.12;
-    let g = r;
-    let b = r;
-    if (e.phase === 'windup') {
-      const k = Math.min(1, e.t / windupOf(e, e.move));
-      const c = GLOW[e.move];
-      r += k * c[0] * 1.2;
-      g += k * c[1] * 1.2;
-      b += k * c[2] * 1.2;
-    } else if (e.phase === 'stun') {
-      const k = 0.25 + 0.25 * Math.sin(e.t * 14);
-      r += k;
-      g += k * 0.8;
-    } else if (e.phase === 'dead') {
-      const k = Math.max(0, (e.t - v.doomRise) / (doomTime() - v.doomRise));
-      const rate = 5 + 20 * k * k;
-      const on = Math.sin(e.t * rate * Math.PI * 2) > 0 ? 1.6 + k : 0.15;
-      r = g = b = e.t < v.doomRise ? 1.2 : on;
-    }
-    if (e.stage > 0 && e.phase !== 'dead') r += 0.22 + 0.08 * Math.sin(this.time * 6);
-    for (const m of this.mats) m.emissive.setRGB(r, g, b);
+    tintBoss(e, this.mats, windupOf(e, e.move), GLOW[e.move] ?? GLOW[CHARGE], this.time);
   }
 
   private play(role: Role) {
@@ -242,9 +194,6 @@ export class DemonView {
     this.group.removeFromParent();
     this.mixer?.stopAllAction();
     for (const m of this.mats) m.dispose();
-    for (const g of this.geos) g.dispose();
-    this.glowMat.dispose();
-    (this.ring.material as THREE.Material).dispose();
-    this.embers.dispose();
+    this.aura.dispose();
   }
 }

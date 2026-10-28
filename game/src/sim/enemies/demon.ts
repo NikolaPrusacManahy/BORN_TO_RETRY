@@ -10,7 +10,7 @@ import type { PlayerState } from '../player/state';
 import { chaseDir } from './chase';
 import { Enemy, EnemyWorld, setPhase, turn, walk, yawTo } from './enemy';
 import { CHARGE, LEAP, VOLLEY, pace, recoverTime, secondFan, startCharge, startLeap, stepCharge, stepLeap, volley } from './demonMoves';
-import { doomTime } from './kinds';
+import { doomTime, ENEMY_STATS } from './kinds';
 
 /** It stops walking this close to you (m: its body is wide). */
 const STAND_OFF = 5;
@@ -137,7 +137,7 @@ export function updateDemon(d: Enemy, index: number, player: PlayerState, w: Ene
 }
 
 /** A dead Demon's show: up from where it died, hanging, then sinking to the ground; at the end its body bursts
- *  ('bossBurst'; Enemy.struck marks it). */
+ *  ('bossBurst'; Enemy.struck marks it). Update 0.0.18 — the Dragon's too. */
 export function doomDemon(d: Enemy, index: number, w: EnemyWorld) {
   if (d.struck) return;
   const v = BOSS.v;
@@ -153,6 +153,6 @@ export function doomDemon(d: Enemy, index: number, w: EnemyWorld) {
   } else {
     d.pos.y = 0;
     d.struck = true;
-    w.events.push('bossBurst', index, d.pos.x, d.pos.y + v.demonHeight * 0.5, d.pos.z);
+    w.events.push('bossBurst', index, d.pos.x, d.pos.y + ENEMY_STATS[d.kind]().height * 0.5, d.pos.z);
   }
 }

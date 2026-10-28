@@ -64,6 +64,7 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - A short invincibility follows each hit (0.6 s **(placeholder)**), and the dash's invincibility stops damage too.
 - **Death:** the world slows and fades to black. In the Feel Lab you're straight back at the start; in a run, death ends the run (M3).
 - **Healing (Update 0.0.13, the designer): only from the shop.** The heart heals half your health (a chest can hold one too). Hits you land heal nothing (blood heal is gone). After a boss (Update 0.0.15): it leaves a heart.
+- **Poison (Update 0.0.18):** the snake's bite and the wasp's sting poison you: 3 a second for 4 s, past your shield. **(placeholder)**
 - **The shield (Update 0.0.13, the designer):** the silver armour plate gives a shield of half your health, shown as a blue bar just above the health bar. A hit takes the shield first, then your health. At most a full bar (two plates). **(placeholder cap)**
 
 ### Fists (always available, never break)
@@ -114,7 +115,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 
 ## 8. Shop and chests (Update 0.0.13, the designer)
 - **The shop** is a room with **five floor tiles**, each showing something to buy, turning above it with its price. One on every floor, a side room off the second to fourth fight room. **(placeholder: where)**
-- Everything costs **70**. **Update 0.0.16 (the designer):** the **heart and the armour plate are always there**; the other three tiles are drawn from the gold sword, the two rings and a key (normal 70%, white 25%, gold 5%), and the five are shuffled. Keys float on their tiles, standing on end, and turn.
+- **Prices (Update 0.0.18, the designer):** an item's normal version **50**, a better version of it **70**, a version above that **100** (heart, silver plate, rings and the key 50; gold armour, gold sword and the white key 70; the gold key 100). These are floor 1's: **every floor down is +15%** (58 / 81 / 115 on floor 2). (Was 70 for everything.) **Update 0.0.16 (the designer):** the **heart and the armour plate are always there**; the other three tiles are drawn from the gold sword, the two rings and a key (normal 70%, white 25%, gold 5%), and the five are shuffled. Keys float on their tiles, standing on end, and turn.
 - Stand by a tile and press E to buy. Not enough coins, or an item that would do nothing (a heart at full health, a plate with a full shield): a buzz, nothing taken. **(placeholder)**
 - **Chests** stand in some fight rooms: **every room with a Yeti** (Update 0.0.16, the designer: the Yeti carries its key), and one more, sometimes two (35%). **(placeholder)** With a key, E in front of one (once its room isn't fighting) **kneels you down and you open it with both hands**: the view lowers and turns to it, the fists lift the lid, and what's inside comes out as it opens (about 1.3 s). Without a key it rattles.
 - **Picking the key (Update 0.0.16, the designer):** in front of a chest with keys, your left hand comes up palm open with the key you'll use on it, and your keys show in a row low in the middle; Switch key (the mouse wheel) goes to the next kind you carry; E uses it.
@@ -134,13 +135,23 @@ Rule: every attack is telegraphed (a flash and a sound) before it can hit, and e
 | Leaper | Jumps at you from range; punish it on landing. **(Update 0.0.13: the Ninja from Ultimate Monsters; 45 HP, 8 m/s; within 13 m with nothing tall between (it leaps over low cover) it crouches 0.55 s (glows violet, hisses), then leaps a 2.6 m arc to where you stood: 18 and thrown if you're on or beside the landing (jump it); then 0.9 s stuck; too close, it backs off; a hit knocks it out of the air; 2.2 s between leaps.)** |
 | Stinger | **(Update 0.0.13, the designer: a flier.)** The Armabee: 25 HP, flies 3.4 m up. Within 10 m with a clear line it rears back 0.6 s (glows red, buzzes), then dives at 20 m/s through where your chest was and on: 14 and a knock if it goes through you. The dive ends on the floor, a wall or a crate: 1 s low and dazed (punch it). A hit cancels the dive. |
 | Wraith | **(Update 0.0.13, the designer: a flier.)** The Ghost: 35 HP, floats 3.6 m up, keeps 8–18 m from you (closer over cover, away when you're close, circling between). 0.7 s warning (glows pale, wails), then a fan of three slow orbs (11 m/s, 10 each, 14° apart). A hit cancels the cast. |
+| Slime | **(Update 0.0.18, the designer: floor 2, kamikaze.)** 20 HP. Slides at you; within 2.2 m it swells and glows green (0.6 s), then bursts: 22 and thrown within 3 m (not through a wall). It's gone, no coins; killed first, it just dies. |
+| Frog | **(Update 0.0.18, the designer: floor 2, mid range.)** 35 HP. Hops about 4.5–9 m from you; its throat glows (0.5 s, its aim locking for the end of it), then its tongue shoots 9 m in a line: 12 and pulled to it. Step off the line. |
+| Snake | **(Update 0.0.18, the designer: floor 2, its bite poisons.)** 30 HP. Slithers at you; rears and hisses (0.35 s), then bites: 8 and poisoned. |
+| Wasp | **(Update 0.0.18, the designer: floor 2, poison stings; a flier.)** 20 HP, 3.2 m up, 6–14 m off. Buzzes (0.45 s), then a green sting: 6 and poisoned. |
+| Spider | **(Update 0.0.18, the designer: floor 2's big one.)** 140 HP. From 5–13 m it rears (0.6 s) and leaps to where you stood: 22 and thrown (jump it); close up it bites (16). Only a hit of 40+ staggers it. A mini boss: its room has a chest and it carries the key. |
+| Blue Demon | **(Update 0.0.18, the designer: floor 2's big one.)** 160 HP, 2.8 m. Warns (blue glow), then charges (20, thrown; a wall stuns it 1.6 s) or, from afar, throws a fireball (14). Only a hit of 40+ staggers it. A mini boss like the Spider. |
 | Shieldbearer | Blocks attacks from the front; a charged punch breaks the shield. |
 | Elites | Glowing versions with more health and one extra trick. Always drop a weapon. |
 
 Models come from Quaternius's Bestiary/Dungeon Monsters and Ultimate Monsters packs.
 
+**Each floor its own (Update 0.0.18, the designer):** floor 1 sends the grunt, spitter, Yeti, leaper, stinger and wraith; floor 2 the same small ones plus the slime, frog, snake and wasp, and the Spider and Blue Demon as its big ones (no Yeti); floor 3 floor 2's for now **(placeholder)**.
+
+**Poison (Update 0.0.18):** 3 damage a second for 4 s, straight off your health (not the shield); a new dose starts it over; the screen's edge pulses green. **(placeholder numbers)**
+
 ### Bosses
-One per floor, three in total, each with 2 phases. Floors 2 and 3's designs are to come from the designer; until then the Demon guards every floor.
+One per floor, three in total, each with 2 phases. Floor 1's is the Demon, floor 2's the Dragon (Update 0.0.18); floor 3's is to come from the designer, and until then the Dragon guards it.
 
 **The Demon (Update 0.0.15, the designer: build it as pitched, bigger, with an aura; spec `MD_UPDATES/M3_BOSS.md`).** The Demon from Ultimate Monsters, 6.5 m tall, 1200 health, never flinches. Its aura: a glow behind it, embers, a ring of fire at its feet, a red light. Every pause it picks a move by how far you are, each warned (glow, sound, a mark on the floor):
 - **Charge:** lowers its head (red), then runs straight across the room: 25 and thrown aside if it hits you; into a wall or a column it's stunned 2.2 s and takes 1.5× damage.
@@ -148,6 +159,14 @@ One per floor, three in total, each with 2 phases. Floors 2 and 3's designs are 
 - **Volley:** raises its trident, then a fan of five fire orbs.
 - **Phase 2 (half health):** it roars and calls grunts (again every 18 s while few are left); quicker warnings, shorter pauses, faster; a charge runs into a leap; two fans. **(placeholder numbers)**
 - **Death:** the world slows; it hangs frozen in the air, sinks flickering white and bursts: 60 coins, a key, a heart.
+
+**The Dragon (Update 0.0.18, the designer: an intro where it screams and the scream shakes; fire breath like a laser beam that annihilates even its own side; fireballs, claws, wing swings, tail swings; spec `MD_UPDATES/M3_FLOOR2.md`).** The Dragon from Ultimate Monsters, 7 m tall, flying low, 1600 health, never flinches; a gold aura. In its show it **screams** as it takes its stance, and the view shakes. Every pause it picks a move by how far you are (the tail when you're behind it), each warned:
+- **Fire beam:** rears, throat glowing (1 s), then a beam of fire through your chest to the floor for 2.2 s, following you slowly (dash across it); a wall stops it; **any other enemy in its line burns away**.
+- **Fireballs:** three at you, one after another.
+- **Claws:** a red lane, then it swoops along it claws out (22, thrown); into a wall it's stunned.
+- **Wing swing:** close in front, a wide sweep: 16 and blown away.
+- **Tail swing:** it spins, the tail sweeping all round it low: 20 (jump it).
+- **Phase 2 (half health):** it screams again and calls wasps; quicker, faster. **Death:** the Demon's show; 40 coins, a key, a heart. **(placeholder numbers)**
 
 **The boss room (Update 0.0.15, the designer):** stepping in, the view leaves your eyes and rises over the room; its walls slide back as it grows; a portal opens in the middle and the boss rises out of it, takes its stance beside its name; the view glides back and the fight starts. Once it's dead, a wooden gate in the far wall swings open onto the dark: the way down.
 

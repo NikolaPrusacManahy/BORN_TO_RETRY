@@ -8,12 +8,13 @@
 // loot goes by rarity and by the key you open it with (loot.ts). In front of a chest with keys, you pick which key
 // (the Switch key action goes to the next one you carry); E uses it.
 // Update 0.0.17 — the shop's draw takes in the gold armour and the green and purple rings too.
+// Update 0.0.18 — each offer has its own price (by how good it is, more on lower floors: items.ts).
 import type { Rng } from '../../core/rng';
 import { ITEMS } from '../../tuning/items';
 import type { ChestSpot, DungeonLevel } from '../../world/dungeon/assemble';
 import { burstCoins } from '../combat/coins';
 import type { CombatState } from '../combat/state';
-import { anyKey, checkPick, ITEM_KINDS, ItemKind, keyFor, KeyKind, nextKey, takeItem, useful, useKey } from '../items/items';
+import { anyKey, checkPick, ITEM_KINDS, ItemKind, keyFor, KeyKind, nextKey, priceOf, takeItem, useful, useKey } from '../items/items';
 import { startKneel } from '../player/kneel';
 import type { PlayerState } from '../player/state';
 import { Loot, LootRolls, RARITIES, rollLoot } from './loot';
@@ -21,6 +22,8 @@ import { Vector3 } from 'three';
 
 export interface Offer {
   kind: ItemKind;
+  /** Update 0.0.18 — what it costs here. */
+  price: number;
   sold: boolean;
   /** Its tile's middle (world m). */
   x: number;
@@ -77,7 +80,8 @@ export function createTreasure(level: DungeonLevel, rng: Rng): Treasure {
   const drawn = shuffle([...SHOP_DRAWN], rng).slice(0, SHOP_TILES - SHOP_ALWAYS.length);
   // A key on offer is a normal, white or gold one.
   const kinds = shuffle([...SHOP_ALWAYS, ...drawn.map((k) => (k === 'key' ? keyFor(rng()) : k))], rng);
-  const offers = shop ? shop.tiles.slice(0, SHOP_TILES).map((t, i) => ({ kind: kinds[i], sold: false, x: t.x, z: t.z })) : [];
+  const floor = level.plan?.level ?? 1;
+  const offers = shop ? shop.tiles.slice(0, SHOP_TILES).map((t, i) => ({ kind: kinds[i], price: priceOf(kinds[i], floor), sold: false, x: t.x, z: t.z })) : [];
   const chests = level.chests.map((spot): Chest => ({ spot, state: 'shut', t: 0, rolls: [rng(), rng(), rng()], key: null, loot: null, given: false }));
   return { shop: shop ? shop.index : -1, offers, chests, choosing: -1 };
 }
@@ -153,11 +157,11 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
   const oi = offerInReach(t, player);
   if (oi < 0) return false;
   const o = t.offers[oi];
-  if (state.money < ITEMS.v.price || !useful(o.kind, player)) {
+  if (state.money < o.price || !useful(o.kind, player)) {
     state.events.push('buyFail', oi, o.x, 1, o.z);
     return true;
   }
-  state.money -= ITEMS.v.price;
+  state.money -= o.price;
   o.sold = true;
   state.events.push('buy', ITEM_KINDS.indexOf(o.kind), o.x, 1, o.z);
   takeItem(o.kind, player, state);

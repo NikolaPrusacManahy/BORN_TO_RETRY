@@ -3,18 +3,22 @@
 // boss. Its death slows the world for a moment (never the mouse). The wooden gate opening turns the view to it and
 // back. Stepping into the dark fades to black; the next floor loads under it and its name shows as the black clears.
 // What the HUD shows of all this (the letterbox, the boss's name card and health bar, the black, the floor's name).
+// Update 0.0.18 — each floor's boss its name; the Dragon's scream in its stance shakes the view.
 import * as THREE from 'three';
 import { BossBeat, introBeats } from '../../sim/dungeon/bossRoom';
 import type { DungeonRun } from '../../sim/dungeon/roomLoop';
 import { CINEMA } from '../../tuning/cinema';
-import { BOSS } from '../../tuning/boss';
 import type { CombatState } from '../../sim/combat/state';
+import { ENEMY_STATS, EnemyKind } from '../../sim/enemies/kinds';
+import { DRAGON } from '../../tuning/dragon';
 import type { Look } from '../look';
 import { Cinema, Shot } from './cinema';
-import { demonIn } from './demonView';
+import { bossIn } from './demonView';
 
 /** The boss's name card. **(placeholder names)** */
 export const BOSS_NAME = 'THE DEMON';
+/** Update 0.0.18 — each boss's name. */
+export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { demon: BOSS_NAME, dragon: 'THE DRAGON' };
 export const bossTitle = (floor: number) => `Warden of Floor ${floor}`;
 /** The name card shows this long either side of the stance (s). */
 const CARD_EDGE = 0.25;
@@ -47,8 +51,11 @@ export class BossShow {
   private readonly out = { cinematic: false, descend: false };
 
   constructor(private readonly run: DungeonRun | null) {
-    this.cinema = run ? new Cinema(run.level.boss) : null;
-    if (run) this.hud.bossTitle = bossTitle(run.level.plan.level);
+    this.cinema = run ? new Cinema(run.level.boss, run.boss.kind) : null;
+    if (run) {
+      this.hud.bossTitle = bossTitle(run.level.plan.level);
+      this.hud.bossName = BOSS_NAMES[run.boss.kind] ?? BOSS_NAME;
+    }
   }
 
   /** You don't move or fight: the show, the gate shot, the way into the dark. */
@@ -111,9 +118,10 @@ export class BossShow {
     if (out.cinematic) {
       camera.position.copy(view.pos);
       camera.lookAt(view.look);
+      if (b.beat === 'intro' && run.boss.kind === 'dragon') this.scream(camera, b.t);
     }
-    const boss = demonIn(combat);
-    if ((b.beat === 'fight' || b.beat === 'dying') && boss) h.bossHp = Math.max(0, boss.hp / BOSS.v.demonHp);
+    const boss = bossIn(combat);
+    if ((b.beat === 'fight' || b.beat === 'dying') && boss) h.bossHp = Math.max(0, boss.hp / ENEMY_STATS[boss.kind]().hp);
     // Into the dark.
     if (run.exited && this.exiting < 0) this.exiting = 0;
     if (this.exiting >= 0) {
@@ -122,5 +130,17 @@ export class BossShow {
       out.descend = this.exiting >= CINEMA.v.floorFade;
     } else h.veil = false;
     return out;
+  }
+
+  /** Update 0.0.18 — the Dragon screams as it takes its stance: the view shakes, hardest mid-scream. */
+  private scream(camera: THREE.PerspectiveCamera, t: number) {
+    const v = DRAGON.v;
+    const k = (t - introBeats().riseTo) / Math.max(0.3, v.screamTime);
+    if (k <= 0 || k >= 1) return;
+    const a = v.screamShake * Math.sin(Math.PI * k) * 0.35;
+    camera.position.x += a * (Math.sin(t * 71) * 0.6 + Math.sin(t * 43) * 0.4);
+    camera.position.y += a * (Math.sin(t * 67 + 1) * 0.6 + Math.sin(t * 29) * 0.4);
+    camera.position.z += a * (Math.sin(t * 59 + 2) * 0.6 + Math.sin(t * 37) * 0.4);
+    camera.rotateZ(a * 0.12 * Math.sin(t * 53));
   }
 }

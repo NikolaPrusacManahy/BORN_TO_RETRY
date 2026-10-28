@@ -1,11 +1,13 @@
 // M1 step 6 — orbs: slow glowing shots from the turret. They hit you (unless you're dashing), pop on walls and
 // fizzle after a while. (The parry that sent them back was removed at the designer's request; it returns later.)
+// Update 0.0.18 — a poisoned one (the wasp's sting) poisons you too.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { TARGETS } from '../../tuning/combat';
 import type { CollisionWorld } from '../collisionWorld';
 import { BODY } from '../player/body';
-import { canHurt, damagePlayer } from '../player/health';
+import { canHurt, damagePlayer, poisonPlayer } from '../player/health';
+import { FOES2 } from '../../tuning/foes2';
 import type { PlayerState } from '../player/state';
 import { segmentDistance } from './geometry';
 import type { CombatEvent } from './state';
@@ -18,7 +20,7 @@ const b = new Vector3();
 const hitAt = new Vector3();
 
 /** Fires an orb from a free slot. Returns false when every slot is in use. */
-export function fireOrb(orbs: Orb[], from: Vector3, direction: Vector3, speed: number, damage: number): boolean {
+export function fireOrb(orbs: Orb[], from: Vector3, direction: Vector3, speed: number, damage: number, poison = 0): boolean {
   const o = orbs.find((x) => !x.alive);
   if (!o) return false;
   o.alive = true;
@@ -26,6 +28,7 @@ export function fireOrb(orbs: Orb[], from: Vector3, direction: Vector3, speed: n
   o.vel.copy(direction).multiplyScalar(speed);
   o.damage = damage;
   o.life = ORB_LIFE;
+  o.poison = poison;
   return true;
 }
 
@@ -50,7 +53,7 @@ export function updateOrbs(orbs: Orb[], player: PlayerState, world: CollisionWor
       b.set(player.pos.x, player.pos.y + height - BODY.radius, player.pos.z);
       if (segmentDistance(o.pos, next, a, b, hitAt) <= r + BODY.radius) {
         o.alive = false;
-        damagePlayer(player, o.damage);
+        if (damagePlayer(player, o.damage) && o.poison > 0) poisonPlayer(player, FOES2.v.poisonDps, o.poison);
         events.push('orbHitPlayer', o.damage, hitAt.x, hitAt.y, hitAt.z);
         continue;
       }

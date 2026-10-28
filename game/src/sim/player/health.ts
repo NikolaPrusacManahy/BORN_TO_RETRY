@@ -3,14 +3,29 @@
 // Update 0.0.13 — no blood heal (the designer: you only heal from the shop). The shield (armour plates) takes a hit
 // before your health does.
 // Update 0.0.17 — your max health is the base plus what red rings add (PlayerState.hpBonus).
+// Update 0.0.18 — poison (the snake's bite, the wasp's sting): a little damage a second for a while, straight off your
+// health (the shield doesn't stop it, nor does a dash); a new dose starts it over.
 import { HEALTH } from '../../tuning/health';
 import { ITEMS } from '../../tuning/items';
 import { LAB } from '../../tuning/lab';
 import type { PlayerState } from './state';
 
-/** Counts the hurt invincibility down. Call once per tick. */
+/** Counts the hurt invincibility down, and the poison does its damage. Call once per tick. */
 export function updateHealth(p: PlayerState, dt: number) {
   p.hurtTime = Math.max(0, p.hurtTime - dt);
+  if (p.poison <= 0 || p.dead) return;
+  p.poison = Math.max(0, p.poison - dt);
+  if (LAB.v.god >= 1) return;
+  p.hp = Math.max(0, p.hp - p.poisonDps * dt);
+  if (p.hp <= 0) die(p);
+}
+
+/** Update 0.0.18 — poisons you for `secs` at `dps` (starting it over; the stronger dose wins). */
+export function poisonPlayer(p: PlayerState, dps: number, secs: number) {
+  if (p.dead || LAB.v.god >= 1) return;
+  if (p.poison <= 0) p.events.push('poisoned');
+  p.poison = Math.max(p.poison, secs);
+  p.poisonDps = Math.max(p.poison > 0 ? p.poisonDps : 0, dps);
 }
 
 /** Can something hurt the player right now? */

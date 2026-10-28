@@ -31,5 +31,7 @@ import './test-foes';
 import './test-boss';
 import './test-boss-room';
 import './test-boss-show';
+import './test-floor2';
+import './test-dragon';
 
 process.exit(summary() > 0 ? 1 : 0);

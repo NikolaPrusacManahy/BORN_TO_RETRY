@@ -9,14 +9,20 @@
 // their origin).
 // Update 0.0.15 — not the Demon: a boss is drawn by boss/demonView.ts (its aura, its death show).
 // Update 0.0.17 — frozen (the snowflake bonus): its pose stops and it turns icy blue.
+// Update 0.0.18 — floor 2's (Ultimate Monsters' newer pack: clip names carry the monster's name, no hit clips, so a
+// flinch stands): the Slime swells as it winds up and is gone once it bursts; the Frog's tongue (tongueView.ts); the
+// Wasp's model faces sideways; a charge plays the 'air' clip (the Blue Demon runs).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import type { CombatState } from '../sim/combat/state';
 import { ENEMY_POOL, EnemyPhase } from '../sim/enemies/enemy';
 import { ENEMY_KINDS, ENEMY_STATS, EnemyKind } from '../sim/enemies/kinds';
+import { blueWindup } from '../sim/enemies/blueDemon';
 import { ENEMIES } from '../tuning/enemies';
 import { FOES } from '../tuning/foes';
+import { FOES2 } from '../tuning/foes2';
+import { TongueView } from './tongueView';
 
 type Role = 'idle' | 'move' | 'attack' | 'hit' | 'death' | 'air';
 const ROLES: Role[] = ['idle', 'move', 'attack', 'hit', 'death', 'air'];
@@ -29,10 +35,23 @@ interface Look {
   clips: Record<Role, string>;
   /** Seconds into its attack clip when the blow lands (export_monster.py measured it), and the wind-up it fits. */
   lands: number;
-  windup: () => number;
+  /** `move`: the move it winds up (Enemy.move). */
+  windup: (move: number) => number;
   /** The wind-up's glow (r, g, b at full). */
   glow: [number, number, number];
+  /** Update 0.0.18 — a model that doesn't face +z: its turn (rad). */
+  turn?: number;
 }
+
+/** Update 0.0.18 — a newer-pack monster's clips (`<Name>_Idle`, …); `move` and `air` name their own. */
+const newer = (name: string, move: string, air: string): Record<Role, string> => ({
+  idle: `${name}_Idle`,
+  move: `${name}_${move}`,
+  attack: `${name}_Attack`,
+  hit: `${name}_Idle`,
+  death: `${name}_Death`,
+  air: `${name}_${air}`,
+});
 
 const LOOKS: Record<EnemyKind, Look | null> = {
   grunt: { url: '/models/enemies/orc.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Run' }, lands: 16 / 30, windup: () => ENEMIES.v.gruntWindup, glow: [0.9, 0.06, 0.04] },
@@ -44,6 +63,14 @@ const LOOKS: Record<EnemyKind, Look | null> = {
   stinger: { url: '/models/enemies/armabee.glb', clips: { idle: 'Flying_Idle', move: 'Fast_Flying', attack: 'Headbutt', hit: 'HitReact', death: 'Death', air: 'Fast_Flying' }, lands: 9 / 30, windup: () => FOES.v.stingerWindup, glow: [1, 0.15, 0.05] },
   wraith: { url: '/models/enemies/ghost.glb', clips: { idle: 'Flying_Idle', move: 'Flying_Idle', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Flying_Idle' }, lands: 12 / 30, windup: () => FOES.v.wraithWindup, glow: [0.7, 0.85, 1] },
   demon: null,
+  dragon: null,
+  // Update 0.0.18 — floor 2's (export_monster.py timed the frames, 24 fps; the Slime's whole clip fills its fuse).
+  slime: { url: '/models/enemies/slime.glb', clips: newer('Slime', 'Walk', 'Walk'), lands: 15 / 24, windup: () => FOES2.v.slimeFuse, glow: [0.35, 1, 0.1] },
+  frog: { url: '/models/enemies/frog.glb', clips: newer('Frog', 'Jump', 'Jump'), lands: 11 / 24, windup: () => FOES2.v.frogWindup, glow: [1, 0.75, 0.1] },
+  snake: { url: '/models/enemies/snake.glb', clips: newer('Snake', 'Walk', 'Jump'), lands: 9 / 24, windup: () => FOES2.v.snakeWindup, glow: [0.4, 1, 0.15] },
+  wasp: { url: '/models/enemies/wasp.glb', clips: { ...newer('Wasp', 'Flying', 'Flying'), idle: 'Wasp_Flying', hit: 'Wasp_Flying' }, lands: 11 / 24, windup: () => FOES2.v.waspWindup, glow: [0.5, 1, 0.1], turn: -Math.PI / 2 },
+  spider: { url: '/models/enemies/spider.glb', clips: newer('Spider', 'Walk', 'Jump'), lands: 10 / 24, windup: () => FOES2.v.spiderWindup, glow: [1, 0.1, 0.1] },
+  blueDemon: { url: '/models/enemies/bluedemon.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Run' }, lands: 17 / 30, windup: blueWindup, glow: [0.2, 0.55, 1] },
 };
 
 interface Body {
@@ -79,9 +106,11 @@ function roleFor(phase: EnemyPhase, attackOver: boolean): Role {
     case 'leap':
     case 'dive':
       return 'air';
-    // (The Demon's own phases: drawn by boss/demonView.ts.)
+    // (The Demon's own phases: drawn by boss/demonView.ts.) Update 0.0.18 — the Blue Demon charges: it runs.
     case 'charge':
-      return 'move';
+      return 'air';
+    case 'breath':
+      return 'attack';
     case 'stun':
       return 'hit';
     case 'roar':
@@ -97,10 +126,12 @@ export class EnemiesView {
   private readonly at = new THREE.Vector3();
   private readonly ringMat = new THREE.MeshBasicMaterial({ color: 0xff5020, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
   private readonly ringGeo = new THREE.RingGeometry(0.92, 1, 48).rotateX(-Math.PI / 2);
+  private readonly tongues = new TongueView();
 
   /** `loadModels`: fetch the models (tests attach parsed ones instead). */
   constructor(scene: THREE.Scene, loadModels = true) {
     scene.add(this.group);
+    this.group.add(this.tongues.group);
     for (let i = 0; i < ENEMY_POOL; i++) {
       const ring = new THREE.Mesh(this.ringGeo, this.ringMat.clone());
       ring.visible = false;
@@ -163,6 +194,7 @@ export class EnemiesView {
 
   /** `alpha`: how far between the last two sim ticks this frame is. `dt`: game time (stops in hit-stop). */
   update(state: CombatState, alpha: number, dt: number) {
+    this.tongues.update(state);
     for (let i = 0; i < this.slots.length; i++) {
       const slot = this.slots[i];
       const e = state.enemies[i];
@@ -177,23 +209,27 @@ export class EnemiesView {
       slot.ring.visible = false;
       const look = LOOKS[e.kind];
       if (!e.alive || !b || !look) continue;
-      b.root.visible = true;
-      const scale = ENEMY_STATS[e.kind]().height / b.root.userData.height;
+      // A slime that burst is gone (one killed dies as the others do).
+      b.root.visible = !(e.kind === 'slime' && e.phase === 'dead' && e.struck);
+      if (!b.root.visible) continue;
+      const windup = look.windup(e.move);
+      const glow = e.phase === 'windup' ? Math.min(1, e.t / windup) : 0;
+      const swell = e.kind === 'slime' ? 1 + 0.35 * glow : 1;
+      const scale = (ENEMY_STATS[e.kind]().height / b.root.userData.height) * swell;
       b.root.scale.setScalar(scale);
       b.root.position.copy(this.at.copy(e.prev).lerp(e.pos, alpha));
       b.root.position.y -= b.root.userData.lowest * scale;
       // The model faces +z; a facing of 0 faces −z.
-      b.root.rotation.y = e.facing + Math.PI;
+      b.root.rotation.y = e.facing + Math.PI + (look.turn ?? 0);
       const attack = b.actions.attack;
       // A clip restarts when it changes, or when the same phase starts over (hit again mid-flinch); a wind-up's
       // attack carries on through the recovery.
       const again = slot.phase === e.phase && e.t < slot.t;
       const want = roleFor(e.phase, attack.time >= attack.getClip().duration - 0.01);
       if (want !== b.role || (again && ONCE.includes(want))) this.play(b, want);
-      attack.timeScale = look.lands / look.windup();
+      attack.timeScale = look.lands / windup;
       const ice = e.frozen > 0 ? 1 : 0;
       if (!ice) b.mixer.update(dt);
-      const glow = e.phase === 'windup' ? Math.min(1, e.t / look.windup()) : 0;
       const flash = e.flash / 0.12;
       for (const m of b.mats) m.emissive.setRGB(flash + glow * look.glow[0] + ice * 0.25, flash + glow * look.glow[1] + ice * 0.55, flash + glow * look.glow[2] + ice * 0.95);
       if (e.kind === 'brute' && e.phase === 'windup') this.ring(slot.ring, e.pos, glow);
@@ -228,6 +264,7 @@ export class EnemiesView {
         for (const m of b.mats) m.dispose();
       }
     }
+    this.tongues.dispose();
     this.ringGeo.dispose();
     this.ringMat.dispose();
   }

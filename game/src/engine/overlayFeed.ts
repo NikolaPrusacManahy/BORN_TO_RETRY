@@ -120,6 +120,7 @@ export class HudFeed {
       bossHp,
       veil: show.veil,
       floorName: show.floorName,
+      poisoned: p.poison > 0 && !p.dead,
     });
   }
 }

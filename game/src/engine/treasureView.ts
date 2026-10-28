@@ -5,6 +5,7 @@
 // Update 0.0.15 — and what the boss leaves you, flying from its burst.
 // Update 0.0.16 — the three keys (keyLooks.ts: on end, the white and gold ones in their auras), items on the floor and
 // each chest's light by its rarity (treasureFx.ts).
+// Update 0.0.18 — each tag shows its own offer's price (red when you can't pay it).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { CombatState } from '../sim/combat/state';
@@ -60,8 +61,8 @@ export class TreasureView {
   private protos: Partial<Record<DropKind, THREE.Object3D>> = {};
   private readonly drops = new DropsView(() => this.protos);
   private readonly glows = new ChestGlows();
-  private readonly dear: THREE.SpriteMaterial;
-  private readonly cheap: THREE.SpriteMaterial;
+  /** Price tags by price, as you can pay them and as you can't. */
+  private readonly tags = new Map<number, { cheap: THREE.SpriteMaterial; dear: THREE.SpriteMaterial }>();
   private readonly textures: THREE.Texture[] = [];
   private time = 0;
   private readonly to = new THREE.Vector3();
@@ -74,8 +75,6 @@ export class TreasureView {
   ) {
     scene.add(this.group);
     this.group.add(this.drops.group, this.glows.group);
-    this.cheap = new THREE.SpriteMaterial({ map: this.priceTexture('#ffd76a'), depthWrite: false, transparent: true });
-    this.dear = new THREE.SpriteMaterial({ map: this.priceTexture('#ff5a4a'), depthWrite: false, transparent: true });
     this.loaded = loadModels
       ? new GLTFLoader()
           .loadAsync(ITEMS_URL)
@@ -84,8 +83,21 @@ export class TreasureView {
       : Promise.resolve();
   }
 
+  /** The tags for `price`, made once. */
+  private tag(price: number) {
+    let t = this.tags.get(price);
+    if (!t) {
+      t = {
+        cheap: new THREE.SpriteMaterial({ map: this.priceTexture('#ffd76a', price), depthWrite: false, transparent: true }),
+        dear: new THREE.SpriteMaterial({ map: this.priceTexture('#ff5a4a', price), depthWrite: false, transparent: true }),
+      };
+      this.tags.set(price, t);
+    }
+    return t;
+  }
+
   /** The price tag: a coin and the price (blank where there's no page to draw it on: the rule tests). */
-  private priceTexture(colour: string): THREE.Texture {
+  private priceTexture(colour: string, price: number): THREE.Texture {
     if (typeof document === 'undefined') return new THREE.Texture();
     const c = document.createElement('canvas');
     c.width = 256;
@@ -102,9 +114,9 @@ export class TreasureView {
     g.font = 'bold 64px sans-serif';
     g.textBaseline = 'middle';
     g.fillStyle = 'rgba(0,0,0,0.6)';
-    g.fillText(String(ITEMS.v.price), 98, 53);
+    g.fillText(String(price), 98, 53);
     g.fillStyle = colour;
-    g.fillText(String(ITEMS.v.price), 94, 50);
+    g.fillText(String(price), 94, 50);
     const t = new THREE.CanvasTexture(c);
     t.colorSpace = THREE.SRGBColorSpace;
     this.textures.push(t);
@@ -130,7 +142,7 @@ export class TreasureView {
       item.position.set(o.x, FLOAT, o.z);
       this.group.add(item);
       this.items.push(item);
-      const price = new THREE.Sprite(this.cheap);
+      const price = new THREE.Sprite(this.tag(o.price).cheap);
       price.position.set(o.x, PRICE_Y, o.z);
       price.scale.set(0.8, 0.3, 1);
       this.group.add(price);
@@ -171,14 +183,14 @@ export class TreasureView {
     }
     this.drops.update(state.drops, dt);
     this.glows.update(t.chests, dt);
-    const poor = state.money < ITEMS.v.price;
     for (let i = 0; i < this.items.length; i++) {
       const o = t.offers[i];
       const item = this.items[i];
       item.visible = this.prices[i].visible = !o.sold;
       item.position.y = FLOAT + Math.sin(this.time * 2 + i) * 0.06;
       item.rotation.y = this.time * TURN + i;
-      this.prices[i].material = poor ? this.dear : this.cheap;
+      const tag = this.tag(o.price);
+      this.prices[i].material = state.money < o.price ? tag.dear : tag.cheap;
     }
     this.reach.k = -1;
     for (let i = 0; i < this.chests.length; i++) {
@@ -229,8 +241,10 @@ export class TreasureView {
   dispose() {
     this.group.removeFromParent();
     this.glows.dispose();
-    this.cheap.dispose();
-    this.dear.dispose();
+    for (const t of this.tags.values()) {
+      t.cheap.dispose();
+      t.dear.dispose();
+    }
     this.textures.forEach((t) => t.dispose());
   }
 }

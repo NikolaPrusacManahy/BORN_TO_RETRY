@@ -41,7 +41,7 @@ Status: built (2026-10-28), from the designer's go-ahead on the pitch ("Build th
 - There is no player body: the view never looks back at where you stand.
 
 ## The Demon (Demon (boss) tab)
-- **Model:** the Demon from Ultimate Monsters (`big/…/Demon.blend`) → `public/models/enemies/demon.glb` (`export_monster.py`).
+- **Model:** the Demon from Ultimate Monsters (`ASSETS/QUATERNIUS/Ultimate Monsters/boss/Demon.blend`; it came in `big/`) → `public/models/enemies/demon.glb` (`export_monster.py`).
 - **Size:** 6.5 m tall (2.3 times the brute) and 1.7 m wide. **(placeholder)**
 - **Health:** 1200. It walks at 4.5 m/s. **(placeholder)**
 - **It never flinches.**

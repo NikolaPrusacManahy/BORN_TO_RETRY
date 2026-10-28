@@ -121,6 +121,33 @@ export type CombatEvent =
   | 'bonus'
   | 'freeze'
   | 'weaponSwap'
+  // Update 0.0.18 — floor 2's enemies (value = which enemy; the Blue Demon's warning: its move): the slime swelling and
+  // bursting, the frog's warning and its tongue (x, y, z = the tongue's end), the snake's warning and bite, the wasp's
+  // warning and sting, the spider's warning, leap, landing and bite, the Blue Demon's warning and fireball (its charge
+  // is the Demon's: 'demonCharge', 'demonCrash', 'demonGore').
+  | 'slimeWindup'
+  | 'slimeBlast'
+  | 'frogWindup'
+  | 'frogTongue'
+  | 'snakeWindup'
+  | 'snakeBite'
+  | 'waspWindup'
+  | 'waspSting'
+  | 'spiderWindup'
+  | 'spiderLeap'
+  | 'spiderLand'
+  | 'spiderBite'
+  | 'blueWindup'
+  | 'blueFireball'
+  // Update 0.0.18 — the Dragon: a warning (value = its move), the beam starting, a fireball, the wing and the tail
+  // swinging, its scream (rising in its show, and raging), an enemy burnt away by the beam (value = its slot).
+  | 'dragonWindup'
+  | 'dragonBreath'
+  | 'dragonFireball'
+  | 'dragonWing'
+  | 'dragonTail'
+  | 'dragonScream'
+  | 'burnt'
   // M2 — weapons: picked up (value = its uses), dropped, worn out, a throw begun and let go, broken on impact, back
   // on the stand.
   | 'pickup'

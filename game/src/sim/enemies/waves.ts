@@ -7,8 +7,10 @@ import { Vector3 } from 'three';
 import type { Rng } from '../../core/rng';
 import type { EventQueue } from '../../core/eventQueue';
 import { BOSS } from '../../tuning/boss';
+import { DRAGON } from '../../tuning/dragon';
 import { ENEMIES } from '../../tuning/enemies';
 import { FOES } from '../../tuning/foes';
+import { FOES2 } from '../../tuning/foes2';
 import type { Spot } from '../../world/arena';
 import type { CombatEvent } from '../combat/state';
 import type { PlayerState } from '../player/state';
@@ -43,7 +45,11 @@ export function updateWaves(w: Waves, enemies: Enemy[], spots: readonly Spot[], 
   const v = ENEMIES.v;
   const f = FOES.v;
   const demons = BOSS.v.labDemons;
-  if (v.labGrunts + v.labSpitters + v.labBrutes + f.labLeapers + f.labStingers + f.labWraiths + demons <= 0 || spots.length === 0) return;
+  const dragons = DRAGON.v.labDragons;
+  // Update 0.0.18 — floor 2's, in the lab too.
+  const g = FOES2.v;
+  const floor2 = g.labSlimes + g.labFrogs + g.labSnakes + g.labWasps + g.labSpiders + g.labBlueDemons;
+  if (v.labGrunts + v.labSpitters + v.labBrutes + f.labLeapers + f.labStingers + f.labWraiths + demons + dragons + floor2 <= 0 || spots.length === 0) return;
   for (const e of enemies) if (isLive(e)) return;
   w.timer -= dt;
   if (w.timer > 0) return;
@@ -51,6 +57,13 @@ export function updateWaves(w: Waves, enemies: Enemy[], spots: readonly Spot[], 
   const far = spots.filter((s) => Math.hypot(s.x - player.pos.x, s.z - player.pos.z) >= SPAWN_MIN_DIST);
   const pool = far.length > 0 ? far : [...spots];
   for (let n = 0; n < demons; n++) spawnAt(enemies, 'demon', pool, player, rng, events);
+  for (let n = 0; n < dragons; n++) spawnAt(enemies, 'dragon', pool, player, rng, events);
+  for (let n = 0; n < g.labSpiders; n++) spawnAt(enemies, 'spider', pool, player, rng, events);
+  for (let n = 0; n < g.labBlueDemons; n++) spawnAt(enemies, 'blueDemon', pool, player, rng, events);
+  for (let n = 0; n < g.labWasps; n++) spawnAt(enemies, 'wasp', pool, player, rng, events);
+  for (let n = 0; n < g.labFrogs; n++) spawnAt(enemies, 'frog', pool, player, rng, events);
+  for (let n = 0; n < g.labSnakes; n++) spawnAt(enemies, 'snake', pool, player, rng, events);
+  for (let n = 0; n < g.labSlimes; n++) spawnAt(enemies, 'slime', pool, player, rng, events);
   for (let n = 0; n < v.labBrutes; n++) spawnAt(enemies, 'brute', pool, player, rng, events);
   for (let n = 0; n < f.labWraiths; n++) spawnAt(enemies, 'wraith', pool, player, rng, events);
   for (let n = 0; n < f.labStingers; n++) spawnAt(enemies, 'stinger', pool, player, rng, events);

@@ -49,7 +49,10 @@ section('Boss show — the Demon drawn');
     }
   });
   check(`drawn ${BOSS.v.demonHeight} m tall, feet on the floor`, near(box.max.y - box.min.y, BOSS.v.demonHeight, 0.6) && near(box.min.y, 0, 0.3), `${(box.max.y - box.min.y).toFixed(2)} m, feet at ${box.min.y.toFixed(2)}`);
-  check('with its aura round it', view.group.visible && view.group.children.some((o) => o instanceof THREE.PointLight && o.intensity > 0));
+  // (Update 0.0.18 — the aura is a group of its own inside the view: aura.ts.)
+  let lit = false;
+  view.group.traverse((o) => (lit ||= o instanceof THREE.PointLight && o.intensity > 0));
+  check('with its aura round it', view.group.visible && lit);
   const e = combat.enemies[0];
   hitEnemy(e, 1e6, 0, 0, 1);
   const w = { ...combat };

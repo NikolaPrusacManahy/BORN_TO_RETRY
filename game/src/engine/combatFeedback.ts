@@ -7,6 +7,7 @@
 // you are); its show's rumble; killed, a heavy jolt; its body bursting (chunks, sparks, a ring); the wooden gate.
 // Update 0.0.16 — a key falling to the floor, and more sparks from a chest the rarer what's in it.
 // Update 0.0.17 — a freezing hit bursts sparks of ice.
+// Update 0.0.18 — floor 2's enemies: foeFeedback.ts.
 import * as THREE from 'three';
 import type { CombatSounds } from '../audio/combatSounds';
 import type { CombatState } from '../sim/combat/state';
@@ -16,6 +17,7 @@ import type { Burst } from './fx/burst';
 import type { Shockwaves } from './fx/shockwave';
 import { ENEMIES } from '../tuning/enemies';
 import { FOES } from '../tuning/foes';
+import { foes2Feedback } from './foeFeedback';
 import type { MarkerKind } from './hudStore';
 import type { TargetsView } from './targetsView';
 import { Viewmodel } from './viewmodel/viewmodel';
@@ -39,6 +41,10 @@ export class CombatFeedback {
   hits = 0;
   marker: MarkerKind = 'hit';
 
+  /** Update 0.0.18 — `near` for the event being applied (no closure made per event). */
+  private readonly nearHere = (far: number) => this.near(at, this.listener, far);
+  private listener = at;
+
   constructor(private readonly f: FeedbackParts) {}
 
   private hit(scale: number, shake: number, kick: number, marker: MarkerKind) {
@@ -58,6 +64,7 @@ export class CombatFeedback {
   apply(state: CombatState, listener: THREE.Vector3) {
     const fb = FEEDBACK.v;
     const ev = state.events;
+    this.listener = listener;
     for (let i = 0; i < ev.length; i++) {
       const e = ev.at(i);
       at.set(e.x, e.y, e.z);
@@ -204,6 +211,7 @@ export class CombatFeedback {
           this.f.targets.respawned(state, e.x, e.z);
           break;
         default:
+          foes2Feedback(this.f, e.kind, at, back, this.nearHere);
           break;
       }
     }

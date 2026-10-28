@@ -27,9 +27,9 @@ blender --background --disable-autoexec --python tools/blender/export_items.py -
 
 ## Update 0.0.15 — the Demon (the first boss)
 ```
-blender --background --disable-autoexec --python tools/blender/export_monster.py -- --blend "<Ultimate Monsters>/big/…/Demon.blend" --glb public/models/enemies/demon.glb --previews <folder> --attack Weapon
+blender --background --disable-autoexec --python tools/blender/export_monster.py -- --blend "<Ultimate Monsters>/boss/Demon.blend" --glb public/models/enemies/demon.glb --previews <folder> --attack Weapon
 ```
-- The `big` Demon (the one with the trident; the `flying` folder has another). Clips: Death, Duck, HitReact, Idle, Jump, Jump_Idle, Jump_Land, No, Punch, Run, Walk, Wave, Weapon, Yes.
+- The `big` Demon (the one with the trident; the `flying` folder has another). The designer sorts enemies in `ASSETS`: a boss's `.blend` goes in `ASSETS/QUATERNIUS/Ultimate Monsters/boss/`, with a copy of `Atlas_Monsters.png` beside it (the monsters find their texture in their own folder). Clips: Death, Duck, HitReact, Idle, Jump, Jump_Idle, Jump_Land, No, Punch, Run, Walk, Wave, Weapon, Yes.
 - A boss is drawn by its own view (`engine/boss/demonView.ts`, `DEMON_CLIPS`), not `enemiesView.ts`. Its trident thrust lands at 16/30 (Weapon). Its stance is Wave, the roar Punch (arms wide), stunned No, the charge Duck then Run, the leap Jump, Jump_Idle, Jump_Land.
 - It's 2.9 m tall as it comes; the game scales it to `BOSS.demonHeight` (6.5 m).
 - Rule tests parse it with its textures taken out (`tests/fakes/glb.ts`): Node can't decode images.

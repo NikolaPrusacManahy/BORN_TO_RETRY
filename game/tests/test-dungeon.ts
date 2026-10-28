@@ -216,7 +216,8 @@ section('Dungeon — the room loop');
   check('deeper rooms and lower floors bring more', b.budget > a.budget && c.budget > a.budget);
   const early = buyWave(20, 1, 1, createRng(1));
   check('no brutes in the first rooms of floor 1', !early.includes('brute'));
-  const late = Array.from({ length: 20 }, (_, i) => buyWave(20, 5, 2, createRng(i))).flat();
+  // (Update 0.0.18 — floor 2 has no brutes: floor 1's last room.)
+  const late = Array.from({ length: 20 }, (_, i) => buyWave(20, 5, 1, createRng(i))).flat();
   check('later they come', late.includes('brute') && late.includes('spitter') && late.includes('grunt'));
 }
 
