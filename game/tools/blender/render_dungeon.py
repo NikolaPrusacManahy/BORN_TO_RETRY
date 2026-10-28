@@ -141,13 +141,16 @@ def main():
     for p in data['pieces']:
         if p['piece'] in protos:
             place(protos[p['piece']], p)
-    bars = protos.get('kit_p1_Arch_bars')
+    # Update 0.0.20 — the floor's look's bars and cores (`style`: floor 3 is stone).
+    style = data.get('style', {})
+    bars = protos.get(style.get('bars', 'kit_p1_Arch_bars'))
+    bs = style.get('barsScale', [1.69, 1.12, 1])
     for g in data['gates'] if bars else []:
-        place(bars, {'x': g['x'], 'y': 0, 'z': g['z'], 'rot': g['rot'], 'sx': 1.69, 'sy': 1.12, 'sz': 1})
+        place(bars, {'x': g['x'], 'y': 0, 'z': g['z'], 'rot': g['rot'], 'sx': bs[0], 'sy': bs[1], 'sz': bs[2]})
     # Update 0.0.13 — the walls' and ledges' solid cores (dark), and the slab under the floor.
     core_mat = bpy.data.materials.new('Core')
     core_mat.use_nodes = True
-    core_mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = (0.196, 0.147, 0.096, 1)
+    core_mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = (*style.get('core', [0.196, 0.147, 0.096]), 1)
     verts, faces = [], []
     for b in data.get('cores', []):
         c = to_blender(b['x'], b['y'], b['z'])
@@ -161,7 +164,8 @@ def main():
         me.materials.append(core_mat)
         cores = bpy.data.objects.new('Cores', me)
         bpy.context.scene.collection.objects.link(cores)
-        bpy.ops.mesh.primitive_plane_add(size=1000, location=(0, 0, -0.45))
+        # Update 0.0.20 — under the lava when the floor has pits (`slabY`).
+        bpy.ops.mesh.primitive_plane_add(size=1000, location=(0, 0, data.get('slabY', -0.45)))
         bpy.context.active_object.data.materials.append(core_mat)
     game_boxes(data.get('boxes', []))
     if args.demon and data.get('demon'):

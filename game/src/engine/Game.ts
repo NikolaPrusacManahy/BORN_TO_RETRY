@@ -9,6 +9,8 @@
 // Update 0.0.19 — the Lab (dev builds: the main menu's Lab): the Feel Lab with its panel (F8): what it asks for
 // appears in front of you, and a boss room is a click away (its show, its fight; leaving it, or dying, is back to the
 // Lab). The Lab's own waves are off unless switched on.
+// Update 0.0.20 — and any floor (1, 2, 3) from the Lab: a real run from there on (the way down goes on to the next
+// floor); dying, or Back, is the Lab again.
 import * as THREE from 'three';
 import { MAX_FRAME } from '../core/fixedStep';
 import { FrameStats } from '../core/frameStats';
@@ -58,7 +60,7 @@ export class Game {
   private labWaves = false;
   private readonly levels: Levels = {
     fresh: () => (this.inLab ? labLevel() : dungeonLevel(newSeed(), 1)),
-    next: (l: Level) => (this.inLab ? labLevel() : dungeonLevel(l.seed, l.floor + 1)),
+    next: (l: Level) => (this.inLab && l.bossRoom ? labLevel() : dungeonLevel(l.seed, l.floor + 1)),
     again: (l: Level) => (l.bossRoom ? bossRoomLevel(l.seed, l.floor) : dungeonLevel(l.seed, l.floor)),
   };
   private readonly menu: MenuScene;
@@ -174,9 +176,9 @@ export class Game {
     return this.mode === 'play' && this.inLab;
   }
 
-  /** Update 0.0.19 — in one of the Lab's boss rooms. */
-  get labBossRoom(): boolean {
-    return this.lab && !!this.run?.bossRoom;
+  /** Update 0.0.19 — away from the Lab (one of its boss rooms; Update 0.0.20 — or a floor started from it). */
+  get labAway(): boolean {
+    return this.lab && (this.run?.floor ?? 0) > 0;
   }
 
   get labWavesOn(): boolean {
@@ -193,7 +195,12 @@ export class Game {
     if (this.lab) this.newRun(bossRoomLevel(newSeed(), kind === 'demon' ? 1 : 2));
   }
 
-  /** Update 0.0.19 — back to the Lab from a boss room. */
+  /** Update 0.0.20 — floor `floor` (1–3) from the Lab, from its start. */
+  labFloor(floor: number) {
+    if (this.lab) this.newRun(dungeonLevel(newSeed(), floor));
+  }
+
+  /** Update 0.0.19 — back to the Lab from a boss room (or a floor). */
   backToLab() {
     if (this.lab) this.newRun(labLevel());
   }

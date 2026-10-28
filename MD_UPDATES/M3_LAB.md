@@ -54,5 +54,7 @@ Status: built (2026-10-28), from the designer's list:
 
 **Changed:** F9's Feel Lab is now the Lab, so its waves are off until you switch them on.
 
+- **Update 0.0.20:** Floor 1, 2, 3 on the panel start a run from that floor (`M3_FLOOR3.md`).
+
 ## Not checked in-game
 The panel's look, F8 in your browser, the mouse coming back after a pick, the boss rooms from the Lab, and the new sizes are all unverified until played.

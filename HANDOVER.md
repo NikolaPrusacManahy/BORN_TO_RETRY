@@ -2,7 +2,17 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.0.19
+## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.0.20
+- **Update 0.0.20 — lava rooms, floor 3's look, Dragon and snake balance** (the designer's list; spec `MD_UPDATES/M3_FLOOR3.md`).
+  - **Frog and snake:** the Frog is 1.5× smaller (0.75 m). The snake is 1.5× faster (10.5 m/s), bites for half (4), and bites the moment it's close (0.1 s warning).
+  - **Dragon:**
+    - The beam charges 1.5 s: a red line shows where it will burn, and fire gathers in its mouth.
+    - Close, it strikes (wing, tail, claws) and pauses half as long; far, it breathes fire and throws fireballs.
+  - **Lava** (from floor 2):
+    - Three new rooms (lava lake, lava bridges, gauntlet), each with a walkway joining its doors and walls in or beside the lava for wall runs.
+    - Falling in costs 50 health and puts you back at the floor's start (the fight you left resets); with 50 or less you die.
+  - **Floor 3 is stone:** part 2's walls, floor, stone arches, stacked columns, and a portcullis that drops when a room shuts and is drawn back up when you win. The look is chosen per floor (`world/dungeon/styles.ts`).
+  - **Lab:** Floor 1/2/3 buttons start a run from that floor.
 - **Update 0.0.19 — the Lab, the wasp's sting, enemy sizes** (the designer's list; spec `MD_UPDATES/M3_LAB.md`).
   - **Sizes fixed:** the Slime and the Snake were drawn about 3× and 10× too big. The newer pack's meshes are stored turned on their side, so their mesh box measured them wrong. They (and the Frog, Wasp, Spider and Dragon) are now measured from their skinned body in their idle pose (`engine/bodyMeasure.ts`), and `test-floor2.ts` checks each drawn height.
   - **The Wasp stings:**

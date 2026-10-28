@@ -53,7 +53,8 @@ section('Dungeon — the rooms');
 }
 
 /** Cells you can get through on foot (jumping onto 1 m ledges and over crates, not through walls or columns). */
-const passable = (c: Cell) => c !== 'void' && c !== 'wall' && c !== 'column' && c !== 'high' && c !== 'highLedge';
+// (Update 0.0.20 — nor lava: every floor cell must be reachable round the pits.)
+const passable = (c: Cell) => c !== 'void' && c !== 'wall' && c !== 'column' && c !== 'high' && c !== 'highLedge' && c !== 'lava';
 
 /** Every cell reachable from the start. */
 function reach(plan: FloorPlan): Uint8Array {

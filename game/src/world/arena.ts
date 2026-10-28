@@ -3,7 +3,8 @@
 import { Euler, Quaternion } from 'three';
 
 /** M1 step 8 — 'hazard': spikes; solid like a block, and touching its top hurts (sim/player/hazards.ts). */
-export type BoxKind = 'floor' | 'wall' | 'block' | 'ramp' | 'accent' | 'hazard';
+// Update 0.0.20 — 'lava': a pit's bottom (solid; landing on it burns you: sim/dungeon/lava.ts).
+export type BoxKind = 'floor' | 'wall' | 'block' | 'ramp' | 'accent' | 'hazard' | 'lava';
 
 export interface ArenaBox {
   /** Centre (m). */
@@ -53,6 +54,11 @@ export interface Arena {
 /** M1 step 8 — the arena's hazard boxes (spike strips). */
 export function hazardsOf(arena: Arena): ArenaBox[] {
   return arena.boxes.filter((b) => b.kind === 'hazard');
+}
+
+/** Update 0.0.20 — the arena's lava (pit bottoms). */
+export function lavaOf(arena: Arena): ArenaBox[] {
+  return arena.boxes.filter((b) => b.kind === 'lava');
 }
 
 /** An axis-aligned box from its min corner and size, which is easier to lay out than a centre. */

@@ -87,6 +87,15 @@
   background: rgba(232, 70, 43, 0.4);
 }
 
+/* Update 0.0.20 — the floors. */
+.rb-lab-btn.is-floor {
+  background: rgba(120, 170, 255, 0.18);
+}
+
+.rb-lab-btn.is-floor:hover {
+  background: rgba(120, 170, 255, 0.34);
+}
+
 .rb-lab-btn.is-tool {
   background: rgba(255, 255, 255, 0.04);
   box-shadow: inset 0 0 0 1px var(--rb-line);

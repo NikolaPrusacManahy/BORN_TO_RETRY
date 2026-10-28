@@ -189,3 +189,39 @@ section('Dragon — floor 2’s boss room');
   const wasps = combat.enemies.filter((e) => isLive(e) && e.kind === 'wasp').length;
   check(`raging, it calls ${v.summonWasps} wasps`, wasps === v.summonWasps);
 }
+
+section('Dragon — close, it strikes; far, it burns (Update 0.0.20)');
+{
+  // The designer: more melee when you're close, the beam and fireballs when you're far; the beam charges 1.5 s and
+  // warns you.
+  const picks = (dist: number) => {
+    const seen = new Set<number>();
+    for (let i = 0; i < 40; i++) {
+      const f = fight(new Vector3(0, 0, -dist));
+      f.w.rng = createRng(100 + i);
+      f.d.cooldown = 0;
+      run(f, DT);
+      if (f.d.phase === 'windup') seen.add(f.d.move);
+    }
+    return seen;
+  };
+  const close = picks(v.dragonNear - 2);
+  const far = picks(v.dragonFar + 6);
+  check('close, only melee: wing, tail, claws', close.size > 1 && [...close].every((m) => m === WING || m === TAIL || m === CLAWS), [...close].join());
+  check('far, only the beam and fireballs', far.has(BREATH) && far.has(FIREBALLS) && [...far].every((m) => m === BREATH || m === FIREBALLS), [...far].join());
+  const pauseAt = (dist: number) => {
+    const f = fight(new Vector3(0, 0, -dist));
+    f.d.move = WING;
+    setPhase(f.d, 'recover');
+    f.d.t = 10;
+    run(f, DT);
+    return f.d.cooldown;
+  };
+  check('close, it pauses less between moves', near(pauseAt(v.dragonNear - 2), pauseAt(v.dragonFar + 6) * v.closePause, 0.02));
+  const f = fight(new Vector3(0, 0, -20));
+  warnNow(f, BREATH);
+  const charge = run(f, v.breathWindup - 0.1);
+  check(`the beam charges ${v.breathWindup} s, aimed at you all the while (the warning line), harmless meanwhile`, v.breathWindup === 1.5 && !charge.seen.includes('dragonBreath') && !charge.hurt && Math.hypot(f.d.aim.x, f.d.aim.z) < 5 && f.d.phase === 'windup');
+  const fire = run(f, 0.2);
+  check('then it fires', fire.seen.includes('dragonBreath') && fire.hurt);
+}

@@ -121,7 +121,8 @@ function sideTo(a: [number, number], b: [number, number]): [Side, Side] {
 export function planFloor(seed: number, level: number): FloorPlan {
   const rng = createRng(seed * 7919 + level * 104729);
   const way = wayThrough(rng);
-  const fights = [...FIGHT_ROOMS];
+  // Update 0.0.20 — only the rooms this floor has (the lava rooms come from floor 2).
+  const fights = FIGHT_ROOMS.filter((t) => (t.from ?? 1) <= level);
   for (let i = fights.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [fights[i], fights[j]] = [fights[j], fights[i]];

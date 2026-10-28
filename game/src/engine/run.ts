@@ -26,6 +26,7 @@ import { stepCombat } from '../sim/combat/step';
 import { AIM_HEIGHT } from '../sim/combat/turret';
 import { stepRooms } from '../sim/dungeon/roomLoop';
 import { emptyTreasure, stepTreasure, Treasure } from '../sim/dungeon/treasure';
+import { lavaStep } from '../sim/dungeon/lava';
 import { LabCommand, runLab } from '../sim/lab/labCommands';
 import { hpBonusOf, KeyKind, speedFactor } from '../sim/items/items';
 import { hasteFactor } from '../sim/items/bonuses';
@@ -40,7 +41,7 @@ import type { Settings } from '../state/settings';
 import { CAMERA } from '../tuning/camera';
 import { FISTS } from '../tuning/combat';
 import { LAB } from '../tuning/lab';
-import { ArenaBox, hazardsOf } from '../world/arena';
+import { ArenaBox, hazardsOf, lavaOf } from '../world/arena';
 import { CameraRig } from './cameraRig';
 import { CombatScene } from './combatScene';
 import { DeathFlow } from './deathFlow';
@@ -82,6 +83,8 @@ export class Run {
   private combat!: CombatState;
   private combatScene!: CombatScene;
   private hazards: ArenaBox[] = [];
+  /** Update 0.0.20 — lava: falling in sends you back to the level's start. */
+  private lava: ArenaBox[] = [];
   /** Counts hits on you (and, Update 0.0.13, on your shield), for the HUD's flashes. */
   private readonly hits = { hurts: 0, shields: 0 };
   /** Update 0.0.13 — the shop and the chests. Update 0.0.19 — every level's (the Lab's: chests from its panel). */
@@ -118,11 +121,6 @@ export class Run {
     return this.level.floor;
   }
 
-  /** Update 0.0.19 — the Lab's boss room. */
-  get bossRoom(): boolean {
-    return !!this.level.bossRoom;
-  }
-
   /** Into `level`. `keep`: your health, coins and weapon come along (the way down); otherwise a fresh start. */
   load(level: Level, keep: boolean) {
     const old = this.combat;
@@ -142,6 +140,7 @@ export class Run {
     // (Back to the Lab from its boss room: no floor's name.)
     if (keep && level.dungeon) this.show.arrive(level.floor);
     this.hazards = hazardsOf(level.arena);
+    this.lava = lavaOf(level.arena);
     this.combat = createCombat(level.arena, !level.dungeon);
     this.combat.rng = createRng(level.fightSeed);
     this.combatScene = new CombatScene(this.scene, this.combat, this.audio, this.rig, this.arms);
@@ -216,6 +215,7 @@ export class Run {
       if (stepTreasure(this.treasure, p, this.combat, ci.interactPressed, ci.switchKeyPressed, this.fighting, stepDt)) ci.interactPressed = false;
       stepPlayer(p, this.intent, this.level.physics, this.level.arena.pads, stepDt);
       checkHazards(p, this.hazards);
+      lavaStep(p, this.lava, this.level.arena.playerStart, d, this.combat);
       stepCombat(this.combat, p, this.combatIntent, this.level.physics, stepDt, d || !this.waves ? [] : this.level.arena.spawns);
       if (d) {
         stepRooms(d, p, this.combat, this.combat.rng, stepDt);

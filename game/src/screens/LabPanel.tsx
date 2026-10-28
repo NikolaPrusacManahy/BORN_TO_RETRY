@@ -3,6 +3,7 @@
 // weapon or a chest and it's in front of you as the panel closes (shift-click keeps it open). A boss can come here,
 // or you go to its boss room (its show and its fight). Clear, Heal, the Lab's waves, invincibility; Back leaves a boss
 // room for the Lab. The world holds still while it's open.
+// Update 0.0.20 — Floor 1, 2 or 3: a run from that floor's start (Back leaves it too).
 import { useState } from 'react';
 import type { EnemyKind } from '../sim/enemies/kinds';
 import type { DropKind } from '../sim/items/drops';
@@ -10,12 +11,14 @@ import type { LabCommand } from '../sim/lab/labCommands';
 import type { WeaponKind } from '../sim/weapons/catalog';
 
 interface Props {
-  bossRoom: boolean;
+  /** In a boss room or on a floor started from the Lab. */
+  away: boolean;
   waves: boolean;
   god: boolean;
   /** `stay`: keep the panel open (shift-click). */
   onCommand(cmd: LabCommand, stay: boolean): void;
   onBossRoom(kind: 'demon' | 'dragon'): void;
+  onFloor(floor: number): void;
   onBack(): void;
   onWaves(): void;
   onGod(): void;
@@ -55,11 +58,12 @@ const WEAPONS: [WeaponKind, string][] = [
   ['goldSword', 'Gold sword'],
 ];
 const COUNTS = [1, 3, 5];
+const FLOORS = [1, 2, 3];
 
 /** The count picked last (kept between openings). */
 let lastCount = 1;
 
-export function LabPanel({ bossRoom, waves, god, onCommand, onBossRoom, onBack, onWaves, onGod }: Props) {
+export function LabPanel({ away, waves, god, onCommand, onBossRoom, onFloor, onBack, onWaves, onGod }: Props) {
   const [count, setCount] = useState(lastCount);
   const pick = (n: number) => {
     lastCount = n;
@@ -107,6 +111,16 @@ export function LabPanel({ bossRoom, waves, god, onCommand, onBossRoom, onBack, 
           </div>
         </section>
         <section className="rb-lab-sec">
+          <h3 className="rb-lab-head">Floors</h3>
+          <div className="rb-lab-grid">
+            {FLOORS.map((n) => (
+              <button key={n} className="rb-lab-btn is-floor" onClick={() => onFloor(n)}>
+                Floor {n}
+              </button>
+            ))}
+          </div>
+        </section>
+        <section className="rb-lab-sec">
           <h3 className="rb-lab-head">Items</h3>
           <div className="rb-lab-grid">
             {ITEMS.map(([kind, label]) => (
@@ -138,7 +152,7 @@ export function LabPanel({ bossRoom, waves, god, onCommand, onBossRoom, onBack, 
             <button className={`rb-lab-btn is-tool${god ? ' is-on' : ''}`} onClick={onGod}>
               God
             </button>
-            {bossRoom && (
+            {away && (
               <button className="rb-lab-btn is-tool" onClick={onBack}>
                 Back
               </button>

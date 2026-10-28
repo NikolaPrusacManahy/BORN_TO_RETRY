@@ -88,8 +88,9 @@ export function stepBreath(d: Enemy, index: number, player: PlayerState, w: Enem
 }
 
 /** The beam's line: from its mouth the way it faces, tipped down at your chest; to its reach, the floor, or the first
- *  wall (Enemy.aim holds its end; the mouth is left in `mouth`). */
-function aimBeam(d: Enemy, player: PlayerState, w: EnemyWorld) {
+ *  wall (Enemy.aim holds its end; the mouth is left in `mouth`). Update 0.0.20 — also while it charges (the view draws
+ *  the warning line along it). */
+export function aimBeam(d: Enemy, player: PlayerState, w: EnemyWorld) {
   const v = DRAGON.v;
   dragonMouth(d, mouth);
   const flat = Math.max(1, Math.hypot(player.pos.x - mouth.x, player.pos.z - mouth.z));

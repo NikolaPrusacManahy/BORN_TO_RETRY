@@ -11,7 +11,12 @@ export const DRAGON = group('dragon', 'Dragon (boss)', {
   dragonSpeed: knob(5, 1, 14, 0.25, 'Dragon speed', 'How fast it flies at you (m/s).'),
   dragonTurn: knob(2.2, 0.5, 8, 0.1, 'Dragon turn', 'How fast it turns (rad/s).'),
   dragonPause: knob(1, 0.2, 4, 0.05, 'Dragon pause', 'Seconds between its moves.'),
-  breathWindup: knob(1, 0.3, 2.5, 0.05, 'Breath wind-up', 'The warning before the fire beam (s): it rears and its throat glows.'),
+  // Update 0.0.20 (the designer: melee more often when you're close; the beam and fireballs when you're far).
+  dragonNear: knob(9, 3, 20, 0.5, 'Dragon close', 'Closer than this (m) it strikes with wing, tail and claws.'),
+  dragonFar: knob(18, 8, 40, 0.5, 'Dragon far', 'Further than this (m) it breathes fire and throws fireballs.'),
+  closePause: knob(0.5, 0.2, 1, 0.05, 'Dragon close pauses', 'Its pauses take this share as long when you are close.'),
+  // Update 0.0.20 (the designer: a 1.5 s charge, and a way to warn you; was 1).
+  breathWindup: knob(1.5, 0.3, 3, 0.05, 'Breath charge', 'The beam charges this long (s): fire gathers in its mouth and a thin line shows where it will burn.'),
   beamTime: knob(2.2, 0.5, 5, 0.1, 'Beam time', 'Seconds the beam burns.'),
   beamTurn: knob(0.7, 0, 3, 0.05, 'Beam sweep', 'How fast the beam follows you (rad/s): dash across it.'),
   beamRange: knob(40, 10, 80, 1, 'Beam reach', 'How far the beam reaches (m), unless a wall or the floor stops it.'),

@@ -144,10 +144,12 @@ export class DragonView {
     return Math.PI * 2 * k * k * (3 - 2 * k);
   }
 
-  /** From its head to where the fire stops (Enemy.aim), while it breathes. */
+  /** From its head to where the fire stops (Enemy.aim), while it breathes; Update 0.0.20 — the warning line and the
+   *  gathering fire while it charges. */
   private drawBeam(e: Enemy) {
     const v = DRAGON.v;
-    if (e.phase !== 'breath' || !this.root) {
+    const charging = e.phase === 'windup' && e.move === BREATH;
+    if ((e.phase !== 'breath' && !charging) || !this.root) {
       this.beam.update(at, at, 0, 0, this.time);
       return;
     }
@@ -157,6 +159,10 @@ export class DragonView {
       head.x -= Math.sin(e.facing) * v.dragonHeight * 0.12;
       head.z -= Math.cos(e.facing) * v.dragonHeight * 0.12;
     } else head.set(at.x, at.y + v.dragonHeight * 0.7, at.z);
+    if (charging) {
+      this.beam.charge(head, e.aim, Math.min(1, e.t / dragonWindup(e, BREATH)), this.time);
+      return;
+    }
     const out = Math.min(1, e.t / BEAM_OUT);
     const power = Math.min(1, Math.max(0, (v.beamTime - e.t) / BEAM_END));
     this.beam.update(head, e.aim, power, out, this.time);

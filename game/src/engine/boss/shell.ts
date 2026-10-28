@@ -4,14 +4,15 @@
 // behind them, until the room is whole and they're gone. Each block is a dark core (like the walls' cores) with the
 // kit's brick faces and caps along its inside edge; faces run the room's whole length (their ends hide in the blocks
 // beside them). Updated in place: nothing is made per frame.
+// Update 0.0.20 — in the floor's look (floor 3: stone faces).
 import * as THREE from 'three';
 import type { Rect } from '../../world/dungeon/assemble';
-import { CORE_BOTTOM, CORE_INSET, KIT } from '../../world/dungeon/dressing';
+import { CORE_BOTTOM, CORE_INSET } from '../../world/dungeon/dressing';
+import { BRICK, DungeonStyle } from '../../world/dungeon/styles';
 import { HEIGHT } from '../../world/dungeon/assemble';
 
 /** The kit wall's size (m) as dressing.ts places it. */
 const PIECE = 2;
-const DEPTH = 0.44;
 const ROWS = 3;
 /** Thinner than this, a block is gone. */
 const GONE = 0.02;
@@ -71,6 +72,8 @@ export class Shell {
   /** Pieces along each edge (the room's length / a piece). */
   private readonly perEdge: number;
   private shown = -1;
+  /** The wall faces' depth (the floor's look's). */
+  private depth = BRICK.wallDepth;
 
   constructor(
     private readonly start: Rect,
@@ -87,10 +90,11 @@ export class Shell {
     this.set(0);
   }
 
-  /** The kit has loaded: the brick faces and caps. */
-  build(kit: THREE.Object3D, material: (src: THREE.MeshStandardMaterial) => THREE.Material) {
-    const wall = kit.getObjectByName(KIT.wall);
-    const cap = kit.getObjectByName(KIT.cap);
+  /** The kit has loaded: the faces and caps, in the floor's look. */
+  build(kit: THREE.Object3D, material: (src: THREE.MeshStandardMaterial) => THREE.Material, style: DungeonStyle = BRICK) {
+    const wall = kit.getObjectByName(style.wall);
+    const cap = kit.getObjectByName(style.cap);
+    this.depth = style.wallDepth;
     if (!wall || !cap) return;
     const n = EDGES.length * this.perEdge;
     this.walls = new Pieces(wall, material, n * ROWS, this.group);
@@ -136,7 +140,7 @@ export class Shell {
       if (!this.walls || !this.caps) continue;
       // Brick faces along its inside edge, the room's whole length.
       const from = along ? e.min.z : e.min.x;
-      const at = face - inward * (DEPTH / 2);
+      const at = face - inward * (this.depth / 2);
       for (let j = 0; j < this.perEdge; j++) {
         const i = b * this.perEdge + j;
         const u = from + PIECE / 2 + j * PIECE;

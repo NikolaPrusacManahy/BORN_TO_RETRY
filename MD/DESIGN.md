@@ -137,8 +137,8 @@ Rule: every attack is telegraphed (a flash and a sound) before it can hit, and e
 | Stinger | **(Update 0.0.13, the designer: a flier.)** The Armabee: 25 HP, flies 3.4 m up. Within 10 m with a clear line it rears back 0.6 s (glows red, buzzes), then dives at 20 m/s through where your chest was and on: 14 and a knock if it goes through you. The dive ends on the floor, a wall or a crate: 1 s low and dazed (punch it). A hit cancels the dive. |
 | Wraith | **(Update 0.0.13, the designer: a flier.)** The Ghost: 35 HP, floats 3.6 m up, keeps 8–18 m from you (closer over cover, away when you're close, circling between). 0.7 s warning (glows pale, wails), then a fan of three slow orbs (11 m/s, 10 each, 14° apart). A hit cancels the cast. |
 | Slime | **(Update 0.0.18, the designer: floor 2, kamikaze.)** 20 HP. Slides at you; within 2.2 m it swells and glows green (0.6 s), then bursts: 22 and thrown within 3 m (not through a wall). It's gone, no coins; killed first, it just dies. |
-| Frog | **(Update 0.0.18, the designer: floor 2, mid range.)** 35 HP. Hops about 4.5–9 m from you; its throat glows (0.5 s, its aim locking for the end of it), then its tongue shoots 9 m in a line: 12 and pulled to it. Step off the line. |
-| Snake | **(Update 0.0.18, the designer: floor 2, its bite poisons.)** 30 HP. Slithers at you; rears and hisses (0.35 s), then bites: 8 and poisoned. |
+| Frog | **(Update 0.0.18, the designer: floor 2, mid range.)** 35 HP; 0.75 m (Update 0.0.20, the designer: 1.5× smaller). Hops about 4.5–9 m from you; its throat glows (0.5 s, its aim locking for the end of it), then its tongue shoots 9 m in a line: 12 and pulled to it. Step off the line. |
+| Snake | **(Update 0.0.18, the designer: floor 2, its bite poisons.)** 30 HP. Slithers at you at 10.5 m/s; close, it hisses and bites at once (0.1 s): 4 and poisoned. (Update 0.0.20, the designer: 1.5× faster, half the damage, biting right away; was 7 m/s, 0.35 s, 8.) |
 | Wasp | **(Update 0.0.18, the designer: floor 2, poison stings; a flier.)** 20 HP, 3.2 m up, 6–14 m off. **Update 0.0.19 (the designer: it stings, it doesn't shoot):** it swoops down in front of your chest, buzzes (0.45 s), then stabs: 6 and poisoned within 1.6 m. Dash away during the warning; down there your fists reach it. |
 | Spider | **(Update 0.0.18, the designer: floor 2's big one.)** 140 HP. From 5–13 m it rears (0.6 s) and leaps to where you stood: 22 and thrown (jump it); close up it bites (16). Only a hit of 40+ staggers it. A mini boss: its room has a chest and it carries the key. |
 | Blue Demon | **(Update 0.0.18, the designer: floor 2's big one.)** 160 HP, 2.8 m. Warns (blue glow), then charges (20, thrown; a wall stuns it 1.6 s) or, from afar, throws a fireball (14). Only a hit of 40+ staggers it. A mini boss like the Spider. |
@@ -148,6 +148,10 @@ Rule: every attack is telegraphed (a flash and a sound) before it can hit, and e
 Models come from Quaternius's Bestiary/Dungeon Monsters and Ultimate Monsters packs.
 
 **Each floor its own (Update 0.0.18, the designer):** floor 1 sends the grunt, spitter, Yeti, leaper, stinger and wraith; floor 2 the same small ones plus the slime, frog, snake and wasp, and the Spider and Blue Demon as its big ones (no Yeti); floor 3 floor 2's for now **(placeholder)**.
+
+**Lava (Update 0.0.20, the designer):** some rooms from floor 2 on have lava pits (the lava lake, the lava bridges, the gauntlet), with walls in or beside the lava to wall-run across and a walkway round every pit. Falling in costs 50 health and puts you back at the floor's start (the fight you left starts over); with 50 or less, you die.
+
+**Floor 3's look (Update 0.0.20, the designer):** grey stone (the dungeon pack's part 2): stone walls and floor, deep stone arches, stacked stone columns, and gates that are a portcullis dropping from above when a room shuts and drawn back up when it's won.
 
 **Poison (Update 0.0.18):** 3 damage a second for 4 s, straight off your health (not the shield); a new dose starts it over; the screen's edge pulses green. **(placeholder numbers)**
 
@@ -162,11 +166,12 @@ One per floor, three in total, each with 2 phases. Floor 1's is the Demon, floor
 - **Death:** the world slows; it hangs frozen in the air, sinks flickering white and bursts: 60 coins, a key, a heart.
 
 **The Dragon (Update 0.0.18, the designer: an intro where it screams and the scream shakes; fire breath like a laser beam that annihilates even its own side; fireballs, claws, wing swings, tail swings; spec `MD_UPDATES/M3_FLOOR2.md`).** The Dragon from Ultimate Monsters, 7 m tall, flying low, 1600 health, never flinches; a gold aura. In its show it **screams** as it takes its stance, and the view shakes. Every pause it picks a move by how far you are (the tail when you're behind it), each warned:
-- **Fire beam:** rears, throat glowing (1 s), then a beam of fire through your chest to the floor for 2.2 s, following you slowly (dash across it); a wall stops it; **any other enemy in its line burns away**.
+- **Fire beam:** charges 1.5 s (Update 0.0.20, the designer: a thin red line shows where it will burn, fire gathers in its mouth), then a beam of fire through your chest to the floor for 2.2 s, following you slowly (dash across it); a wall stops it; **any other enemy in its line burns away**.
 - **Fireballs:** three at you, one after another.
 - **Claws:** a red lane, then it swoops along it claws out (22, thrown); into a wall it's stunned.
 - **Wing swing:** close in front, a wide sweep: 16 and blown away.
 - **Tail swing:** it spins, the tail sweeping all round it low: 20 (jump it).
+- **Its choices (Update 0.0.20, the designer):** close to it, its wing, tail and claws, more often; far off, the beam and fireballs; between, the swoop, the beam and fireballs.
 - **Phase 2 (half health):** it screams again and calls wasps; quicker, faster. **Death:** the Demon's show; 40 coins, a key, a heart. **(placeholder numbers)**
 
 **The boss room (Update 0.0.15, the designer):** stepping in, the view leaves your eyes and rises over the room; its walls slide back as it grows; a portal opens in the middle and the boss rises out of it, takes its stance beside its name; the view glides back and the fight starts. Once it's dead, a wooden gate in the far wall swings open onto the dark: the way down.

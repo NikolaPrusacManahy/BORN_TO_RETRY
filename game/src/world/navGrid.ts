@@ -81,8 +81,9 @@ export function buildNavGrid(arena: Arena, radius: number, floorY = 0, cell = 0.
     const r = bounds(b);
     const f = { minX: r.minX, maxX: r.maxX, minZ: r.minZ, maxZ: r.maxZ };
     if (b.kind === 'floor' && Math.abs(r.maxY - floorY) < 0.05) floors.push(f);
-    // Spikes are low, but a grunt walks round them rather than stand in them.
-    else if ((band.hazards && b.kind === 'hazard') || (r.maxY > floorY + band.low && r.minY < floorY + band.high)) walls.push(f);
+    // Spikes are low, but a grunt walks round them rather than stand in them. Update 0.0.20 — lava pits too (walkers go
+    // round; fliers cross).
+    else if ((band.hazards && (b.kind === 'hazard' || b.kind === 'lava')) || (r.maxY > floorY + band.low && r.minY < floorY + band.high)) walls.push(f);
   }
   const grid: NavGrid = { floorY, radius, cell, minX: 0, minZ: 0, cols: 0, rows: 0, blocked: new Uint8Array(0), walls };
   if (floors.length === 0) return grid;

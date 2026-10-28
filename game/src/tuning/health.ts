@@ -6,6 +6,8 @@ export const HEALTH = group('health', 'Health', {
   maxHp: knob(100, 10, 500, 5, 'Max health', 'HP. No regeneration.'),
   hurtInvuln: knob(0.6, 0, 2, 0.05, 'Hurt invincibility', 'Seconds after a hit when nothing can hurt you again.'),
   spikeDamage: knob(25, 1, 100, 1, 'Spike damage', 'The lab spikes, per touch.'),
+  // Update 0.0.20 (the designer).
+  lavaDamage: knob(50, 1, 100, 1, 'Lava burn', 'Falling into lava: health lost, and back to the floor\'s start (with this much or less, you die).'),
   spikeBounce: knob(8, 0, 20, 0.5, 'Spike pop', 'Upward speed a spike touch throws you (m/s).'),
   deathSlow: knob(0.25, 0.05, 1, 0.05, 'Death slow motion', 'Time scale while the screen fades out.'),
   deathFade: knob(0.6, 0.1, 3, 0.05, 'Death fade', 'Seconds from death to black; then you are back at the start.'),

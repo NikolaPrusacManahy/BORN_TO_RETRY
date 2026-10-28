@@ -66,6 +66,11 @@ export class MoveSounds {
         noise(a, { dur: 0.3, gain: 0.4, filter: 'highpass', from: 6000, to: 1200 });
         tone(a, { from: 700, to: 180, dur: 0.25, gain: 0.15, type: 'square' });
         break;
+      // Update 0.0.20 — a burst of steam and a roar of fire as the lava takes you.
+      case 'lavaBurn':
+        noise(a, { dur: 0.6, gain: 0.5, filter: 'highpass', from: 3000, to: 900 });
+        tone(a, { from: 140, to: 40, dur: 0.5, gain: 0.5, type: 'sawtooth' });
+        break;
       case 'death':
         tone(a, { from: 110, to: 22, dur: 0.9, gain: 0.8, type: 'sawtooth' });
         noise(a, { dur: 0.7, gain: 0.4, filter: 'lowpass', from: 900, to: 60 });

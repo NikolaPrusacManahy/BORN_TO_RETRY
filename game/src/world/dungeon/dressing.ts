@@ -11,11 +11,16 @@
 // have faces: next to another wall it reaches the cell's edge, so no crack runs through), so a notch shows shadow.
 // Update 0.0.15 — no trapdoor: the way down is the boss room's wooden gate (drawn by engine/bossRoomView.ts, with the
 // dark beyond it); here, the wall over its doorway and a torch either side. The dark gets no tiles and no wall faces.
+// Update 0.0.20 — lava pits: no floor tile over the lava (engine/lavaView.ts draws it), brick faces down a pit's sides,
+// walls standing in lava faced down to it, and a warm light over a pit every few cells (the torch lights).
+// Update 0.0.20 — each floor its look (styles.ts): floors 1–2 brick, floor 3 stone. The pieces a look changes come from
+// it (floor, walls, the doorway and its gate, columns, wall dressing, litter); the rest stay the same.
 import { createRng } from '../../core/rng';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, Side } from './floorPlan';
-import { HEIGHT } from './assemble';
+import { HEIGHT, LAVA_DEPTH } from './assemble';
 import type { ArenaBox } from '../arena';
 import type { Cell } from './rooms';
+import { DungeonStyle, styleOf } from './styles';
 
 export interface Placement {
   piece: string;
@@ -44,6 +49,9 @@ export interface Dressing {
   torches: { x: number; y: number; z: number }[];
   /** Update 0.0.13 — the solid cores of the wall and ledge cells (boxes, behind their faces). */
   cores: ArenaBox[];
+  /** Update 0.0.20 — the lava cells' middles, and the floor's look. */
+  lava: { x: number; z: number }[];
+  style: DungeonStyle;
 }
 
 /** Kit pieces (export_dungeon_kit.py names). */
@@ -62,13 +70,13 @@ export const KIT = {
   carpet: 'kit_p2_Carpet',
   candelabrum: 'kit_p2_Candelabrum_tall',
 } as const;
-const LITTER = ['kit_p1_Skull', 'kit_p2_Bones', 'kit_p2_Bones2', 'kit_p2_Rock1', 'kit_p2_Rock2', 'kit_p2_Rock3', 'kit_p1_Vase', 'kit_p1_Bucket'];
 
 /** The arch is stretched so its opening is the 4 m doorway (it's 2.3 m wide, 3.1 m tall as it comes). */
 export const ARCH_SCALE: [number, number, number] = [1.75, 1.2, 1];
 export const BARS_SCALE: [number, number, number] = [1.69, 1.12, 1];
+/** Update 0.0.20 — a column stack's middle pieces are this much shorter than their height (they overlap a little). */
+const STACK_OVERLAP = 0.01;
 const WALL_PIECE = 2;
-const WALL_DEPTH = 0.44;
 /** A core sits this far behind its faces' fronts (inside their depth), from below the floor to just under the top: the
  *  wall's caps, or a ledge's top tiles (0.25 thick). */
 export const CORE_INSET = 0.2;
@@ -92,9 +100,12 @@ const surface = (c: Cell) => c !== 'void' && c !== 'wall' && c !== 'dark';
 const height = (c: Cell) => HEIGHT[c] ?? 0;
 
 export function dress(plan: FloorPlan): Dressing {
+  const K = styleOf(plan.level);
+  const WALL_DEPTH = K.wallDepth;
   const rng = createRng(plan.seed * 31 + plan.level);
   const pieces: Placement[] = [];
   const torches: Dressing['torches'] = [];
+  const lava: Dressing['lava'] = [];
   const put = (piece: string, x: number, y: number, z: number, rot = 0, sx = 1, sy = 1, sz = 1) => pieces.push({ piece, x, y, z, rot, sx, sy, sz });
   const inRoom = new Int16Array(GRID * GRID).fill(-1);
   for (const r of plan.rooms) for (let row = -1; row <= r.layout.h; row++) for (let col = -1; col <= r.layout.w; col++) inRoom[(r.z0 + row) * GRID + r.x0 + col] = r.index;
@@ -108,8 +119,19 @@ export function dress(plan: FloorPlan): Dressing {
       const c = cellAt(plan, col, row);
       const x = cellX(col);
       const z = cellZ(row);
-      if (surface(c)) put(KIT.floor, x, -0.25, z);
+      if (surface(c) && c !== 'lava') put(K.floor, x, K.floorY, z);
+      // A pit's sides: a face down to the lava on every side of this cell that looks onto it (walls get theirs below).
+      if (surface(c) && c !== 'lava') {
+        for (const [dc, dr, side] of DIRS) {
+          if (cellAt(plan, col + dc, row + dr) !== 'lava') continue;
+          put(K.wall, x + dc * (CELL / 2 - WALL_DEPTH / 2), -LAVA_DEPTH, z + dr * (CELL / 2 - WALL_DEPTH / 2), FACING[side], 1, LAVA_DEPTH / WALL_PIECE, 1);
+        }
+      }
       switch (c) {
+        case 'lava':
+          lava.push({ x, z });
+          if ((col * 3 + row * 5) % 11 === 0) torches.push({ x, y: -0.4, z });
+          break;
         case 'wall':
           for (const [dc, dr, side] of DIRS) {
             const n = cellAt(plan, col + dc, row + dr);
@@ -117,8 +139,10 @@ export function dress(plan: FloorPlan): Dressing {
             // The face between this wall and the floor beside it: three bricks high, capped.
             const fx = x + dc * (CELL / 2 - WALL_DEPTH / 2);
             const fz = z + dr * (CELL / 2 - WALL_DEPTH / 2);
-            for (let k = 0; k < 3; k++) put(KIT.wall, fx, k * WALL_PIECE, fz, FACING[side]);
-            put(KIT.cap, fx, 3 * WALL_PIECE, fz, FACING[side]);
+            for (let k = 0; k < 3; k++) put(K.wall, fx, k * WALL_PIECE, fz, FACING[side]);
+            // Standing in lava, its face goes down to it.
+            if (n === 'lava') put(K.wall, fx, -LAVA_DEPTH, fz, FACING[side], 1, LAVA_DEPTH / WALL_PIECE, 1);
+            put(K.cap, fx, 3 * WALL_PIECE, fz, FACING[side]);
             const room = inRoom[(row + dr) * GRID + col + dc];
             // (Not beside the wooden gate: it has its own pair.)
             const byGate = Math.hypot(x - plan.wayOut.doorX, z - plan.wayOut.doorZ) < GATE_TORCHES;
@@ -128,12 +152,12 @@ export function dress(plan: FloorPlan): Dressing {
               put(KIT.torch, tx, TORCH_Y, tz, FACING[side] - Math.PI / 2);
               torches.push({ x: x + dc * (CELL / 2 + 0.95), y: TORCH_Y + 1.2, z: z + dr * (CELL / 2 + 0.95) });
             } else if (room >= 0 && (col * 7 + row * 3) % 23 === 0) {
-              put(KIT.banner, x + dc * (CELL / 2 + 0.3), 3, z + dr * (CELL / 2 + 0.3), FACING[side]);
+              put(K.decor, x + dc * (CELL / 2 + K.decorOut), K.decorY, z + dr * (CELL / 2 + K.decorOut), FACING[side]);
             }
           }
           break;
         case 'column':
-          put(KIT.column, x, 0, z);
+          column(K, x, z, put);
           break;
         case 'low':
           put(KIT.crate, x, 0, z, Math.floor(rng() * 4) * (Math.PI / 2), 1.38, 1, 1.38);
@@ -147,10 +171,10 @@ export function dress(plan: FloorPlan): Dressing {
         case 'ledge':
         case 'highLedge': {
           const h = height(c);
-          put(KIT.floor, x, h - 0.25, z);
+          put(K.floor, x, h + K.floorY, z);
           for (const [dc, dr, side] of DIRS) {
             if (height(cellAt(plan, col + dc, row + dr)) >= h) continue;
-            put(KIT.wall, x + dc * (CELL / 2 - WALL_DEPTH / 2), 0, z + dr * (CELL / 2 - WALL_DEPTH / 2), FACING[side], 1, h / WALL_PIECE, 1);
+            put(K.wall, x + dc * (CELL / 2 - WALL_DEPTH / 2), 0, z + dr * (CELL / 2 - WALL_DEPTH / 2), FACING[side], 1, h / WALL_PIECE, 1);
           }
           break;
         }
@@ -159,7 +183,7 @@ export function dress(plan: FloorPlan): Dressing {
             // Litter against a wall.
             for (const [dc, dr] of DIRS) {
               if (cellAt(plan, col + dc, row + dr) !== 'wall') continue;
-              put(LITTER[Math.floor(rng() * LITTER.length)], x + dc * 0.45, 0, z + dr * 0.45, rng() * Math.PI * 2);
+              put(K.litter[Math.floor(rng() * K.litter.length)], x + dc * 0.45, 0, z + dr * 0.45, rng() * Math.PI * 2);
               break;
             }
           }
@@ -180,7 +204,8 @@ export function dress(plan: FloorPlan): Dressing {
       const x = ns ? cellX(col) - CELL / 2 : cellX(col);
       const z = ns ? cellZ(row) : cellZ(row) - CELL / 2;
       const rot = ns ? 0 : Math.PI / 2;
-      put(KIT.arch, x, 0, z, rot, ...ARCH_SCALE);
+      put(K.arch, x, 0, z, rot, ...K.archScale);
+      if (K.over) put(K.over, x, K.overY, z, rot, ...K.overScale);
       gates.push({ x, z, rot, room: r.index });
       for (const k of [-1, 1]) {
         const ax = ns ? x + (k * CELL) / 2 : x;
@@ -189,8 +214,8 @@ export function dress(plan: FloorPlan): Dressing {
           const fx = ns ? ax : ax + face * (CELL / 2 - WALL_DEPTH / 2);
           const fz = ns ? az + face * (CELL / 2 - WALL_DEPTH / 2) : az;
           const facing = ns ? (face > 0 ? FACING.s : FACING.n) : face > 0 ? FACING.e : FACING.w;
-          put(KIT.wall, fx, 2 * WALL_PIECE, fz, facing);
-          put(KIT.cap, fx, 3 * WALL_PIECE, fz, facing);
+          put(K.wall, fx, 2 * WALL_PIECE, fz, facing);
+          put(K.cap, fx, 3 * WALL_PIECE, fz, facing);
         }
       }
     }
@@ -225,14 +250,27 @@ export function dress(plan: FloorPlan): Dressing {
   for (const k of [-1, 1]) {
     const ax = ns ? fx + (k * CELL) / 2 : fx;
     const az = ns ? fz : fz + (k * CELL) / 2;
-    put(KIT.wall, ax, 2 * WALL_PIECE, az, FACING[inward]);
-    put(KIT.cap, ax, 3 * WALL_PIECE, az, FACING[inward]);
+    put(K.wall, ax, 2 * WALL_PIECE, az, FACING[inward]);
+    put(K.cap, ax, 3 * WALL_PIECE, az, FACING[inward]);
     const tx = ns ? gx + k * 1.6 * CELL : gx - ox * (CELL / 2 + TORCH_REACH);
     const tz = ns ? gz - oz * (CELL / 2 + TORCH_REACH) : gz + k * 1.6 * CELL;
     put(KIT.torch, tx, TORCH_Y, tz, FACING[inward] - Math.PI / 2);
     torches.push({ x: ns ? tx : gx - ox * (CELL / 2 + 0.95), y: TORCH_Y + 1.2, z: ns ? gz - oz * (CELL / 2 + 0.95) : tz });
   }
-  return { pieces, gates, torches, cores: coresOf(plan) };
+  return { pieces, gates, torches, cores: coresOf(plan), lava, style: K };
+}
+
+/** A column: one piece, or a stack up to the columns' height (a bottom, middles, a top). */
+function column(K: DungeonStyle, x: number, z: number, put: (piece: string, x: number, y: number, z: number) => void) {
+  if (K.column.length === 1) {
+    put(K.column[0], x, 0, z);
+    return;
+  }
+  const [hb, hm, ht] = K.columnHeights;
+  const middles = Math.max(0, Math.round((HEIGHT.column! - hb - ht) / hm));
+  put(K.column[0], x, 0, z);
+  for (let i = 0; i < middles; i++) put(K.column[1], x, hb + i * (hm - STACK_OVERLAP), z);
+  put(K.column[2], x, hb + middles * (hm - STACK_OVERLAP), z);
 }
 
 /** A core for every wall and ledge cell, pulled back from each side that has faces (one that looks onto lower ground). */

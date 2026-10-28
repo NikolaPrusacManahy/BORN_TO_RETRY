@@ -307,12 +307,16 @@ export default function App() {
       <div className="rb-fade" style={{ opacity: black !== null ? 1 : 0, transitionDuration: `${black ?? FADE_OUT}s` }} />
       {dev && labOpen && !tuning && (
         <LabPanel
-          bossRoom={getGame()?.labBossRoom ?? false}
+          away={getGame()?.labAway ?? false}
           waves={labWaves}
           god={LAB.v.god >= 1}
           onCommand={labCommand}
           onBossRoom={(kind) => {
             getGame()?.labBoss(kind);
+            setLabPanel(false);
+          }}
+          onFloor={(floor) => {
+            getGame()?.labFloor(floor);
             setLabPanel(false);
           }}
           onBack={() => {

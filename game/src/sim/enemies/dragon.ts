@@ -4,12 +4,15 @@
 // coils (the tail swing: always, when you're behind it). The moves are in dragonMoves.ts. It never flinches; swoop it
 // into a wall or a column and it's stunned (hits do more). At Rage at of its health it screams (bossRoom.ts calls
 // wasps), then warns quicker, pauses less and flies faster. Its death show is the Demon's (demon.ts). Pure.
+// Update 0.0.20 (the designer) — close to it, it strikes (wing, tail, claws) and pauses half as long; far off, it
+// breathes fire and throws fireballs; between, the swoop, the beam and fireballs. The beam charges 1.5 s, its line
+// aimed all the while (the view draws it as a warning).
 import { Vector3 } from 'three';
 import { DRAGON } from '../../tuning/dragon';
 import type { PlayerState } from '../player/state';
 import { chaseDir } from './chase';
 import { stepCharge, startCharge } from './demonMoves';
-import { BREATH, CLAWS, dragonMouth, dragonPace, dragonRecover, FIREBALLS, fireball, moreFireballs, startBreath, stepBreath, swoopSpec, TAIL, tailSwing, WING, wingSwing } from './dragonMoves';
+import { aimBeam, BREATH, CLAWS, dragonMouth, dragonPace, dragonRecover, FIREBALLS, fireball, moreFireballs, startBreath, stepBreath, swoopSpec, TAIL, tailSwing, WING, wingSwing } from './dragonMoves';
 import { Enemy, EnemyWorld, setPhase, turn, walk, yawTo } from './enemy';
 
 /** It stops flying this close to you (m: its body is wide). */
@@ -17,12 +20,11 @@ const STAND_OFF = 6;
 /** Behind it (rad off its facing) and this close (m): the tail. */
 const BEHIND = 1.9;
 const TAIL_FROM = 9;
-/** Close and mid range (m), and the odds of each move (beam, fireballs, claws, wing, tail) at each. **(placeholders)** */
-const NEAR = 8;
-const FAR = 16;
-const ODDS_NEAR = [0.3, 0, 0, 0.5, 0.2];
-const ODDS_MID = [0.35, 0.25, 0.4, 0, 0];
-const ODDS_FAR = [0.35, 0.45, 0.2, 0, 0];
+/** The odds of each move (beam, fireballs, claws, wing, tail) close (Dragon close), between, and far (Dragon far).
+ *  **(placeholders)** */
+const ODDS_NEAR = [0, 0, 0.15, 0.55, 0.3];
+const ODDS_MID = [0.3, 0.25, 0.45, 0, 0];
+const ODDS_FAR = [0.5, 0.5, 0, 0, 0];
 /** While winding up a swoop it turns this much slower (a dash aside beats it). */
 const CLAW_AIM = 0.6;
 
@@ -36,12 +38,13 @@ export function dragonWindup(d: Enemy, move: number): number {
   return base * (d.stage > 0 ? v.rageWindup : 1);
 }
 
-const pauseOf = (d: Enemy) => DRAGON.v.dragonPause * (d.stage > 0 ? DRAGON.v.ragePause : 1);
+/** Its pause before the next move: shorter raging, and shorter when you're close (it strikes more often). */
+const pauseOf = (d: Enemy, dist: number) => DRAGON.v.dragonPause * (d.stage > 0 ? DRAGON.v.ragePause : 1) * (dist <= DRAGON.v.dragonNear ? DRAGON.v.closePause : 1);
 
 /** The next move for where you are (seeded); never the same one three times running. */
 function pick(d: Enemy, dist: number, off: number, w: EnemyWorld): number {
   if (dist <= TAIL_FROM && off >= BEHIND) return TAIL;
-  const odds = dist <= NEAR ? ODDS_NEAR : dist <= FAR ? ODDS_MID : ODDS_FAR;
+  const odds = dist <= DRAGON.v.dragonNear ? ODDS_NEAR : dist <= DRAGON.v.dragonFar ? ODDS_MID : ODDS_FAR;
   let move = BREATH;
   for (let tries = 0; tries < 3; tries++) {
     let roll = w.rng();
@@ -82,13 +85,13 @@ export function updateDragon(d: Enemy, index: number, player: PlayerState, w: En
     case 'roar':
       if (d.t >= v.screamTime) {
         setPhase(d, 'chase');
-        d.cooldown = pauseOf(d) * 0.5;
+        d.cooldown = pauseOf(d, dist) * 0.5;
       }
       break;
     case 'stun':
       if (d.t >= v.dragonStun) {
         setPhase(d, 'chase');
-        d.cooldown = pauseOf(d) * 0.5;
+        d.cooldown = pauseOf(d, dist) * 0.5;
       }
       break;
     case 'recover':
@@ -96,7 +99,7 @@ export function updateDragon(d: Enemy, index: number, player: PlayerState, w: En
       if (d.move === FIREBALLS) moreFireballs(d, index, player, w);
       if (d.t >= dragonRecover(d.move)) {
         setPhase(d, 'chase');
-        d.cooldown = pauseOf(d);
+        d.cooldown = pauseOf(d, dist);
       }
       break;
     case 'chase': {
@@ -114,6 +117,8 @@ export function updateDragon(d: Enemy, index: number, player: PlayerState, w: En
     }
     case 'windup':
       if (d.move !== TAIL) d.facing = turn(d.facing, toward, v.dragonTurn * (d.move === CLAWS ? CLAW_AIM : 1) * dt);
+      // Charging the beam: its line is aimed all the while (the warning).
+      if (d.move === BREATH) aimBeam(d, player, w);
       if (d.t < dragonWindup(d, d.move)) break;
       if (d.move === BREATH) startBreath(d, index, player, w);
       else if (d.move === CLAWS) startCharge(d, index, w);

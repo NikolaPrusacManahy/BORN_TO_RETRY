@@ -10,6 +10,7 @@ const TINT: Record<BoxKind, number> = {
   ramp: 0x7c5c52,
   accent: 0x8c3b30,
   hazard: 0x4a1a1c,
+  lava: 0xff5a10,
 };
 
 /** M1 step 8 — spike spacing on hazard strips (m) and spike height. */

@@ -120,6 +120,16 @@ section('Floor 2 — the Snake and the Wasp: poison');
   check('poison goes past your shield', p.shield === 50 && near(p.hp, 96, 0.05) && p.events.length > 0);
 }
 
+section('Floor 2 — the snake bites at once (Update 0.0.20)');
+{
+  // The designer: 1.5× faster, half the damage, attacking right away when close.
+  check('it slithers 1.5× faster (10.5 m/s) and bites for half (4)', v.snakeSpeed === 10.5 && v.snakeDamage === 4);
+  const f = fight('snake', new Vector3(0, 0, -1.5));
+  const a = run(f, 0.15);
+  check('close up, it bites within a moment (its hiss and flash still warn)', a.seen.includes('snakeWindup') && a.seen.includes('snakeBite') && near(f.p.hp, 100 - v.snakeDamage, 0.5));
+  check('the frog is 1.5× smaller (0.75 m)', v.frogHeight === 0.75);
+}
+
 section('Floor 2 — the Spider');
 {
   const f = fight('spider', new Vector3(0, 0, -9));

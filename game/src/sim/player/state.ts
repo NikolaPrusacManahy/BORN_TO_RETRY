@@ -5,6 +5,8 @@ import { HEALTH } from '../../tuning/health';
 import { DASH, WALL } from '../../tuning/movement';
 
 export type MoveEvent =
+  // Update 0.0.20 — fell into lava (sent back to the floor's start).
+  | 'lavaBurn'
   | 'poisoned'
   | 'none'
   | 'jump'

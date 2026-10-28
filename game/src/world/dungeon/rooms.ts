@@ -10,18 +10,23 @@
 // Update 0.0.13 — the fight rooms are twice the size (fightRooms.ts); chests (T) and the shop room.
 // Update 0.0.15 — the boss room replaces the exit room (and its trapdoor): the way down is now a wooden gate in its far
 // wall, onto the dark (floorPlan.ts stamps the gate and the dark beyond it).
+// Update 0.0.20 — L: a lava pit (lavaRooms.ts); a template may wait for a floor (`from`).
 import type { Rng } from '../../core/rng';
-import { FIGHT_ROOMS, quarter } from './fightRooms';
+import { FIGHT_ROOMS as FIRST_ROOMS, quarter } from './fightRooms';
+import { LAVA_ROOMS } from './lavaRooms';
 
-export { FIGHT_ROOMS };
+/** Every fight room (Update 0.0.20: the lava rooms too, from their floor on). */
+export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...LAVA_ROOMS];
 
-export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest';
+export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava';
 export type RoomKind = 'start' | 'fight' | 'boss' | 'shop';
 
 export interface RoomTemplate {
   id: string;
   kind: RoomKind;
   rows: string[];
+  /** Update 0.0.20 — the first floor it comes on (1 when not given). */
+  from?: number;
 }
 
 const CHAR: Record<string, Cell> = {
@@ -38,6 +43,7 @@ const CHAR: Record<string, Cell> = {
   '?': 'floor',
   T: 'floor',
   S: 'tile',
+  L: 'lava',
 };
 
 export const START_ROOM: RoomTemplate = {

@@ -3,13 +3,15 @@
 # the .glb is y up). The game lays them out on its 2 m grid (engine/dungeonView.ts); the packs' modules are 2 m.
 #   blender --background --disable-autoexec --python tools/blender/export_dungeon_kit.py -- --part1 <folder> --part2 <folder>
 #       --glb public/models/dungeon/kit.glb [--previews <folder>]
+# Update 0.0.20 — part 2's stone walls, floor, doorway, portcullis and column pieces for floor 3. Part 2's wall pieces
+# face +x; they're turned to face −y (the game's +z) as part 1's do.
 import argparse
 import math
 import os
 import sys
 
 import bpy
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from scene_kit import export_glb, load_pieces, setup_previews, shoot  # noqa: E402
@@ -17,7 +19,11 @@ from scene_kit import export_glb, load_pieces, setup_previews, shoot  # noqa: E4
 # Part 1: brick dungeon walls and floors, doors, props. Part 2: rock columns, torches, rubble.
 PART1 = ['Floor_Modular', 'Wall_Modular', 'WallCover_Modular', 'Arch', 'Arch_bars', 'Column', 'Crate', 'Barrel', 'Barrel2', 'Trap_spikes',
          'Trapdoor_open', 'Banner_wall', 'Skull', 'Cobweb', 'Vase', 'Bucket', 'Chest', 'Pedestal', 'Woodfire']
-PART2 = ['Column', 'Column_Broken2', 'Rock1', 'Rock2', 'Rock3', 'Bones', 'Bones2', 'Torch_wall', 'Candelabrum_tall', 'Carpet']
+PART2 = ['Column', 'Column_Broken2', 'Rock1', 'Rock2', 'Rock3', 'Bones', 'Bones2', 'Torch_wall', 'Candelabrum_tall', 'Carpet',
+         'ModularStoneWall', 'ModularStoneWall_top', 'ModularStoneWall_EntranceTop', 'ModularFloor', 'Entrance', 'Bars', 'WallRocks',
+         'ModularColumn_bottom', 'ModularColumn_middle', 'ModularColumn_top', 'Rock4', 'Rock5']
+# Faced +x as they come: turned a quarter so they face −y.
+TURN = {'ModularStoneWall', 'ModularStoneWall_top', 'ModularStoneWall_EntranceTop', 'Entrance', 'Bars', 'WallRocks'}
 
 
 def parse_args():
@@ -38,6 +44,8 @@ def main():
     for prefix, folder, names in (('p1', args.part1, PART1), ('p2', args.part2, PART2)):
         protos = load_pieces(folder, names, {}, bake=True, recenter=names)
         for name, o in protos.items():
+            if prefix == 'p2' and name in TURN:
+                o.data.transform(Matrix.Rotation(-math.pi / 2, 4, 'Z'))
             o.name = f'kit_{prefix}_{name}'
             o.data.name = o.name
             bpy.context.scene.collection.objects.link(o)

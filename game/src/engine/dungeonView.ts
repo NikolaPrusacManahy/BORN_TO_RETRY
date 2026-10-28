@@ -10,18 +10,22 @@
 // shows the sky.
 // Update 0.0.15 — the boss room: its walls sliding back (boss/shell.ts), the portal (boss/portal.ts), the wooden gate
 // and the dark beyond it (boss/woodGate.ts), all following the room's show; no more glow over a trapdoor.
+// Update 0.0.20 — the lava in the pits (lavaView.ts); the dark slab lies only under the floor (a pit shows its lava).
+// Each floor's look (world/dungeon/styles.ts): its gates' bars (floor 3: a portcullis dropping from above), its cores'
+// colour, its walls in the boss room's sliding blocks.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { portalOpen, wallsOpen } from '../sim/dungeon/bossRoom';
 import type { DungeonRun } from '../sim/dungeon/roomLoop';
 import { CINEMA } from '../tuning/cinema';
 import type { DungeonLevel } from '../world/dungeon/assemble';
-import { BARS_SCALE, dress, Dressing, KIT, Placement } from '../world/dungeon/dressing';
+import { dress, Dressing, KIT, Placement } from '../world/dungeon/dressing';
 import { LIGHT } from '../tuning/light';
 import type { ArenaView } from './arenaView';
 import { Portal } from './boss/portal';
 import { Shell } from './boss/shell';
 import { WoodGate } from './boss/woodGate';
+import { LavaView } from './lavaView';
 
 export const KIT_URL = '/models/dungeon/kit.glb';
 /** The sky (the background and the haze), and the sky light's colours above and from the ground. */
@@ -33,9 +37,8 @@ const GROUND_LIGHT = 0x7d6a55;
 const SUN = 0xfff0d6;
 const SUN_DIR = new THREE.Vector3(-0.45, 1, 0.35).normalize();
 const SHADOW_REACH = 40;
-/** The cores' colour (the kit's darkest brick, Wall_Dark, linear) and the under-floor slab's (the floor's, darker); how
- *  far under the floor the slab is (m). */
-const CORE = new THREE.Color().setRGB(0.196, 0.147, 0.096);
+/** The under-floor slab's colour (the floor's, darker) and how far under the floor it is (m). (The cores' colour is the
+ *  floor's look's: Update 0.0.20.) */
 const UNDER = new THREE.Color().setRGB(0.045, 0.043, 0.062);
 /** Update 0.0.15 — the boss room's sliding walls: dark masses seen from above (their faces are brick). */
 const SHELL = new THREE.Color().setRGB(0.06, 0.048, 0.04);
@@ -43,10 +46,6 @@ const UNDER_Y = -0.45;
 /** Torch lights that follow you, and how often they move to the nearest torches (s). */
 const LIGHTS = 8;
 const RELIGHT = 0.25;
-/** Bars: how fast they crash down and sink back (m/s); how far below the floor they hide (m). */
-const SLAM_SPEED = 30;
-const SINK_SPEED = 6;
-const HIDDEN = -4.4;
 
 const m = new THREE.Matrix4();
 const q = new THREE.Quaternion();
@@ -69,6 +68,7 @@ export class DungeonView implements ArenaView {
   private readonly shell: Shell;
   private readonly portal: Portal;
   private readonly woodGate: WoodGate;
+  private readonly lava: LavaView;
   private relight = 0;
 
   constructor(
@@ -106,7 +106,8 @@ export class DungeonView implements ArenaView {
     this.shell = new Shell(b.start, b.end, shellMat, box);
     this.portal = new Portal(b.portal);
     this.woodGate = new WoodGate(scene, b, `FLOOR ${level.plan.level + 1}`);
-    this.group.add(this.shell.group, this.portal.group);
+    this.lava = new LavaView(this.dressing.lava);
+    this.group.add(this.shell.group, this.portal.group, this.lava.group);
     this.loaded = loadKit
       ? new GLTFLoader()
           .loadAsync(KIT_URL)
@@ -150,13 +151,14 @@ export class DungeonView implements ArenaView {
         this.group.add(inst);
       });
     }
-    const bars = kit.getObjectByName(KIT.bars);
+    const style = this.dressing.style;
+    const bars = kit.getObjectByName(style.bars);
     if (bars) {
       for (const g of this.dressing.gates) {
         const b = bars.clone();
-        b.position.set(g.x, HIDDEN, g.z);
+        b.position.set(g.x, style.barsHidden, g.z);
         b.rotation.y = g.rot;
-        b.scale.set(...BARS_SCALE);
+        b.scale.set(...style.barsScale);
         b.traverse((o) => {
           if (!(o instanceof THREE.Mesh)) return;
           o.material = this.material(o.material as THREE.MeshStandardMaterial);
@@ -164,10 +166,10 @@ export class DungeonView implements ArenaView {
         });
         this.group.add(b);
         this.bars.push(b);
-        this.barsY.push(HIDDEN);
+        this.barsY.push(style.barsHidden);
       }
     }
-    this.shell.build(kit, (src) => this.material(src));
+    this.shell.build(kit, (src) => this.material(src), style);
   }
 
   /** The kit's flat colours, a little rough; fire glows. */
@@ -188,7 +190,7 @@ export class DungeonView implements ArenaView {
   private solid(): THREE.BufferGeometry {
     const cores = this.dressing.cores;
     const box = new THREE.BoxGeometry(1, 1, 1);
-    const coreMat = new THREE.MeshStandardMaterial({ color: CORE, roughness: 1 });
+    const coreMat = new THREE.MeshStandardMaterial({ color: new THREE.Color().setRGB(...this.dressing.style.core), roughness: 1 });
     const inst = new THREE.InstancedMesh(box, coreMat, cores.length);
     cores.forEach((b, i) => {
       pos.set(b.x, b.y, b.z);
@@ -197,10 +199,13 @@ export class DungeonView implements ArenaView {
     });
     inst.computeBoundingSphere();
     inst.receiveShadow = true;
-    const size = this.level.arena.boxes.reduce((s, b) => Math.max(s, Math.abs(b.x) + b.w / 2, Math.abs(b.z) + b.d / 2), 0) * 2 + 20;
-    const plane = new THREE.PlaneGeometry(size, size).rotateX(-Math.PI / 2);
+    // Under every floor box (not the pits: their lava shows).
+    const floors = this.level.arena.boxes.filter((b) => b.kind === 'floor');
+    const plane = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
     const underMat = new THREE.MeshStandardMaterial({ color: UNDER, roughness: 1 });
-    const under = new THREE.Mesh(plane, underMat);
+    const under = new THREE.InstancedMesh(plane, underMat, floors.length);
+    floors.forEach((b, i) => under.setMatrixAt(i, m.compose(pos.set(b.x, 0, b.z), q.identity(), scale.set(b.w, 1, b.d))));
+    under.computeBoundingSphere();
     under.position.y = UNDER_Y;
     this.group.add(inst, under);
     this.mats.push(coreMat, underMat);
@@ -228,13 +233,17 @@ export class DungeonView implements ArenaView {
     const b = run.boss;
     this.shell.set(wallsOpen(b));
     this.portal.update(dt, portalOpen(b));
+    this.lava.update(dt);
     this.woodGate.update(b.beat === 'open' ? Math.min(1, b.t / CINEMA.v.gateSwing) : 0);
+    // Shut: the bars slam into the doorway (from under the floor, or down from over it); won: they draw back.
+    const style = this.dressing.style;
     for (let i = 0; i < this.bars.length; i++) {
-      const want = shut[i] ? 0 : HIDDEN;
+      const want = shut[i] ? 0 : style.barsHidden;
+      const step = (shut[i] ? style.barsShut : style.barsOpen) * dt;
       const y = this.barsY[i];
-      this.barsY[i] = want > y ? Math.min(want, y + SLAM_SPEED * dt) : Math.max(want, y - SINK_SPEED * dt);
+      this.barsY[i] = y + Math.max(-step, Math.min(step, want - y));
       this.bars[i].position.y = this.barsY[i];
-      this.bars[i].visible = this.barsY[i] > HIDDEN + 0.01;
+      this.bars[i].visible = Math.abs(this.barsY[i] - style.barsHidden) > 0.01;
     }
     this.relight -= dt;
     if (this.relight > 0) return;
@@ -278,6 +287,7 @@ export class DungeonView implements ArenaView {
     this.scene.remove(this.group);
     this.portal.dispose();
     this.woodGate.dispose();
+    this.lava.dispose();
     for (const mat of this.mats) mat.dispose();
     for (const g of this.geos) g.dispose();
     this.scene.fog = null;

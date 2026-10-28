@@ -7,6 +7,8 @@
 // Update 0.0.15 — the boss room: where its walls start (a smaller room, against the wall you come in by) and where
 // they slide back to, the portal in its middle, the wooden gate in its far wall (shut until the boss is dead) and the
 // dark beyond it.
+// Update 0.0.20 — lava pits: no floor over a lava cell, its lava LAVA_DEPTH under the floor's level; the floor is that
+// much thicker, so a pit's sides are solid.
 import type { Arena, ArenaBox, BoxKind, JumpPad, Spot } from '../arena';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, PlacedRoom, Side } from './floorPlan';
 import { OPPOSITE } from './wayOut';
@@ -16,6 +18,8 @@ import type { EnemyKind } from '../../sim/enemies/kinds';
 /** Heights of what stands on a cell (m); the floor's top is y = 0. */
 export const HEIGHT: Partial<Record<Cell, number>> = { wall: 6, column: 4.9, low: 1.3, high: 2.85, ledge: 1, highLedge: 2.5, spikes: 0.3, chest: 0.9 };
 const BOX_KIND: Partial<Record<Cell, BoxKind>> = { wall: 'wall', column: 'block', low: 'block', high: 'block', ledge: 'block', highLedge: 'block', spikes: 'hazard' };
+/** Update 0.0.20 — a lava pit's depth: its lava's top under the floor's (m). */
+export const LAVA_DEPTH = 1.6;
 /** How far a jump pad throws you (m/s up): onto the high ledges with room to spare. */
 export const PAD_LAUNCH = 15;
 /** You're inside a room once this far in from its walls (m): the doorway itself doesn't count. */
@@ -93,7 +97,7 @@ export interface DungeonLevel {
   boss: BossLayout;
 }
 
-const hasFloor = (c: Cell) => c !== 'void' && c !== 'wall';
+const hasFloor = (c: Cell) => c !== 'void' && c !== 'wall' && c !== 'lava';
 
 /** Cells matching `match` merged into rectangles (greedy, row by row), each made into a box by `box`. */
 function merge(plan: FloorPlan, match: (c: Cell) => boolean, box: (col: number, row: number, w: number, h: number, c: Cell) => ArenaBox, out: ArenaBox[]) {
@@ -168,7 +172,8 @@ function bossStart(end: Rect, entrance: Side): Rect {
 
 export function buildDungeon(plan: FloorPlan): DungeonLevel {
   const boxes: ArenaBox[] = [];
-  merge(plan, hasFloor, (col, row, w, h) => cellsBox(col, row, w, h, -1, 0, 'floor'), boxes);
+  merge(plan, hasFloor, (col, row, w, h) => cellsBox(col, row, w, h, -LAVA_DEPTH - 1, 0, 'floor'), boxes);
+  merge(plan, (c) => c === 'lava', (col, row, w, h) => cellsBox(col, row, w, h, -LAVA_DEPTH - 1, -LAVA_DEPTH, 'lava'), boxes);
   merge(plan, (c) => BOX_KIND[c] !== undefined, (col, row, w, h, c) => cellsBox(col, row, w, h, 0, HEIGHT[c]!, BOX_KIND[c]!), boxes);
   // Chests: a box the size of the model (not the whole cell).
   const chests: ChestSpot[] = [];
