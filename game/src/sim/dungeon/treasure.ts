@@ -17,6 +17,7 @@ import type { CombatState } from '../combat/state';
 import { anyKey, checkPick, ITEM_KINDS, ItemKind, keyFor, KeyKind, nextKey, priceOf, takeItem, useful, useKey } from '../items/items';
 import { startKneel } from '../player/kneel';
 import type { PlayerState } from '../player/state';
+import { dropItem, takeWaiting } from '../items/drops';
 import { Loot, LootRolls, RARITIES, rollLoot } from './loot';
 import { Vector3 } from 'three';
 
@@ -58,6 +59,8 @@ export interface Treasure {
 export const KNEEL_DIST = 1.15;
 /** How far into the opening its loot comes out (a share of Chest opening): as the lid is up. */
 export const LOOT_AT = 0.62;
+/** Update 0.1.11 — how high over the floor a chest's item waits (m): drawn half a metre over the open chest (0.57 m). */
+export const LOOT_HEIGHT = 0.5;
 /** Tiles in a shop. */
 export const SHOP_TILES = 5;
 /** Always in the shop; the rest of its tiles are drawn from the others ('key': a key by its odds). */
@@ -126,11 +129,13 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
   for (const c of t.chests) {
     if (c.state !== 'opening') continue;
     c.t += dt;
-    if (!c.given && c.t >= T * LOOT_AT) giveLoot(c, player, state);
+    if (!c.given && c.t >= T * LOOT_AT) giveLoot(c, state);
     if (c.t >= T) c.state = 'open';
   }
   t.choosing = -1;
   if (player.dead || player.kneel > 0) return false;
+  // Update 0.1.11 — E takes a chest's item waiting nearby first.
+  if (interact && takeWaiting(state, player)) return true;
   const ci = player.grounded ? chestInReach(t, player) : -1;
   const inv = state.items;
   if (ci >= 0 && !fighting(t.chests[ci].spot.room)) {
@@ -173,16 +178,18 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
   return true;
 }
 
-/** The lid is up: its glow (by rarity), then coins burst out and fly to you, and the item is yours (Update 0.1.10 — an
- *  epic or mythic chest gives both). */
-function giveLoot(c: Chest, player: PlayerState, state: CombatState) {
+/** The lid is up: its glow (by rarity), then coins burst out and fly to you (Update 0.1.10 — an epic or mythic chest
+ *  gives both), and the item rises out and hovers over the chest till you take it with E (Update 0.1.11 — the designer:
+ *  not taken by itself). */
+function giveLoot(c: Chest, state: CombatState) {
   c.given = true;
   const loot = c.loot!;
   state.events.push('chestRarity', RARITIES.indexOf(loot.rarity), c.spot.x, 0.8, c.spot.z);
-  state.events.push('chestLoot', loot.item ? ITEM_KINDS.indexOf(loot.item) : -1, c.spot.x, 0.8, c.spot.z);
+  // (No item flies to you: it waits.)
+  state.events.push('chestLoot', -1, c.spot.x, 0.8, c.spot.z);
   if (loot.coins > 0) {
     at.set(c.spot.x, 0, c.spot.z);
     state.money += burstCoins(state.coins, at, loot.coins, state.rng);
   }
-  if (loot.item) takeItem(loot.item, player, state);
+  if (loot.item) dropItem(state.drops, loot.item, at.set(c.spot.x, LOOT_HEIGHT, c.spot.z), state.events, true);
 }

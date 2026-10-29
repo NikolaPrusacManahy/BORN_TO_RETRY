@@ -22,7 +22,8 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   - Arms are checked by renders before reporting: `tools/hand-shots.ts` (fists, grips, the slam), `tools/exec-shots.ts <kinds>`, `tools/weapon-shots.ts` and `tools/book-shots.ts`, then `tools/blender/render_view.py --json … --out … --cull`. To render only some moments, filter the shots JSON (`pov.json` or `shots.json`) by name first.
   - Code edits ran as small Python scripts in the scratchpad (exact old → new pairs), because shell heredocs mangle quotes and em dashes.
 
-## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.10
+## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.11
+- **Update 0.1.11 — a chest's item waits for E** (the designer: "collected by players manually with E key … not collected automatically"; spec `MD_UPDATES/U0111_CHEST_PICKUP.md`): it rises out and hovers over the open chest (a floor item that waits: `drops.ts` `manual`, `takeWaiting`), E within Pickup range takes it, walking over it doesn't, it never fades. Coins still fly to you. Checked by `test-shop.ts`; the look in the game is unseen.
 - **Update 0.1.10 — weapon uses, the Gold Hammer and the Gold Daggers** (the designer's list; spec `MD_UPDATES/U0110_USES_GOLD.md`):
   - **Uses:** sword 10 (was 4), Gold Sword 30 (was 40), Hammer 15 (was 20), Dual Daggers 30 (was 100).
   - **New:** the Gold Hammer (35 uses) and the Gold Daggers (90), the pack's gold models with the silver ones' shapes, moves and numbers. The gold pair's thrown daggers fly gold (`knivesView.ts` draws each knife in its own pair's model).
@@ -404,6 +405,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `game/tools/boss-shots.ts` | Renders the boss room (walls at any point of their slide, the gate shut or open, the Demon's stance) from the show's own shots, without a browser |
 | `MD_UPDATES/U014_GRIMOIRE.md` | Update 0.1.4: the Grimoire (the book, the stance, fireballs, numbers) |
 | `MD_UPDATES/U015_AXE_HAMMER.md` | Update 0.1.5: the Gold Axe (swings, chop, thrown and called back) and the Hammer (two-handed, the smash's shockwave) |
+| `MD_UPDATES/U0111_CHEST_PICKUP.md` | Update 0.1.11: a chest's item waits for E |
 | `MD_UPDATES/U0110_USES_GOLD.md` | Update 0.1.10: weapon uses; the Gold Hammer and the Gold Daggers |
 | `MD_UPDATES/U019_DAGGERS.md` | Update 0.1.9: the Dual Daggers (one in each hand, quick cuts, the twin stab, faster running while held) |
 | `game/tools/weapon-shots.ts` | Renders a held weapon's own moves (ready, a swing, the charge and blow, a throw's draw) from the game's own arms code, without a browser |

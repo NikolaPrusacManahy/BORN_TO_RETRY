@@ -201,6 +201,39 @@ section('Chests');
   check(`its loot is yours (${loot.rarity}: ${loot.item ?? `${loot.coins} coins`})`, got);
 }
 
+section('Chests — the item waits for E');
+{
+  // (Update 0.1.11 — the designer: a chest's item is taken with E, never by itself. A gold key and these rolls give an
+  // epic chest: the Gold Axe and its coins.)
+  const { t, p, c } = chestScene(0);
+  c.items.goldKeys = 1;
+  c.items.keyPick = 'goldKey';
+  t.chests[0].rolls = [0.5, 0, 0];
+  const w = new FlatWorld();
+  const before = c.money;
+  stepTreasure(t, p, c, true, false, never, DT);
+  for (let i = 0; i < ticks(ITEMS.v.chestTime + 0.2); i++) {
+    stepTreasure(t, p, c, false, false, never, DT);
+    stepPlayer(p, emptyIntent(), w, [], DT);
+    stepCombat(c, p, emptyCombatIntent(), w, DT);
+  }
+  const loot = t.chests[0].loot!;
+  const waiting = () => c.drops.find((d) => d.alive && d.manual);
+  const d = waiting();
+  check(`opened: its item (${loot.item}) rises out and hovers over the chest, not yours yet`, loot.item === 'goldAxe' && !!d && d.kind === 'goldAxe' && near(d.pos.x, 0, 1e-6) && near(d.pos.z, 0, 1e-6) && d.pos.y > 0.3 && c.weapon === null);
+  const coinsOut = c.coins.filter((q) => q.alive).length + c.money - before;
+  check(`its coins still come to you by themselves (${ITEMS.v.epicCoins})`, coinsOut === ITEMS.v.epicCoins, `${coinsOut}`);
+  // Walk right over it, and wait.
+  p.pos.set(0, 0, 0.4);
+  for (let i = 0; i < ticks(30); i++) stepCombat(c, p, emptyCombatIntent(), w, DT);
+  check('walking over it, or leaving it 30 s, doesn’t take it (it never fades)', !!waiting() && c.weapon === null);
+  p.pos.set(0, 0, 1.6);
+  c.events.clear();
+  const used = stepTreasure(t, p, c, true, false, never, DT);
+  check('E within Pickup range takes it: into a slot and your hand', used && !waiting() && (c.weapon as { kind: string } | null)?.kind === 'goldAxe' && events(c).includes('item'));
+  check('and E with nothing waiting does nothing more', !stepTreasure(t, p, c, true, false, never, DT));
+}
+
 section('Shop and chests — the look');
 {
   // The items (export_items.py): every item, the chest's base and lid, the shop's tile.
