@@ -86,6 +86,8 @@ export interface CombatState {
   execution: number;
   exec: Execution;
   execTarget: number;
+  /** Update 0.1.12 — seconds since there was last an enemy you could execute (the sting plays only after a while). */
+  execAway: number;
   /** Update 0.1.1 — the Lab's Meter: the Execution Power meter kept full. */
   fullMeter: boolean;
   /** Update 0.0.16 — items on the floor, and the keys the room you're fighting in still gives (a Yeti drops one). */
@@ -143,6 +145,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     execution: 0,
     exec: createExecution(),
     execTarget: -1,
+    execAway: Infinity,
     fullMeter: false,
     drops: createDrops(),
     keyDrops: 0,
@@ -187,6 +190,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.execution = 0;
   state.exec.active = false;
   state.execTarget = -1;
+  state.execAway = Infinity;
   for (const d of state.drops) d.alive = false;
   state.keyDrops = 0;
   stockStands(state);

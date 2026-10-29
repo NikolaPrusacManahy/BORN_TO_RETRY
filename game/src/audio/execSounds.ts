@@ -4,6 +4,7 @@
 // Update 0.1.2 — every enemy's blows: a punch (a dull thump), a chop (a sharp crack), a tear (a ripping scrape), a
 // crush (a squelch), a smash (a deep thud); and a burst (a boom).
 // Update 0.1.8 — a smash is the ground slam's landing: its thud and its blast.
+// Update 0.1.12 — an enemy you can execute comes into reach: a low sting under a thin rising ring.
 import type { CombatEvent } from '../sim/combat/state';
 import type { AudioEngine } from './audio';
 import { BLOWS } from '../sim/combat/execMoves';
@@ -14,6 +15,11 @@ import { slamBlast } from './combatSounds';
 /** Returns false for events it doesn't know. */
 export function playExec(a: AudioEngine, kind: CombatEvent, value: number, far: number): boolean {
   switch (kind) {
+    case 'execReady':
+      tone(a, { from: 95, to: 55, dur: 0.4, gain: 0.45 });
+      tone(a, { from: 520, to: 880, dur: 0.22, gain: 0.08, type: 'triangle' });
+      noise(a, { dur: 0.2, gain: 0.12, filter: 'bandpass', from: 1200, to: 3200, q: 3 });
+      return true;
     case 'execGrab':
       tone(a, { from: 160, to: 110, dur: 0.18, gain: 0.3, type: 'sawtooth' });
       noise(a, { dur: 0.15, gain: 0.25, filter: 'bandpass', from: 900, to: 2200, q: 1.5 });

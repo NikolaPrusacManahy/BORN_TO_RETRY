@@ -22,7 +22,8 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   - Arms are checked by renders before reporting: `tools/hand-shots.ts` (fists, grips, the slam), `tools/exec-shots.ts <kinds>`, `tools/weapon-shots.ts` and `tools/book-shots.ts`, then `tools/blender/render_view.py --json … --out … --cull`. To render only some moments, filter the shots JSON (`pov.json` or `shots.json`) by name first.
   - Code edits ran as small Python scripts in the scratchpad (exact old → new pairs), because shell heredocs mangle quotes and em dashes.
 
-## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.11
+## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.12
+- **Update 0.1.12 — showing that you can execute** (the designer: "a proper UI that shows that the player can execute an enemy", then "show me and build" after a proposal and a mockup; spec `MD_UPDATES/U0112_EXEC_READY.md`): a crimson skull over the target's head (`engine/execMarkView.ts`: a sprite on top of everything, one size on screen, snapping in, beating, fading), the full meter flaring once then burning with embers (`theme-22-exec-ready.css`), and a low sting when a target comes into reach after 0.75 s with none (`execReady`). Checked by `test-exec-mark.ts`; the look and sound in the game are unseen (the skull's canvas drawing only runs in a browser).
 - **Update 0.1.11 — a chest's item waits for E** (the designer: "collected by players manually with E key … not collected automatically"; spec `MD_UPDATES/U0111_CHEST_PICKUP.md`): it rises out and hovers over the open chest (a floor item that waits: `drops.ts` `manual`, `takeWaiting`), E within Pickup range takes it, walking over it doesn't, it never fades. Coins still fly to you. Checked by `test-shop.ts`; the look in the game is unseen.
 - **Update 0.1.10 — weapon uses, the Gold Hammer and the Gold Daggers** (the designer's list; spec `MD_UPDATES/U0110_USES_GOLD.md`):
   - **Uses:** sword 10 (was 4), Gold Sword 30 (was 40), Hammer 15 (was 20), Dual Daggers 30 (was 100).
@@ -405,6 +406,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `game/tools/boss-shots.ts` | Renders the boss room (walls at any point of their slide, the gate shut or open, the Demon's stance) from the show's own shots, without a browser |
 | `MD_UPDATES/U014_GRIMOIRE.md` | Update 0.1.4: the Grimoire (the book, the stance, fireballs, numbers) |
 | `MD_UPDATES/U015_AXE_HAMMER.md` | Update 0.1.5: the Gold Axe (swings, chop, thrown and called back) and the Hammer (two-handed, the smash's shockwave) |
+| `MD_UPDATES/U0112_EXEC_READY.md` | Update 0.1.12: the skull over the enemy you can execute, the meter's flare, the sting |
 | `MD_UPDATES/U0111_CHEST_PICKUP.md` | Update 0.1.11: a chest's item waits for E |
 | `MD_UPDATES/U0110_USES_GOLD.md` | Update 0.1.10: weapon uses; the Gold Hammer and the Gold Daggers |
 | `MD_UPDATES/U019_DAGGERS.md` | Update 0.1.9: the Dual Daggers (one in each hand, quick cuts, the twin stab, faster running while held) |

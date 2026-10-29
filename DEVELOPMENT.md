@@ -152,6 +152,7 @@ Update 0.0.12: `slamHit.ts` (your ground slam's blast: every target in reach, ha
 | `engine/treasureView.ts` | Update 0.0.13 — the shop's tiles, turning items and price tags; the chests and their lids; items flying into you; where an opening lid's front edge is (for the hands) |
 | `engine/keyLooks.ts`, `engine/treasureFx.ts` | Update 0.0.16 — the three keys' looks (on end, tinted, the white and gold in auras); items on the floor; each chest's light by rarity |
 | `engine/pairLook.ts` | Update 0.1.9 — a pair (the Dual Daggers) shown as two crossed: on the floor, in flight, on a shop tile |
+| `engine/execMarkView.ts` | Update 0.1.12 — the crimson skull over the enemy you can execute (`state.execTarget`): a sprite drawn on top at one size on screen, snapping in, beating, fading; the sting is the `execReady` event (`step.ts`, after `execAway` s with none) |
 | `engine/knivesView.ts` | Update 0.1.9 — the volley's thrown daggers: one instanced mesh per part of the dagger model, point first, leaving from the hand that threw each |
 | `engine/viewmodel/palm.ts` | Update 0.0.16 — the left hand palm up with the key you'd use on it (`ArmsRig.openHand` opens the fingers) |
 | `screens/KeyPicker.tsx` | Update 0.0.16 — the key icons, and the row of keys at a chest with the picked one raised |

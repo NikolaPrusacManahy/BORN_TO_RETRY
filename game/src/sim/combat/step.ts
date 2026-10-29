@@ -17,6 +17,8 @@
 // (smashWaves.ts), and takes its uses hit or miss.
 // Update 0.1.6 — the axe's right click charges a throw that comes back (axeThrow.ts); Q throws it to break.
 // Update 0.1.7 — the Hammer's smash waits for the ground: a full charge let go in the air is held till you land.
+// Update 0.1.12 — an enemy you can execute coming into reach after a while with none: a sting (the skull over it is
+// engine/execMarkView.ts's).
 // Update 0.1.9 — the Dual Daggers: right click held charges a volley of thrown daggers (knives.ts; no cuts meanwhile);
 // the daggers fly after the enemies move.
 import { Vector3 } from 'three';
@@ -52,6 +54,9 @@ import type { CombatState } from './state';
 import { execHeld, execTarget, stepExecution, tryExecute } from './execution';
 import { updateTurret } from './turret';
 
+/** Update 0.1.12 — seconds with no enemy you could execute before a new one stings again. */
+const EXEC_QUIET = 0.75;
+
 const eye = new Vector3();
 const dir = new Vector3();
 const punch = emptyPunch();
@@ -71,6 +76,13 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   const throwing = state.weapon !== null && state.weapon.throwing >= 0;
   if (state.fullMeter) state.execution = 1;
   state.execTarget = execTarget(state, player, intent.yaw);
+  if (state.execTarget >= 0) {
+    if (state.execAway >= EXEC_QUIET) {
+      const e = state.enemies[state.execTarget];
+      events.push('execReady', state.execTarget, e.pos.x, e.pos.y, e.pos.z);
+    }
+    state.execAway = 0;
+  } else state.execAway += dt;
   const executing = intent.interactPressed && !throwing && tryExecute(state, player, intent.yaw, intent.pitch);
   if (execHeld(state.exec)) {
     // The world holds still while you hold it (and a Grimoire's charge or a volley is dropped).

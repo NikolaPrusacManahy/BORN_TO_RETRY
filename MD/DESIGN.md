@@ -124,6 +124,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 
 - **Constant pressure (Update 0.1.0, the designer):** a fight room never lets its field fall under 5 enemies while it has more to send: its first wave (at least 5), then one more each time one falls, until its plan is spent.
 - **Execution Power meter (Update 0.1.0, the designer):** a bar just above the dash charges, filled by kills (10 to fill). Update 0.1.1: twice the size, with the dash charges.
+- **Showing you can execute (Update 0.1.12, the designer: "a proper UI"):** a crimson skull floats over the head of the enemy you can execute, drawn on top of everything at one size on screen; it snaps in, beats like a heart and fades. The full meter flares once, then burns with rising embers. A low sting when one comes into reach (after a while with none). No text.
 - **Executions (Update 0.1.1, the designer: like Doom Eternal's):** with the meter full, **E** near an enemy you can execute (it pulses crimson; within 2.6 m of its edge, 60° of where you look) grabs it and empties the meter.
   - Until you let go (or it dies in your hands) you can't be hurt and the world holds still; your view is turned with the moves.
   - It dies as one kill (which doesn't refill the meter); enemies within 2.5 m of where it dies take 40 and are knocked back.

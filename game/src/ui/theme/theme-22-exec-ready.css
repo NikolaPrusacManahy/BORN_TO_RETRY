@@ -1,0 +1,64 @@
+/* Update 0.1.12 — the Execution Power meter, full: it flares once as it fills (a burst of height and light), then keeps
+   burning with embers rising off it, so an execution in hand shows even with no one in reach. (The skull over the enemy
+   you can execute is drawn in the world: engine/execMarkView.ts.) */
+.rb-hud-exec.is-full {
+  animation: rb-exec-flare 0.45s ease-out;
+}
+
+.rb-hud-exec.is-full .rb-hud-exec-fill {
+  animation: rb-exec-flash 0.45s ease-out, rb-exec-pulse 0.8s ease-in-out 0.45s infinite alternate;
+}
+
+.rb-hud-exec.is-full::before,
+.rb-hud-exec.is-full::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  width: 4px;
+  height: 4px;
+  background: #ffb347;
+  animation: rb-exec-ember 1.2s linear infinite;
+  pointer-events: none;
+}
+
+.rb-hud-exec.is-full::before {
+  left: 22%;
+}
+
+.rb-hud-exec.is-full::after {
+  left: 68%;
+  background: #ff6a3a;
+  animation-duration: 1.5s;
+  animation-delay: 0.5s;
+}
+
+@keyframes rb-exec-flare {
+  from {
+    transform: translateX(-50%) skewX(-20deg) scaleY(2.6);
+  }
+  to {
+    transform: translateX(-50%) skewX(-20deg) scaleY(1);
+  }
+}
+
+@keyframes rb-exec-flash {
+  from {
+    filter: brightness(2.2);
+    box-shadow: 0 0 22px rgba(255, 140, 60, 1);
+  }
+  to {
+    filter: brightness(1);
+    box-shadow: 0 0 4px rgba(255, 70, 40, 0.5);
+  }
+}
+
+@keyframes rb-exec-ember {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-26px);
+    opacity: 0;
+  }
+}

@@ -157,4 +157,6 @@ export type CombatEvent =
   | 'knifeThrow'
   | 'hitKnife'
   | 'knifeStick'
+  // Update 0.1.12 — an enemy you can execute comes into reach after a while with none (value: its slot): a sting.
+  | 'execReady'
   | 'standRespawn';
