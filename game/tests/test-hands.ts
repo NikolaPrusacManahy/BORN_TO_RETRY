@@ -16,6 +16,8 @@ import { WEAPON_URL } from '../src/engine/weaponsView';
 import type { WeaponKind } from '../src/sim/weapons/catalog';
 import { createPlayer } from '../src/sim/player/state';
 import { ARMS } from '../src/tuning/arms';
+import { slamClasp, slamFist } from '../src/engine/viewmodel/slamArms';
+import { pose } from '../src/engine/viewmodel/armsMath';
 
 const STEP = 1 / 120;
 
@@ -110,13 +112,41 @@ section('Hands — the ground slam');
   const g = guard.bone('Middle2R').y;
   const drop = await arms(undefined, (vm, play) => (vm.slam.start(), play(0.3)));
   const apart = drop.bone('Middle2L').distanceTo(drop.bone('Middle2R'));
-  check('dropping, both fists come up clasped side by side', apart < 0.1 && drop.bone('Middle2R').y > g + 0.15 && drop.bone('Middle2L').y > g + 0.15, `${(apart * 100).toFixed(1)} cm apart`);
+  // (Update 0.1.8 — side by side and touching, not through each other: wrists straight, they meet knuckle to knuckle,
+  // touching in the renders at 8.5 cm between the middle fingers, through each other at 6.3.)
+  const touching = (d: number) => d > 0.075 && d < 0.12;
+  check('dropping, both fists come up clasped side by side', touching(apart) && drop.bone('Middle2R').y > g + 0.15 && drop.bone('Middle2L').y > g + 0.15, `${(apart * 100).toFixed(1)} cm apart`);
   const land = await arms(undefined, (vm, play) => (vm.slam.start(), play(0.3), vm.slam.land(), play(ARMS.v.slamDown + 0.02)));
-  check('landing, they come down together, low before you', land.bone('Middle2L').distanceTo(land.bone('Middle2R')) < 0.1 && land.bone('Middle2R').y < g - 0.05);
+  check('landing, they come down together, low before you', touching(land.bone('Middle2L').distanceTo(land.bone('Middle2R'))) && land.bone('Middle2R').y < g - 0.05);
   const after = await arms(undefined, (vm, play) => (vm.slam.start(), play(0.3), vm.slam.land(), play(ARMS.v.slamDown + ARMS.v.slamHold + ARMS.v.slamBack + 0.05)));
   check('then back to the guard', after.vm.slam.weight === 0 && Math.abs(after.bone('Middle2R').y - g) < 0.01);
   const armed = await arms('sword', (vm, play) => (vm.slam.start(), play(0.3)));
   check('holding a weapon, the arms keep its pose (barehanded only)', Math.abs(armed.bone('Middle2L').distanceTo(armed.bone('Middle2R'))) > 0.15);
+  // Update 0.1.8 — the designer: "JUST STRAIGHT … anatomically wrong". A straight wrist: the hand posed to its knuckles
+  // lands where it would following its forearm. Raised, smashed, and on an execution's spot (high or low on screen).
+  const { rig, bone } = guard;
+  const straightness = (p: ReturnType<typeof pose>, s: 'L' | 'R') => {
+    const at = (bend: number) => (rig.apply(s, p, bend), rig.root.updateMatrixWorld(true), bone(`Middle2${s}`));
+    return at(1).distanceTo(at(0));
+  };
+  let worst = 0;
+  for (const s of ['L', 'R'] as const) {
+    worst = Math.max(worst, straightness(slamClasp(rig, s, false, pose()), s), straightness(slamClasp(rig, s, true, pose()), s));
+    for (const lift of [0.1, 0.25, 0.4]) {
+      const p = slamClasp(rig, s, true, pose());
+      p.fist.y += lift;
+      worst = Math.max(worst, straightness(slamFist(rig, s, p), s));
+    }
+  }
+  check('raised and smashed, the wrists stay straight', worst < 0.003, `${(worst * 1000).toFixed(1)} mm off the forearm's line`);
+  const back = (smashed: boolean, s: 'L' | 'R') => {
+    const p = slamClasp(rig, s, smashed, pose());
+    return { towards: p.back.dot(new THREE.Vector3().subVectors(rig.eye, p.fist).normalize()), across: Math.abs(p.back.x) };
+  };
+  const raisedBack = back(false, 'L');
+  check('raised, the backs of the hands face you', raisedBack.towards > 0.5 && back(false, 'R').towards > 0.5, `${raisedBack.towards.toFixed(2)}`);
+  const downBack = back(true, 'R');
+  check('smashed, they face up, not each other', downBack.across < 0.3 && back(true, 'L').across < 0.3, `${downBack.across.toFixed(2)} across`);
 }
 
 section('Hands — round a handle');

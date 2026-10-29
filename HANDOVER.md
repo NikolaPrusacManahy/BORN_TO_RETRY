@@ -2,7 +2,18 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.7
+## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.8
+- **Update 0.1.8 — the ground slam in the slime's and the spider's executions** (the designer: "use the same ground slam with the F key and port it to the slime and spider executions"):
+  - **Their hands:** the slam's clasped fists come up as you look up and come down at the blow. The smash is eased in over the slam's own time, then held and returned on its knobs. Hand modes `slamUp` and `slamDown` (`exec/handMoves.ts`) are posed by `viewmodel/slamArms.ts`. The old clasped `hammer` mode is gone.
+  - **Where the smash lands:** on the body (the slime's head, the spider's back), not at the bottom of your view like the F slam. There the spider's would miss it.
+    - The fists are set as far from your shoulders as the slam's own (`heldGrip.ts` `slamDepth`), so they stay in reach and clasped wherever the spot is.
+    - The spider's view tips down to −26° at the smash (was −38°): its back is lower on screen, and the arms no longer fill the view.
+  - **The landing feel:** the smash lands as the slam does. Its ring and dust, the view and arms dipped, shake 0.85 and a 2.5° jolt, the thud and the blast (`execFeedback.ts`, `execSounds.ts` sharing `slamThud` and `slamBlast`).
+  - **The fists, in the F slam too.** The designer: "just let them be normal … JUST STRAIGHT … anatomically wrong".
+    - Each fist now carries on its forearm's line (`slamFist`: knuckles along the forearm the IK takes), with the back of the hand towards you.
+    - They meet knuckle to knuckle, 16 cm apart. That spacing was 5.6 cm in 0.1.7, which put the fists through each other, a bug caught by the executions' 0.1.3 test.
+  - **Tests:** the clasp distances for the new fists come from renders: touching at 8.5 cm between the knuckles, overlapping at 6.3.
+  - Seen as renders only (`tools/exec-shots.ts slime spider`, `tools/hand-shots.ts`); motion, sound and feel are unseen.
 - **Update 0.1.7 — the ground slam and the Hammer** (the designer's list):
   - **The slam (F)** needs a higher height: 2.8 m (was 1.8, under a plain jump's 2 m peak). It now takes a ledge, a pad, a wall jump or a slam's bounce.
   - **Clasped fists:** as it drops, both fists come up clasped side by side; as it lands, they smash down into the floor (`engine/viewmodel/slamArms.ts`, barehanded only).
@@ -94,7 +105,7 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   - **The grip** (the designer: no crossed arms, really grab the tail): both hands hold the tail like a rope (`viewmodel/heldGrip.ts`, `ArmsRig.gripPose` for either hand). The left hand holds the tip, the right is beside it, and the snake is turned about its body line so its tail runs to your right. The tail joints are held still; the body thrashes. `test-exec-grip.ts` checks it with the real models.
   - **Lab:** the panel's **Meter** (on at first) keeps the Execution Power meter full, in the Lab only.
   - Key poses checked as Blender renders (`tools/exec-shots.ts`): as you see it and from the side. The motion, timing, sounds and effects are unseen.
-  - **Files over the split limit:** `engine/Game.ts` (336 lines), `App.tsx` (347), `engine/run.ts` (305), `engine/viewmodel/armsRig.ts` (300) and `sim/enemies/enemy.ts` (300). Split them before adding more.
+  - **Files over the split limit:** `engine/Game.ts` (336 lines), `App.tsx` (347), `engine/run.ts` (305), `engine/viewmodel/armsRig.ts` (295) and `sim/enemies/enemy.ts` (300). Split them before adding more.
 - **Update 0.1.0 — constant pressure, the Execution Power meter** (the designer's list; spec `MD_UPDATES/U010_PRESSURE.md`).
   - **Rooms:**
     - A room's planned enemies come as one stream: an opening of at least 5, then one more whenever fewer than 5 are fighting (every 0.35 s), until the room's plan is all sent.

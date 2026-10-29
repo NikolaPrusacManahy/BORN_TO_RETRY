@@ -99,7 +99,8 @@ export class ArmsRig {
   readonly eye = new THREE.Vector3();
   /** Between the shoulders, model space. */
   readonly between = new THREE.Vector3();
-  private readonly arms: Record<Side, ArmRest>;
+  /** (Update 0.1.8 — read by slamArms.ts to straighten a wrist.) */
+  readonly arms: Record<Side, ArmRest>;
   private readonly holds: Record<Side, HoldRest>;
   private readonly hold: HoldRest;
   /** Update 0.0.16 — each hand's fingers (Update 0.1.6: posed by handPose.ts), the back of the hand in the hand bone's

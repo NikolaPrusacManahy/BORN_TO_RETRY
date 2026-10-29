@@ -6,13 +6,19 @@
 // chopped, three punches; the armabee in one fist; the ghost punched away; the frog's whirl higher, flung forward; the
 // clasped fists a little apart (they passed through each other); the wasp held at its ends; the spider's chops wound
 // up high and carried through; the blue demon's last blow to its face.
+// Update 0.1.8 — the slime's and the spider's smash are the ground slam's (the designer: "use the same ground slam with
+// the F key and port it to the slime and spider executions"): its clasped fists (viewmodel/slamArms.ts) up as you look
+// up, down onto it at the blow (the slam's down pose, brought onto the body), eased and held as the slam's (its knobs);
+// the old clasped hammer is gone.
 import type { EnemyKind } from '../../sim/enemies/kinds';
 import { BARRAGE, BARRAGE_GAP } from '../../sim/combat/execMoves';
+import { ARMS } from '../../tuning/arms';
 
 type V3 = readonly [number, number, number];
-/** How a hand is: in its guard, round a line (a rope's grip), a fist, half of the clasped hammer, an open palm
- *  pressing, an open hand's edge chopping. */
-export type HandMode = 'guard' | 'rope' | 'fist' | 'hammer' | 'palm' | 'chop';
+/** How a hand is: in its guard, round a line (a rope's grip), a fist, an open palm pressing, an open hand's edge
+ *  chopping, or half of the ground slam's clasp: raised (posed in your view, not on the body) or smashed down onto its
+ *  spot. */
+export type HandMode = 'guard' | 'rope' | 'fist' | 'palm' | 'chop' | 'slamUp' | 'slamDown';
 
 export interface HandAt {
   mode: HandMode;
@@ -22,7 +28,7 @@ export interface HandAt {
   off?: V3;
   me?: V3;
   /** Rope: the bone the line runs to from the hand ('@grip': the grip's own line), or a way (`way`, as `me`). Fist,
-   *  hammer, chop: the knuckles' way (`way`; none: at what it's aimed at, from your eye). Palm: the way the palm faces
+   *  chop: the knuckles' way (`way`; none: at what it's aimed at, from your eye). Palm: the way the palm faces
    *  (none: inward, across your view). */
   to?: string;
   way?: V3;
@@ -46,8 +52,6 @@ const palms = (on: string, w: number, up = 0.05): Pick<HandKey, 'L' | 'R'> => ({
   L: { mode: 'palm', on, off: [-w, up, 0.05] },
   R: { mode: 'palm', on, off: [w, up, 0.05] },
 });
-/** Both fists on one spot, clasped (viewmodel/heldGrip.ts sets them side by side). */
-const hammer = (at: HandAt): Pick<HandKey, 'L' | 'R'> => ({ L: { ...at, mode: 'hammer' }, R: { ...at, mode: 'hammer' } });
 /** Fists drawn back, ready to punch. */
 const COCK_L: HandAt = { mode: 'fist', me: [-0.25, 1.42, 0.3], way: [0.2, 0, 1] };
 const COCK_R: HandAt = { mode: 'fist', me: [0.25, 1.42, 0.3], way: [-0.2, 0, 1] };
@@ -55,7 +59,38 @@ const COCK_R: HandAt = { mode: 'fist', me: [0.25, 1.42, 0.3], way: [-0.2, 0, 1] 
 const chopUp = (x: number): HandAt => ({ mode: 'chop', me: [x, 1.95, 0.45], way: [0, 0.5, 1] });
 const chopOn = (on: string): HandAt => ({ mode: 'chop', on, off: [0, 0.06, 0], way: [0, -0.8, 0.6] });
 const chopThrough = (x: number, ahead: number): HandAt => ({ mode: 'chop', me: [x, 0.7, ahead], way: [0, -1, 0.3] });
-const RAISED = hammer({ mode: 'hammer', me: [0, 1.85, 0.6], way: [0, 0.5, 1] });
+const UP: HandAt = { mode: 'slamUp' };
+
+/** The ground slam's smash landing on bone `on` at `at` s: the clasped fists up from `from`, held, down onto it at `at`
+ *  (eased in over the slam's own time), held a beat and back to the guard, as the slam's knobs say (read live). */
+function slam(from: number, at: number, on: string): HandKey[] {
+  const DOWN: HandAt = { mode: 'slamDown', on, off: [0, 0.22, 0.05] };
+  return [
+    { t: from, L: UP, R: UP },
+    {
+      get t() {
+        return Math.max(from, at - ARMS.v.slamDown);
+      },
+      L: UP,
+      R: UP,
+    },
+    { t: at, L: DOWN, R: DOWN },
+    {
+      get t() {
+        return at + ARMS.v.slamHold;
+      },
+      L: DOWN,
+      R: DOWN,
+    },
+    {
+      get t() {
+        return at + ARMS.v.slamHold + ARMS.v.slamBack;
+      },
+      L: G,
+      R: G,
+    },
+  ];
+}
 
 /** The tail's grip (the snake's): both hands round it, the left on its end. */
 const BY_LINE: HandKey[] = [
@@ -133,13 +168,7 @@ export const HAND_MOVES: Partial<Record<EnemyKind, readonly HandKey[]>> = {
     { t: 1.32, L: COCK_L, R: { mode: 'fist', on: 'Head', off: [0, 0.15, 0.14] } },
     { t: 1.5, L: G, R: G },
   ],
-  slime: [
-    { t: 0, L: G, R: G },
-    { t: 0.3, ...RAISED },
-    { t: 0.5, ...hammer({ mode: 'hammer', on: 'Head', off: [0, 0.22, 0.05], way: [0, -0.5, 1] }) },
-    { t: 0.62, ...hammer({ mode: 'hammer', on: 'Head', off: [0, 0.22, 0.05], way: [0, -0.5, 1] }) },
-    { t: 0.85, L: G, R: G },
-  ],
+  slime: [{ t: 0, L: G, R: G }, ...slam(0.28, 0.5, 'Head')],
   frog: [
     { t: 0, L: G, R: G },
     { t: 0.15, L: G, R: { mode: 'rope', me: [0.22, 1.45, 0.5], to: 'Head' } },
@@ -200,11 +229,8 @@ export const HAND_MOVES: Partial<Record<EnemyKind, readonly HandKey[]>> = {
     { t: 0.75, L: G, R: chopOn('MidFrontLeg2L') },
     { t: 0.81, L: G, R: chopThrough(0.9, 1.3) },
     { t: 0.95, L: G, R: G },
-    // The slime's smash.
-    { t: 1.05, ...RAISED },
-    { t: 1.25, ...hammer({ mode: 'hammer', on: 'Body', off: [0, 0.22, 0.05], way: [0, -0.5, 1] }) },
-    { t: 1.37, ...hammer({ mode: 'hammer', on: 'Body', off: [0, 0.22, 0.05], way: [0, -0.5, 1] }) },
-    { t: 1.6, L: G, R: G },
+    // The ground slam's smash, as the slime's.
+    ...slam(1.05, 1.25, 'Body'),
   ],
   blueDemon: barrage(),
 };

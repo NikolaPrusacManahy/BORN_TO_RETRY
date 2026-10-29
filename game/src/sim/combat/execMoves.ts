@@ -248,7 +248,8 @@ export const EXEC_MOVES: Partial<Record<EnemyKind, ExecMove>> = {
       { t: 0.45, grip: [0, 0, 1.9], look: [12, -24] },
       { t: 0.7, grip: [0, 0, 1.9], look: [-14, -26] },
       { t: 1.05, grip: [0, 0, 1.9], look: [0, 22] },
-      { t: 1.25, grip: [0, 0, 1.9], look: [0, -38] },
+      // (Update 0.1.8 — tipped down less, -38° before: its back low enough on screen for the slam's fists to land on.)
+      { t: 1.25, grip: [0, 0, 1.9], look: [0, -26] },
     ],
     beats: [
       { t: 0.25, blow: 'chop', stop: 0.1, at: [0.7, 0.75, 1.15] },

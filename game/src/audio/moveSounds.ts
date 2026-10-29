@@ -4,6 +4,12 @@ import type { MoveEvent } from '../sim/player/state';
 import type { AudioEngine } from './audio';
 import { NoiseLoop, noise, tone } from './synth';
 
+/** The ground slam's landing thud (Update 0.1.8 — also an execution's smash, execSounds.ts). */
+export function slamThud(a: AudioEngine) {
+  tone(a, { from: 95, to: 28, dur: 0.32, gain: 0.8 });
+  noise(a, { dur: 0.22, gain: 0.45, filter: 'lowpass', from: 1400, to: 120 });
+}
+
 export class MoveSounds {
   private slide: NoiseLoop;
   private wallRun: NoiseLoop;
@@ -50,8 +56,7 @@ export class MoveSounds {
         noise(a, { dur: 0.25, gain: 0.25, filter: 'bandpass', from: 2400, to: 300, q: 1.5 });
         break;
       case 'slamLand':
-        tone(a, { from: 95, to: 28, dur: 0.32, gain: 0.8 });
-        noise(a, { dur: 0.22, gain: 0.45, filter: 'lowpass', from: 1400, to: 120 });
+        slamThud(a);
         break;
       case 'hurt':
         tone(a, { from: 210, to: 70, dur: 0.16, gain: 0.45, type: 'square' });

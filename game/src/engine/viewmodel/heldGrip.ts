@@ -6,6 +6,8 @@
 // the clasped hammer (thumbs up, backs out), an open palm pressing, or an open hand's edge chopping, eased from one to
 // the next; a hand left in its guard stays there. A point and a way are carried from the world camera into the arms
 // camera so the hand is on the same spot on screen whatever the two FOVs are, nearer or further as the point is.
+// Update 0.1.8 — the clasped hammer is gone: a smash is the ground slam's clasp (slamArms.ts), raised in your view,
+// then its down pose brought onto the spot, the fists side by side there as the slam's.
 import * as THREE from 'three';
 import type { ArmPose, ArmsRig } from './armsRig';
 import type { Side } from './guard';
@@ -13,6 +15,7 @@ import { mixArm, pose } from './armsMath';
 import { emptySword } from './swordPoses';
 import type { HandSub, HandTarget } from '../exec/hands';
 import { handTargets } from '../exec/hands';
+import { SLAM_APART, SLAM_DEPTH, slamClasp, slamFist } from './slamArms';
 
 /** A point this far (m) from your eye is this far in front of the arms camera (m); nearer and further scale it, within
  *  these shares. */
@@ -24,11 +27,8 @@ const FAR = 1.25;
 const MAX_LEAN = 1;
 /** An open palm's middle is this far back from its knuckles (m). */
 const PALM = 0.05;
-/** Update 0.1.3 — the clasped hammer's fists this far either side of its spot, in the arms' own view (m): side by
- *  side, touching, whatever the distance (set in the world they met and passed through each other). */
-const CLASP = 0.056;
 const UP = new THREE.Vector3(0, 1, 0);
-const OPEN: Record<HandSub['mode'], number> = { guard: 0, rope: 0, fist: 0, hammer: 0, palm: 1, chop: 1 };
+const OPEN: Record<HandSub['mode'], number> = { guard: 0, rope: 0, fist: 0, palm: 1, chop: 1, slamUp: 0, slamDown: 0 };
 /** Update 0.1.6 — a tail, a leg or an arm held: the fingers wrap something this thick (radius, m). */
 export const ROPE = 0.012;
 
@@ -42,6 +42,22 @@ const q = new THREE.Quaternion();
 const held = emptySword();
 const poseA = pose();
 const poseB = pose();
+const o = new THREE.Vector3();
+const dir = new THREE.Vector3();
+const reachPose = pose();
+
+/** Update 0.1.8 — how far out along the arms camera's ray (rx, ry, −1) a smash lands: as far from between the shoulders
+ *  as the slam's own (slamArms.ts), so it's within reach wherever it is on screen and the fists don't part. */
+function slamDepth(rig: ArmsRig, holder: THREE.Object3D, camera: THREE.Camera, rx: number, ry: number): number {
+  const reach = slamClasp(rig, 'L', true, reachPose).fist.distanceTo(rig.between);
+  holder.worldToLocal(camera.localToWorld(o.set(0, 0, 0)));
+  holder.worldToLocal(camera.localToWorld(dir.set(rx, ry, -1))).sub(o);
+  o.sub(rig.between);
+  const a = dir.lengthSq();
+  const b = 2 * dir.dot(o);
+  const disc = b * b - 4 * a * (o.lengthSq() - reach * reach);
+  return disc < 0 ? SLAM_DEPTH : (-b + Math.sqrt(disc)) / (2 * a);
+}
 
 export class HeldGrip {
   /** 0 … 1: how far the arms have given way to the execution's hands (0: nothing held). */
@@ -84,6 +100,10 @@ export class HeldGrip {
 
   private sub(rig: ArmsRig, side: Side, s: HandSub, holder: THREE.Object3D, camera: THREE.PerspectiveCamera, base: ArmPose, out: ArmPose) {
     const world = this.world;
+    if (s.mode === 'slamUp') {
+      slamClasp(rig, side, false, out);
+      return;
+    }
     if (s.mode === 'guard' || !world) {
       out.fist.copy(base.fist);
       out.knuckles.copy(base.knuckles);
@@ -94,7 +114,8 @@ export class HeldGrip {
     world.updateMatrixWorld();
     ndc.copy(s.at).project(world);
     const t = Math.tan((camera.fov * Math.PI) / 360);
-    const depth = DEPTH * Math.max(NEAR, Math.min(FAR, s.at.distanceTo(world.position) / REF));
+    // (A smash within the slam's reach: further, the arms can't reach and the fists part.)
+    const depth = s.mode === 'slamDown' ? slamDepth(rig, holder, camera, ndc.x * t * camera.aspect, ndc.y * t) : DEPTH * Math.max(NEAR, Math.min(FAR, s.at.distanceTo(world.position) / REF));
     p.set(ndc.x * depth * t * camera.aspect, ndc.y * depth * t, -depth);
     // The way: across the screen by the FOVs' ratio, depth as it is.
     const scale = t / Math.tan((world.fov * Math.PI) / 360);
@@ -106,7 +127,7 @@ export class HeldGrip {
       p.addScaledVector(way, s.slide);
       if (side === 'L') this.along.copy(way);
     }
-    if (s.mode === 'hammer') p.x += side === 'L' ? -CLASP : CLASP;
+    if (s.mode === 'slamDown') p.x += ((side === 'L' ? -1 : 1) * SLAM_APART) / 2;
     // Into the model.
     held.grip.copy(holder.worldToLocal(camera.localToWorld(p)));
     holder.getWorldQuaternion(q).invert();
@@ -132,10 +153,14 @@ export class HeldGrip {
         if (out.back.lengthSq() < 1e-4) out.back.set(0, 0, -1);
         out.back.normalize();
         return;
-      case 'hammer':
+      case 'slamDown':
+        // The slam's own fist, on the spot.
+        out.fist.copy(held.grip);
+        slamFist(rig, side, out);
+        return;
       case 'chop':
-        // Knuckles (or fingers) the way it strikes, the back of the hand out to its side, thumb up: the little finger's
-        // edge leads. (The model's +x is the screen's left.)
+        // Fingers the way it strikes, the back of the hand out to its side, thumb up: the little finger's edge leads.
+        // (The model's +x is the screen's left.)
         out.fist.copy(held.grip);
         out.knuckles.copy(way);
         side2.set(side === 'L' ? 1 : -1, 0, 0);

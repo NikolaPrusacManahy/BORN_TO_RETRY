@@ -2,11 +2,14 @@
 // each turned into a pose's target in the world (where it is, and the way its line, knuckles or palm go), and how far
 // between them it is. Points on the body come from its bones as they're drawn (bones.ts); once it's let go (or dead),
 // the hands keep where it last was instead of chasing it.
+// Update 0.1.8 — the ground slam's clasp raised ('slamUp') is posed in your view (viewmodel/slamArms.ts), so it has no
+// target here; down onto its spot ('slamDown') is eased in, as the slam's strike.
 import * as THREE from 'three';
 import type { Execution } from '../../sim/combat/execution';
 import type { Side } from '../viewmodel/guard';
 import type { HandAt, HandKey, HandMode } from './handMoves';
 import { boneOf } from './bones';
+import { slamEase } from '../viewmodel/slamArms';
 
 /** One side of a hand's blend: how it is, where (world), the way (world, length 1), how far along its rope (arms' own
  *  view, m). */
@@ -79,7 +82,8 @@ export function handsAt(keys: readonly HandKey[] | undefined, t: number, ex: Exe
   for (const side of ['L', 'R'] as const) {
     resolve(keys[i][side], i * 2 + (side === 'L' ? 0 : 1), side, t, ex, held, drawn, camera, store, out[side].a);
     resolve(keys[i + 1][side], (i + 1) * 2 + (side === 'L' ? 0 : 1), side, t, ex, held, drawn, camera, store, out[side].b);
-    out[side].u = w * w * (3 - 2 * w);
+    const strike = out[side].b.mode === 'slamDown' && out[side].a.mode !== 'slamDown';
+    out[side].u = strike ? slamEase(w) : w * w * (3 - 2 * w);
   }
   return true;
 }
@@ -93,7 +97,7 @@ function folded(root: THREE.Object3D, name: string | undefined): boolean {
 function resolve(h: HandAt, slot: number, side: Side, t: number, ex: Execution, held: boolean, drawn: Drawn, camera: THREE.Camera, store: { at: THREE.Vector3[]; way: THREE.Vector3[]; ok: boolean[] }, out: HandSub) {
   out.mode = h.mode;
   out.slide = h.slide ?? 0;
-  if (h.mode === 'guard') return;
+  if (h.mode === 'guard' || h.mode === 'slamUp') return;
   const onBody = !!h.on || (!!h.to && !h.way);
   if (onBody && (!held || !drawn.root || folded(drawn.root, h.on))) {
     if (store.ok[slot]) {

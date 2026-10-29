@@ -24,6 +24,12 @@ import { noise, tone } from './synth';
 /** Sounds from far targets are quieter (m at which they're half as loud). */
 const HALF_DISTANCE = 12;
 
+/** The ground slam's blast (Update 0.1.8 — also an execution's smash, execSounds.ts). */
+export function slamBlast(a: AudioEngine) {
+  tone(a, { from: 55, to: 18, dur: 0.5, gain: 0.7 });
+  noise(a, { dur: 0.4, gain: 0.5, filter: 'lowpass', from: 2400, to: 80 });
+}
+
 export class CombatSounds {
   constructor(private a: AudioEngine) {}
 
@@ -147,8 +153,7 @@ export class CombatSounds {
         break;
       // Update 0.0.12 — your ground slam's blast (the landing's thud is moveSounds' 'slamLand'), and what it hits.
       case 'slamImpact':
-        tone(a, { from: 55, to: 18, dur: 0.5, gain: 0.7 });
-        noise(a, { dur: 0.4, gain: 0.5, filter: 'lowpass', from: 2400, to: 80 });
+        slamBlast(a);
         break;
       // Update 0.0.12 — the room loop: iron gates crashing down, then lifting with a chime; the way down.
       case 'gatesShut':

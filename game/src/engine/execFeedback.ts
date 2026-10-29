@@ -2,6 +2,8 @@
 // second harder), the landing (a burst of dust).
 // Update 0.1.2 — every enemy's: a punch, a chop, a tear, a crush or a smash (execMoves.ts BLOWS: sparks, chips, a jolt
 // as heavy as the blow), and its burst (a great ring, chunks and sparks, the hardest jolt). (Moved out of foeFeedback.ts.)
+// Update 0.1.8 — a smash lands as the ground slam does (moveFeedback.ts 'slamLand', combatFeedback.ts 'slamImpact'): its
+// ring and dust, the view and arms dipped, its shake and jolt.
 import * as THREE from 'three';
 import type { CombatEvent } from '../sim/combat/state';
 import { BLOWS } from '../sim/combat/execMoves';
@@ -9,6 +11,8 @@ import type { FeedbackParts } from './combatFeedback';
 import { kiFull, KiPower, kiPower } from '../sim/weapons/kiCharge';
 import { waveTime } from '../sim/weapons/smashWaves';
 import { WEAPONS } from '../tuning/weapons';
+import { SLAM } from '../tuning/movement';
+import { SHAKE } from '../tuning/camera';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const power: KiPower = { damage: 0, splash: 0, burst: 0, size: 0, speed: 0, knock: 0 };
@@ -51,11 +55,12 @@ export function execFeedback(f: FeedbackParts, kind: CombatEvent, value: number,
           f.rig.shake.add(0.3);
           break;
         case 'smash':
-          f.waves.spawn(at, 2.6, 0xffe0c0);
-          f.chunks.spawn(at, UP, 22, 1.2);
-          f.sparks.spawn(at, UP, 16, 1.2);
-          f.rig.shake.add(0.7);
-          f.rig.kick(2.4);
+          f.waves.spawn(at, SLAM.v.radius, 0xbfd8ff);
+          f.chunks.spawn(at, UP, 18, 1.1);
+          f.rig.land(SLAM.v.speed);
+          f.arms.land(SLAM.v.speed);
+          f.rig.shake.add(SHAKE.v.slamLand);
+          f.rig.kick(SHAKE.v.slamKick);
           break;
       }
       return true;

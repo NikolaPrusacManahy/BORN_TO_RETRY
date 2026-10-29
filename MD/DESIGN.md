@@ -57,7 +57,7 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - **Slide:** eases up to slide speed, keeps it, lowers your height; slide-jump carries the momentum. Lasts **0.5 s at most**; press again to slide again (holding doesn't chain). Pressed in the air, it waits for the landing and eases in. (Update 0.0.3, the designer.)
 - **Wall run:** in the air beside a wall, holding forward and heading along it (not into it), you run on it for **1 s at most** (Update 0.0.4; first 2 s). Rising fast (a pad launch, the start of a jump) never grabs a wall. The view tilts **clockwise with the wall on your left, anticlockwise on your right**. Jump to push off towards the other side; the next wall catches you into a new run, so runs chain. A wall can't be run twice without landing. (Update 0.0.3, the designer.)
 - **Wall jump:** up to 3 in a row before touching the ground, when you're against a wall but not running on it. **(placeholder)** Jumps off a wall run don't count.
-- **Ground slam (F, Update 0.0.12, the designer):** only from a real height (**1.8 m** or more above the ground: near the top of a jump, or off a ledge, a pad or a wall), you slam straight down. The landing is a blast: every enemy within **4 m** (wider and harder the further you fell, up to **7 m** and **90**) takes up to **35** damage (half at the edge) and is thrown outwards, with a shockwave, dust and a boom. Jumping right after landing bounces you higher. **(placeholder numbers)**
+- **Ground slam (F, Update 0.0.12, the designer):** only from a real height (**2.8 m** or more above the ground, Update 0.1.7, the designer: higher, was 1.8: beyond a plain jump, so off a ledge, a pad, a wall jump or a slam's bounce), you slam straight down. As it drops both fists come up clasped side by side; as it lands they come down into the floor, with a hard shake and a jolt (Update 0.1.7; Update 0.1.8, the designer: wrists straight, the backs of the hands towards you). The landing is a blast: every enemy within **4 m** (wider and harder the further you fell, up to **7 m** and **90**) takes up to **35** damage (half at the edge) and is thrown outwards, with a shockwave, dust and a boom. Jumping right after landing bounces you higher. **(placeholder numbers)**
 
 ### Health
 - 100 HP. **(placeholder)** No regeneration. Shown bottom left: the number and a bar.
@@ -128,13 +128,13 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
     - **Orc:** (Update 0.1.3) your right palm grabs its head; it's tossed up, the view following; an uppercut into its belly as it comes down bursts it into pieces.
     - **Wizard:** both palms on its sides; swung round your right and thrown at the nearest wall (16 m), where it bursts into pieces.
     - **Ninja:** (Update 0.1.3) pulled in; the arm on your right torn off by your right fist, the other chopped off by your left hand; punched in the face left, right, and a last right that sends it flying.
-    - **Slime:** both fists clasped into a hammer overhead, smashed down; it's left flat.
+    - **Slime:** the ground slam's (Update 0.1.8, the designer: "use the same ground slam with the F key"): both fists come up clasped as you look up and come down onto its head, landing as the slam does (its ring, dust, shake, jolt and boom); it's left flat.
     - **Frog:** its tongue shoots to your right hand; yanked up and whirled twice overhead; thrown high into the air.
     - **Armabee:** (Update 0.1.3) held by its neck in your right fist; smashed on the floor twice; it's left there.
     - **Ghost:** both palms on its sides, crushed to a third of its width; (Update 0.1.3) held in the left palm and punched away by the right.
     - **Wasp:** fists at its two ends (Update 0.1.3: its neck, the tip of its abdomen); torn in half; both halves thrown on the floor.
     - **Yeti:** the right fist drawn back, trembling; one punch to the belly; it bursts into pieces.
-    - **Spider:** three legs chopped off one by one (open hands; Update 0.1.3: wound up high, carried through, harder); the slime's hammer smashes it flat.
+    - **Spider:** three legs chopped off one by one (open hands; Update 0.1.3: wound up high, carried through, harder); the ground slam's fists smash it flat, as the slime's (Update 0.1.8).
     - **Blue Demon:** 30 punches, left and right in turn; one last to its face (Update 0.1.3); it bursts into pieces.
   - Pieces are cut from the enemy's own model where its bones divide; they fly, bounce and lie for 6 s.
   - Specs: `MD_UPDATES/U011_EXECUTION.md`, `MD_UPDATES/U012_EXECUTIONS.md`, `MD_UPDATES/U013_EXECUTIONS.md`. **(placeholders)**

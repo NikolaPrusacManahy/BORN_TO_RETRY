@@ -3,10 +3,13 @@
 // landing (a wet crunch).
 // Update 0.1.2 — every enemy's blows: a punch (a dull thump), a chop (a sharp crack), a tear (a ripping scrape), a
 // crush (a squelch), a smash (a deep thud); and a burst (a boom).
+// Update 0.1.8 — a smash is the ground slam's landing: its thud and its blast.
 import type { CombatEvent } from '../sim/combat/state';
 import type { AudioEngine } from './audio';
 import { BLOWS } from '../sim/combat/execMoves';
 import { noise, tone } from './synth';
+import { slamThud } from './moveSounds';
+import { slamBlast } from './combatSounds';
 
 /** Returns false for events it doesn't know. */
 export function playExec(a: AudioEngine, kind: CombatEvent, value: number, far: number): boolean {
@@ -47,8 +50,8 @@ export function playExec(a: AudioEngine, kind: CombatEvent, value: number, far: 
           noise(a, { dur: 0.22, gain: 0.45, filter: 'lowpass', from: 1200, to: 200 });
           break;
         case 'smash':
-          tone(a, { from: 110, to: 28, dur: 0.4, gain: 0.9 });
-          noise(a, { dur: 0.35, gain: 0.65, filter: 'lowpass', from: 3000, to: 100 });
+          slamThud(a);
+          slamBlast(a);
           break;
       }
       return true;
