@@ -2,6 +2,25 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
+## Next up (2026-10-29, after Update 0.1.8)
+- **The designer plays 0.1.4–0.1.8**, then sends notes:
+  - the Grimoire;
+  - the Gold Axe and Hammer;
+  - the fists (0.1.6);
+  - the F slam;
+  - the slime and spider smash.
+
+  None of it has been seen in motion ("Not verified" below).
+- **Three weapon ideas left** from the designer's five (they asked for "at least 2 more" and chose the axe and hammer first):
+  - **Dual Daggers** (easy to medium): one in each hand, very fast hits, last very long, +15% move speed while held.
+  - **Bow** (medium): arrows "with the same fast pace energy as the game".
+  - **Necromancy Skull** (hard; needs an ally system first): raises dead enemies as temporary allies with a purple aura.
+- **A Steam "Coming Soon" page:** the designer asked whether one is possible (yes: the $100 Steamworks fee, store assets, at least 2 weeks of Coming Soon before release). Claude offered to draft the store kit: text, tags, requirements, capsule art briefs, and a screenshot and trailer list. Not started.
+- **Files at or over the split limit:** `engine/Game.ts` (336 lines), `App.tsx` (347), `engine/run.ts` (305), `sim/enemies/enemy.ts` (300) and `engine/viewmodel/armsRig.ts` (295). Split them before adding to them.
+- **How the last sessions worked:**
+  - Arms are checked by renders before reporting: `tools/hand-shots.ts` (fists, grips, the slam), `tools/exec-shots.ts <kinds>`, `tools/weapon-shots.ts` and `tools/book-shots.ts`, then `tools/blender/render_view.py --json … --out … --cull`. To render only some moments, filter the shots JSON (`pov.json` or `shots.json`) by name first.
+  - Code edits ran as small Python scripts in the scratchpad (exact old → new pairs), because shell heredocs mangle quotes and em dashes.
+
 ## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.8
 - **Update 0.1.8 — the ground slam in the slime's and the spider's executions** (the designer: "use the same ground slam with the F key and port it to the slime and spider executions"):
   - **Their hands:** the slam's clasped fists come up as you look up and come down at the blow. The smash is eased in over the slam's own time, then held and returned on its knobs. Hand modes `slamUp` and `slamDown` (`exec/handMoves.ts`) are posed by `viewmodel/slamArms.ts`. The old clasped `hammer` mode is gone.
@@ -290,6 +309,20 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
 
 ## What to try in-game
 Run `START_GAME.bat`. The main menu opens on the gate.
+- **Updates 0.1.0–0.1.8:**
+  - **Executions:** fill the Execution Power meter, then E on any regular enemy. The slime's and the spider's smash is now the F slam's clasp.
+  - **Grimoire:** left click casts a fireball; hold right click to charge the Ki blast (a use each 0.5 s, up to 10).
+  - **Gold Axe:**
+    - swings with left click;
+    - hold right click to charge a throw (up to 2× as fast and hard), then let go;
+    - right click again calls it back;
+    - Q throws it and it breaks.
+  - **Hammer:**
+    - two-handed;
+    - hold right click for the smash, which only lands on the ground (let go in the air, it waits for the landing);
+    - its shockwave rolls out in a half ring before you.
+  - **Slam (F):** needs 2.8 m. Try it off a ledge, a pad or a wall jump.
+  - **Where the new weapons are:** in the shop, the chests and the Lab's weapon list (F9, F1).
 - **Main menu:** the torches and the campfire flicker, dust drifts, the camera sways slowly. Start (or Enter / Space): the portcullis grinds up into the wall (about 1.3 s), the screen fades to black, and you're in the prison corridor to pick a character. ←/→ (or your left/right keys) walk the cells; Play (or Enter) locks the mouse and fades into the lab; Esc goes back to the gate. Settings fades to the night camp (General and Controls tabs); Back or Esc returns. The pause menu has the same tabs, and **Main menu** to come back.
 - If Esc is pressed while the gate opens, the lab starts paused (click Resume).
 - **Moves:** WASD, Space jump / wall jump, Shift dash (3 charges).
@@ -361,6 +394,8 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `MD_UPDATES/U015_AXE_HAMMER.md` | Update 0.1.5: the Gold Axe (swings, chop, thrown and called back) and the Hammer (two-handed, the smash's shockwave) |
 | `game/tools/weapon-shots.ts` | Renders a held weapon's own moves (ready, a swing, the charge and blow, a throw's draw) from the game's own arms code, without a browser |
 | `game/tools/book-shots.ts` | Renders the Grimoire in your hands (held, the cast, the charge, the great cast) from the game's own arms code, without a browser |
+| `game/tools/hand-shots.ts` | Renders the fists, each weapon's grip, the punches and the ground slam's clasp (Update 0.1.6/0.1.7), without a browser |
+| `game/tools/exec-shots.ts` | Renders an execution (any enemy's) at its keys and blows, from your eye and from the side, without a browser |
 | `game/tools/view-shots.ts`, `game/tools/blender/render_view.py` | Renders the first-person arms (the game's own code and models) at chosen moments, without a browser |
 | `MD/PIPELINE_MENU_SCENE.md` | How the menu's scenes (the gate, the settings camp, the prison corridor) are built, and how to change them |
 | `DEVELOPMENT.md` | Module map and contracts |
@@ -400,6 +435,19 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 7. ~~What the side rooms hold~~: the shop (Update 0.0.13); the boss room ends the way (Update 0.0.15). Still open: reward rooms.
 8. **Update 0.0.13 placeholders to confirm:** five tiles for six items (the key always offered, four of the other five); E to buy and to open a chest (the design's E: "pick up, buy, open"); a chest opens only when its room isn't fighting; one chest a floor (35%: two); chest odds (coins 40%, then a plate, a heart or a ring alike); the shield caps at a full bar (two plates), rings stack; the blue ring speeds running and sliding, not the dash; buying the gold sword drops your sword at your feet; the new enemies' numbers (Leaper & fliers tab); bigger room budgets.
 
+14. **Updates 0.1.4–0.1.8, open:**
+   - **Grimoire:**
+     - its fire: orange (now) or purple?
+     - a full Ki charge against the bosses' health;
+     - should the bursts reach through walls?
+   - **Axe:**
+     - should a recalled axe fly through walls?
+     - a trail or glow on the thrown axe?
+     - does a quick right-click tap throw at 1×?
+   - **Hammer:** silver or gold?
+   - **Slam:** is 2.8 m the right height?
+   - **The spider's smash:** the view tips down to −26° (was −38°).
+   - **Numbers:** all the new weapons' numbers are placeholders.
 13. **Update 0.1.2 placeholders to confirm:** every execution's timing and poses; the orc held by one ankle; the ninja's torn arms flung aside before the punch; the frog's whirl tilted towards you; the wizard's 16 m wall search (none: it bursts landing ahead); pieces lie 6 s; the barrage's punches freeze for no time.
 12. ~~Update 0.1.1: which enemies get executions next~~: all of them (Update 0.1.2).
 11. **Update 0.0.17 placeholders to confirm:**
@@ -441,6 +489,15 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 
 ## Not verified
 Claude has seen and heard none of this in the game: the feel, the arms on screen, the targets, effects, sounds and menus are all unverified until played. The tests check the rules, the collision, and that the shipped arms pose correctly.
+- **The fists, the slam and the executions' smash (Updates 0.1.6–0.1.8):**
+  - **Seen only as still renders** (`tools/hand-shots.ts`, `tools/exec-shots.ts slime spider`):
+    - the punching fist (thumb across) and the grips round each handle;
+    - the slam's clasp raised and landed, wrists straight (the designer's 0.1.8 correction);
+    - the slime's and the spider's smash on the body.
+  - **Unseen:** all of it in motion; the slam's drop and smash at speed; the landing's shake, jolt and sounds in an execution; whether the spider's −26° look still reads as a smash.
+  - **Known flaws:**
+    - the hammer's left hand is about 2.5 cm off the haft at the end of a swing;
+    - in the sword's steep poses, the index finger folds but its tip isn't on the handle's line.
 - **The Gold Axe and the Hammer (Update 0.1.5):**
   - **Seen only as still renders** of the game's own arms holding the real models (`tools/weapon-shots.ts`, flat light, no textures): ready, a swing's wind, contact and end, the charge, the charged blow, a throw's draw. The axe's raised chop was fixed after the designer saw its grip.
   - **Unseen in the game:** the moves in motion and their pace (the hammer's slowness); the axe spinning out, lying, sticking in walls, flying back and the catch; the smash's ring rolling out with the hits in step; the shake and jolt; every synth sound; how the recall feels.
