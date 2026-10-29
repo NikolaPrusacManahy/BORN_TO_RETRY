@@ -1,0 +1,32 @@
+/* Update 0.1.17 — the Lab's Sounds list: a row a sound, its name, then Code, All and its numbered candidates (the
+   one playing in red; with All, every candidate outlined). */
+.rb-lab-sounds {
+  display: grid;
+  gap: 6px;
+}
+
+.rb-lab-sound {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.rb-lab-sound-name {
+  width: 130px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rb-text);
+}
+
+.rb-lab-count.is-in {
+  box-shadow: inset 0 0 0 1px var(--rb-accent);
+}
+
+.rb-lab-none {
+  margin: 0;
+  color: var(--rb-dim);
+  font-size: 12px;
+}

@@ -9,6 +9,8 @@
 // Update 0.0.18 — floor 2's enemies are in foeSounds.ts, its boss in dragonSounds.ts. Update 0.1.1 — executions in
 // execSounds.ts.
 // Update 0.1.9 — a slash says whose it is: the Dual Daggers' cut is a short, high swish.
+// Update 0.1.17 — a recorded clip first, if the sound has one picked (clipRoutes.ts, clips.ts); otherwise the one made
+// here. The weapon that swung last is remembered (a hit doesn't say whose it is: the hammers have their own).
 import type { CombatEvent } from '../sim/combat/state';
 import { WEAPON_KINDS } from '../sim/weapons/catalog';
 import { FISTS } from '../tuning/combat';
@@ -22,6 +24,7 @@ import { playExec } from './execSounds';
 import { playFire } from './fireSounds';
 import { playWeapons } from './weaponSounds';
 import { noise, tone } from './synth';
+import { playClip } from './clipRoutes';
 
 /** Sounds from far targets are quieter (m at which they're half as loud). */
 const HALF_DISTANCE = 12;
@@ -33,12 +36,17 @@ export function slamBlast(a: AudioEngine) {
 }
 
 export class CombatSounds {
+  /** The weapon that swung last: its hit is that weapon's. */
+  private swung = '';
+
   constructor(private a: AudioEngine) {}
 
   /** `dist`: metres from the listener, for target sounds. */
   play(kind: CombatEvent, value: number, dist: number) {
     const a = this.a;
     const far = HALF_DISTANCE / (HALF_DISTANCE + dist);
+    if (kind === 'slash') this.swung = WEAPON_KINDS[value] ?? '';
+    if (playClip(a, kind, value, far, this.swung)) return;
     switch (kind) {
       case 'jabL':
       case 'jabR':

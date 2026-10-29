@@ -1,4 +1,5 @@
 // Update 0.0.4 — the settings sliders, shared by the pause menu and the main menu (moved out of PauseMenu.tsx).
+// Update 0.1.17 — and Music (the menus' track).
 import { FOV_MAX, FOV_MIN, SENS_MAX, SENS_MIN, Settings } from '../state/settings';
 
 interface SliderProps {
@@ -31,6 +32,7 @@ export function SettingsFields({ settings, onChange }: { settings: Settings; onC
       <Slider label="Field of view" value={settings.fov} min={FOV_MIN} max={FOV_MAX} step={1} show={(v) => `${v}°`} onChange={(v) => set({ fov: v })} />
       <Slider label="Volume" value={settings.volume} min={0} max={1} step={0.05} show={percent} onChange={(v) => set({ volume: v })} />
       <Slider label="Effects" value={settings.sfxVolume} min={0} max={1} step={0.05} show={percent} onChange={(v) => set({ sfxVolume: v })} />
+      <Slider label="Music" value={settings.musicVolume} min={0} max={1} step={0.05} show={percent} onChange={(v) => set({ musicVolume: v })} />
       <label className="rb-toggle">
         <span>Invert mouse Y</span>
         <input type="checkbox" checked={settings.invertY} onChange={(e) => set({ invertY: e.target.checked })} />

@@ -1,0 +1,96 @@
+{
+  "_about": "Update 0.1.17 (batch 3, the designer: next batch) — the bosses (the Demon, the Dragon, the boss room's show) and magic (the Grimoire, the Ki charge, fire shots, the wraith). As combat.json; 'fireShot' is the Dragon's, the Blue Demon's and the Demon's fire shots (not an event).",
+  "_keep": {"demonRoar": [2], "dragonScream": [4], "bossRise": [3], "bossIntro": [1], "bossDown": [4], "bossBurst": [3], "demonSlam": [3], "demonCrash": [4], "quakeHit": [2], "dragonBreath": [4], "fireShot": [1], "bombBlast": [5], "cast": [1], "fireballBurst": [2], "kiCharge": [1], "wraithCast": [2]},
+  "demonRoar": [
+    { "lib": "Dinosaurs Vol. 1", "file": "T Rex", "len": 2.2, "snap": 0.3 },
+    { "lib": "Dinosaurs Vol. 2", "file": "Herbivore Roar", "takes": [3], "len": 2.2, "snap": 0.3 },
+    { "lib": "Halloween", "file": "Werewolf", "at": [0.19, 5.7], "len": 2.0, "snap": 0.3 },
+    { "lib": "Humanoid Creatures", "file": "Sea Beast", "len": 2.0, "snap": 0.3 }
+  ],
+  "dragonScream": [
+    { "lib": "Dinosaurs Vol. 1", "file": "Raptor", "len": 1.6 },
+    { "lib": "Halloween", "file": "Alert Designed", "len": 1.8, "snap": 0.5 },
+    { "lib": "Dinosaurs Vol. 2", "file": "Herbivore Roar", "takes": [2], "len": 1.8 },
+    { "lib": "Humanoid Creatures", "file": "Sea Beast", "len": 1.7, "snap": 0.6 },
+    { "lib": "Dinosaurs Vol. 1", "file": "T Rex", "len": 1.7, "snap": 0.8 }
+  ],
+  "bossRise": [
+    { "lib": "Cinematic Horn Braams", "file": "Huge-67", "len": 2.5 },
+    { "lib": "Cinematic Horn Braams", "file": "Huge-32", "len": 2.5 },
+    { "lib": "Ultra Transitions", "file": "Braam Slow", "len": 2.5 },
+    { "lib": "Death Whistle", "file": "Distortion", "len": 1.6 }
+  ],
+  "bossIntro": [
+    { "lib": "Moaning Metal", "file": "Scrape", "at": [0.31, 5.4], "len": 2.5 },
+    { "lib": "Moaning Metal", "file": "Screech", "at": [0.16, 4.2], "len": 2.5 },
+    { "lib": "Bass Drops & Downers Vol. 3", "file": "Rattling", "len": 2.5 }
+  ],
+  "bossDown": [
+    { "lib": "Bass Drops & Downers Vol. 1", "file": "Medium 04", "len": 2.5 },
+    { "lib": "Bass Drops & Downers Vol. 2", "file": "Medium 15", "len": 2.5 },
+    { "lib": "Bass Drops & Downers Vol. 3", "file": "Tone Downer", "len": 2.5 },
+    { "lib": "Bass Drops & Downers Vol. 1", "file": "Slow 10", "len": 2.5 },
+    { "lib": "Death Whistle", "file": "DryPitch", "len": 1.5 }
+  ],
+  "bossBurst": [
+    { "lib": "Fireworks FX", "file": "powerful", "takes": [4, 8], "len": 1.2, "snap": 0.3 },
+    { "lib": "Anime Game", "file": "Enemy Death", "len": 1.0, "snap": 0.3 },
+    { "lib": "Trailer Booms", "file": "_214", "takes": [1], "len": 2.0, "snap": 0.3 },
+    { "lib": "Trailer Booms", "file": "_011", "takes": [1], "len": 2.0, "snap": 0.3 }
+  ],
+  "demonSlam": [
+    { "lib": "Trailer Booms", "file": "_011", "takes": [1], "len": 1.6, "snap": 0.3 },
+    { "lib": "Trailer Booms", "file": "_214", "takes": [1], "len": 1.6, "snap": 0.3 },
+    { "lib": "Bass Drops & Downers Vol. 1", "file": "Fast 16", "len": 1.5, "snap": 0.3 },
+    { "lib": "Bass Drops & Downers Vol. 2", "file": "Fast 12", "len": 1.5, "snap": 0.3 },
+    { "lib": "Ultra Transitions", "file": "Impact Hit Rapid", "len": 2.0, "snap": 0.3 }
+  ],
+  "demonCrash": [
+    { "lib": "Haunting Ambiences Vol. 3", "file": "Metal Bangs", "takes": [62, 9, 35], "len": 1.2, "snap": 0.3 },
+    { "lib": "Haunting Ambiences Vol. 3", "file": "Wooden Hit", "takes": [1, 4], "len": 0.9, "snap": 0.3 },
+    { "lib": "Melee Weapons", "file": "SWING IMPACTS", "takes": [8, 15], "len": 0.9, "snap": 0.8 }
+  ],
+  "quakeHit": [
+    { "lib": "Haunting Ambiences Vol. 3", "file": "Wooden Hit", "takes": [3], "len": 0.6, "snap": 0.3 },
+    { "lib": "Melee Weapons", "file": "SWING IMPACTS", "takes": [11], "len": 0.6, "snap": 0.8 },
+    { "lib": "Historical Weapons", "file": "Spear And Stick", "takes": [6], "len": 0.35, "snap": 0.3 }
+  ],
+  "dragonBreath": [
+    { "lib": "Elemental Mutation", "file": "Fire Deep", "len": 2.0 },
+    { "lib": "Synthesized Nature", "file": "Fire Crackling", "at": [0.01, 2.6], "len": 2.3 },
+    { "lib": "Haunting Ambiences Vol. 5", "file": "Fire Crackling", "at": [10, 12.6], "len": 2.3 },
+    { "lib": "Emotion and Magic", "file": "onslaught", "at": [1.6, 36.4], "len": 2.3, "snap": 0.8 }
+  ],
+  "fireShot": [
+    { "lib": "Elemental Mutation", "file": "Fire Deep", "len": 0.6 },
+    { "lib": "Air Designed", "file": "Blast Off", "at": [0.31, 1.3], "len": 0.7 },
+    { "lib": "Elemental Mutation", "file": "Glass Crystal", "len": 0.6 }
+  ],
+  "bombBlast": [
+    { "lib": "Fireworks FX", "file": "powerful", "takes": [3, 6, 10], "len": 1.0, "snap": 0.3 },
+    { "lib": "Anime Game", "file": "Enemy Death", "len": 1.0, "snap": 0.3 },
+    { "lib": "Trailer Booms", "file": "_011", "takes": [1], "len": 1.5, "snap": 0.3 }
+  ],
+  "cast": [
+    { "lib": "Elemental Mutation", "file": "Fire Deep", "len": 0.8 },
+    { "lib": "Air Designed", "file": "Blast Off", "at": [0.31, 1.3], "len": 0.7 },
+    { "lib": "Elemental Mutation", "file": "Electric", "len": 0.8, "snap": 0.3 },
+    { "lib": "Emotion and Magic", "file": "onslaught", "at": [1.6, 36.4], "len": 1.0, "snap": 0.8 }
+  ],
+  "fireballBurst": [
+    { "lib": "Fireworks FX", "file": "powerful", "takes": [5, 9], "len": 1.2, "snap": 0.3 },
+    { "lib": "Anime Game", "file": "Enemy Death", "len": 1.0, "snap": 0.3 },
+    { "lib": "Elemental Mutation", "file": "Electric", "len": 1.2, "snap": 0.3 }
+  ],
+  "kiCharge": [
+    { "lib": "InMotionAudio - Arc", "file": "ArcDesign15", "len": 0.5 },
+    { "lib": "InMotionAudio - Arc", "file": "PowerUp", "len": 0.6, "snap": 0.8 },
+    { "lib": "Emotion and Magic", "file": "astonishment", "at": [0.98, 19.0], "len": 0.6, "snap": 0.8 },
+    { "lib": "System & UI", "file": "Sci-Fi Ping", "len": 0.6 }
+  ],
+  "wraithCast": [
+    { "lib": "Vox Bestiae", "file": "Ethereal", "len": 1.2 },
+    { "lib": "Halloween", "file": "Jumpscare", "len": 1.2, "snap": 0.3 },
+    { "lib": "Death Whistle", "file": "Distortion", "len": 1.2 }
+  ]
+}

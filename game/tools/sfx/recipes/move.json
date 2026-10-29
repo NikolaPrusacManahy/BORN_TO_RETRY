@@ -1,0 +1,7 @@
+{
+  "_about": "Update 0.1.17 — the landing from the designer's own recording (ASSETS/AUDIO). (Footsteps came and went: the designer, \"no need in this game\".)",
+  "_keep": {"land": [1]},
+  "land": [
+    { "lib": "AUDIO", "file": "landing", "takes": [1], "snap": 0.3, "len": 0.7 }
+  ]
+}

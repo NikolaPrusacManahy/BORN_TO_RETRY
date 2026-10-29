@@ -1,0 +1,555 @@
+{
+ "hitJab": [
+  {
+   "file": "sounds/hitJab/1.wav",
+   "from": "344 Audio - Cinematic Fight Vol. 1 / FGHTImpt_4 x Punch, Body 02_344 Audio_Cinematic Fight Vol 1.wav @ 1.18-1.56 s",
+   "seconds": 0.382
+  }
+ ],
+ "hitFinisher": [
+  {
+   "file": "sounds/hitFinisher/1.wav",
+   "from": "Epic Stock Media - Halloween Game - Haunted House and Horror Audio Scare Kit / GORESplt_Gore Designed Transient Heavy Impact Smash 01_ESM_HALG.wav @ 0.01-1.04 s",
+   "seconds": 0.6
+  }
+ ],
+ "hitHeavy": [
+  {
+   "file": "sounds/hitHeavy/1.wav",
+   "from": "David Dumais Audio - Melee Weapons Sound Effects Pack 2 / SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav @ 3.19-3.87 s",
+   "seconds": 0.676
+  }
+ ],
+ "kill": [
+  {
+   "file": "sounds/kill/1.wav",
+   "from": "Epic Stock Media - Tower Defense Game / WOODImpt_Hit Blood Spill Splat Wood Impact Light Hit Squelch Small Thump 03_ESM_TDG.wav @ 0.00-0.30 s",
+   "seconds": 0.3
+  }
+ ],
+ "slash": [
+  {
+   "file": "sounds/slash/1.wav",
+   "from": "Cinematic Sound Design - Ultra Transitions & Impacts / Woosh Sweep Slide Infographics Basic.wav @ 0.04-0.20 s",
+   "seconds": 0.164
+  }
+ ],
+ "hitSlash": [
+  {
+   "file": "sounds/hitSlash/1.wav",
+   "from": "344 Audio - Historical Weapons Vol. 2 / WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2_344 Audio_Medieval Weapons Vol 2.wav @ 10.82-11.52 s",
+   "seconds": 0.55
+  }
+ ],
+ "smash": [
+  {
+   "file": "sounds/smash/1.wav",
+   "from": "Federico Soler - Effective Trailer Booms Vol. 2 / EffectiveTrailer_Booms_Vol2_075.wav @ 0.26-4.74 s",
+   "seconds": 2.2
+  }
+ ],
+ "slamImpact": [
+  {
+   "file": "sounds/slamImpact/1.wav",
+   "from": "Cinematic Sound Design - Colossal Impacts / Impact Cut Sweep.wav @ 1.01-1.48 s",
+   "seconds": 0.471
+  }
+ ],
+ "bruteSlam": [
+  {
+   "file": "sounds/bruteSlam/1.wav",
+   "from": "The Noisery - Moaning Metal / DSGNImpt_Metal Hit Thud Thump Low Ring Geofon 1_The Noisery_Moaning Metal.wav @ 0.02-3.51 s",
+   "seconds": 1.6
+  }
+ ],
+ "gruntWindup": [
+  {
+   "file": "sounds/gruntWindup/1.wav",
+   "from": "SoundBits - Vox Bestiae - Source Elements / CREAHmn_Violent Humanoid Creature Exhale Short 4_SNDBTS_VB-SE.wav @ 0.00-0.42 s",
+   "seconds": 0.42
+  }
+ ],
+ "gruntStrike": [
+  {
+   "file": "sounds/gruntStrike/1.wav",
+   "from": "David Dumais Audio - Melee Weapons Sound Effects Pack 2 / SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav @ 12.12-12.62 s",
+   "seconds": 0.504
+  }
+ ],
+ "land": [
+  {
+   "file": "sounds/land/1.wav",
+   "from": "AUDIO / ground_landing.mp3 @ 0.17-0.54 s",
+   "seconds": 0.371
+  }
+ ],
+ "hammerSwing": [
+  {
+   "file": "sounds/hammerSwing/1.wav",
+   "from": "Cinematic Sound Design - Colossal Impacts / Woosh Debris.wav @ 0.24-1.21 s",
+   "seconds": 0.7
+  }
+ ],
+ "hammerHit": [
+  {
+   "file": "sounds/hammerHit/1.wav",
+   "from": "David Dumais Audio - Melee Weapons Sound Effects Pack 2 / SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav @ 39.21-39.80 s",
+   "seconds": 0.588
+  }
+ ],
+ "coin": [
+  {
+   "file": "sounds/coin/1.wav",
+   "from": "Cinematic Sound Design - Hybrid Game & UI Elements / Foley Coin Flip Single Fast.wav @ 0.04-0.53 s",
+   "seconds": 0.492
+  }
+ ],
+ "buy": [
+  {
+   "file": "sounds/buy/1.wav",
+   "from": "Cinematic Sound Design - Hybrid Game & UI Elements / Game Entry Happy Short.wav @ 0.00-0.32 s",
+   "seconds": 0.32
+  }
+ ],
+ "buyFail": [
+  {
+   "file": "sounds/buyFail/1.wav",
+   "from": "Cinematic Sound Design - System & UI Feedback Elements / Interface Deny Low Fat Dark.wav @ 0.00-0.44 s",
+   "seconds": 0.44
+  }
+ ],
+ "chestOpen": [
+  {
+   "file": "sounds/chestOpen/1.wav",
+   "from": "344 Audio - Antique Luggage / OBJLug_Suitcase Opening and Closing, Antique Suitcase_344 Audio_Antiques - Luggage_01.wav @ 5.74-6.17 s",
+   "seconds": 0.426
+  }
+ ],
+ "chestLocked": [
+  {
+   "file": "sounds/chestLocked/1.wav",
+   "from": "344 Audio - Antique Luggage / OBJLug_Suitcase Being Locked, Antique Suitcase 1_344 Audio_Antiques - Luggage.wav @ 2.22-2.82 s",
+   "seconds": 0.6
+  }
+ ],
+ "chestRarity": [
+  {
+   "file": "sounds/chestRarity/1.wav",
+   "from": "Epic Stock Media - Fantasy Game 2 - Sound Kit for Enchanted Realms / MAGAngl_Magic Light Spell Enchantment Potion Effect Tonal Bright 03_ESM_FG2.wav @ 0.00-2.31 s",
+   "seconds": 2.0
+  }
+ ],
+ "chestLoot": [
+  {
+   "file": "sounds/chestLoot/1.wav",
+   "from": "Cinematic Sound Design - Hybrid Game & UI Elements / Cofetti Whoosh Pluck Spill.wav @ 0.11-1.70 s",
+   "seconds": 1.2
+  }
+ ],
+ "item": [
+  {
+   "file": "sounds/item/1.wav",
+   "from": "Epic Stock Media - Fantasy Game 2 - Sound Kit for Enchanted Realms / UIAlert_Collect Scifi Futuristic Electronic Bass Burst Sweep Heavy 04_ESM_FG2.wav @ 0.00-0.25 s",
+   "seconds": 0.25
+  }
+ ],
+ "pickup": [
+  {
+   "file": "sounds/pickup/1.wav",
+   "from": "Epic Stock Media - HD Game Materials / METLImpt_Metal Old File Impact Tap Against Tire Iron Metallic Hit 01_ESM_HDGM.wav @ 0.13-0.41 s",
+   "seconds": 0.282
+  }
+ ],
+ "keySwitch": [
+  {
+   "file": "sounds/keySwitch/1.wav",
+   "from": "Epic Stock Media - Board Game - Sound Set Kit for Tabletop and Digital Games / UIClick_UI Button Analog Vintage Double Click Neutral Dry Press 11_ESM_BG.wav @ 0.01-0.16 s",
+   "seconds": 0.145
+  }
+ ],
+ "itemDrop": [
+  {
+   "file": "sounds/itemDrop/1.wav",
+   "from": "344 Audio - Antique Small Metals / METLMvmt_  Antique Measuring Tape_344 Audio_Antique Small Metals.wav @ 0.21-0.53 s",
+   "seconds": 0.316
+  }
+ ],
+ "weaponSwap": [
+  {
+   "file": "sounds/weaponSwap/1.wav",
+   "from": "344 Audio - Climbing Gear Foley Vol. 1 / EQUISprt_Climbing Gear, Flicking Carabiner On Rope_344 Audio_Climbing Gear Foley Vol 1.wav @ 1.94-2.30 s",
+   "seconds": 0.362
+  }
+ ],
+ "freeze": [
+  {
+   "file": "sounds/freeze/1.wav",
+   "from": "Alexander Kopeikin - 100 kHz Designed Ice / ice, crack, ice block snapping-001.wav @ 0.54-1.74 s",
+   "seconds": 0.9
+  }
+ ],
+ "gatesShut": [
+  {
+   "file": "sounds/gatesShut/1.wav",
+   "from": "344 Audio - Haunting Ambiences Vol. 3 / METLImpt_Metal Bangs, Metal Hits, Banging On Doors_344 Audio_Haunting Ambiences Vol 3.wav @ 27.25-27.84 s",
+   "seconds": 0.589
+  }
+ ],
+ "gatesOpen": [
+  {
+   "file": "sounds/gatesOpen/1.wav",
+   "from": "Cinematic Sound Design - User Interface / Button Arp Twinkle.wav @ 0.00-1.34 s",
+   "seconds": 1.34
+  }
+ ],
+ "demonRoar": [
+  {
+   "file": "sounds/demonRoar/1.wav",
+   "from": "344 Audio - Dinosaurs Vol. 2 / ANMLRept_Large Herbivore Roar 01_344 Audio_Dinosaurs Vol 2.wav @ 7.22-11.90 s",
+   "seconds": 2.2
+  }
+ ],
+ "dragonScream": [
+  {
+   "file": "sounds/dragonScream/1.wav",
+   "from": "Epic Stock Media - Humanoid Creatures Vol 4 - Monstrous and Undead Creature Vocalization Sound Sets / CREAMnstr_Designed Sea Beast Creature Pain Intense Yell Long 04_ESM_HC4.wav @ 0.35-4.91 s",
+   "seconds": 1.7
+  }
+ ],
+ "bossRise": [
+  {
+   "file": "sounds/bossRise/1.wav",
+   "from": "Cinematic Sound Design - Ultra Transitions & Impacts / Transition Braam Slow Dark Creepy.wav @ 0.31-3.37 s",
+   "seconds": 2.5
+  }
+ ],
+ "bossIntro": [
+  {
+   "file": "sounds/bossIntro/1.wav",
+   "from": "The Noisery - Moaning Metal / DSGNTonl_Metal Scrape Low Tonal LFE 4_The Noisery_Moaning Metal.wav @ 0.31-5.40 s",
+   "seconds": 2.5
+  }
+ ],
+ "bossDown": [
+  {
+   "file": "sounds/bossDown/1.wav",
+   "from": "344 Audio - Bass Drops & Downers Vol. 1 / DSGNBass_Bass Drop & Downer Slow 10_344 Audio_Bass Drops & Downers.wav @ 0.00-6.88 s",
+   "seconds": 2.5
+  }
+ ],
+ "bossBurst": [
+  {
+   "file": "sounds/bossBurst/1.wav",
+   "from": "Epic Stock Media - Anime Game / EXPLDsgn_Explosion Small Blast Enemy Death Crunchy Boom Cartoon Noisy Crash Impact Delay 03_ESM_AG.wav @ 0.02-1.07 s",
+   "seconds": 1.0
+  }
+ ],
+ "demonSlam": [
+  {
+   "file": "sounds/demonSlam/1.wav",
+   "from": "344 Audio - Bass Drops & Downers Vol. 1 / DSGNBass_Bass Drop & Downer Fast 16_344 Audio_Bass Drops & Downers.wav @ 0.16-1.85 s",
+   "seconds": 1.5
+  }
+ ],
+ "demonCrash": [
+  {
+   "file": "sounds/demonCrash/1.wav",
+   "from": "344 Audio - Haunting Ambiences Vol. 3 / WOODImpt_Wooden Hit, Dark, Heavy Hit, Vampire's Prison_344 Audio_Haunting Ambiences Vol 3.wav @ 2.27-3.02 s",
+   "seconds": 0.752
+  }
+ ],
+ "quakeHit": [
+  {
+   "file": "sounds/quakeHit/1.wav",
+   "from": "David Dumais Audio - Melee Weapons Sound Effects Pack 2 / SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav @ 30.19-31.12 s",
+   "seconds": 0.6
+  }
+ ],
+ "dragonBreath": [
+  {
+   "file": "sounds/dragonBreath/1.wav",
+   "from": "Alexander Kopeikin - Emotion and Magic / magic, action gesture, evil presence, onslaught-004.wav @ 24.67-36.40 s",
+   "seconds": 2.3
+  }
+ ],
+ "fireShot": [
+  {
+   "file": "sounds/fireShot/1.wav",
+   "from": "Epic Stock Media - Elemental Mutation Whooshes and Impacts / FIREWhsh_Whoosh Fire Deep Growl Monster Saturated Crisp 03_ESM_EMWI.wav @ 0.17-1.91 s",
+   "seconds": 0.6
+  }
+ ],
+ "bombBlast": [
+  {
+   "file": "sounds/bombBlast/1.wav",
+   "from": "Federico Soler - Effective Trailer Booms Vol. 2 / EffectiveTrailer_Booms_Vol2_011.wav @ 0.27-7.60 s",
+   "seconds": 1.5
+  }
+ ],
+ "cast": [
+  {
+   "file": "sounds/cast/1.wav",
+   "from": "Epic Stock Media - Elemental Mutation Whooshes and Impacts / FIREWhsh_Whoosh Fire Deep Growl Monster Saturated Crisp 03_ESM_EMWI.wav @ 0.17-1.91 s",
+   "seconds": 0.8
+  }
+ ],
+ "fireballBurst": [
+  {
+   "file": "sounds/fireballBurst/1.wav",
+   "from": "Ivo Vicic - Fireworks FX / 13 Fireworks_powerful explosions_multiples in a row_near.wav @ 11.14-12.32 s",
+   "seconds": 1.179
+  }
+ ],
+ "kiCharge": [
+  {
+   "file": "sounds/kiCharge/1.wav",
+   "from": "InMotionAudio - Arc / ELECArc_ArcDesign15_InMotionAudio_Arc.wav @ 0.00-0.97 s",
+   "seconds": 0.5
+  }
+ ],
+ "wraithCast": [
+  {
+   "file": "sounds/wraithCast/1.wav",
+   "from": "Epic Stock Media - Halloween Game - Haunted House and Horror Audio Scare Kit / DSGNEthr_Jumpscare Vocal Aggressive Whisper Harsh Distortion 02_ESM_HALG.wav @ 0.20-2.78 s",
+   "seconds": 1.2
+  }
+ ],
+ "spitterWindup": [
+  {
+   "file": "sounds/spitterWindup/1.wav",
+   "from": "Epic Stock Media - Humanoid Creatures Vol 4 - Monstrous and Undead Creature Vocalization Sound Sets / HMNBrth_Construction Kit Male Screeching Breath Inhale Weak Squeal 05_ESM_HC4.wav @ 0.01-0.93 s",
+   "seconds": 0.9
+  }
+ ],
+ "spit": [
+  {
+   "file": "sounds/spit/1.wav",
+   "from": "344 Audio - Elemental Palette Designed Vol. 1 / WATRMisc_Water, Liquid Impact, Bubble, Sci Fi, Hit 04_344 Audio_Elemental Palette Designed Vol 1.wav @ 0.14-0.82 s",
+   "seconds": 0.5
+  }
+ ],
+ "bruteWindup": [
+  {
+   "file": "sounds/bruteWindup/1.wav",
+   "from": "344 Audio - Dog Vocalisations Vol. 1 / ANMLDog_Dog Shuffle, Grunt, Movement, Lying Down_344 Audio_Dog Vocalisations.wav @ 1.14-3.11 s",
+   "seconds": 1.0
+  }
+ ],
+ "leaperWindup": [
+  {
+   "file": "sounds/leaperWindup/1.wav",
+   "from": "InMotionAudio - The Death Whistle / CREAEthr_Aztec Death Whistle DryPitch12_IMA_Death Whistle Samples.wav @ 0.00-1.48 s",
+   "seconds": 0.8
+  }
+ ],
+ "leaperLand": [
+  {
+   "file": "sounds/leaperLand/1.wav",
+   "from": "344 Audio - Historical Weapons Vol. 2 / WEAPBlnt_Spear And Stick Impact, Wooden MKH 2_344 Audio_Medieval Weapons Vol 2.wav @ 0.66-0.89 s",
+   "seconds": 0.234
+  }
+ ],
+ "stingerWindup": [
+  {
+   "file": "sounds/stingerWindup/1.wav",
+   "from": "InMotionAudio - Arc / ELECBuzz_Buzz27_InMotionAudio_Arc.wav @ 0.05-9.80 s",
+   "seconds": 0.8
+  }
+ ],
+ "stingerDive": [
+  {
+   "file": "sounds/stingerDive/1.wav",
+   "from": "344 Audio - Elemental Palette Designed Vol. 1 / WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav @ 0.05-1.03 s",
+   "seconds": 0.5
+  }
+ ],
+ "wraithWindup": [
+  {
+   "file": "sounds/wraithWindup/1.wav",
+   "from": "344 Audio - Ghostly Presences Vol. 1 / AMBDsgn_Evil Spell Ambience_344 Audio_Ghostly Presences.wav @ 13.14-60.00 s",
+   "seconds": 1.0
+  }
+ ],
+ "slimeWindup": [
+  {
+   "file": "sounds/slimeWindup/1.wav",
+   "from": "SoundBits - Vox Bestiae - Source Elements / CREAAqua_Aquatic Creature Gurgling 2_SNDBTS_VB-SE.wav @ 0.01-3.68 s",
+   "seconds": 0.7
+  }
+ ],
+ "slimeBlast": [
+  {
+   "file": "sounds/slimeBlast/1.wav",
+   "from": "Epic Stock Media - Elemental Mutation Whooshes and Impacts / WATRImpt_Impact Water Deep Submerge Bubble Drown Ship Hit 05_ESM_EMWI.wav @ 0.04-1.24 s",
+   "seconds": 0.8
+  }
+ ],
+ "frogWindup": [
+  {
+   "file": "sounds/frogWindup/1.wav",
+   "from": "Epic Stock Media - Synthesized Nature Loops and Sounds / ANMLAmph_Animal Frog Echo Short Squished Frequency Formant 03_ESM_SNLS.wav @ 0.01-0.34 s",
+   "seconds": 0.334
+  }
+ ],
+ "frogTongue": [
+  {
+   "file": "sounds/frogTongue/1.wav",
+   "from": "David Dumais Audio - Melee Weapons Sound Effects Pack 2 / WEAPWhip_WHIP Snap Crack 05_DDUMAIS_MWP2.wav @ 0.18-1.11 s",
+   "seconds": 0.5
+  }
+ ],
+ "snakeWindup": [
+  {
+   "file": "sounds/snakeWindup/1.wav",
+   "from": "344 Audio - Elemental Palette Designed Vol. 1 / WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav @ 0.05-1.03 s",
+   "seconds": 0.35
+  }
+ ],
+ "bite": [
+  {
+   "file": "sounds/bite/1.wav",
+   "from": "344 Audio - Cinematic Fight Vol. 1 / FGHTImpt_4 x Punch, Body 02_344 Audio_Cinematic Fight Vol 1.wav @ 0.20-0.46 s",
+   "seconds": 0.255
+  }
+ ],
+ "spiderWindup": [
+  {
+   "file": "sounds/spiderWindup/1.wav",
+   "from": "InMotionAudio - Arc / ELECBuzz_Buzz27_InMotionAudio_Arc.wav @ 0.00-9.80 s",
+   "seconds": 0.8
+  }
+ ],
+ "waspWindup": [
+  {
+   "file": "sounds/waspWindup/1.wav",
+   "from": "InMotionAudio - Arc / ELECBuzz_Buzz27_InMotionAudio_Arc.wav @ 3.00-9.80 s",
+   "seconds": 0.8
+  }
+ ],
+ "wallJump": [
+  {
+   "file": "sounds/wallJump/1.wav",
+   "from": "344 Audio - Cinematic Fight Vol. 1 / FGHTImpt_4 x Punch, Body 02_344 Audio_Cinematic Fight Vol 1.wav @ 3.22-3.56 s",
+   "seconds": 0.25
+  }
+ ],
+ "slam": [
+  {
+   "file": "sounds/slam/1.wav",
+   "from": "344 Audio - Elemental Palette Designed Vol. 1 / WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav @ 0.05-1.03 s",
+   "seconds": 0.6
+  }
+ ],
+ "pad": [
+  {
+   "file": "sounds/pad/1.wav",
+   "from": "Cinematic Sound Design - Cartoon Impacts / Cartoon Airy Impact Creaks.wav @ 0.92-1.36 s",
+   "seconds": 0.437
+  }
+ ],
+ "hurt": [
+  {
+   "file": "sounds/hurt/1.wav",
+   "from": "344 Audio - Cinematic Fight Vol. 1 / FGHTImpt_4 x Punch, Body 02_344 Audio_Cinematic Fight Vol 1.wav @ 2.22-2.45 s",
+   "seconds": 0.228
+  }
+ ],
+ "shieldHit": [
+  {
+   "file": "sounds/shieldHit/1.wav",
+   "from": "David Dumais Audio - Melee Weapons Sound Effects Pack 2 / METLImpt_METAL SWING HIT Weapon Swing To Metallic Body Impact And Resonant Tail 01_DDUMAIS_MWP2.wav @ 0.42-2.39 s",
+   "seconds": 0.8
+  }
+ ],
+ "shieldBreak": [
+  {
+   "file": "sounds/shieldBreak/1.wav",
+   "from": "Epic Stock Media - Tower Defense Game / ICEBrk_Skill Freeze Whoosh Break Impact Layered Movement Shatter 03_ESM_TDG.wav @ 0.11-1.75 s",
+   "seconds": 0.9
+  }
+ ],
+ "death": [
+  {
+   "file": "sounds/death/1.wav",
+   "from": "344 Audio - Bass Drops & Downers Vol. 1 / DSGNBass_Bass Drop & Downer Medium 04_344 Audio_Bass Drops & Downers.wav @ 0.00-3.95 s",
+   "seconds": 2.0
+  }
+ ],
+ "lavaBurn": [
+  {
+   "file": "sounds/lavaBurn/1.wav",
+   "from": "Ivo Vicic - Campfire - Bonfire FX / 42 Campfire, Putting Out Fire, Water from Bottle, Variation, Close.wav @ 2.60-5.58 s",
+   "seconds": 1.0
+  }
+ ],
+ "jab": [
+  {
+   "file": "sounds/jab/1.wav",
+   "from": "344 Audio - Elemental Palette Designed Vol. 1 / WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav @ 0.05-1.03 s",
+   "seconds": 0.18
+  }
+ ],
+ "heavy": [
+  {
+   "file": "sounds/heavy/1.wav",
+   "from": "344 Audio - Elemental Palette Designed Vol. 1 / WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav @ 0.05-1.03 s",
+   "seconds": 0.5
+  }
+ ],
+ "chargeReady": [
+  {
+   "file": "sounds/chargeReady/1.wav",
+   "from": "Cinematic Sound Design - Interface & Infographics / Interface Pop High Short.wav @ 0.01-0.12 s",
+   "seconds": 0.114
+  }
+ ],
+ "execSlam": [
+  {
+   "file": "sounds/execSlam/1.wav",
+   "from": "David Dumais Audio - Melee Weapons Sound Effects Pack 2 / SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav @ 18.19-18.66 s",
+   "seconds": 0.475
+  }
+ ],
+ "execLand": [
+  {
+   "file": "sounds/execLand/1.wav",
+   "from": "Epic Stock Media - Halloween Game - Haunted House and Horror Audio Scare Kit / GORESplt_Gore Designed Transient Heavy Impact Smash 01_ESM_HALG.wav @ 0.01-1.04 s",
+   "seconds": 0.7
+  }
+ ],
+ "execBurst": [
+  {
+   "file": "sounds/execBurst/1.wav",
+   "from": "Ivo Vicic - Fireworks FX / 13 Fireworks_powerful explosions_multiples in a row_near.wav @ 12.45-13.39 s",
+   "seconds": 0.937
+  }
+ ],
+ "blowPunch": [
+  {
+   "file": "sounds/blowPunch/1.wav",
+   "from": "David Dumais Audio - Melee Weapons Sound Effects Pack 2 / SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav @ 33.19-33.58 s",
+   "seconds": 0.392
+  }
+ ],
+ "blowChop": [
+  {
+   "file": "sounds/blowChop/1.wav",
+   "from": "InMotionAudio - Christmas Cracker / OBJMisc_CrackerPull_WithBang_Effected_03_InMotionAudio_ChristmasCracker.wav @ 0.08-0.15 s",
+   "seconds": 0.067
+  }
+ ],
+ "blowTear": [
+  {
+   "file": "sounds/blowTear/1.wav",
+   "from": "InMotionAudio - Velcro / OBJTape_VelcroSqueeze01_InMotionAudio_Velcro.wav @ 1.61-5.68 s",
+   "seconds": 0.6
+  }
+ ],
+ "blowCrush": [
+  {
+   "file": "sounds/blowCrush/1.wav",
+   "from": "Epic Stock Media - Halloween Game - Haunted House and Horror Audio Scare Kit / GORESplt_Gore Designed Transient Heavy Impact Smash 01_ESM_HALG.wav @ 0.01-1.04 s",
+   "seconds": 0.6
+  }
+ ]
+}

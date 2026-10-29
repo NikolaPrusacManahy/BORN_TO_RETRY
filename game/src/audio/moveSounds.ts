@@ -1,6 +1,11 @@
 // M1 — placeholder movement sounds: jumps, landings, dashes, the slide scrape, slams and pads. M1 step 8 — and
 // getting hurt and dying.
+// Update 0.1.17 — the landing from the designer's recording (clips.ts; louder the harder). The slide keeps its scrape.
+// (Footsteps came and went: the designer, "no need in this game".)
+// Batch 5: every other move a clip first (MOVE_CLIPS: the jumps share one, as do the wall jumps), the made sound without.
 import type { MoveEvent } from '../sim/player/state';
+import type { ClipSound } from './clipPicks';
+import { SOUND } from '../tuning/sound';
 import type { AudioEngine } from './audio';
 import { NoiseLoop, noise, tone } from './synth';
 
@@ -9,6 +14,23 @@ export function slamThud(a: AudioEngine) {
   tone(a, { from: 95, to: 28, dur: 0.32, gain: 0.8 });
   noise(a, { dur: 0.22, gain: 0.45, filter: 'lowpass', from: 1400, to: 120 });
 }
+
+/** Update 0.1.17 — the clip each move plays, if it has one picked. */
+const MOVE_CLIPS: Partial<Record<MoveEvent, ClipSound>> = {
+  jump: 'jump',
+  slideJump: 'jump',
+  dashJump: 'jump',
+  wallJump: 'wallJump',
+  wallRunJump: 'wallJump',
+  dash: 'dash',
+  slam: 'slam',
+  pad: 'pad',
+  hurt: 'hurt',
+  shieldHit: 'shieldHit',
+  shieldBreak: 'shieldBreak',
+  death: 'death',
+  lavaBurn: 'lavaBurn',
+};
 
 export class MoveSounds {
   private slide: NoiseLoop;
@@ -21,6 +43,8 @@ export class MoveSounds {
 
   play(kind: MoveEvent, value: number) {
     const a = this.a;
+    const clip = MOVE_CLIPS[kind];
+    if (clip && a.clips.play(clip)) return;
     switch (kind) {
       case 'jump':
       case 'slideJump':
@@ -45,6 +69,7 @@ export class MoveSounds {
       case 'land': {
         if (value < 3) break;
         const k = Math.min(1, value / 30);
+        if (a.clips.play('land', SOUND.v.landVolume * (0.35 + 0.65 * k))) break;
         tone(a, { from: 130, to: 45, dur: 0.12, gain: 0.25 + 0.35 * k });
         noise(a, { dur: 0.06, gain: 0.1 + 0.2 * k, filter: 'lowpass', from: 900, to: 200 });
         break;

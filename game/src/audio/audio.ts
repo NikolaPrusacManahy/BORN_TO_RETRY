@@ -1,5 +1,9 @@
 // M1 — the sound engine's buses (layout from Last Ward): master → compressor → speakers, with SFX and music
 // buses feeding the master. The context starts on the first click (browsers require a gesture).
+// Update 0.1.17 — and the recorded clips start loading then (clips.ts), and the music the screens want plays
+// (music.ts). `AudioEngine.current`: the game's (the screens wake it on the first click or key).
+import { ClipBank } from './clips';
+import { MusicPlayer } from './music';
 
 export interface Volumes {
   master: number;
@@ -11,11 +15,17 @@ export class AudioEngine {
   ctx: AudioContext | null = null;
   sfx: GainNode | null = null;
   private master: GainNode | null = null;
-  private music: GainNode | null = null;
+  music: GainNode | null = null;
   /** Two seconds of white noise, shared by every noise-based sound. */
   noise: AudioBuffer | null = null;
+  /** Update 0.1.17 — the recorded clips, the music, and the game's engine. */
+  readonly clips = new ClipBank(this);
+  readonly tracks = new MusicPlayer(this);
+  static current: AudioEngine | null = null;
 
-  constructor(private volumes: Volumes) {}
+  constructor(private volumes: Volumes) {
+    AudioEngine.current = this;
+  }
 
   /** Call from a click or key press. Safe to call often. */
   resume() {
@@ -39,6 +49,8 @@ export class AudioEngine {
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     this.ctx = ctx;
     this.setVolumes(this.volumes);
+    void this.clips.load();
+    this.tracks.apply();
   }
 
   setVolumes(v: Volumes) {

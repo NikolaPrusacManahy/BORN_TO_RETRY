@@ -1,0 +1,94 @@
+{
+  "_about": "Update 0.1.17 (batch 2, the designer: next batch after combat) — coins, the shop, chests, items, keys, weapon pickups and swaps, the freeze, the room's gates. As combat.json: per sound its sources; '_keep' once the designer has picked.",
+  "_keep": {"coin": [2], "buy": [1], "buyFail": [2], "chestOpen": [2], "chestLocked": [4], "chestRarity": [7], "chestLoot": [1], "item": [1], "pickup": [4], "keySwitch": [1], "itemDrop": [3], "weaponSwap": [5], "freeze": [2], "gatesShut": [3], "gatesOpen": [4]},
+  "coin": [
+    { "lib": "UI Interaction", "file": "Ting Coins", "len": 0.5, "snap": 0.3 },
+    { "lib": "Hybrid Game", "file": "Coin Flip", "len": 0.5, "snap": 0.3 },
+    { "lib": "Scratch Card", "file": "CoinTap", "takes": [2], "len": 0.4, "snap": 0.3 },
+    { "lib": "Interface & Infographics", "file": "Pop High", "len": 0.3, "snap": 0.3 }
+  ],
+  "buy": [
+    { "lib": "Hybrid Game", "file": "Game Entry Happy", "len": 0.9 },
+    { "lib": "Interface & Infographics", "file": "Accept Glassy", "len": 0.6 },
+    { "lib": "UI Interaction", "file": "Accept Boing", "len": 0.8 },
+    { "lib": "User Interface", "file": "Plucks Happy", "len": 0.9 },
+    { "lib": "Fantasy Game 2", "file": "Collect", "len": 0.3 }
+  ],
+  "buyFail": [
+    { "lib": "UI Interaction", "file": "Deny Muted", "len": 0.8 },
+    { "lib": "System & UI", "file": "Deny Low", "len": 0.7 }
+  ],
+  "chestOpen": [
+    { "lib": "Antique Luggage", "file": "Opening and Closing", "takes": [2, 4, 6], "len": 0.9, "snap": 0.3 },
+    { "lib": "Antique Small Metals", "file": "Blowtorch", "takes": [1], "len": 0.5, "snap": 0.3 },
+    { "lib": "HD Lock", "file": "Latch Button", "len": 0.4, "snap": 0.3 }
+  ],
+  "chestLocked": [
+    { "lib": "Antique Small Metals", "file": "Tinkering", "takes": [5], "len": 0.4, "snap": 0.3 },
+    { "lib": "Antique Luggage", "file": "Being Locked", "takes": [1, 2, 4], "len": 0.6, "snap": 0.3 },
+    { "lib": "HD Lock", "file": "Counting Machine", "len": 0.3, "snap": 0.3 }
+  ],
+  "chestRarity": [
+    { "lib": "User Interface", "file": "Arp Twinkle", "len": 1.8 },
+    { "lib": "System & UI", "file": "Arp Reveal", "len": 1.2 },
+    { "lib": "Anime Game", "file": "Power Up", "len": 1.5 },
+    { "lib": "Organic UI", "file": "Kalimba", "len": 1.2 },
+    { "lib": "Organic UI", "file": "Xylophone", "len": 1.2 },
+    { "lib": "Music Boxes", "file": "Box A", "len": 1.8 },
+    { "lib": "Fantasy Game 2", "file": "Magic Light", "len": 2.0 }
+  ],
+  "chestLoot": [
+    { "lib": "Hybrid Game", "file": "Cofetti", "len": 1.2 },
+    { "lib": "Cartoon & Animation", "file": "Pull Swoosh", "len": 1.0 },
+    { "lib": "Organic UI", "file": "Magic Creation", "len": 1.2 },
+    { "lib": "Christmas Cracker", "file": "Pull_WithBang", "len": 0.5, "snap": 0.3 }
+  ],
+  "item": [
+    { "lib": "Fantasy Game 2", "file": "Collect", "len": 0.3 },
+    { "lib": "User Interface", "file": "Plucks Happy", "len": 0.9 },
+    { "lib": "Hybrid Game", "file": "Game Entry Happy", "len": 0.9 },
+    { "lib": "Anime Game", "file": "Power Up", "len": 1.2 },
+    { "lib": "Interface & Infographics", "file": "Pop High", "len": 0.3, "snap": 0.3 }
+  ],
+  "pickup": [
+    { "lib": "Fantasy Game 2", "file": "Inventory", "len": 0.6 },
+    { "lib": "Climbing Gear", "file": "Flicking", "takes": [1, 2], "len": 0.4, "snap": 0.3 },
+    { "lib": "HD Game Materials", "file": "Old File", "len": 0.4, "snap": 0.3 },
+    { "lib": "Historical Weapons", "file": "Sword Slide", "takes": [3], "len": 0.5, "snap": 0.3 }
+  ],
+  "keySwitch": [
+    { "lib": "Board Game", "file": "Double Click", "len": 0.2, "snap": 0.3 },
+    { "lib": "HD Lock", "file": "Latch Button", "len": 0.3, "snap": 0.3 },
+    { "lib": "Typewriter", "file": "Space Key", "len": 0.3, "snap": 0.3 },
+    { "lib": "Climbing Gear", "file": "Screwing", "takes": [8], "len": 0.3, "snap": 0.3 },
+    { "lib": "Instrument Case", "file": "Closed", "len": 0.2, "snap": 0.3 }
+  ],
+  "itemDrop": [
+    { "lib": "HD Lock", "file": "Spring Wire", "at": [0.31, 1.0], "len": 0.7, "snap": 0.3 },
+    { "lib": "HD Game Materials", "file": "Old File", "len": 0.4, "snap": 0.3 },
+    { "lib": "Antique Small Metals", "file": "Measuring Tape", "len": 0.5, "snap": 0.3 },
+    { "lib": "Climbing Gear", "file": "Flicking", "takes": [4], "len": 0.8, "snap": 0.3 }
+  ],
+  "weaponSwap": [
+    { "lib": "Historical Weapons", "file": "Sword Slide", "takes": [1, 2], "len": 0.5, "snap": 0.3 },
+    { "lib": "Melee Weapons", "file": "SWING SCRAPE", "len": 0.4 },
+    { "lib": "Fantasy Game 2", "file": "Inventory", "len": 0.5 },
+    { "lib": "Climbing Gear", "file": "Flicking", "takes": [3], "len": 0.4, "snap": 0.3 }
+  ],
+  "freeze": [
+    { "lib": "Tower Defense", "file": "Freeze", "len": 1.2, "snap": 0.3 },
+    { "lib": "Designed Ice", "file": "crack, ice", "takes": [1], "len": 0.9, "snap": 0.3 },
+    { "lib": "Designed Ice", "file": "crushed", "takes": [1], "len": 1.0, "snap": 0.3 },
+    { "lib": "Designed Ice", "file": "surface", "takes": [1], "len": 1.0, "snap": 0.3 }
+  ],
+  "gatesShut": [
+    { "lib": "Haunting Ambiences Vol. 3", "file": "Metal Bangs", "takes": [62, 58, 12, 9], "len": 1.2, "snap": 0.3 },
+    { "lib": "Haunting Ambiences Vol. 3", "file": "Wooden Hit", "takes": [1, 3, 4], "len": 0.9, "snap": 0.3 }
+  ],
+  "gatesOpen": [
+    { "lib": "Moaning Metal", "file": "Scrape", "at": [0.31, 2.0], "len": 1.6 },
+    { "lib": "Moaning Metal", "file": "Screech", "at": [0.16, 2.0], "len": 1.6 },
+    { "lib": "Anime Game", "file": "Power Up", "len": 1.5 },
+    { "lib": "User Interface", "file": "Arp Twinkle", "len": 1.8 }
+  ]
+}

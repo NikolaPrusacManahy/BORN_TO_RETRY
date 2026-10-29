@@ -259,6 +259,7 @@ Arenas are **hand-made templates assembled from a seed**, not random geometry, b
 - **Packs:** Modular Dungeon (the main menu's gate), Ultimate Nature (flat colour; the menu's dead trees), Modular Ruins, Bestiary/Dungeon Monsters, Ultimate Monsters, Fantasy Props MegaKit (melee weapons), Ultimate Guns (firearms), Universal Base Characters (first-person arms).
 - **Look:** dark palette, fog, strong rim light so enemies read clearly against the background. Baked lighting in Blender for the arenas.
 - **Audio:** hits matter more than music. Every punch, impact, parry, dash and kill needs a clear, punchy sound. Music rises with the action.
+- **Recorded sounds (Update 0.1.17, the designer):** human-made only, so the Steam page needs no AI notice: the Sonniss GDC 2026 bundle (royalty-free) and the designer's own recordings. Six batches picked by ear in the Lab (Sounds): combat, coins and chests, the bosses and magic, the enemies' warnings, the player's moves, the executions. No footsteps (the designer: "no need in this game"); the slide, the jump and the dash keep their made sounds. The rest is still made in code until its round. **Music (Update 0.1.17):** the designer's own; the menus' track loops on the menus and fades out into a run; the fights' music to come.
 
 ## 15. Tech
 Browser game: Three.js + Rapier, React for menus and HUD, Blender scripts for asset conversion and arena building, Electron for Steam later. If milestone 1 shows the browser holding back the feel, we switch to Godot before building more.

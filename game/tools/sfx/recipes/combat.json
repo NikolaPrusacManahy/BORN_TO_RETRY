@@ -1,0 +1,71 @@
+{
+  "_about": "Update 0.1.17 — the combat sounds' candidates (cut_clips.py; hammerSwing and hammerHit: the hammers' own, not events). Per sound, its sources in order: candidate 1 is the first take of the first source. 'takes': which takes (1-based) of those found; 'at': a stretch [from, to] s; 'len': the most it keeps (s). The game plays the picks in src/audio/clipPicks.ts.",
+  "_keep": {"hitJab": [2], "hitFinisher": [4], "hitHeavy": [2], "kill": [2], "slash": [3], "hitSlash": [6], "hammerSwing": [1], "hammerHit": [4], "smash": [2], "slamImpact": [5], "bruteSlam": [1], "gruntWindup": [2], "gruntStrike": [3]},
+  "hitJab": [
+    { "lib": "Cinematic Fight", "file": "Punch, Body", "len": 0.4, "snap": 0.3 },
+    { "lib": "Anime Game", "file": "Punch Impact", "len": 0.45, "snap": 0.3 },
+    { "lib": "Tower Defense", "file": "Blood Spill", "len": 0.3, "snap": 0.3 }
+  ],
+  "hitFinisher": [
+    { "lib": "Anime Game", "file": "Punch Impact", "len": 0.6, "snap": 0.3 },
+    { "lib": "Cinematic Fight", "file": "Punch, Body", "takes": [2, 4], "len": 0.45, "snap": 0.3 },
+    { "lib": "Halloween", "file": "Gore Designed", "takes": [1], "len": 0.6, "snap": 0.3 }
+  ],
+  "hitHeavy": [
+    { "lib": "Halloween", "file": "Gore Designed", "takes": [1], "len": 0.9, "snap": 0.3 },
+    { "lib": "Melee Weapons", "file": "SWING IMPACTS", "takes": [2, 8, 11, 15], "len": 0.9, "snap": 0.8 },
+    { "lib": "Colossal", "file": "Impact Cut", "len": 1.0, "snap": 0.8 }
+  ],
+  "kill": [
+    { "lib": "Anime Game", "file": "Enemy Death", "len": 0.9, "snap": 0.3 },
+    { "lib": "Tower Defense", "file": "Blood Spill", "len": 0.3, "snap": 0.3 },
+    { "lib": "Halloween", "file": "Gore Designed", "takes": [1], "len": 0.7, "snap": 0.3 }
+  ],
+  "slash": [
+    { "lib": "Melee Weapons", "file": "SWING SCRAPE", "len": 0.6 },
+    { "lib": "Tower Defense", "file": "Sword Slice", "len": 0.8 },
+    { "lib": "Ultra Transitions", "file": "Woosh Sweep", "len": 0.3 }
+  ],
+  "hitSlash": [
+    { "lib": "Historical Weapons", "file": "Sword Slide", "len": 0.55, "snap": 0.3 },
+    { "lib": "Melee Weapons", "file": "METAL SWING HIT", "len": 0.9, "snap": 0.8 }
+  ],
+  "hammerSwing": [
+    { "lib": "Colossal", "file": "Woosh Debris", "takes": [1], "len": 0.7 },
+    { "lib": "Elemental Palette", "file": "Wind, Rush", "len": 0.6 },
+    { "lib": "Elemental Palette", "file": "Slow Whoosh", "len": 0.7 }
+  ],
+  "hammerHit": [
+    { "lib": "Melee Weapons", "file": "SWING IMPACTS", "takes": [3, 6, 9, 14, 18], "len": 0.6, "snap": 0.8 },
+    { "lib": "Historical Weapons", "file": "Spear And Stick", "takes": [1, 2, 4], "len": 0.35, "snap": 0.3 },
+    { "lib": "Halloween", "file": "Gore Designed", "takes": [1], "len": 0.7, "snap": 0.3 }
+  ],
+  "smash": [
+    { "lib": "Colossal", "file": "Impact Cut", "len": 1.2, "snap": 0.8 },
+    { "lib": "Trailer Booms", "file": "_075", "takes": [1], "len": 2.2, "snap": 0.3 },
+    { "lib": "Moaning Metal", "file": "Metal Hit Thud", "takes": [1], "len": 2.0, "snap": 0.3 },
+    { "lib": "Melee Weapons", "file": "SWING IMPACTS", "takes": [11, 17], "len": 1.0, "snap": 0.8 }
+  ],
+  "slamImpact": [
+    { "lib": "Trailer Booms", "file": "_075", "takes": [1], "len": 1.8, "snap": 0.3 },
+    { "lib": "Trailer Booms", "file": "_214", "takes": [1], "len": 1.8, "snap": 0.3 },
+    { "lib": "Trailer Booms", "file": "_011", "takes": [1], "len": 1.8, "snap": 0.3 },
+    { "lib": "Bass Drops & Downers Vol. 1", "file": "Fast 16", "len": 1.5, "snap": 0.3 },
+    { "lib": "Colossal", "file": "Impact Cut", "len": 1.0, "snap": 0.8 }
+  ],
+  "bruteSlam": [
+    { "lib": "Moaning Metal", "file": "Metal Hit Thud", "takes": [1], "len": 1.6, "snap": 0.3 },
+    { "lib": "Trailer Booms", "file": "_214", "takes": [1], "len": 1.6, "snap": 0.3 },
+    { "lib": "Colossal", "file": "Impact Cut", "len": 1.0, "snap": 0.8 }
+  ],
+  "gruntWindup": [
+    { "lib": "Humanoid Creatures", "file": "Orc Male Attack", "len": 0.9 },
+    { "lib": "Vox Bestiae", "file": "Violent Humanoid", "len": 0.45 },
+    { "lib": "Halloween", "file": "Werewolf", "at": [0.19, 1.1], "len": 0.9 }
+  ],
+  "gruntStrike": [
+    { "lib": "Colossal", "file": "Woosh Debris", "takes": [1], "len": 0.6 },
+    { "lib": "Melee Weapons", "file": "SWING SCRAPE", "len": 0.5 },
+    { "lib": "Melee Weapons", "file": "SWING IMPACTS", "takes": [5, 12], "len": 0.6 }
+  ]
+}

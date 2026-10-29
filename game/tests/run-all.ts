@@ -47,5 +47,6 @@ import './test-exec-grip';
 import './test-executions';
 import './test-death';
 import './test-crowd';
+import './test-sounds';
 
 process.exit(summary() > 0 ? 1 : 0);

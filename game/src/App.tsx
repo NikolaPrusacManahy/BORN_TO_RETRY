@@ -32,6 +32,7 @@ import { TuningPanel } from './screens/TuningPanel';
 import { useLabDock } from './screens/useLabDock';
 import { useRunStart } from './screens/useRunStart';
 import { RunLoader } from './screens/RetryArrow';
+import { useMusic } from './screens/useMusic';
 import { DebugOverlay } from './screens/DebugOverlay';
 import { Settings, loadSave, writeSave } from './state/settings';
 import { devKeyAction, devToolsEnabled } from './state/devTools';
@@ -82,6 +83,8 @@ export default function App() {
     [go],
   );
   const run = useRunStart(getGame, setBlack, enterRun, FADE_OUT);
+  /** Update 0.1.17 — the menus' music (useMusic.ts). */
+  useMusic(phase, run.starting);
 
   const play = useCallback(async () => {
     const ok = await getGame()?.lock();

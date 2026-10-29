@@ -1,0 +1,61 @@
+{
+  "_about": "Update 0.1.17 (batch 6) — the executions: the sting when one is in reach, the grab, the slams into the floor, the throw, the landing, the burst, and the blows (blowPunch, blowChop, blowTear, blowCrush: not events; a smash blow is the ground slam's). As combat.json.",
+  "_keep": {"execReady": [], "execGrab": [], "execSlam": [1], "execThrow": [], "execLand": [5], "execBurst": [3], "blowPunch": [2], "blowChop": [4], "blowTear": [2], "blowCrush": [4]},
+  "execReady": [
+    { "lib": "Death Whistle", "file": "Distortion", "len": 1.0 },
+    { "lib": "System & UI", "file": "Sci-Fi Ping", "len": 0.8 },
+    { "lib": "Cinematic Horn Braams", "file": "Huge-32", "len": 1.2, "snap": 0.5 },
+    { "lib": "Cartoon & Animation", "file": "Bass Down", "len": 0.9 }
+  ],
+  "execGrab": [
+    { "lib": "Velcro", "file": "Rip", "len": 0.3, "snap": 0.3 },
+    { "lib": "Foley T-Shirt", "file": "Movement29", "len": 0.4, "snap": 0.3 },
+    { "lib": "Washing Basket", "file": "Movement43", "takes": [1], "len": 0.4, "snap": 0.3 },
+    { "lib": "Climbing Gear", "file": "Screwing", "takes": [7], "len": 0.5, "snap": 0.3 },
+    { "lib": "Dog Vocalisations", "file": "Grunt", "takes": [1], "len": 0.6 }
+  ],
+  "execSlam": [
+    { "lib": "Melee Weapons", "file": "SWING IMPACTS", "takes": [7, 16, 19], "len": 0.8, "snap": 0.8 },
+    { "lib": "Trailer Booms", "file": "_214", "takes": [1], "len": 1.2, "snap": 0.3 },
+    { "lib": "Bass Drops & Downers Vol. 2", "file": "Fast 12", "len": 1.0, "snap": 0.3 }
+  ],
+  "execThrow": [
+    { "lib": "Elemental Palette", "file": "Slow Whoosh", "len": 0.7 },
+    { "lib": "Air Designed", "file": "Blast Off", "at": [0.31, 1.3], "len": 0.6 },
+    { "lib": "Cartoon & Animation", "file": "Pull Swoosh", "len": 0.6 },
+    { "lib": "Colossal", "file": "Woosh Debris", "takes": [1], "len": 0.7 }
+  ],
+  "execLand": [
+    { "lib": "Dinosaurs Vol. 2", "file": "Eating Meat", "takes": [4, 7], "len": 0.6, "snap": 0.3 },
+    { "lib": "Dinosaurs Vol. 2", "file": "Egg Hatching", "takes": [2], "len": 0.5, "snap": 0.3 },
+    { "lib": "Melee Weapons", "file": "SWING IMPACTS", "takes": [20], "len": 0.6, "snap": 0.8 },
+    { "lib": "Halloween", "file": "Gore Designed", "takes": [1], "len": 0.7, "snap": 0.3 }
+  ],
+  "execBurst": [
+    { "lib": "Fireworks FX", "file": "powerful", "takes": [3, 6, 10], "len": 1.0, "snap": 0.3 },
+    { "lib": "Trailer Booms", "file": "_214", "takes": [1], "len": 1.5, "snap": 0.3 }
+  ],
+  "blowPunch": [
+    { "lib": "Anime Game", "file": "Punch Impact", "len": 0.5, "snap": 0.3 },
+    { "lib": "Melee Weapons", "file": "SWING IMPACTS", "takes": [12, 13], "len": 0.5, "snap": 0.8 },
+    { "lib": "Historical Weapons", "file": "Spear And Stick", "takes": [4], "len": 0.3, "snap": 0.3 }
+  ],
+  "blowChop": [
+    { "lib": "Historical Weapons", "file": "Sword Slide", "takes": [1, 2, 3], "len": 0.45, "snap": 0.3 },
+    { "lib": "Christmas Cracker", "file": "Pull_WithBang", "len": 0.3, "snap": 0.3 },
+    { "lib": "Interface & Infographics", "file": "Percussion", "len": 0.4 }
+  ],
+  "blowTear": [
+    { "lib": "Velcro", "file": "Rip", "len": 0.3 },
+    { "lib": "Velcro", "file": "Squeeze", "at": [0.32, 5.68], "len": 0.6, "snap": 0.8 },
+    { "lib": "Paper Foley", "file": "A4", "len": 0.6 },
+    { "lib": "Paper Foley", "file": "Newspaper", "at": [0.09, 4.4], "len": 0.6, "snap": 0.8 },
+    { "lib": "Dinosaurs Vol. 2", "file": "Eating Meat", "takes": [2], "len": 0.6 }
+  ],
+  "blowCrush": [
+    { "lib": "Dinosaurs Vol. 2", "file": "Eating Meat", "takes": [1, 8], "len": 0.5, "snap": 0.3 },
+    { "lib": "Dinosaurs Vol. 2", "file": "Egg Hatching", "takes": [1], "len": 0.3, "snap": 0.3 },
+    { "lib": "Halloween", "file": "Gore Designed", "takes": [1], "len": 0.6, "snap": 0.3 },
+    { "lib": "Washing Basket", "file": "Movement43", "takes": [2], "len": 0.3, "snap": 0.3 }
+  ]
+}

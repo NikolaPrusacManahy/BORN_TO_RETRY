@@ -1,0 +1,89 @@
+{
+  "_about": "Update 0.1.17 (batch 4) — the enemies' warnings and attacks (every attack is heard coming: the designer's goal, deaths you learn from). As combat.json; 'bite' is the Snake's and the Spider's bite (not an event).",
+  "_keep": {"spitterWindup": [3], "spit": [2], "bruteWindup": [2], "leaperWindup": [4], "leaperLand": [4], "stingerWindup": [2], "stingerDive": [1], "wraithWindup": [3], "slimeWindup": [1], "slimeBlast": [1], "frogWindup": [1], "frogTongue": [1], "snakeWindup": [2], "bite": [5], "spiderWindup": [3], "waspWindup": [3]},
+  "spitterWindup": [
+    { "lib": "Vox Bestiae", "file": "Aquatic", "at": [0.01, 3.68], "len": 0.8, "snap": 0.8 },
+    { "lib": "Synthesized Nature", "file": "Frog Echo", "len": 0.4 },
+    { "lib": "Humanoid Creatures", "file": "Screeching Breath", "len": 0.9 },
+    { "lib": "Elemental Palette", "file": "Water, Liquid", "len": 0.7 }
+  ],
+  "spit": [
+    { "lib": "Cartoon & Animation", "file": "Bubbles", "takes": [2], "len": 0.3, "snap": 0.3 },
+    { "lib": "Elemental Palette", "file": "Water, Liquid", "len": 0.5, "snap": 0.3 },
+    { "lib": "Elemental Mutation", "file": "Impact Water", "len": 0.6, "snap": 0.3 }
+  ],
+  "bruteWindup": [
+    { "lib": "Halloween", "file": "Werewolf", "at": [0.19, 5.7], "len": 1.0, "snap": 0.8 },
+    { "lib": "Dog Vocalisations", "file": "Grunt", "takes": [2], "len": 1.0 },
+    { "lib": "Dinosaurs Vol. 1", "file": "T Rex", "len": 1.0, "snap": 0.8 },
+    { "lib": "Anime Game", "file": "Tentacle", "len": 1.0 }
+  ],
+  "leaperWindup": [
+    { "lib": "Humanoid Creatures", "file": "Screeching Breath", "len": 0.9 },
+    { "lib": "Dinosaurs Vol. 1", "file": "Raptor", "len": 0.8, "snap": 0.5 },
+    { "lib": "Dinosaurs Vol. 1", "file": "Hatchling", "takes": [2], "len": 0.7 },
+    { "lib": "Death Whistle", "file": "DryPitch", "len": 0.8 }
+  ],
+  "leaperLand": [
+    { "lib": "Melee Weapons", "file": "SWING IMPACTS", "takes": [6, 9], "len": 0.5, "snap": 0.8 },
+    { "lib": "Haunting Ambiences Vol. 3", "file": "Wooden Hit", "takes": [3], "len": 0.5, "snap": 0.3 },
+    { "lib": "Historical Weapons", "file": "Spear And Stick", "takes": [2], "len": 0.3, "snap": 0.3 }
+  ],
+  "stingerWindup": [
+    { "lib": "Toy Quadcopter", "file": "Flying Sustained", "at": [1.0, 3.0], "len": 0.8 },
+    { "lib": "InMotionAudio - Arc", "file": "Buzz27", "at": [0.0, 9.8], "len": 0.8, "snap": 0.8 },
+    { "lib": "Vox Bestiae", "file": "Insectoid", "len": 0.9 }
+  ],
+  "stingerDive": [
+    { "lib": "Elemental Palette", "file": "Wind, Rush", "len": 0.5 },
+    { "lib": "Cartoon & Animation", "file": "Pull Swoosh", "len": 0.5 },
+    { "lib": "Air Designed", "file": "Unidentified", "at": [5.0, 58.0], "len": 0.6, "snap": 0.8 }
+  ],
+  "wraithWindup": [
+    { "lib": "Vox Bestiae", "file": "Ethereal", "len": 1.0 },
+    { "lib": "Death Whistle", "file": "Drone", "at": [0.04, 16.1], "len": 1.0, "snap": 0.8 },
+    { "lib": "Ghostly Presences", "file": "Evil Spell", "at": [10.0, 60.0], "len": 1.0, "snap": 0.8 },
+    { "lib": "Halloween", "file": "Alert Designed", "len": 1.0, "snap": 0.3 }
+  ],
+  "slimeWindup": [
+    { "lib": "Vox Bestiae", "file": "Aquatic", "at": [0.01, 3.68], "len": 0.7 },
+    { "lib": "Cartoon & Animation", "file": "Bubbles", "takes": [1, 2], "len": 0.3 },
+    { "lib": "Elemental Mutation", "file": "Impact Water", "len": 0.7 }
+  ],
+  "slimeBlast": [
+    { "lib": "Elemental Mutation", "file": "Impact Water", "len": 0.8, "snap": 0.3 },
+    { "lib": "Elemental Palette", "file": "Water, Liquid", "len": 0.6, "snap": 0.3 },
+    { "lib": "Dinosaurs Vol. 2", "file": "Egg Hatching", "takes": [2], "len": 0.5, "snap": 0.3 },
+    { "lib": "Dinosaurs Vol. 2", "file": "Eating Meat", "takes": [1], "len": 0.6, "snap": 0.3 }
+  ],
+  "frogWindup": [
+    { "lib": "Synthesized Nature", "file": "Frog Echo", "len": 0.4 },
+    { "lib": "Vox Bestiae", "file": "Aquatic", "at": [1.5, 3.68], "len": 0.5, "snap": 0.8 },
+    { "lib": "Dinosaurs Vol. 1", "file": "Hatchling", "takes": [1], "len": 0.6 }
+  ],
+  "frogTongue": [
+    { "lib": "Melee Weapons", "file": "WHIP", "len": 0.5, "snap": 0.3 },
+    { "lib": "Cartoon & Animation", "file": "Pull Swoosh", "len": 0.5 },
+    { "lib": "Elemental Palette", "file": "Wind, Rush", "len": 0.4 }
+  ],
+  "snakeWindup": [
+    { "lib": "Humanoid Creatures", "file": "Screeching Breath", "len": 0.4 },
+    { "lib": "Elemental Palette", "file": "Wind, Rush", "len": 0.35 },
+    { "lib": "Death Whistle", "file": "DryPitch", "len": 0.4 }
+  ],
+  "bite": [
+    { "lib": "Dinosaurs Vol. 2", "file": "Eating Meat", "takes": [1, 4, 7], "len": 0.4, "snap": 0.3 },
+    { "lib": "Dinosaurs Vol. 2", "file": "Egg Hatching", "takes": [1], "len": 0.2, "snap": 0.3 },
+    { "lib": "Cinematic Fight", "file": "Punch, Body", "takes": [1, 3], "len": 0.3, "snap": 0.3 }
+  ],
+  "spiderWindup": [
+    { "lib": "Vox Bestiae", "file": "Insectoid", "len": 0.9 },
+    { "lib": "Anime Game", "file": "Tentacle", "len": 0.9 },
+    { "lib": "InMotionAudio - Arc", "file": "Buzz27", "at": [0.0, 9.8], "len": 0.8 }
+  ],
+  "waspWindup": [
+    { "lib": "Toy Quadcopter", "file": "Flying Sustained", "at": [3.0, 5.0], "len": 0.8 },
+    { "lib": "Vox Bestiae", "file": "Insectoid", "len": 0.8, "snap": 0.8 },
+    { "lib": "InMotionAudio - Arc", "file": "Buzz27", "at": [3.0, 9.8], "len": 0.8 }
+  ]
+}
