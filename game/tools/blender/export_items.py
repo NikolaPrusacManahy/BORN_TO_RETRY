@@ -32,6 +32,11 @@ ITEMS = {
     'item_hammer': ('Hammer_Double', 1.0, {}),
     # Update 0.1.9 — the Dual Daggers (one; the game crosses two, engine/pairLook.ts), 1.6x the first size (the designer).
     'item_daggers': ('Dagger', 0.96, {}),
+    # Update 0.1.10 — the Gold Hammer and the Gold Daggers.
+    'item_goldHammer': ('Hammer_Double_Golden', 1.0, {}),
+    'item_goldDaggers': ('Dagger_Golden', 0.96, {}),
+    # Update 0.1.10 — the Great Heart (a chest's better heart): the heart, bigger and brighter.
+    'item_greatHeart': ('Heart', 0.6, {'Red': (1.0, 0.06, 0.22)}),
     'item_redRing': ('Ring3', 0.36, {}),
     'item_blueRing': ('Ring4', 0.36, {'Cyan': (0.08, 0.25, 1.0)}),
     'item_greenRing': ('Ring6', 0.36, {'Green': (0.1, 0.85, 0.2)}),

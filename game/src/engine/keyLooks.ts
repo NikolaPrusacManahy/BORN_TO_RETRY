@@ -2,7 +2,7 @@
 // the white key pale silver in a blue aura, the gold key gold in a yellow aura. Built once from items.glb's key and
 // cloned wherever a key shows (the shop, the floor, flying to you, in your palm).
 // Update 0.0.17 — the kill bonuses glow too: the snowflake pale blue, the gold ingots yellow, the blue potion blue.
-// Update 0.1.9 — the Dual Daggers show as two crossed (pairLook.ts).
+// Update 0.1.9 — the Dual Daggers show as two crossed (pairLook.ts). Update 0.1.10 — the Great Heart glows.
 import * as THREE from 'three';
 import { crossedPair } from './pairLook';
 import type { KeyKind } from '../sim/items/items';
@@ -17,6 +17,8 @@ const METAL: Record<KeyKind, { color: number; metal: number; rough: number; glow
 };
 export const AURA: Record<KeyKind, number | null> = { key: null, whiteKey: 0x4d9dff, goldKey: 0xffd23a };
 const BONUS_AURA: Record<BonusKind, number> = { snowflake: 0x9ad8ff, goldIngots: 0xffcf3a, bluePotion: 0x3d7bff };
+/** Update 0.1.10 — the Great Heart's glow (a chest's better heart). */
+const GREAT_HEART_AURA = 0xff5a8a;
 /** The aura's size, against the key's length. */
 const AURA_SIZE = 2.2;
 
@@ -72,8 +74,8 @@ function addAura(look: THREE.Object3D, around: THREE.Object3D, colour: number) {
   look.add(sprite);
 }
 
-/** A kill bonus's look: as it comes, in its glow. */
-function bonusLook(kind: BonusKind, proto: THREE.Object3D): THREE.Object3D {
+/** A kill bonus's look (Update 0.1.10 — or the Great Heart's): as it comes, in its glow. */
+function bonusLook(kind: BonusKind | 'greatHeart', proto: THREE.Object3D): THREE.Object3D {
   const look = new THREE.Group();
   look.name = `item_${kind}`;
   const body = proto.clone();
@@ -81,7 +83,7 @@ function bonusLook(kind: BonusKind, proto: THREE.Object3D): THREE.Object3D {
   // The snowflake stands up to face you as it turns.
   if (kind === 'snowflake') body.rotation.set(Math.PI / 2, 0, 0);
   look.add(body);
-  addAura(look, body, BONUS_AURA[kind]);
+  addAura(look, body, kind === 'greatHeart' ? GREAT_HEART_AURA : BONUS_AURA[kind]);
   return look;
 }
 
@@ -90,7 +92,12 @@ export function itemLooks(protos: Partial<Record<DropKind, THREE.Object3D>>): Pa
   const out = { ...protos };
   const key = protos.key;
   if (key) Object.assign(out, { key: keyLook('key', key), whiteKey: keyLook('whiteKey', key), goldKey: keyLook('goldKey', key) });
-  if (protos.daggers) out.daggers = crossedPair(protos.daggers);
+  // (Update 0.1.10 — the gold pair too.)
+  for (const kind of ['daggers', 'goldDaggers'] as const) {
+    const p = protos[kind];
+    if (p) out[kind] = crossedPair(p);
+  }
+  if (protos.greatHeart) out.greatHeart = bonusLook('greatHeart', protos.greatHeart);
   for (const kind of ['snowflake', 'goldIngots', 'bluePotion'] as BonusKind[]) {
     const p = protos[kind];
     if (p) out[kind] = bonusLook(kind, p);

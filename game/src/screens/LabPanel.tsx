@@ -43,6 +43,7 @@ const ENEMIES: [EnemyKind, string][] = [
 ];
 const ITEMS: [DropKind, string][] = [
   ['heart', 'Heart'],
+  ['greatHeart', 'Great heart'],
   ['plate', 'Plate'],
   ['goldPlate', 'Gold armour'],
   ['redRing', 'Red ring'],
@@ -63,6 +64,8 @@ const WEAPONS: [WeaponKind, string][] = [
   ['goldAxe', 'Gold axe'],
   ['hammer', 'Hammer'],
   ['daggers', 'Dual daggers'],
+  ['goldHammer', 'Gold hammer'],
+  ['goldDaggers', 'Gold daggers'],
 ];
 const COUNTS = [1, 3, 5];
 const FLOORS = [1, 2, 3];

@@ -131,7 +131,7 @@ export const DAGGER_MOVES: MoveSet = {
 };
 
 /** (The Grimoire is held its own way, bookArms.ts; the sword's set stands in.) */
-export const MOVES: Record<WeaponKind, MoveSet> = { sword: SWORD_MOVES, goldSword: SWORD_MOVES, grimoire: SWORD_MOVES, goldAxe: AXE_MOVES, hammer: HAMMER_MOVES, daggers: DAGGER_MOVES };
+export const MOVES: Record<WeaponKind, MoveSet> = { sword: SWORD_MOVES, goldSword: SWORD_MOVES, grimoire: SWORD_MOVES, goldAxe: AXE_MOVES, hammer: HAMMER_MOVES, daggers: DAGGER_MOVES, goldHammer: HAMMER_MOVES, goldDaggers: DAGGER_MOVES };
 
 /** The moves of the weapon model in hand (the sword's if it doesn't say). */
 export function movesOf(model: Object3D | null): MoveSet {

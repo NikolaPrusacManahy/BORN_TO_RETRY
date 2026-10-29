@@ -2,9 +2,11 @@
 // model, flying point first along its path, stuck in a wall where it hit one. It leaves from the hand that threw it
 // (where the arms hold it) and joins its true path over LAUNCH s. Drawn as one instanced mesh per part of the model, so
 // a stream of them costs a few draw calls; nothing made per frame.
+// Update 0.1.10 — each in its own pair's model: the Gold Daggers' fly gold.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { CombatState } from '../sim/combat/state';
+import { VOLLEYS, WEAPON_KINDS, WeaponKind } from '../sim/weapons/catalog';
 import { KNIFE_POOL } from '../sim/weapons/knives';
 import type { Viewmodel } from './viewmodel/viewmodel';
 import { WEAPON_URL } from './weaponsView';
@@ -20,11 +22,16 @@ const quat = new THREE.Quaternion();
 const scale = new THREE.Vector3();
 const fly = new THREE.Vector3();
 
+/** One model's daggers: an instanced mesh per part, each part's place in the model, and how many are drawn. */
+interface Look {
+  parts: THREE.InstancedMesh[];
+  partM: THREE.Matrix4[];
+  n: number;
+}
+
 export class KnivesView {
   readonly group = new THREE.Group();
-  private readonly parts: THREE.InstancedMesh[] = [];
-  /** Each part's place in the model. */
-  private readonly partM: THREE.Matrix4[] = [];
+  private readonly looks: Partial<Record<WeaponKind, Look>> = {};
   /** Per knife slot: its life last frame (a throw resets it), seconds since it left the hand (−1: on its own), and
    *  where the hand let it go. */
   private readonly lastLife = new Array<number>(KNIFE_POOL).fill(0);
@@ -42,14 +49,18 @@ export class KnivesView {
   ) {
     scene.add(this.group);
     if (loadModel) {
-      void new GLTFLoader()
-        .loadAsync(WEAPON_URL.daggers)
-        .then((gltf) => this.attach(gltf.scene))
-        .catch((err) => console.error('thrown dagger failed to load', err));
+      const loader = new GLTFLoader();
+      for (const kind of WEAPON_KINDS.filter((k) => VOLLEYS[k])) {
+        void loader
+          .loadAsync(WEAPON_URL[kind])
+          .then((gltf) => this.attach(gltf.scene, kind))
+          .catch((err) => console.error(`thrown ${kind} failed to load`, err));
+      }
     }
   }
 
-  attach(model: THREE.Object3D) {
+  attach(model: THREE.Object3D, kind: WeaponKind = 'daggers') {
+    const look: Look = { parts: [], partM: [], n: 0 };
     model.updateMatrixWorld(true);
     model.traverse((o) => {
       if (!(o instanceof THREE.Mesh)) return;
@@ -58,14 +69,18 @@ export class KnivesView {
       part.frustumCulled = false;
       part.castShadow = true;
       part.count = 0;
-      this.parts.push(part);
-      this.partM.push(o.matrixWorld.clone());
+      look.parts.push(part);
+      look.partM.push(o.matrixWorld.clone());
       this.group.add(part);
     });
+    this.looks[kind] = look;
   }
 
   update(state: CombatState, dt: number) {
-    let n = 0;
+    for (const kind of WEAPON_KINDS) {
+      const look = this.looks[kind];
+      if (look) look.n = 0;
+    }
     for (let i = 0; i < state.knives.length; i++) {
       const k = state.knives[i];
       const thrown = k.alive && !k.stuck && k.life > this.lastLife[i] + 1e-6;
@@ -86,13 +101,19 @@ export class KnivesView {
         s = this.fromScale[i] + (1 - this.fromScale[i]) * e;
         if (t >= 1) this.launch[i] = -1;
       }
+      const look = this.looks[k.kind] ?? this.looks.daggers;
+      if (!look) continue;
       m.compose(pos, quat, scale.setScalar(s));
-      for (let p = 0; p < this.parts.length; p++) this.parts[p].setMatrixAt(n, handM.multiplyMatrices(m, this.partM[p]));
-      n++;
+      for (let p = 0; p < look.parts.length; p++) look.parts[p].setMatrixAt(look.n, handM.multiplyMatrices(m, look.partM[p]));
+      look.n++;
     }
-    for (const part of this.parts) {
-      part.count = n;
-      part.instanceMatrix.needsUpdate = true;
+    for (const kind of WEAPON_KINDS) {
+      const look = this.looks[kind];
+      if (!look) continue;
+      for (const part of look.parts) {
+        part.count = look.n;
+        part.instanceMatrix.needsUpdate = true;
+      }
     }
   }
 
@@ -111,11 +132,11 @@ export class KnivesView {
   clear() {
     this.lastLife.fill(0);
     this.launch.fill(-1);
-    for (const part of this.parts) part.count = 0;
+    for (const kind of WEAPON_KINDS) for (const part of this.looks[kind]?.parts ?? []) part.count = 0;
   }
 
   dispose() {
     this.group.removeFromParent();
-    for (const part of this.parts) part.dispose();
+    for (const kind of WEAPON_KINDS) for (const part of this.looks[kind]?.parts ?? []) part.dispose();
   }
 }

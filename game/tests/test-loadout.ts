@@ -11,11 +11,12 @@ import { CombatIntent, emptyCombatIntent } from '../src/sim/combat/fists';
 import { createCombat, CombatState } from '../src/sim/combat/state';
 import { stepCombat } from '../src/sim/combat/step';
 import { emptyTargetHit, landHit } from '../src/sim/combat/strike';
-import { RARITIES, rollLoot } from '../src/sim/dungeon/loot';
+import { RARITIES, rollLoot, TIER } from '../src/sim/dungeon/loot';
+import { RARITY_COLOUR } from '../src/engine/treasureFx';
 import { createTreasure } from '../src/sim/dungeon/treasure';
 import { coinsFor, hasteFactor, rollBonus, takeBonus } from '../src/sim/items/bonuses';
 import { dropItem, updateDrops } from '../src/sim/items/drops';
-import { attackRate, takeItem } from '../src/sim/items/items';
+import { attackRate, ItemKind, priceOf, takeItem } from '../src/sim/items/items';
 import { isLive, spawnEnemy } from '../src/sim/enemies/enemy';
 import { maxHpOf } from '../src/sim/player/health';
 import { createPlayer, PlayerState } from '../src/sim/player/state';
@@ -63,7 +64,8 @@ section('Loadout — less gold');
   check(`with gold ingots on, ${BONUS.v.goldBoost * 100}% more`, near(sum / 4000, 3, 0.06), (sum / 4000).toFixed(3));
   const coins = new Set<number>();
   for (let i = 0; i < 400; i++) {
-    const l = rollLoot('key', [0, i / 400, i / 400]);
+    // (Update 0.1.10 — a common chest holds coins, a heart or a plate: the coins' own roll picks the amount.)
+    const l = rollLoot('key', [0, 0, i / 400]);
     if (!l.item) coins.add(l.coins);
   }
   check('a chest of coins holds 10, 20, 30 or 40', [...coins].sort((a, b) => a - b).join() === '10,20,30,40');
@@ -113,7 +115,8 @@ section('Loadout — chests and the shop');
   const rng = createRng(9);
   for (let i = 0; i < 20000; i++) items.add(rollLoot('key', [rng(), rng(), rng()]).item ?? 'coins');
   check('chests can hold the gold armour and every ring', ['goldPlate', 'redRing', 'blueRing', 'greenRing', 'purpleRing', 'goldSword', 'heart', 'plate', 'coins'].every((k) => items.has(k)), [...items].join(', '));
-  check('the gold armour is rare, the rings epic', rollLoot('goldKey', [0.5, 0.99, 0]).item === 'purpleRing' && RARITIES.length === 5);
+  // (Update 0.1.10 — the designer's sort: the gold armour uncommon, every ring rare.)
+  check('the gold armour is uncommon, the rings rare', TIER.uncommon.includes('goldPlate') && ['redRing', 'blueRing', 'greenRing', 'purpleRing'].every((r) => TIER.rare.includes(r as never)) && RARITIES.length === 5);
   const shop = new Set<string>();
   for (let seed = 1; seed <= 200; seed++) for (const o of createTreasure(buildDungeon(planFloor(seed, 1)), createRng(seed)).offers) shop.add(o.kind);
   check('the shop shows them too', ['goldPlate', 'greenRing', 'purpleRing', 'redRing', 'blueRing', 'goldSword'].every((k) => shop.has(k)), [...shop].join(', '));
@@ -219,4 +222,33 @@ section('Loadout — weapon slots');
   step(c, p, w, { slotPressed: 3 });
   takeItem('goldSword', p, c);
   check('all full: the new one takes the place of the one in your hand, which falls at your feet', c.slot === 3 && c.weapon?.kind === 'goldSword' && c.pickups.some((q) => q.alive && q.uses === 3));
+}
+
+section('The designer sort (Update 0.1.10)');
+{
+  // The shop's prices on floor 1, as the designer listed them.
+  const want: [number, ItemKind[]][] = [
+    [45, ['heart', 'plate', 'hammer', 'key']],
+    [65, ['redRing', 'blueRing', 'greenRing', 'purpleRing', 'daggers', 'whiteKey']],
+    [80, ['goldSword', 'goldPlate', 'goldKey']],
+    [100, ['goldHammer', 'goldAxe']],
+    [110, ['grimoire', 'goldDaggers']],
+  ];
+  const wrong = want.flatMap(([price, kinds]) => kinds.filter((k) => priceOf(k, 1) !== price).map((k) => `${k} ${priceOf(k, 1)}`));
+  check('shop prices: 45, 65, 80, 100 and 110 as listed', wrong.length === 0, wrong.join(', '));
+  const shop = new Set<string>();
+  for (let seed = 1; seed <= 200; seed++) for (const o of createTreasure(buildDungeon(planFloor(seed, 1)), createRng(seed)).offers) shop.add(o.kind);
+  check('the shop sells the Gold Hammer and the Gold Daggers too', shop.has('goldHammer') && shop.has('goldDaggers'));
+  const tiers = RARITIES.map((r) => `${r}: ${TIER[r].join(' ')}`).join('; ');
+  check('chests: common coins, heart, plate; uncommon gold armour, Great Heart; rare gold sword, rings; epic Gold Axe, Gold Hammer; mythic Gold Daggers, Grimoire',
+    tiers === 'common: coins heart plate; uncommon: goldPlate greatHeart; rare: goldSword redRing blueRing greenRing purpleRing; epic: goldAxe goldHammer; mythic: goldDaggers grimoire', tiers);
+  check('mythic replaces legendary, and its glow is red', RARITIES[4] === 'mythic' && RARITY_COLOUR.mythic === 0xff2a2a);
+  const c = createCombat(bare);
+  const p = createPlayer(0, 0, 0, 0);
+  p.hp = 10;
+  takeItem('greatHeart', p, c);
+  const full = p.hp === maxHpOf(p);
+  p.hp = 10;
+  takeItem('heart', p, c);
+  check(`the Great Heart heals ${ITEMS.v.greatHeartHeal * 100}% (the heart ${ITEMS.v.heartHeal * 100}%)`, full && p.hp < maxHpOf(p));
 }

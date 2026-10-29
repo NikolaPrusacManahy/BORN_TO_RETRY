@@ -34,21 +34,21 @@ function AxeIcon() {
   );
 }
 
-/** Update 0.1.5 — the Hammer: a great double head on a long handle. */
-function HammerIcon() {
+/** Update 0.1.5 — the Hammer: a great double head on a long handle. (Update 0.1.10 — gold for the Gold Hammer.) */
+function HammerIcon({ gold }: { gold: boolean }) {
   return (
     <svg viewBox="0 0 32 32" className="rb-slot-icon">
       <path d="M16 13v17" stroke="#7a4a36" strokeWidth="3" strokeLinecap="round" />
-      <rect x="4" y="4" width="24" height="10" rx="2" fill="#b4bdd6" stroke="#3a4050" strokeWidth="1.5" />
+      <rect x="4" y="4" width="24" height="10" rx="2" fill={gold ? '#f0c43a' : '#b4bdd6'} stroke={gold ? '#6a4a10' : '#3a4050'} strokeWidth="1.5" />
     </svg>
   );
 }
 
-/** Update 0.1.9 — the Dual Daggers: two short blades crossed. */
-function DaggersIcon() {
+/** Update 0.1.9 — the Dual Daggers: two short blades crossed. (Update 0.1.10 — gold for the Gold Daggers.) */
+function DaggersIcon({ gold }: { gold: boolean }) {
   return (
     <svg viewBox="0 0 32 32" className="rb-slot-icon">
-      <path d="M6 4l3-1 11 13-2.5 2.5zM26 4l-3-1-11 13 2.5 2.5z" fill="#d6dde6" stroke="#2a2018" strokeWidth="1.3" />
+      <path d="M6 4l3-1 11 13-2.5 2.5zM26 4l-3-1-11 13 2.5 2.5z" fill={gold ? '#ffcf4a' : '#d6dde6'} stroke="#2a2018" strokeWidth="1.3" />
       <path d="M13 21l-6 6M19 21l6 6" stroke="#6a3a3a" strokeWidth="3.2" strokeLinecap="round" />
       <path d="M10 17l5 5M22 17l-5 5" stroke="#8a8a80" strokeWidth="2" strokeLinecap="round" />
     </svg>
@@ -76,7 +76,7 @@ export function WeaponSlots({ slots, slot }: { slots: (HudSlot | null)[]; slot: 
         s ? (
           <span key={i} className={`rb-slot${slot === i + 1 ? ' is-on' : ''}${s.uses <= 0 ? ' is-broken' : ''}`}>
             <i className="rb-slot-n">{i + 2}</i>
-            {s.kind === 'grimoire' ? <BookIcon /> : s.kind === 'goldAxe' ? <AxeIcon /> : s.kind === 'hammer' ? <HammerIcon /> : s.kind === 'daggers' ? <DaggersIcon /> : <SwordIcon gold={s.kind === 'goldSword'} />}
+            {s.kind === 'grimoire' ? <BookIcon /> : s.kind === 'goldAxe' ? <AxeIcon /> : s.kind === 'hammer' || s.kind === 'goldHammer' ? <HammerIcon gold={s.kind === 'goldHammer'} /> : s.kind === 'daggers' || s.kind === 'goldDaggers' ? <DaggersIcon gold={s.kind === 'goldDaggers'} /> : <SwordIcon gold={s.kind === 'goldSword'} />}
             <b className="rb-slot-uses">{s.uses}</b>
           </span>
         ) : null,

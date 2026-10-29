@@ -1,13 +1,14 @@
 // Update 0.0.16 — two things the treasure shows (the designer): an item lying on the floor (the Yeti's key) turning
 // and bobbing where it fell; and a chest's light as its lid opens, in the colour of its rarity: none for common, green
 // for uncommon, blue for rare, purple for epic, yellow for legendary (a light and a column of glow).
+// Update 0.1.10 — mythic replaces legendary, and its colour is red (the designer).
 import * as THREE from 'three';
 import type { Chest } from '../sim/dungeon/treasure';
 import type { Rarity } from '../sim/dungeon/loot';
 import type { Drop, DropKind } from '../sim/items/drops';
 import { ITEMS } from '../tuning/items';
 
-export const RARITY_COLOUR: Record<Rarity, number | null> = { common: null, uncommon: 0x3dff6a, rare: 0x3d8bff, epic: 0xb04dff, legendary: 0xffd23d };
+export const RARITY_COLOUR: Record<Rarity, number | null> = { common: null, uncommon: 0x3dff6a, rare: 0x3d8bff, epic: 0xb04dff, mythic: 0xff2a2a };
 /** A floor item's height (m), bob and turn. */
 const FLOAT = 0.6;
 const TURN = 1.6;

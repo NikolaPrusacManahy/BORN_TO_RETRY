@@ -18,7 +18,8 @@ export const WEAPONS = group('weapons', 'Weapons', {
   swordPierceWidth: knob(0.5, 0.1, 2, 0.05, 'Sword pierce width', 'How wide the thrust is (m): narrower than a slash.'),
   swordPierceUses: knob(2, 1, 5, 1, 'Sword pierce cost', 'Uses a pierce that lands takes.'),
   // Update 0.0.12 — the designer: a picked-up weapon has 4 uses (was 20 on the stand, 8–20 dropped).
-  swordUses: knob(4, 1, 100, 1, 'Sword uses', 'Uses of a sword you pick up (from a stand or a drop).'),
+  // Update 0.1.10 — the designer: 10 (was 4).
+  swordUses: knob(10, 1, 100, 1, 'Sword uses', 'Uses of a sword you pick up (from a stand or a drop).'),
   throwWindup: knob(0.12, 0, 0.4, 0.01, 'Throw wind-up', 'Seconds from the press to the weapon leaving the hand (drawn back, then thrust).'),
   throwSpeed: knob(30, 5, 80, 1, 'Throw speed', 'How fast a thrown weapon flies (m/s).'),
   throwDamage: knob(70, 1, 300, 1, 'Throw damage', 'A thrown weapon hitting something (it breaks on it).'),
@@ -65,7 +66,9 @@ export const WEAPONS = group('weapons', 'Weapons', {
   axeReturnSpeed: knob(40, 5, 100, 1, 'Axe return speed', 'How fast it flies back (m/s).'),
   axeReturnPull: knob(0.25, 0, 1, 0.01, 'Axe return pull', 'Seconds it takes to reach that speed.'),
   axeSpin: knob(18, 0, 60, 1, 'Axe throw spin', 'End over end as it flies out (rad/s; looks only).'),
-  hammerUses: knob(20, 1, 100, 1, 'Hammer uses', 'Hits a Hammer takes (a smash takes more).'),
+  // Update 0.1.10 — the designer: 15 (was 20); the Gold Hammer 35.
+  hammerUses: knob(15, 1, 100, 1, 'Hammer uses', 'Hits a Hammer takes (a smash takes more).'),
+  goldHammerUses: knob(35, 1, 200, 1, 'Gold Hammer uses', 'Hits a Gold Hammer takes (a smash takes more).'),
   hammerDamage: knob(50, 1, 300, 1, 'Hammer swing damage', 'Per swing that lands: heavy.'),
   hammerKnock: knob(18, 0, 60, 0.5, 'Hammer swing knock', 'How hard a swing pushes (m/s).'),
   hammerReach: knob(3.5, 1, 5, 0.05, 'Hammer reach', 'How far a swing reaches from the eye (m).'),
@@ -84,7 +87,9 @@ export const WEAPONS = group('weapons', 'Weapons', {
   // mainly thrown: right click held about 3 s throws a stream of 20 in a steady rhythm (the Trickster's Main Event in
   // Dead by Daylight). It replaces the first build's twin stab.
   // (Then the designer: 100 daggers to a pair, 25 a volley, held 1.5 s; thrown half as fast, then back to 0.12 s.)
-  daggerUses: knob(100, 1, 400, 1, 'Daggers uses', 'Daggers a pair holds: each thrown is one, and each cut that lands.'),
+  // (Update 0.1.10 — the designer: 30 (was 100); the Gold Daggers 90.)
+  goldDaggerUses: knob(90, 1, 400, 1, 'Gold Daggers uses', 'Daggers a gold pair holds: each thrown is one, and each cut that lands.'),
+  daggerUses: knob(30, 1, 400, 1, 'Daggers uses', 'Daggers a pair holds: each thrown is one, and each cut that lands.'),
   // (The designer: the cuts hit no harder than the fists' jabs (10); doubled: a dummy breaks in 3, a grunt in 2.)
   daggerDamage: knob(20, 1, 100, 1, 'Dagger cut damage', 'Per cut that lands (right, left, right…).'),
   daggerKnock: knob(3, 0, 40, 0.5, 'Dagger cut knock', 'How hard a cut pushes (m/s): little, so you stay on them.'),

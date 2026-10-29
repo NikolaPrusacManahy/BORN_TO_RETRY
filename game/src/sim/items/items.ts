@@ -10,6 +10,8 @@
 // Update 0.0.18 — what each costs (the designer): a normal one 50, a better version 70, the best 100, then 15% more on
 // every floor down (rounded to whole coins).
 // Update 0.1.9 — the Dual Daggers; your run speed (`moveFactor`) counts the weapon in your hand too (theirs is +15%).
+// Update 0.1.10 — the Gold Hammer and the Gold Daggers; the designer's sort: a price for each item (no more grades), and
+// the Great Heart, a chest's better heart (it heals fully).
 import { ITEMS } from '../../tuning/items';
 import type { CombatState } from '../combat/state';
 import { addShield, healPlayer, maxHpOf, maxShield } from '../player/health';
@@ -19,8 +21,8 @@ import { giveWeapon } from '../weapons/slots';
 import { holding } from '../weapons/weapons';
 import { hasteFactor } from './bonuses';
 
-export type ItemKind = 'heart' | 'plate' | 'goldSword' | 'redRing' | 'blueRing' | 'key' | 'whiteKey' | 'goldKey' | 'goldPlate' | 'greenRing' | 'purpleRing' | 'grimoire' | 'goldAxe' | 'hammer' | 'daggers';
-export const ITEM_KINDS: readonly ItemKind[] = ['heart', 'plate', 'goldSword', 'redRing', 'blueRing', 'key', 'whiteKey', 'goldKey', 'goldPlate', 'greenRing', 'purpleRing', 'grimoire', 'goldAxe', 'hammer', 'daggers'];
+export type ItemKind = 'heart' | 'plate' | 'goldSword' | 'redRing' | 'blueRing' | 'key' | 'whiteKey' | 'goldKey' | 'goldPlate' | 'greenRing' | 'purpleRing' | 'grimoire' | 'goldAxe' | 'hammer' | 'daggers' | 'goldHammer' | 'goldDaggers' | 'greatHeart';
+export const ITEM_KINDS: readonly ItemKind[] = ['heart', 'plate', 'goldSword', 'redRing', 'blueRing', 'key', 'whiteKey', 'goldKey', 'goldPlate', 'greenRing', 'purpleRing', 'grimoire', 'goldAxe', 'hammer', 'daggers', 'goldHammer', 'goldDaggers', 'greatHeart'];
 export type KeyKind = 'key' | 'whiteKey' | 'goldKey';
 export const KEY_KINDS: readonly KeyKind[] = ['key', 'whiteKey', 'goldKey'];
 
@@ -81,32 +83,32 @@ export function keyFor(roll: number): KeyKind {
   return r - v.whiteKeyOdds < 0 ? 'whiteKey' : 'goldKey';
 }
 
-/** How good a version each item is: a normal one, a better version of a normal one, the best. */
-export type Grade = 'normal' | 'better' | 'best';
-export const GRADE: Record<ItemKind, Grade> = {
-  heart: 'normal',
-  plate: 'normal',
-  goldPlate: 'better',
-  goldSword: 'better',
-  grimoire: 'better',
-  goldAxe: 'better',
-  hammer: 'better',
-  daggers: 'better',
-  redRing: 'normal',
-  blueRing: 'normal',
-  greenRing: 'normal',
-  purpleRing: 'normal',
-  key: 'normal',
-  whiteKey: 'better',
-  goldKey: 'best',
+/** Update 0.1.10 — what each costs in the shop on floor 1 (the designer's list; it was by grade: 50, 70, 100). */
+export const PRICE: Record<ItemKind, () => number> = {
+  heart: () => ITEMS.v.priceHeart,
+  plate: () => ITEMS.v.pricePlate,
+  hammer: () => ITEMS.v.priceHammer,
+  key: () => ITEMS.v.priceKey,
+  redRing: () => ITEMS.v.priceRedRing,
+  blueRing: () => ITEMS.v.priceBlueRing,
+  greenRing: () => ITEMS.v.priceGreenRing,
+  purpleRing: () => ITEMS.v.pricePurpleRing,
+  daggers: () => ITEMS.v.priceDaggers,
+  whiteKey: () => ITEMS.v.priceWhiteKey,
+  goldSword: () => ITEMS.v.priceGoldSword,
+  goldPlate: () => ITEMS.v.priceGoldPlate,
+  goldKey: () => ITEMS.v.priceGoldKey,
+  goldHammer: () => ITEMS.v.priceGoldHammer,
+  goldAxe: () => ITEMS.v.priceGoldAxe,
+  grimoire: () => ITEMS.v.priceGrimoire,
+  goldDaggers: () => ITEMS.v.priceGoldDaggers,
+  greatHeart: () => ITEMS.v.priceGreatHeart,
 };
 
 /** What `kind` costs in the shop on floor `floor` (1, 2, …), to the nearest coin (a half rounds up: 50 × 1.15 is 58,
  *  though floating point makes it 57.4999…). */
 export function priceOf(kind: ItemKind, floor: number): number {
-  const v = ITEMS.v;
-  const base = GRADE[kind] === 'best' ? v.priceBest : GRADE[kind] === 'better' ? v.priceBetter : v.priceNormal;
-  return Math.round(base * (1 + v.priceRise) ** Math.max(0, floor - 1) + 1e-6);
+  return Math.round(PRICE[kind]() * (1 + ITEMS.v.priceRise) ** Math.max(0, floor - 1) + 1e-6);
 }
 
 export const isKey = (kind: ItemKind): kind is KeyKind => kind === 'key' || kind === 'whiteKey' || kind === 'goldKey';
@@ -121,7 +123,7 @@ export const moveFactor = (state: CombatState) => speedFactor(state.items) * has
 
 /** Would taking it do anything? A heart at full health or armour with a full shield wouldn't. */
 export function useful(kind: ItemKind, p: PlayerState): boolean {
-  if (kind === 'heart') return p.hp < maxHpOf(p);
+  if (kind === 'heart' || kind === 'greatHeart') return p.hp < maxHpOf(p);
   if (kind === 'plate' || kind === 'goldPlate') return p.shield < maxShield();
   return true;
 }
@@ -131,6 +133,10 @@ export function takeItem(kind: ItemKind, p: PlayerState, state: CombatState) {
   switch (kind) {
     case 'heart':
       healPlayer(p, maxHpOf(p) * ITEMS.v.heartHeal);
+      break;
+    // Update 0.1.10 — a chest's better heart.
+    case 'greatHeart':
+      healPlayer(p, maxHpOf(p) * ITEMS.v.greatHeartHeal);
       break;
     case 'plate':
       addShield(p, ITEMS.v.silverShield);
@@ -147,6 +153,8 @@ export function takeItem(kind: ItemKind, p: PlayerState, state: CombatState) {
     case 'goldAxe':
     case 'hammer':
     case 'daggers':
+    case 'goldHammer':
+    case 'goldDaggers':
       giveWeapon(state, holding(kind, WEAPON_STATS[kind]().uses), p.pos);
       break;
     case 'redRing':

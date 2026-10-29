@@ -13,6 +13,7 @@ import { aim } from '../combat/punch';
 import type { CombatState } from '../combat/state';
 import { emptyTargetHit, landHit, nearestTarget } from '../combat/strike';
 import type { PlayerState } from '../player/state';
+import type { WeaponKind } from './catalog';
 import { HeldWeapon, THROWN_GRAVITY } from './weapons';
 
 export interface Knife {
@@ -23,8 +24,10 @@ export interface Knife {
   vel: Vector3;
   /** Seconds left: flying, before it drops away; stuck, before it's gone. */
   life: number;
-  /** The hand that threw it (0 right, 1 left): where it's seen leaving from. */
+  /** The hand that threw it (0 right, 1 left): where it's seen leaving from. Update 0.1.10 — and whose (the gold pair's
+   *  are drawn gold). */
   hand: number;
+  kind: WeaponKind;
 }
 
 export interface Volley {
@@ -48,7 +51,7 @@ const next = new Vector3();
 const hit = emptyTargetHit();
 
 export function createKnives(): Knife[] {
-  return Array.from({ length: KNIFE_POOL }, () => ({ alive: false, stuck: false, pos: new Vector3(), vel: new Vector3(), life: 0, hand: 0 }));
+  return Array.from({ length: KNIFE_POOL }, () => ({ alive: false, stuck: false, pos: new Vector3(), vel: new Vector3(), life: 0, hand: 0, kind: 'daggers' as WeaponKind }));
 }
 
 export function createVolley(): Volley {
@@ -131,6 +134,7 @@ function throwKnife(state: CombatState, w: HeldWeapon, player: PlayerState, yaw:
   k.vel.copy(dir).multiplyScalar(WEAPONS.v.knifeSpeed);
   k.life = WEAPONS.v.knifeLife;
   k.hand = hand;
+  k.kind = w.kind;
   w.uses = Math.max(0, w.uses - 1);
   state.events.push('knifeThrow', hand, k.pos.x, k.pos.y, k.pos.z);
   if (w.uses === 0) state.events.push('weaponBroken');

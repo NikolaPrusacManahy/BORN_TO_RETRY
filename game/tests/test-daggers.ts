@@ -20,11 +20,11 @@ import { KnivesView } from '../src/engine/knivesView';
 import { CombatIntent, emptyCombatIntent } from '../src/sim/combat/fists';
 import { CombatState, createCombat } from '../src/sim/combat/state';
 import { stepCombat } from '../src/sim/combat/step';
-import { TIER } from '../src/sim/dungeon/loot';
+import { RARITIES, TIER } from '../src/sim/dungeon/loot';
 import { createTreasure } from '../src/sim/dungeon/treasure';
-import { GRADE, moveFactor, priceOf, takeItem } from '../src/sim/items/items';
+import { moveFactor, priceOf, takeItem } from '../src/sim/items/items';
 import { createPlayer, PlayerState } from '../src/sim/player/state';
-import { HASTE, VOLLEYS, WEAPON_KINDS, WEAPON_NAME, WEAPON_STATS, WeaponKind } from '../src/sim/weapons/catalog';
+import { HASTE, SMASHES, VOLLEYS, WEAPON_KINDS, WEAPON_NAME, WEAPON_STATS, WeaponKind } from '../src/sim/weapons/catalog';
 import { selectSlot } from '../src/sim/weapons/slots';
 import { HeldWeapon, holding } from '../src/sim/weapons/weapons';
 import { ARMS } from '../src/tuning/arms';
@@ -62,7 +62,8 @@ const dummy = (z: number): Arena => ({ ...OPEN_ARENA, dummies: [{ x: 0, y: 0, z 
 section('Dual Daggers — the rules');
 {
   check('a weapon of their own, "Dual Daggers"', WEAPON_KINDS.includes('daggers') && WEAPON_NAME.daggers === 'Dual Daggers');
-  check(`they last long: ${w.daggerUses} uses (the gold sword ${ITEMS.v.goldSwordUses}, the axe ${w.axeUses})`, WEAPON_STATS.daggers().uses === w.daggerUses && w.daggerUses > w.axeUses && w.daggerUses > ITEMS.v.goldSwordUses);
+  // (Update 0.1.10 — the designer: 30 daggers to a pair, was 100; the gold pair 90.)
+  check(`${w.daggerUses} daggers to a pair`, WEAPON_STATS.daggers().uses === w.daggerUses);
   const d = lab('daggers', 100);
   const cuts = count(run(d.state, d.p, d.world, 1, { attackPressed: true, attackHeld: true }), 'slash');
   const s = lab('sword', 100);
@@ -159,6 +160,24 @@ const stream = w.volleyCount * w.volleyInterval + 0.1;
   check('you can\'t swap away mid-stream', state.weapon?.kind === 'daggers');
 }
 
+section('Gold Hammer and Gold Daggers');
+{
+  // (Update 0.1.10 — the designer gave them uses: 35 and 90. The rest is the silver ones'.)
+  const gh = WEAPON_STATS.goldHammer();
+  const h = WEAPON_STATS.hammer();
+  check(`the Gold Hammer: the hammer's moves and blows, its smash, ${w.goldHammerUses} uses (the hammer ${w.hammerUses})`, MOVES.goldHammer === MOVES.hammer && SMASHES.goldHammer && gh.damage === h.damage && gh.pierceDamage === h.pierceDamage && gh.uses === w.goldHammerUses && gh.uses > h.uses);
+  const gd = WEAPON_STATS.goldDaggers();
+  const d = WEAPON_STATS.daggers();
+  check(`the Gold Daggers: the daggers' moves, cuts, volley and speed, ${w.goldDaggerUses} uses (the pair ${w.daggerUses})`, MOVES.goldDaggers === DAGGER_MOVES && VOLLEYS.goldDaggers && HASTE.goldDaggers() === HASTE.daggers() && gd.damage === d.damage && gd.uses === w.goldDaggerUses && gd.uses > d.uses);
+  const { state, p, world } = lab('goldDaggers', 90);
+  run(state, p, world, w.volleyCharge + DT, { heavyHeld: true });
+  check('their thrown daggers are theirs (drawn gold)', state.knives.some((k) => k.alive && k.kind === 'goldDaggers'));
+  const q = lab('sword', 4);
+  takeItem('goldHammer', q.p, q.state);
+  const got = q.state.weapon as HeldWeapon | null;
+  check(`taken, each goes into a slot and your hand with its uses`, got?.kind === 'goldHammer' && got.uses === w.goldHammerUses);
+}
+
 section('Dual Daggers — faster while in your hand');
 {
   const { state, p } = lab('daggers', 100);
@@ -181,8 +200,9 @@ section('Dual Daggers — faster while in your hand');
 
 section('Dual Daggers — shop and chests');
 {
-  check(`a better item: ${ITEMS.v.priceBetter} on floor 1`, GRADE.daggers === 'better' && priceOf('daggers', 1) === ITEMS.v.priceBetter);
-  check('rare in chests', TIER.rare.includes('daggers'));
+  // (Update 0.1.10 — the designer's sort: the pair 65 in the shop and in no chest; the gold pair mythic.)
+  check(`${ITEMS.v.priceDaggers} on floor 1`, priceOf('daggers', 1) === ITEMS.v.priceDaggers);
+  check('in no chest; the gold pair is mythic', RARITIES.every((r) => !TIER[r].includes('daggers')) && TIER.mythic.includes('goldDaggers'));
   let shown = 0;
   for (let seed = 1; seed <= 30; seed++) {
     const t = createTreasure(buildDungeon(planFloor(seed * 53, 1)), createRng(seed));

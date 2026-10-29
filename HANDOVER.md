@@ -2,7 +2,8 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-10-29, after Update 0.1.9)
+## Next up (2026-10-29, after Update 0.1.10)
+- **The designer plays the new shop and chests** (Update 0.1.10): prices, the Great Heart, mythic chests.
 - **The designer plays 0.1.4–0.1.9**, then sends notes:
   - the Grimoire;
   - the Gold Axe and Hammer;
@@ -21,7 +22,11 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   - Arms are checked by renders before reporting: `tools/hand-shots.ts` (fists, grips, the slam), `tools/exec-shots.ts <kinds>`, `tools/weapon-shots.ts` and `tools/book-shots.ts`, then `tools/blender/render_view.py --json … --out … --cull`. To render only some moments, filter the shots JSON (`pov.json` or `shots.json`) by name first.
   - Code edits ran as small Python scripts in the scratchpad (exact old → new pairs), because shell heredocs mangle quotes and em dashes.
 
-## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.9
+## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.10
+- **Update 0.1.10 — weapon uses, the Gold Hammer and the Gold Daggers** (the designer's list; spec `MD_UPDATES/U0110_USES_GOLD.md`):
+  - **Uses:** sword 10 (was 4), Gold Sword 30 (was 40), Hammer 15 (was 20), Dual Daggers 30 (was 100).
+  - **New:** the Gold Hammer (35 uses) and the Gold Daggers (90), the pack's gold models with the silver ones' shapes, moves and numbers. The gold pair's thrown daggers fly gold (`knivesView.ts` draws each knife in its own pair's model).
+  - **The designer's sort** (after a list of every object in the game): a price for each item (`PRICE` in `items.ts`, knobs in `tuning/items.ts`): 45 heart, plate, Hammer, key; 65 rings, Dual Daggers, white key; 80 gold sword, gold armour, gold key; 100 Gold Hammer, Gold Axe; 110 Grimoire, Gold Daggers. Chests (`loot.ts` `TIER`): common coins, heart, plate; uncommon gold armour, **Great Heart** (new: heals fully); rare gold sword, every ring; epic Gold Axe or Gold Hammer **+ 60 coins**; **mythic** (replaces legendary, red light) Gold Daggers or Grimoire **+ 100 coins**. The purple ring +20% (was 25%).
 - **Update 0.1.9 — the Dual Daggers** (the third of the designer's five weapon ideas: "one in each hand, very fast hits, last very long, +15% move speed while held"; spec `MD_UPDATES/U019_DAGGERS.md`). Claude picked it up from the handover's list; the designer's second pass after the first renders: "turn them 180°", "1.6× bigger", and "mainly used to throw massive amounts continually … hold right click like 3 seconds and the player throws a series of 20 daggers in continuous rhythm" (the Trickster's Main Event in Dead by Daylight). It replaced the first build's charged twin stab.
   - **The designer's third pass:** "like the Trickster stance … the hands shift to grab the tip of the daggers, like it flipped the dagger upside down", 25 a volley, "100 daggers in inventory", hold 1.5 s, the throws "50% slower" (0.24 s), then (final tweak) "back to the old fire rate" (0.12 s) and "stop the hands trembling while the volley is being performed".
   - **The rules:** a weapon kind (`daggers`). Left click cuts (the sword's swing with their own numbers: every 0.15 s, 20 each; the designer found 10, a jab's, too weak). **Right click held 1.5 s, then a volley** (`sim/weapons/knives.ts`, `catalog.ts` `VOLLEYS`): 25 daggers, one every 0.12 s, the hands taking turns, each from your eye where you aim then, 50 m/s on a flat arc, 20 damage, a use each; it starts by itself at full charge and runs out even if let go; no cuts or swaps meanwhile. 100 uses. **+15% run speed while they're in your hand** (`catalog.ts` `HASTE`, `items.ts` `moveFactor`, set each tick by `run.ts`). Shop (a better item, 70), rare chests, the Lab's list, their own slot icon.
@@ -399,6 +404,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `game/tools/boss-shots.ts` | Renders the boss room (walls at any point of their slide, the gate shut or open, the Demon's stance) from the show's own shots, without a browser |
 | `MD_UPDATES/U014_GRIMOIRE.md` | Update 0.1.4: the Grimoire (the book, the stance, fireballs, numbers) |
 | `MD_UPDATES/U015_AXE_HAMMER.md` | Update 0.1.5: the Gold Axe (swings, chop, thrown and called back) and the Hammer (two-handed, the smash's shockwave) |
+| `MD_UPDATES/U0110_USES_GOLD.md` | Update 0.1.10: weapon uses; the Gold Hammer and the Gold Daggers |
 | `MD_UPDATES/U019_DAGGERS.md` | Update 0.1.9: the Dual Daggers (one in each hand, quick cuts, the twin stab, faster running while held) |
 | `game/tools/weapon-shots.ts` | Renders a held weapon's own moves (ready, a swing, the charge and blow, a throw's draw) from the game's own arms code, without a browser |
 | `game/tools/book-shots.ts` | Renders the Grimoire in your hands (held, the cast, the charge, the great cast) from the game's own arms code, without a browser |
@@ -423,7 +429,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 - Fists: both fists low in the corners; jabs go left, right, left; the charged punch is the right hand.
 - **No quick punch (Update 0.0.10).** **F is the ground slam (Update 0.0.12, the designer)**, from a real height only.
 - **Floors are explored maps of rooms (Update 0.0.12, the designer: like Soul Knight)**, not a chain of door choices. Rooms are hand-made layouts on a 2 m grid, varied per run; the Modular Dungeon Pack (parts 1 and 2) dresses them.
-- **Weapons: 4 uses when picked up; only grunts drop them, 15% (Update 0.0.12).**
+- **Weapons: 4 uses when picked up (Update 0.1.10: 10); only grunts drop them, 15% (Update 0.0.12).**
 - **No healing from hits (Update 0.0.13, the designer): only the shop's heart (and a chest's) heals.** Blood heal and its knobs are gone.
 - **The shop and chests (Update 0.0.13, the designer):** five tiles; heart, silver armour plate (a blue shield bar), gold sword (40 hits), red-gem ring (+25% damage), blue-gem ring (+20% speed), key (opens a chest); all 70. Chests hold 50–80 coins, a plate, a heart or any ring; you kneel and open them with both hands.
 - **Rooms twice the size (Update 0.0.13, the designer).** Three more enemies: the Leaper, and two fliers, the Stinger and the Wraith.

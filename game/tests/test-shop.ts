@@ -134,7 +134,8 @@ section('Shop — rings');
     return TARGETS.v.dummyHp - s.dummies[0].hp;
   };
   const plain = jab(0);
-  check('a purple ring makes your hits 25% harder', plain > 0 && near(jab(1), plain * 1.25, 1e-6), `${plain} → ${jab(1)}`);
+  // (Update 0.1.10 — the designer: +20%, was 25%.)
+  check(`a purple ring makes your hits ${Math.round(ITEMS.v.purpleRing * 100)}% harder`, plain > 0 && near(jab(1), plain * (1 + ITEMS.v.purpleRing), 1e-6) && ITEMS.v.purpleRing === 0.2, `${plain} → ${jab(1)}`);
   // Running flat out, with and without a blue ring.
   const run = (mul: number) => {
     const p = createPlayer(0, 0, 0, 0);

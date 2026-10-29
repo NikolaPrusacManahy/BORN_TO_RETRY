@@ -4,6 +4,9 @@
 // the key (switching goes round the ones you carry) and E uses it. The shop always has a heart and a plate, its key (if
 // any) normal 70%, white 25%, gold 5%. A room with a Yeti has a chest, and the first Yeti killed there drops a key (one
 // per room); walking over it takes it. In front of a chest the left hand opens, palm up, with the key on it.
+// Update 0.1.10 — the designer's sort: common (coins, a heart, the silver plate), uncommon (the gold armour, the Great
+// Heart), rare (the gold sword, every ring), epic (the Gold Axe or the Gold Hammer, and 60 coins), mythic (the Gold
+// Daggers or the Grimoire, and 100 coins; it replaces legendary).
 import * as THREE from 'three';
 import { check, near, section } from './harness';
 import { DT, ticks } from './fakes/flatWorld';
@@ -36,16 +39,19 @@ const events = (c: ReturnType<typeof createCombat>) => Array.from({ length: c.ev
 /** How often each rarity (and each item) comes out of `n` chests opened with `key`. */
 function tally(key: KeyKind, n: number) {
   const rng = createRng(11);
-  const rarity: Record<Rarity, number> = { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0 };
+  const rarity: Record<Rarity, number> = { common: 0, uncommon: 0, rare: 0, epic: 0, mythic: 0 };
   const items = new Set<string>();
   const coins = new Set<number>();
+  /** The coins each rarity gave along with an item. */
+  const withItem: Record<Rarity, Set<number>> = { common: new Set(), uncommon: new Set(), rare: new Set(), epic: new Set(), mythic: new Set() };
   for (let i = 0; i < n; i++) {
     const l = rollLoot(key, [rng(), rng(), rng()]);
     rarity[l.rarity]++;
     items.add(l.item ?? 'coins');
     if (!l.item) coins.add(l.coins);
+    else withItem[l.rarity].add(l.coins);
   }
-  return { rarity, items, coins };
+  return { rarity, items, coins, withItem };
 }
 
 section('Keys — loot by rarity');
@@ -53,16 +59,18 @@ section('Keys — loot by rarity');
   const n = 20000;
   const t = tally('key', n);
   const share = (r: Rarity) => t.rarity[r] / n;
-  check(`a normal key: common ${ITEMS.v.common}%, uncommon ${ITEMS.v.uncommon}%, rare ${ITEMS.v.rare}%, epic ${ITEMS.v.epic}% + legendary ${ITEMS.v.legendary}% (as epic: nothing legendary yet)`,
-    near(share('common'), 0.45, 0.015) && near(share('uncommon'), 0.3, 0.015) && near(share('rare'), 0.15, 0.01) && near(share('epic'), 0.1, 0.01) && t.rarity.legendary === 0,
+  check(`a normal key: common ${ITEMS.v.common}%, uncommon ${ITEMS.v.uncommon}%, rare ${ITEMS.v.rare}%, epic ${ITEMS.v.epic}%, mythic ${ITEMS.v.mythic}%`,
+    near(share('common'), 0.45, 0.015) && near(share('uncommon'), 0.3, 0.015) && near(share('rare'), 0.15, 0.01) && near(share('epic'), 0.08, 0.008) && near(share('mythic'), 0.02, 0.005),
     RARITIES.map((r) => `${r} ${(share(r) * 100).toFixed(1)}%`).join(', '));
-  check('every item turns up: coins, a heart, a plate, the gold sword, both rings', ['coins', 'heart', 'plate', 'goldSword', 'redRing', 'blueRing'].every((k) => t.items.has(k)), [...t.items].join(', '));
+  const all = ['coins', 'heart', 'plate', 'goldPlate', 'greatHeart', 'goldSword', 'redRing', 'blueRing', 'greenRing', 'purpleRing', 'goldAxe', 'goldHammer', 'goldDaggers', 'grimoire'];
+  check('everything in the sort turns up', all.every((k) => t.items.has(k)) && t.items.size === all.length, [...t.items].join(', '));
+  check(`an epic chest gives ${ITEMS.v.epicCoins} coins with its item, a mythic one ${ITEMS.v.mythicCoins}; the others coins or an item`, [...t.withItem.epic].join() === `${ITEMS.v.epicCoins}` && [...t.withItem.mythic].join() === `${ITEMS.v.mythicCoins}` && [...t.withItem.common, ...t.withItem.uncommon, ...t.withItem.rare].every((c) => c === 0));
   check(`coins come as ${ITEMS.v.coins1}, ${ITEMS.v.coins2}, ${ITEMS.v.coins3} or ${ITEMS.v.coins4}`, [...t.coins].sort((a, b) => a - b).join() === [ITEMS.v.coins1, ITEMS.v.coins2, ITEMS.v.coins3, ITEMS.v.coins4].sort((a, b) => a - b).join());
   const w = tally('whiteKey', 5000);
   check('a white key: never common or uncommon', w.rarity.common === 0 && w.rarity.uncommon === 0 && w.rarity.rare > 0 && w.rarity.epic > 0);
   const g = tally('goldKey', 5000);
-  check('a gold key: only epic (or legendary)', g.rarity.common + g.rarity.uncommon + g.rarity.rare === 0 && g.rarity.epic === 5000);
-  check('each key opens the rarities it should', KEY_TIERS.whiteKey.join() === 'rare,epic,legendary' && KEY_TIERS.goldKey.join() === 'epic,legendary');
+  check('a gold key: only epic or mythic', g.rarity.common + g.rarity.uncommon + g.rarity.rare === 0 && g.rarity.epic + g.rarity.mythic === 5000 && g.rarity.mythic > 0);
+  check('each key opens the rarities it should', KEY_TIERS.whiteKey.join() === 'rare,epic,mythic' && KEY_TIERS.goldKey.join() === 'epic,mythic');
 }
 
 section('Keys — at a chest');
@@ -109,7 +117,8 @@ section('Keys — the shop');
   const kinds: Record<string, number> = {};
   let always = true;
   let n = 0;
-  for (let seed = 1; seed <= 400; seed++) {
+  // (Update 0.1.10 — more shops: with more to draw from, a key turns up less often.)
+  for (let seed = 1; seed <= 600; seed++) {
     const level = buildDungeon(planFloor(seed, 1));
     const t = createTreasure(level, createRng(seed));
     always &&= t.offers.some((o) => o.kind === 'heart') && t.offers.some((o) => o.kind === 'plate') && t.offers.filter((o) => o.kind.endsWith('ey')).length <= 1;
@@ -118,7 +127,7 @@ section('Keys — the shop');
       n++;
     }
   }
-  check('400 shops: always a heart and a plate, at most one key', always);
+  check('600 shops: always a heart and a plate, at most one key', always);
   check(`its key: normal ~${ITEMS.v.keyOdds}%, white ~${ITEMS.v.whiteKeyOdds}%, gold ~${ITEMS.v.goldKeyOdds}%`, n > 100 && near((kinds.key ?? 0) / n, 0.7, 0.08) && near((kinds.whiteKey ?? 0) / n, 0.25, 0.08) && (kinds.goldKey ?? 0) > 0, JSON.stringify(kinds));
   const a = buildDungeon(planFloor(77, 1));
   const offers = (s: number) => createTreasure(a, createRng(s)).offers.map((o) => o.kind).join();

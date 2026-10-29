@@ -180,9 +180,10 @@ section('Floor 2 — mini bosses and the roster');
 
 section('Shop prices by floor');
 {
-  check('floor 1: a normal item 50, a better one 70, the best 100', priceOf('heart', 1) === 50 && priceOf('plate', 1) === 50 && priceOf('goldPlate', 1) === 70 && priceOf('whiteKey', 1) === 70 && priceOf('goldKey', 1) === 100);
-  check('floor 2: 15% more (58, 81, 115)', priceOf('heart', 2) === 58 && priceOf('goldPlate', 2) === 81 && priceOf('goldKey', 2) === 115);
-  check('floor 3: 15% more again (66, 93, 132)', priceOf('heart', 3) === 66 && priceOf('goldPlate', 3) === 93 && priceOf('goldKey', 3) === 132);
+  // (Update 0.1.10 — the designer's prices for each item: these three are 45, 80 and 110 on floor 1.)
+  check('floor 1: the heart 45, the gold armour 80, the Grimoire 110', priceOf('heart', 1) === 45 && priceOf('goldPlate', 1) === 80 && priceOf('grimoire', 1) === 110);
+  check('floor 2: 15% more (52, 92, 127)', priceOf('heart', 2) === 52 && priceOf('goldPlate', 2) === 92 && priceOf('grimoire', 2) === 127);
+  check('floor 3: 15% more again (60, 106, 145)', priceOf('heart', 3) === 60 && priceOf('goldPlate', 3) === 106 && priceOf('grimoire', 3) === 145);
 }
 
 section('Floor 2 — drawn at their size');

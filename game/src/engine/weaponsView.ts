@@ -16,6 +16,7 @@ export const SWORD_URL = '/models/weapons/sword.glb';
 // Update 0.1.4 — the Grimoire: the pack's Book3_Open (grimoire.glb, export_book.py), held open in the right hand.
 // Update 0.1.5 — the Gold Axe (Axe_small_Golden) and the Hammer (Hammer_Double), export_weapon.py.
 // Update 0.1.9 — the Dual Daggers: the pack's Dagger, one in each hand; lying and flying, the two crossed (pairLook.ts).
+// Update 0.1.10 — the gold versions: Hammer_Double_Golden and Dagger_Golden, exported as their silver ones are.
 export const WEAPON_URL: Record<WeaponKind, string> = {
   sword: SWORD_URL,
   goldSword: '/models/weapons/gold_sword.glb',
@@ -23,6 +24,8 @@ export const WEAPON_URL: Record<WeaponKind, string> = {
   goldAxe: '/models/weapons/gold_axe.glb',
   hammer: '/models/weapons/hammer.glb',
   daggers: '/models/weapons/dagger.glb',
+  goldHammer: '/models/weapons/gold_hammer.glb',
+  goldDaggers: '/models/weapons/gold_dagger.glb',
 };
 const KINDS = Object.keys(WEAPON_URL) as WeaponKind[];
 /** A weapon lying in reach floats this high above the floor (m) and turns this fast (rad/s). */

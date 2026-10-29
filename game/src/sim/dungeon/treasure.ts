@@ -63,7 +63,8 @@ export const SHOP_TILES = 5;
 /** Always in the shop; the rest of its tiles are drawn from the others ('key': a key by its odds). */
 const SHOP_ALWAYS: readonly ItemKind[] = ['heart', 'plate'];
 // Update 0.1.4 — and the Grimoire. Update 0.1.5 — and the Gold Axe and the Hammer. Update 0.1.9 — the Dual Daggers.
-const SHOP_DRAWN: readonly ItemKind[] = ['goldSword', 'grimoire', 'goldAxe', 'hammer', 'daggers', 'goldPlate', 'redRing', 'blueRing', 'greenRing', 'purpleRing', 'key'];
+// Update 0.1.10 — and the Gold Hammer and the Gold Daggers (the designer's sort prices every item).
+const SHOP_DRAWN: readonly ItemKind[] = ['goldSword', 'grimoire', 'goldAxe', 'hammer', 'daggers', 'goldHammer', 'goldDaggers', 'goldPlate', 'redRing', 'blueRing', 'greenRing', 'purpleRing', 'key'];
 
 const at = new Vector3();
 
@@ -172,14 +173,16 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
   return true;
 }
 
-/** The lid is up: its glow (by rarity), then coins burst out and fly to you, or the item is yours. */
+/** The lid is up: its glow (by rarity), then coins burst out and fly to you, and the item is yours (Update 0.1.10 — an
+ *  epic or mythic chest gives both). */
 function giveLoot(c: Chest, player: PlayerState, state: CombatState) {
   c.given = true;
   const loot = c.loot!;
   state.events.push('chestRarity', RARITIES.indexOf(loot.rarity), c.spot.x, 0.8, c.spot.z);
   state.events.push('chestLoot', loot.item ? ITEM_KINDS.indexOf(loot.item) : -1, c.spot.x, 0.8, c.spot.z);
-  if (!loot.item) {
+  if (loot.coins > 0) {
     at.set(c.spot.x, 0, c.spot.z);
     state.money += burstCoins(state.coins, at, loot.coins, state.rng);
-  } else takeItem(loot.item, player, state);
+  }
+  if (loot.item) takeItem(loot.item, player, state);
 }
