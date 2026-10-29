@@ -21,8 +21,8 @@ import { giveWeapon } from '../weapons/slots';
 import { holding } from '../weapons/weapons';
 import { hasteFactor } from './bonuses';
 
-export type ItemKind = 'heart' | 'plate' | 'goldSword' | 'redRing' | 'blueRing' | 'key' | 'whiteKey' | 'goldKey' | 'goldPlate' | 'greenRing' | 'purpleRing' | 'grimoire' | 'goldAxe' | 'hammer' | 'daggers' | 'goldHammer' | 'goldDaggers' | 'greatHeart';
-export const ITEM_KINDS: readonly ItemKind[] = ['heart', 'plate', 'goldSword', 'redRing', 'blueRing', 'key', 'whiteKey', 'goldKey', 'goldPlate', 'greenRing', 'purpleRing', 'grimoire', 'goldAxe', 'hammer', 'daggers', 'goldHammer', 'goldDaggers', 'greatHeart'];
+export type ItemKind = 'heart' | 'plate' | 'goldSword' | 'redRing' | 'blueRing' | 'key' | 'whiteKey' | 'goldKey' | 'goldPlate' | 'greenRing' | 'tealRing' | 'grimoire' | 'goldAxe' | 'hammer' | 'daggers' | 'goldHammer' | 'goldDaggers' | 'greatHeart';
+export const ITEM_KINDS: readonly ItemKind[] = ['heart', 'plate', 'goldSword', 'redRing', 'blueRing', 'key', 'whiteKey', 'goldKey', 'goldPlate', 'greenRing', 'tealRing', 'grimoire', 'goldAxe', 'hammer', 'daggers', 'goldHammer', 'goldDaggers', 'greatHeart'];
 export type KeyKind = 'key' | 'whiteKey' | 'goldKey';
 export const KEY_KINDS: readonly KeyKind[] = ['key', 'whiteKey', 'goldKey'];
 
@@ -35,13 +35,14 @@ export interface Inventory {
   blueRings: number;
   /** Update 0.0.17 — the green and purple rings. */
   greenRings: number;
-  purpleRings: number;
+  /** Update 0.2.0 — teal rings (the purple ring is gone). */
+  tealRings: number;
   /** The key you'd use at a chest. */
   keyPick: KeyKind;
 }
 
 export function createInventory(): Inventory {
-  return { keys: 0, whiteKeys: 0, goldKeys: 0, redRings: 0, blueRings: 0, greenRings: 0, purpleRings: 0, keyPick: 'key' };
+  return { keys: 0, whiteKeys: 0, goldKeys: 0, redRings: 0, blueRings: 0, greenRings: 0, tealRings: 0, keyPick: 'key' };
 }
 
 const KEY_FIELD: Record<KeyKind, 'keys' | 'whiteKeys' | 'goldKeys'> = { key: 'keys', whiteKey: 'whiteKeys', goldKey: 'goldKeys' };
@@ -98,7 +99,7 @@ export const PRICE: Record<ItemKind, () => number> = {
   redRing: () => ITEMS.v.priceRedRing,
   blueRing: () => ITEMS.v.priceBlueRing,
   greenRing: () => ITEMS.v.priceGreenRing,
-  purpleRing: () => ITEMS.v.pricePurpleRing,
+  tealRing: () => ITEMS.v.priceTealRing,
   daggers: () => ITEMS.v.priceDaggers,
   whiteKey: () => ITEMS.v.priceWhiteKey,
   goldSword: () => ITEMS.v.priceGoldSword,
@@ -120,10 +121,9 @@ export function priceOf(kind: ItemKind, floor: number): number {
 export const isKey = (kind: ItemKind): kind is KeyKind => kind === 'key' || kind === 'whiteKey' || kind === 'goldKey';
 
 /** Damage you deal, your run speed and your melee attacks' speed, times these; your extra max health. */
-export const damageFactor = (inv: Inventory) => 1 + ITEMS.v.purpleRing * inv.purpleRings;
 export const speedFactor = (inv: Inventory) => 1 + ITEMS.v.blueRing * inv.blueRings;
 export const attackRate = (inv: Inventory) => 1 + ITEMS.v.greenRing * inv.greenRings;
-export const hpBonusOf = (inv: Inventory) => ITEMS.v.redRingHp * inv.redRings;
+export const hpBonusOf = (inv: Inventory) => ITEMS.v.redRingHp * inv.redRings + ITEMS.v.tealRingHp * inv.tealRings;
 /** Update 0.1.9 — your run speed, times this: the blue rings, the blue potion and the weapon in your hand. */
 export const moveFactor = (state: CombatState) => speedFactor(state.items) * hasteFactor(state.bonuses) * (1 + (state.weapon ? HASTE[state.weapon.kind]() : 0));
 
@@ -175,8 +175,11 @@ export function takeItem(kind: ItemKind, p: PlayerState, state: CombatState) {
     case 'greenRing':
       state.items.greenRings++;
       break;
-    case 'purpleRing':
-      state.items.purpleRings++;
+    // Update 0.2.0 — the teal ring: like the red ring, more.
+    case 'tealRing':
+      state.items.tealRings++;
+      p.hpBonus = hpBonusOf(state.items);
+      healPlayer(p, ITEMS.v.tealRingHp);
       break;
     case 'key':
     case 'whiteKey':

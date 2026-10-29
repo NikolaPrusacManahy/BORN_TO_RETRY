@@ -16,6 +16,9 @@
 // stream: the opening brings its first wave, and at least Enemies on field (tuning/rooms.ts); after that, whenever fewer
 // than that are fighting, the next of its plan comes in (one every Reinforcement gap), away from you, until all are sent.
 // The room is won when they're all sent and dead.
+// Update 0.2.0 (the designer) — a won challenge room keeps its gates shut until you've taken its reward (reward.ts:
+// 'reward', its chest rising out of the floor); the boss's chest rises as the wooden gate opens. A chest that has
+// risen is solid (its box is a gate), once you're clear of it.
 import { createRng, Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import type { DungeonLevel } from '../../world/dungeon/assemble';
@@ -32,9 +35,12 @@ import type { EnemyKind } from '../enemies/kinds';
 import type { PlayerState } from '../player/state';
 import { BossRun, createBossRun, startShow, stepBoss } from './bossRoom';
 import { bossOf } from '../enemies/kinds';
-import { createTreasure, Treasure } from './treasure';
+import { createTreasure, raiseChest, Treasure } from './treasure';
+import { rewardDone, startReward } from './reward';
+import { CHEST_D, CHEST_W } from '../../world/dungeon/assemble';
 
-export type RoomState = 'idle' | 'fighting' | 'cleared';
+/** Update 0.2.0 — 'reward': a challenge room won, shut until its reward is taken. */
+export type RoomState = 'idle' | 'fighting' | 'reward' | 'cleared';
 
 export interface RoomRun {
   state: RoomState;
@@ -78,7 +84,7 @@ export function createDungeonRun(level: DungeonLevel): DungeonRun {
     shut: level.gates.map((_, i) => i === level.boss.gate),
     nav: level.rooms.map(() => null),
     exited: false,
-    treasure: createTreasure(level, createRng(level.plan.seed * 131 + level.plan.level * 17)),
+    treasure: createTreasure(level, createRng(level.plan.seed * 131 + level.plan.level * 17), bossOf(level.plan.level)),
     boss: createBossRun(bossOf(level.plan.level)),
   };
 }
@@ -114,14 +120,20 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
       // Its show's clock runs on once the room is cleared (the gate swinging, the view turned to it): Update 0.0.15
       // fix, it stopped there and the view stayed locked on you.
       if (run.boss.beat !== 'waiting' && stepBoss(run.boss, run.level.boss.portal, room.spawns, player, combat, rng, dt)) {
-        // The boss is dead: the wooden gate swings open, and the room's own gates lift.
+        // The boss is dead: the wooden gate swings open, and the room's own gates lift; its chest rises (Update 0.2.0).
         rr.state = 'cleared';
+        raiseChest(run.treasure, room.chest, combat);
         run.shut[run.level.boss.gate] = false;
         for (const g of room.gates) run.shut[g] = false;
         ev.push('woodGateOpen', i, run.level.boss.gateAt.x, 2, run.level.boss.gateAt.z);
         ev.push('gatesOpen', i, (room.min.x + room.max.x) / 2, 1, (room.min.z + room.max.z) / 2);
       }
       continue;
+    }
+    if (rr.state === 'reward' && rewardDone(run, i, player, combat)) {
+      rr.state = 'cleared';
+      for (const g of room.gates) run.shut[g] = false;
+      ev.push('gatesOpen', i, (room.min.x + room.max.x) / 2, 1, (room.min.z + room.max.z) / 2);
     }
     if (rr.state !== 'fighting') continue;
     let live = 0;
@@ -137,9 +149,22 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
       continue;
     }
     if (live > 0) continue;
+    // Update 0.2.0 — a challenge room: shut till its reward is taken.
+    if (room.challenge) {
+      rr.state = 'reward';
+      startReward(run, i, player, combat, rng);
+      continue;
+    }
     rr.state = 'cleared';
     for (const g of room.gates) run.shut[g] = false;
     ev.push('gatesOpen', i, (room.min.x + room.max.x) / 2, 1, (room.min.z + room.max.z) / 2);
+  }
+  // A risen chest is solid, once you're clear of it.
+  for (const c of run.treasure.chests) {
+    const g = c.spot.gate;
+    if (g < 0 || run.shut[g] || c.state === 'buried') continue;
+    const reach = CHEST_W / 2 + CHEST_D / 2;
+    if (Math.abs(player.pos.x - c.spot.x) > reach || Math.abs(player.pos.z - c.spot.z) > reach) run.shut[g] = true;
   }
   const ex = run.level.exit;
   if (!run.exited && run.boss.beat === 'open' && player.grounded && Math.hypot(player.pos.x - ex.x, player.pos.z - ex.z) <= ex.radius) {

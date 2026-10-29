@@ -30,6 +30,7 @@ blender --background --disable-autoexec --python tools/blender/export_items.py -
   blender --background --disable-autoexec --python tools/blender/export_monster.py -- --blend "<Ultimate Monsters>/used_monster/blobs/Skeleton.blend" --glb public/models/enemies/skeleton.glb --previews <folder> --attack Skeleton_Attack
   blender --background --disable-autoexec --python tools/blender/export_monster.py -- --blend "<Ultimate Monsters>/used_monster/blobs/Mushnub.blend" --glb public/models/enemies/mushnub.glb --previews <folder> --attack Bite_Front
   ```
+  (Update 0.2.0 — `export_items.py` takes the teal ring, `item_tealRing` from the RPG pack's `Ring7`, in place of the purple ring.)
   Skeleton_Attack lands 18/30, Bite_Front 8/30; the Ninja mini boss is `ninja.glb` with Weapon (20/30). The Skeleton's clips are named `Skeleton_*`, its idle `Skeleton_Idle` (the exporter takes `Idle` or `*_Idle`; it also shows meshes hidden for renders in the previews); rebuilding plays `Skeleton_Spawn` (2.9 s, from a pile of bones to standing). `blob/Ninja.blend` is a round-head Ninja, not the game's.
 - The dungeon chest's pieces are hidden from renders in its `.blend`; `export_items.py` shows them. Its lid keeps its origin on the hinge.
 

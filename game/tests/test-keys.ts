@@ -62,7 +62,7 @@ section('Keys — loot by rarity');
   check(`a normal key: common ${ITEMS.v.common}%, uncommon ${ITEMS.v.uncommon}%, rare ${ITEMS.v.rare}%, epic ${ITEMS.v.epic}%, mythic ${ITEMS.v.mythic}%`,
     near(share('common'), 0.45, 0.015) && near(share('uncommon'), 0.3, 0.015) && near(share('rare'), 0.15, 0.01) && near(share('epic'), 0.08, 0.008) && near(share('mythic'), 0.02, 0.005),
     RARITIES.map((r) => `${r} ${(share(r) * 100).toFixed(1)}%`).join(', '));
-  const all = ['coins', 'heart', 'plate', 'goldPlate', 'greatHeart', 'goldSword', 'redRing', 'blueRing', 'greenRing', 'purpleRing', 'goldAxe', 'goldHammer', 'goldDaggers', 'grimoire'];
+  const all = ['coins', 'heart', 'plate', 'goldPlate', 'greatHeart', 'goldSword', 'redRing', 'blueRing', 'greenRing', 'tealRing', 'goldAxe', 'goldHammer', 'goldDaggers', 'grimoire'];
   check('everything in the sort turns up', all.every((k) => t.items.has(k)) && t.items.size === all.length, [...t.items].join(', '));
   check(`an epic chest gives ${ITEMS.v.epicCoins} coins with its item, a mythic one ${ITEMS.v.mythicCoins}; the others coins or an item`, [...t.withItem.epic].join() === `${ITEMS.v.epicCoins}` && [...t.withItem.mythic].join() === `${ITEMS.v.mythicCoins}` && [...t.withItem.common, ...t.withItem.uncommon, ...t.withItem.rare].every((c) => c === 0));
   check(`coins come as ${ITEMS.v.coins1}, ${ITEMS.v.coins2}, ${ITEMS.v.coins3} or ${ITEMS.v.coins4}`, [...t.coins].sort((a, b) => a - b).join() === [ITEMS.v.coins1, ITEMS.v.coins2, ITEMS.v.coins3, ITEMS.v.coins4].sort((a, b) => a - b).join());

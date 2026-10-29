@@ -16,6 +16,7 @@
 // Update 0.1.14 — the level's parts, loading and restarting moved to runBase.ts. Dead in the dungeon, once it's black
 // the death screen shows (what killed you, the floor, the time, your kills) and the world holds still until Retry.
 // Update 0.1.20 — the [E] prompts and item cards (promptView.ts), while you're free to play.
+// Update 0.2.0 — a chest rising out of the floor takes the view to it and back (chestShot.ts); you don't move meanwhile.
 import * as THREE from 'three';
 import type { FrameStats } from '../core/frameStats';
 import type { Input } from '../input/input';
@@ -61,7 +62,7 @@ export class Run extends RunBase {
       this.prev.copy(p.pos);
       const wasGrounded = p.grounded;
       // The dead don't steer or punch; nor does anyone during the boss room's show.
-      const free = !p.dead && !this.show.locked && !execHeld(this.combat.exec);
+      const free = !p.dead && !this.show.locked && !this.chestShot.locked && !execHeld(this.combat.exec);
       readPlayerIntent(input, this.look, this.intent, free);
       readCombatIntent(input, this.look, this.combatIntent, free);
       updateHealth(p, stepDt);
@@ -101,7 +102,7 @@ export class Run extends RunBase {
     const locked = input.locked;
     // Update 0.0.13 — kneeling at a chest, the view turns to it and the mouse waits (and during the boss room's show).
     const kneeling = p.kneel > 0;
-    const still = kneeling || this.show.locked || execHeld(this.combat.exec);
+    const still = kneeling || this.show.locked || this.chestShot.locked || execHeld(this.combat.exec);
     const mouseDx = locked && !still ? input.mouseDX : 0;
     const mouseDy = locked && !still ? input.mouseDY : 0;
     if (locked && !still) this.look.apply(mouseDx, mouseDy, settings);
@@ -126,6 +127,8 @@ export class Run extends RunBase {
     this.rig.update(real * scale, this.clock.alpha, this.prev, p, this.look, settings.fov, aspect);
     // The boss room's show may take the view.
     const shot = this.show.update(real, this.camera, this.look, this.combat);
+    const chestShot = !shot.cinematic && this.chestShot.update(real, this.treasure, this.camera);
+    if (chestShot) this.show.hud.cine = true;
     this.chest.set(p.pos.x, p.pos.y + AIM_HEIGHT, p.pos.z);
     // The shop and chests read this frame's events before the combat scene clears them; the hands follow a lid.
     const tv = this.treasureView;
@@ -133,7 +136,7 @@ export class Run extends RunBase {
     this.arms.chest.update(tv.reach.k, tv.reach.left, tv.reach.right, this.camera, this.arms.camera);
     this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt, this.clock.alpha);
     followHeld(this.combat, this.look, this.arms, this.camera, real);
-    const free = locked && !p.dead && !this.show.locked && !shot.cinematic && !execHeld(this.combat.exec);
+    const free = locked && !p.dead && !this.show.locked && !shot.cinematic && !chestShot && !execHeld(this.combat.exec);
     const focus = focusOf(this.treasure, this.combat, p, this.fighting, this.focus);
     this.prompts.update(focus, this.camera, renderer, keyLabel(input.bindings.interact), free, this.combatScene.markAt());
     const d = this.level.dungeon;
@@ -144,7 +147,7 @@ export class Run extends RunBase {
     this.arms.update(gameDt, real, mouseDx, mouseDy, p, f.charging ? f.charge / FISTS.v.chargeTime : -1);
 
     renderer.render(this.scene, this.camera);
-    if (!shot.cinematic) this.arms.render(renderer, aspect);
+    if (!shot.cinematic && !chestShot) this.arms.render(renderer, aspect);
 
     fillDebug(debug, p, this.combat);
     this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d, this.look.yaw, this.show.hud, choosing ?? '');

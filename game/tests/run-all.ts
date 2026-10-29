@@ -51,5 +51,6 @@ import './test-sounds';
 import './test-foes3';
 import './test-challenge';
 import './test-prompts';
+import './test-rewards';
 
 process.exit(summary() > 0 ? 1 : 0);

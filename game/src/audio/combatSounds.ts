@@ -16,6 +16,7 @@ import { WEAPON_KINDS } from '../sim/weapons/catalog';
 import { FISTS } from '../tuning/combat';
 import { ENEMIES } from '../tuning/enemies';
 import { FOES } from '../tuning/foes';
+import { ITEMS } from '../tuning/items';
 import type { AudioEngine } from './audio';
 import { playBoss } from './bossSounds';
 import { playDragon } from './dragonSounds';
@@ -148,8 +149,9 @@ export class CombatSounds {
         break;
       // Update 0.0.12 — the spitter's warning (a wet gurgle rising) and its spit; the brute's (a low roar) and its slam.
       case 'spitterWindup':
-        noise(a, { dur: ENEMIES.v.spitterWindup, gain: 0.18 * far, filter: 'bandpass', from: 250, to: 1400, q: 4 });
-        tone(a, { from: 180, to: 420, dur: ENEMIES.v.spitterWindup, gain: 0.1 * far, type: 'triangle' });
+        // (Update 0.2.0 — 65% quieter: the designer.)
+        noise(a, { dur: ENEMIES.v.spitterWindup, gain: 0.063 * far, filter: 'bandpass', from: 250, to: 1400, q: 4 });
+        tone(a, { from: 180, to: 420, dur: ENEMIES.v.spitterWindup, gain: 0.035 * far, type: 'triangle' });
         break;
       case 'spit':
         noise(a, { dur: 0.14, gain: 0.3 * far, filter: 'bandpass', from: 1800, to: 500, q: 2 });
@@ -228,6 +230,12 @@ export class CombatSounds {
       case 'chestOpen':
         noise(a, { dur: 0.6, gain: 0.18, filter: 'bandpass', from: 300, to: 900, q: 6 });
         tone(a, { from: 160, to: 240, dur: 0.6, gain: 0.08, type: 'sawtooth' });
+        break;
+      // Update 0.2.0 — a chest rising out of the floor: stone grinding over a low rumble.
+      case 'chestRise':
+        noise(a, { dur: ITEMS.v.chestRise, gain: 0.35, filter: 'lowpass', from: 900, to: 200 });
+        noise(a, { dur: ITEMS.v.chestRise, gain: 0.15, filter: 'bandpass', from: 300, to: 700, q: 6 });
+        tone(a, { from: 55, to: 80, dur: ITEMS.v.chestRise, gain: 0.35 });
         break;
       case 'chestLocked':
         for (let k = 0; k < 3; k++) noise(a, { dur: 0.05 + k * 0.03, gain: 0.25, filter: 'bandpass', from: 2400, to: 1200, q: 3 });

@@ -85,7 +85,8 @@ section('Boss room');
   tick(DT);
   check('killed: its grunts die with it', seen.includes('bossDown') && !combat.enemies.some((e) => isLive(e)));
   tick(doomTime() + 0.1);
-  check('its body bursts: a key, a heart and coins', seen.includes('bossBurst') && combat.items.keys === keys + 1 && p.hp > 50 && combat.money + combat.coins.filter((c) => c.alive).length > money);
+  // (Update 0.2.0 — the designer: no rewards right away; they're in its chest, test-rewards.ts.)
+  check('its body bursts, leaving nothing yet', seen.includes('bossBurst') && combat.items.keys === keys && p.hp === 50 && combat.money === money && !combat.coins.some((c) => c.alive));
   check('the gate waits a moment', run0.shut[b.gate]);
   tick(CINEMA.v.gateDelay + 0.05);
   check('then the wooden gate opens, and the room’s own gates', !run0.shut[b.gate] && room.gates.every((g) => !run0.shut[g]) && seen.includes('woodGateOpen') && run0.rooms[b.room].state === 'cleared');

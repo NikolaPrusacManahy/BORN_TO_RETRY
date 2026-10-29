@@ -9,6 +9,9 @@
 // dark beyond it.
 // Update 0.0.20 — lava pits: no floor over a lava cell, its lava LAVA_DEPTH under the floor's level; the floor is that
 // much thicker, so a pit's sides are solid.
+// Update 0.2.0 — chests that rise out of the floor (the designer): the challenge room's once it's won, and the boss's,
+// 3 m in front of the wooden gate, once the boss is dead. Until then they aren't there: their boxes are gates (solid
+// once they're up), after the wooden gate's.
 import type { Arena, ArenaBox, BoxKind, JumpPad, Spot } from '../arena';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, PlacedRoom, Side } from './floorPlan';
 import { OPPOSITE } from './wayOut';
@@ -30,6 +33,8 @@ const GATE_DEPTH = 0.6;
 export const CHEST_W = 1.2;
 export const CHEST_D = 0.9;
 const CHEST_BACK = 0.4;
+/** Update 0.2.0 — the boss's chest stands this far in front of the wooden gate's wall (m). */
+export const BOSS_CHEST_OUT = 3;
 /** The boss room before its walls slide back: this many cells across the entrance wall, and deep. */
 export const BOSS_START_W = 16;
 export const BOSS_START_D = 14;
@@ -63,6 +68,11 @@ export interface ChestSpot {
   rot: number;
   fx: number;
   fz: number;
+  /** Update 0.2.0 — it rises out of the floor when its room is won (until then it isn't there); the boss's (it opens
+   *  without a key and holds what the boss leaves); its box's index in DungeonLevel.gates (−1: always there). */
+  rises: boolean;
+  boss: boolean;
+  gate: number;
 }
 
 export interface DungeonRoom {
@@ -153,7 +163,13 @@ function chestSpot(r: PlacedRoom): ChestSpot {
   else if (col === w - 1) fx = -1;
   else if (Math.abs(col + 0.5 - w / 2) > Math.abs(row + 0.5 - h / 2)) fx = col < w / 2 ? 1 : -1;
   else fz = row < h / 2 ? 1 : -1;
-  return { room: r.index, x: cellX(r.x0 + col) - fx * CHEST_BACK, z: cellZ(r.z0 + row) - fz * CHEST_BACK, rot: Math.atan2(fx, fz), fx, fz };
+  return { room: r.index, x: cellX(r.x0 + col) - fx * CHEST_BACK, z: cellZ(r.z0 + row) - fz * CHEST_BACK, rot: Math.atan2(fx, fz), fx, fz, rises: r.challenge, boss: false, gate: -1 };
+}
+
+/** A chest's box: the size of the model (not the whole cell). */
+function chestBox(c: ChestSpot): ArenaBox {
+  const across = c.fz !== 0;
+  return { x: c.x, y: HEIGHT.chest! / 2, z: c.z, w: across ? CHEST_W : CHEST_D, h: HEIGHT.chest!, d: across ? CHEST_D : CHEST_W, kind: 'block' };
 }
 
 /** The boss room's inside before its walls slide back: BOSS_START_W × BOSS_START_D cells against its entrance wall. */
@@ -179,14 +195,13 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
   merge(plan, hasFloor, (col, row, w, h) => cellsBox(col, row, w, h, -LAVA_DEPTH - 1, 0, 'floor'), boxes);
   merge(plan, (c) => c === 'lava', (col, row, w, h) => cellsBox(col, row, w, h, -LAVA_DEPTH - 1, -LAVA_DEPTH, 'lava'), boxes);
   merge(plan, (c) => BOX_KIND[c] !== undefined, (col, row, w, h, c) => cellsBox(col, row, w, h, 0, HEIGHT[c]!, BOX_KIND[c]!), boxes);
-  // Chests: a box the size of the model (not the whole cell).
+  // Chests: a box the size of the model (one that rises: a gate, below).
   const chests: ChestSpot[] = [];
   for (const r of plan.rooms) {
     if (!r.chest) continue;
     const c = chestSpot(r);
     chests.push(c);
-    const across = c.fz !== 0;
-    boxes.push({ x: c.x, y: HEIGHT.chest! / 2, z: c.z, w: across ? CHEST_W : CHEST_D, h: HEIGHT.chest!, d: across ? CHEST_D : CHEST_W, kind: 'block' });
+    if (!c.rises) boxes.push(chestBox(c));
   }
   const pads: JumpPad[] = [];
   for (let row = 0; row < GRID; row++) {
@@ -228,6 +243,10 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
   const br = rooms[out.room];
   const end: Rect = { min: br.min, max: br.max };
   const [ox, oz] = out.side === 'n' ? [0, -1] : out.side === 's' ? [0, 1] : out.side === 'w' ? [-1, 0] : [1, 0];
+  // Update 0.2.0 — the boss's chest, in front of the wooden gate, facing into the room; then every rising chest's box.
+  const out3 = CELL / 2 + BOSS_CHEST_OUT;
+  br.chest = chests.push({ room: out.room, x: woodGate.x - ox * out3, z: woodGate.z - oz * out3, rot: Math.atan2(-ox, -oz), fx: -ox, fz: -oz, rises: true, boss: true, gate: -1 }) - 1;
+  for (const c of chests) if (c.rises) c.gate = gates.push(chestBox(c)) - 1;
   const boss: BossLayout = {
     room: out.room,
     entrance: OPPOSITE[out.side],

@@ -69,7 +69,8 @@ export const MIX: Partial<Record<ClipSound, Mix>> = {
   kiCharge: { gain: 0.35, vary: 0 },
   wraithCast: { gain: 0.5, vary: 0.05 },
   // Batch 4: the enemies' warnings and attacks.
-  spitterWindup: { gain: 0.5, vary: 0.05 },
+  // (Update 0.2.0 — the designer: the Spitter's voice 65% quieter, "too loud and annoying".)
+  spitterWindup: { gain: 0.175, vary: 0.05 },
   spit: { gain: 0.5, vary: 0.05 },
   bruteWindup: { gain: 0.7, vary: 0.05 },
   leaperWindup: { gain: 0.5, vary: 0.05 },

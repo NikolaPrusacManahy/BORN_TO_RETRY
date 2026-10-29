@@ -19,6 +19,8 @@ import { ChestGlows, DropsView } from './treasureFx';
 export const ITEMS_URL = '/models/items/items.glb';
 /** An item turns this high over its tile (m) at this speed (rad/s); its price floats above it. */
 const FLOAT = 1.05;
+/** Update 0.2.0 — a buried chest waits this far under the floor (m): all of it (0.9 m tall). */
+const RISE_DEPTH = 1;
 const TURN = 1.2;
 const PRICE_Y = 1.75;
 /** The lid: shut until this far into the opening, up (this many radians) by that far. */
@@ -189,7 +191,7 @@ export class TreasureView {
     for (let i = 0; i < t.chests.length && i < this.chests.length; i++) {
       const c = t.chests[i];
       const body = this.chests[i];
-      const k = c.state === 'shut' ? 0 : c.state === 'open' ? 1 : c.t / ITEMS.v.chestTime;
+      const k = c.state === 'open' ? 1 : c.state === 'opening' ? c.t / ITEMS.v.chestTime : 0;
       body.lid.rotation.x = -lidAngle(k);
       if (c.state === 'opening') this.lip(body, k);
     }
@@ -228,9 +230,12 @@ export class TreasureView {
     for (let i = 0; i < this.chests.length; i++) {
       const c = chests[i];
       const root = this.chests[i].root;
-      root.visible = !!c;
+      // Update 0.2.0 — a buried chest isn't there; a rising one comes up out of the floor, shaking, slowing at the top.
+      root.visible = !!c && c.state !== 'buried';
       if (!c) continue;
-      root.position.set(c.spot.x, 0, c.spot.z);
+      const up = c.state === 'rising' ? Math.min(1, c.t / ITEMS.v.chestRise) : 1;
+      const shake = c.state === 'rising' ? Math.sin(c.t * 70) * 0.025 * (1 - up) : 0;
+      root.position.set(c.spot.x + shake * c.spot.fz, -RISE_DEPTH * (1 - up * (2 - up)), c.spot.z - shake * c.spot.fx);
       root.rotation.y = c.spot.rot;
     }
   }

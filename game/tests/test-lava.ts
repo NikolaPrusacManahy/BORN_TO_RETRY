@@ -148,7 +148,7 @@ section('Floor 3 — its look');
   const bars = view.group.children.filter((o) => o.name === STONE.bars || o.children.some((k) => k.name === STONE.bars) || (o.type === 'Mesh' && o.scale.x === STONE.barsScale[0]));
   const ys = () => bars.map((b) => b.position.y);
   view.update(1, run, new THREE.Vector3());
-  check('open, the bars hide up over the doorways', bars.length === l3.gates.length - 1 && ys().every((y) => near(y, STONE.barsHidden, 1e-6)) && bars.every((b) => !b.visible), `${bars.length} bars`);
+  check('open, the bars hide up over the doorways', bars.length === l3.plan.links.length * 2 && ys().every((y) => near(y, STONE.barsHidden, 1e-6)) && bars.every((b) => !b.visible), `${bars.length} bars`);
   run.shut.fill(true);
   view.update(0.05, run, new THREE.Vector3());
   const falling = ys();

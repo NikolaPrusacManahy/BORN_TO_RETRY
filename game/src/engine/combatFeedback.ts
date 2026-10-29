@@ -204,6 +204,11 @@ export class CombatFeedback {
         case 'woodGateOpen':
           this.f.rig.shake.add(0.2);
           break;
+        // Update 0.2.0 — a chest breaking up out of the floor: stones flying, the ground trembling.
+        case 'chestRise':
+          this.f.chunks.spawn(at.set(at.x, 0.1, at.z), UP, 18, 1);
+          this.f.rig.shake.add(0.3);
+          break;
         case 'hitSlam':
           this.hit(1.6, fb.shakeJab, fb.kickJab, 'heavy');
           break;

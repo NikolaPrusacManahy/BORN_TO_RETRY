@@ -2,12 +2,13 @@
 // a while every melee hit freezes what it hits), gold ingots (more coins from kills for a while), a blue potion (faster
 // for a while). Each turns where it fell until you walk over it, or until it fades. Placeholders past the designer's
 // numbers: how many a room gives, how long one lies there, bosses never frozen.
+// Update 0.2.0 (the designer: "reduce the chances of … potion & freeze by 4%, keep gold the same") — 6% each (was 10%).
 import { group, knob } from './schema';
 
 export const BONUS = group('bonus', 'Kill bonuses', {
-  snowflakeOdds: knob(0.1, 0, 1, 0.01, 'Snowflake chance', 'Chance a kill drops a snowflake.'),
+  snowflakeOdds: knob(0.06, 0, 1, 0.01, 'Snowflake chance', 'Chance a kill drops a snowflake.'),
   goldOdds: knob(0.1, 0, 1, 0.01, 'Gold ingots chance', 'Chance a kill drops gold ingots.'),
-  potionOdds: knob(0.1, 0, 1, 0.01, 'Blue potion chance', 'Chance a kill drops a blue potion.'),
+  potionOdds: knob(0.06, 0, 1, 0.01, 'Blue potion chance', 'Chance a kill drops a blue potion.'),
   perRoom: knob(2, 0, 10, 1, 'Bonuses a room', 'Most a fight room drops.'),
   life: knob(20, 3, 60, 1, 'Bonus lifetime', 'Seconds one lies on the floor before it fades (it blinks near the end).'),
   freezeFor: knob(7, 1, 30, 0.5, 'Snowflake time', 'Seconds your melee hits freeze what they hit.'),

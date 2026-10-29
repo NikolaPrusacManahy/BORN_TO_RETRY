@@ -52,7 +52,7 @@ const ITEMS: [DropKind, string][] = [
   ['plate', 'Plate'],
   ['goldPlate', 'Gold armour'],
   ['redRing', 'Red ring'],
-  ['purpleRing', 'Purple ring'],
+  ['tealRing', 'Teal ring'],
   ['greenRing', 'Green ring'],
   ['blueRing', 'Blue ring'],
   ['key', 'Key'],

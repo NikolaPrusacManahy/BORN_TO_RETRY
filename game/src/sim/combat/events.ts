@@ -80,6 +80,8 @@ export type CombatEvent =
   | 'buy'
   | 'buyFail'
   | 'chestOpen'
+  // Update 0.2.0 — a chest starts rising out of the floor (value: its index).
+  | 'chestRise'
   | 'chestLocked'
   | 'chestLoot'
   // Update 0.0.16 — the key to use switched (value = its item), a chest's rarity as its lid is up (value = its index in

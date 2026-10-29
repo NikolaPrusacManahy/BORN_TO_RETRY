@@ -1,6 +1,7 @@
 // Update 0.0.12 — the dungeon's minimap, top right (the designer: a small minimap). Rooms you know of are outlined,
 // rooms you've been in are filled, the one you're in is bright; the way down shows once you know its room; you're an
 // arrow. Drawn in floor-grid cells, scaled to the box.
+// Update 0.2.0 — just under it, while the room you're in has a chest to open: CHEST IN CURRENT ROOM ! (the designer).
 import type { MapView } from '../engine/hudStore';
 
 /** The map's box (px) and the cells shown across it (it follows you, a few rooms around). Update 0.0.13 — twice the
@@ -8,7 +9,7 @@ import type { MapView } from '../engine/hudStore';
 const SIZE = 220;
 const SPAN = 130;
 
-export function Minimap({ map, x, z, yaw }: { map: MapView; x: number; z: number; yaw: number }) {
+export function Minimap({ map, x, z, yaw, chest }: { map: MapView; x: number; z: number; yaw: number; chest: boolean }) {
   const s = SIZE / SPAN;
   // Centred on you, kept inside the floor.
   const cx = Math.max(SPAN / 2, Math.min(map.size - SPAN / 2, x));
@@ -28,6 +29,7 @@ export function Minimap({ map, x, z, yaw }: { map: MapView; x: number; z: number
         ))}
         <path className="rb-map-you" d="M 0 -7 L 5 6 L 0 3 L -5 6 Z" transform={`translate(${px(x)} ${pz(z)}) rotate(${turn})`} />
       </svg>
+      {chest && <div className="rb-map-chest">CHEST IN CURRENT ROOM !</div>}
     </div>
   );
 }

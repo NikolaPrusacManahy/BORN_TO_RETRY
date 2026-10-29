@@ -21,7 +21,7 @@ import { createCombat } from '../src/sim/combat/state';
 import { stepCombat } from '../src/sim/combat/step';
 import { createDungeonRun } from '../src/sim/dungeon/roomLoop';
 import { chestInReach, createTreasure, KNEEL_DIST, LOOT_AT, SHOP_TILES, stepTreasure, Treasure } from '../src/sim/dungeon/treasure';
-import { createInventory, damageFactor, ITEM_KINDS, priceOf, speedFactor, takeItem } from '../src/sim/items/items';
+import { createInventory, ITEM_KINDS, priceOf, speedFactor, takeItem } from '../src/sim/items/items';
 import { emptyIntent } from '../src/sim/player/intent';
 import { createPlayer, PlayerState } from '../src/sim/player/state';
 import { stepPlayer } from '../src/sim/player/step';
@@ -51,16 +51,23 @@ section('Shop — every floor');
     else if (t.offers.length !== SHOP_TILES || !t.offers.some((o) => o.kind === 'heart') || !t.offers.some((o) => o.kind === 'plate') || new Set(t.offers.map((o) => o.kind)).size !== SHOP_TILES) bad ||= `seed ${seed}: offers ${t.offers.map((o) => o.kind)}`;
     const yetis = level.rooms.filter((r) => r.kind === 'fight' && hasYeti(r.waves));
     if (yetis.some((r) => r.chest < 0)) bad ||= `seed ${seed}: a room with a Yeti and no chest`;
-    const more = level.chests.length - yetis.length;
+    // (Update 0.2.0 — the boss's chest, in the boss room, isn't one of these.)
+    const more = level.chests.filter((c) => !c.boss).length - yetis.length;
     // (One or two more, unless every fight room already has one: floor 3 can have a Yeti in each.)
     const free = level.rooms.some((r) => r.kind === 'fight' && r.chest < 0);
     if (more > 2 || (more < 1 && free)) bad ||= `seed ${seed}: ${level.chests.length} chests for ${yetis.length} Yeti rooms`;
     for (const c of level.chests) {
+      if (c.boss) {
+        if (level.rooms[c.room].kind !== 'boss' || c.gate < 0) bad ||= `seed ${seed}: the boss's chest`;
+        continue;
+      }
       if (level.rooms[c.room].kind !== 'fight') bad ||= `seed ${seed}: a chest outside a fight room`;
       // You can stand where you kneel to open it, and it stands in the room's walk grid as an obstacle.
       const nav = buildNavGrid(level.rooms[c.room].arena, 0.3);
       if (!freeAt(nav, c.x + c.fx * KNEEL_DIST, c.z + c.fz * KNEEL_DIST)) bad ||= `seed ${seed}: no room to kneel at a chest`;
-      if (freeAt(nav, c.x, c.z)) bad ||= `seed ${seed}: a chest you can walk through`;
+      // (Update 0.2.0 — a chest that rises: its box is a gate, solid once it's up.)
+      const box = c.rises ? level.gates[c.gate] : null;
+      if (c.rises ? !box || Math.abs(box.x - c.x) > 1e-9 || Math.abs(box.z - c.z) > 1e-9 : freeAt(nav, c.x, c.z)) bad ||= `seed ${seed}: a chest you can walk through`;
     }
   }
   check('30 floors: one shop of five tiles (a heart, a plate and three others), a chest in every Yeti room and one or two more, all in fight rooms you can kneel at', !bad, bad);
@@ -120,22 +127,22 @@ section('Shop — buying');
 section('Shop — rings');
 {
   const inv = createInventory();
-  check('no rings, no change', damageFactor(inv) === 1 && speedFactor(inv) === 1);
-  // (Update 0.0.17 — the designer's rework: the purple ring is the damage one now, +25%; the blue ring +15% speed.)
-  inv.purpleRings = 1;
+  check('no rings, no change', speedFactor(inv) === 1);
+  // (Update 0.0.17 — the blue ring +15% speed. Update 0.2.0 — the purple ring, +20% damage, is gone: the designer, "no
+  // more damage increases"; the teal ring in its place gives health.)
   inv.blueRings = 1;
-  check(`a purple ring: +${ITEMS.v.purpleRing * 100}% damage; a blue ring: +${ITEMS.v.blueRing * 100}% speed`, near(damageFactor(inv), 1 + ITEMS.v.purpleRing, 1e-9) && near(speedFactor(inv), 1 + ITEMS.v.blueRing, 1e-9));
-  // A real jab on a dummy, with and without a purple ring.
+  check(`a blue ring: +${ITEMS.v.blueRing * 100}% speed`, near(speedFactor(inv), 1 + ITEMS.v.blueRing, 1e-9));
+  check('no purple ring any more', !(ITEM_KINDS as readonly string[]).includes('purpleRing') && ITEM_KINDS.includes('tealRing'));
+  // A real jab on a dummy, with and without every ring: no ring makes it harder.
   const jab = (rings: number) => {
     const s = createCombat({ ...bare, dummies: [{ x: 0, y: 0, z: -1.5 }] });
-    s.items.purpleRings = rings;
+    s.items.redRings = s.items.blueRings = s.items.greenRings = s.items.tealRings = rings;
     const p = createPlayer(0, 0, 0, 0);
     stepCombat(s, p, { ...emptyCombatIntent(), attackPressed: true }, new FlatWorld(), DT);
     return TARGETS.v.dummyHp - s.dummies[0].hp;
   };
   const plain = jab(0);
-  // (Update 0.1.10 — the designer: +20%, was 25%.)
-  check(`a purple ring makes your hits ${Math.round(ITEMS.v.purpleRing * 100)}% harder`, plain > 0 && near(jab(1), plain * (1 + ITEMS.v.purpleRing), 1e-6) && ITEMS.v.purpleRing === 0.2, `${plain} → ${jab(1)}`);
+  check('no ring makes your hits harder', plain > 0 && near(jab(1), plain, 1e-9), `${plain} → ${jab(1)}`);
   // Running flat out, with and without a blue ring.
   const run = (mul: number) => {
     const p = createPlayer(0, 0, 0, 0);

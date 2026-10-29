@@ -62,7 +62,7 @@ export interface HudState {
   /** Update 0.0.17 — the green and purple rings; the weapon slots after your fists (slot 2 on) and the one in your hand
    *  (0: fists), with a number that changes whenever they do; the kill bonuses that are on (share of their time left). */
   greenRings: number;
-  purpleRings: number;
+  tealRings: number;
   slots: (HudSlot | null)[];
   slot: number;
   slotSig: number;
@@ -84,6 +84,8 @@ export interface HudState {
   poisoned: boolean;
   /** Update 0.0.21 — enemies left in the fight (−1: no count). */
   enemiesLeft: number;
+  /** Update 0.2.0 — the room you're in has a chest to open ("CHEST IN CURRENT ROOM !" under the map). */
+  chestHere: boolean;
   /** Update 0.1.0 — the Execution Power meter (0..1, in steps of a kill). */
   execution: number;
 }
@@ -95,7 +97,7 @@ export interface HudStore {
 }
 
 export function createHudStore(): HudStore {
-  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, purpleRings: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, execution: 0 };
+  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, tealRings: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, chestHere: false, execution: 0 };
   const subs = new Set<() => void>();
   return {
     get: () => state,

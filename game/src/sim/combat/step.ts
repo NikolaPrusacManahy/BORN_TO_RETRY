@@ -88,11 +88,11 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     // The world holds still while you hold it (and a Grimoire's charge or a volley is dropped).
     dropKi(state.ki);
     dropVolley(state);
-    stepExecution(state, dt);
+    stepExecution(state, dt, player);
     state.money = updateCoins(state.coins, player, state.money, events, dt);
     return;
   }
-  stepExecution(state, dt);
+  stepExecution(state, dt, player);
   if (intent.interactPressed && !throwing && !executing) {
     const got = tryPickup(state.pickups, state.stands, player, events);
     if (got) giveWeapon(state, got, player.pos);

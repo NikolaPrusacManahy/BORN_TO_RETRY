@@ -27,6 +27,7 @@ import { Look } from './look';
 import { BossShow } from './boss/bossShow';
 import { TreasureView } from './treasureView';
 import { PromptView } from './promptView';
+import { ChestShot } from './chestShot';
 import { emptyFocus } from '../sim/items/focus';
 import { HudFeed } from './overlayFeed';
 import { Viewmodel } from './viewmodel/viewmodel';
@@ -51,6 +52,8 @@ export abstract class RunBase {
   /** Update 0.1.20 — the [E] prompts and item cards, and what they're about. */
   protected readonly prompts: PromptView;
   protected readonly focus = emptyFocus();
+  /** Update 0.2.0 — the view going to a chest rising out of the floor. */
+  protected readonly chestShot = new ChestShot();
   protected level!: Level;
   protected view!: LevelView;
   protected combat!: CombatState;

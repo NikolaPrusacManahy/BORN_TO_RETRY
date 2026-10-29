@@ -20,11 +20,12 @@ import { Minimap } from './Minimap';
 /** At or below this share of max health the bar pulses. */
 const LOW_HEALTH = 0.25;
 
-function RingIcon({ gem }: { gem: string }) {
+/** A gold ring with its gem; Update 0.2.0 — or a plain band in its own colour (the teal ring). */
+function RingIcon({ gem, band }: { gem?: string; band?: string }) {
   return (
     <svg viewBox="0 0 32 32">
-      <circle cx="16" cy="19" r="9" fill="none" stroke="#e8b931" strokeWidth="3.5" />
-      <path d="M11 9l5-6 5 6-5 4z" fill={gem} stroke="#7a5a10" strokeWidth="1" />
+      <circle cx="16" cy={band ? 16 : 19} r="9" fill="none" stroke={band ?? '#e8b931'} strokeWidth={band ? 5 : 3.5} />
+      {gem && <path d="M11 9l5-6 5 6-5 4z" fill={gem} stroke="#7a5a10" strokeWidth="1" />}
     </svg>
   );
 }
@@ -68,7 +69,7 @@ export function Hud({ store }: { store: HudStore }) {
           </span>
         </div>
       )}
-      {s.map && <Minimap map={s.map} x={s.mapX} z={s.mapZ} yaw={s.mapYaw} />}
+      {s.map && <Minimap map={s.map} x={s.mapX} z={s.mapZ} yaw={s.mapYaw} chest={s.chestHere} />}
       <div className="rb-hud-money">
         <i className="rb-hud-coin" />
         <span key={s.money} className="rb-hud-money-n">{s.money}</span>
@@ -91,8 +92,8 @@ export function Hud({ store }: { store: HudStore }) {
           <Carried n={s.greenRings}>
             <RingIcon gem="#2ecc40" />
           </Carried>
-          <Carried n={s.purpleRings}>
-            <RingIcon gem="#a640ff" />
+          <Carried n={s.tealRings}>
+            <RingIcon band="#21b9c6" />
           </Carried>
         </span>
       </div>

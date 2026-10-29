@@ -1,10 +1,13 @@
 // Update 0.1.0 — the Execution Power meter (the designer: a meter just above the dash bar, filled by kills). It fills
 // with your kills and waits, full, for what it will be spent on.
 // Update 0.1.1 — spent on an execution (sim/combat/execution.ts): E near an enemy you can execute (the snake).
+// Update 0.2.0 (the designer: "executions now heal 15 HP, mini bosses give 25").
 import { group, knob } from './schema';
 
 export const EXECUTION = group('execution', 'Execution', {
   killsToFill: knob(10, 1, 50, 1, 'Kills to fill', 'Kills that fill the Execution Power meter.'),
+  heal: knob(15, 0, 100, 1, 'Execution heal', 'Health an execution gives back as its enemy dies.'),
+  healBig: knob(25, 0, 100, 1, 'Mini boss heal', 'Health executing a mini boss gives back.'),
   reach: knob(2.6, 1, 6, 0.1, 'Execution reach', 'How close (m) an enemy must be to execute it.'),
   targetArc: knob(60, 10, 180, 5, 'Execution aim', 'How far off where you look (degrees) it may be.'),
   speed: knob(1, 0.4, 2, 0.05, 'Execution speed', 'How fast the moves play (1: as made; 1.3 s until you let go).'),

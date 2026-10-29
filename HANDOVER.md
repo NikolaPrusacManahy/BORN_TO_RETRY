@@ -2,7 +2,14 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-10-29, after Update 0.1.20)
+## Next up (2026-10-29, after Update 0.2.0)
+- **The designer plays 0.2.0** (none of it seen in the game). Claude's readings of the list, to confirm:
+  - **"the gate remain open"**: read as the challenge room's gates staying *shut* until the reward is taken, then opening (that's what "aren't allowed to leave" needs).
+  - **"scrap whatever ring gives the 15% damage"**: the purple ring (+20% damage) is gone. The green ring (+15% attack speed) stays; say if it was meant too.
+  - **The boss's chest doesn't hold you**: the wooden gate opens as before; the chest rises 3 m in front of it, in the gate's shot. It needs no key (its key is inside), glows mythic red, and its key and heart wait side by side.
+  - **"4% less"**: the snowflake and the potion from 10% to 6% of kills.
+  - **The Spitter's "voice"**: its warning gurgle 65% quieter (the recorded clip and the code-made one); its spit's sound is as it was.
+  - **The view's trip to a rising chest** takes 3.2 s (0.7 there, 1.4 rising, 0.4 held, 0.7 back), with the letterbox; you don't move meanwhile.
 - **The designer plays 0.1.20** (none of it seen in the game; Claude doesn't run the game): the words over the doorways (size, colour, height on brick and on floor 3's stone), the challenge room, the item cards and the [E] prompts. Choices Claude made that the designer may want otherwise:
   - **One challenge room a floor, off the way** (a dead end you choose to go into; off a fight room on the way, or any room if there's no space).
   - **One key from a challenge room** (white or gold), not one per mini boss: the rule for every room (one key a room). F1 → Rooms → "Challenge: keys" makes it 2.
@@ -36,7 +43,18 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   - Arms are checked by renders before reporting: `tools/hand-shots.ts` (fists, grips, the slam), `tools/exec-shots.ts <kinds>`, `tools/weapon-shots.ts` and `tools/book-shots.ts`, then `tools/blender/render_view.py --json … --out … --cull`. To render only some moments, filter the shots JSON (`pov.json` or `shots.json`) by name first.
   - Code edits ran as small Python scripts in the scratchpad (exact old → new pairs), because shell heredocs mangle quotes and em dashes.
 
-## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.20
+## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.2.0
+- **Update 0.2.0 — challenge rewards, the boss's chest, the teal ring, healing executions** (the designer's list; spec `MD_UPDATES/U020_REWARDS.md`).
+  - **One challenge room a floor, the only dead end:** no plain side fight room any more (`SIDE_FIGHT` gone); the challenge room always placed (off a fight room on the way, else any room but the boss's). Checked on 15,000 floors.
+  - **Rising chests** (`ChestSpot.rises`, `.gate`): the challenge room's and the boss's are `buried` (not drawn, not solid) until `raiseChest` (`rising`, Chest rising 1.4 s, then `shut`). Their boxes are gates after the wooden gate (solid once up and you're clear of them). Stones fly, the ground trembles, a grinding rumble. `engine/chestShot.ts`: the view glides from your eyes to 4.2 m in front of the chest, 2.4 m up, holds, glides back; the run is locked meanwhile (letterbox).
+  - **The challenge room holds you** (`sim/dungeon/reward.ts`, room state `reward`): won, its gates stay shut, its chest rises, its keys lying there are taken for you (and one its mini bosses never dropped is given); the gates open once the chest is open and its item taken, or if you have no key, or you're out of the room (lava).
+  - **The boss's chest** (`ChestSpot.boss`, `Chest.boss`): 3 m in front of the wooden gate's wall, facing into the room; rises as the gate opens; opens without a key; gives the boss's coins (`bossCoins`), and its key and heart (`BOSS_LOOT`) wait over it, 0.5 m apart. The boss's burst gives nothing now.
+  - **The teal ring** (`tealRing`, +25 max health and that much health, `Teal ring health`; mythic; 110, `priceTealRing`) replaces the purple ring; `damageFactor` is gone (no damage increases). `items.glb` re-exported with `item_tealRing` (Ring7). The HUD shows it as a teal band.
+  - **Bonus odds:** the snowflake and the blue potion 6% (was 10%); gold ingots 10%.
+  - **Executions heal** (`EXECUTION.heal` 15, `healBig` 25 for a mini boss), as the body dies (`finish`, execution.ts; `stepExecution` takes the player). The memory `healing-shop-only` now says so.
+  - **CHEST IN CURRENT ROOM !** under the minimap (`chestToOpen`, treasure.ts: the room you're in by its whole inside has a chest up or rising; `HudState.chestHere`).
+  - **The Spitter's gurgle** 65% quieter (`MIX.spitterWindup` 0.175, was 0.5; the code-made one too).
+  - **Checked by tests** (`test-rewards.ts`; old checks changed where the designer changed the rules: test-shop, test-loadout, test-keys, test-dungeon, test-lava, test-boss-room). Unseen in the game: the chest rising, the view's trip, the HUD line, the teal ring on a tile.
 - **Update 0.1.20 — signs, challenge rooms, item cards, [E] prompts** (the designer's list; spec `MD_UPDATES/U0120_ROOMS_PROMPTS.md`).
   - **Signs** (the designer: "a text just above the room entrance saying either Room, Challenge, Shop, Boss"): over every doorway into a room but the start, on the corridor's side, 4.85 m up (over the arch, on the wall's top tile). `world/dungeon/signs.ts` (where, what), `engine/roomSignsView.ts` (canvas words in Anton, unlit, added with the floor's view).
   - **Challenge rooms** (the designer: "6 more enemies of the norm", "a guaranteed 2 mini boss", "a chest is guaranteed", the mini boss drops "only either a white key or a gold key"): one a floor, a side room (`PlacedRoom.challenge`, `DungeonRoom.challenge`), placed on its own seed so the rest of the floor is laid out as before. `planWaves(…, challenge)`: the count + Challenge: more enemies (6); no mini bosses drawn, then Challenge: mini bosses (2) of the floor's put in (the first wave and the last). Always a chest (a room template with a chest spot, not used on the floor yet). Entering: `keyDrops` = Challenge: keys (1), `betterKeys` (white or gold by their odds: `betterKeyFor`). The minimap outlines it in fire. Knobs: F1 → Rooms.

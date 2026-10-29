@@ -40,6 +40,28 @@
   stroke: rgba(150, 220, 160, 0.8);
 }
 
+/* Update 0.2.0 — just under the map: the room you're in has a chest to open. */
+.rb-map-chest {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  white-space: nowrap;
+  font-family: 'Anton', var(--rb-font);
+  font-size: calc(17px * var(--rb-ui));
+  letter-spacing: 0.06em;
+  color: #ffc23a;
+  text-shadow: 0 0 10px rgba(255, 194, 58, 0.5), 0 2px 0 rgba(0, 0, 0, 0.8);
+  animation: rb-map-chest-in 0.25s ease-out;
+}
+
+@keyframes rb-map-chest-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
 /* Update 0.1.20 — a challenge room: outlined in fire. */
 .rb-map-room.is-challenge {
   stroke: #ff6a2a;

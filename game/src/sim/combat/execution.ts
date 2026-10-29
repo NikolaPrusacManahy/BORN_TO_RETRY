@@ -10,7 +10,8 @@ import { Vector3 } from 'three';
 import { EXECUTION } from '../../tuning/execution';
 import { wallBetween } from '../../world/navGrid';
 import { isLive, setPhase } from '../enemies/enemy';
-import { EnemyKind, RADIUS } from '../enemies/kinds';
+import { EnemyKind, MINI_BOSSES, RADIUS } from '../enemies/kinds';
+import { healPlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
 import type { CombatState } from './state';
 import { BLOWS, EXEC_MOVES, EXECUTABLE, ExecMove, heightOf, moveOf } from './execMoves';
@@ -154,7 +155,7 @@ function findWall(state: CombatState, ex: Execution) {
 
 /** One tick: the moves go on; each slam into the floor and each blow jolts (a freeze); let go, the body flies; it dies
  *  where it lands, or where it is, and what's beside it is hurt. */
-export function stepExecution(state: CombatState, dt: number) {
+export function stepExecution(state: CombatState, dt: number, player: PlayerState) {
   const ex = state.exec;
   if (!ex.active) return;
   const v = EXECUTION.v;
@@ -188,7 +189,7 @@ export function stepExecution(state: CombatState, dt: number) {
     if (move.end === 'burst') {
       b.copy(ex.middle);
       b.y = ex.origin.y;
-      finish(state, ex, b, 'execBurst');
+      finish(state, ex, b, 'execBurst', player);
       return;
     }
     ex.thrown = true;
@@ -204,7 +205,7 @@ export function stepExecution(state: CombatState, dt: number) {
   e.prev.copy(e.pos);
   if (ex.thrown && ex.t >= move.endAt + ex.flight) {
     b.set(ex.land.x, ex.origin.y, ex.land.z);
-    finish(state, ex, b, move.end === 'wall' ? 'execBurst' : 'execLand');
+    finish(state, ex, b, move.end === 'wall' ? 'execBurst' : 'execLand', player);
   }
 }
 
@@ -231,8 +232,9 @@ function throwTo(state: CombatState, ex: Execution, move: ExecMove) {
   ex.flight = Math.max(0.05, v.flight * (move.fly ?? 1) * share * Math.max(0.1, v.speed));
 }
 
-/** It dies at `at` (your kill, but it doesn't fill the meter again), and what's beside it is hurt. */
-function finish(state: CombatState, ex: Execution, at: Vector3, kind: 'execLand' | 'execBurst') {
+/** It dies at `at` (your kill, but it doesn't fill the meter again), and what's beside it is hurt. Update 0.2.0 — it
+ *  heals you (more for a mini boss). */
+function finish(state: CombatState, ex: Execution, at: Vector3, kind: 'execLand' | 'execBurst', player: PlayerState) {
   const v = EXECUTION.v;
   ex.active = false;
   const e = state.enemies[ex.target];
@@ -246,6 +248,7 @@ function finish(state: CombatState, ex: Execution, at: Vector3, kind: 'execLand'
   hit.point.copy(e.pos);
   landHit(state, hit, 1e6, 0, F.x, F.z, 'hitHeavy', 1);
   state.execution = 0;
+  if (!player.dead) healPlayer(player, MINI_BOSSES.includes(e.kind) ? v.healBig : v.heal);
   for (let i = 0; i < state.enemies.length; i++) {
     const o = state.enemies[i];
     if (i === ex.target || !isLive(o)) continue;

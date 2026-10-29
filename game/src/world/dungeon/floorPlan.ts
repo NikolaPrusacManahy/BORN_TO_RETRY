@@ -13,6 +13,8 @@
 // chest (the Yeti carries its key); one more chest in another fight room, sometimes two.
 // Update 0.1.20 — a challenge room off the way (the designer: more enemies, two mini bosses, a chest always), on its
 // own seed so the rest of the floor is as it was.
+// Update 0.2.0 (the designer: "always 1 challenge room in each floor"; "if a room leads nowhere … it should be a
+// challenge room") — no plain fight room off the way any more: the one dead-end fight room is the challenge room.
 import { createRng, Rng } from '../../core/rng';
 import type { EnemyKind } from '../../sim/enemies/kinds';
 import { hasYeti, perchWaves, planWaves } from '../../sim/dungeon/wavePlan';
@@ -29,8 +31,7 @@ const MARGIN = 4;
 export const GRID = SLOTS * (MAX_ROOM + GAP) + MARGIN * 2;
 /** Fight rooms on the way from the start to the way down. */
 export const PATH_FIGHTS = 5;
-/** Chance of a fight room off the way (besides the shop), and of a second chest on the floor. */
-const SIDE_FIGHT = 0.6;
+/** Chance of a second chest on the floor. */
 const SECOND_CHEST = 0.35;
 
 export type Side = 'n' | 's' | 'w' | 'e';
@@ -147,8 +148,8 @@ export function planFloor(seed: number, level: number): FloorPlan {
     add(i === 0 ? 'start' : i === way.length - 1 ? 'boss' : 'fight', slot, i);
     if (i > 0) links.push([i - 1, i]);
   });
-  // Side rooms off the fight rooms on the way: the shop (off the second to fourth fight room when it can), then
-  // maybe a fight.
+  // Side rooms off the fight rooms on the way: the shop (off the second to fourth fight room when it can), then the
+  // challenge room.
   const sideRoom = (kind: RoomKind, minDepth: number, maxDepth: number, own = rng, challenge = false, hosts: RoomKind[] = ['fight']) => {
     const options: [number, [number, number]][] = [];
     for (const h of rooms) {
@@ -164,7 +165,6 @@ export function planFloor(seed: number, level: number): FloorPlan {
     return true;
   };
   if (!sideRoom('shop', 2, 4)) sideRoom('shop', 1, PATH_FIGHTS);
-  if (rng() < SIDE_FIGHT) sideRoom('fight', 1, PATH_FIGHTS);
   const own = createRng(seed * 4513 + level * 389);
   // (Off a fight room on the way; with no room there, off any room but the boss's.)
   if (!sideRoom('fight', 2, PATH_FIGHTS, own, true) && !sideRoom('fight', 1, PATH_FIGHTS, own, true)) sideRoom('fight', 0, Infinity, own, true, ['fight', 'shop', 'start']);

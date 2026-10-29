@@ -26,7 +26,6 @@ export const ITEMS = group('items', 'Shop & chests', {
   priceRedRing: price(65, 'the red ring'),
   priceBlueRing: price(65, 'the blue ring'),
   priceGreenRing: price(65, 'the green ring'),
-  pricePurpleRing: price(65, 'the purple ring'),
   priceDaggers: price(65, 'the Dual Daggers'),
   priceWhiteKey: price(65, 'a white key'),
   priceGoldSword: price(80, 'the gold sword'),
@@ -36,6 +35,7 @@ export const ITEMS = group('items', 'Shop & chests', {
   priceGoldAxe: price(100, 'the Gold Axe'),
   priceGrimoire: price(110, 'the Grimoire'),
   priceGoldDaggers: price(110, 'the Gold Daggers'),
+  priceTealRing: price(110, 'the teal ring (the Gold Daggers\' price: the designer)'),
   priceGreatHeart: price(90, 'the Great Heart (not sold: chests only)'),
   priceRise: knob(0.15, 0, 1, 0.01, 'Price rise', 'Prices go up this share on every floor down (0.15: +15%, on top of the last).'),
   heartHeal: knob(0.5, 0.05, 1, 0.05, 'Heart heal', 'Share of max health a heart heals.'),
@@ -46,12 +46,15 @@ export const ITEMS = group('items', 'Shop & chests', {
   // (Update 0.1.10 — the designer: 30, was 40.)
   goldSwordUses: knob(30, 5, 200, 1, 'Gold sword hits', 'Uses of the gold sword.'),
   redRingHp: knob(15, 0, 100, 1, 'Red ring health', 'Extra max health per red ring.'),
-  purpleRing: knob(0.2, 0, 1, 0.05, 'Purple ring damage', 'Extra damage per purple ring (0.2: +20%).'),
+  // Update 0.2.0 — the teal ring (the designer: "increases Health by 25 and is Mythic"; the purple ring's +20% damage
+  // is gone: "no more damage increases").
+  tealRingHp: knob(25, 0, 100, 1, 'Teal ring health', 'Extra max health per teal ring.'),
   greenRing: knob(0.15, 0, 1, 0.05, 'Green ring attack speed', 'Faster melee attacks per green ring (0.15: +15%).'),
   blueRing: knob(0.15, 0, 1, 0.05, 'Blue ring speed', 'Extra run speed per blue ring (0.15: +15%).'),
   buyReach: knob(1.6, 0.5, 4, 0.1, 'Buy reach', 'How close to an item (m) E buys it.'),
   chestReach: knob(2, 0.8, 4, 0.1, 'Chest reach', 'How close to a chest (m) E opens it.'),
   chestTime: knob(1.3, 0.5, 3, 0.05, 'Chest opening', 'Seconds you kneel and lift the lid.'),
+  chestRise: knob(1.4, 0.2, 5, 0.1, 'Chest rising', 'Seconds a challenge room\'s or a boss\'s chest takes to rise out of the floor.'),
   common: knob(45, 0, 100, 1, 'Chest: common', 'Weight of a common chest (coins, a heart or the silver plate).'),
   uncommon: knob(30, 0, 100, 1, 'Chest: uncommon', 'Weight of an uncommon chest (the gold armour or the Great Heart).'),
   rare: knob(15, 0, 100, 1, 'Chest: rare', 'Weight of a rare chest (the gold sword or a ring).'),

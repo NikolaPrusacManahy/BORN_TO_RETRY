@@ -6,20 +6,21 @@
 // Update 0.0.18 — each floor its boss (kinds.ts bossOf): floor 2's is the Dragon. It screams as its stance starts (the
 // view shakes). Update 0.0.21 (the designer) — the Dragon calls no wasps (raging, it bombs you from the sky); its bombs
 // go with it when it dies.
+// Update 0.2.0 (the designer: "bosses no longer drop the rewards right away, instead a chest spawns 3 m away from the
+// exit gate") — its body bursts with nothing; what it left (its coins, a key, a heart) is in the chest that rises in
+// front of the wooden gate as it opens (treasure.ts, roomLoop.ts).
 import type { Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import { BOSS } from '../../tuning/boss';
 import { DRAGON } from '../../tuning/dragon';
 import { CINEMA } from '../../tuning/cinema';
-import { burstCoins } from '../combat/coins';
-import { coinsFor } from '../items/bonuses';
 import { clearQuakes } from '../combat/quakes';
 import { clearBombs } from '../combat/bombs';
 import type { CombatState } from '../combat/state';
 import { hitEnemy, isLive, setPhase, spawnEnemy } from '../enemies/enemy';
 import { ENEMY_STATS, EnemyKind } from '../enemies/kinds';
 import { spawnAt } from '../enemies/waves';
-import { ITEM_KINDS, ItemKind, takeItem } from '../items/items';
+import type { ItemKind } from '../items/items';
 import type { PlayerState } from '../player/state';
 import { Vector3 } from 'three';
 
@@ -39,8 +40,8 @@ export interface BossRun {
   calling: boolean;
 }
 
-/** What the boss leaves you. **(placeholder)** */
-const LOOT: readonly ItemKind[] = ['key', 'heart'];
+/** What the boss leaves you (Update 0.2.0: in its chest). **(placeholder)** */
+export const BOSS_LOOT: readonly ItemKind[] = ['key', 'heart'];
 /** It calls again only while fewer than this many grunts are left. */
 const CALL_UNDER = 2;
 /** Grunts never appear closer to you than this, if there's room (m). */
@@ -67,8 +68,8 @@ function callsOf(kind: EnemyKind): Calls | null {
   return CALLS;
 }
 
-/** The coins a boss leaves. */
-const coinsOf = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : BOSS.v.demonCoins);
+/** The coins a boss leaves (Update 0.2.0: in its chest). */
+export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : BOSS.v.demonCoins);
 
 /** The show's beats, in seconds from stepping in. */
 export interface IntroBeats {
@@ -189,14 +190,8 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
       }
       break;
     case 'dying':
+      // Its body has burst (what it leaves is in its chest: Update 0.2.0).
       if (!boss || !boss.struck) break;
-      // Its body has burst: what it leaves you.
-      mid.set(boss.pos.x, boss.pos.y + height * 0.5, boss.pos.z);
-      combat.money += burstCoins(combat.coins, mid, coinsFor(coinsOf(b.kind), combat, rng), rng);
-      for (const kind of LOOT) {
-        takeItem(kind, player, combat);
-        ev.push('bossLoot', ITEM_KINDS.indexOf(kind), mid.x, mid.y, mid.z);
-      }
       b.beat = 'loot';
       b.t = 0;
       break;

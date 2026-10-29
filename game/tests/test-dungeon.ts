@@ -161,7 +161,9 @@ section('Dungeon — the level');
   check('you start on open floor in the start room', startCell === 'floor' && level.plan.rooms[0].kind === 'start');
   const inBox = level.arena.boxes.some((b) => b.kind !== 'floor' && Math.abs(s.x - b.x) < b.w / 2 && Math.abs(s.z - b.z) < b.d / 2);
   check('nothing stands where you start', !inBox);
-  check('a gate for every doorway, and the wooden gate', level.gates.length === level.plan.links.length * 2 + 1 && level.boss.gate === level.gates.length - 1);
+  // (Update 0.2.0 — then a box for each chest that rises: the challenge room's and the boss's.)
+  const rising = level.chests.filter((c) => c.rises).length;
+  check('a gate for every doorway, the wooden gate, and each rising chest', level.gates.length === level.plan.links.length * 2 + 1 + rising && level.boss.gate === level.plan.links.length * 2 && rising === 2);
   // (Update 0.0.15 — 1000, was 900: the boss room's twelve pillars and the dark's walls. Update 0.1.20 — 1150: the
   // challenge room.)
   check('cells merged into a manageable number of boxes', level.arena.boxes.length < 1150, `${level.arena.boxes.length} boxes`);
@@ -270,7 +272,7 @@ section('Dungeon — the look');
   // Each gate's bars stand in its doorway, where its collision box is.
   const aligned = look.gates.every((g) => level.gates.some((b) => Math.abs(b.x - g.x) < 0.01 && Math.abs(b.z - g.z) < 0.01));
   // (Update 0.0.15 — the wooden gate has no bars: engine/boss/woodGate.ts draws it.)
-  check('the bars stand where the gates block', look.gates.length === level.gates.length - 1 && aligned);
+  check('the bars stand where the gates block', look.gates.length === level.plan.links.length * 2 && aligned);
   // Update 0.0.13 — day time (the designer: far too dark): a light sky, a sun with shadows following you, a bright sky
   // light, the haze far off.
   const scene = new THREE.Scene();

@@ -40,7 +40,8 @@ ITEMS = {
     'item_redRing': ('Ring3', 0.36, {}),
     'item_blueRing': ('Ring4', 0.36, {'Cyan': (0.08, 0.25, 1.0)}),
     'item_greenRing': ('Ring6', 0.36, {'Green': (0.1, 0.85, 0.2)}),
-    'item_purpleRing': ('Ring5', 0.36, {'Lilac': (0.55, 0.08, 0.9)}),
+    # Update 0.2.0 — the teal ring (Ring7, the pack's teal band) replaces the purple ring (Ring5).
+    'item_tealRing': ('Ring7', 0.36, {}),
     'item_key': ('Key1', 0.42, {}),
     'item_snowflake': ('Snowflake1', 0.5, {'Snowflake': (0.72, 0.9, 1.0)}),
     'item_goldIngots': ('Gold_Ingots', 0.5, {}),

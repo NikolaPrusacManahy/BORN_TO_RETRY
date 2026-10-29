@@ -9,6 +9,9 @@
 // (the Switch key action goes to the next one you carry); E uses it.
 // Update 0.0.17 — the shop's draw takes in the gold armour and the green and purple rings too.
 // Update 0.0.18 — each offer has its own price (by how good it is, more on lower floors: items.ts).
+// Update 0.2.0 (the designer) — some chests rise out of the floor: the challenge room's once it's won, the boss's once
+// it's dead (`raiseChest`); until then they're buried (not there). The boss's opens without a key and holds what the
+// boss used to leave as it burst: its coins, a key and a heart (the items wait over it for E, side by side).
 import type { Rng } from '../../core/rng';
 import { ITEMS } from '../../tuning/items';
 import type { ChestSpot, DungeonLevel } from '../../world/dungeon/assemble';
@@ -19,6 +22,9 @@ import { startKneel } from '../player/kneel';
 import type { PlayerState } from '../player/state';
 import { dropItem, takeWaiting } from '../items/drops';
 import { Loot, LootRolls, RARITIES, rollLoot } from './loot';
+import { BOSS_LOOT, bossCoins } from './bossRoom';
+import { coinsFor } from '../items/bonuses';
+import type { EnemyKind } from '../enemies/kinds';
 import { Vector3 } from 'three';
 
 export interface Offer {
@@ -31,7 +37,8 @@ export interface Offer {
   z: number;
 }
 
-export type ChestState = 'shut' | 'opening' | 'open';
+/** Update 0.2.0 — 'buried': not there yet; 'rising': coming up out of the floor. */
+export type ChestState = 'buried' | 'rising' | 'shut' | 'opening' | 'open';
 
 export interface Chest {
   spot: ChestSpot;
@@ -44,6 +51,8 @@ export interface Chest {
   loot: Loot | null;
   /** Its loot has come out. */
   given: boolean;
+  /** Update 0.2.0 — a boss's chest: which boss (no key opens it; its loot is the boss's); null: a key opens it. */
+  boss: EnemyKind | null;
 }
 
 export interface Treasure {
@@ -61,13 +70,15 @@ export const KNEEL_DIST = 1.15;
 export const LOOT_AT = 0.62;
 /** Update 0.1.11 — how high over the floor a chest's item waits (m): drawn half a metre over the open chest (0.57 m). */
 export const LOOT_HEIGHT = 0.5;
+/** Update 0.2.0 — the boss's items wait this far apart over its chest (m). */
+const LOOT_GAP = 0.5;
 /** Tiles in a shop. */
 export const SHOP_TILES = 5;
 /** Always in the shop; the rest of its tiles are drawn from the others ('key': a key by its odds). */
 const SHOP_ALWAYS: readonly ItemKind[] = ['heart', 'plate'];
 // Update 0.1.4 — and the Grimoire. Update 0.1.5 — and the Gold Axe and the Hammer. Update 0.1.9 — the Dual Daggers.
 // Update 0.1.10 — and the Gold Hammer and the Gold Daggers (the designer's sort prices every item).
-const SHOP_DRAWN: readonly ItemKind[] = ['goldSword', 'grimoire', 'goldAxe', 'hammer', 'daggers', 'goldHammer', 'goldDaggers', 'goldPlate', 'redRing', 'blueRing', 'greenRing', 'purpleRing', 'key'];
+const SHOP_DRAWN: readonly ItemKind[] = ['goldSword', 'grimoire', 'goldAxe', 'hammer', 'daggers', 'goldHammer', 'goldDaggers', 'goldPlate', 'redRing', 'blueRing', 'greenRing', 'tealRing', 'key'];
 
 const at = new Vector3();
 
@@ -79,15 +90,15 @@ function shuffle<T>(list: T[], rng: Rng): T[] {
   return list;
 }
 
-/** The shop's offers and the chests' rolls for a floor (seeded). */
-export function createTreasure(level: DungeonLevel, rng: Rng): Treasure {
+/** The shop's offers and the chests' rolls for a floor (seeded); `boss`: the floor's (its chest's loot). */
+export function createTreasure(level: DungeonLevel, rng: Rng, boss: EnemyKind = 'demon'): Treasure {
   const shop = level.rooms.find((r) => r.kind === 'shop');
   const drawn = shuffle([...SHOP_DRAWN], rng).slice(0, SHOP_TILES - SHOP_ALWAYS.length);
   // A key on offer is a normal, white or gold one.
   const kinds = shuffle([...SHOP_ALWAYS, ...drawn.map((k) => (k === 'key' ? keyFor(rng()) : k))], rng);
   const floor = level.plan?.level ?? 1;
   const offers = shop ? shop.tiles.slice(0, SHOP_TILES).map((t, i) => ({ kind: kinds[i], price: priceOf(kinds[i], floor), sold: false, x: t.x, z: t.z })) : [];
-  const chests = level.chests.map((spot): Chest => ({ spot, state: 'shut', t: 0, rolls: [rng(), rng(), rng()], key: null, loot: null, given: false }));
+  const chests = level.chests.map((spot): Chest => ({ spot, state: spot.rises ? 'buried' : 'shut', t: 0, rolls: [rng(), rng(), rng()], key: null, loot: null, given: false, boss: spot.boss ? boss : null }));
   return { shop: shop ? shop.index : -1, offers, chests, choosing: -1 };
 }
 
@@ -122,11 +133,31 @@ export function offerInReach(t: Treasure, player: PlayerState): number {
   return best;
 }
 
+/** Update 0.2.0 — the room you're in (by its whole inside, `level`'s) has a chest still to open (up, or rising). */
+export function chestToOpen(t: Treasure, level: DungeonLevel, x: number, z: number): boolean {
+  const r = level.rooms.find((q) => x >= q.min.x && x <= q.max.x && z >= q.min.z && z <= q.max.z);
+  return !!r && t.chests.some((c) => c.spot.room === r.index && (c.state === 'shut' || c.state === 'rising'));
+}
+
+/** Update 0.2.0 — chest `i` starts rising out of the floor (if it's buried). */
+export function raiseChest(t: Treasure, i: number, state: CombatState) {
+  const c = t.chests[i];
+  if (!c || c.state !== 'buried') return;
+  c.state = 'rising';
+  c.t = 0;
+  state.events.push('chestRise', i, c.spot.x, 0, c.spot.z);
+}
+
 /** One tick: chests opening, picking a key in front of one, and E at a chest or a shop tile. `fighting(room)`: that room
  *  is mid-fight. Returns true if E was used here (so it doesn't also pick up a weapon). */
 export function stepTreasure(t: Treasure, player: PlayerState, state: CombatState, interact: boolean, switchKey: boolean, fighting: (room: number) => boolean, dt: number): boolean {
   const T = ITEMS.v.chestTime;
   for (const c of t.chests) {
+    if (c.state === 'rising') {
+      c.t += dt;
+      if (c.t >= ITEMS.v.chestRise) c.state = 'shut';
+      continue;
+    }
     if (c.state !== 'opening') continue;
     c.t += dt;
     if (!c.given && c.t >= T * LOOT_AT) giveLoot(c, state);
@@ -140,7 +171,8 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
   const inv = state.items;
   if (ci >= 0 && !fighting(t.chests[ci].spot.room)) {
     const c = t.chests[ci];
-    if (anyKey(inv)) {
+    const free = c.boss !== null;
+    if (!free && anyKey(inv)) {
       t.choosing = ci;
       checkPick(inv);
       if (switchKey) {
@@ -150,12 +182,12 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
       }
     }
     if (!interact) return false;
-    if (!anyKey(inv)) {
+    if (!free && !anyKey(inv)) {
       state.events.push('chestLocked', ci, c.spot.x, 0.6, c.spot.z);
       return true;
     }
-    c.key = useKey(inv);
-    c.loot = rollLoot(c.key, c.rolls);
+    c.key = free ? null : useKey(inv);
+    c.loot = c.boss ? { rarity: 'mythic', item: null, coins: coinsFor(bossCoins(c.boss), state, state.rng) } : rollLoot(c.key!, c.rolls);
     c.state = 'opening';
     c.t = 0;
     t.choosing = -1;
@@ -191,5 +223,10 @@ function giveLoot(c: Chest, state: CombatState) {
     at.set(c.spot.x, 0, c.spot.z);
     state.money += burstCoins(state.coins, at, loot.coins, state.rng);
   }
-  if (loot.item) dropItem(state.drops, loot.item, at.set(c.spot.x, LOOT_HEIGHT, c.spot.z), state.events, true);
+  // Update 0.2.0 — a boss's chest: its items side by side.
+  const items = c.boss ? BOSS_LOOT : loot.item ? [loot.item] : [];
+  items.forEach((kind, k) => {
+    const s = (k - (items.length - 1) / 2) * LOOT_GAP;
+    dropItem(state.drops, kind, at.set(c.spot.x + c.spot.fz * s, LOOT_HEIGHT, c.spot.z - c.spot.fx * s), state.events, true);
+  });
 }

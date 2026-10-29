@@ -39,6 +39,7 @@ function bonusSig(combat: CombatState): number {
 import type { DebugInfo, HudStore } from './hudStore';
 import { mapOf } from './mapFeed';
 import { enemiesLeft } from '../sim/dungeon/enemyCount';
+import { chestToOpen } from '../sim/dungeon/treasure';
 import type { DungeonRun } from '../sim/dungeon/roomLoop';
 import { CELL, GRID } from '../world/dungeon/floorPlan';
 
@@ -68,6 +69,7 @@ export class HudFeed {
     const cur = this.hud.get();
     const map = run ? mapOf(run) : null;
     const left = enemiesLeft(run, combat);
+    const chestHere = !!run && chestToOpen(run.treasure, run.level, p.pos.x, p.pos.z);
     const execution = Math.round(combat.execution * 100) / 100;
     const hp = Math.ceil(p.hp);
     const shield = Math.ceil(p.shield);
@@ -82,10 +84,10 @@ export class HudFeed {
     const bossHp = show.bossHp < 0 ? -1 : Math.ceil(show.bossHp * 100) / 100;
     const shown = cur.cine === show.cine && cur.card === show.card && cur.bossHp === bossHp && cur.veil === show.veil && cur.floorName === show.floorName && cur.bossTitle === show.bossTitle;
     const keys = cur.keys === it.keys && cur.whiteKeys === it.whiteKeys && cur.goldKeys === it.goldKeys && cur.keyPick === keyPick;
-    const rings = cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.greenRings === it.greenRings && cur.purpleRings === it.purpleRings;
+    const rings = cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.greenRings === it.greenRings && cur.tealRings === it.tealRings;
     const sig = slotSig(combat);
     const bonus = bonusSig(combat);
-    if (this.timer > 0 && same && shown && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution) return;
+    if (this.timer > 0 && same && shown && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution && cur.chestHere === chestHere) return;
     this.bonus = bonus;
     const bonusLeft: Record<string, number> = {};
     for (const k of BONUS_KINDS) bonusLeft[k] = Math.ceil((combat.bonuses[k] / bonusLength(k)) * BONUS_STEP) / BONUS_STEP;
@@ -111,7 +113,7 @@ export class HudFeed {
       redRings: it.redRings,
       blueRings: it.blueRings,
       greenRings: it.greenRings,
-      purpleRings: it.purpleRings,
+      tealRings: it.tealRings,
       slots: combat.bag.slice(1).map((w) => (w ? { kind: w.kind, uses: w.uses } : null)),
       slot: combat.slot,
       slotSig: sig,
@@ -129,6 +131,7 @@ export class HudFeed {
       floorName: show.floorName,
       poisoned: p.poison > 0 && !p.dead,
       enemiesLeft: left,
+      chestHere,
       execution,
     });
   }

@@ -14,7 +14,7 @@ import { dodges } from '../enemies/ninja';
 import { ENEMY_STATS, MINI_BOSSES } from '../enemies/kinds';
 import { EXECUTION } from '../../tuning/execution';
 import { burstCoins } from './coins';
-import { betterKeyFor, damageFactor, keyFor } from '../items/items';
+import { betterKeyFor, keyFor } from '../items/items';
 import { dropItem } from '../items/drops';
 import { coinsFor, rollBonus } from '../items/bonuses';
 import { hitDummy } from './dummy';
@@ -89,7 +89,7 @@ export function hitTarget(state: CombatState, t: TargetHit, damage: number, knoc
  *  Update 0.0.13 — every hit you land is stronger with each red ring you carry. */
 export function landHit(state: CombatState, t: TargetHit, damage: number, knock: number, dirX: number, dirZ: number, event: CombatEvent, value: number): boolean {
   if (t.kind === 'enemy' && dodges(state, t.index, dirX, dirZ)) return false;
-  const killed = hitTarget(state, t, damage * damageFactor(state.items), knock, dirX, dirZ);
+  const killed = hitTarget(state, t, damage, knock, dirX, dirZ);
   const p = t.point;
   state.events.push(event, value, p.x, p.y, p.z);
   if (!killed) return false;

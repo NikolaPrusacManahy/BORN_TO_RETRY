@@ -84,8 +84,11 @@ section('Loadout — armour and rings');
   p.hp = maxHpOf(p);
   check('your health can fill the bigger bar', p.hp === HEALTH.v.maxHp + ITEMS.v.redRingHp);
   takeItem('greenRing', p, c);
-  takeItem('purpleRing', p, c);
-  check('green and purple rings are carried', c.items.greenRings === 1 && c.items.purpleRings === 1 && near(attackRate(c.items), 1 + ITEMS.v.greenRing, 1e-9));
+  // (Update 0.2.0 — the teal ring in place of the purple: +25 max health, and that much health.)
+  const before = p.hp;
+  takeItem('tealRing', p, c);
+  check('green and teal rings are carried', c.items.greenRings === 1 && c.items.tealRings === 1 && near(attackRate(c.items), 1 + ITEMS.v.greenRing, 1e-9));
+  check(`a teal ring: +${ITEMS.v.tealRingHp} max health, and that much health`, maxHpOf(p) === HEALTH.v.maxHp + ITEMS.v.redRingHp + ITEMS.v.tealRingHp && p.hp === before + ITEMS.v.tealRingHp);
   // Jabs held down: how many in a second, without and with a green ring.
   const jabs = (rings: number) => {
     const s = scene(1.5);
@@ -114,12 +117,12 @@ section('Loadout — chests and the shop');
   const items = new Set<string>();
   const rng = createRng(9);
   for (let i = 0; i < 20000; i++) items.add(rollLoot('key', [rng(), rng(), rng()]).item ?? 'coins');
-  check('chests can hold the gold armour and every ring', ['goldPlate', 'redRing', 'blueRing', 'greenRing', 'purpleRing', 'goldSword', 'heart', 'plate', 'coins'].every((k) => items.has(k)), [...items].join(', '));
-  // (Update 0.1.10 — the designer's sort: the gold armour uncommon, every ring rare.)
-  check('the gold armour is uncommon, the rings rare', TIER.uncommon.includes('goldPlate') && ['redRing', 'blueRing', 'greenRing', 'purpleRing'].every((r) => TIER.rare.includes(r as never)) && RARITIES.length === 5);
+  check('chests can hold the gold armour and every ring', ['goldPlate', 'redRing', 'blueRing', 'greenRing', 'tealRing', 'goldSword', 'heart', 'plate', 'coins'].every((k) => items.has(k)), [...items].join(', '));
+  // (Update 0.1.10 — the designer's sort: the gold armour uncommon, every ring rare. Update 0.2.0 — the teal ring mythic.)
+  check('the gold armour is uncommon, the rings rare, the teal ring mythic', TIER.uncommon.includes('goldPlate') && ['redRing', 'blueRing', 'greenRing'].every((r) => TIER.rare.includes(r as never)) && TIER.mythic.includes('tealRing') && RARITIES.length === 5);
   const shop = new Set<string>();
   for (let seed = 1; seed <= 200; seed++) for (const o of createTreasure(buildDungeon(planFloor(seed, 1)), createRng(seed)).offers) shop.add(o.kind);
-  check('the shop shows them too', ['goldPlate', 'greenRing', 'purpleRing', 'redRing', 'blueRing', 'goldSword'].every((k) => shop.has(k)), [...shop].join(', '));
+  check('the shop shows them too', ['goldPlate', 'greenRing', 'tealRing', 'redRing', 'blueRing', 'goldSword'].every((k) => shop.has(k)), [...shop].join(', '));
 }
 
 section('Loadout — kill bonuses');
@@ -132,7 +135,8 @@ section('Loadout — kill bonuses');
     const b = rollBonus(c, rng);
     if (b) got[b] = (got[b] ?? 0) + 1;
   }
-  check(`each bonus drops from ${BONUS.v.snowflakeOdds * 100}% of kills`, near((got.snowflake ?? 0) / 10000, 0.1, 0.01) && near((got.goldIngots ?? 0) / 10000, 0.1, 0.01) && near((got.bluePotion ?? 0) / 10000, 0.1, 0.01), JSON.stringify(got));
+  // (Update 0.2.0 — the designer: the snowflake and the potion 4% less, gold the same.)
+  check(`snowflakes drop from ${BONUS.v.snowflakeOdds * 100}% of kills, gold ingots ${BONUS.v.goldOdds * 100}%, blue potions ${BONUS.v.potionOdds * 100}%`, BONUS.v.snowflakeOdds === 0.06 && BONUS.v.goldOdds === 0.1 && BONUS.v.potionOdds === 0.06 && near((got.snowflake ?? 0) / 10000, 0.06, 0.01) && near((got.goldIngots ?? 0) / 10000, 0.1, 0.01) && near((got.bluePotion ?? 0) / 10000, 0.06, 0.01), JSON.stringify(got));
   c.bonusDrops = BONUS.v.perRoom;
   let n = 0;
   for (let i = 0; i < 200; i++) if (rollBonus(c, rng)) n++;
@@ -190,7 +194,8 @@ section('Loadout — kill bonuses');
     landHit(c, hit, 1e6, 0, 0, 1, 'hitJab', 1);
     if (c.drops.some((d) => d.alive)) dropped++;
   }
-  check('about three kills in ten drop a bonus', near(dropped / 200, 0.3, 0.08), `${dropped} of 200`);
+  const odds = BONUS.v.snowflakeOdds + BONUS.v.goldOdds + BONUS.v.potionOdds;
+  check(`about ${Math.round(odds * 100)} kills in a hundred drop a bonus`, near(dropped / 200, odds, 0.08), `${dropped} of 200`);
 }
 
 section('Loadout — weapon slots');
@@ -229,10 +234,11 @@ section('The designer sort (Update 0.1.10)');
   // The shop's prices on floor 1, as the designer listed them.
   const want: [number, ItemKind[]][] = [
     [45, ['heart', 'plate', 'hammer', 'key']],
-    [65, ['redRing', 'blueRing', 'greenRing', 'purpleRing', 'daggers', 'whiteKey']],
+    [65, ['redRing', 'blueRing', 'greenRing', 'daggers', 'whiteKey']],
     [80, ['goldSword', 'goldPlate', 'goldKey']],
     [100, ['goldHammer', 'goldAxe']],
-    [110, ['grimoire', 'goldDaggers']],
+    // (Update 0.2.0 — the teal ring: the Gold Daggers' price.)
+    [110, ['grimoire', 'goldDaggers', 'tealRing']],
   ];
   const wrong = want.flatMap(([price, kinds]) => kinds.filter((k) => priceOf(k, 1) !== price).map((k) => `${k} ${priceOf(k, 1)}`));
   check('shop prices: 45, 65, 80, 100 and 110 as listed', wrong.length === 0, wrong.join(', '));
@@ -241,7 +247,7 @@ section('The designer sort (Update 0.1.10)');
   check('the shop sells the Gold Hammer and the Gold Daggers too', shop.has('goldHammer') && shop.has('goldDaggers'));
   const tiers = RARITIES.map((r) => `${r}: ${TIER[r].join(' ')}`).join('; ');
   check('chests: common coins, heart, plate; uncommon gold armour, Great Heart; rare gold sword, rings; epic Gold Axe, Gold Hammer; mythic Gold Daggers, Grimoire',
-    tiers === 'common: coins heart plate; uncommon: goldPlate greatHeart; rare: goldSword redRing blueRing greenRing purpleRing; epic: goldAxe goldHammer; mythic: goldDaggers grimoire', tiers);
+    tiers === 'common: coins heart plate; uncommon: goldPlate greatHeart; rare: goldSword redRing blueRing greenRing; epic: goldAxe goldHammer; mythic: goldDaggers grimoire tealRing', tiers);
   check('mythic replaces legendary, and its glow is red', RARITIES[4] === 'mythic' && RARITY_COLOUR.mythic === 0xff2a2a);
   const c = createCombat(bare);
   const p = createPlayer(0, 0, 0, 0);

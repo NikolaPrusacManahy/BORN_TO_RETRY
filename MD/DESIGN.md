@@ -66,7 +66,7 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - **The death screen (Update 0.1.14, the designer: play, lose, learn, retry):** dead in a run, once it's black: "Killed by" and what killed you, large in crimson (an enemy by its name in the game, or the turret, spikes, lava, the fall; poison names who poisoned you), then the floor, the time played (m:ss, not counting the pause) and your kills. Retry starts a new run; Menu goes to the main menu. The world holds still behind it. No hints. Drawn big (1.5× the first draft, the designer).
 - **The loader (Update 0.1.14, the designer):** after Play on the character select and the fade to black, the logo's retry arrow turns bottom right on the black for at least a second while the level loads, then fades with the black. No words.
 - **The Lab (Update 0.0.19, the designer; dev builds only):** the main menu's Lab goes straight into the Feel Lab. Its panel (F8) spawns any enemy or boss in front of you, any item, bonus, weapon or a chest, and takes you to a boss's real room (its show and fight, then back to the Lab). It also has Clear, Heal, the Lab's waves and invincibility. Spec `MD_UPDATES/M3_LAB.md`.
-- **Healing (Update 0.0.13, the designer): only from the shop.** The heart heals half your health (a chest can hold one too). Hits you land heal nothing (blood heal is gone). After a boss (Update 0.0.15): it leaves a heart.
+- **Healing (Update 0.0.13, the designer): only from the shop.** The heart heals half your health (a chest can hold one too). Hits you land heal nothing (blood heal is gone). After a boss (Update 0.0.15): it leaves a heart (Update 0.2.0: in its chest). **Executions heal (Update 0.2.0, the designer): 15, a mini boss 25.**
 - **Poison (Update 0.0.18):** the snake's bite and the wasp's sting poison you: 3 a second for 4 s, past your shield. **(placeholder)**
 - **The shield (Update 0.0.13, the designer):** the silver armour plate gives a shield of half your health, shown as a blue bar just above the health bar. A hit takes the shield first, then your health. At most a full bar (two plates). **(placeholder cap)**
 
@@ -106,7 +106,7 @@ From the shop (70 coins each) and chests (Ultimate RPG Pack models):
 | Gold armour (Update 0.0.17) | 40 shield. |
 | Gold sword | A sword with 30 uses, into the next weapon slot and your hand. |
 | Red ring | +15 max health (and the health to fill it), for the rest of the run. (Update 0.0.17, the designer: was +25% damage.) Rings stack. **(placeholder: stacking)** |
-| Purple ring (Update 0.0.17) | +20% damage, for the rest of the run (Update 0.1.10, the designer: was 25%). |
+| Teal ring (Update 0.2.0, the designer) | +25 max health (and the health to fill it), for the rest of the run. **Mythic** (mythic chests), 110 in the shop (the Gold Daggers' price). The pack's teal band (Ring7). It replaces the purple ring (+20% damage): no ring or item adds damage any more. |
 | Green ring (Update 0.0.17) | +15% melee attack speed (jabs and slashes), for the rest of the run. |
 | Blue ring | +15% run speed (running and sliding; not the dash), for the rest of the run. (Update 0.0.17: was 20%.) |
 | Key | Opens a chest. |
@@ -119,7 +119,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 
 ## 7. Money and style
 - Kills give money (Update 0.0.12): coins burst out of what you kill and fly to you. **Update 0.0.17 (the designer): half what they were:** a grunt **1**, a spitter **2**, a brute **5**, a leaper **2**, a stinger **1.5**, a wraith **2.5** (a half is one more coin half the time), the Demon **30** (out of its burst). Elites will give more.
-- **Kill bonuses (Update 0.0.17, the designer: like CoD Zombies' power-ups):** a kill may drop a snowflake (7 s: every melee hit freezes what it hits for 1 s; never a boss), gold ingots (10 s: +50% coins) or a blue potion (7 s: +30% speed), each 10%, at most 2 a fight room **(placeholder)**. Walk over one to take it; left lying, it fades after 20 s. Your coins show just above the health bar. **(placeholder amounts)**
+- **Kill bonuses (Update 0.0.17, the designer: like CoD Zombies' power-ups):** a kill may drop a snowflake (7 s: every melee hit freezes what it hits for 1 s; never a boss), gold ingots (10 s: +50% coins) or a blue potion (7 s: +30% speed): gold 10%, the snowflake and the potion 6% (Update 0.2.0, the designer: 4% less; was 10%), at most 2 a fight room **(placeholder)**. Walk over one to take it; left lying, it fades after 20 s. Your coins show just above the health bar. **(placeholder amounts)**
 - **Style meter (D → C → B → A → S):** rises with variety, air kills, parries, throw kills and not getting hit; drops when you're hit or stop fighting.
 - Style multiplies money from ×1.0 at D to ×2.0 at S. **(placeholder)**
 - Money resets at the end of every run.
@@ -127,7 +127,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 - **Constant pressure (Update 0.1.0, the designer):** a fight room never lets its field fall under 5 enemies while it has more to send: its first wave (at least 5), then one more each time one falls, until its plan is spent.
 - **Execution Power meter (Update 0.1.0, the designer):** a bar just above the dash charges, filled by kills (10 to fill). Update 0.1.1: twice the size, with the dash charges.
 - **Showing you can execute (Update 0.1.12, the designer: "a proper UI"):** a crimson skull floats over the head of the enemy you can execute, drawn on top of everything at one size on screen; it snaps in, beats like a heart and fades. The full meter flares once, then burns with rising embers. A low sting when one comes into reach (after a while with none). No text.
-- **Executions (Update 0.1.1, the designer: like Doom Eternal's):** with the meter full, **E** near an enemy you can execute (it pulses crimson; within 2.6 m of its edge, 60° of where you look) grabs it and empties the meter.
+- **Executions (Update 0.1.1, the designer: like Doom Eternal's):** with the meter full, **E** near an enemy you can execute (it pulses crimson; within 2.6 m of its edge, 60° of where you look) grabs it and empties the meter. **Update 0.2.0 (the designer): as it dies, it heals you 15; a mini boss 25.**
   - Until you let go (or it dies in your hands) you can't be hurt and the world holds still; your view is turned with the moves.
   - It dies as one kill (which doesn't refill the meter); enemies within 2.5 m of where it dies take 40 and are knocked back.
   - **Update 0.1.2 — every enemy has one** (the designer: "it needs to look like the hands of the player are performing the move"), the bosses none:
@@ -209,7 +209,7 @@ One per floor, three in total, each with 2 phases. Floor 1's is the Demon, floor
 - **Leap:** crouches (orange), leaps to where you stood (a ring shows where): 30 close by; a **quake ring** rolls out over the floor (15 unless you jump it).
 - **Volley:** raises its trident, then a fan of five fire orbs.
 - **Phase 2 (half health):** it roars and calls grunts (again every 18 s while few are left); quicker warnings, shorter pauses, faster; a charge runs into a leap; two fans. **(placeholder numbers)**
-- **Death:** the world slows; it hangs frozen in the air, sinks flickering white and bursts: 60 coins, a key, a heart.
+- **Death:** the world slows; it hangs frozen in the air, sinks flickering white and bursts. (Update 0.2.0: what it leaves, 60 coins, a key and a heart, is in its chest.)
 
 **The Dragon (Update 0.0.18, the designer: an intro where it screams and the scream shakes; fire breath like a laser beam that annihilates even its own side; fireballs, claws, wing swings, tail swings; spec `MD_UPDATES/M3_FLOOR2.md`).** The Dragon from Ultimate Monsters, 7 m tall, flying low, 1600 health, never flinches; a gold aura. In its show it **screams** as it takes its stance, and the view shakes. Every pause it picks a move by how far you are (the tail when you're behind it), each warned:
 - **Fire beam:** charges 1.5 s (Update 0.0.20, the designer: a thin red line shows where it will burn, fire gathers in its mouth), then a beam of fire through your chest to the floor for 2.2 s, following you slowly (dash across it); a wall stops it; **any other enemy in its line burns away**.
@@ -220,7 +220,7 @@ One per floor, three in total, each with 2 phases. Floor 1's is the Demon, floor
 - **Its choices (Update 0.0.20, the designer):** close to it, its wing, tail and claws, more often; far off, the beam and fireballs; between, the swoop, the beam and fireballs.
 - **Phase 2 (half health; Update 0.0.21, the designer):** it screams and flies up at once, 5–8 s in the air, bombing the ground round you with massive fireballs (each landing spot shows as a ring until it lands); then it's back down, quicker and faster. No minions (no more wasps).
 - **Flame burst (Update 0.0.21, the designer: rare):** stay close to it for about 30 s in all and it charges up (glowing, its reach ringed on the floor) and bursts into flame round it: run.
-- **Death:** the Demon's show; 40 coins, a key, a heart. **(placeholder numbers)**
+- **Death:** the Demon's show; 40 coins, a key, a heart (Update 0.2.0: in its chest). **(placeholder numbers)**
 
 **The boss room (Update 0.0.15, the designer):** stepping in, the view leaves your eyes and rises over the room; its walls slide back as it grows; a portal opens in the middle and the boss rises out of it, takes its stance beside its name; the view glides back and the fight starts. Once it's dead, a wooden gate in the far wall swings open onto the dark: the way down.
 
@@ -230,9 +230,12 @@ One per floor, three in total, each with 2 phases. Floor 1's is the Demon, floor
 - **A floor (Update 0.0.12, the designer: like Soul Knight's levels):** a map of rooms joined by corridors that you explore. From the start room a winding way of five fight rooms leads to the way down; side rooms branch off it: the shop (Update 0.0.13) and sometimes a fight. One or two fight rooms hold a chest. A small minimap (top right) shows the rooms you've been in and the ones beside them (the shop in gold, the boss room in red). **The way ends in the boss room (Update 0.0.15).** (Later: reward rooms.)
 - **A room:** you step in → its doors slam shut → 2–3 waves of enemies → room cleared → the doors open.
 - **Signs (Update 0.1.20, the designer):** over every doorway into a room, on the corridor's side, a word says what's through it: **ROOM**, **CHALLENGE**, **SHOP** or **BOSS**.
-- **The challenge room (Update 0.1.20, the designer: "a challenging run but rewarding if mastered"):** one on every floor, off the way, so you choose to go in. **6 more enemies** than a room as deep, always **2 mini bosses** (the floor's), always **a chest**; its mini boss drops **a white key or a gold key**, never a normal one (one key a room, as everywhere). Outlined in fire on the minimap. **(placeholder: one a floor, one key)**
+- **The challenge room (Update 0.1.20, the designer: "a challenging run but rewarding if mastered"):** one on every floor, off the way, so you choose to go in. **6 more enemies** than a room as deep, always **2 mini bosses** (the floor's), always **a chest**; its mini boss drops **a white key or a gold key**, never a normal one (one key a room, as everywhere). Outlined in fire on the minimap. **(placeholder: one key)**
+  - **Update 0.2.0 (the designer):** always exactly one, and it's the floor's only fight room that leads nowhere (there's no plain side fight room any more). Its chest isn't there until you've won: then the view goes to where it **rises out of the floor** and comes back to you. **You can't leave until you've taken your reward**: the gates stay shut until the chest is open and its item taken (they open anyway if you have no key at all, or you're no longer in the room). Any of its keys still lying on the floor are yours as you win.
+- **The boss's chest (Update 0.2.0, the designer: "bosses no longer drop the rewards right away"):** as the wooden gate opens, a chest rises out of the floor 3 m in front of it (seen in the gate's shot). It opens without a key, like any chest (you kneel, lift the lid): the boss's coins burst out, and its key and heart wait over it for E.
+- **CHEST IN CURRENT ROOM ! (Update 0.2.0, the designer):** just under the minimap, while the room you're in has a chest still to open.
 - **The way down** (Update 0.0.15: the dark beyond the boss room's wooden gate, which opens once the boss is dead; it was a trapdoor in an exit room) fades to black and takes you to the next floor, its name showing as the black clears, with your health, coins and weapon. Dying starts a new run on a new floor plan. (Earlier plan: choose one of two doors showing their rewards; replaced by the explored floor.)
-- **After a boss:** a part-heal (Update 0.0.15: the heart it leaves), then the next floor.
+- **After a boss:** a part-heal (Update 0.0.15: the heart it leaves; Update 0.2.0: in its chest), then the next floor.
 - **Win:** beat the floor 3 boss. The run ends and the next character unlocks.
 - **Lose:** you die. You see a run summary (rooms cleared, kills, best style, time, seed) and return to the hub. (Update 0.1.14: the death screen shows what killed you, the floor, the time and your kills; Retry or Menu. No hub yet.)
 
