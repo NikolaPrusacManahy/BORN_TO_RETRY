@@ -34,7 +34,18 @@ section('Execution Power meter');
   kill();
   check(`a kill fills a ${EXECUTION.v.killsToFill}th of it`, near(c.execution, 1 / EXECUTION.v.killsToFill, 1e-9));
   for (let k = 1; k < EXECUTION.v.killsToFill; k++) kill();
-  check(`${EXECUTION.v.killsToFill} kills fill it`, near(c.execution, 1, 1e-9));
+  // (Update 0.1.13 — exactly: ten tenths added up came to 0.9999999999999999, full to the eye but not to execute. The
+  // designer found executions only in the Lab, whose Meter sets it to 1.)
+  check(`${EXECUTION.v.killsToFill} kills fill it, exactly`, c.execution === 1, `${c.execution}`);
+  {
+    const p = createPlayer(0, 0, 0, 0);
+    p.grounded = true;
+    const s = spawnEnemy(c.enemies, 'grunt', new Vector3(0, 0, -1.8), 0);
+    c.enemies[s].frozen = 99;
+    stepCombat(c, p, emptyCombatIntent(), new FlatWorld(), DT);
+    check('and right then an enemy in reach can be executed (no 11th kill needed)', c.execTarget === s);
+    c.enemies[s].alive = false;
+  }
   kill();
   check('it stops at full', c.execution === 1);
   const next = createCombat(OPEN_ARENA, false);
