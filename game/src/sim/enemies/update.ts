@@ -5,6 +5,7 @@
 // world for what needs a clear line in the air (a dive, a cast).
 // Update 0.0.15 — the Demon, and a dead boss's death show (its body is placed until it bursts).
 // Update 0.0.18 — floor 2's: the Slime, the Frog, the Snake, the Wasp, the Spider and the Blue Demon.
+// Update 0.1.19 — floor 3's: the Skeleton, the Mushnub and the Ninja.
 // Update 0.1.15 — attack tokens (tokens.ts): dealt before anyone moves; a close fighter without one, near you, waits its
 // turn on a ring instead of its own moves. Then each one's angle round you (spread.ts): coming at you, it fans out.
 import type { CollisionWorld } from '../collisionWorld';
@@ -29,6 +30,9 @@ import { updateLeaper } from './leaper';
 import { updateSpitter } from './spitter';
 import { updateStinger } from './stinger';
 import { updateWraith } from './wraith';
+import { updateSkeleton } from './skeleton';
+import { updateMushnub } from './mushnub';
+import { updateNinja } from './ninja';
 
 export type Update = (e: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number, world: CollisionWorld) => void;
 
@@ -47,6 +51,9 @@ const UPDATE: Record<EnemyKind, Update> = {
   spider: updateSpider,
   blueDemon: updateBlueDemon,
   dragon: updateDragon,
+  skeleton: updateSkeleton,
+  mushnub: updateMushnub,
+  ninja: updateNinja,
 };
 /** A dead boss's show, each tick until its slot frees. */
 const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld) => void>> = { demon: doomDemon, dragon: doomDemon };

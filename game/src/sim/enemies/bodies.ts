@@ -1,5 +1,6 @@
 // Update 0.1.15 (out of enemy.ts, which had reached its size; no change in behaviour) — bodies: live enemies push each
 // other apart (never standing inside one another, never pushed into a wall), and the player can't walk through one.
+// Update 0.1.19 — a Skeleton's bones on the floor don't block anyone.
 // Pure.
 import { Vector3 } from 'three';
 import type { NavGrid } from '../../world/navGrid';
@@ -16,10 +17,10 @@ const LEVELS_APART = 1.5;
 export function separateEnemies(enemies: Enemy[], nav: Record<SizeClass, NavGrid>) {
   for (let i = 0; i < enemies.length; i++) {
     const a = enemies[i];
-    if (!isLive(a) || a.phase === 'held') continue;
+    if (!isLive(a) || a.phase === 'held' || a.phase === 'rebuild') continue;
     for (let j = i + 1; j < enemies.length; j++) {
       const b = enemies[j];
-      if (!isLive(b) || b.phase === 'held' || Math.abs(a.pos.y - b.pos.y) > LEVELS_APART) continue;
+      if (!isLive(b) || b.phase === 'held' || b.phase === 'rebuild' || Math.abs(a.pos.y - b.pos.y) > LEVELS_APART) continue;
       const min = radiusOf(a) + radiusOf(b);
       const dx = b.pos.x - a.pos.x;
       const dz = b.pos.z - a.pos.z;
@@ -47,7 +48,7 @@ const PUSH_PASSES = 3;
 export function pushPlayerOut(player: PlayerState, enemies: Enemy[], world: CollisionWorld, radius: number, out: MoveResult) {
   for (let pass = 0; pass < PUSH_PASSES; pass++) {
     for (const e of enemies) {
-      if (!isLive(e) || e.phase === 'held') continue;
+      if (!isLive(e) || e.phase === 'held' || e.phase === 'rebuild') continue;
       const min = radiusOf(e) + radius;
       const dx = player.pos.x - e.pos.x;
       const dz = player.pos.z - e.pos.z;

@@ -1,0 +1,35 @@
+// Update 0.1.19 — floor 3's enemies (the designer: "Blob - Skeleton (they revive as they rebuilt from pieces to
+// body)", "Blob - Mushnub", "MiniBoss - Ninja (can teleport away as an evasion trick when player trying to hit them,
+// like 20% chance)"). Placeholders past the designer's words.
+import { group, knob } from './schema';
+
+export const FOES3 = group('foes3', 'Floor 3 enemies', {
+  skeletonHp: knob(35, 5, 300, 5, 'Skeleton health', 'Damage to bring one down (each time).'),
+  skeletonSpeed: knob(6.5, 1, 15, 0.5, 'Skeleton speed', 'How fast it runs at you (m/s).'),
+  skeletonHeight: knob(1.9, 1, 3, 0.05, 'Skeleton height', 'Its model is scaled to this (m); its hit capsule follows.'),
+  skeletonReach: knob(1.8, 0.8, 4, 0.05, 'Skeleton reach', 'It stops and swings from this far (m).'),
+  skeletonWindup: knob(0.55, 0.15, 1.5, 0.05, 'Skeleton wind-up', 'The warning before its swing lands (s).'),
+  skeletonDamage: knob(14, 1, 100, 1, 'Skeleton damage', 'To you, per swing that lands.'),
+  skeletonDown: knob(2.5, 0.5, 8, 0.1, 'Skeleton lies', 'Brought down, it lies in pieces this long before it rebuilds (s). Hit the bones meanwhile and it stays down.'),
+  skeletonRise: knob(1.6, 0.5, 4, 0.1, 'Skeleton rebuild', 'Seconds it takes to rebuild itself and stand.'),
+  skeletonRevives: knob(1, 0, 5, 1, 'Skeleton revives', 'How many times it rebuilds before it stays down.'),
+  skeletonCoins: knob(1.5, 0, 50, 0.5, 'Skeleton coins', 'Coins it drops once it stays down.'),
+  mushnubHp: knob(30, 5, 300, 5, 'Mushnub health', 'Damage to kill one.'),
+  mushnubSpeed: knob(7, 1, 15, 0.5, 'Mushnub speed', 'How fast it waddles at you (m/s).'),
+  mushnubHeight: knob(1.1, 0.5, 2.5, 0.05, 'Mushnub size', 'Its model is scaled to this (m).'),
+  mushnubReach: knob(1.5, 0.6, 4, 0.05, 'Mushnub reach', 'It stops and bites from this far (m).'),
+  mushnubWindup: knob(0.4, 0.15, 1.5, 0.05, 'Mushnub wind-up', 'The warning before its bite (s).'),
+  mushnubDamage: knob(10, 1, 100, 1, 'Mushnub damage', 'To you, per bite that lands.'),
+  mushnubCoins: knob(1, 0, 50, 0.5, 'Mushnub coins', 'Coins it drops when killed.'),
+  ninjaHp: knob(150, 20, 1000, 10, 'Ninja health', 'Damage to kill one.'),
+  ninjaSpeed: knob(9, 1, 20, 0.5, 'Ninja speed', 'How fast it runs at you (m/s).'),
+  ninjaHeight: knob(2.6, 1.5, 4, 0.05, 'Ninja size', 'Its model is scaled to this (m).'),
+  ninjaReach: knob(2.4, 1, 5, 0.1, 'Ninja reach', 'It stops and slashes from this far (m).'),
+  ninjaWindup: knob(0.45, 0.15, 1.5, 0.05, 'Ninja wind-up', 'The warning before its slash lands (s).'),
+  ninjaDamage: knob(22, 1, 100, 1, 'Ninja damage', 'To you, per slash that lands.'),
+  ninjaDodge: knob(0.2, 0, 1, 0.05, 'Ninja dodge chance', 'Of a hit that would land, the share it teleports away from (the designer: like 20%).'),
+  ninjaDodgeRest: knob(1.5, 0, 6, 0.1, 'Ninja dodge rest', 'Seconds after a teleport before it can teleport again.'),
+  ninjaBlinkNear: knob(5, 2, 12, 0.5, 'Ninja teleport nearest', 'It reappears at least this far from you (m).'),
+  ninjaBlinkFar: knob(7, 3, 15, 0.5, 'Ninja teleport furthest', 'And at most this far (m).'),
+  ninjaCoins: knob(5, 0, 50, 0.5, 'Ninja coins', 'Coins it drops when killed.'),
+});

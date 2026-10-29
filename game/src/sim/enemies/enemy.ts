@@ -13,7 +13,8 @@
 // stayed close to it. A perched enemy (a spitter on a high ledge, floor 3) stands on its ledge: it falls only to it,
 // and hits don't slide it off. Update 0.1.1 — held in an execution (its own phase: the execution places it).
 // Update 0.1.15 — its attack token (tokens.ts) and its angle round you (spread.ts); bodies pushing apart moved to
-// bodies.ts.
+// bodies.ts. Update 0.1.19 — a Skeleton brought down falls to pieces to rebuild (its own phase: skeleton.ts); the
+// Ninja's teleport rest.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
@@ -25,8 +26,9 @@ import type { Rng } from '../../core/rng';
 import type { PlayerState } from '../player/state';
 import type { Flow } from './chase';
 import { ENEMY_STATS, EnemyKind, flies, SizeClass } from './kinds';
+import { FOES3 } from '../../tuning/foes3';
 
-export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive' | 'charge' | 'stun' | 'roar' | 'intro' | 'breath' | 'sky' | 'held';
+export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive' | 'charge' | 'stun' | 'roar' | 'intro' | 'breath' | 'sky' | 'held' | 'rebuild';
 
 export interface Enemy {
   /** The slot is in use (a live enemy, or a body still lying there). */
@@ -70,6 +72,8 @@ export interface Enemy {
   rest: number;
   /** Update 0.1.15 — how far round the player (rad) it should move to its own angle (spread.ts; NaN: none). */
   fan: number;
+  /** Update 0.1.19 — the Ninja: seconds before it can teleport away again (ninja.ts). */
+  blink: number;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -121,6 +125,7 @@ export function createEnemies(): Enemy[] {
     tokenFor: 0,
     rest: 0,
     fan: NaN,
+    blink: 0,
   }));
 }
 
@@ -155,6 +160,7 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.token = false;
   e.tokenFor = e.rest = 0;
   e.fan = NaN;
+  e.blink = 0;
   return i;
 }
 
@@ -240,6 +246,10 @@ export function inLine(e: Enemy, player: PlayerState, nav: NavGrid, level: numbe
   return Math.abs(player.pos.y - e.pos.y) < level && !wallBetween(nav, e.pos.x, e.pos.z, player.pos.x, player.pos.z);
 }
 
+/** Update 0.1.19 — brought down now, does it fall to pieces (to rebuild: skeleton.ts) rather than die? A Skeleton, not
+ *  while in pieces or held in an execution, until its revives are used. */
+export const fallsApart = (e: Enemy) => e.kind === 'skeleton' && e.phase !== 'rebuild' && e.phase !== 'held' && e.stage < Math.round(FOES3.v.skeletonRevives);
+
 /** Damages an enemy pushed along (dirX, dirZ) (length 1). A hit at least as hard as its stagger flinches it
  *  (cancelling its attack). Returns true if it died. */
 export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, dirZ: number): boolean {
@@ -250,10 +260,17 @@ export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, 
   e.vel.x += dirX * knock * s.knock;
   e.vel.z += dirZ * knock * s.knock;
   if (e.hp > 0) {
-    if (damage >= s.stagger) setPhase(e, 'flinch');
+    if (damage >= s.stagger && e.phase !== 'rebuild') setPhase(e, 'flinch');
     return false;
   }
   e.hp = 0;
+  // Update 0.1.19 — a Skeleton falls to pieces (and rebuilds: skeleton.ts): not dead yet.
+  if (fallsApart(e)) {
+    e.vel.set(0, 0, 0);
+    e.shots = 0;
+    setPhase(e, 'rebuild');
+    return false;
+  }
   e.vel.y = 0;
   // Where it died (a boss's death show starts there).
   e.from.copy(e.pos);

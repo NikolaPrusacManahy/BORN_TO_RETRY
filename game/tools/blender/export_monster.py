@@ -78,13 +78,19 @@ def main():
     sun = bpy.data.objects.new('Sun', bpy.data.lights.new('Sun', 'SUN'))
     sun.rotation_euler = (math.radians(50), 0, math.radians(20))
     bpy.context.scene.collection.objects.link(sun)
-    for name, frame in (('Idle', 0), (args.attack, timing[0] if timing else 0)):
+    # Update 0.1.19 — some packs hide the mesh from renders (the Skeleton): show it for the previews; an idle clip may
+    # carry the monster's name (Skeleton_Idle).
+    for o in bpy.context.scene.objects:
+        if o.type == 'MESH':
+            o.hide_render = False
+    idle = next((a.name for a in bpy.data.actions if a.name == 'Idle' or a.name.endswith('_Idle')), 'Idle')
+    for name, frame in ((idle, 0), (args.attack, timing[0] if timing else 0)):
         if bpy.data.actions.get(name):
             arm.animation_data.action = bpy.data.actions[name]
             bpy.context.scene.frame_set(frame)
             shoot(args.engine, os.path.join(args.previews, f'{name}.png'), Vector((2.8, -5.5, 2.2)), Vector((0, 0, 1.2)), size=(900, 900), vfov=40)
     bpy.data.objects.remove(sun, do_unlink=True)
-    arm.animation_data.action = bpy.data.actions.get('Idle')
+    arm.animation_data.action = bpy.data.actions.get(idle)
     bpy.context.scene.frame_set(0)
 
     # Update 0.0.18 — some packs were saved in pose mode, where the select operator won't run: select by hand.

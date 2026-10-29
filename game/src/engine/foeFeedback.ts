@@ -66,7 +66,23 @@ export function foes2Feedback(f: FeedbackParts, kind: CombatEvent, value: number
     case 'waspSting':
     case 'snakeBite':
     case 'spiderBite':
+    case 'skeletonStrike':
+    case 'mushnubBite':
+    case 'ninjaStrike':
       f.sparks.spawn(at, back, 6, 0.9);
+      break;
+    // Update 0.1.19 — floor 3's: a Skeleton falls to pieces (bones fly) and rises again (a shimmer); the Ninja's
+    // teleport (a puff where it vanished, another where it appears).
+    case 'skeletonCollapse':
+      f.chunks.spawn(at, UP, 14, 0.8);
+      break;
+    case 'skeletonRise':
+      f.sparks.spawn(at, UP, 12, 0.6);
+      break;
+    case 'ninjaVanish':
+    case 'ninjaAppear':
+      f.sparks.spawn(at, UP, 18, 1);
+      f.chunks.spawn(at, UP, 6, 0.6);
       break;
     default:
       execFeedback(f, kind, value, at, back, near);

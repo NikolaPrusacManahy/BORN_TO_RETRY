@@ -15,7 +15,8 @@ import { EventQueue } from '../src/core/eventQueue';
 import { updateOrbs } from '../src/sim/combat/orbs';
 import { createCombat, CombatEvent } from '../src/sim/combat/state';
 import { emptyTargetHit, landHit } from '../src/sim/combat/strike';
-import { hasYeti, rosterOf } from '../src/sim/dungeon/wavePlan';
+import { hasYeti, planWaves, rosterOf } from '../src/sim/dungeon/wavePlan';
+import { createRng } from '../src/core/rng';
 import { BLUE_CHARGE, BLUE_FIRE } from '../src/sim/enemies/blueDemon';
 import { createEnemies, Enemy, EnemyWorld, hitEnemy, setPhase, spawnEnemy } from '../src/sim/enemies/enemy';
 import { updateEnemies } from '../src/sim/enemies/update';
@@ -175,7 +176,23 @@ section('Floor 2 — mini bosses and the roster');
   const two = rosterOf(2);
   check('floor 1 sends its own (the Yeti, none of floor 2’s)', one.includes('brute') && !one.includes('slime') && !one.includes('spider'));
   check('floor 2: floor 1’s small ones and the six new, no Yeti', ['grunt', 'spitter', 'leaper', 'stinger', 'wraith', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon'].every((k) => two.includes(k as Enemy['kind'])) && !two.includes('brute'));
-  check('floor 3 has floor 2’s for now', rosterOf(3) === two);
+  // Update 0.1.18 (the designer: for floor 3 cut the Grunt, the Leaper and the Blue Demon).
+  const three = rosterOf(3);
+  // (Update 0.1.19 — and its own: the Skeleton, the Mushnub, the Ninja.)
+  check('floor 3: floor 2’s without the Grunt, the Leaper and the Blue Demon, and its own three', three.join() === [...two.filter((k) => k !== 'grunt' && k !== 'leaper' && k !== 'blueDemon'), 'skeleton', 'mushnub', 'ninja'].join(), three.join());
+  check('floors past it send floor 3’s', rosterOf(4) === three && rosterOf(10) === three);
+  let cut = '';
+  let spiders = 0;
+  for (let seed = 1; seed <= 20; seed++) {
+    for (let depth = 1; depth <= 5; depth++) {
+      for (const k of planWaves(depth, 3, createRng(seed)).flat()) {
+        if (k === 'grunt' || k === 'leaper' || k === 'blueDemon') cut ||= `seed ${seed} room ${depth}: a ${k}`;
+        if (k === 'spider') spiders++;
+      }
+    }
+  }
+  check('no floor 3 room plans one (20 floor plans)', cut === '', cut);
+  check('the Spider is one of floor 3’s mini bosses', spiders > 0);
 }
 
 section('Shop prices by floor');

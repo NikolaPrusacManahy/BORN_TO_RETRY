@@ -4,11 +4,13 @@
 // Update 0.0.16 — a Yeti (the brute) drops its room's key: one per room, whichever Yeti dies first (the designer).
 // Update 0.0.17 — a kill's coins (halves count as one more half the time; more with gold ingots on), and maybe a kill
 // bonus (not from a boss).
+// Update 0.1.19 — the Ninja may teleport away from a hit about to land (ninja.ts): it misses.
 import { Vector3 } from 'three';
 import { ENEMIES } from '../../tuning/enemies';
 import { FEEDBACK } from '../../tuning/combat';
 import { enemyAxis, hitEnemy, isLive, radiusOf } from '../enemies/enemy';
 import { dropWeapon } from '../weapons/weapons';
+import { dodges } from '../enemies/ninja';
 import { ENEMY_STATS, MINI_BOSSES } from '../enemies/kinds';
 import { EXECUTION } from '../../tuning/execution';
 import { burstCoins } from './coins';
@@ -86,6 +88,7 @@ export function hitTarget(state: CombatState, t: TargetHit, damage: number, knoc
  *  for the kill hit-stop, and lets a grunt drop a sword (seeded RNG). Returns true on a kill.
  *  Update 0.0.13 — every hit you land is stronger with each red ring you carry. */
 export function landHit(state: CombatState, t: TargetHit, damage: number, knock: number, dirX: number, dirZ: number, event: CombatEvent, value: number): boolean {
+  if (t.kind === 'enemy' && dodges(state, t.index, dirX, dirZ)) return false;
   const killed = hitTarget(state, t, damage * damageFactor(state.items), knock, dirX, dirZ);
   const p = t.point;
   state.events.push(event, value, p.x, p.y, p.z);

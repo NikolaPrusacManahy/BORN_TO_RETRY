@@ -20,6 +20,7 @@ import type { AudioEngine } from './audio';
 import { playBoss } from './bossSounds';
 import { playDragon } from './dragonSounds';
 import { playFoes2 } from './foeSounds';
+import { playFoes3 } from './foe3Sounds';
 import { playExec } from './execSounds';
 import { playFire } from './fireSounds';
 import { playWeapons } from './weaponSounds';
@@ -262,7 +263,7 @@ export class CombatSounds {
         tone(a, { from: 1320, to: 2640, dur: 0.35, gain: 0.08, type: 'triangle' });
         break;
       default:
-        if (!playFoes2(a, kind, value, far) && !playDragon(a, kind, value, far) && !playExec(a, kind, value, far) && !playFire(a, kind, value, far) && !playWeapons(a, kind, value, far)) playBoss(a, kind, value, far);
+        if (!playFoes2(a, kind, value, far) && !playFoes3(a, kind, value, far) && !playDragon(a, kind, value, far) && !playExec(a, kind, value, far) && !playFire(a, kind, value, far) && !playWeapons(a, kind, value, far)) playBoss(a, kind, value, far);
         break;
     }
   }

@@ -48,5 +48,6 @@ import './test-executions';
 import './test-death';
 import './test-crowd';
 import './test-sounds';
+import './test-foes3';
 
 process.exit(summary() > 0 ? 1 : 0);

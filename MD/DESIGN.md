@@ -180,6 +180,9 @@ Rule: every attack is telegraphed (a flash and a sound) before it can hit, and e
 | Wasp | **(Update 0.0.18, the designer: floor 2, poison stings; a flier.)** 20 HP, 3.2 m up, 6–14 m off. **Update 0.0.19 (the designer: it stings, it doesn't shoot):** it swoops down in front of your chest, buzzes (0.45 s), then stabs: 6 and poisoned within 1.6 m. Dash away during the warning; down there your fists reach it. |
 | Spider | **(Update 0.0.18, the designer: floor 2's big one.)** 140 HP. From 5–13 m it rears (0.6 s) and leaps to where you stood: 22 and thrown (jump it); close up it bites (16). Only a hit of 40+ staggers it. A mini boss: its room has a chest and it carries the key. |
 | Blue Demon | **(Update 0.0.18, the designer: floor 2's big one.)** 160 HP, 2.8 m. Warns (blue glow), then charges (20, thrown; a wall stuns it 1.6 s) or, from afar, throws a fireball (14). Only a hit of 40+ staggers it. A mini boss like the Spider. |
+| Skeleton | **(Update 0.1.19, the designer: floor 3; "they revive as they rebuilt from pieces to body".)** 35 HP, 1.9 m. A warned swing (14). Brought down it falls to pieces, lies 2.5 s and rebuilds whole (1.6 s), once; hit its bones while they lie there and it stays down. **(placeholder numbers)** |
+| Mushnub | **(Update 0.1.19, the designer: floor 3.)** 30 HP, 1.1 m. A warned bite (10). **(placeholder numbers)** |
+| Ninja | **(Update 0.1.19, the designer: floor 3's mini boss; "can teleport away as an evasion trick when player trying to hit them, like 20% chance".)** 150 HP, 2.6 m, a warned sword slash (22). One hit in five it teleports away and the hit misses: it reappears 5–7 m on, along the blow; then not again for 1.5 s. Only a hit of 40+ staggers it. A mini boss like the Spider. **(placeholder numbers)** |
 | Shieldbearer | Blocks attacks from the front; a charged punch breaks the shield. |
 | Elites | Glowing versions with more health and one extra trick. Always drop a weapon. |
 
@@ -188,6 +191,8 @@ Models come from Quaternius's Bestiary/Dungeon Monsters and Ultimate Monsters pa
 **Each floor its own (Update 0.0.18, the designer):** floor 1 sends the grunt, spitter, Yeti, leaper, stinger and wraith; floor 2 the same small ones plus the slime, frog, snake and wasp, and the Spider and Blue Demon as its big ones (no Yeti); floor 3 floor 2's for now **(placeholder)**.
 
 **Lava (Update 0.0.20, the designer):** some rooms from floor 2 on have lava pits (the lava lake, the lava bridges, the gauntlet), with walls in or beside the lava to wall-run across and a walkway round every pit. Falling in costs 50 health and puts you back at the floor's start (the fight you left starts over); with 50 or less, you die.
+
+**Floor 3's enemies (Update 0.1.18, the designer: no Grunt, Leaper or Blue Demon; Update 0.1.19: the Skeleton, the Mushnub, the Ninja):** the Spitter, the Stinger, the Wraith, the Slime, the Frog, the Snake, the Wasp, the Skeleton and the Mushnub, and the Spider and the Ninja as its mini bosses. Its boss is to be the Dino (the Dragon stands in).
 
 **Floor 3's rooms (Update 0.0.21, the designer):** none of floors 1–2's rooms; the lava rooms and four of its own with an upper floor 2.5 m up (the keep, ramparts, towers, bridgeworks), reached by steps, jump pads and wall runs. Spitters stand on perches up there and shoot down: climb up and take them out.
 

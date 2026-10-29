@@ -110,6 +110,18 @@ export type CombatEvent =
   | 'spiderBite'
   | 'blueWindup'
   | 'blueFireball'
+  // Update 0.1.19 — floor 3's: a Skeleton's and a Mushnub's wind-up and blow (value = its slot), a Skeleton falling to
+  // pieces and rising again, the Ninja's wind-up and slash, and its teleport (vanishing at x, y, z, then appearing).
+  | 'skeletonWindup'
+  | 'skeletonStrike'
+  | 'skeletonCollapse'
+  | 'skeletonRise'
+  | 'mushnubWindup'
+  | 'mushnubBite'
+  | 'ninjaWindup'
+  | 'ninjaStrike'
+  | 'ninjaVanish'
+  | 'ninjaAppear'
   // Update 0.0.18 — the Dragon: a warning (value = its move), the beam starting, a fireball, the wing and the tail
   // swinging, its scream (rising in its show, and raging), an enemy burnt away by the beam (value = its slot).
   | 'dragonWindup'

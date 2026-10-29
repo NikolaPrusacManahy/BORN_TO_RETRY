@@ -42,6 +42,9 @@ const ENEMIES: [EnemyKind, string][] = [
   ['wasp', 'Wasp'],
   ['spider', 'Spider'],
   ['blueDemon', 'Blue Demon'],
+  ['skeleton', 'Skeleton'],
+  ['mushnub', 'Mushnub'],
+  ['ninja', 'Ninja'],
 ];
 const ITEMS: [DropKind, string][] = [
   ['heart', 'Heart'],

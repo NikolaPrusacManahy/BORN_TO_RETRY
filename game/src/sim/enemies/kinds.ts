@@ -5,17 +5,20 @@
 // Update 0.0.15 — the Demon, the first boss (tuning/boss.ts): big, never flinches, takes more while stunned.
 // Update 0.0.18 — floor 2's enemies (tuning/foes2.ts): the Slime, the Frog, the Snake, the Wasp (a flier), and the big
 // Spider and Blue Demon (only a hard hit staggers them); and floor 2's boss, the Dragon (tuning/dragon.ts).
+// Update 0.1.19 — floor 3's (tuning/foes3.ts): the Skeleton (it rebuilds itself), the Mushnub, and the Ninja, a mini
+// boss (only a hard hit staggers it; it teleports away from some).
 import { BOSS } from '../../tuning/boss';
 import { DRAGON } from '../../tuning/dragon';
 import { FOES2 } from '../../tuning/foes2';
 import { ENEMIES } from '../../tuning/enemies';
 import { FOES } from '../../tuning/foes';
+import { FOES3 } from '../../tuning/foes3';
 
-export type EnemyKind = 'grunt' | 'spitter' | 'brute' | 'leaper' | 'stinger' | 'wraith' | 'demon' | 'slime' | 'frog' | 'snake' | 'wasp' | 'spider' | 'blueDemon' | 'dragon';
+export type EnemyKind = 'grunt' | 'spitter' | 'brute' | 'leaper' | 'stinger' | 'wraith' | 'demon' | 'slime' | 'frog' | 'snake' | 'wasp' | 'spider' | 'blueDemon' | 'dragon' | 'skeleton' | 'mushnub' | 'ninja';
 /** Which grid it finds its way on: the big ones need wider gaps; fliers go over low things. */
 export type SizeClass = 'small' | 'large' | 'air';
 
-export const ENEMY_KINDS: readonly EnemyKind[] = ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith', 'demon', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon', 'dragon'];
+export const ENEMY_KINDS: readonly EnemyKind[] = ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith', 'demon', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon', 'dragon', 'skeleton', 'mushnub', 'ninja'];
 export const SIZE_CLASSES: readonly SizeClass[] = ['small', 'large', 'air'];
 
 export interface EnemyStats {
@@ -38,7 +41,7 @@ export interface EnemyStats {
 }
 
 /** Body radii (m). Not knobs: the walk grids are built for them. */
-export const RADIUS: Record<EnemyKind, number> = { grunt: 0.45, spitter: 0.4, brute: 0.85, leaper: 0.45, stinger: 0.5, wraith: 0.55, demon: 1.7, slime: 0.5, frog: 0.55, snake: 0.4, wasp: 0.5, spider: 1.3, blueDemon: 0.85, dragon: 1.8 };
+export const RADIUS: Record<EnemyKind, number> = { grunt: 0.45, spitter: 0.4, brute: 0.85, leaper: 0.45, stinger: 0.5, wraith: 0.55, demon: 1.7, slime: 0.5, frog: 0.55, snake: 0.4, wasp: 0.5, spider: 1.3, blueDemon: 0.85, dragon: 1.8, skeleton: 0.45, mushnub: 0.45, ninja: 0.45 };
 /** The grid each size class walks: blocked for this radius (a little less than the brute's, so 2 m gaps stay open:
  *  the push out of walls keeps its body clear anyway). */
 export const GRID_RADIUS: Record<SizeClass, number> = { small: 0.45, large: 0.65, air: 0.6 };
@@ -59,6 +62,9 @@ const CACHE: Record<EnemyKind, EnemyStats> = {
   spider: blank('large'),
   blueDemon: blank('large'),
   dragon: blank('large', true),
+  skeleton: blank('small'),
+  mushnub: blank('small'),
+  ninja: blank('small'),
 };
 
 function fill(s: EnemyStats, hp: number, radius: number, height: number, speed: number, knock: number, stagger: number, flinch: number, deathTime: number, coins: number): EnemyStats {
@@ -141,13 +147,26 @@ export const ENEMY_STATS: Record<EnemyKind, () => EnemyStats> = {
     s.stunned = BOSS.v.stunBonus;
     return s;
   },
+  // Update 0.1.19 — floor 3's. The Ninja: only a hard hit staggers it (as a Yeti's).
+  skeleton: () => {
+    const v = FOES3.v;
+    return fill(CACHE.skeleton, v.skeletonHp, RADIUS.skeleton, v.skeletonHeight, v.skeletonSpeed, 0.8, 0, 0.25, 1.4, v.skeletonCoins);
+  },
+  mushnub: () => {
+    const v = FOES3.v;
+    return fill(CACHE.mushnub, v.mushnubHp, RADIUS.mushnub, v.mushnubHeight, v.mushnubSpeed, 1, 0, 0.25, 1.2, v.mushnubCoins);
+  },
+  ninja: () => {
+    const v = FOES3.v;
+    return fill(CACHE.ninja, v.ninjaHp, RADIUS.ninja, v.ninjaHeight, v.ninjaSpeed, 0.4, ENEMIES.v.bruteStagger, 0.35, 1.6, v.ninjaCoins);
+  },
 };
 
 /** Update 0.0.18 — each floor's boss (floor 3 has floor 2's for now). */
 export const bossOf = (floor: number): EnemyKind => (floor <= 1 ? 'demon' : 'dragon');
 
 /** Update 0.0.18 — the mini bosses (the designer): a room with one has a chest, and the first killed drops its key. */
-export const MINI_BOSSES: readonly EnemyKind[] = ['brute', 'spider', 'blueDemon'];
+export const MINI_BOSSES: readonly EnemyKind[] = ['brute', 'spider', 'blueDemon', 'ninja'];
 
 /** Update 0.0.15 — a boss's death show: up, hanging, sinking (s); its body bursts at the end, and its slot frees this
  *  long after. */

@@ -10,6 +10,7 @@
 import { CROWD } from '../../tuning/crowd';
 import { ENEMIES } from '../../tuning/enemies';
 import { FOES2 } from '../../tuning/foes2';
+import { FOES3 } from '../../tuning/foes3';
 import type { PlayerState } from '../player/state';
 import { ENEMY_POOL, Enemy, EnemyPhase, EnemyWorld, isLive } from './enemy';
 import { ENEMY_STATS, EnemyKind } from './kinds';
@@ -30,6 +31,9 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   brute: 'heavy',
   spider: 'heavy',
   blueDemon: 'heavy',
+  skeleton: 'melee',
+  mushnub: 'melee',
+  ninja: 'heavy',
   demon: null,
   dragon: null,
 };
@@ -44,6 +48,9 @@ const REACH: Partial<Record<EnemyKind, () => number>> = {
   slime: () => FOES2.v.slimeTrigger,
   brute: () => ENEMIES.v.bruteReach,
   spider: () => FOES2.v.spiderReach,
+  skeleton: () => FOES3.v.skeletonReach,
+  mushnub: () => FOES3.v.mushnubReach,
+  ninja: () => FOES3.v.ninjaReach,
 };
 
 /** The phases an attack holds its token through: the run-in, the wind-up, a leap, a dive, a charge. */

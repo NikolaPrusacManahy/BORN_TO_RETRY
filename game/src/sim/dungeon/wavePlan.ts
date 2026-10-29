@@ -10,22 +10,26 @@
 // Update 0.1.1 (the designer: floor 1 starts at 8, then 11; floor 2 at 11, then 14, and so on) — a room's enemies are a
 // count, not a budget (tuning/rooms.ts): 8, then 3 more for each room along the way and 3 more for each floor down.
 // Update 0.1.16 (the designer: "2 more enemies every 2 floors, starting with floor 2") — 2 more every 2 floors down.
+// Update 0.1.18 — floor 3 its own (the designer cut the Grunt, the Leaper and the Blue Demon from floor 2's): the Spider
+// its only mini boss. Floors past it send floor 3's. Update 0.1.19 — and its own (the designer): the Skeleton, the
+// Mushnub, and the Ninja (a mini boss beside the Spider).
 // The kinds are picked as before (weighted, the floor's roster, floor 1's later kinds from their rooms), with at most
 // Mini bosses a room of the big ones.
 import type { Rng } from '../../core/rng';
 import { ENEMY_KINDS, EnemyKind, MINI_BOSSES } from '../enemies/kinds';
 import { ROOMS } from '../../tuning/rooms';
 
-export const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3, demon: 99, slime: 1, frog: 2, snake: 1, wasp: 2, spider: 4, blueDemon: 4, dragon: 99 };
+export const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3, demon: 99, slime: 1, frog: 2, snake: 1, wasp: 2, spider: 4, blueDemon: 4, dragon: 99, skeleton: 1, mushnub: 1, ninja: 4 };
 /** How often each kind is picked, and the first room (on floor 1) it comes in. **(placeholders)** The Demon is never
  *  bought: it's the boss room's. */
-const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1, demon: 0, slime: 2, frog: 1.5, snake: 2, wasp: 1.5, spider: 0.6, blueDemon: 0.6, dragon: 0 };
-const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3, demon: Infinity, slime: 1, frog: 1, snake: 1, wasp: 1, spider: 1, blueDemon: 1, dragon: Infinity };
+const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1, demon: 0, slime: 2, frog: 1.5, snake: 2, wasp: 1.5, spider: 0.6, blueDemon: 0.6, dragon: 0, skeleton: 3, mushnub: 3, ninja: 0.6 };
+const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3, demon: Infinity, slime: 1, frog: 1, snake: 1, wasp: 1, spider: 1, blueDemon: 1, dragon: Infinity, skeleton: 1, mushnub: 1, ninja: 1 };
 /** Each floor's enemies (index: the floor; past the last, the last's). */
 const ROSTER: readonly (readonly EnemyKind[])[] = [
   [],
   ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith'],
   ['grunt', 'spitter', 'leaper', 'stinger', 'wraith', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon'],
+  ['spitter', 'stinger', 'wraith', 'slime', 'frog', 'snake', 'wasp', 'spider', 'skeleton', 'mushnub', 'ninja'],
 ];
 
 /** The enemies floor `floor` sends. */

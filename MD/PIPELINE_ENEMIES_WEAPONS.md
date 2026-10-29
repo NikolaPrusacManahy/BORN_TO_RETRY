@@ -24,7 +24,13 @@ blender --background --disable-autoexec --python tools/blender/export_weapon.py 
 blender --background --disable-autoexec --python tools/blender/export_items.py -- --rpg "<Ultimate RPG Pack>" --dungeon "<Modular Dungeon Pack - part 1>" --glb public/models/items/items.glb --previews <folder>
 ```
 - The flying monsters' meshes float above their origin; the game places every body by its lowest point.
-- Each monster's frame where its blow lands (printed by `export_monster.py`) goes into `LOOKS` in `engine/enemiesView.ts`: Ninja Duck 44/30, Armabee Headbutt 9/30, Ghost Punch 12/30.
+- Each monster's frame where its blow lands (printed by `export_monster.py`) goes into `LOOKS` in `engine/enemyLooks.ts` (in `enemiesView.ts` before Update 0.1.19): Ninja Duck 44/30, Armabee Headbutt 9/30, Ghost Punch 12/30.
+- **Update 0.1.19 — floor 3's:**
+  ```
+  blender --background --disable-autoexec --python tools/blender/export_monster.py -- --blend "<Ultimate Monsters>/used_monster/blobs/Skeleton.blend" --glb public/models/enemies/skeleton.glb --previews <folder> --attack Skeleton_Attack
+  blender --background --disable-autoexec --python tools/blender/export_monster.py -- --blend "<Ultimate Monsters>/used_monster/blobs/Mushnub.blend" --glb public/models/enemies/mushnub.glb --previews <folder> --attack Bite_Front
+  ```
+  Skeleton_Attack lands 18/30, Bite_Front 8/30; the Ninja mini boss is `ninja.glb` with Weapon (20/30). The Skeleton's clips are named `Skeleton_*`, its idle `Skeleton_Idle` (the exporter takes `Idle` or `*_Idle`; it also shows meshes hidden for renders in the previews); rebuilding plays `Skeleton_Spawn` (2.9 s, from a pile of bones to standing). `blob/Ninja.blend` is a round-head Ninja, not the game's.
 - The dungeon chest's pieces are hidden from renders in its `.blend`; `export_items.py` shows them. Its lid keeps its origin on the hinge.
 
 ## Update 0.0.15 — the Demon (the first boss)
