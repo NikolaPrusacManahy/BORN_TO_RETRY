@@ -145,6 +145,9 @@ const MOMENTS: [string, (vm: Viewmodel) => void][] = [
   ['jab_right', (vm) => (vm.punch('R', 'jab'), play(vm, ARMS.v.punchOut))],
   ['charging', (vm) => play(vm, 0.6, 1)],
   ['charged_punch', (vm) => (play(vm, 0.6, 1), vm.punch('R', 'heavy'), play(vm, ARMS.v.punchOut * 1.3))],
+  // Update 0.1.7 — the ground slam's clasped fists: dropping, and the moment it lands.
+  ['slam_drop', (vm) => (vm.slam.start(), play(vm, 0.3))],
+  ['slam_land', (vm) => (vm.slam.start(), play(vm, 0.3), vm.slam.land(), play(vm, ARMS.v.slamDown + ARMS.v.slamHold * 0.5))],
 ];
 for (const [name, run] of MOMENTS) {
   const { vm } = await arms();

@@ -65,4 +65,9 @@ export const ARMS = group('arms', 'Arms', {
   smashOut: knob(0.11, 0.03, 0.4, 0.005, 'Hammer smash down', 'Seconds the smash takes to come down.'),
   smashHold: knob(0.22, 0, 0.8, 0.01, 'Hammer smash hold', 'Seconds it stays on the floor.'),
   smashBack: knob(0.5, 0.1, 1.2, 0.01, 'Hammer smash return', 'Seconds back to the ready pose.'),
+  // Update 0.1.7 — the ground slam's clasped fists (viewmodel/slamArms.ts).
+  slamRaise: knob(0.1, 0.02, 0.4, 0.01, 'Slam fists up', 'Seconds for the clasped fists to come up as a slam drops.'),
+  slamDown: knob(0.06, 0.02, 0.3, 0.005, 'Slam fists down', 'Seconds for them to come down as it lands.'),
+  slamHold: knob(0.14, 0, 0.5, 0.01, 'Slam fists hold', 'Seconds they stay down.'),
+  slamBack: knob(0.28, 0.05, 0.8, 0.01, 'Slam fists return', 'Seconds back to the guard.'),
 });

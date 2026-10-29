@@ -16,6 +16,7 @@
 // charged punch while it's out). The Hammer: its charged blow smashes the floor, a shockwave rolling out
 // (smashWaves.ts), and takes its uses hit or miss.
 // Update 0.1.6 — the axe's right click charges a throw that comes back (axeThrow.ts); Q throws it to break.
+// Update 0.1.7 — the Hammer's smash waits for the ground: a full charge let go in the air is held till you land.
 import { Vector3 } from 'three';
 import type { Spot } from '../../world/arena';
 import type { CollisionWorld } from '../collisionWorld';
@@ -55,6 +56,8 @@ const punch = emptyPunch();
 const IDLE = emptyCombatIntent();
 /** The presses without right click (the axe out: right click calls it back). */
 const NO_HEAVY = emptyCombatIntent();
+/** The presses with right click held (a smash held till the ground). */
+const HOLD_HEAVY = emptyCombatIntent();
 
 /** `spawns`: where the lab's grunts may come from (none: no waves). */
 export function stepCombat(state: CombatState, player: PlayerState, intent: CombatIntent, world: CollisionWorld, dt: number, spawns: readonly Spot[] = []) {
@@ -114,6 +117,15 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     fistIntent = Object.assign(NO_HEAVY, intent);
     NO_HEAVY.heavyHeld = false;
     state.fists.charging = state.fists.chargeReady = false;
+  }
+  // The Hammer's smash only on the ground (the designer): let go in the air at full charge, it's held, and comes down
+  // the tick you land.
+  const smasher = w !== null && SMASHES[w.kind] && !busy;
+  if (smasher && !player.grounded && state.fists.chargeReady && !intent.heavyHeld) state.smashHeld = true;
+  if (!smasher || player.grounded) state.smashHeld = false;
+  if (state.smashHeld) {
+    fistIntent = Object.assign(HOLD_HEAVY, fistIntent);
+    HOLD_HEAVY.heavyHeld = true;
   }
   // (The Grimoire's right click is its own charge, not the fists'; the axe's charges its throw.)
   let swung = axe ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate);

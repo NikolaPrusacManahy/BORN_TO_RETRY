@@ -47,7 +47,11 @@ section('Slam');
     peak = Math.max(peak, jump.pos.y);
     slammed = e.includes('slam');
   }
-  check('near the top of a full jump it slams', slammed, `peak ${peak.toFixed(2)} m`);
+  // Update 0.1.7 — the designer: a higher slam height (was 1.8 m, under a jump's peak): a plain jump no longer slams…
+  check(`a plain jump (peak ${peak.toFixed(2)} m) no longer slams: it needs ${SLAM.v.minHeight} m`, !slammed && SLAM.v.minHeight > peak, `peak ${peak.toFixed(2)} m`);
+  // …from a ledge's height it does.
+  const high = createPlayer(0, SLAM.v.minHeight + 0.3, 0, 0);
+  check(`from ${(SLAM.v.minHeight + 0.3).toFixed(1)} m up it slams`, run(high, w, 1, () => ({ slamPressed: true })).includes('slam'));
   const q = createPlayer(0, 0, 0, 0);
   check('nor can a slam start on the ground', !tryStartSlam(q, true, w) || !q.grounded);
 }

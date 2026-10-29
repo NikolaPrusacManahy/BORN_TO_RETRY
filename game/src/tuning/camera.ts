@@ -29,7 +29,9 @@ export const SHAKE = group('shake', 'Screen shake', {
   maxOffset: knob(0.12, 0, 0.5, 0.01, 'Max offset', 'Metres at full trauma.'),
   maxAngle: knob(3, 0, 10, 0.1, 'Max angle', 'Degrees at full trauma.'),
   frequency: knob(22, 2, 60, 1, 'Frequency', 'Shakes per second.'),
-  slamLand: knob(0.55, 0, 1, 0.05, 'Slam landing', 'Trauma added by a slam landing.'),
+  // Update 0.1.7 — the designer: a better ground shake (was 0.55), and a jolt as the clasped fists hit the floor.
+  slamLand: knob(0.85, 0, 1, 0.05, 'Slam landing', 'Trauma added by a slam landing.'),
+  slamKick: knob(2.5, 0, 8, 0.1, 'Slam landing jolt', 'Degrees the view is knocked down as a slam lands.'),
   hardLandSpeed: knob(16, 5, 60, 1, 'Hard landing speed', 'Landings faster than this shake the view (m/s).'),
   hardLand: knob(0.02, 0, 0.1, 0.005, 'Hard landing', 'Trauma per m/s above that speed.'),
   dash: knob(0.08, 0, 0.5, 0.01, 'Dash', 'Trauma added by a dash.'),

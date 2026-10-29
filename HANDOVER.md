@@ -2,7 +2,13 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.6
+## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.7
+- **Update 0.1.7 — the ground slam and the Hammer** (the designer's list):
+  - **The slam (F)** needs a higher height: 2.8 m (was 1.8, under a plain jump's 2 m peak). It now takes a ledge, a pad, a wall jump or a slam's bounce.
+  - **Clasped fists:** as it drops, both fists come up clasped side by side; as it lands, they smash down into the floor (`engine/viewmodel/slamArms.ts`, barehanded only).
+  - **A harder landing:** shake 0.55 → 0.85, plus a 2.5° jolt.
+  - **The Hammer's smash waits for the ground:** a full charge let go in the air is held (`state.smashHeld`), and comes down the tick you land.
+  - Seen as renders only (`tools/hand-shots.ts`: `slam_drop`, `slam_land`); the drop and smash in motion are unseen.
 - **Update 0.1.6 — the designer's second pass on the axe and hammer** (`MD_UPDATES/U015_AXE_HAMMER.md`):
   - **Axe:**
     - right click charges a throw, up to 2× as fast and hard (`sim/weapons/axeThrow.ts`; the chop is gone);

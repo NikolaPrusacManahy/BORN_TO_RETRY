@@ -29,7 +29,10 @@ const DUMMY_HP = TARGETS.v.dummyHp;
 function lab(kind: 'goldAxe' | 'hammer', uses: number, arena: Arena = OPEN_ARENA) {
   const state = createCombat(arena, true);
   state.weapon = holding(kind, uses);
-  return { state, p: createPlayer(0, 0, 0, 0), world: new FlatWorld() };
+  const p = createPlayer(0, 0, 0, 0);
+  // (On the floor: the hammer smashes only there, Update 0.1.7.)
+  p.grounded = true;
+  return { state, p, world: new FlatWorld() };
 }
 
 type Ev = { kind: string; value: number; x: number };
@@ -233,6 +236,31 @@ section('Hammer — the smash');
   }
   check('behind a wall, spared', state.enemies[behind].hp === GRUNT_HP);
   check(`higher than ${w.waveHeight} m over the floor (a flier), spared`, state.enemies[high].hp === GRUNT_HP);
+}
+
+section('Hammer — the smash waits for the ground');
+{
+  // Update 0.1.7 — the designer: "better to wait until the player reaches the ground … right now the player can unleash
+  // it in the air".
+  const { state, p, world } = lab('hammer', 10);
+  run(state, p, world, FISTS.v.chargeTime + 0.05, { heavyHeld: true });
+  p.grounded = false;
+  p.pos.y = 2;
+  const air = [...tick(state, p, world), ...run(state, p, world, 0.5)];
+  check('fully charged and let go in the air: no smash yet (it\'s held)', !has(air, 'smash') && !has(air, 'pierce') && state.smashHeld && state.fists.charging && state.weapon?.uses === 10);
+  p.grounded = true;
+  p.pos.y = 0;
+  const landed = tick(state, p, world);
+  check('it comes down the tick you land: the smash and its shockwave, its uses spent', has(landed, 'pierce') && has(landed, 'smash') && state.weapon?.uses === 10 - w.smashUses && !state.smashHeld);
+}
+{
+  const { state, p, world } = lab('hammer', 10);
+  p.grounded = false;
+  run(state, p, world, FISTS.v.chargeTime * 0.5, { heavyHeld: true });
+  const ev = [...tick(state, p, world), ...run(state, p, world, 0.3)];
+  p.grounded = true;
+  const after = run(state, p, world, 0.3);
+  check('let go in the air before the charge is full: called off, nothing on landing', has(ev, 'chargeCancel') && !has(after, 'smash') && state.weapon?.uses === 10);
 }
 
 section('Axe and Hammer — where they come from');

@@ -15,6 +15,7 @@ import { MOVES } from '../src/engine/viewmodel/weaponMoves';
 import { WEAPON_URL } from '../src/engine/weaponsView';
 import type { WeaponKind } from '../src/sim/weapons/catalog';
 import { createPlayer } from '../src/sim/player/state';
+import { ARMS } from '../src/tuning/arms';
 
 const STEP = 1 / 120;
 
@@ -100,6 +101,22 @@ section('Hands — the punching fist');
   rig.root.updateMatrixWorld(true);
   const open = bone('Middle4R').distanceTo(bone('HandR'));
   check('opened, the fingers straighten', open > fist + 0.03, `${(fist * 100).toFixed(1)} → ${(open * 100).toFixed(1)} cm`);
+}
+
+section('Hands — the ground slam');
+{
+  // Update 0.1.7 — the designer: "play the join hammer hands … when landing it".
+  const guard = await arms();
+  const g = guard.bone('Middle2R').y;
+  const drop = await arms(undefined, (vm, play) => (vm.slam.start(), play(0.3)));
+  const apart = drop.bone('Middle2L').distanceTo(drop.bone('Middle2R'));
+  check('dropping, both fists come up clasped side by side', apart < 0.1 && drop.bone('Middle2R').y > g + 0.15 && drop.bone('Middle2L').y > g + 0.15, `${(apart * 100).toFixed(1)} cm apart`);
+  const land = await arms(undefined, (vm, play) => (vm.slam.start(), play(0.3), vm.slam.land(), play(ARMS.v.slamDown + 0.02)));
+  check('landing, they come down together, low before you', land.bone('Middle2L').distanceTo(land.bone('Middle2R')) < 0.1 && land.bone('Middle2R').y < g - 0.05);
+  const after = await arms(undefined, (vm, play) => (vm.slam.start(), play(0.3), vm.slam.land(), play(ARMS.v.slamDown + ARMS.v.slamHold + ARMS.v.slamBack + 0.05)));
+  check('then back to the guard', after.vm.slam.weight === 0 && Math.abs(after.bone('Middle2R').y - g) < 0.01);
+  const armed = await arms('sword', (vm, play) => (vm.slam.start(), play(0.3)));
+  check('holding a weapon, the arms keep its pose (barehanded only)', Math.abs(armed.bone('Middle2L').distanceTo(armed.bone('Middle2R'))) > 0.15);
 }
 
 section('Hands — round a handle');

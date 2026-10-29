@@ -67,9 +67,10 @@ export interface CombatState {
   fireballs: Fireball[];
   ki: KiCharge;
   /** Update 0.1.5 — the Hammer's shockwaves rolling over the floor; right click still held from calling the axe back
-   *  (it charges nothing until let go). */
+   *  (it charges nothing until let go). Update 0.1.7 — a full smash let go in the air, held till you land. */
   smashWaves: SmashWave[];
   recallHeld: boolean;
+  smashHeld: boolean;
   rng: Rng;
   /** Update 0.0.12 — your coins, and the ones still flying. */
   money: number;
@@ -128,6 +129,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     ki: createKi(),
     smashWaves: createSmashWaves(),
     recallHeld: false,
+    smashHeld: false,
     rng: createRng(LAB_SEED),
     money: 0,
     coins: createCoins(),
@@ -168,6 +170,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.ki = createKi();
   for (const w of state.smashWaves) w.alive = false;
   state.recallHeld = false;
+  state.smashHeld = false;
   state.stands = createStands(arena.stands);
   state.rng = createRng(LAB_SEED);
   state.money = 0;

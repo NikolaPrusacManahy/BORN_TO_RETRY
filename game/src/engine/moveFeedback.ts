@@ -1,5 +1,6 @@
 // M1 — turns movement events into camera kicks and sounds. M1 step 8 — and the player's hurts and death.
 // Update 0.0.13 — and hits on the shield.
+// Update 0.1.7 — a slam brings the clasped fists up as it drops and down as it lands, with a jolt.
 import type { EventQueue } from '../core/eventQueue';
 import type { MoveEvent } from '../sim/player/state';
 import { SHAKE } from '../tuning/camera';
@@ -22,10 +23,14 @@ export function applyMoveEvents(events: EventQueue<MoveEvent>, rig: CameraRig, s
         arms.land(value);
       }
       if (value > SHAKE.v.hardLandSpeed) rig.shake.add((value - SHAKE.v.hardLandSpeed) * SHAKE.v.hardLand);
+    } else if (kind === 'slam') {
+      arms.slam.start();
     } else if (kind === 'slamLand') {
       rig.land(value);
       arms.land(value);
+      arms.slam.land();
       rig.shake.add(SHAKE.v.slamLand);
+      rig.kick(SHAKE.v.slamKick);
     } else if (kind === 'dash') {
       rig.shake.add(SHAKE.v.dash);
     } else if (kind === 'hurt') {
