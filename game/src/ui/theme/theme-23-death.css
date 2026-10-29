@@ -1,0 +1,112 @@
+/* Update 0.1.14 — the death screen: over the black (above the fade), a dim label, what killed you large in crimson,
+   three numbers (floor, time, kills), Retry and Menu. Each line rises in, one after another. All of it 1.5× bigger
+   than first drawn (the designer, after the preview): the box's zoom. */
+.rb-death {
+  position: absolute;
+  inset: 0;
+  z-index: 31;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  color: var(--rb-text);
+  background: radial-gradient(ellipse at center, rgba(70, 6, 14, 0.35), rgba(0, 0, 0, 0) 60%);
+  cursor: default;
+  user-select: none;
+}
+
+.rb-death-box {
+  zoom: 1.5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rb-death-box > * {
+  opacity: 0;
+  animation: rb-death-in 0.5s ease-out forwards;
+}
+
+.rb-death-label {
+  font-family: var(--rb-mono);
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--rb-dim);
+}
+
+.rb-death-cause {
+  margin: 6px 0 34px;
+  font-family: 'Anton', var(--rb-font);
+  font-size: clamp(44px, 9vw, 96px);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #d61f3a;
+  text-shadow: 0 0 28px rgba(214, 31, 58, 0.45);
+  transform: skewX(-8deg);
+  animation-delay: 0.12s;
+}
+
+.rb-death-stats {
+  display: flex;
+  gap: clamp(20px, 6vw, 56px);
+  margin-bottom: 40px;
+  animation-delay: 0.3s;
+}
+
+.rb-death-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.rb-death-stat span {
+  font-family: var(--rb-mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--rb-dim);
+}
+
+.rb-death-stat b {
+  font-family: var(--rb-font);
+  font-size: 30px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.rb-death-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  animation-delay: 0.45s;
+}
+
+@keyframes rb-death-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The cause keeps its slant while it rises. */
+.rb-death-box > .rb-death-cause {
+  animation-name: rb-death-cause-in;
+}
+
+@keyframes rb-death-cause-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) skewX(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: skewX(-8deg);
+  }
+}

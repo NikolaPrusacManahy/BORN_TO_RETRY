@@ -13,188 +13,40 @@
 // floor show there too), the Lab's waves can be off, the world holds still while its panel is open, and its panel's
 // commands (sim/lab/labCommands.ts). Update 0.1.1 — an execution holds you (no moving, fighting or looking) while the
 // view follows the body and the fists grip it (execView.ts).
+// Update 0.1.14 — the level's parts, loading and restarting moved to runBase.ts. Dead in the dungeon, once it's black
+// the death screen shows (what killed you, the floor, the time, your kills) and the world holds still until Retry.
 import * as THREE from 'three';
-import { FixedStep } from '../core/fixedStep';
 import type { FrameStats } from '../core/frameStats';
-import { createRng } from '../core/rng';
-import type { AudioEngine } from '../audio/audio';
-import { MoveSounds } from '../audio/moveSounds';
 import type { Input } from '../input/input';
-import type { MoveResult } from '../sim/collisionWorld';
-import { CombatIntent, emptyCombatIntent } from '../sim/combat/fists';
-import { carryOver, CombatState, createCombat, resetCombat } from '../sim/combat/state';
 import { stepCombat } from '../sim/combat/step';
 import { AIM_HEIGHT } from '../sim/combat/turret';
 import { stepRooms } from '../sim/dungeon/roomLoop';
-import { emptyTreasure, stepTreasure, Treasure } from '../sim/dungeon/treasure';
+import { stepTreasure } from '../sim/dungeon/treasure';
 import { lavaStep } from '../sim/dungeon/lava';
 import { execHeld } from '../sim/combat/execution';
 import { followHeld } from './execView';
-import { LabCommand, runLab } from '../sim/lab/labCommands';
-import { hpBonusOf, KeyKind, moveFactor } from '../sim/items/items';
+import { hpBonusOf, moveFactor } from '../sim/items/items';
 import { pushPlayerOut } from '../sim/enemies/enemy';
 import { BODY } from '../sim/player/body';
 import { checkHazards } from '../sim/player/hazards';
 import { killPlayer, updateHealth } from '../sim/player/health';
-import { PlayerIntent, emptyIntent } from '../sim/player/intent';
-import { PlayerState, createPlayer, resetPlayer } from '../sim/player/state';
 import { stepPlayer } from '../sim/player/step';
 import type { Settings } from '../state/settings';
 import { CAMERA } from '../tuning/camera';
 import { FISTS } from '../tuning/combat';
 import { LAB } from '../tuning/lab';
-import { ArenaBox, hazardsOf, lavaOf } from '../world/arena';
-import { CameraRig } from './cameraRig';
-import { CombatScene } from './combatScene';
-import { DeathFlow } from './deathFlow';
-import type { DebugInfo, HudStore } from './hudStore';
+import type { DebugInfo } from './hudStore';
 import { readCombatIntent, readPlayerIntent } from './intents';
-import type { Level, LevelView } from './level';
-import type { Levels, RunCallbacks } from './runLinks';
-import { Look } from './look';
-import { BossShow } from './boss/bossShow';
-import { TreasureView } from './treasureView';
 import { applyMoveEvents } from './moveFeedback';
-import { HudFeed, fillDebug } from './overlayFeed';
-import { Viewmodel } from './viewmodel/viewmodel';
-import { cancelCharges } from '../sim/weapons/kiCharge';
+import { fillDebug } from './overlayFeed';
+import { RunBase } from './runBase';
 
 /** A height change bigger than this in one tick on the ground is a step: the camera smooths it (m). */
 const STEP_MIN = 0.1;
 /** Fall below this and you die (m). */
 const KILL_Y = -20;
 
-export class Run {
-  private readonly scene = new THREE.Scene();
-  private readonly camera = new THREE.PerspectiveCamera(70, 16 / 9, 0.05, 400);
-  private readonly rig = new CameraRig(this.camera);
-  private readonly look = new Look();
-  private readonly clock = new FixedStep();
-  private readonly sounds: MoveSounds;
-  private readonly player: PlayerState;
-  private readonly arms = new Viewmodel();
-  private readonly hudFeed: HudFeed;
-  private readonly death = new DeathFlow();
-  private readonly prev = new THREE.Vector3();
-  private readonly chest = new THREE.Vector3();
-  private readonly intent: PlayerIntent = emptyIntent();
-  private readonly combatIntent: CombatIntent = emptyCombatIntent();
-  private readonly shove: MoveResult = { grounded: false, hitCeiling: false, wall: false, wallNormal: new THREE.Vector3() };
-  private level!: Level;
-  private view!: LevelView;
-  private combat!: CombatState;
-  private combatScene!: CombatScene;
-  private hazards: ArenaBox[] = [];
-  /** Update 0.0.20 — lava: falling in sends you back to the level's start. */
-  private lava: ArenaBox[] = [];
-  /** Counts hits on you (and, Update 0.0.13, on your shield), for the HUD's flashes. */
-  private readonly hits = { hurts: 0, shields: 0 };
-  /** Update 0.0.13 — the shop and the chests. Update 0.0.19 — every level's (the Lab's: chests from its panel). */
-  private treasure: Treasure = emptyTreasure();
-  private treasureView!: TreasureView;
-  /** Update 0.0.19 — the Lab's waves come (the Feel Lab's knobs); the world holds still (the Lab's panel is open). */
-  waves = true;
-  hold = false;
-  private show = new BossShow(null);
-  /** Update 0.0.16 — a key's look, for the palm (made once). */
-  private readonly keyLook = (kind: KeyKind) => this.treasureView.look(kind);
-  /** Is a dungeon room fighting (made once: no closure per tick; −1: the Lab's chests, never). */
-  private readonly fighting = (room: number) => this.level.dungeon?.rooms[room]?.state === 'fighting';
-
-  constructor(
-    level: Level,
-    private readonly audio: AudioEngine,
-    private readonly renderer: THREE.WebGLRenderer,
-    hud: HudStore,
-    private readonly cb: RunCallbacks,
-    private readonly levels: Levels,
-  ) {
-    // Loading the same models again (each floor) comes from memory.
-    THREE.Cache.enabled = true;
-    this.scene.add(this.camera);
-    this.sounds = new MoveSounds(audio);
-    const s = level.arena.playerStart;
-    this.player = createPlayer(s.x, s.y, s.z, s.yaw);
-    this.hudFeed = new HudFeed(hud);
-    this.load(level, false);
-  }
-
-  get floor(): number {
-    return this.level.floor;
-  }
-
-  /** Into `level`. `keep`: your health, coins and weapon come along (the way down); otherwise a fresh start. */
-  load(level: Level, keep: boolean) {
-    const old = this.combat;
-    const hp = this.player.hp;
-    const shield = this.player.shield;
-    if (this.level) {
-      this.combatScene.dispose();
-      this.view.dispose();
-      this.treasureView.dispose();
-      if (this.level.physics !== level.physics) this.level.physics.dispose();
-    }
-    this.level = level;
-    this.view = level.draw(this.scene, this.renderer);
-    this.treasure = level.dungeon?.treasure ?? emptyTreasure();
-    this.treasureView = new TreasureView(this.scene, this.treasure);
-    this.show = new BossShow(level.dungeon);
-    // (Back to the Lab from its boss room: no floor's name.)
-    if (keep && level.dungeon) this.show.arrive(level.floor);
-    this.hazards = hazardsOf(level.arena);
-    this.lava = lavaOf(level.arena);
-    this.combat = createCombat(level.arena, !level.dungeon);
-    this.combat.rng = createRng(level.fightSeed);
-    this.combatScene = new CombatScene(this.scene, this.combat, this.audio, this.rig, this.arms);
-    this.restartHere();
-    if (keep && old) {
-      this.player.hp = hp;
-      this.player.shield = shield;
-      carryOver(old, this.combat);
-    }
-  }
-
-  /** Back to the level's start, standing still, full health; the targets back in place and whole. */
-  private restartHere() {
-    const s = this.level.arena.playerStart;
-    resetPlayer(this.player, s.x, s.y, s.z, s.yaw);
-    resetCombat(this.combat, this.level.arena);
-    this.combat.rng = createRng(this.level.fightSeed);
-    this.arms.reset();
-    this.combatScene.clear();
-    this.prev.copy(this.player.pos);
-    this.look.yaw = s.yaw;
-    this.look.pitch = 0;
-    this.rig.reset();
-    this.clock.reset();
-    if (this.death.active) {
-      this.death.reset();
-      this.cb.onRespawn();
-    }
-  }
-
-  /** F3 and Restart: the lab from its start; a dungeon floor laid out again from its start. */
-  restart() {
-    if (this.level.dungeon) this.load(this.levels.again(this.level), false);
-    else this.restartHere();
-  }
-
-  /** Update 0.0.19 — the Lab's panel asked for something (in front of where you look). */
-  labCommand(cmd: LabCommand) {
-    runLab(cmd, this.combat, this.player, this.look.yaw, this.treasure);
-  }
-
-  /** The mouse was freed: a charge in progress is cancelled rather than thrown (Update 0.1.4: and the Grimoire's). */
-  cancelCharge() {
-    cancelCharges(this.combat);
-  }
-
-  /** Loops off (leaving for the menu). */
-  silence() {
-    this.sounds.setSliding(false);
-    this.sounds.setWallRunning(false);
-  }
-
+export class Run extends RunBase {
   /** Runs this frame's sim ticks. Stops early when a hit starts a hit-stop, so the freeze begins on the hit. */
   private tick(gameDt: number, input: Input): number {
     const p = this.player;
@@ -230,7 +82,7 @@ export class Run {
       // Falling out is a death; invincible (F4), it's straight back to the start.
       if (p.pos.y < KILL_Y) {
         if (LAB.v.god >= 1) this.restartHere();
-        else killPlayer(p);
+        else killPlayer(p, 'fall');
       }
       if (this.combat.hitStop.active) {
         this.clock.reset();
@@ -253,7 +105,8 @@ export class Run {
     if (kneeling) this.look.turnTo(p.kneelYaw, (CAMERA.v.kneelPitch * Math.PI) / 180, CAMERA.v.kneelTurn, real);
     input.clearMouse();
 
-    const frozen = this.combat.hitStop.tick(real) || this.hold;
+    const frozen = this.combat.hitStop.tick(real) || this.hold || this.told;
+    if (locked && !p.dead) this.played += real;
     const scale = LAB.v.timeScale * this.death.timeScale * this.show.timeScale;
     const gameDt = frozen ? 0 : real * scale;
     const steps = frozen ? 0 : this.tick(gameDt, input);
@@ -289,17 +142,15 @@ export class Run {
 
     fillDebug(debug, p, this.combat);
     this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d, this.look.yaw, this.show.hud, choosing ?? '');
-    // Dead: once it's black, a new run (the dungeon) or the lab's start. The way down: the next floor.
+    // Dead: once it's black, the death screen (the dungeon: Retry is a new run) or the lab's start. The way down: the
+    // next floor.
     if (this.death.update(real)) {
-      if (d) this.load(this.levels.fresh(), false);
-      else this.restartHere();
+      if (!d) this.restartHere();
+      else if (!this.told) {
+        this.told = true;
+        this.silence();
+        this.cb.onDeathScreen({ by: p.hurtBy, floor: this.level.floor, time: this.played, kills: this.combat.kills });
+      }
     } else if (shot.descend) this.load(this.levels.next(this.level), true);
-  }
-
-  dispose() {
-    this.combatScene.dispose();
-    this.view.dispose();
-    this.treasureView.dispose();
-    this.level.physics.dispose();
   }
 }

@@ -71,7 +71,7 @@ function bite(s: Enemy, index: number, player: PlayerState, dist: number, toward
   w.events.push('spiderBite', index, s.pos.x, s.pos.y + v.spiderHeight * 0.4, s.pos.z);
   const off = Math.abs(Math.atan2(Math.sin(toward - s.facing), Math.cos(toward - s.facing)));
   if (dist > v.spiderReach + 0.4 || off > 1.2 || !inLine(s, player, w.nav.large, 1.2)) return;
-  damagePlayer(player, v.spiderBite);
+  damagePlayer(player, v.spiderBite, s.kind);
 }
 
 function leap(s: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
@@ -98,7 +98,7 @@ function land(s: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
   const dx = player.pos.x - s.pos.x;
   const dz = player.pos.z - s.pos.z;
   const d = Math.hypot(dx, dz);
-  if (d > v.spiderReach || player.pos.y - s.pos.y > LAND_CLEAR || !damagePlayer(player, v.spiderDamage)) return;
+  if (d > v.spiderReach || player.pos.y - s.pos.y > LAND_CLEAR || !damagePlayer(player, v.spiderDamage, s.kind)) return;
   const nx = d > 1e-3 ? dx / d : -Math.sin(s.facing);
   const nz = d > 1e-3 ? dz / d : -Math.cos(s.facing);
   player.vel.x += nx * v.spiderShove;

@@ -52,6 +52,6 @@ export function stepSky(d: Enemy, index: number, player: PlayerState, w: EnemyWo
   const r = on ? 0 : v.bombSpread * (0.3 + 0.7 * w.rng());
   spot.set(player.pos.x + Math.cos(a) * r, 0, player.pos.z + Math.sin(a) * r);
   dragonMouth(d, mouth);
-  if (dropBomb(w.bombs, mouth, spot, v.bombFall, v.bombRadius, v.bombDamage, v.bombShove)) w.events.push('dragonBomb', index, mouth.x, mouth.y, mouth.z);
+  if (dropBomb(w.bombs, mouth, spot, v.bombFall, v.bombRadius, v.bombDamage, v.bombShove, d.kind)) w.events.push('dragonBomb', index, mouth.x, mouth.y, mouth.z);
   return false;
 }

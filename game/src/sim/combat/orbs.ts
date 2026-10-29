@@ -6,7 +6,7 @@ import { TARGETS } from '../../tuning/combat';
 import type { CollisionWorld } from '../collisionWorld';
 import { BODY } from '../player/body';
 import { canHurt, damagePlayer } from '../player/health';
-import type { PlayerState } from '../player/state';
+import type { Cause, PlayerState } from '../player/state';
 import { segmentDistance } from './geometry';
 import type { CombatEvent } from './state';
 import { ORB_LIFE, Orb } from './targets';
@@ -18,13 +18,14 @@ const b = new Vector3();
 const hitAt = new Vector3();
 
 /** Fires an orb from a free slot. Returns false when every slot is in use. */
-export function fireOrb(orbs: Orb[], from: Vector3, direction: Vector3, speed: number, damage: number): boolean {
+export function fireOrb(orbs: Orb[], from: Vector3, direction: Vector3, speed: number, damage: number, by: Cause | null = null): boolean {
   const o = orbs.find((x) => !x.alive);
   if (!o) return false;
   o.alive = true;
   o.pos.copy(from);
   o.vel.copy(direction).multiplyScalar(speed);
   o.damage = damage;
+  o.by = by;
   o.life = ORB_LIFE;
   return true;
 }
@@ -50,7 +51,7 @@ export function updateOrbs(orbs: Orb[], player: PlayerState, world: CollisionWor
       b.set(player.pos.x, player.pos.y + height - BODY.radius, player.pos.z);
       if (segmentDistance(o.pos, next, a, b, hitAt) <= r + BODY.radius) {
         o.alive = false;
-        damagePlayer(player, o.damage);
+        damagePlayer(player, o.damage, o.by);
         events.push('orbHitPlayer', o.damage, hitAt.x, hitAt.y, hitAt.z);
         continue;
       }

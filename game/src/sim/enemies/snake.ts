@@ -40,7 +40,7 @@ export function updateSnake(s: Enemy, index: number, player: PlayerState, w: Ene
       w.events.push('snakeBite', index, s.pos.x, s.pos.y + v.snakeHeight * 0.5, s.pos.z);
       {
         const off = Math.abs(Math.atan2(Math.sin(toward - s.facing), Math.cos(toward - s.facing)));
-        if (dist <= v.snakeReach && off <= ARC && inLine(s, player, w.nav.small, 1.5) && damagePlayer(player, v.snakeDamage)) poisonPlayer(player, v.poisonDps, v.poisonTime);
+        if (dist <= v.snakeReach && off <= ARC && inLine(s, player, w.nav.small, 1.5) && damagePlayer(player, v.snakeDamage, s.kind)) poisonPlayer(player, v.poisonDps, v.poisonTime, s.kind);
       }
       break;
   }

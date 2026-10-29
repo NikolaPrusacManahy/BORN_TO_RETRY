@@ -106,5 +106,5 @@ function sting(s: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
   const toward = yawTo(s, player.pos.x, player.pos.z);
   const off = Math.abs(Math.atan2(Math.sin(toward - s.facing), Math.cos(toward - s.facing)));
   if (from.distanceTo(chest) > v.waspReach + BODY.radius || off > ARC) return;
-  if (damagePlayer(player, v.waspDamage)) poisonPlayer(player, v.poisonDps, v.poisonTime);
+  if (damagePlayer(player, v.waspDamage, s.kind)) poisonPlayer(player, v.poisonDps, v.poisonTime, s.kind);
 }

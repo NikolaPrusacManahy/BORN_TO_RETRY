@@ -29,7 +29,7 @@ export function lavaStep(p: PlayerState, lava: readonly ArenaBox[], start: Spot,
   const burn = HEALTH.v.lavaDamage;
   if (LAB.v.god < 1) {
     if (p.hp <= burn) {
-      killPlayer(p);
+      killPlayer(p, 'lava');
       return false;
     }
     p.hp -= burn;

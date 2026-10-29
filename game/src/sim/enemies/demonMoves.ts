@@ -91,7 +91,7 @@ function gore(d: Enemy, index: number, player: PlayerState, w: EnemyWorld, spec:
   const dz = player.pos.z - d.pos.z;
   if (Math.hypot(dx, dz) > radiusOf(d) + BODY.radius || player.pos.y - d.pos.y > spec.height * 0.8) return;
   d.struck = true;
-  if (!damagePlayer(player, spec.damage)) return;
+  if (!damagePlayer(player, spec.damage, d.kind)) return;
   // Which side of its line you're on decides where you're thrown; mostly forward with it.
   const side = Math.sign(dx * -d.aim.z + dz * d.aim.x) || 1;
   player.vel.x += (d.aim.x * 0.7 - d.aim.z * side * 0.7) * spec.shove;
@@ -124,11 +124,11 @@ export function stepLeap(d: Enemy, index: number, player: PlayerState, w: EnemyW
   d.pos.copy(d.aim);
   walk(d, 0, 0, 0, w.nav.large);
   w.events.push('demonSlam', index, d.pos.x, d.pos.y, d.pos.z);
-  startQuake(w.quakes, d.pos.x, d.pos.y, d.pos.z, v.quakeSpeed, v.quakeReach, v.quakeDamage, v.quakeClear);
+  startQuake(w.quakes, d.pos.x, d.pos.y, d.pos.z, v.quakeSpeed, v.quakeReach, v.quakeDamage, v.quakeClear, d.kind);
   const dx = player.pos.x - d.pos.x;
   const dz = player.pos.z - d.pos.z;
   const dist = Math.hypot(dx, dz);
-  if (dist <= v.slamReach && player.pos.y - d.pos.y <= LAND_CLEAR && damagePlayer(player, v.slamDamage)) {
+  if (dist <= v.slamReach && player.pos.y - d.pos.y <= LAND_CLEAR && damagePlayer(player, v.slamDamage, d.kind)) {
     const nx = dist > 1e-3 ? dx / dist : -Math.sin(d.facing);
     const nz = dist > 1e-3 ? dz / dist : -Math.cos(d.facing);
     player.vel.x += nx * v.slamShove;
@@ -158,7 +158,7 @@ export function volley(d: Enemy, index: number, player: PlayerState, w: EnemyWor
     const c = Math.cos(angle);
     const s = Math.sin(angle);
     dir.set(aim.x * c + aim.z * s, aim.y, -aim.x * s + aim.z * c).normalize();
-    fired = fireOrb(w.orbs, from, dir, v.volleySpeed, v.volleyDamage) || fired;
+    fired = fireOrb(w.orbs, from, dir, v.volleySpeed, v.volleyDamage, d.kind) || fired;
   }
   if (fired) w.events.push('demonVolley', index, from.x, from.y, from.z);
 }

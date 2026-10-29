@@ -1,6 +1,7 @@
 // M1 — hosts the Three.js Game and the HUD. Rapier loads first; the Game is built once it's ready.
 // Update 0.0.4 — ready once the main menu's scene has loaded too; the HUD only shows in play.
-// M1 step 8 — passes the death and respawn calls through. Update 0.0.8 — and the run's start.
+// M1 step 8 — passes the death and respawn calls through. Update 0.0.8 — and the run's start. Update 0.1.14 — and the
+// death screen's.
 import { ReactNode, forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import { Game, GameCallbacks } from '../engine/Game';
 import { createHudStore } from '../engine/hudStore';
@@ -20,12 +21,12 @@ interface Props extends GameCallbacks {
   children?: ReactNode;
 }
 
-export const GameView = forwardRef<GameHandle, Props>(function GameView({ settings, showHud, onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onReady, children }, ref) {
+export const GameView = forwardRef<GameHandle, Props>(function GameView({ settings, showHud, onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onDeathScreen, onReady, children }, ref) {
   const host = useRef<HTMLDivElement>(null);
   const game = useRef<Game | null>(null);
   const hud = useMemo(() => createHudStore(), []);
-  const cbs = useRef({ onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onReady, settings });
-  cbs.current = { onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onReady, settings };
+  const cbs = useRef({ onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onDeathScreen, onReady, settings });
+  cbs.current = { onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onDeathScreen, onReady, settings };
 
   useEffect(() => {
     let disposed = false;
@@ -38,6 +39,7 @@ export const GameView = forwardRef<GameHandle, Props>(function GameView({ settin
         onRunStart: (l) => cbs.current.onRunStart(l),
         onDeath: () => cbs.current.onDeath(),
         onRespawn: () => cbs.current.onRespawn(),
+        onDeathScreen: (info) => cbs.current.onDeathScreen(info),
       };
       const g = new Game(host.current, cbs.current.settings, hud, callbacks);
       game.current = g;

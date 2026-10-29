@@ -90,6 +90,8 @@ export interface CombatState {
   execAway: number;
   /** Update 0.1.1 — the Lab's Meter: the Execution Power meter kept full. */
   fullMeter: boolean;
+  /** Update 0.1.14 — enemies you've killed this run (the death screen). */
+  kills: number;
   /** Update 0.0.16 — items on the floor, and the keys the room you're fighting in still gives (a Yeti drops one). */
   drops: Drop[];
   keyDrops: number;
@@ -147,6 +149,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     execTarget: -1,
     execAway: Infinity,
     fullMeter: false,
+    kills: 0,
     drops: createDrops(),
     keyDrops: 0,
     hitStop: new HitStop(),
@@ -191,6 +194,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.exec.active = false;
   state.execTarget = -1;
   state.execAway = Infinity;
+  state.kills = 0;
   for (const d of state.drops) d.alive = false;
   state.keyDrops = 0;
   stockStands(state);
@@ -207,4 +211,5 @@ export function carryOver(from: CombatState, to: CombatState) {
   to.money = from.money;
   to.items = from.items;
   to.execution = from.execution;
+  to.kills = from.kills;
 }

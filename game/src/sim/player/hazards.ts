@@ -14,7 +14,7 @@ export function checkHazards(p: PlayerState, hazards: readonly ArenaBox[]): bool
     const top = h.y + h.h / 2;
     if (Math.abs(p.pos.x - h.x) > h.w / 2 || Math.abs(p.pos.z - h.z) > h.d / 2) continue;
     if (p.pos.y < top - 0.05 || p.pos.y > top + SPIKE_TOLERANCE) continue;
-    if (!damagePlayer(p, HEALTH.v.spikeDamage)) return false;
+    if (!damagePlayer(p, HEALTH.v.spikeDamage, 'spikes')) return false;
     p.vel.y = Math.max(p.vel.y, HEALTH.v.spikeBounce);
     p.grounded = false;
     p.coyote = 0;

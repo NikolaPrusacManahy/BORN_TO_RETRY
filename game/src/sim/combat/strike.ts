@@ -93,6 +93,7 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   state.events.push('kill', 0, p.x, p.y, p.z);
   state.hitStop.request(FEEDBACK.v.stopKill);
   if (t.kind !== 'enemy') return true;
+  state.kills++;
   // Update 0.1.0 — every kill of yours fills the Execution Power meter. Update 0.1.13 — counted in whole kills: ten
   // tenths added up came to 0.9999999999999999, which looked full but couldn't execute (only the Lab's Meter, which sets
   // it to 1, could): the designer found executions "just in the Lab".

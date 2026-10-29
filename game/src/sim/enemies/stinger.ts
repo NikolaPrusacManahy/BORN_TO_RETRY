@@ -108,7 +108,7 @@ function dive(s: Enemy, player: PlayerState, dt: number, world: CollisionWorld) 
     b.set(player.pos.x, player.pos.y + BODY.height - BODY.radius, player.pos.z);
     if (segmentDistance(mid, next, a, b) <= RADIUS.stinger + BODY.radius) {
       s.struck = true;
-      if (damagePlayer(player, v.stingerDamage)) {
+      if (damagePlayer(player, v.stingerDamage, s.kind)) {
         player.vel.x += dir.x * v.stingerShove;
         player.vel.z += dir.z * v.stingerShove;
         player.vel.y = Math.max(player.vel.y, 3);

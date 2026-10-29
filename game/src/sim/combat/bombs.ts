@@ -5,7 +5,7 @@
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { damagePlayer } from '../player/health';
-import type { PlayerState } from '../player/state';
+import type { Cause, PlayerState } from '../player/state';
 import type { CombatEvent } from './state';
 
 export interface Bomb {
@@ -20,6 +20,8 @@ export interface Bomb {
   radius: number;
   damage: number;
   shove: number;
+  /** Update 0.1.14 — who threw it. */
+  by: Cause | null;
 }
 
 export const BOMB_POOL = 12;
@@ -27,11 +29,11 @@ export const BOMB_POOL = 12;
 const ARC = 3;
 
 export function createBombs(): Bomb[] {
-  return Array.from({ length: BOMB_POOL }, () => ({ alive: false, from: new Vector3(), to: new Vector3(), pos: new Vector3(), t: 0, fall: 1, radius: 1, damage: 0, shove: 0 }));
+  return Array.from({ length: BOMB_POOL }, () => ({ alive: false, from: new Vector3(), to: new Vector3(), pos: new Vector3(), t: 0, fall: 1, radius: 1, damage: 0, shove: 0, by: null }));
 }
 
 /** Throws one from `from` to land at `to` (on the floor). False if every slot is in use. */
-export function dropBomb(bombs: Bomb[], from: Vector3, to: Vector3, fall: number, radius: number, damage: number, shove: number): boolean {
+export function dropBomb(bombs: Bomb[], from: Vector3, to: Vector3, fall: number, radius: number, damage: number, shove: number, by: Cause | null = null): boolean {
   const b = bombs.find((x) => !x.alive);
   if (!b) return false;
   b.alive = true;
@@ -43,6 +45,7 @@ export function dropBomb(bombs: Bomb[], from: Vector3, to: Vector3, fall: number
   b.radius = radius;
   b.damage = damage;
   b.shove = shove;
+  b.by = by;
   return true;
 }
 
@@ -64,7 +67,7 @@ export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQue
     const dx = player.pos.x - b.to.x;
     const dz = player.pos.z - b.to.z;
     const d = Math.hypot(dx, dz);
-    if (d > b.radius || player.pos.y - b.to.y > b.radius * 0.8 || !damagePlayer(player, b.damage)) continue;
+    if (d > b.radius || player.pos.y - b.to.y > b.radius * 0.8 || !damagePlayer(player, b.damage, b.by)) continue;
     const nx = d > 1e-3 ? dx / d : 1;
     const nz = d > 1e-3 ? dz / d : 0;
     player.vel.x += nx * b.shove;

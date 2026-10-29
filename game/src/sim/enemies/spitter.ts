@@ -110,5 +110,5 @@ function spit(s: Enemy, index: number, player: PlayerState, w: EnemyWorld, world
   from.set(-Math.sin(s.facing), 0, -Math.cos(s.facing)).multiplyScalar(RADIUS.spitter + 0.2);
   from.add(s.pos).setY(s.pos.y + v.spitterHeight * 0.6);
   aim.set(player.pos.x, player.pos.y + AIM_HEIGHT, player.pos.z).sub(from).normalize();
-  if (fireOrb(w.orbs, from, aim, v.spitterOrbSpeed, v.spitterOrbDamage)) w.events.push('spit', index, from.x, from.y, from.z);
+  if (fireOrb(w.orbs, from, aim, v.spitterOrbSpeed, v.spitterOrbDamage, s.kind)) w.events.push('spit', index, from.x, from.y, from.z);
 }

@@ -104,7 +104,7 @@ function land(l: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
   const dx = player.pos.x - l.pos.x;
   const dz = player.pos.z - l.pos.z;
   const d = Math.hypot(dx, dz);
-  if (d > v.leaperReach || player.pos.y - l.pos.y > LEVEL || !damagePlayer(player, v.leaperDamage)) return;
+  if (d > v.leaperReach || player.pos.y - l.pos.y > LEVEL || !damagePlayer(player, v.leaperDamage, l.kind)) return;
   const nx = d > 1e-3 ? dx / d : -Math.sin(l.facing);
   const nz = d > 1e-3 ? dz / d : -Math.cos(l.facing);
   player.vel.x += nx * v.leaperShove;

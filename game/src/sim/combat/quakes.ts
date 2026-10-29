@@ -4,7 +4,7 @@
 import type { EventQueue } from '../../core/eventQueue';
 import { BODY } from '../player/body';
 import { damagePlayer } from '../player/health';
-import type { PlayerState } from '../player/state';
+import type { Cause, PlayerState } from '../player/state';
 import type { CombatEvent } from './state';
 
 export interface Quake {
@@ -20,6 +20,8 @@ export interface Quake {
   clear: number;
   /** It has hurt you (once per ring). */
   hit: boolean;
+  /** Update 0.1.14 — whose landing sent it. */
+  by: Cause | null;
 }
 
 export const QUAKE_POOL = 4;
@@ -27,11 +29,11 @@ export const QUAKE_POOL = 4;
 const POP = 7;
 
 export function createQuakes(): Quake[] {
-  return Array.from({ length: QUAKE_POOL }, () => ({ alive: false, x: 0, y: 0, z: 0, r: 0, speed: 0, reach: 0, damage: 0, clear: 0, hit: false }));
+  return Array.from({ length: QUAKE_POOL }, () => ({ alive: false, x: 0, y: 0, z: 0, r: 0, speed: 0, reach: 0, damage: 0, clear: 0, hit: false, by: null }));
 }
 
 /** A ring from (x, y, z) out to `reach`. Reuses the oldest when every slot is in use. */
-export function startQuake(quakes: Quake[], x: number, y: number, z: number, speed: number, reach: number, damage: number, clear: number) {
+export function startQuake(quakes: Quake[], x: number, y: number, z: number, speed: number, reach: number, damage: number, clear: number, by: Cause | null = null) {
   let q = quakes[0];
   for (const c of quakes) {
     if (!c.alive) {
@@ -50,6 +52,7 @@ export function startQuake(quakes: Quake[], x: number, y: number, z: number, spe
   q.damage = damage;
   q.clear = clear;
   q.hit = false;
+  q.by = by;
 }
 
 export function updateQuakes(quakes: Quake[], player: PlayerState, events: EventQueue<CombatEvent>, dt: number) {
@@ -60,7 +63,7 @@ export function updateQuakes(quakes: Quake[], player: PlayerState, events: Event
     if (!q.hit && !player.dead) {
       const d = Math.hypot(player.pos.x - q.x, player.pos.z - q.z);
       // The front passed under you this tick (your body's width counts), with your feet on the floor.
-      if (d >= from - BODY.radius && d <= q.r + BODY.radius && player.pos.y - q.y <= q.clear && damagePlayer(player, q.damage)) {
+      if (d >= from - BODY.radius && d <= q.r + BODY.radius && player.pos.y - q.y <= q.clear && damagePlayer(player, q.damage, q.by)) {
         q.hit = true;
         player.vel.y = Math.max(player.vel.y, POP);
         player.grounded = false;

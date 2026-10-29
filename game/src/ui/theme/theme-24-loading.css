@@ -1,0 +1,38 @@
+/* Update 0.1.14 — the loader after the character select: the logo's retry arrow, bottom right on the black (inside the
+   fade, so it clears with it). Its turn is the logo arrow's (the same curve, about a second), with a shorter rest, so it
+   turns at once and keeps turning while the level loads. */
+.rb-loading {
+  position: absolute;
+  right: 4vh;
+  bottom: 4vh;
+  width: max(36px, 5vh);
+  height: max(36px, 5vh);
+  color: var(--rb-accent);
+  animation: rb-loading-in 0.2s ease-out both;
+}
+
+.rb-loading-arrow {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: rb-loading-spin 1.3s cubic-bezier(0.6, 0, 0.3, 1) infinite;
+}
+
+@keyframes rb-loading-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  78%,
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rb-loading-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

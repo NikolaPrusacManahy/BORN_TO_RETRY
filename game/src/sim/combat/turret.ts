@@ -44,7 +44,7 @@ export function updateTurret(t: Turret, targetFeet: Vector3, world: CollisionWor
     if (t.telegraph > 0) return;
     t.telegraph = 0;
     t.cooldown = v.turretInterval;
-    if (fireOrb(orbs, muzzle, toTarget, v.orbSpeed, v.orbDamage)) events.push('orbFire', 0, muzzle.x, muzzle.y, muzzle.z);
+    if (fireOrb(orbs, muzzle, toTarget, v.orbSpeed, v.orbDamage, 'turret')) events.push('orbFire', 0, muzzle.x, muzzle.y, muzzle.z);
     return;
   }
   if (t.cooldown > 0) {

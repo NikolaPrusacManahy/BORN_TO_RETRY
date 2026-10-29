@@ -70,7 +70,7 @@ function cast(r: Enemy, index: number, player: PlayerState, w: EnemyWorld, world
     const c = Math.cos(angle);
     const s = Math.sin(angle);
     dir.set(aim.x * c + aim.z * s, aim.y, -aim.x * s + aim.z * c).normalize();
-    fired = fireOrb(w.orbs, from, dir, v.wraithOrbSpeed, v.wraithOrbDamage) || fired;
+    fired = fireOrb(w.orbs, from, dir, v.wraithOrbSpeed, v.wraithOrbDamage, r.kind) || fired;
   }
   if (fired) w.events.push('wraithCast', index, from.x, from.y, from.z);
 }

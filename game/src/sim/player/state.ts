@@ -3,6 +3,7 @@ import { Vector3 } from 'three';
 import { EventQueue } from '../../core/eventQueue';
 import { HEALTH } from '../../tuning/health';
 import { DASH, WALL } from '../../tuning/movement';
+import type { EnemyKind } from '../enemies/kinds';
 
 export type MoveEvent =
   // Update 0.0.20 — fell into lava (sent back to the floor's start).
@@ -30,6 +31,9 @@ export type MoveEvent =
   // Update 0.0.13 — the shield took a hit (value = how much), and it's gone.
   | 'shieldHit'
   | 'shieldBreak';
+
+/** Update 0.1.14 — what hurt you (the death screen names what killed you): an enemy's kind, or the world. */
+export type Cause = EnemyKind | 'turret' | 'spikes' | 'lava' | 'fall';
 
 export interface PlayerState {
   /** Feet position. */
@@ -93,6 +97,9 @@ export interface PlayerState {
   /** Update 0.0.18 — poisoned: seconds left, and damage a second meanwhile. */
   poison: number;
   poisonDps: number;
+  /** Update 0.1.14 — what last took your health (null: nothing yet), and who poisoned you. */
+  hurtBy: Cause | null;
+  poisonBy: Cause | null;
   /** Update 0.0.13 — kneeling at a chest: seconds left (0: not), the spot you're eased onto, and the way you face. */
   kneel: number;
   kneelAt: Vector3;
@@ -140,6 +147,8 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     hpBonus: 0,
     poison: 0,
     poisonDps: 0,
+    hurtBy: null,
+    poisonBy: null,
     kneel: 0,
     kneelAt: new Vector3(),
     kneelYaw: 0,
@@ -157,6 +166,7 @@ export function resetPlayer(p: PlayerState, x: number, y: number, z: number, yaw
   p.hp = HEALTH.v.maxHp;
   p.shield = p.kneel = p.hpBonus = p.poison = p.poisonDps = 0;
   p.dead = false;
+  p.hurtBy = p.poisonBy = null;
   p.dashCharges = DASH.v.charges;
   p.sliding = p.slamming = p.onWall = p.slideArmed = p.wallRunning = p.lastWallSet = false;
   p.wallJumpsLeft = WALL.v.count;

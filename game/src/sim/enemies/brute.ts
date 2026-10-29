@@ -64,7 +64,7 @@ function slam(b: Enemy, index: number, player: PlayerState, dist: number, w: Ene
   const v = ENEMIES.v;
   w.events.push('bruteSlam', index, b.pos.x, b.pos.y, b.pos.z);
   if (dist > v.bruteSlamRadius || player.pos.y - b.pos.y > SLAM_CLEAR || wallBetween(w.nav.large, b.pos.x, b.pos.z, player.pos.x, player.pos.z)) return;
-  if (!damagePlayer(player, v.bruteSlamDamage)) return;
+  if (!damagePlayer(player, v.bruteSlamDamage, b.kind)) return;
   const len = Math.max(dist, 1e-3);
   player.vel.x += ((player.pos.x - b.pos.x) / len) * v.bruteShove;
   player.vel.z += ((player.pos.z - b.pos.z) / len) * v.bruteShove;

@@ -70,7 +70,7 @@ function strike(g: Enemy, index: number, player: PlayerState, dist: number, towa
   w.events.push('gruntStrike', index, g.pos.x, g.pos.y + v.gruntHeight * 0.5, g.pos.z);
   const off = Math.abs(Math.atan2(Math.sin(toward - g.facing), Math.cos(toward - g.facing)));
   if (dist > v.gruntReach || off > (v.gruntArc * Math.PI) / 180 || !canReach(g, player, w)) return;
-  if (!damagePlayer(player, v.gruntDamage)) return;
+  if (!damagePlayer(player, v.gruntDamage, g.kind)) return;
   // Shoved away from it, and a little up.
   const len = Math.max(dist, 1e-3);
   player.vel.x += ((player.pos.x - g.pos.x) / len) * v.gruntShove;

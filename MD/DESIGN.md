@@ -63,6 +63,8 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - 100 HP. **(placeholder)** No regeneration. Shown bottom left: the number and a bar.
 - A short invincibility follows each hit (0.6 s **(placeholder)**), and the dash's invincibility stops damage too.
 - **Death:** the world slows and fades to black. In the Feel Lab you're straight back at the start; in a run, death ends the run (M3).
+- **The death screen (Update 0.1.14, the designer: play, lose, learn, retry):** dead in a run, once it's black: "Killed by" and what killed you, large in crimson (an enemy by its name in the game, or the turret, spikes, lava, the fall; poison names who poisoned you), then the floor, the time played (m:ss, not counting the pause) and your kills. Retry starts a new run; Menu goes to the main menu. The world holds still behind it. No hints. Drawn big (1.5× the first draft, the designer).
+- **The loader (Update 0.1.14, the designer):** after Play on the character select and the fade to black, the logo's retry arrow turns bottom right on the black for at least a second while the level loads, then fades with the black. No words.
 - **The Lab (Update 0.0.19, the designer; dev builds only):** the main menu's Lab goes straight into the Feel Lab. Its panel (F8) spawns any enemy or boss in front of you, any item, bonus, weapon or a chest, and takes you to a boss's real room (its show and fight, then back to the Lab). It also has Clear, Heal, the Lab's waves and invincibility. Spec `MD_UPDATES/M3_LAB.md`.
 - **Healing (Update 0.0.13, the designer): only from the shop.** The heart heals half your health (a chest can hold one too). Hits you land heal nothing (blood heal is gone). After a boss (Update 0.0.15): it leaves a heart.
 - **Poison (Update 0.0.18):** the snake's bite and the wasp's sting poison you: 3 a second for 4 s, past your shield. **(placeholder)**
@@ -222,7 +224,7 @@ One per floor, three in total, each with 2 phases. Floor 1's is the Demon, floor
 - **The way down** (Update 0.0.15: the dark beyond the boss room's wooden gate, which opens once the boss is dead; it was a trapdoor in an exit room) fades to black and takes you to the next floor, its name showing as the black clears, with your health, coins and weapon. Dying starts a new run on a new floor plan. (Earlier plan: choose one of two doors showing their rewards; replaced by the explored floor.)
 - **After a boss:** a part-heal (Update 0.0.15: the heart it leaves), then the next floor.
 - **Win:** beat the floor 3 boss. The run ends and the next character unlocks.
-- **Lose:** you die. You see a run summary (rooms cleared, kills, best style, time, seed) and return to the hub.
+- **Lose:** you die. You see a run summary (rooms cleared, kills, best style, time, seed) and return to the hub. (Update 0.1.14: the death screen shows what killed you, the floor, the time and your kills; Retry or Menu. No hub yet.)
 
 ## 11. Procedural generation
 Arenas are **hand-made templates assembled from a seed**, not random geometry, because random shapes play badly at high speed.

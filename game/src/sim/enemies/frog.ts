@@ -72,7 +72,7 @@ function lash(f: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
   b.set(player.pos.x, player.pos.y + BODY.height - BODY.radius, player.pos.z);
   if (segmentDistance(mouth, f.aim, a, b) > v.frogWidth + BODY.radius || wallBetween(w.nav.small, f.pos.x, f.pos.z, player.pos.x, player.pos.z)) return;
   f.struck = true;
-  if (!damagePlayer(player, v.frogDamage)) return;
+  if (!damagePlayer(player, v.frogDamage, f.kind)) return;
   const len = Math.max(1e-3, Math.hypot(player.pos.x - f.pos.x, player.pos.z - f.pos.z));
   player.vel.x -= ((player.pos.x - f.pos.x) / len) * v.frogPull;
   player.vel.z -= ((player.pos.z - f.pos.z) / len) * v.frogPull;

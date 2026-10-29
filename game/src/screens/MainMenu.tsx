@@ -3,8 +3,10 @@
 // it slides away. No hints a player already knows (the designer's rule).
 // Update 0.0.7 — Settings goes to the night camp (CampMenu), where the controls are too.
 // Update 0.0.19 — Lab (dev builds): straight into the Lab.
+// Update 0.1.14 — the retry arrow moved to RetryArrow.tsx (the loader turns it too).
 import { useEffect } from 'react';
 import { version } from '../../package.json';
+import { RetryArrow } from './RetryArrow';
 
 interface Props {
   ready: boolean;
@@ -14,16 +16,6 @@ interface Props {
   onSettings(): void;
   /** Update 0.0.19 — dev builds only. */
   onLab?: () => void;
-}
-
-/** The retry arrow beside the logo: a clockwise arc and its head; it turns slowly. */
-function RetryArrow() {
-  return (
-    <svg className="rb-logo-arrow" viewBox="0 0 48 48" aria-hidden>
-      <path d="M40 24a16 16 0 1 1-4.7-11.3" fill="none" stroke="currentColor" strokeWidth="6" />
-      <path d="M43 3v16H27z" fill="currentColor" />
-    </svg>
-  );
 }
 
 export function MainMenu({ ready, leaving, onStart, onSettings, onLab }: Props) {
@@ -58,7 +50,7 @@ export function MainMenu({ ready, leaving, onStart, onSettings, onLab }: Props) 
           <span className="rb-logo-word" data-text="RETRY">
             RETRY
           </span>
-          <RetryArrow />
+          <RetryArrow className="rb-logo-arrow" />
         </div>
         <div className="rb-logo-tag">
           Die <b>·</b> Learn <b>·</b> <em>Retry</em>

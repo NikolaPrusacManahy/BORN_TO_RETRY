@@ -73,7 +73,7 @@ export function stepBreath(d: Enemy, index: number, player: PlayerState, w: Enem
   // You, in its line.
   a.set(player.pos.x, player.pos.y + BODY.radius, player.pos.z);
   b.set(player.pos.x, player.pos.y + BODY.height - BODY.radius, player.pos.z);
-  if (segmentDistance(mouth, d.aim, a, b) <= v.beamWidth + BODY.radius) damagePlayer(player, v.beamDamage);
+  if (segmentDistance(mouth, d.aim, a, b) <= v.beamWidth + BODY.radius) damagePlayer(player, v.beamDamage, d.kind);
   // Anything else in its line burns away (no coins: you didn't kill it).
   for (let i = 0; i < w.enemies.length; i++) {
     const e = w.enemies[i];
@@ -125,7 +125,7 @@ export function fireball(d: Enemy, index: number, player: PlayerState, w: EnemyW
   d.shots++;
   dragonMouth(d, mouth);
   dir.set(player.pos.x, player.pos.y + AIM_HEIGHT, player.pos.z).sub(mouth).normalize();
-  if (fireOrb(w.orbs, mouth, dir, v.fireSpeed, v.fireDamage)) w.events.push('dragonFireball', index, mouth.x, mouth.y, mouth.z);
+  if (fireOrb(w.orbs, mouth, dir, v.fireSpeed, v.fireDamage, d.kind)) w.events.push('dragonFireball', index, mouth.x, mouth.y, mouth.z);
 }
 
 /** After the first fireball, the rest of the burst, one every Fireball gap. */
@@ -145,7 +145,7 @@ export function wingSwing(d: Enemy, index: number, player: PlayerState, w: Enemy
   const toward = Math.atan2(-dx, -dz);
   const off = Math.abs(Math.atan2(Math.sin(toward - d.facing), Math.cos(toward - d.facing)));
   if (dist > v.wingReach + radiusOf(d) || off > (v.wingArc * Math.PI) / 360 || player.pos.y - d.pos.y > v.dragonHeight) return;
-  if (damagePlayer(player, v.wingDamage)) throwOff(player, dx, dz, dist, d, v.wingShove, 4);
+  if (damagePlayer(player, v.wingDamage, d.kind)) throwOff(player, dx, dz, dist, d, v.wingShove, 4);
 }
 
 /** Update 0.0.21 — it bursts into flame: within Burst reach round it you're hurt and thrown far (run). */
@@ -156,7 +156,7 @@ export function flameBurst(d: Enemy, index: number, player: PlayerState, w: Enem
   const dz = player.pos.z - d.pos.z;
   const dist = Math.hypot(dx, dz);
   if (dist > v.burstRadius + radiusOf(d) || player.pos.y - d.pos.y > v.dragonHeight) return;
-  if (damagePlayer(player, v.burstDamage)) throwOff(player, dx, dz, dist, d, v.burstShove, 7);
+  if (damagePlayer(player, v.burstDamage, d.kind)) throwOff(player, dx, dz, dist, d, v.burstShove, 7);
 }
 
 /** It spins: the tail sweeps all round it, low (jump it). */
@@ -167,7 +167,7 @@ export function tailSwing(d: Enemy, index: number, player: PlayerState, w: Enemy
   const dz = player.pos.z - d.pos.z;
   const dist = Math.hypot(dx, dz);
   if (dist > v.tailReach + radiusOf(d) || player.pos.y - d.pos.y > v.tailClear) return;
-  if (damagePlayer(player, v.tailDamage)) throwOff(player, dx, dz, dist, d, v.tailShove, 5);
+  if (damagePlayer(player, v.tailDamage, d.kind)) throwOff(player, dx, dz, dist, d, v.tailShove, 5);
 }
 
 function throwOff(player: PlayerState, dx: number, dz: number, dist: number, d: Enemy, shove: number, up: number) {

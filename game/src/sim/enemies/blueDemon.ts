@@ -87,5 +87,5 @@ function fireball(b: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
   const v = FOES2.v;
   from.set(b.pos.x - Math.sin(b.facing) * 1.1, b.pos.y + v.blueHeight * 0.55, b.pos.z - Math.cos(b.facing) * 1.1);
   aim.set(player.pos.x, player.pos.y + AIM_HEIGHT, player.pos.z).sub(from).normalize();
-  if (fireOrb(w.orbs, from, aim, v.blueFireSpeed, v.blueFireDamage)) w.events.push('blueFireball', index, from.x, from.y, from.z);
+  if (fireOrb(w.orbs, from, aim, v.blueFireSpeed, v.blueFireDamage, b.kind)) w.events.push('blueFireball', index, from.x, from.y, from.z);
 }

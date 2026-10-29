@@ -46,7 +46,7 @@ function burst(s: Enemy, index: number, player: PlayerState, dist: number, w: En
   // Burst, not killed (the view shows no body).
   s.struck = true;
   if (dist > v.slimeBlast || Math.abs(player.pos.y - s.pos.y) > v.slimeBlast || wallBetween(w.nav.small, s.pos.x, s.pos.z, player.pos.x, player.pos.z)) return;
-  if (!damagePlayer(player, v.slimeDamage)) return;
+  if (!damagePlayer(player, v.slimeDamage, s.kind)) return;
   const len = Math.max(dist, 1e-3);
   player.vel.x += ((player.pos.x - s.pos.x) / len) * v.slimeShove;
   player.vel.z += ((player.pos.z - s.pos.z) / len) * v.slimeShove;
