@@ -2,6 +2,9 @@
 # middle of the grip, the blade (or head) pointing up (+y in the game), the edge across x, scaled to a set length.
 # The grip is found from the shape: going up from the bottom, past the pommel, the narrow handle runs until the
 # cross-section widens at the guard (or the head).
+# Update 0.1.5 — `--handle-center`: centred on the handle where it's held (an axe's head sticks out to one side, so the
+# whole model's middle is beside the handle); `--edge-out`: the side the head reaches furthest (an axe's blade) turned
+# to +x, the way the knuckles face.
 #
 # Run (from game/):
 #   blender --background --disable-autoexec --python tools/blender/export_weapon.py -- \
@@ -28,6 +31,8 @@ def parse_args():
     p.add_argument('--length', type=float, required=True, help='total length in the game (m)')
     p.add_argument('--previews', required=True)
     p.add_argument('--engine', default='BLENDER_EEVEE')
+    p.add_argument('--handle-center', action='store_true', help='centre x and y on the handle at the grip')
+    p.add_argument('--edge-out', action='store_true', help='turn the side the head reaches furthest to +x')
     return p.parse_args(argv)
 
 
@@ -79,6 +84,16 @@ def main():
     length = max(v.z for v in vs) - min(v.z for v in vs)
     cx = (max(v.x for v in vs) + min(v.x for v in vs)) / 2
     cy = (max(v.y for v in vs) + min(v.y for v in vs)) / 2
+    if args.handle_center:
+        band = [v for v in vs if abs(v.z - grip) < length * 0.03]
+        cx = (max(v.x for v in band) + min(v.x for v in band)) / 2
+        cy = (max(v.y for v in band) + min(v.y for v in band)) / 2
+        print(f'handle centre ({cx:.3f}, {cy:.3f}) from {len(band)} vertices')
+    if args.edge_out and (cx - min(v.x for v in vs)) > (max(v.x for v in vs) - cx):
+        w.data.transform(Matrix.Rotation(math.radians(180), 4, 'Z'))
+        vs = [v.co.copy() for v in w.data.vertices]
+        cx, cy = -cx, -cy
+        print('turned the head\'s edge to +x')
     w.data.transform(Matrix.Scale(args.length / length, 4) @ Matrix.Translation((-cx, -cy, -grip)))
     print(f'grip at {grip:.3f} of a {length:.2f} m model; scaled to {args.length} m')
 

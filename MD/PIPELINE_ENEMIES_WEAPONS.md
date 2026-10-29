@@ -40,6 +40,15 @@ blender --background --disable-autoexec --python tools/blender/export_monster.py
 `export_items.py` (same command as Update 0.0.13) now also exports item_goldPlate (Armor_Golden), item_greenRing (Ring6), item_purpleRing (Ring5, gem purple), item_blueRing (now Ring4, gem blue), item_snowflake (Snowflake1, icy), item_goldIngots (Gold_Ingots) and item_bluePotion (Potion5_Filled, liquid and glass blue). A recolour gives the part a plain flat material: some pack colours live in shader nodes the glTF export drops (the liquids and the snowflake came out mint green).
 
 ## A held weapon: `game/tools/blender/export_weapon.py`
+
+Update 0.1.5: a weapon whose head sticks out to one side (an axe) needs `--handle-center` (centre on the handle where it's held), and `--edge-out` (turn its blade to +x, the way the knuckles face). The Gold Axe and the Hammer:
+
+```
+blender --background --disable-autoexec --python tools/blender/export_weapon.py -- --blend "<Ultimate RPG Pack>/Axe_small_Golden.blend" --glb public/models/weapons/gold_axe.glb --length 0.75 --previews <folder> --handle-center --edge-out
+blender --background --disable-autoexec --python tools/blender/export_weapon.py -- --blend "<Ultimate RPG Pack>/Hammer_Double.blend" --glb public/models/weapons/hammer.glb --length 1.35 --previews <folder> --handle-center
+```
+
+Each weapon then gets its own moves (`engine/viewmodel/weaponMoves.ts`): look at them with `npx tsx tools/weapon-shots.ts <kind> <folder>` and `render_view.py`.
 Exports one weapon with its origin in the middle of the grip, the blade (or head) pointing up and the edge across x, scaled to a set length. The grip is found from the shape: past the pommel, up the narrow handle to where the guard (or the head) widens.
 
 ```

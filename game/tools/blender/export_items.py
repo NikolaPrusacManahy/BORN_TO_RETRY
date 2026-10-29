@@ -27,6 +27,9 @@ ITEMS = {
     'item_goldSword': ('Sword_Golden', 1.0, {}),
     # Update 0.1.4 — the Grimoire (the held one is export_book.py's).
     'item_grimoire': ('Book3_Open', 0.6, {}),
+    # Update 0.1.5 — the Gold Axe and the hammer.
+    'item_goldAxe': ('Axe_small_Golden', 0.8, {}),
+    'item_hammer': ('Hammer_Double', 1.0, {}),
     'item_redRing': ('Ring3', 0.36, {}),
     'item_blueRing': ('Ring4', 0.36, {'Cyan': (0.08, 0.25, 1.0)}),
     'item_greenRing': ('Ring6', 0.36, {'Green': (0.1, 0.85, 0.2)}),

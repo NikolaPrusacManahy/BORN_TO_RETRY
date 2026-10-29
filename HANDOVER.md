@@ -2,7 +2,23 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-28): M1 done, M2 under way, M3 under way — Update 0.1.4
+## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.5
+- **Update 0.1.5 — the Gold Axe and the Hammer** (two of the designer's five weapon ideas; spec `MD_UPDATES/U015_AXE_HAMMER.md`):
+  - **Gold Axe:**
+    - its own hacks and a charged overhead chop;
+    - thrown, it drops, sticks or falls and lies there (`sim/weapons/recall.ts`; `Thrown` keeps its uses and phase);
+    - right click held with your fists out calls it back through walls, hitting what it passes, into your hand.
+  - **Hammer:**
+    - two-handed (`engine/viewmodel/twoHand.ts`: the left hand on the haft below the right);
+    - slow heavy heaves;
+    - its charged smash rolls a shockwave across the room (`sim/weapons/smashWaves.ts`; the ring is drawn on the rules' own ease).
+  - **Arms:**
+    - every weapon now plays its own move set (`engine/viewmodel/weaponMoves.ts`, with `axePoses.ts` and `hammerPoses.ts`); `SwordAnim` plays whichever the weapon in hand has;
+    - the fists' pose moved to `fistArm.ts`.
+  - **Checks:**
+    - seen as renders of the real arms (`tools/weapon-shots.ts`);
+    - `test-weapon-arms.ts` checks that both grips stay on the haft;
+    - `test-axe-hammer.ts` checks the rules.
 - **Update 0.1.4 — the Grimoire** (the designer's new weapon and two reference images; spec `MD_UPDATES/U014_GRIMOIRE.md`):
   - the open book from the Ultimate RPG pack (`Book3_Open`, `tools/blender/export_book.py` → `public/models/weapons/grimoire.glb`; the shop's and floor's look in `items.glb`);
   - held: right hand palm up under the open book, left palm up with fire on it (flames, embers, an orange light) (`engine/viewmodel/bookArms.ts`);
@@ -300,6 +316,8 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `MD_UPDATES/M3_LOADOUT.md` | Update 0.0.17: less gold, armour and rings reworked, melee reach, kill bonuses, weapon slots |
 | `game/tools/boss-shots.ts` | Renders the boss room (walls at any point of their slide, the gate shut or open, the Demon's stance) from the show's own shots, without a browser |
 | `MD_UPDATES/U014_GRIMOIRE.md` | Update 0.1.4: the Grimoire (the book, the stance, fireballs, numbers) |
+| `MD_UPDATES/U015_AXE_HAMMER.md` | Update 0.1.5: the Gold Axe (swings, chop, thrown and called back) and the Hammer (two-handed, the smash's shockwave) |
+| `game/tools/weapon-shots.ts` | Renders a held weapon's own moves (ready, a swing, the charge and blow, a throw's draw) from the game's own arms code, without a browser |
 | `game/tools/book-shots.ts` | Renders the Grimoire in your hands (held, the cast, the charge, the great cast) from the game's own arms code, without a browser |
 | `game/tools/view-shots.ts`, `game/tools/blender/render_view.py` | Renders the first-person arms (the game's own code and models) at chosen moments, without a browser |
 | `MD/PIPELINE_MENU_SCENE.md` | How the menu's scenes (the gate, the settings camp, the prison corridor) are built, and how to change them |
@@ -381,6 +399,10 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 
 ## Not verified
 Claude has seen and heard none of this in the game: the feel, the arms on screen, the targets, effects, sounds and menus are all unverified until played. The tests check the rules, the collision, and that the shipped arms pose correctly.
+- **The Gold Axe and the Hammer (Update 0.1.5):**
+  - **Seen only as still renders** of the game's own arms holding the real models (`tools/weapon-shots.ts`, flat light, no textures): ready, a swing's wind, contact and end, the charge, the charged blow, a throw's draw. The axe's raised chop was fixed after the designer saw its grip.
+  - **Unseen in the game:** the moves in motion and their pace (the hammer's slowness); the axe spinning out, lying, sticking in walls, flying back and the catch; the smash's ring rolling out with the hits in step; the shake and jolt; every synth sound; how the recall feels.
+  - **Known flaw:** the hammer's left hand is up to 6 cm off the haft for a moment in the swing's wind-up (beyond the left arm's reach). It's checked at the other keys.
 - **The Grimoire (Update 0.1.4):** the designer played the first version (the palm light washed the left hand out white; now kept off the hand and dimmer). The second pass is seen only as still renders of the game's own arms code holding the real book (`tools/book-shots.ts`, flat light, no textures, each flame drawn as a flat square, the glow spheres drawn solid): the curled hand round its ball, the cast, the charge after one step, at the big charge and at the full one, the release (shot at the first timing, 1 s a charge; the ball's size follows the charge's share of the big and full charges, so the shots stand at 0.5 s a charge). Unseen in the game: the flames' glow, the palm light's brightness, the trembling, the ball growing and pulsing, a charged fireball's size in flight, the charged bursts (the swelling ball of fire, the 15 m and 30 m rings, the flash, the shake, the freeze), the synth sounds, and how charging feels.
 - **Every execution (Update 0.1.2):** seen only as still renders of the real rules and view code at their keys and blows (`tools/exec-shots.ts`, flat light, no textures). Unseen in the game: the moves in motion and their pace, the hands between keys, the pieces flying and bouncing, the burst and blow effects and synth sounds, the frog's whirl at speed, the barrage's rhythm.
 - **The snake execution (Update 0.1.1):** seen only as still renders of the real rules and view code (`tools/exec-shots.ts`, flat light, a tiled floor). Unseen in the game: the moves in motion and their pace, the view turning, the hands on the tail in motion (checked as stills and by `test-exec-grip.ts`), the snake's thrash (its walk clip 3× fast), the crimson pulse, the slam freezes, rings, debris and shake, the synth sounds, the flight and the landing. `test-execution.ts` checks the target rules, the grab, the world holding still, the two slams reaching the floor, the body never passing through your head, the view looking down at each slam, invulnerability, the throw short of a wall, the one-shot kill and the splash.

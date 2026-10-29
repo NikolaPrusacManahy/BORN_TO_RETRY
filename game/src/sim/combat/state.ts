@@ -13,6 +13,7 @@ import { WEAPON_STATS } from '../weapons/catalog';
 import { HeldWeapon, Pickup, Stand, Thrown, createPickups, createStands, createThrown, placePickup } from '../weapons/weapons';
 import { Fireball, createFireballs } from '../weapons/fireballs';
 import { KiCharge, createKi } from '../weapons/kiCharge';
+import { SmashWave, createSmashWaves } from '../weapons/smashWaves';
 import type { CombatEvent } from './events';
 import { createFlow, Flow } from '../enemies/chase';
 import { createEnemies, Enemy } from '../enemies/enemy';
@@ -65,6 +66,10 @@ export interface CombatState {
   /** Update 0.1.4 — the Grimoire's fireballs in flight, and its charge (right click held). */
   fireballs: Fireball[];
   ki: KiCharge;
+  /** Update 0.1.5 — the Hammer's shockwaves rolling over the floor; right click still held from calling the axe back
+   *  (it charges nothing until let go). */
+  smashWaves: SmashWave[];
+  recallHeld: boolean;
   rng: Rng;
   /** Update 0.0.12 — your coins, and the ones still flying. */
   money: number;
@@ -121,6 +126,8 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     thrown: createThrown(),
     fireballs: createFireballs(),
     ki: createKi(),
+    smashWaves: createSmashWaves(),
+    recallHeld: false,
     rng: createRng(LAB_SEED),
     money: 0,
     coins: createCoins(),
@@ -159,6 +166,8 @@ export function resetCombat(state: CombatState, arena: Arena) {
   for (const t of state.thrown) t.alive = false;
   for (const f of state.fireballs) f.alive = false;
   state.ki = createKi();
+  for (const w of state.smashWaves) w.alive = false;
+  state.recallHeld = false;
   state.stands = createStands(arena.stands);
   state.rng = createRng(LAB_SEED);
   state.money = 0;

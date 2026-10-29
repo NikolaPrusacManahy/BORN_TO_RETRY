@@ -1,5 +1,6 @@
 // Update 0.0.12 — a shockwave: a bright ring that races out over the floor to a radius and fades (your ground slam,
 // the brute's slam). A small pool of rings; no garbage.
+// Update 0.1.5 — a ring may take longer (the Hammer's smash rolls across the room as its rules do: smashWaves.ts).
 import * as THREE from 'three';
 
 /** Seconds a ring takes to reach its radius and fade. */
@@ -9,6 +10,7 @@ interface Wave {
   mesh: THREE.Mesh;
   t: number;
   radius: number;
+  life: number;
 }
 
 export class Shockwaves {
@@ -22,16 +24,17 @@ export class Shockwaves {
       const mesh = new THREE.Mesh(this.geo, mat);
       mesh.visible = false;
       this.group.add(mesh);
-      this.waves.push({ mesh, t: LIFE, radius: 1 });
+      this.waves.push({ mesh, t: LIFE, radius: 1, life: LIFE });
     }
   }
 
-  /** A ring out from `at` (on the floor) to `radius` m, in `color`. Reuses the oldest. */
-  spawn(at: THREE.Vector3, radius: number, color: number) {
+  /** A ring out from `at` (on the floor) to `radius` m over `life` s, in `color`. Reuses the oldest. */
+  spawn(at: THREE.Vector3, radius: number, color: number, life = LIFE) {
     let w = this.waves[0];
-    for (const x of this.waves) if (x.t > w.t) w = x;
+    for (const x of this.waves) if (x.t / x.life > w.t / w.life) w = x;
     w.t = 0;
     w.radius = radius;
+    w.life = life;
     w.mesh.position.set(at.x, at.y + 0.05, at.z);
     (w.mesh.material as THREE.MeshBasicMaterial).color.setHex(color);
     w.mesh.visible = true;
@@ -39,9 +42,9 @@ export class Shockwaves {
 
   update(dt: number) {
     for (const w of this.waves) {
-      if (w.t >= LIFE) continue;
+      if (w.t >= w.life) continue;
       w.t += dt;
-      const k = Math.min(1, w.t / LIFE);
+      const k = Math.min(1, w.t / w.life);
       // Fast out, then slows; fades as it goes.
       w.mesh.scale.setScalar(w.radius * (1 - (1 - k) ** 3));
       (w.mesh.material as THREE.MeshBasicMaterial).opacity = 1 - k;
@@ -51,7 +54,7 @@ export class Shockwaves {
 
   clear() {
     for (const w of this.waves) {
-      w.t = LIFE;
+      w.t = w.life;
       w.mesh.visible = false;
     }
   }

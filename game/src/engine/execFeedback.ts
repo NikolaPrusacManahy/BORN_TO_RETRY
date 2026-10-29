@@ -7,6 +7,7 @@ import type { CombatEvent } from '../sim/combat/state';
 import { BLOWS } from '../sim/combat/execMoves';
 import type { FeedbackParts } from './combatFeedback';
 import { kiFull, KiPower, kiPower } from '../sim/weapons/kiCharge';
+import { waveTime } from '../sim/weapons/smashWaves';
 import { WEAPONS } from '../tuning/weapons';
 
 const UP = new THREE.Vector3(0, 1, 0);
@@ -76,6 +77,22 @@ export function execFeedback(f: FeedbackParts, kind: CombatEvent, value: number,
       if (value >= WEAPONS.v.kiStep) f.rig.kick(0.8 + 2.2 * c);
       return true;
     }
+    // Update 0.1.5 — the Hammer's smash: a ring rolling out as far and as fast as its shockwave (the same ease), a dust
+    // ring close in, chunks of floor, the hardest shake and a jolt; the Gold Axe biting into a wall or the floor (chips),
+    // and caught (a nudge).
+    case 'smash':
+      f.waves.spawn(at, value, 0xffd9a0, waveTime());
+      f.waves.spawn(at, 3.5, 0xbfa080);
+      f.chunks.spawn(at, UP, 26, 1.4);
+      f.rig.shake.add(0.9 * near(30));
+      f.rig.kick(2.4);
+      return true;
+    case 'axeStick':
+      f.chunks.spawn(at, back, 6, 0.6);
+      return true;
+    case 'catch':
+      f.rig.kick(0.5);
+      return true;
     case 'execBurst':
       f.waves.spawn(at, 3.5, 0xff8060);
       f.chunks.spawn(at, UP, 30, 1.5);

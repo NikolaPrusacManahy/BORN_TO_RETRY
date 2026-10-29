@@ -2,13 +2,14 @@
 // ones in flight. You hold one at a time; picking one up drops yours at your feet. Throwing (Q, or the next attack
 // once it's broken) draws it back for a moment, then sends it flying; it breaks on whatever it hits.
 // Update 0.0.17 — picking one up takes it off the ground; where it goes is the weapon slots' business (slots.ts).
+// Update 0.1.5 — a thrown Gold Axe (catalog.ts `RETURNS`) keeps its uses and comes back to your hand (recall.ts).
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { WEAPONS } from '../../tuning/weapons';
 import type { Spot } from '../../world/arena';
 import type { CombatEvent } from '../combat/state';
 import type { PlayerState } from '../player/state';
-import { WEAPON_STATS, WeaponKind } from './catalog';
+import { RETURNS, WEAPON_STATS, WeaponKind } from './catalog';
 
 export interface HeldWeapon {
   kind: WeaponKind;
@@ -44,7 +45,18 @@ export interface Thrown {
   /** Spin angle (rad, looks only) and seconds left before it falls apart. */
   spin: number;
   life: number;
+  /** Update 0.1.5 — it comes back (a Gold Axe with uses left): what it's doing, its uses, its speed coming back, and
+   *  what it has hit on the way back (enemy slots; dummies from 1000). */
+  returns: boolean;
+  phase: ThrownPhase;
+  uses: number;
+  speed: number;
+  struck: number[];
+  struckN: number;
 }
+
+/** Flying out; falling where it hit something or ran out; lying (or stuck in a wall); flying back to you. */
+export type ThrownPhase = 'fly' | 'drop' | 'stuck' | 'back';
 
 export const PICKUP_POOL = 16;
 export const THROWN_POOL = 6;
@@ -58,7 +70,20 @@ export function createPickups(): Pickup[] {
 }
 
 export function createThrown(): Thrown[] {
-  return Array.from({ length: THROWN_POOL }, () => ({ alive: false, kind: 'sword' as WeaponKind, pos: new Vector3(), vel: new Vector3(), spin: 0, life: 0 }));
+  return Array.from({ length: THROWN_POOL }, () => ({
+    alive: false,
+    kind: 'sword' as WeaponKind,
+    pos: new Vector3(),
+    vel: new Vector3(),
+    spin: 0,
+    life: 0,
+    returns: false,
+    phase: 'fly' as ThrownPhase,
+    uses: 0,
+    speed: 0,
+    struck: new Array<number>(16).fill(-1),
+    struckN: 0,
+  }));
 }
 
 export function createStands(spots: readonly Spot[] = []): Stand[] {
@@ -128,5 +153,11 @@ export function throwWeapon(held: HeldWeapon, thrown: Thrown[], eye: Vector3, di
   t.vel.copy(dir).multiplyScalar(WEAPONS.v.throwSpeed);
   t.spin = 0;
   t.life = THROWN_LIFE;
+  // (One already broken breaks on what it hits, as any weapon does.)
+  t.returns = RETURNS[held.kind] && held.uses > 0;
+  t.phase = 'fly';
+  t.uses = held.uses;
+  t.speed = 0;
+  t.struckN = 0;
   events.push('throw', 0, t.pos.x, t.pos.y, t.pos.z);
 }

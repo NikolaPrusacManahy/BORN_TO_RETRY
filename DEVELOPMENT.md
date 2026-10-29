@@ -62,6 +62,8 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 | `sim/weapons/fireballs.ts` | Update 0.1.4 — the Grimoire's casts (every Cast interval while held), fireballs flying from the eye, hitting the first target or a wall, bursting (splash on enemies and the lab's dummies; a charged one freezes the game a moment); each cast burns uses. `catalog.ts` `CASTS` says which weapons cast (they never slash or pierce, and the fists don't charge for them) |
 | `sim/weapons/kiCharge.ts` | Update 0.1.4 — the Grimoire's right click: a charge held (`state.ki`), a use burnt each Charge step up to Max charges, cast when let go; `kiPower(t)`: damage, burst, size, speed and knock for a charge of `t` s (anchored at 0, the Big charge `kiMid()`, the full charge `kiFull()`); `cancelCharges` on pause (gives the uses back) |
 | `sim/combat/events.ts` | Update 0.1.4 — the `CombatEvent` union (moved out of `state.ts`, which re-exports it) |
+| `sim/weapons/recall.ts` | Update 0.1.5 — the Gold Axe's throw that doesn't break (`catalog.ts` `RETURNS`): dropping where it hits, sticking in a wall, falling, lying; right click held with your fists out calls it back (through walls, hitting what it passes once), caught into a slot and your hand. `thrown.ts` hands it over once it's not flying out |
+| `sim/weapons/smashWaves.ts` | Update 0.1.5 — the Hammer's smash (`catalog.ts` `SMASHES`): a ring rolling out over the floor (fast, then slowing: `waveFront`), hitting every enemy and dummy under its front once, not fliers over it nor anything behind a wall |
 | `sim/weapons/thrown.ts` | Thrown weapons flying, hitting the first target or a wall, and breaking |
 | `sim/combat/strike.ts` | What a sweep hits (the nearest dummy, turret or grunt) and landing a hit: kills, the kill hit-stop, drops |
 
@@ -170,6 +172,8 @@ Update 0.0.12: `slamHit.ts` (your ground slam's blast: every target in reach, ha
 | `engine/fireView.ts`, `engine/fx/flames.ts` | Update 0.1.4 — fireballs drawn (a core, a trail of flames, falling embers, a burst, two fixed lights; leaving from the palm on screen). `Flames`: a pool of glowing specks in one instanced mesh, rising, cooling and fading (its own seeded random) |
 | `engine/viewmodel/bookArms.ts` | Update 0.1.4 — the Grimoire held: the right hand under the open book (`bookMatrix`), the left hand curled round a fireball, the cast's thrust, the charge held out (trembling, the ball growing and pulsing, `ki` set by `fireView.ts`); the ball's flames, embers and light. `weaponsView.ts` marks the book (`userData.hold = 'book'`); `viewmodel.ts` mixes it in |
 | `engine/viewmodel/swordArm.ts` | Update 0.1.4 — the sword arm's pose each frame (moved out of `viewmodel.ts`) |
+| `engine/viewmodel/weaponMoves.ts`, `axePoses.ts`, `hammerPoses.ts` | Update 0.1.5 — each held weapon's own moves: key poses (ready, a swing's path, the charged blow drawn back and out, which a throw also follows), timings, where the fist holds it, its size, whether the left hand holds it too. `SwordAnim.use` plays the set of the weapon in hand (its model's `userData.kind`, set by `weaponsView.ts`) |
+| `engine/viewmodel/twoHand.ts`, `fistArm.ts` | Update 0.1.5 — the left hand on a two-handed haft (below the right fist); the fists' pose for one arm (moved out of `viewmodel.ts`) |
 | `engine/weaponsView.ts` | M2 — weapons on the ground (turning above a glowing ring), the lab stand, weapons in flight (spinning), and the one in hand (given to the arms) |
 | `engine/fx/burst.ts` | Pooled instanced pieces (sparks, chunks) |
 | `engine/viewmodel/viewmodel.ts` | The arms' own scene and camera, sway, bob, landing dip, dash/slide poses, punch aim; draws over the world. M2: with a weapon, the left arm drops out of view and the right holds the sword |
@@ -191,6 +195,7 @@ Update 0.0.12: `slamHit.ts` (your ground slam's blast: every target in reach, ha
 | `tools/blender/export_weapon.py` | M2 — a held weapon to a `.glb`, its origin in the grip, blade up |
 | `tools/blender/export_dungeon_kit.py` | Update 0.0.12 — the Modular Dungeon Pack (parts 1 and 2) pieces to `public/models/dungeon/kit.glb`. Process: `MD/PIPELINE_DUNGEON.md` |
 | `tools/blender/export_items.py` | Update 0.0.13 — the shop's and chests' things (RPG pack items, the dungeon chest's base and hinged lid, a display tile) to `public/models/items/items.glb` (Update 0.1.4: and the Grimoire) |
+| `tools/weapon-shots.ts` | Update 0.1.5 — renders a held weapon's own moves (`render_view.py`) |
 | `tools/blender/export_book.py`, `tools/book-shots.ts` | Update 0.1.4 — the Grimoire's held book (`Book3_Open` laid open, pages up, spine along z) to `public/models/weapons/grimoire.glb`; renders of it in your hands (`render_view.py`) |
 | `tools/dungeon-shots.ts`, `tools/blender/render_dungeon.py` | Update 0.0.12 — a floor for a seed drawn by Blender with the real kit: an overview and eye-height views |
 | `tools/view-shots.ts` (+ `view-shots-list.ts`), `tools/blender/render_view.py` | Update 0.0.10 — the first-person arms posed by the game's own code for a list of moments, rendered by Blender (no browser); prints each shot's wrist bend and where the sword's tip lands |

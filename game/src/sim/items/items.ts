@@ -18,8 +18,8 @@ import { giveWeapon } from '../weapons/slots';
 import { holding } from '../weapons/weapons';
 import { hasteFactor } from './bonuses';
 
-export type ItemKind = 'heart' | 'plate' | 'goldSword' | 'redRing' | 'blueRing' | 'key' | 'whiteKey' | 'goldKey' | 'goldPlate' | 'greenRing' | 'purpleRing' | 'grimoire';
-export const ITEM_KINDS: readonly ItemKind[] = ['heart', 'plate', 'goldSword', 'redRing', 'blueRing', 'key', 'whiteKey', 'goldKey', 'goldPlate', 'greenRing', 'purpleRing', 'grimoire'];
+export type ItemKind = 'heart' | 'plate' | 'goldSword' | 'redRing' | 'blueRing' | 'key' | 'whiteKey' | 'goldKey' | 'goldPlate' | 'greenRing' | 'purpleRing' | 'grimoire' | 'goldAxe' | 'hammer';
+export const ITEM_KINDS: readonly ItemKind[] = ['heart', 'plate', 'goldSword', 'redRing', 'blueRing', 'key', 'whiteKey', 'goldKey', 'goldPlate', 'greenRing', 'purpleRing', 'grimoire', 'goldAxe', 'hammer'];
 export type KeyKind = 'key' | 'whiteKey' | 'goldKey';
 export const KEY_KINDS: readonly KeyKind[] = ['key', 'whiteKey', 'goldKey'];
 
@@ -88,6 +88,8 @@ export const GRADE: Record<ItemKind, Grade> = {
   goldPlate: 'better',
   goldSword: 'better',
   grimoire: 'better',
+  goldAxe: 'better',
+  hammer: 'better',
   redRing: 'normal',
   blueRing: 'normal',
   greenRing: 'normal',
@@ -137,7 +139,10 @@ export function takeItem(kind: ItemKind, p: PlayerState, state: CombatState) {
       break;
     // Update 0.1.4 — the Grimoire.
     case 'grimoire':
-      giveWeapon(state, holding('grimoire', WEAPON_STATS.grimoire().uses), p.pos);
+    // Update 0.1.5 — the Gold Axe and the Hammer.
+    case 'goldAxe':
+    case 'hammer':
+      giveWeapon(state, holding(kind, WEAPON_STATS[kind]().uses), p.pos);
       break;
     case 'redRing':
       // More max health, and the health to fill it.

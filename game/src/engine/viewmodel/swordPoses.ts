@@ -21,7 +21,8 @@ function across(blade: Vector3, edge: Vector3) {
 
 type V = [number, number, number];
 
-function pose(grip: V, blade: V, edge: V, tiltDeg: number, elbow: V): SwordPose {
+/** A key pose from its grip, blade (or haft) and edge directions, tilt in the fist (degrees) and elbow's way out. */
+export function pose(grip: V, blade: V, edge: V, tiltDeg: number, elbow: V): SwordPose {
   const p: SwordPose = { grip: new Vector3(...grip), blade: new Vector3(...blade).normalize(), edge: new Vector3(...edge), tilt: rad(tiltDeg), elbow: new Vector3(...elbow).normalize() };
   across(p.blade, p.edge);
   return p;
@@ -59,17 +60,17 @@ export const SLASH: readonly SwordPose[] = [
 const before = new Vector3();
 const after = new Vector3();
 
-/** The sword `k` (0..1) of the way along the slash: the grip on a smooth curve through the keys (Catmull-Rom), the
- *  blade and edge turning from key to key. */
-export function slashPose(k: number, out: SwordPose): SwordPose {
-  const n = SLASH.length - 1;
+/** The weapon `k` (0..1) of the way along a swing's keys (the sword's SLASH, or another weapon's: Update 0.1.5): the
+ *  grip on a smooth curve through the keys (Catmull-Rom), the blade and edge turning from key to key. */
+export function slashPose(keys: readonly SwordPose[], k: number, out: SwordPose): SwordPose {
+  const n = keys.length - 1;
   const i = Math.min(n - 1, Math.floor(Math.max(0, k) * n));
   const u = Math.max(0, k) * n - i;
-  const p0 = SLASH[Math.max(0, i - 1)].grip;
-  const p1 = SLASH[i].grip;
-  const p2 = SLASH[i + 1].grip;
-  const p3 = SLASH[Math.min(n, i + 2)].grip;
-  mixSword(SLASH[i], SLASH[i + 1], u, out);
+  const p0 = keys[Math.max(0, i - 1)].grip;
+  const p1 = keys[i].grip;
+  const p2 = keys[i + 1].grip;
+  const p3 = keys[Math.min(n, i + 2)].grip;
+  mixSword(keys[i], keys[i + 1], u, out);
   // Catmull-Rom: p1 + u·m1-ish terms, written out so nothing is made per frame.
   const u2 = u * u;
   const u3 = u2 * u;

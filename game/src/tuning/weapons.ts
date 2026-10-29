@@ -1,6 +1,7 @@
 // M2 — weapons (design §6): the sword's swings, its uses, throwing, and picking weapons up. Placeholders the designer
 // tunes (M2_COMBAT_SANDBOX.md).
 // Update 0.1.4 — the Grimoire's fire (MD_UPDATES/U014_GRIMOIRE.md).
+// Update 0.1.5 — the Gold Axe and the Hammer (MD_UPDATES/U015_AXE_HAMMER.md).
 import { group, knob } from './schema';
 
 export const WEAPONS = group('weapons', 'Weapons', {
@@ -49,4 +50,34 @@ export const WEAPONS = group('weapons', 'Weapons', {
   kiFullSpeed: knob(18, 5, 80, 1, 'Full charge speed', 'How fast it flies at the full charge (m/s).'),
   kiFullKnock: knob(30, 0, 80, 1, 'Full charge knock', 'How hard the full charge pushes (m/s).'),
   kiStop: knob(220, 0, 600, 10, 'Full charge hit-stop', 'Freeze (ms) when a full charge bursts (less for less charge).'),
+  axeUses: knob(30, 1, 100, 1, 'Gold Axe uses', 'Hits a Gold Axe takes (a throw that lands is one).'),
+  axeDamage: knob(30, 1, 200, 1, 'Axe swing damage', 'Per swing that lands.'),
+  axeKnock: knob(9, 0, 40, 0.5, 'Axe swing knock', 'How hard a swing pushes (m/s).'),
+  axeReach: knob(3.2, 1, 5, 0.05, 'Axe reach', 'How far a swing reaches from the eye (m).'),
+  axeWidth: knob(0.8, 0.2, 2, 0.05, 'Axe width', 'How wide its sweep is (m).'),
+  axeInterval: knob(0.5, 0.15, 1.5, 0.01, 'Axe swing interval', 'Seconds between swings while left click is held.'),
+  chopDamage: knob(65, 1, 300, 1, 'Axe chop damage', 'The charged right click: an overhead chop.'),
+  chopKnock: knob(20, 0, 60, 0.5, 'Axe chop knock', 'How hard the chop pushes (m/s).'),
+  chopWidth: knob(1, 0.2, 2, 0.05, 'Axe chop width', 'How wide the chop is (m).'),
+  chopUses: knob(2, 1, 5, 1, 'Axe chop cost', 'Uses a chop that lands takes.'),
+  axeThrowDamage: knob(55, 1, 300, 1, 'Axe throw damage', 'The thrown axe hitting something (it drops there).'),
+  axeReturnDamage: knob(35, 1, 300, 1, 'Axe return damage', 'To each thing it passes flying back to you.'),
+  axeReturnSpeed: knob(40, 5, 100, 1, 'Axe return speed', 'How fast it flies back (m/s).'),
+  axeReturnPull: knob(0.25, 0, 1, 0.01, 'Axe return pull', 'Seconds it takes to reach that speed.'),
+  axeSpin: knob(18, 0, 60, 1, 'Axe throw spin', 'End over end as it flies out (rad/s; looks only).'),
+  hammerUses: knob(20, 1, 100, 1, 'Hammer uses', 'Hits a Hammer takes (a smash takes more).'),
+  hammerDamage: knob(50, 1, 300, 1, 'Hammer swing damage', 'Per swing that lands: heavy.'),
+  hammerKnock: knob(18, 0, 60, 0.5, 'Hammer swing knock', 'How hard a swing pushes (m/s).'),
+  hammerReach: knob(3.5, 1, 5, 0.05, 'Hammer reach', 'How far a swing reaches from the eye (m).'),
+  hammerWidth: knob(1.2, 0.2, 2.5, 0.05, 'Hammer width', 'How wide its sweep is (m).'),
+  hammerInterval: knob(0.9, 0.3, 2, 0.01, 'Hammer swing interval', 'Seconds between swings: slow.'),
+  smashDamage: knob(80, 1, 400, 1, 'Smash damage', 'The charged right click: to what the hammer lands on.'),
+  smashKnock: knob(24, 0, 80, 0.5, 'Smash knock', 'How hard the smash pushes what it lands on (m/s).'),
+  smashWidth: knob(1.6, 0.2, 3, 0.05, 'Smash width', 'How wide the blow itself is (m).'),
+  smashUses: knob(3, 1, 10, 1, 'Smash cost', 'Uses a smash takes, hit or miss.'),
+  waveDamage: knob(40, 0, 300, 1, 'Shockwave damage', 'To each enemy the smash\'s shockwave rolls under.'),
+  waveKnock: knob(12, 0, 60, 0.5, 'Shockwave knock', 'How hard it throws them out and up (m/s).'),
+  waveSpeed: knob(24, 4, 80, 1, 'Shockwave speed', 'How fast it rolls out (m/s).'),
+  waveReach: knob(30, 2, 80, 1, 'Shockwave reach', 'How far it rolls (m): across the room.'),
+  waveHeight: knob(2.5, 0.5, 8, 0.1, 'Shockwave height', 'How high over the floor it hurts (m): fliers above it are spared.'),
 });

@@ -12,6 +12,9 @@
 // hold it, nothing else moves.
 // Update 0.1.4 — the Grimoire casts fireballs instead of swinging: left click, and right click held charges one
 // (kiCharge.ts) cast as it's let go; fireballs fly after the enemies move.
+// Update 0.1.5 — the Gold Axe: thrown, it comes back when right click is held with your fists out (recall.ts; no
+// charged punch while it's out). The Hammer: its charged blow smashes the floor, a shockwave rolling out
+// (smashWaves.ts), and takes its uses hit or miss.
 import { Vector3 } from 'three';
 import type { Spot } from '../../world/arena';
 import type { CollisionWorld } from '../collisionWorld';
@@ -22,7 +25,9 @@ import { asPierce, updateSlashes, usesFor } from '../weapons/swing';
 import { updateThrown } from '../weapons/thrown';
 import { castFireball, updateCasts, updateFireballs } from '../weapons/fireballs';
 import { dropKi, updateKi } from '../weapons/kiCharge';
-import { CASTS } from '../weapons/catalog';
+import { CASTS, SMASHES } from '../weapons/catalog';
+import { axeOut, callBack } from '../weapons/recall';
+import { startWave, updateSmashWaves } from '../weapons/smashWaves';
 import { throwWeapon, tryPickup, updateStands } from '../weapons/weapons';
 import { WEAPONS } from '../../tuning/weapons';
 import { updateDummy } from './dummy';
@@ -46,6 +51,8 @@ const dir = new Vector3();
 const punch = emptyPunch();
 /** No presses (a throw winding up takes no other attack). */
 const IDLE = emptyCombatIntent();
+/** The presses without right click (the axe out: right click calls it back). */
+const NO_HEAVY = emptyCombatIntent();
 
 /** `spawns`: where the lab's grunts may come from (none: no waves). */
 export function stepCombat(state: CombatState, player: PlayerState, intent: CombatIntent, world: CollisionWorld, dt: number, spawns: readonly Spot[] = []) {
@@ -92,8 +99,21 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   const busy = w !== null && w.throwing >= 0;
   const rate = attackRate(state.items);
   const casts = w !== null && CASTS[w.kind];
+  // Fists out with the axe out there: right click calls it back (and, caught, charges nothing till it's let go).
+  let fistIntent = intent;
+  const out = w === null && axeOut(state);
+  if (out && intent.heavyHeld) {
+    callBack(state);
+    state.recallHeld = true;
+  }
+  if (!intent.heavyHeld) state.recallHeld = false;
+  if (out || state.recallHeld) {
+    fistIntent = Object.assign(NO_HEAVY, intent);
+    NO_HEAVY.heavyHeld = false;
+    state.fists.charging = state.fists.chargeReady = false;
+  }
   // (The Grimoire's right click is its own charge, not the fists'.)
-  let swung = updateFists(state.fists, busy || casts ? IDLE : intent, events, dt, punch, w !== null, rate);
+  let swung = updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate);
   if (casts && w && !busy) {
     const ki = state.ki;
     if (updateKi(state, w, intent, dt)) {
@@ -111,11 +131,11 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   if (swung) {
     aim(player, intent.yaw, intent.pitch, eye, dir);
     const landed = resolvePunch(punch, state, eye, dir, world);
-    if (landed >= 0) {
-      if (w && (punch.kind === 'slash' || punch.kind === 'pierce')) {
-        w.uses = Math.max(0, w.uses - usesFor(w, punch.kind));
-        if (w.uses === 0) events.push('weaponBroken');
-      }
+    const smash = w !== null && punch.kind === 'pierce' && SMASHES[w.kind];
+    if (smash) startWave(state, player, dir, world);
+    if ((landed >= 0 || smash) && w && (punch.kind === 'slash' || punch.kind === 'pierce')) {
+      w.uses = Math.max(0, w.uses - usesFor(w, punch.kind));
+      if (w.uses === 0) events.push('weaponBroken');
     }
   }
 
@@ -130,8 +150,9 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   updateQuakes(state.quakes, player, events, dt);
   updateBombs(state.bombs, player, events, dt);
   updateWaves(state.waves, state.enemies, spawns, player, state.rng, events, dt);
-  updateThrown(state, world, dt);
+  updateThrown(state, world, player, dt);
   updateFireballs(state, world, dt);
+  updateSmashWaves(state, dt);
   state.money = updateCoins(state.coins, player, state.money, events, dt);
   updateDrops(state, player, dt);
   updateBonuses(state.bonuses, dt);

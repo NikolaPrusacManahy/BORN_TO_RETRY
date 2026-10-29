@@ -6,10 +6,12 @@
 // freeze). The arms pick the way: from the right half of the path a forehand, from the left half (a slash before it's
 // back) a backhand to ready. Hit-stop freezes a swing at its contact (half-way), not at its start, since the hit
 // lands on the click.
-import { ARMS } from '../../tuning/arms';
+// Update 0.1.5 — any one-handed or two-handed weapon's moves: the weapon in hand picks its own set (weaponMoves.ts: the
+// sword's, the Gold Axe's chops, the Hammer's heavy swings and smash); this plays it.
 import { WEAPONS } from '../../tuning/weapons';
 import type { SwordPose } from './armsRig';
-import { copySword, emptySword, mixSword, PIERCE_OUT, PIERCE_READY, READY, slashPose } from './swordPoses';
+import { copySword, emptySword, mixSword, slashPose } from './swordPoses';
+import { MoveSet, SWORD_MOVES } from './weaponMoves';
 
 export type SwordMove = 'ready' | 'forehand' | 'backhand' | 'pierce' | 'throw';
 
@@ -35,7 +37,14 @@ export class SwordAnim {
   private pathNow = 0;
   /** The pose when this move began (blended out of), and the last pose shown. */
   private readonly from = emptySword();
-  private readonly last = copySword(READY, emptySword());
+  private readonly last = copySword(SWORD_MOVES.ready, emptySword());
+  /** The weapon in hand's moves. */
+  moves: MoveSet = SWORD_MOVES;
+
+  /** A weapon taken in hand: its moves from now on. */
+  use(moves: MoveSet) {
+    this.moves = moves;
+  }
 
   start(move: SwordMove) {
     this.move = move;
@@ -54,7 +63,7 @@ export class SwordAnim {
     this.move = 'ready';
     this.t = 1;
     this.pathNow = 0;
-    copySword(READY, this.last);
+    copySword(this.moves.ready, this.last);
   }
 
   get current(): SwordMove {
@@ -73,8 +82,8 @@ export class SwordAnim {
 
   /** Seconds into this move at which it meets what it hits (0: nothing to wait for). */
   private contact(): number {
-    if (this.move === 'forehand' || this.move === 'backhand') return ARMS.v.swordSwing * (1 - Math.cbrt(1 - CONTACT));
-    if (this.move === 'pierce') return ARMS.v.pierceOut;
+    if (this.move === 'forehand' || this.move === 'backhand') return this.moves.swing() * (1 - Math.cbrt(1 - CONTACT));
+    if (this.move === 'pierce') return this.moves.out();
     return 0;
   }
 
@@ -88,7 +97,7 @@ export class SwordAnim {
   }
 
   private target(charge: number, out: SwordPose) {
-    const a = ARMS.v;
+    const m = this.moves;
     const t = this.t;
     switch (this.move) {
       case 'ready':
@@ -96,12 +105,12 @@ export class SwordAnim {
         return this.ready(charge, out);
       case 'forehand': {
         // Out to the left, then (after Slash rest, 0 by default) straight back to ready, low, below the view's middle.
-        const k = easeOut(clamp01(t / a.swordSwing));
+        const k = easeOut(clamp01(t / m.swing()));
         this.pathNow = this.pathFrom + (1 - this.pathFrom) * k;
-        slashPose(this.pathNow, out);
-        const hold = a.swordSwing + a.swordRest;
+        slashPose(m.slash, this.pathNow, out);
+        const hold = m.swing() + m.rest();
         if (t > hold) {
-          const r = (t - hold) / a.swordRecover;
+          const r = (t - hold) / m.recover();
           if (r >= 1) return this.toReady(charge, out);
           this.pathNow = 1 - r;
           mixSword(out, this.ready(charge, scratch), smooth(r), out);
@@ -109,17 +118,17 @@ export class SwordAnim {
         return;
       }
       case 'backhand': {
-        const k = easeOut(clamp01(t / a.swordSwing));
+        const k = easeOut(clamp01(t / m.swing()));
         if (k >= 1) return this.toReady(charge, out);
         this.pathNow = this.pathFrom * (1 - k);
-        return slashPose(this.pathNow, out);
+        return slashPose(m.slash, this.pathNow, out);
       }
       case 'pierce': {
         this.pathNow = 0;
-        mixSword(PIERCE_READY, PIERCE_OUT, easeOut(clamp01(t / a.pierceOut)), out);
-        const hold = a.pierceOut + a.pierceHold;
+        mixSword(m.heavyReady, m.heavyOut, easeOut(clamp01(t / m.out())), out);
+        const hold = m.out() + m.hold();
         if (t > hold) {
-          const k = (t - hold) / a.pierceBack;
+          const k = (t - hold) / m.back();
           if (k >= 1) return this.toReady(charge, out);
           mixSword(out, this.ready(charge, scratch), smooth(k), out);
         }
@@ -130,15 +139,15 @@ export class SwordAnim {
         this.pathNow = 0;
         const draw = WEAPONS.v.throwWindup * THROW_DRAW;
         const thrust = Math.max(1e-3, WEAPONS.v.throwWindup - draw);
-        mixSword(PIERCE_READY, PIERCE_OUT, t <= draw ? 0 : easeIn(clamp01((t - draw) / thrust)), out);
+        mixSword(m.heavyReady, m.heavyOut, t <= draw ? 0 : easeIn(clamp01((t - draw) / thrust)), out);
         return;
       }
     }
   }
 
-  /** Ready, drawn towards the pierce's pose by the charge. */
+  /** Ready, drawn towards the charged blow's pose by the charge. */
   private ready(charge: number, out: SwordPose) {
-    return mixSword(READY, PIERCE_READY, smooth(clamp01(charge)), out);
+    return mixSword(this.moves.ready, this.moves.heavyReady, smooth(clamp01(charge)), out);
   }
 
   /** The move is over: ready again. */

@@ -15,8 +15,8 @@ export const RARITIES: readonly Rarity[] = ['common', 'uncommon', 'rare', 'epic'
 export const TIER: Record<Rarity, readonly (ItemKind | 'coins')[]> = {
   common: ['coins'],
   uncommon: ['heart', 'plate'],
-  // Update 0.1.4 — and the Grimoire.
-  rare: ['goldSword', 'goldPlate', 'grimoire'],
+  // Update 0.1.4 — and the Grimoire. Update 0.1.5 — and the Gold Axe and the Hammer.
+  rare: ['goldSword', 'goldPlate', 'grimoire', 'goldAxe', 'hammer'],
   epic: ['redRing', 'blueRing', 'greenRing', 'purpleRing'],
   legendary: [],
 };
