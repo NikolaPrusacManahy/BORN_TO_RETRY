@@ -2,10 +2,10 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-10-29, after Update 0.1.15)
+## Next up (2026-10-29, after Update 0.1.16)
 - **The designer plays the crowd** (Update 0.1.15): rooms with many enemies; do only a few come at you at once, do the others wait round you, does it still feel like pressure? The numbers are in the F1 panel's "Enemy crowd".
 - **The designer gathers sound effects** (Sonniss GDC bundles and the like: human-made only, no AI; memory `no-ai-player-facing-content`). Hooking them in replaces the synths in `game/src/audio/`.
-- **The goal before more content** (the designer, 2026-10-29): 10 floors, the objective not to die; play, lose, learn, retry; hard but doable with effort. Next proposed: a difficulty curve for 10 floors (enemy counts grow 3 a floor today: about 47 in floor 10's last room; `MD/DESIGN.md` still says 3 floors), now that the crowd takes turns.
+- **The goal before more content** (the designer, 2026-10-29): 10 floors, the objective not to die; play, lose, learn, retry; hard but doable with effort. Next proposed: a difficulty curve for 10 floors, now that the crowd takes turns. The enemy counts are the designer's (Update 0.1.16: 2 more every 2 floors from floor 2, so floor 10's last fight room has 30); still open: which enemies and bosses floors 4–10 have (floor 3 has floor 2's roster and the Dragon; past the last floor in `ROSTER`, the last's), whether more may attack at once deeper down (`tuning/crowd.ts`), and `MD/DESIGN.md` still says 3 floors.
 - **The designer plays the death screen and the loader** (Update 0.1.14).
 - **The designer plays the new shop and chests** (Update 0.1.10): prices, the Great Heart, mythic chests.
 - **The designer plays 0.1.4–0.1.9**, then sends notes:
@@ -26,7 +26,8 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   - Arms are checked by renders before reporting: `tools/hand-shots.ts` (fists, grips, the slam), `tools/exec-shots.ts <kinds>`, `tools/weapon-shots.ts` and `tools/book-shots.ts`, then `tools/blender/render_view.py --json … --out … --cull`. To render only some moments, filter the shots JSON (`pov.json` or `shots.json`) by name first.
   - Code edits ran as small Python scripts in the scratchpad (exact old → new pairs), because shell heredocs mangle quotes and em dashes.
 
-## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.15
+## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.16
+- **Update 0.1.16 — enemies per floor** (the designer: "2 more enemies every 2 floors, starting with floor 2"; it was 3 more every floor, from Update 0.1.1). `roomCount` (`sim/dungeon/wavePlan.ts`): 8 + 3 per room deeper + 2 × ⌊floor ÷ 2⌋ (knobs Rooms → More every few floors, Floors apart). Floors 1–10 start at 8, 10, 10, 12, 12, 14, 14, 16, 16, 18; floor 10's last fight room has 30 (it would have had 47). `test-dungeon.ts`.
 - **Update 0.1.15 — the crowd takes turns** (the designer asked about the enemies behaving "like a big swarm", then "work on whatever is next"; spec `MD_UPDATES/U0115_CROWD.md`). Attack tokens, as in Doom (2016) and the Arkham games (`sim/enemies/tokens.ts`, knobs `tuning/crowd.ts`, "Enemy crowd" in F1):
   - **At once, at most** 2 close fighters (grunts, snakes, slimes, leapers, stingers, wasps), 2 ranged (spitters, wraiths, frogs) and 1 big one (Yetis, spiders, blue demons). Bosses need no turn.
   - An enemy needs its turn to start an attack (a close fighter also to come in for one). It keeps it through the run-in, the wind-up and the attack; it gives it back once the attack is done, when a hit flinches it, when it dies, is frozen or held, or if it hasn't attacked 5 s after getting it; then it rests 1 s so another gets a go.

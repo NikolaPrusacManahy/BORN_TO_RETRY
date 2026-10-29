@@ -4,6 +4,8 @@
 // has sent them all.
 // Update 0.1.1 (the designer: floor 1 starts at 8 and then 11; floor 2 should start at 11 then 14, and so on) — a room's
 // enemy count: First room's count, plus Per room deeper for each room along the way, plus Per floor down for each floor.
+// Update 0.1.16 (the designer: "2 more enemies every 2 floors, starting with floor 2"; it was 3 more every floor) —
+// More every few floors, every Floors apart floors down (floors 2–3: 2 more, 4–5: 4 more, … floor 10: 10 more).
 import { group, knob } from './schema';
 
 export const ROOMS = group('rooms', 'Rooms', {
@@ -11,6 +13,7 @@ export const ROOMS = group('rooms', 'Rooms', {
   reinforceGap: knob(0.35, 0, 3, 0.05, 'Reinforcement gap', 'Seconds between enemies coming in to keep the field full.'),
   baseCount: knob(8, 1, 40, 1, 'First room’s count', 'Enemies in the first fight room of floor 1.'),
   perRoom: knob(3, 0, 10, 1, 'Per room deeper', 'Enemies more in each fight room further along the way.'),
-  perFloor: knob(3, 0, 10, 1, 'Per floor down', 'Enemies more in every room on each floor down.'),
+  perFloor: knob(2, 0, 10, 1, 'More every few floors', 'Enemies more in every room each time you get Floors apart floors deeper (from floor 2).'),
+  floorsApart: knob(2, 1, 5, 1, 'Floors apart', 'Every this many floors down, every room has More every few floors more.'),
   bigMax: knob(2, 0, 6, 1, 'Mini bosses a room', 'At most this many Yetis, Spiders and Blue Demons in one room.'),
 });

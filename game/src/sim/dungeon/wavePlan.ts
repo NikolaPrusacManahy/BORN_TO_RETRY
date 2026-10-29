@@ -9,6 +9,7 @@
 // Every big one is a mini boss: its room has a chest and it carries the key.
 // Update 0.1.1 (the designer: floor 1 starts at 8, then 11; floor 2 at 11, then 14, and so on) — a room's enemies are a
 // count, not a budget (tuning/rooms.ts): 8, then 3 more for each room along the way and 3 more for each floor down.
+// Update 0.1.16 (the designer: "2 more enemies every 2 floors, starting with floor 2") — 2 more every 2 floors down.
 // The kinds are picked as before (weighted, the floor's roster, floor 1's later kinds from their rooms), with at most
 // Mini bosses a room of the big ones.
 import type { Rng } from '../../core/rng';
@@ -30,10 +31,12 @@ const ROSTER: readonly (readonly EnemyKind[])[] = [
 /** The enemies floor `floor` sends. */
 export const rosterOf = (floor: number) => ROSTER[Math.max(1, Math.min(floor, ROSTER.length - 1))];
 
-/** Update 0.1.1 — how many enemies the fight room `depth` rooms along floor `floor` sends. */
+/** Update 0.1.1 — how many enemies the fight room `depth` rooms along floor `floor` sends. Update 0.1.16 — the floor's
+ *  share steps up every `floorsApart` floors (floor 2 the first, with 2 apart). */
 export function roomCount(depth: number, floor: number): number {
   const v = ROOMS.v;
-  return v.baseCount + v.perRoom * Math.max(0, depth - 1) + v.perFloor * Math.max(0, floor - 1);
+  const steps = Math.floor(Math.max(1, floor) / Math.max(1, Math.round(v.floorsApart)));
+  return v.baseCount + v.perRoom * Math.max(0, depth - 1) + v.perFloor * steps;
 }
 
 const isBig = (k: EnemyKind) => MINI_BOSSES.includes(k);
