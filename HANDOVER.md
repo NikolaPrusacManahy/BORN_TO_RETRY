@@ -2,7 +2,32 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.5
+## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.6
+- **Update 0.1.6 — the designer's second pass on the axe and hammer** (`MD_UPDATES/U015_AXE_HAMMER.md`):
+  - **Axe:**
+    - right click charges a throw, up to 2× as fast and hard (`sim/weapons/axeThrow.ts`; the chop is gone);
+    - only that throw comes back, and right click again calls it;
+    - Q throws it to break;
+    - it's held nearer the end of the haft (the haft went through the hand).
+  - **Hammer:**
+    - the left hand is on the haft above the right (it was below, out of view);
+    - its shockwave is a half circle before you (`smashWaves.ts`; `fx/shockwave.ts` draws half rings).
+  - Seen as renders and numbers only (`tools/weapon-shots.ts`; `test-weapon-arms.ts` checks the grips).
+  - **Grips (the designer's third pass):**
+    - the hands on each weapon's wrapped grip; the hammer's left hand lower on the plain handle, apart;
+    - both handles thinned at export to the sword grip's thickness (`--thin`);
+    - the smash's end with the knuckles up.
+  - **The fists** (the designer: "the way the fist is closed isn't proper") are posed live (`engine/viewmodel/handPose.ts`):
+    - **the punching fist:** the middle joints bent most, the tips tucked into the palm, the thumb folded across the index and middle fingers (picked from a dozen thumb turns in close-ups);
+    - **gripping:** each finger's knuckle and middle-joint bends searched for the tightest wrap that stays outside the handle, worked out at load (~80 ms) for 5 thicknesses × 7 leans in the fist and blended live (a sword's lean changes through a swing). Bending a finger as one left the index standing open (the handle leans up to its knuckle); the designer asked for it closed like the others;
+    - **an execution's held tail or limb:** a tighter wrap;
+    - open hands (the key palm, the Grimoire, executions) blend from these.
+  - The sword sits 2 mm lower in the fist (Sword in the fist 0.038 → 0.036), so its guard still rests on top of the wrapped fingers.
+  - **Checks:**
+    - `tests/test-hands.ts`;
+    - `tools/hand-shots.ts`: close-ups like the designer's photos, plus each jab, the charge and each weapon as you see them. Render with `render_view.py --cull` to hide faces seen from behind, as the game does;
+    - renders of every sequence that uses the hands (executions, Grimoire, key palm).
+  - **Not seen in the game:** the hands in motion.
 - **Update 0.1.5 — the Gold Axe and the Hammer** (two of the designer's five weapon ideas; spec `MD_UPDATES/U015_AXE_HAMMER.md`):
   - **Gold Axe:**
     - its own hacks and a charged overhead chop;

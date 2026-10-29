@@ -7,7 +7,7 @@
 // back) a backhand to ready. Hit-stop freezes a swing at its contact (half-way), not at its start, since the hit
 // lands on the click.
 // Update 0.1.5 — any one-handed or two-handed weapon's moves: the weapon in hand picks its own set (weaponMoves.ts: the
-// sword's, the Gold Axe's chops, the Hammer's heavy swings and smash); this plays it.
+// sword's, the Gold Axe's hacks and cocked throw, the Hammer's heavy swings and smash); this plays it.
 import { WEAPONS } from '../../tuning/weapons';
 import type { SwordPose } from './armsRig';
 import { copySword, emptySword, mixSword, slashPose } from './swordPoses';

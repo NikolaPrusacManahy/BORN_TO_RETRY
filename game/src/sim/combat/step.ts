@@ -15,6 +15,7 @@
 // Update 0.1.5 — the Gold Axe: thrown, it comes back when right click is held with your fists out (recall.ts; no
 // charged punch while it's out). The Hammer: its charged blow smashes the floor, a shockwave rolling out
 // (smashWaves.ts), and takes its uses hit or miss.
+// Update 0.1.6 — the axe's right click charges a throw that comes back (axeThrow.ts); Q throws it to break.
 import { Vector3 } from 'three';
 import type { Spot } from '../../world/arena';
 import type { CollisionWorld } from '../collisionWorld';
@@ -25,7 +26,8 @@ import { asPierce, updateSlashes, usesFor } from '../weapons/swing';
 import { updateThrown } from '../weapons/thrown';
 import { castFireball, updateCasts, updateFireballs } from '../weapons/fireballs';
 import { dropKi, updateKi } from '../weapons/kiCharge';
-import { CASTS, SMASHES } from '../weapons/catalog';
+import { CASTS, RETURNS, SMASHES } from '../weapons/catalog';
+import { updateAxeCharge } from '../weapons/axeThrow';
 import { axeOut, callBack } from '../weapons/recall';
 import { startWave, updateSmashWaves } from '../weapons/smashWaves';
 import { throwWeapon, tryPickup, updateStands } from '../weapons/weapons';
@@ -99,6 +101,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   const busy = w !== null && w.throwing >= 0;
   const rate = attackRate(state.items);
   const casts = w !== null && CASTS[w.kind];
+  const axe = w !== null && RETURNS[w.kind] && !busy && w.uses > 0;
   // Fists out with the axe out there: right click calls it back (and, caught, charges nothing till it's let go).
   let fistIntent = intent;
   const out = w === null && axeOut(state);
@@ -112,8 +115,16 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     NO_HEAVY.heavyHeld = false;
     state.fists.charging = state.fists.chargeReady = false;
   }
-  // (The Grimoire's right click is its own charge, not the fists'.)
-  let swung = updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate);
+  // (The Grimoire's right click is its own charge, not the fists'; the axe's charges its throw.)
+  let swung = axe ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate);
+  if (axe && w) {
+    const power = updateAxeCharge(state, intent.heavyHeld && !state.recallHeld, dt);
+    if (power >= 0) {
+      aim(player, intent.yaw, intent.pitch, eye, dir);
+      throwWeapon(w, state.thrown, eye, dir, events, true, power);
+      emptyHand(state);
+    }
+  }
   if (casts && w && !busy) {
     const ki = state.ki;
     if (updateKi(state, w, intent, dt)) {
@@ -127,7 +138,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     }
   } else dropKi(state.ki);
   if (swung && punch.kind === 'pierce' && w) asPierce(w, punch);
-  if (!swung && w && !casts && !busy && !state.fists.charging) swung = updateSlashes(w, intent, events, dt, punch, rate);
+  if (!swung && w && state.weapon === w && !casts && !busy && !state.fists.charging) swung = updateSlashes(w, intent, events, dt, punch, rate);
   if (swung) {
     aim(player, intent.yaw, intent.pitch, eye, dir);
     const landed = resolvePunch(punch, state, eye, dir, world);

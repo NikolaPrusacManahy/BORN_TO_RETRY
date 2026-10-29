@@ -97,6 +97,10 @@ export class CombatFeedback {
         case 'throwStart':
           this.f.arms.sword('throw');
           break;
+        // Update 0.1.6 — the Gold Axe thrown with right click: the arm comes over from where it was cocked.
+        case 'throw':
+          if (e.value === 1) this.f.arms.sword('pierce');
+          break;
         case 'chargeStart':
           if (this.f.arms.armed) this.f.arms.sword('ready');
           break;

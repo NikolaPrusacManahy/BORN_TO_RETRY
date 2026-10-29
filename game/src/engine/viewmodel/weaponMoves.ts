@@ -6,7 +6,7 @@ import type { Object3D } from 'three';
 import type { WeaponKind } from '../../sim/weapons/catalog';
 import { ARMS } from '../../tuning/arms';
 import type { SwordPose } from './armsRig';
-import { AXE_CHOP, AXE_CHOP_READY, AXE_READY, AXE_SLASH } from './axePoses';
+import { AXE_COCKED, AXE_READY, AXE_SLASH, AXE_THROWN } from './axePoses';
 import { HAMMER_READY, HAMMER_SLASH, HAMMER_SMASH, HAMMER_UP } from './hammerPoses';
 import { PIERCE_OUT, PIERCE_READY, READY, SLASH } from './swordPoses';
 
@@ -29,6 +29,8 @@ export interface MoveSet {
   slide: () => number;
   hands: () => number;
   scale: () => number;
+  /** Update 0.1.6 — how thick its handle is where the hands close on it (radius, m, as held): the fingers wrap that. */
+  grip: () => number;
 }
 
 const a = () => ARMS.v;
@@ -47,22 +49,24 @@ export const SWORD_MOVES: MoveSet = {
   slide: () => a().swordGripSlide,
   hands: () => 0,
   scale: () => 1,
+  grip: () => 0.019,
 };
 
 export const AXE_MOVES: MoveSet = {
   ready: AXE_READY,
-  heavyReady: AXE_CHOP_READY,
-  heavyOut: AXE_CHOP,
+  heavyReady: AXE_COCKED,
+  heavyOut: AXE_THROWN,
   slash: AXE_SLASH,
   swing: () => a().axeSwing,
   rest: () => 0,
   recover: () => a().axeRecover,
-  out: () => a().chopOut,
-  hold: () => a().chopHold,
-  back: () => a().chopBack,
+  out: () => a().axeThrowOut,
+  hold: () => a().axeThrowHold,
+  back: () => a().axeThrowBack,
   slide: () => a().axeGripSlide,
   hands: () => 0,
   scale: () => 1,
+  grip: () => 0.019,
 };
 
 export const HAMMER_MOVES: MoveSet = {
@@ -79,6 +83,7 @@ export const HAMMER_MOVES: MoveSet = {
   slide: () => a().hammerGripSlide,
   hands: () => -a().hammerHands,
   scale: () => a().hammerScale,
+  grip: () => 0.017,
 };
 
 /** (The Grimoire is held its own way, bookArms.ts; the sword's set stands in.) */

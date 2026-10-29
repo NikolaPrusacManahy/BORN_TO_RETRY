@@ -24,7 +24,7 @@ import { leftGrip } from './twoHand';
 import { movesOf } from './weaponMoves';
 import { ChestReach } from './chestReach';
 import { BookArms } from './bookArms';
-import { HeldGrip } from './heldGrip';
+import { HeldGrip, ROPE } from './heldGrip';
 import { GUARD, Side } from './guard';
 import { KeyPalm } from './palm';
 import { SwordAnim, SwordMove } from './swordAnim';
@@ -202,7 +202,9 @@ export class Viewmodel {
     if (palm > 0) mixArm(left, this.palm.pose(rig), palm, left);
     if (reach > 0) this.toChest(rig, 'L', left, reach);
     rig.apply('L', left, v.wristBend + (1 - v.wristBend) * Math.max(palm, book, hands, this.grip.bend('L')));
-    rig.openHand('L', Math.max(palm, book * this.book.open('L'), this.grip.open('L')));
+    // (Update 0.1.6 — a fist, or the fingers round a two-handed haft or something an execution holds: handPose.ts.)
+    const moves = this.swordAnim.moves;
+    rig.openHand('L', Math.max(palm, book * this.book.open('L'), this.grip.open('L')), hands > 0 ? moves.grip() : ROPE, hands > 0 ? hands : this.grip.rope('L'), this.swordPose.tilt);
     const right = fistArm(rig, this.anim, this.time, 'R', this.chargeVis, charge >= 1, armed, this.live.R);
     if (book > 0) {
       mixArm(right, this.book.pose(rig, 'R', this.bookPose), book, right);
@@ -215,7 +217,7 @@ export class Viewmodel {
       if (reach > 0) this.toChest(rig, 'R', right, reach);
       rig.apply('R', right, v.wristBend + (1 - v.wristBend) * this.grip.bend('R'));
     }
-    rig.openHand('R', Math.max(book * this.book.open('R'), this.grip.open('R')));
+    rig.openHand('R', Math.max(book * this.book.open('R'), this.grip.open('R')), held ? moves.grip() : ROPE, held ? armed : this.grip.rope('R'), held ? this.swordPose.tilt : undefined);
     if (this.weapon) {
       this.weapon.visible = reach < 0.2;
       if (book > 0) this.book.bookMatrix(rig, this.weapon.matrix);

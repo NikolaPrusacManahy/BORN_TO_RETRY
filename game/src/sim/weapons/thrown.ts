@@ -33,7 +33,7 @@ export function updateThrown(state: CombatState, world: CollisionWorld, player: 
     next.copy(t.pos).addScaledVector(t.vel, dt);
     if (nearestTarget(state, t.pos, next, THROWN_RADIUS, hit)) {
       const flat = Math.hypot(t.vel.x, t.vel.z) || 1;
-      const damage = t.returns ? v.axeThrowDamage : v.throwDamage;
+      const damage = t.returns ? v.axeThrowDamage * (1 + (v.axeChargeDamage - 1) * t.power) : v.throwDamage;
       landHit(state, hit, damage, v.throwKnock, t.vel.x / flat, t.vel.z / flat, 'hitThrown', damage);
       state.hitStop.request(FEEDBACK.v.stopHeavy);
       if (t.returns && landed(t, t.pos.lerp(next, hit.s))) continue;

@@ -5,6 +5,9 @@
 # Update 0.1.5 — `--handle-center`: centred on the handle where it's held (an axe's head sticks out to one side, so the
 # whole model's middle is beside the handle); `--edge-out`: the side the head reaches furthest (an axe's blade) turned
 # to +x, the way the knuckles face.
+# Update 0.1.6 — `--thin TOP,RMAX,K`: the handle made K times as thick across (everything below TOP m up the weapon and
+# within RMAX m of its middle line: the haft and its wraps, not the head), so its grip is as thick as the sword's, the
+# one the fist is shaped round (thicker, it pokes through the fingers).
 #
 # Run (from game/):
 #   blender --background --disable-autoexec --python tools/blender/export_weapon.py -- \
@@ -33,6 +36,7 @@ def parse_args():
     p.add_argument('--engine', default='BLENDER_EEVEE')
     p.add_argument('--handle-center', action='store_true', help='centre x and y on the handle at the grip')
     p.add_argument('--edge-out', action='store_true', help='turn the side the head reaches furthest to +x')
+    p.add_argument('--thin', default=None, help='TOP,RMAX,K: the handle below TOP and within RMAX of the middle, K times as thick')
     return p.parse_args(argv)
 
 
@@ -96,6 +100,15 @@ def main():
         print('turned the head\'s edge to +x')
     w.data.transform(Matrix.Scale(args.length / length, 4) @ Matrix.Translation((-cx, -cy, -grip)))
     print(f'grip at {grip:.3f} of a {length:.2f} m model; scaled to {args.length} m')
+    if args.thin:
+        top, rmax, k = (float(x) for x in args.thin.split(','))
+        n = 0
+        for v in w.data.vertices:
+            if v.co.z <= top and math.hypot(v.co.x, v.co.y) <= rmax:
+                v.co.x *= k
+                v.co.y *= k
+                n += 1
+        print(f'thinned {n} handle vertices by {k}')
 
     setup_previews(args.engine, args.previews)
     world = bpy.context.scene.world or bpy.data.worlds.new('World')

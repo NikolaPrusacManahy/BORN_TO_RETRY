@@ -18,6 +18,9 @@ def parse_args():
     p.add_argument('--out', required=True)
     p.add_argument('--width', type=int, default=1280)
     p.add_argument('--crop', default=None, help='only this part of the frame, as fractions: left,bottom,right,top')
+    # Update 0.1.6 — the game draws only the front of each face (three.js FrontSide): this draws it the same, so a
+    # face seen from behind vanishes here as it does there (the fingers once looked whole here and were gone in game).
+    p.add_argument('--cull', action='store_true', help='hide faces seen from behind, as the game does')
     return p.parse_args(argv)
 
 
@@ -66,6 +69,7 @@ def main():
     scene.display.shading.light = 'STUDIO'
     scene.display.shading.color_type = 'MATERIAL'
     scene.display.shading.show_shadows = False
+    scene.display.shading.show_backface_culling = args.cull
     scene.view_settings.view_transform = 'Standard'
     if scene.world is None:
         scene.world = bpy.data.worlds.new('ShotWorld')

@@ -129,12 +129,17 @@ section('Arms — holding the sword');
 
   vm.setWeapon(sword.scene);
   play(1);
-  const fingers = new THREE.Vector3();
-  for (const f of ['Index', 'Middle', 'Ring', 'Pinky']) for (const j of [2, 3, 4]) fingers.add(bone(`${f}${j}R`));
-  fingers.divideScalar(12);
-  // The point of the handle held (Sword in the fist, up from the handle's middle; Update 0.0.10).
+  // The point of the handle held (Sword in the fist, up from the handle's middle; Update 0.0.10), and its line.
   const grip = new THREE.Vector3(0, ARMS.v.swordGripSlide / ARMS.v.weaponScale, 0).applyMatrix4(sword.scene.matrixWorld);
-  check('the grip sits where the fingers curl round (not in the palm)', grip.distanceTo(fingers) < 0.005, `${(grip.distanceTo(fingers) * 100).toFixed(1)} cm off`);
+  const handle = new THREE.Vector3(0, 1, 0).transformDirection(sword.scene.matrixWorld);
+  // Update 0.1.6 — the fingers wrap the handle (handPose.ts; they were the baked fist, whose joints' middle was the
+  // grip): each finger's middle and tip joints sit round the handle's line, outside it, close to it.
+  const offLine = (n: string) => {
+    const r = bone(n).sub(grip);
+    return r.addScaledVector(handle, -r.dot(handle)).length();
+  };
+  const round = ['Index', 'Middle', 'Ring', 'Pinky'].flatMap((f) => [3, 4].map((j) => offLine(`${f}${j}R`)));
+  check('the grip sits where the fingers curl round (not in the palm): every finger wraps the handle', Math.min(...round) > 0.012 && Math.max(...round) < 0.05, round.map((d) => (d * 100).toFixed(1)).join(' ') + ' cm');
   check('the left arm is out of view', ['HandL', 'LowerArmL', 'Middle2L'].every((n) => offScreen(ndc(n))), ['HandL', 'LowerArmL'].map((n) => `${n} (${ndc(n).x.toFixed(2)}, ${ndc(n).y.toFixed(2)})`).join(' '));
   const samples = Array.from({ length: 12 }, (_, i) => blade(i / 11).project(vm.camera));
   check('ready: the sword shows', samples.filter((q) => !offScreen(q)).length >= 4);

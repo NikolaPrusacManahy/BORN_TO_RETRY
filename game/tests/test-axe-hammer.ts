@@ -1,8 +1,9 @@
-// Update 0.1.5 — the Gold Axe and the Hammer (spec MD_UPDATES/U015_AXE_HAMMER.md). The axe swings like the sword and
-// chops on the charged right click; thrown (Q), it doesn't break: it drops where it hits, sticks in a wall, and right
-// click held with your fists out calls it back to your hand, hitting what it passes once. The hammer swings slow and
-// heavy; its charged blow smashes the floor and a shockwave rolls across the room, hitting every enemy under it once
-// (not fliers above it, nor anything behind a wall), and costs its uses hit or miss.
+// Update 0.1.5 — the Gold Axe and the Hammer (spec MD_UPDATES/U015_AXE_HAMMER.md). The axe swings like the sword;
+// Update 0.1.6 (the designer): right click charges a throw (up to twice as fast and hard) that doesn't break: it drops
+// where it hits, sticks in a wall, and right click again calls it back to your hand, hitting what it passes once; Q
+// throws it to break, as any weapon. The hammer swings slow and heavy; its charged blow smashes the floor and a
+// shockwave rolls out before you (Update 0.1.6: a half circle), hitting every enemy under it once (not fliers above it,
+// nor anything behind a wall), and costs its uses hit or miss.
 import { Vector3 } from 'three';
 import { check, near, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
@@ -49,6 +50,12 @@ function run(state: CombatState, p: PlayerState, world: FlatWorld, secs: number,
 const has = (ev: Ev[], kind: string) => ev.some((e) => e.kind === kind);
 const dummies = (...z: number[]): Arena => ({ ...OPEN_ARENA, dummies: z.map((d) => ({ x: 0, y: 0, z: d })) });
 const axe = (state: CombatState) => state.thrown.find((t) => t.alive);
+/** Right click held `charge` (0 … 1) of the charge time, then let go: it's away. (The charge starts at 0 on the first
+ *  tick held.) */
+function hurl(state: CombatState, p: PlayerState, world: FlatWorld, charge: number, intent: Partial<CombatIntent> = {}): Ev[] {
+  const out = run(state, p, world, charge * FISTS.v.chargeTime + DT, { ...intent, heavyHeld: true });
+  return [...out, ...tick(state, p, world, intent)];
+}
 /** Q, the wind-up, and it's away. */
 function throwIt(state: CombatState, p: PlayerState, world: FlatWorld, intent: Partial<CombatIntent> = {}): Ev[] {
   return [...tick(state, p, world, { ...intent, throwPressed: true }), ...run(state, p, world, w.throwWindup + 0.02, intent)];
@@ -56,25 +63,52 @@ function throwIt(state: CombatState, p: PlayerState, world: FlatWorld, intent: P
 
 section('Gold Axe — in hand');
 {
-  check('it comes back when thrown; the hammer smashes', RETURNS.goldAxe && !RETURNS.sword && SMASHES.hammer && !SMASHES.goldAxe);
+  check('thrown with right click it comes back; the hammer smashes', RETURNS.goldAxe && !RETURNS.sword && SMASHES.hammer && !SMASHES.goldAxe);
   check(`${w.axeUses} uses`, WEAPON_STATS.goldAxe().uses === w.axeUses);
   const { state, p, world } = lab('goldAxe', 10, dummies(-1.8));
   const ev = tick(state, p, world, { attackPressed: true });
   check(`left click swings it: ${w.axeDamage} damage, one use`, has(ev, 'slash') && state.dummies[0].hp === DUMMY_HP - w.axeDamage && state.weapon?.uses === 9);
 }
+
+section('Gold Axe — the charged throw (right click)');
 {
-  const { state, p, world } = lab('goldAxe', 10, dummies(-1.8));
-  run(state, p, world, FISTS.v.chargeTime + 0.05, { heavyHeld: true });
-  const ev = tick(state, p, world);
-  check(`the charged right click chops: ${w.chopDamage} damage, ${w.chopUses} uses`, has(ev, 'pierce') && has(ev, 'hitPierce') && state.dummies[0].hp === Math.max(0, DUMMY_HP - w.chopDamage) && state.weapon?.uses === 10 - w.chopUses);
+  const { state, p, world } = lab('goldAxe', 10);
+  const held = run(state, p, world, FISTS.v.chargeTime + 0.05, { heavyHeld: true });
+  check('right click held charges the throw (the arms cock it back), nothing thrown yet', has(held, 'chargeStart') && has(held, 'chargeReady') && state.weapon?.kind === 'goldAxe' && !axe(state) && !has(held, 'pierce'));
+  const go = tick(state, p, world);
+  const t = axe(state)!;
+  check('let go, it\'s thrown at once, to come back', has(go, 'throw') && go.find((e) => e.kind === 'throw')?.value === 1 && !!t && t.returns && state.weapon === null);
+  check(`fully charged it flies ${w.axeChargeSpeed}× as fast (${w.throwSpeed * w.axeChargeSpeed} m/s)`, near(t.vel.length(), w.throwSpeed * w.axeChargeSpeed, 0.5) && t.power === 1);
+}
+{
+  const { state, p, world } = lab('goldAxe', 10, dummies(-8));
+  hurl(state, p, world, 0.5);
+  const t = axe(state)!;
+  check('half charged, half way between (1.5× as fast)', near(t.vel.length(), w.throwSpeed * (1 + (w.axeChargeSpeed - 1) * 0.5), 0.6) && near(t.power, 0.5, 0.02));
+  const ev = run(state, p, world, 1);
+  const want = Math.round(w.axeThrowDamage * (1 + (w.axeChargeDamage - 1) * t.power));
+  check(`and harder: ${want} damage`, has(ev, 'hitThrown') && Math.abs(DUMMY_HP - state.dummies[0].hp - Math.min(DUMMY_HP, want)) <= 1, `${DUMMY_HP - state.dummies[0].hp}`);
+}
+{
+  const { state, p, world } = lab('goldAxe', 10, dummies(-8));
+  state.dummies[0].hp = 500;
+  // (Held past full: it stays full.)
+  hurl(state, p, world, 1.2);
+  run(state, p, world, 1);
+  check(`fully charged: ${w.axeChargeDamage}× the damage (${w.axeThrowDamage * w.axeChargeDamage})`, 500 - state.dummies[0].hp === w.axeThrowDamage * w.axeChargeDamage, `${500 - state.dummies[0].hp}`);
+}
+{
+  const { state, p, world } = lab('goldAxe', 10, dummies(-8));
+  const ev = [...throwIt(state, p, world), ...run(state, p, world, 1)];
+  check('Q throws it as any weapon: it breaks on what it hits', has(ev, 'throwStart') && has(ev, 'thrownBreak') && !state.thrown.some((q) => q.alive) && state.dummies[0].hp === Math.max(0, DUMMY_HP - w.throwDamage));
 }
 
 section('Gold Axe — thrown, it stays');
 {
   const { state, p, world } = lab('goldAxe', 10, dummies(-8));
-  const ev = [...throwIt(state, p, world), ...run(state, p, world, 1)];
+  const ev = [...hurl(state, p, world, 0), ...run(state, p, world, 1)];
   const t = axe(state);
-  check(`it hits the first thing for ${w.axeThrowDamage} and doesn't break`, has(ev, 'hitThrown') && state.dummies[0].hp === DUMMY_HP - w.axeThrowDamage && !has(ev, 'thrownBreak') && !!t);
+  check(`it hits the first thing for ${w.axeThrowDamage} (uncharged) and doesn't break`, has(ev, 'hitThrown') && state.dummies[0].hp === DUMMY_HP - w.axeThrowDamage && !has(ev, 'thrownBreak') && !!t);
   check('it drops there and lies on the floor (a use spent)', t?.phase === 'stuck' && near(t.pos.y, 0, 0.1) && ev.some((e) => e.kind === 'axeStick' && e.value === 1) && t.uses === 9);
   check('your fists are out', state.weapon === null && state.slot === 0);
 }
@@ -82,49 +116,49 @@ section('Gold Axe — thrown, it stays');
   const { state, p, world } = lab('goldAxe', 10);
   world.walls.push({ x: 0, normalX: -1 });
   p.pos.set(-4, 0, 0);
-  const ev = [...throwIt(state, p, world, { yaw: -Math.PI / 2 }), ...run(state, p, world, 0.5, { yaw: -Math.PI / 2 })];
+  const ev = [...hurl(state, p, world, 0, { yaw: -Math.PI / 2 }), ...run(state, p, world, 0.5, { yaw: -Math.PI / 2 })];
   const t = axe(state);
   check('thrown at a wall, it sticks in it', t?.phase === 'stuck' && t.pos.x < 0 && t.pos.x > -0.2 && ev.some((e) => e.kind === 'axeStick' && e.value === 0), `x ${t?.pos.x.toFixed(2)}`);
 }
 {
   const { state, p, world } = lab('goldAxe', 10);
-  const ev = [...throwIt(state, p, world), ...run(state, p, world, 3)];
+  const ev = [...hurl(state, p, world, 0), ...run(state, p, world, 3)];
   const t = axe(state);
   check('hitting nothing, it falls when its flight runs out and lies there', t?.phase === 'stuck' && near(t.pos.y, 0, 0.1) && !has(ev, 'thrownBreak'));
 }
 
-section('Gold Axe — called back');
+section('Gold Axe — called back (right click again)');
 {
   const { state, p, world } = lab('goldAxe', 10, dummies(-8, -4));
   // Thrown at the far dummy (the near one down for the throw), it passes the near one on the way back.
   state.dummies[1].broken = true;
-  throwIt(state, p, world);
+  hurl(state, p, world, 0);
   run(state, p, world, 1);
   state.dummies[1].broken = false;
   state.dummies[1].hp = DUMMY_HP;
   const t = axe(state)!;
   const back = tick(state, p, world, { heavyHeld: true });
-  check('right click held with your fists out turns it for your hand (no charged punch)', has(back, 'recall') && t.phase === 'back' && !state.fists.charging && !has(back, 'chargeStart'));
+  check('pressing right click again turns it for your hand (no charged punch)', has(back, 'recall') && t.phase === 'back' && !state.fists.charging && !has(back, 'chargeStart'));
   const ev = run(state, p, world, 2, { heavyHeld: true });
   check('it comes back and you catch it, its uses kept', has(ev, 'catch') && state.weapon?.kind === 'goldAxe' && state.weapon.uses === 9 && !state.thrown.some((q) => q.alive));
   check(`what it passes on the way takes ${w.axeReturnDamage}, once`, state.dummies[1].hp === DUMMY_HP - w.axeReturnDamage, `${state.dummies[1].hp}`);
-  check('no charged punch came of holding right click, nor a chop once it\'s caught (till right click is let go)', !has(ev, 'heavy') && !has(ev, 'chargeStart') && !state.fists.charging);
+  check('no charged punch came of holding right click, nor a new throw charge once it\'s caught (till right click is let go)', !has(ev, 'heavy') && !has(ev, 'chargeStart') && !state.fists.charging);
   tick(state, p, world);
   run(state, p, world, 0.1, { heavyHeld: true });
-  check('let go and pressed again, right click charges its chop', state.fists.charging);
+  check('let go and pressed again, right click charges a throw', state.fists.charging && state.weapon?.kind === 'goldAxe');
 }
 {
   const { state, p, world } = lab('goldAxe', 10);
-  throwIt(state, p, world);
+  hurl(state, p, world, 0);
   run(state, p, world, 3);
   const t = axe(state)!;
   tick(state, p, world, { heavyHeld: true });
   run(state, p, world, w.axeReturnPull + 0.02);
-  check(`it speeds up to ${w.axeReturnSpeed} m/s over ${w.axeReturnPull} s, through anything`, t.alive ? near(t.speed, w.axeReturnSpeed, 1e-6) : true);
+  check(`it speeds up to ${w.axeReturnSpeed} m/s over ${w.axeReturnPull} s, through anything`, t.alive && near(t.speed, w.axeReturnSpeed, 1e-6));
 }
 {
   const { state, p, world } = lab('goldAxe', 10);
-  throwIt(state, p, world);
+  hurl(state, p, world, 0);
   tick(state, p, world);
   const back = run(state, p, world, 1.5, { heavyHeld: true });
   check('called while still flying out, it turns back at once', has(back, 'recall') && has(back, 'catch'));
@@ -133,7 +167,7 @@ section('Gold Axe — called back');
   const { state, p, world } = lab('goldAxe', 10);
   state.bag[1] = state.weapon;
   state.slot = 1;
-  throwIt(state, p, world);
+  hurl(state, p, world, 0);
   run(state, p, world, 3);
   tick(state, p, world, { heavyHeld: true });
   run(state, p, world, 2);
@@ -143,7 +177,7 @@ section('Gold Axe — called back');
 section('Gold Axe — breaking');
 {
   const { state, p, world } = lab('goldAxe', 1, dummies(-8));
-  const ev = [...throwIt(state, p, world), ...run(state, p, world, 1)];
+  const ev = [...hurl(state, p, world, 0), ...run(state, p, world, 1)];
   check('its last use spent on a throw, it breaks there', has(ev, 'thrownBreak') && has(ev, 'weaponBroken') && !state.thrown.some((q) => q.alive));
 }
 {
@@ -165,27 +199,31 @@ section('Hammer — swings');
 section('Hammer — the smash');
 {
   const { state, p, world } = lab('hammer', 10);
-  const a = spawnEnemy(state.enemies, 'grunt', new Vector3(8, 0, -1.6), 0);
-  const b = spawnEnemy(state.enemies, 'grunt', new Vector3(-20, 0, -1.6), 0);
-  const c = spawnEnemy(state.enemies, 'grunt', new Vector3(0, 0, 26), 0);
+  // Facing −z, the smash lands at z −1.6: before it, 8, 20 and 27 m away; beside you and behind you; and too far.
+  const a = spawnEnemy(state.enemies, 'grunt', new Vector3(6, 0, -6.9), 0);
+  const b = spawnEnemy(state.enemies, 'grunt', new Vector3(-12, 0, -17.6), 0);
+  const c = spawnEnemy(state.enemies, 'grunt', new Vector3(0, 0, -28.6), 0);
+  const side = spawnEnemy(state.enemies, 'grunt', new Vector3(8, 0, 1), 0);
+  const back = spawnEnemy(state.enemies, 'grunt', new Vector3(0, 0, 10), 0);
   const far = spawnEnemy(state.enemies, 'grunt', new Vector3(0, 0, -60), 0);
-  for (const i of [a, b, c, far]) state.enemies[i].frozen = 99;
+  for (const i of [a, b, c, side, back, far]) state.enemies[i].frozen = 99;
   run(state, p, world, FISTS.v.chargeTime + 0.05, { heavyHeld: true });
   const ev = tick(state, p, world);
   const smash = ev.find((e) => e.kind === 'smash');
-  check(`the charged right click smashes the floor: a shockwave starts ${w.waveReach} m wide, ${w.smashUses} uses gone though it hit nothing`, !!smash && smash.value === w.waveReach && state.weapon?.uses === 10 - w.smashUses);
+  check(`the charged right click smashes the floor: a shockwave starts (rolling the way you face), ${w.smashUses} uses gone though it hit nothing`, !!smash && near(smash.value, 0, 1e-9) && state.weapon?.uses === 10 - w.smashUses);
   check('it rolls out: fast, then slowing', waveFront(waveTime() * 0.25) > w.waveReach * 0.5 && waveFront(waveTime()) === w.waveReach);
   run(state, p, world, 0.1);
   check('20 m away, not reached yet', state.enemies[b].hp === GRUNT_HP);
   run(state, p, world, waveTime());
-  check(`every enemy it rolled under took ${w.waveDamage}, once (8, 20 and 28 m away)`, [a, b, c].every((i) => state.enemies[i].hp === Math.max(0, GRUNT_HP - w.waveDamage)), [a, b, c].map((i) => state.enemies[i].hp).join(', '));
+  check(`every enemy before you it rolled under took ${w.waveDamage}, once (8, 20 and 27 m away)`, [a, b, c].every((i) => state.enemies[i].hp === Math.max(0, GRUNT_HP - w.waveDamage)), [a, b, c].map((i) => state.enemies[i].hp).join(', '));
+  check('only before you, a half circle: beside you and behind you, spared', state.enemies[side].hp === GRUNT_HP && state.enemies[back].hp === GRUNT_HP);
   check('one beyond its reach is spared', state.enemies[far].hp === GRUNT_HP);
 }
 {
   const walled: Arena = { ...OPEN_ARENA, boxes: [boxAt(4, 0, -10, 1, 4, 20, 'wall')] };
   const { state, p, world } = lab('hammer', 10, walled);
-  const behind = spawnEnemy(state.enemies, 'grunt', new Vector3(10, 0, -1.6), 0);
-  const high = spawnEnemy(state.enemies, 'grunt', new Vector3(-6, 0, -1.6), 0);
+  const behind = spawnEnemy(state.enemies, 'grunt', new Vector3(10, 0, -4), 0);
+  const high = spawnEnemy(state.enemies, 'grunt', new Vector3(-6, 0, -5), 0);
   state.enemies[behind].frozen = state.enemies[high].frozen = 99;
   run(state, p, world, FISTS.v.chargeTime + 0.05, { heavyHeld: true });
   tick(state, p, world);

@@ -7,6 +7,7 @@
 // Update 0.1.5 — the Gold Axe (the designer: swings like the sword, thrown it comes back to you when you hold right
 // click, like Thor's hammer: `RETURNS`, weapons/recall.ts) and the Hammer (heavy and slow, both hands; its charged
 // blow smashes the floor and a shockwave rolls across the room: `SMASHES`, weapons/smashWaves.ts).
+// Update 0.1.6 — the axe's right click charges its throw (weapons/axeThrow.ts), so it has no charged blow of its own.
 import { ITEMS } from '../../tuning/items';
 import { WEAPONS } from '../../tuning/weapons';
 
@@ -17,7 +18,7 @@ export const WEAPON_KINDS: readonly WeaponKind[] = ['sword', 'goldSword', 'grimo
 export const WEAPON_NAME: Record<WeaponKind, string> = { sword: 'Sword', goldSword: 'Gold Sword', grimoire: 'Grimoire', goldAxe: 'Gold Axe', hammer: 'Hammer' };
 /** Update 0.1.4 — it casts fire (left click a fireball, right click held a charged one) rather than swinging. */
 export const CASTS: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: true, goldAxe: false, hammer: false };
-/** Update 0.1.5 — thrown, it stays where it lands (it doesn't break) and right click held calls it back to your hand. */
+/** Update 0.1.5 — thrown with right click, it stays where it lands (it doesn't break) and right click calls it back. */
 export const RETURNS: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: false, goldAxe: true, hammer: false };
 /** Update 0.1.5 — its charged blow smashes the floor: a shockwave rolls out across the room. */
 export const SMASHES: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: false, goldAxe: false, hammer: true };
@@ -66,7 +67,8 @@ export const WEAPON_STATS: Record<WeaponKind, () => WeaponStats> = {
   grimoire: () => ({ ...swordStats(WEAPON_NAME.grimoire, WEAPONS.v.grimoireUses), interval: WEAPONS.v.castInterval }),
   goldAxe: () => {
     const v = WEAPONS.v;
-    return { name: WEAPON_NAME.goldAxe, damage: v.axeDamage, knock: v.axeKnock, reach: v.axeReach, width: v.axeWidth, interval: v.axeInterval, pierceDamage: v.chopDamage, pierceKnock: v.chopKnock, pierceReach: v.axeReach, pierceWidth: v.chopWidth, pierceUses: v.chopUses, uses: v.axeUses };
+    // (Its right click throws it: the pierce numbers are never used.)
+    return { name: WEAPON_NAME.goldAxe, damage: v.axeDamage, knock: v.axeKnock, reach: v.axeReach, width: v.axeWidth, interval: v.axeInterval, pierceDamage: v.axeDamage, pierceKnock: v.axeKnock, pierceReach: v.axeReach, pierceWidth: v.axeWidth, pierceUses: 1, uses: v.axeUses };
   },
   hammer: () => {
     const v = WEAPONS.v;

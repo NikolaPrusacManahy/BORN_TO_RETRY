@@ -34,8 +34,9 @@ export const ARMS = group('arms', 'Arms', {
   // M2 — the sword arm (the left arm drops out of view while a weapon is held). The grip goes through the curled
   // fingers; the poses are in viewmodel/swordPoses.ts.
   weaponScale: knob(0.75, 0.3, 1.5, 0.01, 'Weapon size (held)', 'The held weapon\'s size in view (1 = its true size).'),
-  // Update 0.0.10 — the designer: the sword sat too low in the fist; this puts the guard on top of it.
-  swordGripSlide: knob(0.038, -0.08, 0.1, 0.002, 'Sword in the fist', 'How far up the handle the fist holds it, from the handle\'s middle (m).'),
+  // Update 0.0.10 — the designer: the sword sat too low in the fist; this puts the guard on top of it. (Update 0.1.6:
+  // the guard 2 mm higher, 0.038 → 0.036: the fingers now wrap the grip, the index finger's middle joint up under it.)
+  swordGripSlide: knob(0.036, -0.08, 0.1, 0.002, 'Sword in the fist', 'How far up the handle the fist holds it, from the handle\'s middle (m).'),
   swordSide: knob(0, -0.2, 0.2, 0.005, 'Sword arm: sideways', 'Moves the sword arm (all its poses).'),
   swordUp: knob(0, -0.2, 0.2, 0.005, 'Sword arm: up', 'Moves the sword arm (all its poses).'),
   swordForward: knob(0, -0.2, 0.2, 0.005, 'Sword arm: forward', 'Moves the sword arm (all its poses).'),
@@ -48,14 +49,16 @@ export const ARMS = group('arms', 'Arms', {
   pierceBack: knob(0.28, 0.05, 0.8, 0.01, 'Pierce return', 'Seconds back to the ready pose.'),
   armedSwap: knob(0.18, 0.05, 0.6, 0.01, 'Weapon swap', 'Seconds for the arms to change over when a weapon is taken or thrown.'),
   // Update 0.1.5 — the Gold Axe's and the Hammer's own moves (viewmodel/axePoses.ts, hammerPoses.ts).
-  axeGripSlide: knob(-0.03, -0.2, 0.1, 0.002, 'Axe in the fist', 'How far up the haft the fist holds it, from the haft\'s middle (m).'),
+  // Update 0.1.6 — the designer: the fist on the axe's wrapped grip (it held the bare haft below it).
+  axeGripSlide: knob(0.068, -0.2, 0.2, 0.002, 'Axe in the fist', 'How far up the haft the fist holds it, from the haft\'s middle (m): the wraps.'),
   axeSwing: knob(0.11, 0.03, 0.4, 0.005, 'Axe swing', 'Seconds a swing takes to hack across.'),
   axeRecover: knob(0.26, 0.05, 0.8, 0.01, 'Axe swing return', 'Seconds back to the ready pose after a swing.'),
-  chopOut: knob(0.08, 0.02, 0.3, 0.005, 'Axe chop down', 'Seconds the chop takes to come down.'),
-  chopHold: knob(0.12, 0, 0.5, 0.01, 'Axe chop hold', 'Seconds it stays down.'),
-  chopBack: knob(0.3, 0.05, 0.8, 0.01, 'Axe chop return', 'Seconds back to the ready pose.'),
-  hammerGripSlide: knob(0, -0.4, 0.2, 0.005, 'Hammer in the fist', 'How far up the haft the right (top) hand holds it, from the haft\'s middle (m).'),
-  hammerHands: knob(0.2, 0.05, 0.5, 0.005, 'Hammer: hands apart', 'How far below the right hand the left holds the haft, near its end (m).'),
+  axeThrowOut: knob(0.08, 0.02, 0.3, 0.005, 'Axe throw follow-through', 'Seconds the arm takes to come over after a charged throw.'),
+  axeThrowHold: knob(0.12, 0, 0.5, 0.01, 'Axe throw hold', 'Seconds it stays out.'),
+  axeThrowBack: knob(0.3, 0.05, 0.8, 0.01, 'Axe throw return', 'Seconds back (the fists come out meanwhile).'),
+  // Update 0.1.6 — the designer: one hand on the wrapped grip, the other lower on the plain handle, apart (the weight).
+  hammerGripSlide: knob(0.083, -0.4, 0.3, 0.005, 'Hammer in the fist', 'How far up the haft the right hand holds it, from the haft\'s middle (m): the wraps.'),
+  hammerHands: knob(0.2, 0.05, 0.5, 0.005, 'Hammer: hands apart', 'How far below the right hand the left holds the plain handle (m).'),
   hammerScale: knob(0.85, 0.4, 1.5, 0.01, 'Hammer size (held)', 'Its size in the hands, times Weapon size.'),
   hammerSwing: knob(0.2, 0.05, 0.6, 0.005, 'Hammer swing', 'Seconds a swing takes to heave across: slow.'),
   hammerRecover: knob(0.45, 0.1, 1.2, 0.01, 'Hammer swing return', 'Seconds back to the ready pose after a swing.'),

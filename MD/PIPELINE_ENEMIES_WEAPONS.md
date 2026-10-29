@@ -44,9 +44,11 @@ blender --background --disable-autoexec --python tools/blender/export_monster.py
 Update 0.1.5: a weapon whose head sticks out to one side (an axe) needs `--handle-center` (centre on the handle where it's held), and `--edge-out` (turn its blade to +x, the way the knuckles face). The Gold Axe and the Hammer:
 
 ```
-blender --background --disable-autoexec --python tools/blender/export_weapon.py -- --blend "<Ultimate RPG Pack>/Axe_small_Golden.blend" --glb public/models/weapons/gold_axe.glb --length 0.75 --previews <folder> --handle-center --edge-out
-blender --background --disable-autoexec --python tools/blender/export_weapon.py -- --blend "<Ultimate RPG Pack>/Hammer_Double.blend" --glb public/models/weapons/hammer.glb --length 1.35 --previews <folder> --handle-center
+blender --background --disable-autoexec --python tools/blender/export_weapon.py -- --blend "<Ultimate RPG Pack>/Axe_small_Golden.blend" --glb public/models/weapons/gold_axe.glb --length 0.75 --previews <folder> --handle-center --edge-out --thin 0.37,0.05,0.85
+blender --background --disable-autoexec --python tools/blender/export_weapon.py -- --blend "<Ultimate RPG Pack>/Hammer_Double.blend" --glb public/models/weapons/hammer.glb --length 1.35 --previews <folder> --handle-center --thin 0.54,0.06,0.7
 ```
+
+Update 0.1.6: `--thin TOP,RMAX,K` makes the handle (below TOP m, within RMAX m of its middle line: not the head) K times as thick across, so the wrapped grip is no thicker as held than the sword's (radius ≈ 21 mm), the size the fist is shaped round. Put the hand on the weapon's wrapped grip (its `LightWood` wraps): `test-weapon-arms.ts` checks both.
 
 Each weapon then gets its own moves (`engine/viewmodel/weaponMoves.ts`): look at them with `npx tsx tools/weapon-shots.ts <kind> <folder>` and `render_view.py`.
 Exports one weapon with its origin in the middle of the grip, the blade (or head) pointing up and the edge across x, scaled to a set length. The grip is found from the shape: past the pommel, up the narrow handle to where the guard (or the head) widens.

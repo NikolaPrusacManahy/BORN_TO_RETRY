@@ -3,6 +3,7 @@
 // flight runs out, and lies there. Right click held with your fists out calls it: it turns for your hand, speeding up,
 // through walls, hitting everything it passes once, and you catch it (back into a weapon slot and your hand). Its last
 // use spent on a throw, it breaks there as any weapon does. Pure.
+// Update 0.1.6 — only an axe thrown with right click comes back (axeThrow.ts); pressing right click again calls it.
 import { Vector3 } from 'three';
 import { CAMERA } from '../../tuning/camera';
 import { WEAPONS } from '../../tuning/weapons';

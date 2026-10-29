@@ -3,6 +3,7 @@
 // once it's broken) draws it back for a moment, then sends it flying; it breaks on whatever it hits.
 // Update 0.0.17 — picking one up takes it off the ground; where it goes is the weapon slots' business (slots.ts).
 // Update 0.1.5 — a thrown Gold Axe (catalog.ts `RETURNS`) keeps its uses and comes back to your hand (recall.ts).
+// Update 0.1.6 — only when thrown with right click (axeThrow.ts: charged, faster and harder); Q throws it to break.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { WEAPONS } from '../../tuning/weapons';
@@ -46,8 +47,9 @@ export interface Thrown {
   spin: number;
   life: number;
   /** Update 0.1.5 — it comes back (a Gold Axe with uses left): what it's doing, its uses, its speed coming back, and
-   *  what it has hit on the way back (enemy slots; dummies from 1000). */
+   *  what it has hit on the way back (enemy slots; dummies from 1000). Update 0.1.6 — and its throw's charge (0 … 1). */
   returns: boolean;
+  power: number;
   phase: ThrownPhase;
   uses: number;
   speed: number;
@@ -78,6 +80,7 @@ export function createThrown(): Thrown[] {
     spin: 0,
     life: 0,
     returns: false,
+    power: 0,
     phase: 'fly' as ThrownPhase,
     uses: 0,
     speed: 0,
@@ -144,20 +147,22 @@ export function tryPickup(pickups: Pickup[], stands: Stand[], player: PlayerStat
   return holding(kind, uses);
 }
 
-/** Throws the held weapon from `eye` along `dir` (length 1). */
-export function throwWeapon(held: HeldWeapon, thrown: Thrown[], eye: Vector3, dir: Vector3, events: EventQueue<CombatEvent>) {
+/** Throws the held weapon from `eye` along `dir` (length 1). `returns`: thrown to come back (the Gold Axe's right
+ *  click), charged `power` (0 … 1): faster and harder. */
+export function throwWeapon(held: HeldWeapon, thrown: Thrown[], eye: Vector3, dir: Vector3, events: EventQueue<CombatEvent>, returns = false, power = 0) {
   const t = thrown.find((q) => !q.alive) ?? thrown[0];
   t.alive = true;
   t.kind = held.kind;
   t.pos.copy(eye).addScaledVector(dir, 0.6);
-  t.vel.copy(dir).multiplyScalar(WEAPONS.v.throwSpeed);
+  t.vel.copy(dir).multiplyScalar(WEAPONS.v.throwSpeed * (1 + (WEAPONS.v.axeChargeSpeed - 1) * power));
   t.spin = 0;
   t.life = THROWN_LIFE;
   // (One already broken breaks on what it hits, as any weapon does.)
-  t.returns = RETURNS[held.kind] && held.uses > 0;
+  t.returns = returns && RETURNS[held.kind] && held.uses > 0;
+  t.power = power;
   t.phase = 'fly';
   t.uses = held.uses;
   t.speed = 0;
   t.struckN = 0;
-  events.push('throw', 0, t.pos.x, t.pos.y, t.pos.z);
+  events.push('throw', t.returns ? 1 : 0, t.pos.x, t.pos.y, t.pos.z);
 }

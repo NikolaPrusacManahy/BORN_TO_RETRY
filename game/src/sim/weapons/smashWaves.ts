@@ -2,6 +2,7 @@
 // charged blow lands on the floor before you; a ring rolls out from it over the floor, fast at first and slowing, out
 // to Shockwave reach. Every enemy (and lab dummy) its front passes under takes a hit once, thrown outwards: not one
 // higher above the floor than Shockwave height (fliers over it), nor one behind a wall from where it started. Pure.
+// Update 0.1.6 — the designer: only before you, a half circle (nothing beside the smash's line or behind it).
 import { Vector3 } from 'three';
 import { WEAPONS } from '../../tuning/weapons';
 import { wallBetween } from '../../world/navGrid';
@@ -13,8 +14,10 @@ import type { PlayerState } from '../player/state';
 
 export interface SmashWave {
   alive: boolean;
-  /** Where it started, on the floor. */
+  /** Where it started, on the floor, and the way it rolls out (flat, length 1): only the half before it. */
   at: Vector3;
+  dirX: number;
+  dirZ: number;
   /** Seconds since, and how far its front has rolled (m). */
   t: number;
   r: number;
@@ -34,7 +37,7 @@ const dummyAt = new Vector3();
 const hit = emptyTargetHit();
 
 export function createSmashWaves(): SmashWave[] {
-  return Array.from({ length: WAVE_POOL }, () => ({ alive: false, at: new Vector3(), t: 0, r: 0, struck: new Array<boolean>(ENEMY_POOL).fill(false), struckDummy: new Array<boolean>(DUMMY_CAP).fill(false) }));
+  return Array.from({ length: WAVE_POOL }, () => ({ alive: false, at: new Vector3(), dirX: 0, dirZ: -1, t: 0, r: 0, struck: new Array<boolean>(ENEMY_POOL).fill(false), struckDummy: new Array<boolean>(DUMMY_CAP).fill(false) }));
 }
 
 /** Seconds a wave takes to roll its full reach. */
@@ -55,7 +58,9 @@ export function startWave(state: CombatState, player: PlayerState, dir: Vector3,
       break;
     }
   const flat = Math.hypot(dir.x, dir.z) || 1;
-  w.at.set(player.pos.x + (dir.x / flat) * SMASH_AHEAD, player.pos.y, player.pos.z + (dir.z / flat) * SMASH_AHEAD);
+  w.dirX = dir.x / flat;
+  w.dirZ = dir.z / flat;
+  w.at.set(player.pos.x + w.dirX * SMASH_AHEAD, player.pos.y, player.pos.z + w.dirZ * SMASH_AHEAD);
   if (!player.grounded) {
     // In the air: the floor under where it lands.
     from.copy(w.at);
@@ -67,7 +72,8 @@ export function startWave(state: CombatState, player: PlayerState, dir: Vector3,
   w.r = 0;
   w.struck.fill(false);
   w.struckDummy.fill(false);
-  state.events.push('smash', WEAPONS.v.waveReach, w.at.x, w.at.y, w.at.z);
+  // (value: the way it rolls, as a turn about up: the half ring is drawn that way.)
+  state.events.push('smash', Math.atan2(-w.dirX, -w.dirZ), w.at.x, w.at.y, w.at.z);
 }
 
 export function updateSmashWaves(state: CombatState, dt: number) {
@@ -94,10 +100,12 @@ export function updateSmashWaves(state: CombatState, dt: number) {
   }
 }
 
-/** Its front has reached `pos` (feet), low enough and not behind a wall. */
+/** Its front has reached `pos` (feet), before the smash, low enough and not behind a wall. */
 function under(state: CombatState, w: SmashWave, pos: Vector3): boolean {
-  const d = Math.hypot(pos.x - w.at.x, pos.z - w.at.z);
-  return d <= w.r && pos.y - w.at.y <= WEAPONS.v.waveHeight && pos.y - w.at.y >= -1 && !wallBetween(state.nav.small, w.at.x, w.at.z, pos.x, pos.z);
+  const dx = pos.x - w.at.x;
+  const dz = pos.z - w.at.z;
+  const d = Math.hypot(dx, dz);
+  return d <= w.r && dx * w.dirX + dz * w.dirZ >= 0 && pos.y - w.at.y <= WEAPONS.v.waveHeight && pos.y - w.at.y >= -1 && !wallBetween(state.nav.small, w.at.x, w.at.z, pos.x, pos.z);
 }
 
 function strike(state: CombatState, w: SmashWave, kind: TargetKind, index: number, pos: Vector3) {

@@ -29,6 +29,8 @@ const PALM = 0.05;
 const CLASP = 0.056;
 const UP = new THREE.Vector3(0, 1, 0);
 const OPEN: Record<HandSub['mode'], number> = { guard: 0, rope: 0, fist: 0, hammer: 0, palm: 1, chop: 1 };
+/** Update 0.1.6 — a tail, a leg or an arm held: the fingers wrap something this thick (radius, m). */
+export const ROPE = 0.012;
 
 const ndc = new THREE.Vector3();
 const p = new THREE.Vector3();
@@ -61,6 +63,13 @@ export class HeldGrip {
     if (this.weight <= 0) return 0;
     const h = this.hand[side];
     return (OPEN[h.a.mode] * (1 - h.u) + OPEN[h.b.mode] * h.u) * this.weight;
+  }
+
+  /** Update 0.1.6 — how far a hand is round something held (a rope grip: its fingers wrap it, handPose.ts). */
+  rope(side: Side): number {
+    if (this.weight <= 0) return 0;
+    const h = this.hand[side];
+    return ((h.a.mode === 'rope' ? 1 - h.u : 0) + (h.b.mode === 'rope' ? h.u : 0)) * this.weight;
   }
 
   /** One arm's pose (model space; `holder`: the model's parent under the arms `camera`, both up to date; `base`: its

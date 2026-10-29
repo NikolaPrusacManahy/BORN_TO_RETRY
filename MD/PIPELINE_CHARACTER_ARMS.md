@@ -54,6 +54,7 @@ uncomfortable to play with.
   **fists already closed**: the curl and thumb are baked into the mesh and the rest pose, so the game only moves
   the upper arm, forearm and hand. `--open-hands` exports open hands instead. `export.png` shows what the file
   holds.
+- **Update 0.1.6 — the fingers are posed live** on top of the baked fist (`engine/viewmodel/handPose.ts`): the punching fist (thumb folded across the index and middle fingers), grips worked out from each handle's thickness, open hands. The baked fist is still the rest pose (a held weapon's place comes from it). A new character's arms need the same bones (`Index/Middle/Ring/Pinky 2–4`, `Thumb2–3`); check its fists with `tools/hand-shots.ts`.
 - **Finger curl:** the script measures which rotation direction curls the fingers towards the palm, rather than
   assuming it.
 - **The guard pose (previews only):** fist positions sit relative to the point between the shoulders and scale

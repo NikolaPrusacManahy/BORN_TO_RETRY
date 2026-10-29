@@ -146,8 +146,8 @@ export type CombatEvent =
   | 'kiStart'
   | 'kiCharge'
   // Update 0.1.5 — the Gold Axe: sticking in a wall or lying on the floor (value 0: a wall, 1: the floor), turning back
-  // for your hand (right click held), caught (value = its uses); the Hammer's smash on the floor (value = how far its
-  // shockwave will roll).
+  // for your hand (right click held), caught (value = its uses); the Hammer's smash on the floor (Update 0.1.6: value =
+  // the way its half-circle shockwave rolls, a turn about up, radians).
   | 'axeStick'
   | 'recall'
   | 'catch'

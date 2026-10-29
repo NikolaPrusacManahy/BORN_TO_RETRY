@@ -81,8 +81,9 @@ export function execFeedback(f: FeedbackParts, kind: CombatEvent, value: number,
     // ring close in, chunks of floor, the hardest shake and a jolt; the Gold Axe biting into a wall or the floor (chips),
     // and caught (a nudge).
     case 'smash':
-      f.waves.spawn(at, value, 0xffd9a0, waveTime());
-      f.waves.spawn(at, 3.5, 0xbfa080);
+      // (value: the way it rolls; Update 0.1.6 — a half ring, before you only.)
+      f.waves.spawn(at, WEAPONS.v.waveReach, 0xffd9a0, waveTime(), value);
+      f.waves.spawn(at, 3.5, 0xbfa080, undefined, value);
       f.chunks.spawn(at, UP, 26, 1.4);
       f.rig.shake.add(0.9 * near(30));
       f.rig.kick(2.4);
