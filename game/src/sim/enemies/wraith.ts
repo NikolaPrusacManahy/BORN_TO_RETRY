@@ -11,6 +11,7 @@ import { AIM_HEIGHT } from '../combat/turret';
 import type { PlayerState } from '../player/state';
 import { Enemy, EnemyWorld, setPhase, turn, yawTo } from './enemy';
 import { circle, flyCloser, keepHeight, middle, seesInAir } from './fly';
+import { armed } from './tokens';
 
 /** After a cast, before it moves again (s). */
 const RECOVER = 0.4;
@@ -36,7 +37,7 @@ export function updateWraith(r: Enemy, index: number, player: PlayerState, w: En
     case 'chase': {
       if (player.dead) break;
       const sees = seesInAir(r, player, world);
-      if (sees && dist <= v.wraithFar && r.cooldown <= 0) {
+      if (sees && dist <= v.wraithFar && r.cooldown <= 0 && armed(r)) {
         setPhase(r, 'windup');
         w.events.push('wraithWindup', index, r.pos.x, r.pos.y + v.wraithHeight / 2, r.pos.z);
         break;

@@ -11,6 +11,7 @@ import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
 import { chaseDir } from './chase';
 import { Enemy, EnemyWorld, inLine, setPhase, turn, walk, yawTo } from './enemy';
+import { armed } from './tokens';
 
 const way = new Vector3();
 
@@ -36,7 +37,7 @@ export function updateGrunt(g: Enemy, index: number, player: PlayerState, w: Ene
         g.facing = turn(g.facing, toward, v.gruntTurn * dt);
         break;
       }
-      if (dist <= v.gruntReach * 0.9 && canReach(g, player, w)) {
+      if (armed(g) && dist <= v.gruntReach * 0.9 && canReach(g, player, w)) {
         g.facing = turn(g.facing, toward, v.gruntTurn * dt);
         setPhase(g, 'windup');
         w.events.push('gruntWindup', index, g.pos.x, g.pos.y + v.gruntHeight * 0.6, g.pos.z);

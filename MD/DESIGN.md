@@ -164,6 +164,8 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 ## 9. Enemies **(placeholder roster)**
 Rule: every attack is telegraphed (a flash and a sound) before it can hit, and every projectile can be parried unless it is clearly marked.
 
+**The crowd takes turns (Update 0.1.15, the designer: not "a big swarm").** At once, at most **2 close fighters**, **2 ranged** and **1 big one** may go for you; bosses always may. Turns go to the nearest ready enemy, one in front of you before one behind, never two at the same moment (0.35 s apart). After its attack (or a flinch) an enemy rests 1 s before another turn. Close fighters waiting their turn circle you 1.5 m beyond their reach; ranged ones keep their distance and hold their fire. **Spreading out** (the designer: "they still move in swarm"): each enemy has its own angle round you, at least 30° from its neighbours', and slides onto it as it comes at you on open ground, so a group fans out instead of arriving as one; a group from in front stays in front. **(placeholder numbers; F1 → Enemy crowd)**
+
 | Enemy | Role |
 |---|---|
 | Grunt | Melee chaser in groups. Fodder. **(M2: the Orc from Ultimate Monsters; 40 HP, 7 m/s, a 0.45 s warned wind-up, 15 damage; any hit flinches it; drops a sword 15%.)** |

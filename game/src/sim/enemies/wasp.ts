@@ -13,6 +13,7 @@ import type { PlayerState } from '../player/state';
 import { chaseDir } from './chase';
 import { Enemy, EnemyWorld, setPhase, turn, walk, yawTo } from './enemy';
 import { circle, flyCloser, keepHeight, middle, seesInAir } from './fly';
+import { armed } from './tokens';
 
 const TURN = 9;
 /** Climbing away after a sting (s); a swoop it gives up after this long (s); its sting's arc in front (rad). */
@@ -54,7 +55,7 @@ export function updateWasp(s: Enemy, index: number, player: PlayerState, w: Enem
       keepHeight(s, v.waspAlt, dt);
       if (player.dead) break;
       const sees = seesInAir(s, player, world);
-      if (sees && dist <= v.waspFar && s.cooldown <= 0) {
+      if (sees && dist <= v.waspFar && s.cooldown <= 0 && armed(s)) {
         setPhase(s, 'dive');
         break;
       }

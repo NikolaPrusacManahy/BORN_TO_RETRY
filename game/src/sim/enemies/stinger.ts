@@ -14,6 +14,7 @@ import type { PlayerState } from '../player/state';
 import { Enemy, EnemyWorld, setPhase, turn, yawTo } from './enemy';
 import { circle, flyCloser, keepHeight, middle, seesInAir } from './fly';
 import { RADIUS } from './kinds';
+import { armed } from './tokens';
 
 /** It dives this far past your chest (m), never lower than this over the floor (m, its middle). */
 const OVERSHOOT = 2.5;
@@ -48,7 +49,7 @@ export function updateStinger(s: Enemy, index: number, player: PlayerState, w: E
       keepHeight(s, v.stingerAlt, dt);
       if (player.dead) break;
       const sees = seesInAir(s, player, world);
-      if (sees && dist <= v.stingerRange && s.cooldown <= 0 && Math.abs(s.pos.y - v.stingerAlt) < 0.6) {
+      if (sees && dist <= v.stingerRange && s.cooldown <= 0 && Math.abs(s.pos.y - v.stingerAlt) < 0.6 && armed(s)) {
         setPhase(s, 'windup');
         w.events.push('stingerWindup', index, s.pos.x, s.pos.y + v.stingerHeight / 2, s.pos.z);
         break;

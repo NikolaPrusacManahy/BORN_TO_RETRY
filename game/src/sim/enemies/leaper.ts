@@ -11,6 +11,7 @@ import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
 import { chaseDir, freeSpotNear } from './chase';
 import { Enemy, EnemyWorld, setPhase, turn, walk, yawTo } from './enemy';
+import { armed } from './tokens';
 
 /** Turning speed (rad/s). */
 const TURN = 9;
@@ -48,7 +49,7 @@ export function updateLeaper(l: Enemy, index: number, player: PlayerState, w: En
       l.facing = turn(l.facing, how === 'path' ? Math.atan2(-way.x, -way.z) : toward, TURN * dt);
       if (player.dead) break;
       const clear = canLeap(l, player, w);
-      if (clear && l.cooldown <= 0 && dist <= v.leaperFar) {
+      if (clear && l.cooldown <= 0 && dist <= v.leaperFar && armed(l)) {
         setPhase(l, 'windup');
         w.events.push('leaperWindup', index, l.pos.x, l.pos.y + v.leaperHeight * 0.5, l.pos.z);
         break;

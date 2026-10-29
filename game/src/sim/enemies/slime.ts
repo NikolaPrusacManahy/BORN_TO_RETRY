@@ -8,6 +8,7 @@ import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
 import { Enemy, EnemyWorld, setPhase } from './enemy';
 import { closeIn } from './moves';
+import { armed } from './tokens';
 
 const TURN = 8;
 
@@ -20,7 +21,7 @@ export function updateSlime(s: Enemy, index: number, player: PlayerState, w: Ene
       break;
     case 'chase':
       if (player.dead) break;
-      if (dist <= v.slimeTrigger && Math.abs(player.pos.y - s.pos.y) < 2) {
+      if (armed(s) && dist <= v.slimeTrigger && Math.abs(player.pos.y - s.pos.y) < 2) {
         setPhase(s, 'windup');
         w.events.push('slimeWindup', index, s.pos.x, s.pos.y + v.slimeHeight * 0.5, s.pos.z);
         break;

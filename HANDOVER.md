@@ -2,9 +2,11 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-10-29, after Update 0.1.14)
-- **The designer plays the death screen and the loader** (Update 0.1.14): die in a run and check the cause it names, the floor, the time and the kills, then Retry and Menu; after the character select, the arrow bottom right for a second.
-- **The goal before more content** (the designer, 2026-10-29): 10 floors, the objective not to die; play, lose, learn, retry; hard but doable with effort. Proposed next: the enemies' attack tokens and places round you (so a crowd doesn't all strike at once), then a difficulty curve for 10 floors (enemy counts grow 3 a floor today: about 47 in floor 10's last room; `MD/DESIGN.md` still says 3 floors).
+## Next up (2026-10-29, after Update 0.1.15)
+- **The designer plays the crowd** (Update 0.1.15): rooms with many enemies; do only a few come at you at once, do the others wait round you, does it still feel like pressure? The numbers are in the F1 panel's "Enemy crowd".
+- **The designer gathers sound effects** (Sonniss GDC bundles and the like: human-made only, no AI; memory `no-ai-player-facing-content`). Hooking them in replaces the synths in `game/src/audio/`.
+- **The goal before more content** (the designer, 2026-10-29): 10 floors, the objective not to die; play, lose, learn, retry; hard but doable with effort. Next proposed: a difficulty curve for 10 floors (enemy counts grow 3 a floor today: about 47 in floor 10's last room; `MD/DESIGN.md` still says 3 floors), now that the crowd takes turns.
+- **The designer plays the death screen and the loader** (Update 0.1.14).
 - **The designer plays the new shop and chests** (Update 0.1.10): prices, the Great Heart, mythic chests.
 - **The designer plays 0.1.4–0.1.9**, then sends notes:
   - the Grimoire;
@@ -19,12 +21,19 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   - **Bow** (medium): arrows "with the same fast pace energy as the game".
   - **Necromancy Skull** (hard; needs an ally system first): raises dead enemies as temporary allies with a purple aura.
 - **A Steam "Coming Soon" page:** the designer asked whether one is possible (yes: the $100 Steamworks fee, store assets, at least 2 weeks of Coming Soon before release). Claude offered to draft the store kit: text, tags, requirements, capsule art briefs, and a screenshot and trailer list. Not started.
-- **Files at or over the split limit:** `engine/Game.ts` (336 lines) and `sim/enemies/enemy.ts` (300); `App.tsx` is at 285. Split them before adding to them. (Split in 0.1.9: `armsRig.ts`, now 235, and `viewmodel.ts`, now 281. Split in 0.1.14: `run.ts` into `runBase.ts`, and out of `App.tsx` the Lab's panel (`screens/useLabDock.tsx`) and going into a run (`screens/useRunStart.ts`).)
+- **Files at or over the split limit:** `engine/Game.ts` (336 lines); `App.tsx` is at 285. Split them before adding to them. (Split in 0.1.9: `armsRig.ts`, now 235, and `viewmodel.ts`, now 281. Split in 0.1.14: `run.ts` into `runBase.ts`, and out of `App.tsx` the Lab's panel (`screens/useLabDock.tsx`) and going into a run (`screens/useRunStart.ts`). Split in 0.1.15: bodies pushing apart out of `sim/enemies/enemy.ts` (now 258) into `bodies.ts`.)
 - **How the last sessions worked:**
   - Arms are checked by renders before reporting: `tools/hand-shots.ts` (fists, grips, the slam), `tools/exec-shots.ts <kinds>`, `tools/weapon-shots.ts` and `tools/book-shots.ts`, then `tools/blender/render_view.py --json … --out … --cull`. To render only some moments, filter the shots JSON (`pov.json` or `shots.json`) by name first.
   - Code edits ran as small Python scripts in the scratchpad (exact old → new pairs), because shell heredocs mangle quotes and em dashes.
 
-## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.14
+## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.15
+- **Update 0.1.15 — the crowd takes turns** (the designer asked about the enemies behaving "like a big swarm", then "work on whatever is next"; spec `MD_UPDATES/U0115_CROWD.md`). Attack tokens, as in Doom (2016) and the Arkham games (`sim/enemies/tokens.ts`, knobs `tuning/crowd.ts`, "Enemy crowd" in F1):
+  - **At once, at most** 2 close fighters (grunts, snakes, slimes, leapers, stingers, wasps), 2 ranged (spitters, wraiths, frogs) and 1 big one (Yetis, spiders, blue demons). Bosses need no turn.
+  - An enemy needs its turn to start an attack (a close fighter also to come in for one). It keeps it through the run-in, the wind-up and the attack; it gives it back once the attack is done, when a hit flinches it, when it dies, is frozen or held, or if it hasn't attacked 5 s after getting it; then it rests 1 s so another gets a go.
+  - Turns go to the nearest ready enemy, one in front of you before one behind (behind counts 6 m further), one at a time, at least 0.35 s apart, so attacks don't start together. One whose attack waits for a cooldown (spitter, leaper, stinger, wraith, frog, wasp, blue demon) only takes a turn once it's ready.
+  - Without a turn, a close fighter near you waits on a ring 1.5 m beyond its reach, facing you, circling, backing off if you come at it (`wait` in `tokens.ts`, via `keepRing`); ranged ones and leapers keep their own distance and hold their fire.
+  - **Spreading out** (the designer played it: "they still move in swarm": the turns only limited attacks; every enemy still ran your way along the same path, so a group arrived shoulder to shoulder). `sim/enemies/spread.ts`: once a tick each enemy gets its own angle round you, laid out in the order they stand, at least 30° apart (less when too many to fit), each group centred where it is (pool-adjacent-violators: the least squares fit); `e.fan` is how far round it should move. Coming at you on open ground (no wall between) it slides sideways onto it at up to 5 m/s, so a clump fans out (a 1.8 m clump of 5 grunts is 9.8 m wide on the way in) and still arrives in front of you. Only a correction: one with no one near doesn't slide, so a spitter still circles. One with its turn stops sliding 1 m outside its waiting ring and goes straight in (sliding had kept a grunt a few millimetres beyond its swing, so it never swung: caught by `test-nav`).
+  - Dealt once a tick in `update.ts`, before anyone moves; each kind's attack start checks `armed(e)`. `test-crowd.ts`: the deal, giving back, bosses, and a 15–20 s fight per kind (never more than its role's limit attacking at once; they do attack; those waiting stay out of reach). Unseen in the game.
 - **Update 0.1.14 — the death screen** (the designer, after setting the goal of play, lose, learn, retry: "Death screen first"; spec `MD_UPDATES/U0114_DEATH_SCREEN.md`). Dead in a run, once it's black: **Killed by** and what did it, large in crimson (the enemy by its name in the game, the Yeti for the brute, The Demon, The Dragon; or the Turret, Spikes, Lava, The fall), then **Floor**, **Time** (m:ss, played since the run's start, not paused) and **Kills**; **Retry** (a new run; Enter works, it has focus) and **Menu**. The mouse is freed and the world holds still behind it. No hints. After the designer saw a preview: **1.5× bigger** (`theme-23-death.css`, the box's zoom).
   - **The loader** (the designer: "a little 1s loading screen after selecting a character with the same loop animation that is near the game logo, just bottom right as the level loads"): after Play on the character select and the fade to black, the logo's retry arrow turns bottom right on the black while the level is built, for at least 1 s (`useRunStart.ts` `LOAD_MIN`), and fades out with the black. Its turn is the logo arrow's (the same curve, about a second) with a shorter rest, so it turns at once (`theme-24-loading.css`). No words. The Lab and Retry go in without it. The arrow is now `screens/RetryArrow.tsx` (the menu's logo uses it too); going into a run moved out of `App.tsx` to `screens/useRunStart.ts` (it had reached its size).
   - **What killed you:** every hurt now says what did it (`damagePlayer(p, amount, by)`, `PlayerState.hurtBy`); shots, quake rings and bombs carry who sent them; poison remembers who poisoned you, so dying of it later names the snake or wasp. Lava, spikes, the turret and the fall name themselves. `test-death.ts` also scans `sim/enemies/` so a new enemy can't forget to name itself.
@@ -331,6 +340,7 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
 
 ## What to try in-game
 Run `START_GAME.bat`. The main menu opens on the gate.
+- **Update 0.1.15 — the crowd:** a room with many enemies (or the Lab's ×5 grunts): a group fans out as it comes instead of running at you as one; two at most come at you at once, the rest circle just out of reach; spitters take turns firing. F1 → Enemy crowd to change the numbers.
 - **Update 0.1.14 — the death screen:** die in a run (to an enemy, its shot, poison, lava or a fall). Once it's black: what killed you, the floor, the time and your kills. Retry starts a new run; Menu goes to the main menu. **The loader:** Play on the character select; the arrow turns bottom right on the black for a second.
 - **Updates 0.1.0–0.1.8:**
   - **Executions:** fill the Execution Power meter, then E on any regular enemy. The slime's and the spider's smash is now the F slam's clasp.
@@ -415,6 +425,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `game/tools/boss-shots.ts` | Renders the boss room (walls at any point of their slide, the gate shut or open, the Demon's stance) from the show's own shots, without a browser |
 | `MD_UPDATES/U014_GRIMOIRE.md` | Update 0.1.4: the Grimoire (the book, the stance, fireballs, numbers) |
 | `MD_UPDATES/U015_AXE_HAMMER.md` | Update 0.1.5: the Gold Axe (swings, chop, thrown and called back) and the Hammer (two-handed, the smash's shockwave) |
+| `MD_UPDATES/U0115_CROWD.md` | Update 0.1.15: attack tokens (how many enemies may attack at once, turns, the waiting ring) |
 | `MD_UPDATES/U0114_DEATH_SCREEN.md` | Update 0.1.14: the death screen (what killed you, the floor, the time, your kills; Retry, Menu) |
 | `MD_UPDATES/U0112_EXEC_READY.md` | Update 0.1.12: the skull over the enemy you can execute, the meter's flare, the sting |
 | `MD_UPDATES/U0111_CHEST_PICKUP.md` | Update 0.1.11: a chest's item waits for E |
@@ -525,6 +536,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 
 ## Not verified
 Claude has seen and heard none of this in the game: the feel, the arms on screen, the targets, effects, sounds and menus are all unverified until played. The tests check the rules, the collision, and that the shipped arms pose correctly.
+- **The crowd (Update 0.1.15):** never seen in the game: the fan-out (enemies slide sideways as they run, a little faster overall than their run speed), how the waiting ring looks (they may look like they jog in circles), whether fights got too easy, whether the turns feel fair.
 - **The death screen (Update 0.1.14):** never seen in the browser: its look over the black at 1.5×, the lines rising in, the mouse coming free, Retry locking it again (if the browser refuses the lock, it goes to the pause menu instead), and Menu. **The loader:** unseen: whether the arrow keeps turning while the level is built (a transform animation should run off the main thread), and whether a second is enough for the level's models to be in before the black clears.
 - **The Dual Daggers (Update 0.1.9):**
   - **Seen only as still renders** of the game's own arms holding the real model (`tools/weapon-shots.ts daggers`, `tools/hand-shots.ts`, flat studio light): ready, each hand's cut at its wind, contact and end, the flip half-way, the throwing stance, a throw from each hand; both grips up close.

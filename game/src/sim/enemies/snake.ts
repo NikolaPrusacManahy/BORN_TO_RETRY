@@ -6,6 +6,7 @@ import { damagePlayer, poisonPlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
 import { Enemy, EnemyWorld, inLine, setPhase, turn, yawTo } from './enemy';
 import { closeIn } from './moves';
+import { armed } from './tokens';
 
 const TURN = 9;
 /** While rearing it turns this much slower (a dash round it dodges); the bite's arc in front (rad); after it (s). */
@@ -26,7 +27,7 @@ export function updateSnake(s: Enemy, index: number, player: PlayerState, w: Ene
       break;
     case 'chase':
       if (player.dead) break;
-      if (dist <= v.snakeReach * 0.9 && inLine(s, player, w.nav.small, 1.5)) {
+      if (armed(s) && dist <= v.snakeReach * 0.9 && inLine(s, player, w.nav.small, 1.5)) {
         setPhase(s, 'windup');
         w.events.push('snakeWindup', index, s.pos.x, s.pos.y + v.snakeHeight * 0.6, s.pos.z);
         break;

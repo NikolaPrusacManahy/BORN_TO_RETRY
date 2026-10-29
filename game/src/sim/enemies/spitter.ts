@@ -16,6 +16,7 @@ import { seesInAir } from './fly';
 import { chaseDir } from './chase';
 import { Enemy, EnemyWorld, inLine, setPhase, turn, walk, yawTo } from './enemy';
 import { RADIUS } from './kinds';
+import { armed } from './tokens';
 
 /** Turning speed (rad/s): it keeps its eyes on you. */
 const TURN = 10;
@@ -53,7 +54,7 @@ export function updateSpitter(s: Enemy, index: number, player: PlayerState, w: E
     case 'chase': {
       const inSight = !player.dead && sees(s, player, w, world);
       const range = v.spitterFar * (s.perch > 0 ? PERCH_RANGE : 1);
-      if (inSight && dist <= range && s.cooldown <= 0) {
+      if (inSight && dist <= range && s.cooldown <= 0 && armed(s)) {
         setPhase(s, 'windup');
         w.events.push('spitterWindup', index, s.pos.x, s.pos.y + v.spitterHeight * 0.6, s.pos.z);
         break;

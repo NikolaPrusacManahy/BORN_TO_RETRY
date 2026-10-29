@@ -12,6 +12,7 @@ import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
 import { Enemy, EnemyWorld, inLine, setPhase, turn, yawTo } from './enemy';
 import { closeIn, keepRing } from './moves';
+import { armed } from './tokens';
 
 const TURN = 9;
 /** After a lash, before it moves (s): the tongue shows this long. */
@@ -35,7 +36,7 @@ export function updateFrog(f: Enemy, index: number, player: PlayerState, w: Enem
     case 'chase': {
       if (player.dead) break;
       const sees = inLine(f, player, w.nav.small, 3);
-      if (sees && dist <= v.frogFar && f.cooldown <= 0) {
+      if (sees && dist <= v.frogFar && f.cooldown <= 0 && armed(f)) {
         setPhase(f, 'windup');
         w.events.push('frogWindup', index, f.pos.x, f.pos.y + v.frogHeight * 0.6, f.pos.z);
         break;

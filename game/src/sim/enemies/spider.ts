@@ -9,6 +9,7 @@ import type { PlayerState } from '../player/state';
 import { freeSpotNear } from './chase';
 import { Enemy, EnemyWorld, inLine, setPhase, turn, walk, yawTo } from './enemy';
 import { arcTo, closeIn } from './moves';
+import { armed } from './tokens';
 
 /** Its two moves (Enemy.move). */
 export const SPIDER_LEAP = 0;
@@ -33,11 +34,11 @@ export function updateSpider(s: Enemy, index: number, player: PlayerState, w: En
     case 'chase': {
       if (player.dead) break;
       const level = Math.abs(player.pos.y - s.pos.y) < 1.2;
-      if (level && dist <= v.spiderReach * 0.9 && inLine(s, player, w.nav.large, 1.2)) {
+      if (armed(s) && level && dist <= v.spiderReach * 0.9 && inLine(s, player, w.nav.large, 1.2)) {
         warn(s, index, SPIDER_BITE, w);
         break;
       }
-      if (level && s.cooldown <= 0 && dist >= v.spiderLeapNear && dist <= v.spiderLeapFar && !wallBetween(w.nav.air, s.pos.x, s.pos.z, player.pos.x, player.pos.z)) {
+      if (armed(s) && level && s.cooldown <= 0 && dist >= v.spiderLeapNear && dist <= v.spiderLeapFar && !wallBetween(w.nav.air, s.pos.x, s.pos.z, player.pos.x, player.pos.z)) {
         warn(s, index, SPIDER_LEAP, w);
         break;
       }

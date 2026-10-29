@@ -10,6 +10,7 @@ import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
 import { chaseDir } from './chase';
 import { Enemy, EnemyWorld, setPhase, turn, walk, yawTo } from './enemy';
+import { armed } from './tokens';
 
 /** Above the ground by more than this when the slam lands, you're clear of it (m). */
 export const SLAM_CLEAR = 0.5;
@@ -34,7 +35,7 @@ export function updateBrute(b: Enemy, index: number, player: PlayerState, w: Ene
     case 'chase': {
       if (player.dead) break;
       const level = Math.abs(player.pos.y - b.pos.y) < v.bruteHeight * 0.6;
-      if (dist <= v.bruteReach && level && !wallBetween(w.nav.large, b.pos.x, b.pos.z, player.pos.x, player.pos.z)) {
+      if (armed(b) && dist <= v.bruteReach && level && !wallBetween(w.nav.large, b.pos.x, b.pos.z, player.pos.x, player.pos.z)) {
         setPhase(b, 'windup');
         w.events.push('bruteWindup', index, b.pos.x, b.pos.y, b.pos.z);
         break;

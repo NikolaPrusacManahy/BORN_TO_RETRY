@@ -10,6 +10,7 @@ import type { PlayerState } from '../player/state';
 import { ChargeSpec, startCharge, stepCharge } from './demonMoves';
 import { Enemy, EnemyWorld, setPhase, turn, yawTo } from './enemy';
 import { closeIn } from './moves';
+import { armed } from './tokens';
 
 /** Its two moves (Enemy.move). */
 export const BLUE_CHARGE = 0;
@@ -59,7 +60,7 @@ export function updateBlueDemon(b: Enemy, index: number, player: PlayerState, w:
       break;
     case 'chase':
       if (player.dead) break;
-      if (b.cooldown <= 0 && Math.abs(player.pos.y - b.pos.y) < 2) {
+      if (armed(b) && b.cooldown <= 0 && Math.abs(player.pos.y - b.pos.y) < 2) {
         b.move = dist > FIRE_FROM && w.rng() < 0.5 ? BLUE_FIRE : BLUE_CHARGE;
         setPhase(b, 'windup');
         w.events.push('blueWindup', b.move, b.pos.x, b.pos.y + v.blueHeight * 0.6, b.pos.z);

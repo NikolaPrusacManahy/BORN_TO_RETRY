@@ -12,10 +12,11 @@
 // Update 0.0.21 — the Dragon up in the sky (a phase of its own: it doesn't fall), its fire bombs, and how long you've
 // stayed close to it. A perched enemy (a spitter on a high ledge, floor 3) stands on its ledge: it falls only to it,
 // and hits don't slide it off. Update 0.1.1 — held in an execution (its own phase: the execution places it).
+// Update 0.1.15 — its attack token (tokens.ts) and its angle round you (spread.ts); bodies pushing apart moved to
+// bodies.ts.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
-import type { CollisionWorld, MoveResult } from '../collisionWorld';
 import type { CombatEvent } from '../combat/state';
 import type { Orb } from '../combat/targets';
 import type { Quake } from '../combat/quakes';
@@ -63,6 +64,12 @@ export interface Enemy {
   /** Update 0.0.21 — seconds you've stayed close (the Dragon's flame burst); the ledge it stands on (m; 0: the floor). */
   near: number;
   perch: number;
+  /** Update 0.1.15 — it holds an attack token (tokens.ts), for how long (s), and how long before it may take one again. */
+  token: boolean;
+  tokenFor: number;
+  rest: number;
+  /** Update 0.1.15 — how far round the player (rad) it should move to its own angle (spread.ts; NaN: none). */
+  fan: number;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -85,8 +92,6 @@ const SLIDE_FRICTION = 7;
 const OFF_GROUND = 0.3;
 /** A falling body's gravity (m/s²). */
 const FALL = 25;
-/** Bodies further apart in height than this (m) don't push each other. */
-const LEVELS_APART = 1.5;
 
 export function createEnemies(): Enemy[] {
   return Array.from({ length: ENEMY_POOL }, () => ({
@@ -112,6 +117,10 @@ export function createEnemies(): Enemy[] {
     shots: 0,
     near: 0,
     perch: 0,
+    token: false,
+    tokenFor: 0,
+    rest: 0,
+    fan: NaN,
   }));
 }
 
@@ -143,6 +152,9 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.shots = 0;
   e.near = 0;
   e.perch = 0;
+  e.token = false;
+  e.tokenFor = e.rest = 0;
+  e.fan = NaN;
   return i;
 }
 
@@ -248,53 +260,4 @@ export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, 
   e.struck = false;
   setPhase(e, 'dead');
   return true;
-}
-
-/** Live enemies push each other apart (they never stand inside one another), and none is pushed into a wall. */
-export function separateEnemies(enemies: Enemy[], nav: Record<SizeClass, NavGrid>) {
-  for (let i = 0; i < enemies.length; i++) {
-    const a = enemies[i];
-    if (!isLive(a) || a.phase === 'held') continue;
-    for (let j = i + 1; j < enemies.length; j++) {
-      const b = enemies[j];
-      if (!isLive(b) || b.phase === 'held' || Math.abs(a.pos.y - b.pos.y) > LEVELS_APART) continue;
-      const min = radiusOf(a) + radiusOf(b);
-      const dx = b.pos.x - a.pos.x;
-      const dz = b.pos.z - a.pos.z;
-      const d = Math.hypot(dx, dz);
-      if (d >= min) continue;
-      // The heavier gives way less.
-      const wa = radiusOf(b) / min;
-      const nx = d > 1e-4 ? dx / d : 1;
-      const nz = d > 1e-4 ? dz / d : 0;
-      a.pos.x -= nx * (min - d) * wa;
-      a.pos.z -= nz * (min - d) * wa;
-      b.pos.x += nx * (min - d) * (1 - wa);
-      b.pos.z += nz * (min - d) * (1 - wa);
-    }
-  }
-  for (const e of enemies) if (isLive(e) && grounded(e)) pushOutOfWalls(nav[ENEMY_STATS[e.kind]().size], e.pos, radiusOf(e));
-}
-
-const shove = new Vector3();
-/** Passes over the enemies when pushing the player out (squeezed between two, one push can land in the other). */
-const PUSH_PASSES = 3;
-
-/** The player can't walk through an enemy: pushed out of any it overlaps, through the collision world (so never into
- *  a wall). */
-export function pushPlayerOut(player: PlayerState, enemies: Enemy[], world: CollisionWorld, radius: number, out: MoveResult) {
-  for (let pass = 0; pass < PUSH_PASSES; pass++) {
-    for (const e of enemies) {
-      if (!isLive(e) || e.phase === 'held') continue;
-      const min = radiusOf(e) + radius;
-      const dx = player.pos.x - e.pos.x;
-      const dz = player.pos.z - e.pos.z;
-      const d = Math.hypot(dx, dz);
-      if (d >= min || player.pos.y > e.pos.y + ENEMY_STATS[e.kind]().height || player.pos.y + 1 < e.pos.y) continue;
-      const nx = d > 1e-4 ? dx / d : 1;
-      const nz = d > 1e-4 ? dz / d : 0;
-      shove.set(nx * (min - d), 0, nz * (min - d));
-      world.movePlayer(player.pos, shove, player.sliding, out);
-    }
-  }
 }

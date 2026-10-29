@@ -26,7 +26,7 @@ import { lavaStep } from '../sim/dungeon/lava';
 import { execHeld } from '../sim/combat/execution';
 import { followHeld } from './execView';
 import { hpBonusOf, moveFactor } from '../sim/items/items';
-import { pushPlayerOut } from '../sim/enemies/enemy';
+import { pushPlayerOut } from '../sim/enemies/bodies';
 import { BODY } from '../sim/player/body';
 import { checkHazards } from '../sim/player/hazards';
 import { killPlayer, updateHealth } from '../sim/player/health';

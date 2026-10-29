@@ -5,10 +5,15 @@
 // world for what needs a clear line in the air (a dive, a cast).
 // Update 0.0.15 — the Demon, and a dead boss's death show (its body is placed until it bursts).
 // Update 0.0.18 — floor 2's: the Slime, the Frog, the Snake, the Wasp, the Spider and the Blue Demon.
+// Update 0.1.15 — attack tokens (tokens.ts): dealt before anyone moves; a close fighter without one, near you, waits its
+// turn on a ring instead of its own moves. Then each one's angle round you (spread.ts): coming at you, it fans out.
 import type { CollisionWorld } from '../collisionWorld';
 import type { PlayerState } from '../player/state';
 import { updateFlow } from './chase';
-import { beginTick, Enemy, EnemyWorld, isLive, separateEnemies } from './enemy';
+import { beginTick, Enemy, EnemyWorld, isLive } from './enemy';
+import { separateEnemies } from './bodies';
+import { dealTokens, wait, waits } from './tokens';
+import { fanOut, spreadSlots } from './spread';
 import { updateBrute } from './brute';
 import { doomDemon, updateDemon } from './demon';
 import { updateBlueDemon } from './blueDemon';
@@ -60,11 +65,16 @@ export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWor
   updateFlow(w.flow.small, w.nav.small, player.pos.x, player.pos.z);
   if (large) updateFlow(w.flow.large, w.nav.large, player.pos.x, player.pos.z);
   if (air) updateFlow(w.flow.air, w.nav.air, player.pos.x, player.pos.z);
+  dealTokens(enemies, player, dt);
+  spreadSlots(enemies, player);
   for (let i = 0; i < enemies.length; i++) {
     const e = enemies[i];
     // (Update 0.1.1 — one held in an execution is placed by it.)
-    if (beginTick(e, w.nav[ENEMY_STATS[e.kind]().size], dt) && e.phase !== 'held') UPDATE[e.kind](e, i, player, w, dt, world);
-    else if (e.alive && e.phase === 'dead') DOOM[e.kind]?.(e, i, w);
+    if (beginTick(e, w.nav[ENEMY_STATS[e.kind]().size], dt) && e.phase !== 'held') {
+      if (waits(e, player)) wait(e, player, w, dt);
+      else UPDATE[e.kind](e, i, player, w, dt, world);
+      fanOut(e, player, w, dt);
+    }    else if (e.alive && e.phase === 'dead') DOOM[e.kind]?.(e, i, w);
   }
   separateEnemies(enemies, w.nav);
 }
