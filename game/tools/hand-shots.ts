@@ -3,6 +3,7 @@
 // weapon's grip; and pov.json: the fists and weapons as you see them (the guard, each jab at full stretch, a charge, the
 // charged punch, each weapon ready). Meshes are written out in each shot's own camera for Blender
 // (tools/blender/render_view.py; render pov.json the same way).
+// Update 0.1.9 — the Dual Daggers: a dagger in each fist, both grips up close.
 //   npx tsx tools/hand-shots.ts <out folder>
 //   VARIANTS="name:x,y,z,x,y,z;…" npx tsx tools/hand-shots.ts <out folder>   (the fist's thumb tried each way: front and
 //   palm views of each, to pick one)
@@ -13,6 +14,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ArmsRig } from '../src/engine/viewmodel/armsRig';
 import { Viewmodel } from '../src/engine/viewmodel/viewmodel';
+import { MOVES } from '../src/engine/viewmodel/weaponMoves';
+import type { Side } from '../src/engine/viewmodel/guard';
 import { WEAPON_URL } from '../src/engine/weaponsView';
 import type { WeaponKind } from '../src/sim/weapons/catalog';
 import { createPlayer } from '../src/sim/player/state';
@@ -68,6 +71,7 @@ async function arms(kind?: WeaponKind) {
     const w = await load(`../public${WEAPON_URL[kind]}`);
     const held = w.scene.clone();
     held.userData.kind = kind;
+    if (MOVES[kind].pair) held.userData.pair = w.scene.clone();
     vm.setWeapon(held);
   }
   const p = createPlayer(0, 0, 0, 0);
@@ -84,12 +88,13 @@ const fwd = new THREE.Vector3();
 const side = new THREE.Vector3();
 const at = new THREE.Vector3();
 
-/** A camera `dist` m from the right fist's middle, along `dir` (built from its forward, back and index-side ways). */
-function look(vm: Viewmodel, rig: ArmsRig, scene: THREE.Object3D, how: (f: THREE.Vector3, b: THREE.Vector3, s: THREE.Vector3) => THREE.Vector3, dist = 0.32) {
-  rig.handFrame('R', wrist, knuckle, back);
+/** A camera `dist` m from a fist's middle (the right's, or `hand`), along `dir` (built from its forward, back and
+ *  index-side ways). */
+function look(vm: Viewmodel, rig: ArmsRig, scene: THREE.Object3D, how: (f: THREE.Vector3, b: THREE.Vector3, s: THREE.Vector3) => THREE.Vector3, dist = 0.32, hand: Side = 'R') {
+  rig.handFrame(hand, wrist, knuckle, back);
   fwd.subVectors(knuckle, wrist).normalize();
-  scene.getObjectByName('Index2R')!.getWorldPosition(side);
-  side.sub(scene.getObjectByName('Pinky2R')!.getWorldPosition(v)).normalize();
+  scene.getObjectByName(`Index2${hand}`)!.getWorldPosition(side);
+  side.sub(scene.getObjectByName(`Pinky2${hand}`)!.getWorldPosition(v)).normalize();
   at.copy(wrist).lerp(knuckle, 0.75).addScaledVector(back, -0.02);
   const cam = new THREE.PerspectiveCamera(FOV, 1, 0.01, 5);
   vm.scene.add(cam);
@@ -124,10 +129,13 @@ if (variants.length) {
   vm.camera.updateMatrixWorld(true);
   shots.push({ name: 'guard', meshes: grab(vm.scene, vm.camera) });
 }
-for (const kind of ['sword', 'goldAxe', 'hammer'] as const) {
+for (const kind of ['sword', 'goldAxe', 'hammer', 'daggers'] as const) {
   const { vm, rig, scene } = await arms(kind);
   shots.push({ name: `grip_${kind}_thumb`, meshes: look(vm, rig, scene, (f, b, s) => s.addScaledVector(f, 0.3).addScaledVector(b, 0.2), 0.36) });
   shots.push({ name: `grip_${kind}_palm`, meshes: look(vm, rig, scene, (f, b, s) => f.multiplyScalar(0.4).addScaledVector(b, -1).addScaledVector(s, -0.4), 0.36) });
+  if (!MOVES[kind].pair) continue;
+  shots.push({ name: `grip_${kind}_left_thumb`, meshes: look(vm, rig, scene, (f, b, s) => s.addScaledVector(f, 0.3).addScaledVector(b, 0.2), 0.36, 'L') });
+  shots.push({ name: `grip_${kind}_left_palm`, meshes: look(vm, rig, scene, (f, b, s) => f.multiplyScalar(0.4).addScaledVector(b, -1).addScaledVector(s, -0.4), 0.36, 'L') });
 }
 writeFileSync(join(out, 'shots.json'), JSON.stringify({ aspect: 1, fov: FOV, shots }));
 
@@ -154,7 +162,7 @@ for (const [name, run] of MOMENTS) {
   run(vm);
   pov.push({ name: `pov_${name}`, meshes: seen(vm) });
 }
-for (const kind of ['sword', 'goldAxe', 'hammer'] as const) {
+for (const kind of ['sword', 'goldAxe', 'hammer', 'daggers'] as const) {
   const { vm } = await arms(kind);
   pov.push({ name: `pov_${kind}`, meshes: seen(vm) });
 }

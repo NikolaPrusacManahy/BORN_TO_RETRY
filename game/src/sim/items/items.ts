@@ -9,17 +9,18 @@
 // last the run); the gold sword goes into a weapon slot (slots.ts).
 // Update 0.0.18 — what each costs (the designer): a normal one 50, a better version 70, the best 100, then 15% more on
 // every floor down (rounded to whole coins).
+// Update 0.1.9 — the Dual Daggers; your run speed (`moveFactor`) counts the weapon in your hand too (theirs is +15%).
 import { ITEMS } from '../../tuning/items';
 import type { CombatState } from '../combat/state';
 import { addShield, healPlayer, maxHpOf, maxShield } from '../player/health';
 import type { PlayerState } from '../player/state';
-import { WEAPON_STATS } from '../weapons/catalog';
+import { HASTE, WEAPON_STATS } from '../weapons/catalog';
 import { giveWeapon } from '../weapons/slots';
 import { holding } from '../weapons/weapons';
 import { hasteFactor } from './bonuses';
 
-export type ItemKind = 'heart' | 'plate' | 'goldSword' | 'redRing' | 'blueRing' | 'key' | 'whiteKey' | 'goldKey' | 'goldPlate' | 'greenRing' | 'purpleRing' | 'grimoire' | 'goldAxe' | 'hammer';
-export const ITEM_KINDS: readonly ItemKind[] = ['heart', 'plate', 'goldSword', 'redRing', 'blueRing', 'key', 'whiteKey', 'goldKey', 'goldPlate', 'greenRing', 'purpleRing', 'grimoire', 'goldAxe', 'hammer'];
+export type ItemKind = 'heart' | 'plate' | 'goldSword' | 'redRing' | 'blueRing' | 'key' | 'whiteKey' | 'goldKey' | 'goldPlate' | 'greenRing' | 'purpleRing' | 'grimoire' | 'goldAxe' | 'hammer' | 'daggers';
+export const ITEM_KINDS: readonly ItemKind[] = ['heart', 'plate', 'goldSword', 'redRing', 'blueRing', 'key', 'whiteKey', 'goldKey', 'goldPlate', 'greenRing', 'purpleRing', 'grimoire', 'goldAxe', 'hammer', 'daggers'];
 export type KeyKind = 'key' | 'whiteKey' | 'goldKey';
 export const KEY_KINDS: readonly KeyKind[] = ['key', 'whiteKey', 'goldKey'];
 
@@ -90,6 +91,7 @@ export const GRADE: Record<ItemKind, Grade> = {
   grimoire: 'better',
   goldAxe: 'better',
   hammer: 'better',
+  daggers: 'better',
   redRing: 'normal',
   blueRing: 'normal',
   greenRing: 'normal',
@@ -114,6 +116,8 @@ export const damageFactor = (inv: Inventory) => 1 + ITEMS.v.purpleRing * inv.pur
 export const speedFactor = (inv: Inventory) => 1 + ITEMS.v.blueRing * inv.blueRings;
 export const attackRate = (inv: Inventory) => 1 + ITEMS.v.greenRing * inv.greenRings;
 export const hpBonusOf = (inv: Inventory) => ITEMS.v.redRingHp * inv.redRings;
+/** Update 0.1.9 — your run speed, times this: the blue rings, the blue potion and the weapon in your hand. */
+export const moveFactor = (state: CombatState) => speedFactor(state.items) * hasteFactor(state.bonuses) * (1 + (state.weapon ? HASTE[state.weapon.kind]() : 0));
 
 /** Would taking it do anything? A heart at full health or armour with a full shield wouldn't. */
 export function useful(kind: ItemKind, p: PlayerState): boolean {
@@ -139,9 +143,10 @@ export function takeItem(kind: ItemKind, p: PlayerState, state: CombatState) {
       break;
     // Update 0.1.4 — the Grimoire.
     case 'grimoire':
-    // Update 0.1.5 — the Gold Axe and the Hammer.
+    // Update 0.1.5 — the Gold Axe and the Hammer. Update 0.1.9 — the Dual Daggers.
     case 'goldAxe':
     case 'hammer':
+    case 'daggers':
       giveWeapon(state, holding(kind, WEAPON_STATS[kind]().uses), p.pos);
       break;
     case 'redRing':
@@ -165,6 +170,6 @@ export function takeItem(kind: ItemKind, p: PlayerState, state: CombatState) {
       state.items[KEY_FIELD[kind]]++;
       break;
   }
-  p.speedMul = speedFactor(state.items) * hasteFactor(state.bonuses);
+  p.speedMul = moveFactor(state);
   state.events.push('item', ITEM_KINDS.indexOf(kind), p.pos.x, p.pos.y + 1, p.pos.z);
 }

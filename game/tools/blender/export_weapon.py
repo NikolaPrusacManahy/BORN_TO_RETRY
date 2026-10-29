@@ -8,6 +8,8 @@
 # Update 0.1.6 — `--thin TOP,RMAX,K`: the handle made K times as thick across (everything below TOP m up the weapon and
 # within RMAX m of its middle line: the haft and its wraps, not the head), so its grip is as thick as the sword's, the
 # one the fist is shaped round (thicker, it pokes through the fingers).
+# Update 0.1.9 — `--edge-out` looks only at the top half (the head or blade), so a dagger's wide guard doesn't decide
+# it: the dagger's serrated belly goes to +x, the way the knuckles face.
 #
 # Run (from game/):
 #   blender --background --disable-autoexec --python tools/blender/export_weapon.py -- \
@@ -93,7 +95,11 @@ def main():
         cx = (max(v.x for v in band) + min(v.x for v in band)) / 2
         cy = (max(v.y for v in band) + min(v.y for v in band)) / 2
         print(f'handle centre ({cx:.3f}, {cy:.3f}) from {len(band)} vertices')
-    if args.edge_out and (cx - min(v.x for v in vs)) > (max(v.x for v in vs) - cx):
+    # (The head or blade: the top half, so a dagger's guard doesn't count.)
+    top = (max(v.z for v in vs) + min(v.z for v in vs)) / 2
+    head = [v for v in vs if v.z > top]
+    wider_left = (cx - min(v.x for v in head)) > (max(v.x for v in head) - cx)
+    if args.edge_out and wider_left:
         w.data.transform(Matrix.Rotation(math.radians(180), 4, 'Z'))
         vs = [v.co.copy() for v in w.data.vertices]
         cx, cy = -cx, -cy

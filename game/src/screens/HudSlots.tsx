@@ -44,6 +44,17 @@ function HammerIcon() {
   );
 }
 
+/** Update 0.1.9 — the Dual Daggers: two short blades crossed. */
+function DaggersIcon() {
+  return (
+    <svg viewBox="0 0 32 32" className="rb-slot-icon">
+      <path d="M6 4l3-1 11 13-2.5 2.5zM26 4l-3-1-11 13 2.5 2.5z" fill="#d6dde6" stroke="#2a2018" strokeWidth="1.3" />
+      <path d="M13 21l-6 6M19 21l6 6" stroke="#6a3a3a" strokeWidth="3.2" strokeLinecap="round" />
+      <path d="M10 17l5 5M22 17l-5 5" stroke="#8a8a80" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function SwordIcon({ gold }: { gold: boolean }) {
   const blade = gold ? '#ffcf4a' : '#d6dde6';
   return (
@@ -65,7 +76,7 @@ export function WeaponSlots({ slots, slot }: { slots: (HudSlot | null)[]; slot: 
         s ? (
           <span key={i} className={`rb-slot${slot === i + 1 ? ' is-on' : ''}${s.uses <= 0 ? ' is-broken' : ''}`}>
             <i className="rb-slot-n">{i + 2}</i>
-            {s.kind === 'grimoire' ? <BookIcon /> : s.kind === 'goldAxe' ? <AxeIcon /> : s.kind === 'hammer' ? <HammerIcon /> : <SwordIcon gold={s.kind === 'goldSword'} />}
+            {s.kind === 'grimoire' ? <BookIcon /> : s.kind === 'goldAxe' ? <AxeIcon /> : s.kind === 'hammer' ? <HammerIcon /> : s.kind === 'daggers' ? <DaggersIcon /> : <SwordIcon gold={s.kind === 'goldSword'} />}
             <b className="rb-slot-uses">{s.uses}</b>
           </span>
         ) : null,

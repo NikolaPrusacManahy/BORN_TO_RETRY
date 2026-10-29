@@ -152,4 +152,9 @@ export type CombatEvent =
   | 'recall'
   | 'catch'
   | 'smash'
+  // Update 0.1.9 — the Dual Daggers' volley: a dagger thrown (value: the hand, 0 right, 1 left), one hitting something,
+  // one sticking in a wall.
+  | 'knifeThrow'
+  | 'hitKnife'
+  | 'knifeStick'
   | 'standRespawn';

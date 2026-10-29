@@ -3,10 +3,12 @@
 // Update 0.0.16 — a hand can open (its finger bones turned back by the curl cut_arms.py baked in: 1.4 rad a joint),
 // and says where it is and which way its back faces (for the key shown on the palm).
 // Update 0.1.6 — the fingers are posed live (handPose.ts): a proper punching fist, a grip round a handle, open.
+// Update 0.1.9 — a fist's hold on a weapon moved to armsHold.ts; the left fist holds one too (the Dual Daggers).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ARMS } from '../../tuning/arms';
 import { aimBone, solveElbow } from './armsMath';
+import { gripNow, gripPose, HoldRest, holdMatrix, holdOf } from './armsHold';
 import { EYE_FROM_HEAD, FIST_REACH, GUARD, REF_REACH, REST_BACK, Side } from './guard';
 import { HandBones } from './handPose';
 
@@ -59,23 +61,6 @@ interface Finger {
   rest: THREE.Quaternion;
 }
 
-/** M2 — where a held weapon sits in the right fist, worked out once from the rest pose (model space). */
-interface HoldRest {
-  hand: THREE.Bone;
-  /** The hand's rest model matrix, inverted (model space → the hand's space). */
-  handInv: THREE.Matrix4;
-  /** The hole the curled fingers make (the middle of the grip). */
-  grip: THREE.Vector3;
-  /** The hand's rest frame as the arm posing sees it: y wrist → knuckles, z the back of the hand, x = y × z. */
-  y: THREE.Vector3;
-  /** The way through the fist to the index finger's side, where a blade comes out (along ±x). */
-  thumb: THREE.Vector3;
-  /** The grip from the wrist, in that frame. */
-  offset: THREE.Vector3;
-  /** +1 if the index side is +x, −1 if it is −x. */
-  sign: number;
-}
-
 /** M2 — a sword in the hand: its grip, the way its blade points, the way its edge faces (across it), how far the blade
  *  leans in the fist towards the knuckles (radians), and the way the elbow bends out. */
 export interface SwordPose {
@@ -86,13 +71,6 @@ export interface SwordPose {
   elbow: THREE.Vector3;
 }
 
-const holdM = new THREE.Matrix4();
-const xAxis = new THREE.Vector3();
-const yAxis = new THREE.Vector3();
-const zAxis = new THREE.Vector3();
-const holdScale = new THREE.Vector3();
-const through = new THREE.Vector3();
-
 export class ArmsRig {
   readonly root: THREE.Object3D;
   /** The eye in model space (where the camera sits). */
@@ -102,7 +80,6 @@ export class ArmsRig {
   /** (Update 0.1.8 — read by slamArms.ts to straighten a wrist.) */
   readonly arms: Record<Side, ArmRest>;
   private readonly holds: Record<Side, HoldRest>;
-  private readonly hold: HoldRest;
   /** Update 0.0.16 — each hand's fingers (Update 0.1.6: posed by handPose.ts), the back of the hand in the hand bone's
    *  own space. */
   private readonly hands: Record<Side, HandBones>;
@@ -133,24 +110,9 @@ export class ArmsRig {
     this.arms = { L: arm('L'), R: arm('R') };
     find('Head').getWorldPosition(this.eye).add(EYE_FROM_HEAD);
     this.between.addVectors(this.arms.L.upper.pos, this.arms.R.upper.pos).multiplyScalar(0.5);
-    // M2 — the right fist's hold (Update 0.1.1 — and the left's: both hold an execution's tail). The fingers are baked
-    // closed, so the grip goes where they curl round: the middle of their twelve joints. The way through the fist runs
-    // from the little finger's knuckle to the index finger's.
-    const holdOf = (side: Side): HoldRest => {
-      const h = this.arms[side].hand;
-      const grip = new THREE.Vector3();
-      for (const f of ['Index', 'Middle', 'Ring', 'Pinky']) for (const j of [2, 3, 4]) grip.add(find(boneName(`${f}${j}`, side)).getWorldPosition(dir));
-      grip.divideScalar(12);
-      const y = h.dir.clone();
-      const z = REST_BACK.clone().addScaledVector(y, -REST_BACK.dot(y)).normalize();
-      const x = new THREE.Vector3().crossVectors(y, z);
-      const thumb = find(boneName('Index2', side)).getWorldPosition(new THREE.Vector3()).sub(find(boneName('Pinky2', side)).getWorldPosition(dir));
-      thumb.addScaledVector(y, -thumb.dot(y)).addScaledVector(z, -thumb.dot(z)).normalize();
-      const off = grip.clone().sub(h.pos);
-      return { hand: h.bone, handInv: h.bone.matrixWorld.clone().invert(), grip, y, thumb, offset: new THREE.Vector3(off.dot(x), off.dot(y), off.dot(z)), sign: Math.sign(thumb.dot(x)) };
-    };
-    this.holds = { L: holdOf('L'), R: holdOf('R') };
-    this.hold = this.holds.R;
+    // M2 — the right fist's hold (Update 0.1.1 — and the left's: both hold an execution's tail): armsHold.ts.
+    const holdFor = (side: Side) => holdOf((name) => find(boneName(name, side)), this.arms[side].hand.bone, this.arms[side].hand.pos, this.arms[side].hand.dir);
+    this.holds = { L: holdFor('L'), R: holdFor('R') };
     // Update 0.0.16 — the fingers: which way opens them is the way that takes the middle finger's tip from the wrist.
     const fingersOf = (side: Side): Finger[] => ['Index', 'Middle', 'Ring', 'Pinky'].flatMap((f) => [2, 3, 4].map((j) => find(boneName(`${f}${j}`, side)))).map((bone) => ({ bone, rest: bone.quaternion.clone() }));
     const thumbOf = (side: Side): Finger[] => [2, 3].map((j) => find(boneName(`Thumb${j}`, side))).map((bone) => ({ bone, rest: bone.quaternion.clone() }));
@@ -213,48 +175,26 @@ export class ArmsRig {
     backOut.copy(this.backLocal[side]).applyQuaternion(hand.getWorldQuaternion(handQ));
   }
 
-  /** M2 — the right hand's bone (a held weapon hangs off it). */
-  get holdBone(): THREE.Bone {
-    return this.hold.hand;
+  /** M2 — the right hand's bone (a held weapon hangs off it). Update 0.1.9 — or the left's (the second dagger). */
+  holdBone(side: Side = 'R'): THREE.Bone {
+    return this.holds[side].hand;
   }
 
-  /** M2 — a held weapon's matrix under the right hand's bone: its grip in the hole the fingers make (`slide` metres up
-   *  the handle from the model's origin, its middle), its blade (+y) out of the index finger's side, leaning `tilt`
-   *  (radians) towards the knuckles as a real grip crosses the palm, its edge (+x) facing the knuckles. */
-  holdMatrix(tilt: number, scale: number, slide: number, into: THREE.Matrix4): THREE.Matrix4 {
-    const r = this.hold;
-    yAxis.copy(r.thumb).multiplyScalar(Math.cos(tilt)).addScaledVector(r.y, Math.sin(tilt));
-    xAxis.copy(r.y).multiplyScalar(Math.cos(tilt)).addScaledVector(r.thumb, -Math.sin(tilt));
-    zAxis.crossVectors(xAxis, yAxis);
-    holdM.makeBasis(xAxis, yAxis, zAxis).scale(holdScale.setScalar(scale));
-    holdM.setPosition(through.copy(r.grip).addScaledVector(yAxis, -slide));
-    return into.multiplyMatrices(r.handInv, holdM);
+  /** M2 — a held weapon's matrix under the hand's bone (armsHold.ts). Update 0.1.9 — either hand's. */
+  holdMatrix(tilt: number, scale: number, slide: number, into: THREE.Matrix4, side: Side = 'R'): THREE.Matrix4 {
+    return holdMatrix(this.holds[side], tilt, scale, slide, into);
   }
 
   /** M2 — the right arm's pose that holds a sword where `sword` says (model space), for `holdMatrix` with its tilt.
    *  Exact when applied with a full wrist bend (`apply(…, 1)`). Update 0.1.1 — either arm's. */
   gripPose(sword: SwordPose, out: ArmPose, side: Side = 'R'): ArmPose {
-    const r = this.holds[side];
-    const c = Math.cos(sword.tilt);
-    const s = Math.sin(sword.tilt);
-    // Undo the tilt: the way through the fist, and the knuckles (the edge faces them).
-    through.copy(sword.blade).multiplyScalar(c).addScaledVector(sword.edge, -s);
-    out.knuckles.copy(sword.blade).multiplyScalar(s).addScaledVector(sword.edge, c);
-    xAxis.copy(through).multiplyScalar(r.sign);
-    out.back.crossVectors(xAxis, out.knuckles);
-    // The wrist sits back from the grip by the grip's rest offset, turned with the hand.
-    out.fist.copy(sword.grip).addScaledVector(xAxis, -r.offset.x).addScaledVector(out.knuckles, -r.offset.y).addScaledVector(out.back, -r.offset.z);
-    out.fist.addScaledVector(out.knuckles, FIST_REACH);
-    return out;
+    return gripPose(this.holds[side], sword, out);
   }
 
   /** Update 0.1.1 — where a fist's grip is now, and the way through it to the index finger's side (world space of the
    *  arms' scene). */
   gripNow(side: Side, at: THREE.Vector3, through: THREE.Vector3) {
-    const r = this.holds[side];
-    holdM.multiplyMatrices(r.hand.matrixWorld, r.handInv);
-    at.copy(r.grip).applyMatrix4(holdM);
-    through.copy(r.thumb).transformDirection(holdM);
+    gripNow(this.holds[side], at, through);
   }
 
   /** How far this arm reaches (upper arm + forearm). */

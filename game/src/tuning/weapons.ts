@@ -2,6 +2,7 @@
 // tunes (M2_COMBAT_SANDBOX.md).
 // Update 0.1.4 — the Grimoire's fire (MD_UPDATES/U014_GRIMOIRE.md).
 // Update 0.1.5 — the Gold Axe and the Hammer (MD_UPDATES/U015_AXE_HAMMER.md).
+// Update 0.1.9 — the Dual Daggers (MD_UPDATES/U019_DAGGERS.md).
 import { group, knob } from './schema';
 
 export const WEAPONS = group('weapons', 'Weapons', {
@@ -79,4 +80,26 @@ export const WEAPONS = group('weapons', 'Weapons', {
   waveSpeed: knob(24, 4, 80, 1, 'Shockwave speed', 'How fast it rolls out (m/s).'),
   waveReach: knob(30, 2, 80, 1, 'Shockwave reach', 'How far it rolls (m): across the room.'),
   waveHeight: knob(2.5, 0.5, 8, 0.1, 'Shockwave height', 'How high over the floor it hurts (m): fliers above it are spared.'),
+  // Update 0.1.9 — the designer: one in each hand, very fast hits, they last very long, +15% move speed while held; and
+  // mainly thrown: right click held about 3 s throws a stream of 20 in a steady rhythm (the Trickster's Main Event in
+  // Dead by Daylight). It replaces the first build's twin stab.
+  // (Then the designer: 100 daggers to a pair, 25 a volley, held 1.5 s; thrown half as fast, then back to 0.12 s.)
+  daggerUses: knob(100, 1, 400, 1, 'Daggers uses', 'Daggers a pair holds: each thrown is one, and each cut that lands.'),
+  // (The designer: the cuts hit no harder than the fists' jabs (10); doubled: a dummy breaks in 3, a grunt in 2.)
+  daggerDamage: knob(20, 1, 100, 1, 'Dagger cut damage', 'Per cut that lands (right, left, right…).'),
+  daggerKnock: knob(3, 0, 40, 0.5, 'Dagger cut knock', 'How hard a cut pushes (m/s): little, so you stay on them.'),
+  daggerReach: knob(3.1, 1, 5, 0.05, 'Dagger reach', 'How far a cut reaches from the eye (m).'),
+  daggerWidth: knob(0.7, 0.2, 2, 0.05, 'Dagger width', 'How wide a cut sweeps (m).'),
+  daggerInterval: knob(0.15, 0.05, 1, 0.01, 'Dagger cut interval', 'Seconds between cuts while left click is held (the hands take turns).'),
+  volleyCharge: knob(1.5, 0.3, 8, 0.1, 'Volley charge', 'Seconds of right click before the daggers start to fly (letting go sooner calls it off).'),
+  volleyStance: knob(0.25, 0.05, 2, 0.05, 'Volley stance', 'Seconds for the hands to come up into the throwing stance as right click goes down.'),
+  volleyCount: knob(25, 1, 100, 1, 'Volley daggers', 'Daggers thrown in one volley (each is a use).'),
+  volleyInterval: knob(0.12, 0.03, 0.8, 0.01, 'Volley rhythm', 'Seconds between daggers in a volley (the hands take turns).'),
+  knifeDamage: knob(20, 1, 200, 1, 'Thrown dagger damage', 'Each thrown dagger that hits.'),
+  knifeKnock: knob(4, 0, 40, 0.5, 'Thrown dagger knock', 'How hard each pushes what it hits (m/s).'),
+  knifeSpeed: knob(50, 10, 120, 1, 'Thrown dagger speed', 'How fast they fly (m/s).'),
+  knifeLife: knob(1.2, 0.2, 4, 0.1, 'Thrown dagger range', 'Seconds one flies before it drops away.'),
+  knifeRadius: knob(0.25, 0.05, 1, 0.05, 'Thrown dagger width', 'How near it must pass to hit (m).'),
+  knifeStick: knob(1.5, 0, 6, 0.1, 'Dagger in the wall', 'Seconds a thrown dagger stays stuck where it hit a wall.'),
+  daggerSpeed: knob(0.15, 0, 1, 0.01, 'Daggers run speed', 'Extra run speed while the daggers are in your hand (0.15: +15%).'),
 });

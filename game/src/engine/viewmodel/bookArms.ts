@@ -157,8 +157,8 @@ export class BookArms {
     z.addScaledVector(y, -z.dot(y)).normalize();
     x.crossVectors(y, z);
     book.makeBasis(x.multiplyScalar(BOOK_SCALE), y.multiplyScalar(BOOK_SCALE), z.multiplyScalar(BOOK_SCALE)).setPosition(a);
-    rig.holdBone.updateWorldMatrix(true, false);
-    return into.multiplyMatrices(inv.copy(rig.holdBone.matrixWorld).invert(), book);
+    rig.holdBone().updateWorldMatrix(true, false);
+    return into.multiplyMatrices(inv.copy(rig.holdBone().matrixWorld).invert(), book);
   }
 
   /** The ball's size now (m). */

@@ -104,6 +104,16 @@ export class CombatFeedback {
         case 'chargeStart':
           if (this.f.arms.armed) this.f.arms.sword('ready');
           break;
+        // Update 0.1.9 — the Dual Daggers' volley: a hand whips a dagger away; one strikes; one sticks in a wall.
+        case 'knifeThrow':
+          this.f.arms.toss(e.value);
+          break;
+        case 'hitKnife':
+          this.hit(0.8, fb.shakeJab * 0.5, fb.kickJab * 0.4, 'hit');
+          break;
+        case 'knifeStick':
+          this.f.sparks.spawn(at, back, 5, 0.7);
+          break;
         case 'hitSlash':
           this.hit(1.3, fb.shakeJab * 1.4, fb.kickJab * 1.2, 'hit');
           break;

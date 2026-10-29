@@ -8,7 +8,9 @@
 // Update 0.0.17 — a kill bonus taken (its own sound each), a hit that freezes (a crack of ice), a weapon swap (a draw).
 // Update 0.0.18 — floor 2's enemies are in foeSounds.ts, its boss in dragonSounds.ts. Update 0.1.1 — executions in
 // execSounds.ts.
+// Update 0.1.9 — a slash says whose it is: the Dual Daggers' cut is a short, high swish.
 import type { CombatEvent } from '../sim/combat/state';
+import { WEAPON_KINDS } from '../sim/weapons/catalog';
 import { FISTS } from '../tuning/combat';
 import { ENEMIES } from '../tuning/enemies';
 import { FOES } from '../tuning/foes';
@@ -84,7 +86,8 @@ export class CombatSounds {
         tone(a, { from: 400, to: 800, dur: 0.12, gain: 0.08 * far, type: 'triangle' });
         break;
       case 'slash':
-        noise(a, { dur: 0.16, gain: 0.2, filter: 'bandpass', from: 2400, to: 700, q: 1.3 });
+        if (WEAPON_KINDS[value] === 'daggers') noise(a, { dur: 0.08, gain: 0.15, filter: 'bandpass', from: 4200, to: 1500, q: 1.6 });
+        else noise(a, { dur: 0.16, gain: 0.2, filter: 'bandpass', from: 2400, to: 700, q: 1.3 });
         break;
       case 'pierce':
         // A thrust: short and rising, where a slash falls.

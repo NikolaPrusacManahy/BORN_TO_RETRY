@@ -14,6 +14,7 @@ import { HeldWeapon, Pickup, Stand, Thrown, createPickups, createStands, createT
 import { Fireball, createFireballs } from '../weapons/fireballs';
 import { KiCharge, createKi } from '../weapons/kiCharge';
 import { SmashWave, createSmashWaves } from '../weapons/smashWaves';
+import { Knife, Volley, createKnives, createVolley } from '../weapons/knives';
 import type { CombatEvent } from './events';
 import { createFlow, Flow } from '../enemies/chase';
 import { createEnemies, Enemy } from '../enemies/enemy';
@@ -69,6 +70,9 @@ export interface CombatState {
   /** Update 0.1.5 — the Hammer's shockwaves rolling over the floor; right click still held from calling the axe back
    *  (it charges nothing until let go). Update 0.1.7 — a full smash let go in the air, held till you land. */
   smashWaves: SmashWave[];
+  /** Update 0.1.9 — the Dual Daggers' volley (right click held) and its daggers in flight or stuck in walls. */
+  volley: Volley;
+  knives: Knife[];
   recallHeld: boolean;
   smashHeld: boolean;
   rng: Rng;
@@ -128,6 +132,8 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     fireballs: createFireballs(),
     ki: createKi(),
     smashWaves: createSmashWaves(),
+    volley: createVolley(),
+    knives: createKnives(),
     recallHeld: false,
     smashHeld: false,
     rng: createRng(LAB_SEED),
@@ -169,6 +175,8 @@ export function resetCombat(state: CombatState, arena: Arena) {
   for (const f of state.fireballs) f.alive = false;
   state.ki = createKi();
   for (const w of state.smashWaves) w.alive = false;
+  state.volley = createVolley();
+  for (const k of state.knives) k.alive = false;
   state.recallHeld = false;
   state.smashHeld = false;
   state.stands = createStands(arena.stands);

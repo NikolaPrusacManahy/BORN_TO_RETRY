@@ -50,6 +50,12 @@ blender --background --disable-autoexec --python tools/blender/export_weapon.py 
 
 Update 0.1.6: `--thin TOP,RMAX,K` makes the handle (below TOP m, within RMAX m of its middle line: not the head) K times as thick across, so the wrapped grip is no thicker as held than the sword's (radius ≈ 21 mm), the size the fist is shaped round. Put the hand on the weapon's wrapped grip (its `LightWood` wraps): `test-weapon-arms.ts` checks both.
 
+Update 0.1.9: the Dual Daggers' dagger, its serrated belly (the edge) to the knuckles. `--edge-out` now looks only at the top half (the head or blade), so the dagger's wide guard doesn't decide it. At 0.8 m (the designer: 1.6× the first 0.5) its handle and pommel are thinned to the sword's grip. `items.glb` has one too (`item_daggers`, 0.96 m), crossed with a second in the game:
+
+```
+blender --background --disable-autoexec --python tools/blender/export_weapon.py -- --blend "<Ultimate RPG Pack>/Dagger.blend" --glb public/models/weapons/dagger.glb --length 0.8 --previews <folder> --handle-center --edge-out --thin 0.113,0.04,0.75
+```
+
 Each weapon then gets its own moves (`engine/viewmodel/weaponMoves.ts`): look at them with `npx tsx tools/weapon-shots.ts <kind> <folder>` and `render_view.py`.
 Exports one weapon with its origin in the middle of the grip, the blade (or head) pointing up and the edge across x, scaled to a set length. The grip is found from the shape: past the pommel, up the narrow handle to where the guard (or the head) widens.
 

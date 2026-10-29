@@ -62,6 +62,7 @@ const WEAPONS: [WeaponKind, string][] = [
   ['grimoire', 'Grimoire'],
   ['goldAxe', 'Gold axe'],
   ['hammer', 'Hammer'],
+  ['daggers', 'Dual daggers'],
 ];
 const COUNTS = [1, 3, 5];
 const FLOORS = [1, 2, 3];

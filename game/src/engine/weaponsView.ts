@@ -8,17 +8,21 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { CombatState } from '../sim/combat/state';
 import type { WeaponKind } from '../sim/weapons/catalog';
 import { PICKUP_POOL, THROWN_POOL } from '../sim/weapons/weapons';
+import { crossedPair } from './pairLook';
 import type { Viewmodel } from './viewmodel/viewmodel';
+import { MOVES } from './viewmodel/weaponMoves';
 
 export const SWORD_URL = '/models/weapons/sword.glb';
 // Update 0.1.4 — the Grimoire: the pack's Book3_Open (grimoire.glb, export_book.py), held open in the right hand.
 // Update 0.1.5 — the Gold Axe (Axe_small_Golden) and the Hammer (Hammer_Double), export_weapon.py.
+// Update 0.1.9 — the Dual Daggers: the pack's Dagger, one in each hand; lying and flying, the two crossed (pairLook.ts).
 export const WEAPON_URL: Record<WeaponKind, string> = {
   sword: SWORD_URL,
   goldSword: '/models/weapons/gold_sword.glb',
   grimoire: '/models/weapons/grimoire.glb',
   goldAxe: '/models/weapons/gold_axe.glb',
   hammer: '/models/weapons/hammer.glb',
+  daggers: '/models/weapons/dagger.glb',
 };
 const KINDS = Object.keys(WEAPON_URL) as WeaponKind[];
 /** A weapon lying in reach floats this high above the floor (m) and turns this fast (rad/s). */
@@ -114,9 +118,12 @@ export class WeaponsView {
         m.roughness = 0.5;
       }
     });
+    // (Update 0.1.9 — a pair lies and flies crossed.)
+    const paired = MOVES[kind].pair !== null;
+    const look = paired ? crossedPair(model) : model;
     const copies = (n: number) =>
       Array.from({ length: n }, () => {
-        const c = model.clone();
+        const c = look.clone();
         c.visible = false;
         this.group.add(c);
         return c;
@@ -128,6 +135,8 @@ export class WeaponsView {
     if (kind === 'grimoire') this.held[kind]!.userData.hold = 'book';
     // Update 0.1.5 — the arms play this weapon's own moves (viewmodel/weaponMoves.ts).
     this.held[kind]!.userData.kind = kind;
+    // Update 0.1.9 — the second of a pair, for the left fist (viewmodel/offHand.ts).
+    if (paired) this.held[kind]!.userData.pair = model.clone();
   }
 
   update(state: CombatState, dt: number) {

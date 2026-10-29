@@ -2,7 +2,9 @@
 // game's own arms (Viewmodel, weaponMoves.ts) hold the real model at a few moments (ready, a swing's wind, contact and
 // end, the charge, the charged blow, a throw's draw), and the posed meshes are written out for Blender
 // (tools/blender/render_view.py). Shots are only as true as the code they run; the motion needs the game.
-//   npx tsx tools/weapon-shots.ts <goldAxe|hammer|sword> <out folder>
+// Update 0.1.9 — a pair (the Dual Daggers) holds its second in the left fist; the left hand's cut and the volley's
+// throws are shot too.
+//   npx tsx tools/weapon-shots.ts <goldAxe|hammer|sword|daggers> <out folder>
 //   blender --background --python tools/blender/render_view.py -- --json <out folder>/shots.json --out <out folder>
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -10,6 +12,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ArmsRig } from '../src/engine/viewmodel/armsRig';
 import { Viewmodel } from '../src/engine/viewmodel/viewmodel';
+import { MOVES } from '../src/engine/viewmodel/weaponMoves';
 import { WEAPON_URL } from '../src/engine/weaponsView';
 import type { WeaponKind } from '../src/sim/weapons/catalog';
 import { createPlayer } from '../src/sim/player/state';
@@ -60,6 +63,8 @@ function play(vm: Viewmodel, p: P, secs: number, charge = -1) {
 }
 /** Into a swing until its path is `k` of the way (the swing eases out: 1 − (1 − x)³). */
 const swingTo = (k: number) => (vm: Viewmodel, p: P) => (vm.slash(), play(vm, p, vm.swordAnim.moves.swing() * (1 - Math.cbrt(1 - k))));
+/** A pair's second cut (the left hand's) until its path is `k` of the way, a cut after the right's. */
+const leftTo = (k: number) => (vm: Viewmodel, p: P) => (vm.slash(), play(vm, p, WEAPONS.v.daggerInterval), vm.slash(), play(vm, p, vm.off.moves.swing() * (1 - Math.cbrt(1 - k))));
 
 const MOMENTS: { name: string; run: (vm: Viewmodel, p: P) => void }[] = [
   { name: 'ready', run: () => {} },
@@ -70,6 +75,14 @@ const MOMENTS: { name: string; run: (vm: Viewmodel, p: P) => void }[] = [
   { name: 'blow', run: (vm, p) => (play(vm, p, 0.6, 1), vm.sword('pierce'), play(vm, p, vm.swordAnim.moves.out())) },
   { name: 'throw_draw', run: (vm, p) => (vm.sword('throw'), play(vm, p, WEAPONS.v.throwWindup * 0.6)) },
 ];
+if (MOVES[kind].pair) {
+  MOMENTS.push({ name: 'left_wind', run: leftTo(0.25) }, { name: 'left_contact', run: leftTo(0.5) }, { name: 'left_end', run: leftTo(1) });
+  // The volley: a throw from the right (the dagger gone from it), then the left's a beat later.
+  const toss = (vm: Viewmodel, p: P) => (play(vm, p, 0.6, 1), vm.toss(0), play(vm, p, vm.swordAnim.moves.out(), 1));
+  // (Right click going down: each dagger half-way through turning over to be held by the tip.)
+  MOMENTS.push({ name: 'flip_half', run: (vm, p) => play(vm, p, ARMS.v.daggerFlip * 0.5, 1) });
+  MOMENTS.push({ name: 'toss_right', run: toss }, { name: 'toss_left', run: (vm, p) => (toss(vm, p), play(vm, p, WEAPONS.v.volleyInterval - vm.swordAnim.moves.out(), 1), vm.toss(1), play(vm, p, vm.off.moves.out(), 1)) });
+}
 
 const shots = [];
 for (const moment of MOMENTS) {
@@ -80,6 +93,7 @@ for (const moment of MOMENTS) {
   vm.setLens(ASPECT);
   const held = weapon.scene.clone();
   held.userData.kind = kind;
+  if (MOVES[kind].pair) held.userData.pair = weapon.scene.clone();
   vm.setWeapon(held);
   const p = createPlayer(0, 0, 0, 0);
   p.grounded = true;

@@ -1,6 +1,7 @@
 // Update 0.1.5 — the Gold Axe's and the Hammer's sounds as placeholder synth (real samples replace them in M4): the axe
 // biting into a wall or the floor (a thunk), turning back for your hand (a rising whirr), caught (a slap of the haft in
 // the palm); the hammer's smash on the floor (a deep boom and a long rumble as the shockwave rolls out).
+// Update 0.1.9 — the Dual Daggers' thrown daggers.
 import type { CombatEvent } from '../sim/combat/state';
 import type { AudioEngine } from './audio';
 import { noise, tone } from './synth';
@@ -23,6 +24,17 @@ export function playWeapons(a: AudioEngine, kind: CombatEvent, _value: number, f
     case 'smash':
       tone(a, { from: 70, to: 18, dur: 0.9, gain: 0.9 });
       noise(a, { dur: 1.4, gain: 0.6, filter: 'lowpass', from: 1600, to: 40 });
+      return true;
+    // Update 0.1.9 — the Dual Daggers' volley: each throw a quick zip, a hit a short stab, one in a wall a tink.
+    case 'knifeThrow':
+      noise(a, { dur: 0.07, gain: 0.14, filter: 'bandpass', from: 3600, to: 1800, q: 2 });
+      return true;
+    case 'hitKnife':
+      tone(a, { from: 520, to: 180, dur: 0.07, gain: 0.18 * far, type: 'square' });
+      noise(a, { dur: 0.05, gain: 0.22 * far, filter: 'highpass', from: 3200, to: 1400 });
+      return true;
+    case 'knifeStick':
+      tone(a, { from: 2400, to: 1700, dur: 0.06, gain: 0.08 * far, type: 'triangle' });
       return true;
     default:
       return false;

@@ -27,6 +27,7 @@ import './test-sword';
 import './test-grimoire';
 import './test-axe-hammer';
 import './test-weapon-arms';
+import './test-daggers';
 import './test-hands';
 import './test-shop';
 import './test-keys';

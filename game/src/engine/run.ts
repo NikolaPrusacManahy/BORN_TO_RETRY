@@ -31,8 +31,7 @@ import { lavaStep } from '../sim/dungeon/lava';
 import { execHeld } from '../sim/combat/execution';
 import { followHeld } from './execView';
 import { LabCommand, runLab } from '../sim/lab/labCommands';
-import { hpBonusOf, KeyKind, speedFactor } from '../sim/items/items';
-import { hasteFactor } from '../sim/items/bonuses';
+import { hpBonusOf, KeyKind, moveFactor } from '../sim/items/items';
 import { pushPlayerOut } from '../sim/enemies/enemy';
 import { BODY } from '../sim/player/body';
 import { checkHazards } from '../sim/player/hazards';
@@ -211,7 +210,8 @@ export class Run {
       readPlayerIntent(input, this.look, this.intent, free);
       readCombatIntent(input, this.look, this.combatIntent, free);
       updateHealth(p, stepDt);
-      p.speedMul = speedFactor(this.combat.items) * hasteFactor(this.combat.bonuses);
+      // (Update 0.1.9 — and the weapon in your hand: the Dual Daggers' +15%.)
+      p.speedMul = moveFactor(this.combat);
       p.hpBonus = hpBonusOf(this.combat.items);
       const ci = this.combatIntent;
       if (stepTreasure(this.treasure, p, this.combat, ci.interactPressed, ci.switchKeyPressed, this.fighting, stepDt)) ci.interactPressed = false;

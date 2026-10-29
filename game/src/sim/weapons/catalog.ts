@@ -8,20 +8,27 @@
 // click, like Thor's hammer: `RETURNS`, weapons/recall.ts) and the Hammer (heavy and slow, both hands; its charged
 // blow smashes the floor and a shockwave rolls across the room: `SMASHES`, weapons/smashWaves.ts).
 // Update 0.1.6 — the axe's right click charges its throw (weapons/axeThrow.ts), so it has no charged blow of its own.
+// Update 0.1.9 — the Dual Daggers (the designer: one in each hand, very fast hits, they last very long, +15% move speed
+// while held: `HASTE`). Their cuts are the sword's swing with their own numbers; right click held throws a volley of
+// them (`VOLLEYS`, weapons/knives.ts).
 import { ITEMS } from '../../tuning/items';
 import { WEAPONS } from '../../tuning/weapons';
 
-export type WeaponKind = 'sword' | 'goldSword' | 'grimoire' | 'goldAxe' | 'hammer';
-export const WEAPON_KINDS: readonly WeaponKind[] = ['sword', 'goldSword', 'grimoire', 'goldAxe', 'hammer'];
+export type WeaponKind = 'sword' | 'goldSword' | 'grimoire' | 'goldAxe' | 'hammer' | 'daggers';
+export const WEAPON_KINDS: readonly WeaponKind[] = ['sword', 'goldSword', 'grimoire', 'goldAxe', 'hammer', 'daggers'];
 
 /** What the HUD calls each weapon. */
-export const WEAPON_NAME: Record<WeaponKind, string> = { sword: 'Sword', goldSword: 'Gold Sword', grimoire: 'Grimoire', goldAxe: 'Gold Axe', hammer: 'Hammer' };
+export const WEAPON_NAME: Record<WeaponKind, string> = { sword: 'Sword', goldSword: 'Gold Sword', grimoire: 'Grimoire', goldAxe: 'Gold Axe', hammer: 'Hammer', daggers: 'Dual Daggers' };
 /** Update 0.1.4 — it casts fire (left click a fireball, right click held a charged one) rather than swinging. */
-export const CASTS: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: true, goldAxe: false, hammer: false };
+export const CASTS: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: true, goldAxe: false, hammer: false, daggers: false };
 /** Update 0.1.5 — thrown with right click, it stays where it lands (it doesn't break) and right click calls it back. */
-export const RETURNS: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: false, goldAxe: true, hammer: false };
+export const RETURNS: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: false, goldAxe: true, hammer: false, daggers: false };
 /** Update 0.1.5 — its charged blow smashes the floor: a shockwave rolls out across the room. */
-export const SMASHES: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: false, goldAxe: false, hammer: true };
+export const SMASHES: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: false, goldAxe: false, hammer: true, daggers: false };
+/** Update 0.1.9 — right click held charges a volley of thrown daggers (knives.ts) rather than a charged blow. */
+export const VOLLEYS: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: false, goldAxe: false, hammer: false, daggers: true };
+/** Update 0.1.9 — extra run speed while it's in your hand (0.15: +15%). */
+export const HASTE: Record<WeaponKind, () => number> = { sword: () => 0, goldSword: () => 0, grimoire: () => 0, goldAxe: () => 0, hammer: () => 0, daggers: () => WEAPONS.v.daggerSpeed };
 
 export interface WeaponStats {
   name: string;
@@ -73,5 +80,10 @@ export const WEAPON_STATS: Record<WeaponKind, () => WeaponStats> = {
   hammer: () => {
     const v = WEAPONS.v;
     return { name: WEAPON_NAME.hammer, damage: v.hammerDamage, knock: v.hammerKnock, reach: v.hammerReach, width: v.hammerWidth, interval: v.hammerInterval, pierceDamage: v.smashDamage, pierceKnock: v.smashKnock, pierceReach: v.hammerReach, pierceWidth: v.smashWidth, pierceUses: v.smashUses, uses: v.hammerUses };
+  },
+  daggers: () => {
+    const v = WEAPONS.v;
+    // (Right click throws a volley: the pierce numbers are never used.)
+    return { name: WEAPON_NAME.daggers, damage: v.daggerDamage, knock: v.daggerKnock, reach: v.daggerReach, width: v.daggerWidth, interval: v.daggerInterval, pierceDamage: v.daggerDamage, pierceKnock: v.daggerKnock, pierceReach: v.daggerReach, pierceWidth: v.daggerWidth, pierceUses: 1, uses: v.daggerUses };
   },
 };

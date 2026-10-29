@@ -17,6 +17,8 @@
 // (smashWaves.ts), and takes its uses hit or miss.
 // Update 0.1.6 — the axe's right click charges a throw that comes back (axeThrow.ts); Q throws it to break.
 // Update 0.1.7 — the Hammer's smash waits for the ground: a full charge let go in the air is held till you land.
+// Update 0.1.9 — the Dual Daggers: right click held charges a volley of thrown daggers (knives.ts; no cuts meanwhile);
+// the daggers fly after the enemies move.
 import { Vector3 } from 'three';
 import type { Spot } from '../../world/arena';
 import type { CollisionWorld } from '../collisionWorld';
@@ -27,7 +29,8 @@ import { asPierce, updateSlashes, usesFor } from '../weapons/swing';
 import { updateThrown } from '../weapons/thrown';
 import { castFireball, updateCasts, updateFireballs } from '../weapons/fireballs';
 import { dropKi, updateKi } from '../weapons/kiCharge';
-import { CASTS, RETURNS, SMASHES } from '../weapons/catalog';
+import { CASTS, RETURNS, SMASHES, VOLLEYS } from '../weapons/catalog';
+import { dropVolley, updateKnives, updateVolley, volleyBusy } from '../weapons/knives';
 import { updateAxeCharge } from '../weapons/axeThrow';
 import { axeOut, callBack } from '../weapons/recall';
 import { startWave, updateSmashWaves } from '../weapons/smashWaves';
@@ -70,8 +73,9 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   state.execTarget = execTarget(state, player, intent.yaw);
   const executing = intent.interactPressed && !throwing && tryExecute(state, player, intent.yaw, intent.pitch);
   if (execHeld(state.exec)) {
-    // The world holds still while you hold it (and a Grimoire's charge is dropped).
+    // The world holds still while you hold it (and a Grimoire's charge or a volley is dropped).
     dropKi(state.ki);
+    dropVolley(state);
     stepExecution(state, dt);
     state.money = updateCoins(state.coins, player, state.money, events, dt);
     return;
@@ -127,8 +131,11 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     fistIntent = Object.assign(HOLD_HEAVY, fistIntent);
     HOLD_HEAVY.heavyHeld = true;
   }
-  // (The Grimoire's right click is its own charge, not the fists'; the axe's charges its throw.)
-  let swung = axe ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate);
+  // (The Grimoire's right click is its own charge, not the fists'; the axe's charges its throw; the daggers' a volley.)
+  const volley = w !== null && VOLLEYS[w.kind] && !busy;
+  if (volley && w) updateVolley(state, w, player, intent.heavyHeld && player.kneel <= 0, intent.yaw, intent.pitch, dt, rate);
+  else dropVolley(state);
+  let swung = axe || volley ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate);
   if (axe && w) {
     const power = updateAxeCharge(state, intent.heavyHeld && !state.recallHeld, dt);
     if (power >= 0) {
@@ -150,7 +157,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     }
   } else dropKi(state.ki);
   if (swung && punch.kind === 'pierce' && w) asPierce(w, punch);
-  if (!swung && w && state.weapon === w && !casts && !busy && !state.fists.charging) swung = updateSlashes(w, intent, events, dt, punch, rate);
+  if (!swung && w && state.weapon === w && !casts && !busy && !state.fists.charging && !volleyBusy(state.volley)) swung = updateSlashes(w, intent, events, dt, punch, rate);
   if (swung) {
     aim(player, intent.yaw, intent.pitch, eye, dir);
     const landed = resolvePunch(punch, state, eye, dir, world);
@@ -175,6 +182,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   updateWaves(state.waves, state.enemies, spawns, player, state.rng, events, dt);
   updateThrown(state, world, player, dt);
   updateFireballs(state, world, dt);
+  updateKnives(state, world, dt);
   updateSmashWaves(state, dt);
   state.money = updateCoins(state.coins, player, state.money, events, dt);
   updateDrops(state, player, dt);

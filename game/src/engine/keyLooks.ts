@@ -2,7 +2,9 @@
 // the white key pale silver in a blue aura, the gold key gold in a yellow aura. Built once from items.glb's key and
 // cloned wherever a key shows (the shop, the floor, flying to you, in your palm).
 // Update 0.0.17 — the kill bonuses glow too: the snowflake pale blue, the gold ingots yellow, the blue potion blue.
+// Update 0.1.9 — the Dual Daggers show as two crossed (pairLook.ts).
 import * as THREE from 'three';
+import { crossedPair } from './pairLook';
 import type { KeyKind } from '../sim/items/items';
 import type { DropKind } from '../sim/items/drops';
 import type { BonusKind } from '../sim/items/bonuses';
@@ -83,11 +85,12 @@ function bonusLook(kind: BonusKind, proto: THREE.Object3D): THREE.Object3D {
   return look;
 }
 
-/** Every item's look: the keys built from the key, the rest as they come. */
+/** Every item's look: the keys built from the key, the daggers crossed, the rest as they come. */
 export function itemLooks(protos: Partial<Record<DropKind, THREE.Object3D>>): Partial<Record<DropKind, THREE.Object3D>> {
   const out = { ...protos };
   const key = protos.key;
   if (key) Object.assign(out, { key: keyLook('key', key), whiteKey: keyLook('whiteKey', key), goldKey: keyLook('goldKey', key) });
+  if (protos.daggers) out.daggers = crossedPair(protos.daggers);
   for (const kind of ['snowflake', 'goldIngots', 'bluePotion'] as BonusKind[]) {
     const p = protos[kind];
     if (p) out[kind] = bonusLook(kind, p);

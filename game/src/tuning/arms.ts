@@ -70,4 +70,18 @@ export const ARMS = group('arms', 'Arms', {
   slamDown: knob(0.06, 0.02, 0.3, 0.005, 'Slam fists down', 'Seconds for them to come down as it lands.'),
   slamHold: knob(0.14, 0, 0.5, 0.01, 'Slam fists hold', 'Seconds they stay down.'),
   slamBack: knob(0.28, 0.05, 0.8, 0.01, 'Slam fists return', 'Seconds back to the guard.'),
+  // Update 0.1.9 — the Dual Daggers' own moves, one in each hand (viewmodel/daggerPoses.ts). Then (the designer) 1.6×
+  // the size: the fists on the bigger wraps, just under the guard.
+  daggerGripSlide: knob(0.038, -0.1, 0.12, 0.002, 'Daggers in the fists', 'How far up the handle each fist holds its dagger, from the handle\'s middle (m): the wraps.'),
+  daggerSwing: knob(0.07, 0.02, 0.3, 0.005, 'Dagger cut', 'Seconds a cut takes to slash down.'),
+  daggerRecover: knob(0.14, 0.04, 0.5, 0.01, 'Dagger cut return', 'Seconds back to the ready pose after a cut.'),
+  // (The volley's throws: each hand whips over from cocked and back while the stream runs.)
+  tossOut: knob(0.05, 0.02, 0.2, 0.005, 'Dagger throw', 'Seconds a hand takes to whip over and let a dagger go.'),
+  tossHold: knob(0.02, 0, 0.2, 0.005, 'Dagger throw hold', 'Seconds it stays out.'),
+  tossBack: knob(0.15, 0.04, 0.5, 0.01, 'Dagger throw return', 'Seconds back to cocked (a new dagger in the hand half-way).'),
+  // (The designer: like the Trickster's stance, each dagger turned over to be held by the tip as right click goes down.)
+  daggerFlip: knob(0.15, 0.03, 0.6, 0.01, 'Dagger flip', 'Seconds for each dagger to turn over in the fist (held by the tip) as a volley charges, and back after.'),
+  // (The designer: tilted back about 45° towards the screen, so they look ready to be thrown. The stance already leans
+  // them back about 24°: 17 more puts each about 42° back from upright; much past that, they lie flat out of view.)
+  daggerLean: knob(17, -30, 90, 1, 'Dagger lean back', 'Degrees each dagger, turned over and held by the tip, leans back towards you in the fist.'),
 });

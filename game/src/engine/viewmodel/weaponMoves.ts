@@ -2,11 +2,14 @@
 // its key poses (ready, the swing's path, the charged blow drawn back and at full stretch, which a throw also follows),
 // its timings, where the fist holds it, and whether the left hand holds it too. SwordAnim plays whichever set the
 // weapon in hand has (its model's `userData.kind`, set by weaponsView.ts).
-import type { Object3D } from 'three';
+// Update 0.1.9 — a weapon can be a pair, one in each hand (the Dual Daggers): its `pair` is the left hand's own set,
+// which a second SwordAnim plays (offHand.ts).
+import type { Object3D, Vector3 } from 'three';
 import type { WeaponKind } from '../../sim/weapons/catalog';
 import { ARMS } from '../../tuning/arms';
 import type { SwordPose } from './armsRig';
 import { AXE_COCKED, AXE_READY, AXE_SLASH, AXE_THROWN } from './axePoses';
+import { DAGGER_COCKED, DAGGER_COCKED_L, DAGGER_CUT, DAGGER_CUT_L, DAGGER_READY, DAGGER_READY_L, DAGGER_TIP, DAGGER_TOSSED, DAGGER_TOSSED_L } from './daggerPoses';
 import { HAMMER_READY, HAMMER_SLASH, HAMMER_SMASH, HAMMER_UP } from './hammerPoses';
 import { PIERCE_OUT, PIERCE_READY, READY, SLASH } from './swordPoses';
 
@@ -31,6 +34,11 @@ export interface MoveSet {
   scale: () => number;
   /** Update 0.1.6 — how thick its handle is where the hands close on it (radius, m, as held): the fingers wrap that. */
   grip: () => number;
+  /** Update 0.1.9 — the left hand's own set when it holds a second one (null: it doesn't). */
+  pair: MoveSet | null;
+  /** Update 0.1.9 — where the fist closes once it's turned over for throwing (its model's metres; tipHold.ts), null: it
+   *  never is. */
+  tip: Vector3 | null;
 }
 
 const a = () => ARMS.v;
@@ -50,6 +58,8 @@ export const SWORD_MOVES: MoveSet = {
   hands: () => 0,
   scale: () => 1,
   grip: () => 0.019,
+  pair: null,
+  tip: null,
 };
 
 export const AXE_MOVES: MoveSet = {
@@ -67,6 +77,8 @@ export const AXE_MOVES: MoveSet = {
   hands: () => 0,
   scale: () => 1,
   grip: () => 0.019,
+  pair: null,
+  tip: null,
 };
 
 export const HAMMER_MOVES: MoveSet = {
@@ -84,10 +96,42 @@ export const HAMMER_MOVES: MoveSet = {
   hands: () => -a().hammerHands,
   scale: () => a().hammerScale,
   grip: () => 0.017,
+  pair: null,
+  tip: null,
+};
+
+/** Update 0.1.9 — the Dual Daggers: the left hand's set (the right's mirrored), and the right's, which pairs them. Their
+ *  charged blow is the volley's throw: cocked (as it charges, and between throws), whipped over (a toss). */
+const DAGGER_LEFT: MoveSet = {
+  ready: DAGGER_READY_L,
+  heavyReady: DAGGER_COCKED_L,
+  heavyOut: DAGGER_TOSSED_L,
+  slash: DAGGER_CUT_L,
+  swing: () => a().daggerSwing,
+  rest: () => 0,
+  recover: () => a().daggerRecover,
+  out: () => a().tossOut,
+  hold: () => a().tossHold,
+  back: () => a().tossBack,
+  slide: () => a().daggerGripSlide,
+  hands: () => 0,
+  scale: () => 1,
+  grip: () => 0.019,
+  pair: null,
+  tip: DAGGER_TIP,
+};
+
+export const DAGGER_MOVES: MoveSet = {
+  ...DAGGER_LEFT,
+  ready: DAGGER_READY,
+  heavyReady: DAGGER_COCKED,
+  heavyOut: DAGGER_TOSSED,
+  slash: DAGGER_CUT,
+  pair: DAGGER_LEFT,
 };
 
 /** (The Grimoire is held its own way, bookArms.ts; the sword's set stands in.) */
-export const MOVES: Record<WeaponKind, MoveSet> = { sword: SWORD_MOVES, goldSword: SWORD_MOVES, grimoire: SWORD_MOVES, goldAxe: AXE_MOVES, hammer: HAMMER_MOVES };
+export const MOVES: Record<WeaponKind, MoveSet> = { sword: SWORD_MOVES, goldSword: SWORD_MOVES, grimoire: SWORD_MOVES, goldAxe: AXE_MOVES, hammer: HAMMER_MOVES, daggers: DAGGER_MOVES };
 
 /** The moves of the weapon model in hand (the sword's if it doesn't say). */
 export function movesOf(model: Object3D | null): MoveSet {

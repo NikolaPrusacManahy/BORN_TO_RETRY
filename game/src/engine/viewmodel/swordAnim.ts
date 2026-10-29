@@ -13,7 +13,9 @@ import type { SwordPose } from './armsRig';
 import { copySword, emptySword, mixSword, slashPose } from './swordPoses';
 import { MoveSet, SWORD_MOVES } from './weaponMoves';
 
-export type SwordMove = 'ready' | 'forehand' | 'backhand' | 'pierce' | 'throw';
+// Update 0.1.9 — a toss (the Dual Daggers' volley): the charged blow's path, quicker, a dagger gone from the hand till
+// it's half-way back, and no wait for a hit.
+export type SwordMove = 'ready' | 'forehand' | 'backhand' | 'pierce' | 'throw' | 'toss';
 
 /** A new move takes over from wherever the sword was over this long (s). */
 const BLEND = 0.04;
@@ -71,6 +73,23 @@ export class SwordAnim {
   }
 
   /** Where along the slash path the sword is (0 ready … 1 resting on the left). */
+  /** Update 0.1.9 — a toss has just let its dagger go: the hand is empty until it's half-way back (it draws another). */
+  get empty(): boolean {
+    const m = this.moves;
+    return this.move === 'toss' && this.t < m.out() + m.hold() + m.back() * 0.5;
+  }
+
+  /** Update 0.1.9 — how far a toss's fingers have opened (0 … 1): out as the dagger leaves, shut round a new one by
+   *  half-way back. */
+  get letGo(): number {
+    if (this.move !== 'toss') return 0;
+    const m = this.moves;
+    const out = Math.max(1e-3, m.out());
+    if (this.t < out) return this.t / out;
+    const k = (this.t - out - m.hold()) / Math.max(1e-3, m.back() * 0.5);
+    return k <= 0 ? 1 : Math.max(0, 1 - k);
+  }
+
   get path(): number {
     return this.pathNow;
   }
@@ -123,7 +142,8 @@ export class SwordAnim {
         this.pathNow = this.pathFrom * (1 - k);
         return slashPose(m.slash, this.pathNow, out);
       }
-      case 'pierce': {
+      case 'pierce':
+      case 'toss': {
         this.pathNow = 0;
         mixSword(m.heavyReady, m.heavyOut, easeOut(clamp01(t / m.out())), out);
         const hold = m.out() + m.hold();

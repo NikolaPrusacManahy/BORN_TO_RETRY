@@ -11,13 +11,16 @@
 // wrists bent to the grip. (Update 0.1.2: every execution's.)
 // Update 0.1.5 — each weapon plays its own moves (weaponMoves.ts); the Hammer is held in both hands (twoHand.ts). The
 // fists' pose moved to fistArm.ts.
+// Update 0.1.9 — the Dual Daggers: one in each hand; the left plays its own moves and holds the second (offHand.ts).
+// The sway, bob and dips moved to armsMotion.ts.
 import * as THREE from 'three';
 import { ARMS } from '../../tuning/arms';
+import { WEAPONS } from '../../tuning/weapons';
 import type { PlayerState } from '../../sim/player/state';
-import { flatSpeed } from '../../sim/player/state';
 import { ArmPose, ArmsRig } from './armsRig';
 import { ArmsAnim, PunchStyle } from './armsAnim';
-import { mixArm, pose, PREVIEW_PITCH } from './armsMath';
+import { mixArm, pose } from './armsMath';
+import { ArmsMotion } from './armsMotion';
 import { swordArm } from './swordArm';
 import { fistArm } from './fistArm';
 import { leftGrip } from './twoHand';
@@ -28,13 +31,16 @@ import { BookArms } from './bookArms';
 import { HeldGrip, ROPE } from './heldGrip';
 import { GUARD, Side } from './guard';
 import { KeyPalm } from './palm';
+import { OffHand } from './offHand';
+import { holdWeapon, turnOpen, wrapOf } from './tipHold';
 import { SwordAnim, SwordMove } from './swordAnim';
 import { emptySword } from './swordPoses';
 
 export const ARMS_URL = '/models/arms/adventurer.glb';
-const MAX_SWAY = 0.08;
 /** How fast the charge draw-back follows the charge (per second). */
 const CHARGE_EASE = 14;
+/** Update 0.1.9 — how far a hand opens as it throws a dagger (0 … 1). */
+const RELEASE = 0.6;
 
 const ease = (rate: number, dt: number) => 1 - Math.exp(-rate * dt);
 const smooth = (x: number) => x * x * (3 - 2 * x);
@@ -50,6 +56,8 @@ export class Viewmodel {
   readonly book = new BookArms(this.scene);
   /** Update 0.1.7 — the ground slam's clasped fists. */
   readonly slam = new SlamArms();
+  /** Update 0.1.9 — the left hand's own weapon (the Dual Daggers' second). */
+  readonly off = new OffHand();
   private readonly slamPose = { L: pose(), R: pose() };
   private readonly bookPose = pose();
   private readonly reachPose = pose();
@@ -60,21 +68,20 @@ export class Viewmodel {
   private rig: ArmsRig | null = null;
   private readonly live = { L: pose(), R: pose() };
   private readonly swordArm = pose();
-  private readonly swordPose = emptySword();
+  /** The right hand's weapon's pose this frame (model space, once posed). */
+  readonly swordPose = emptySword();
   private readonly twoPose = pose();
   private readonly elbow = new THREE.Vector3();
+  private readonly elbowL = new THREE.Vector3();
   private readonly toStrike = new THREE.Vector3();
-  private swayX = 0;
-  private swayY = 0;
-  private bobPhase = 0;
-  private bobAmount = 0;
-  private dipY = 0;
-  private dipV = 0;
-  private pullZ = 0;
-  private dropY = 0;
+  private readonly motion = new ArmsMotion();
   private chargeVis = 0;
   /** M2 — 0 barehanded … 1 holding a weapon (the arms changing over in between). */
   private armedVis = 0;
+  /** Update 0.1.9 — 0 … 1: the daggers turned over to be held by the tip (while a volley charges and throws); the arms'
+   *  clock until which they're held still (a volley being thrown: the designer, no trembling then). */
+  private flip = 0;
+  private steadyUntil = 0;
   private time = 0;
   private weapon: THREE.Object3D | null = null;
 
@@ -98,7 +105,8 @@ export class Viewmodel {
   attach(rig: ArmsRig) {
     this.rig = rig;
     this.holder.add(rig.root);
-    if (this.weapon) rig.holdBone.add(this.weapon);
+    if (this.weapon) rig.holdBone().add(this.weapon);
+    this.off.attach(rig);
   }
 
   /** M2 — the weapon in the right fist (null: barehanded). A new one starts in the ready pose. */
@@ -107,10 +115,11 @@ export class Viewmodel {
     this.weapon?.removeFromParent();
     if (model) this.swordAnim.use(movesOf(model));
     if (model && !this.weapon) this.swordAnim.reset();
+    this.off.take(model?.userData.pair ?? null, model ? movesOf(model).pair : null);
     this.weapon = model;
     if (!model) return;
     model.matrixAutoUpdate = false;
-    this.rig?.holdBone.add(model);
+    this.rig?.holdBone().add(model);
   }
 
   get armed() {
@@ -144,16 +153,26 @@ export class Viewmodel {
   /** M2 — the sword arm's next move. */
   sword(move: SwordMove) {
     this.swordAnim.start(move);
+    if (this.off.active) this.off.start(move);
   }
 
-  /** M2 — a slash: the arm picks forehand or backhand from where the sword is. */
+  /** Update 0.1.9 — a dagger of the volley thrown by `hand` (0 right, 1 left). */
+  toss(hand: number) {
+    // (Still till the next throw is well due, either hand's: the stream is on.)
+    this.steadyUntil = this.time + 2 * WEAPONS.v.volleyInterval + 0.1;
+    if (hand === 1) this.off.start('toss');
+    else this.swordAnim.start('toss');
+  }
+
+  /** M2 — a slash: the arm picks forehand or backhand from where the sword is. (Update 0.1.9 — a pair's hands take
+   *  turns.) */
   slash() {
-    this.swordAnim.slash();
+    if (!this.off.active || !this.off.slash()) this.swordAnim.slash();
   }
 
   /** A landing at `speed` m/s dips the arms. */
   land(speed: number) {
-    this.dipV -= Math.min(0.12, speed * ARMS.v.landDip) * 18;
+    this.motion.land(speed);
   }
 
   /**
@@ -165,27 +184,11 @@ export class Viewmodel {
     const v = ARMS.v;
     this.anim.update(gameDt);
     this.swordAnim.update(gameDt, realDt);
+    this.off.anim.update(gameDt, realDt);
     this.slam.update(gameDt);
-
-    // Sway: the arms trail the mouse a little, then catch up. Turning right swings them left (+y turn);
-    // looking up drops them (−x turn; mouse up is negative movementY).
-    this.swayX = Math.max(-MAX_SWAY, Math.min(MAX_SWAY, (this.swayX + mouseDx * v.sway) * (1 - ease(v.swayReturn, realDt))));
-    this.swayY = Math.max(-MAX_SWAY, Math.min(MAX_SWAY, (this.swayY + mouseDy * v.sway) * (1 - ease(v.swayReturn, realDt))));
-    // Bob while running on the ground.
-    const speed = flatSpeed(p);
-    const running = p.grounded && !p.sliding && p.dashTime <= 0 && speed > 1;
-    this.bobAmount += ((running ? Math.min(1, speed / 12) : 0) - this.bobAmount) * ease(8, gameDt);
-    this.bobPhase += speed * gameDt * v.bobRate * Math.PI;
-    // Landing dip spring, dash pull and slide drop.
-    this.dipV += (-140 * this.dipY - 16 * this.dipV) * gameDt;
-    this.dipY += this.dipV * gameDt;
-    this.pullZ += ((p.dashTime > 0 ? v.dashPull : 0) - this.pullZ) * ease(14, gameDt);
-    this.dropY += ((p.sliding ? v.slideDrop : 0) - this.dropY) * ease(10, gameDt);
+    this.motion.update(gameDt, realDt, mouseDx, mouseDy, p, this.pivot, this.holder);
     this.armedVis = Math.max(0, Math.min(1, this.armedVis + ((this.weapon ? 1 : -1) * gameDt) / v.armedSwap));
-
-    this.pivot.rotation.set(PREVIEW_PITCH + this.swayY, this.swayX, 0);
-    const bob = Math.sin(this.bobPhase) * v.bob * this.bobAmount;
-    this.holder.position.set(v.viewX + bob * 0.5, v.viewY - Math.abs(bob) + this.dipY - this.dropY, v.viewZ + this.pullZ);
+    this.flip = Math.max(0, Math.min(1, this.flip + ((charge >= 0 ? 1 : -1) * gameDt) / v.daggerFlip));
 
     // Update 0.0.3 — the charge draw-back eases in and out, so a cancelled charge glides back to the guard.
     this.chargeVis += ((charge >= 0 ? charge : 0) - this.chargeVis) * ease(CHARGE_EASE, gameDt);
@@ -199,20 +202,26 @@ export class Viewmodel {
     const book = this.weapon?.userData.hold === 'book' ? armed : 0;
     const palm = this.palm.mix;
     // A weapon in the right fist (posed first: a two-handed one's haft is where the left hand goes).
-    const held = book === 0 && armed > 0 ? swordArm(rig, this.swordAnim, this.chargeVis, charge >= 1, this.time, this.swordPose, this.swordArm) : null;
+    const tremble = this.time < this.steadyUntil ? 0 : charge >= 1 ? 2 : 1;
+    const held = book === 0 && armed > 0 ? swordArm(rig, this.swordAnim, this.chargeVis, tremble, this.time, this.swordPose, this.swordArm) : null;
     const hands = held && this.swordAnim.moves.hands() !== 0 ? armed * (1 - palm) : 0;
-    const left = fistArm(rig, this.anim, this.time, 'L', this.chargeVis, charge >= 1, (armed - book - hands) * (1 - palm), this.live.L);
+    // (Put away, the second dagger's arm eases back to the guard, as the hammer's left hand does.)
+    const pair = held && this.swordAnim.moves.pair ? armed * (1 - palm) : 0;
+    const left = fistArm(rig, this.anim, this.time, 'L', this.chargeVis, charge >= 1, (armed - book - hands - pair) * (1 - palm), this.live.L);
     if (book > 0) mixArm(left, this.book.pose(rig, 'L', this.bookPose), book, left);
     if (hands > 0) mixArm(left, leftGrip(rig, this.swordPose, this.swordAnim.moves.hands(), this.twoPose), hands, left);
+    if (pair > 0) mixArm(left, this.off.pose(rig, this.chargeVis, tremble, this.time), pair, left);
     // (Update 0.1.7 — barehanded, a slam's clasped fists.)
     const clasp = this.slam.weight * (1 - armed) * (1 - reach);
     if (clasp > 0) mixArm(left, this.slam.pose(rig, 'L', this.slamPose.L), clasp, left);
     if (palm > 0) mixArm(left, this.palm.pose(rig), palm, left);
     if (reach > 0) this.toChest(rig, 'L', left, reach);
-    rig.apply('L', left, v.wristBend + (1 - v.wristBend) * Math.max(palm, book, hands, clasp, this.grip.bend('L')));
-    // (Update 0.1.6 — a fist, or the fingers round a two-handed haft or something an execution holds: handPose.ts.)
+    rig.apply('L', left, v.wristBend + (1 - v.wristBend) * Math.max(palm, book, hands, pair, clasp, this.grip.bend('L')), this.off.pole(pair, this.elbowL));
+    // (Update 0.1.6 — a fist, or the fingers round a two-handed haft, its own handle or something an execution holds:
+    // handPose.ts.)
     const moves = this.swordAnim.moves;
-    rig.openHand('L', Math.max(palm, book * this.book.open('L'), this.grip.open('L')), hands > 0 ? moves.grip() : ROPE, hands > 0 ? hands : this.grip.rope('L'), this.swordPose.tilt);
+    const wrap = pair > 0 ? wrapOf(this.off.moves, this.flip) : hands > 0 ? moves.grip() : ROPE;
+    rig.openHand('L', Math.max(palm, book * this.book.open('L'), this.grip.open('L'), pair * Math.max(RELEASE * this.off.anim.letGo, turnOpen(this.off.moves, this.flip))), wrap, Math.max(hands, pair) || this.grip.rope('L'), pair > 0 ? this.off.sword.tilt : this.swordPose.tilt);
     const right = fistArm(rig, this.anim, this.time, 'R', this.chargeVis, charge >= 1, armed, this.live.R);
     if (book > 0) {
       mixArm(right, this.book.pose(rig, 'R', this.bookPose), book, right);
@@ -226,13 +235,14 @@ export class Viewmodel {
       if (reach > 0) this.toChest(rig, 'R', right, reach);
       rig.apply('R', right, v.wristBend + (1 - v.wristBend) * Math.max(clasp, this.grip.bend('R')));
     }
-    rig.openHand('R', Math.max(book * this.book.open('R'), this.grip.open('R')), held ? moves.grip() : ROPE, held ? armed : this.grip.rope('R'), held ? this.swordPose.tilt : undefined);
+    rig.openHand('R', Math.max(book * this.book.open('R'), this.grip.open('R'), held ? Math.max(RELEASE * this.swordAnim.letGo, turnOpen(moves, this.flip)) : 0), held ? wrapOf(moves, this.flip) : ROPE, held ? armed : this.grip.rope('R'), held ? this.swordPose.tilt : undefined);
     if (this.weapon) {
-      this.weapon.visible = reach < 0.2;
+      this.weapon.visible = reach < 0.2 && !this.swordAnim.empty;
       if (book > 0) this.book.bookMatrix(rig, this.weapon.matrix);
-      else rig.holdMatrix(this.swordPose.tilt, v.weaponScale * this.swordAnim.moves.scale(), this.swordAnim.moves.slide(), this.weapon.matrix);
+      else holdWeapon(rig, moves, this.swordPose.tilt, this.flip, this.weapon.matrix);
       this.weapon.matrixWorldNeedsUpdate = true;
     }
+    this.off.place(rig, reach < 0.2 && palm < 0.2, this.flip);
     this.camera.updateMatrixWorld(true);
     this.book.update(gameDt, book, rig, this.camera);
     this.palm.place(rig);
@@ -271,9 +281,11 @@ export class Viewmodel {
   reset() {
     this.anim.reset();
     this.swordAnim.reset();
+    this.off.reset();
     this.book.clear();
     this.slam.reset();
     this.armedVis = this.weapon ? 1 : 0;
-    this.swayX = this.swayY = this.dipY = this.dipV = this.pullZ = this.dropY = this.chargeVis = 0;
+    this.motion.reset();
+    this.chargeVis = this.flip = this.steadyUntil = 0;
   }
 }

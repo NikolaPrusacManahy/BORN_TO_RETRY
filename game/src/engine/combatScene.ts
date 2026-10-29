@@ -5,7 +5,7 @@
 // Update 0.0.15 — and the Demon (boss/demonView.ts) and what its moves draw (boss/demonFx.ts).
 // Update 0.0.18 — and the Dragon (boss/dragonView.ts). Update 0.0.21 — and its fire bombs (boss/bombView.ts).
 // Update 0.1.2 — and executions (exec/execScene.ts: the body, its pieces, the frog's tongue).
-// Update 0.1.4 — and the Grimoire's fireballs (fireView.ts).
+// Update 0.1.4 — and the Grimoire's fireballs (fireView.ts). Update 0.1.9 — and the daggers' volley (knivesView.ts).
 import * as THREE from 'three';
 import type { AudioEngine } from '../audio/audio';
 import { CombatSounds } from '../audio/combatSounds';
@@ -20,6 +20,7 @@ import { BombView } from './boss/bombView';
 import { EnemiesView } from './enemiesView';
 import { ExecScene } from './exec/execScene';
 import { FireView } from './fireView';
+import { KnivesView } from './knivesView';
 import { Shockwaves } from './fx/shockwave';
 import { CoinsView } from './coinsView';
 import { TargetsView } from './targetsView';
@@ -31,6 +32,7 @@ export class CombatScene {
   readonly enemies: EnemiesView;
   readonly exec: ExecScene;
   private readonly fire: FireView;
+  private readonly knives: KnivesView;
   private readonly rootOf = (i: number) => this.enemies.rootOf(i);
   private readonly waves = new Shockwaves();
   private readonly coins: CoinsView;
@@ -55,6 +57,7 @@ export class CombatScene {
     scene.add(this.waves.group);
     this.weapons = new WeaponsView(scene, state, arms, rig.camera);
     this.fire = new FireView(scene, arms, rig.camera);
+    this.knives = new KnivesView(scene, arms, rig.camera);
     this.sparks = new Burst(240, new THREE.MeshBasicMaterial({ color: 0xfff0c0 }), { speed: [4, 11], life: [0.12, 0.3], size: 0.05, gravity: 6, bounce: 0.3 });
     this.chunks = new Burst(160, new THREE.MeshStandardMaterial({ color: 0xb49a76, roughness: 0.85 }), { speed: [3, 7], life: [0.9, 1.4], size: 0.14, gravity: 20, bounce: 0.35 });
     this.chunks.mesh.castShadow = true;
@@ -78,6 +81,7 @@ export class CombatScene {
     this.coins.update(state.coins, gameDt);
     this.weapons.update(state, gameDt);
     this.fire.update(state, gameDt);
+    this.knives.update(state, gameDt);
     this.sparks.update(gameDt);
     this.chunks.update(gameDt);
   }
@@ -89,6 +93,7 @@ export class CombatScene {
     this.demonFx.clear();
     this.bombs.clear();
     this.fire.clear();
+    this.knives.clear();
     this.exec.clear();
   }
 
@@ -104,6 +109,7 @@ export class CombatScene {
     this.coins.dispose();
     this.weapons.dispose();
     this.fire.dispose();
+    this.knives.dispose();
     for (const b of [this.sparks, this.chunks]) {
       b.mesh.removeFromParent();
       b.dispose();

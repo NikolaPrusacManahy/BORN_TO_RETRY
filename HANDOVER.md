@@ -2,26 +2,33 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-10-29, after Update 0.1.8)
-- **The designer plays 0.1.4–0.1.8**, then sends notes:
+## Next up (2026-10-29, after Update 0.1.9)
+- **The designer plays 0.1.4–0.1.9**, then sends notes:
   - the Grimoire;
   - the Gold Axe and Hammer;
   - the fists (0.1.6);
   - the F slam;
-  - the slime and spider smash.
+  - the slime and spider smash;
+  - the Dual Daggers (0.1.9, after the designer's second and third passes: turned 180°, 1.6× bigger, the Trickster's stance with each dagger flipped to the tip grip, a 1.5 s charge, then a volley of 25 at 0.12 s, the hands still while it's thrown; 100 daggers).
 
   None of it has been seen in motion ("Not verified" below).
-- **Three weapon ideas left** from the designer's five (they asked for "at least 2 more" and chose the axe and hammer first):
-  - **Dual Daggers** (easy to medium): one in each hand, very fast hits, last very long, +15% move speed while held.
+- **Two weapon ideas left** from the designer's five (the axe and hammer came first, then the daggers, Update 0.1.9):
   - **Bow** (medium): arrows "with the same fast pace energy as the game".
   - **Necromancy Skull** (hard; needs an ally system first): raises dead enemies as temporary allies with a purple aura.
 - **A Steam "Coming Soon" page:** the designer asked whether one is possible (yes: the $100 Steamworks fee, store assets, at least 2 weeks of Coming Soon before release). Claude offered to draft the store kit: text, tags, requirements, capsule art briefs, and a screenshot and trailer list. Not started.
-- **Files at or over the split limit:** `engine/Game.ts` (336 lines), `App.tsx` (347), `engine/run.ts` (305), `sim/enemies/enemy.ts` (300) and `engine/viewmodel/armsRig.ts` (295). Split them before adding to them.
+- **Files at or over the split limit:** `engine/Game.ts` (336 lines), `App.tsx` (347), `engine/run.ts` (305) and `sim/enemies/enemy.ts` (300). Split them before adding to them. (Split in 0.1.9: `armsRig.ts`, now 235, and `viewmodel.ts`, now 281.)
 - **How the last sessions worked:**
   - Arms are checked by renders before reporting: `tools/hand-shots.ts` (fists, grips, the slam), `tools/exec-shots.ts <kinds>`, `tools/weapon-shots.ts` and `tools/book-shots.ts`, then `tools/blender/render_view.py --json … --out … --cull`. To render only some moments, filter the shots JSON (`pov.json` or `shots.json`) by name first.
   - Code edits ran as small Python scripts in the scratchpad (exact old → new pairs), because shell heredocs mangle quotes and em dashes.
 
-## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.8
+## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.1.9
+- **Update 0.1.9 — the Dual Daggers** (the third of the designer's five weapon ideas: "one in each hand, very fast hits, last very long, +15% move speed while held"; spec `MD_UPDATES/U019_DAGGERS.md`). Claude picked it up from the handover's list; the designer's second pass after the first renders: "turn them 180°", "1.6× bigger", and "mainly used to throw massive amounts continually … hold right click like 3 seconds and the player throws a series of 20 daggers in continuous rhythm" (the Trickster's Main Event in Dead by Daylight). It replaced the first build's charged twin stab.
+  - **The designer's third pass:** "like the Trickster stance … the hands shift to grab the tip of the daggers, like it flipped the dagger upside down", 25 a volley, "100 daggers in inventory", hold 1.5 s, the throws "50% slower" (0.24 s), then (final tweak) "back to the old fire rate" (0.12 s) and "stop the hands trembling while the volley is being performed".
+  - **The rules:** a weapon kind (`daggers`). Left click cuts (the sword's swing with their own numbers: every 0.15 s, 20 each; the designer found 10, a jab's, too weak). **Right click held 1.5 s, then a volley** (`sim/weapons/knives.ts`, `catalog.ts` `VOLLEYS`): 25 daggers, one every 0.12 s, the hands taking turns, each from your eye where you aim then, 50 m/s on a flat arc, 20 damage, a use each; it starts by itself at full charge and runs out even if let go; no cuts or swaps meanwhile. 100 uses. **+15% run speed while they're in your hand** (`catalog.ts` `HASTE`, `items.ts` `moveFactor`, set each tick by `run.ts`). Shop (a better item, 70), rare chests, the Lab's list, their own slot icon.
+  - **The arms:** a dagger in each fist (the pack's `Dagger`, 0.8 m, its serrated edge to the knuckles: `export_weapon.py --edge-out --thin`). The left hand plays its own moves, the right's mirrored, on a second `SwordAnim` (`viewmodel/offHand.ts`, `daggerPoses.ts`); the hands take turns cutting, right first. Charging the volley brings both fists up into a throwing stance (0.25 s) while each dagger turns end over end in its fist (0.15 s, `viewmodel/tipHold.ts`) to be held by the blade near the point, the guard and handle standing up and back; each throw is a `toss`: the arm whips over and out at the crosshair and the hand opens, its dagger gone until it's half-way back. The stance and throw poses were solved for straight wrists (the knuckles along the forearm the IK gives); leaning the handles further back can't be done under 40°. Then (the designer): the stance 4 cm higher; each dagger, turned over, leaning back towards you in the fist (Dagger lean back, 17°: about 42° from upright with the stance's own lean) and turned half about its length so its edge faces the knuckles. Put away, the left arm eases back to the guard as the hammer's left hand does. In front of a chest the left dagger is hidden while the palm shows the key.
+  - **Looks:** thrown daggers fly point first, leaving from the hand that threw each (`engine/knivesView.ts`, instanced: a few draw calls for a stream), and stick in walls 1.5 s. On the floor, in flight and on a shop tile the pair lies crossed (`engine/pairLook.ts`); `items.glb` has one (`item_daggers`). Sounds: each cut a short, high swish (the slash event now says which weapon swung), each throw a zip, a hit a stab, one in a wall a tink.
+  - **Split first:** a fist's hold on a weapon moved out of `armsRig.ts` into `armsHold.ts`, and the arms' sway, bob and dips out of `viewmodel.ts` into `armsMotion.ts` (no change in behaviour).
+  - **Checks:** `test-daggers.ts` (the rules: the charge, the stream's count, hands and rhythm, hits, walls, aim, uses; both fists on their wrapped grips through every move, on the blade near the point in the stance and the throws, the two daggers apart as they turn over, wrists under 40°, the fists never closer than 11 cm, a thrown dagger hidden from its hand and drawn leaving from it, no jump when put away) and renders (`tools/weapon-shots.ts daggers`, `tools/hand-shots.ts`). Motion, pace, sound and feel are unseen.
 - **Update 0.1.8 — the ground slam in the slime's and the spider's executions** (the designer: "use the same ground slam with the F key and port it to the slime and spider executions"):
   - **Their hands:** the slam's clasped fists come up as you look up and come down at the blow. The smash is eased in over the slam's own time, then held and returned on its knobs. Hand modes `slamUp` and `slamDown` (`exec/handMoves.ts`) are posed by `viewmodel/slamArms.ts`. The old clasped `hammer` mode is gone.
   - **Where the smash lands:** on the body (the slime's head, the spider's back), not at the bottom of your view like the F slam. There the spider's would miss it.
@@ -392,6 +399,7 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 | `game/tools/boss-shots.ts` | Renders the boss room (walls at any point of their slide, the gate shut or open, the Demon's stance) from the show's own shots, without a browser |
 | `MD_UPDATES/U014_GRIMOIRE.md` | Update 0.1.4: the Grimoire (the book, the stance, fireballs, numbers) |
 | `MD_UPDATES/U015_AXE_HAMMER.md` | Update 0.1.5: the Gold Axe (swings, chop, thrown and called back) and the Hammer (two-handed, the smash's shockwave) |
+| `MD_UPDATES/U019_DAGGERS.md` | Update 0.1.9: the Dual Daggers (one in each hand, quick cuts, the twin stab, faster running while held) |
 | `game/tools/weapon-shots.ts` | Renders a held weapon's own moves (ready, a swing, the charge and blow, a throw's draw) from the game's own arms code, without a browser |
 | `game/tools/book-shots.ts` | Renders the Grimoire in your hands (held, the cast, the charge, the great cast) from the game's own arms code, without a browser |
 | `game/tools/hand-shots.ts` | Renders the fists, each weapon's grip, the punches and the ground slam's clasp (Update 0.1.6/0.1.7), without a browser |
@@ -435,7 +443,15 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 7. ~~What the side rooms hold~~: the shop (Update 0.0.13); the boss room ends the way (Update 0.0.15). Still open: reward rooms.
 8. **Update 0.0.13 placeholders to confirm:** five tiles for six items (the key always offered, four of the other five); E to buy and to open a chest (the design's E: "pick up, buy, open"); a chest opens only when its room isn't fighting; one chest a floor (35%: two); chest odds (coins 40%, then a plate, a heart or a ring alike); the shield caps at a full bar (two plates), rings stack; the blue ring speeds running and sliding, not the dash; buying the gold sword drops your sword at your feet; the new enemies' numbers (Leaper & fliers tab); bigger room budgets.
 
-14. **Updates 0.1.4–0.1.8, open:**
+14. **Updates 0.1.4–0.1.9, open:**
+   - **Dual Daggers** (Claude's placeholders):
+     - the numbers: cuts every 0.15 s for 20; each thrown dagger 20 (3 to break a dummy);
+     - cuts still use up daggers (a use a hit): should only throws?
+     - the stream starts as the 1.5 s charge fills: or on letting go, like the other charges?
+     - the flip turns each dagger point-first ahead (turned sideways, the two swung into each other mid-turn);
+     - still holding right click after a stream starts the next charge: wanted?
+     - the silver dagger, or the gold one;
+     - the left dagger is lit from behind by the arms' key light (it reads darker in renders): add a fill light?
    - **Grimoire:**
      - its fire: orange (now) or purple?
      - a full Ki charge against the bosses' health;
@@ -489,6 +505,9 @@ Run `START_GAME.bat`. The main menu opens on the gate.
 
 ## Not verified
 Claude has seen and heard none of this in the game: the feel, the arms on screen, the targets, effects, sounds and menus are all unverified until played. The tests check the rules, the collision, and that the shipped arms pose correctly.
+- **The Dual Daggers (Update 0.1.9):**
+  - **Seen only as still renders** of the game's own arms holding the real model (`tools/weapon-shots.ts daggers`, `tools/hand-shots.ts`, flat studio light): ready, each hand's cut at its wind, contact and end, the flip half-way, the throwing stance, a throw from each hand; both grips up close.
+  - **Unseen:** the cuts in motion (at 0.07 s a cut, the wind-up key is never reached: the move blends in over 0.04 s, as the sword's does), the flip and the stance in motion, the volley's rhythm and the throws in motion, a dagger leaving handle first and turning point first, the daggers flying, hitting and sticking, the crossed pair lying and the shop tile, the sounds, the extra speed, and how it all feels.
 - **The fists, the slam and the executions' smash (Updates 0.1.6–0.1.8):**
   - **Seen only as still renders** (`tools/hand-shots.ts`, `tools/exec-shots.ts slime spider`):
     - the punching fist (thumb across) and the grips round each handle;
