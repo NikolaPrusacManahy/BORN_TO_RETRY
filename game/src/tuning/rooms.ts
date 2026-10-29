@@ -6,6 +6,8 @@
 // enemy count: First room's count, plus Per room deeper for each room along the way, plus Per floor down for each floor.
 // Update 0.1.16 (the designer: "2 more enemies every 2 floors, starting with floor 2"; it was 3 more every floor) —
 // More every few floors, every Floors apart floors down (floors 2–3: 2 more, 4–5: 4 more, … floor 10: 10 more).
+// Update 0.1.20 — the challenge room (the designer: "6 more enemies of the norm", "a guaranteed 2 mini boss", its
+// mini boss drops "only either a white key or a gold key").
 import { group, knob } from './schema';
 
 export const ROOMS = group('rooms', 'Rooms', {
@@ -16,4 +18,7 @@ export const ROOMS = group('rooms', 'Rooms', {
   perFloor: knob(2, 0, 10, 1, 'More every few floors', 'Enemies more in every room each time you get Floors apart floors deeper (from floor 2).'),
   floorsApart: knob(2, 1, 5, 1, 'Floors apart', 'Every this many floors down, every room has More every few floors more.'),
   bigMax: knob(2, 0, 6, 1, 'Mini bosses a room', 'At most this many Yetis, Spiders and Blue Demons in one room.'),
+  challengeExtra: knob(6, 0, 20, 1, 'Challenge: more enemies', 'A challenge room has this many more than a fight room as deep.'),
+  challengeMinis: knob(2, 0, 4, 1, 'Challenge: mini bosses', 'A challenge room always has this many mini bosses (and no more).'),
+  challengeKeys: knob(1, 0, 4, 1, 'Challenge: keys', 'Keys its mini bosses drop (the first killed first), each white or gold.'),
 });

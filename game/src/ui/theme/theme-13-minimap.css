@@ -40,6 +40,11 @@
   stroke: rgba(150, 220, 160, 0.8);
 }
 
+/* Update 0.1.20 — a challenge room: outlined in fire. */
+.rb-map-room.is-challenge {
+  stroke: #ff6a2a;
+}
+
 .rb-map-room.is-exit {
   stroke: #b37bff;
   fill: rgba(150, 90, 255, 0.25);

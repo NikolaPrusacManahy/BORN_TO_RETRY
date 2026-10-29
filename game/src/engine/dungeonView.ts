@@ -12,7 +12,7 @@
 // and the dark beyond it (boss/woodGate.ts), all following the room's show; no more glow over a trapdoor.
 // Update 0.0.20 — the lava in the pits (lavaView.ts); the dark slab lies only under the floor (a pit shows its lava).
 // Each floor's look (world/dungeon/styles.ts): its gates' bars (floor 3: a portcullis dropping from above), its cores'
-// colour, its walls in the boss room's sliding blocks.
+// colour, its walls in the boss room's sliding blocks. Update 0.1.20 — the words over the doorways (roomSignsView.ts).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { portalOpen, wallsOpen } from '../sim/dungeon/bossRoom';
@@ -26,6 +26,7 @@ import { Portal } from './boss/portal';
 import { Shell } from './boss/shell';
 import { WoodGate } from './boss/woodGate';
 import { LavaView } from './lavaView';
+import { roomSigns } from './roomSignsView';
 
 export const KIT_URL = '/models/dungeon/kit.glb';
 /** The sky (the background and the haze), and the sky light's colours above and from the ground. */
@@ -107,7 +108,7 @@ export class DungeonView implements ArenaView {
     this.portal = new Portal(b.portal);
     this.woodGate = new WoodGate(scene, b, `FLOOR ${level.plan.level + 1}`);
     this.lava = new LavaView(this.dressing.lava);
-    this.group.add(this.shell.group, this.portal.group, this.lava.group);
+    this.group.add(this.shell.group, this.portal.group, this.lava.group, roomSigns(level.plan, this.mats, this.geos));
     this.loaded = loadKit
       ? new GLTFLoader()
           .loadAsync(KIT_URL)

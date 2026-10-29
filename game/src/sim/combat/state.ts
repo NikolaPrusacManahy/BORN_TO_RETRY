@@ -95,6 +95,8 @@ export interface CombatState {
   /** Update 0.0.16 — items on the floor, and the keys the room you're fighting in still gives (a Yeti drops one). */
   drops: Drop[];
   keyDrops: number;
+  /** Update 0.1.20 — they're a challenge room's: white or gold, never a normal key. */
+  betterKeys: boolean;
   hitStop: HitStop;
   events: EventQueue<CombatEvent>;
 }
@@ -152,6 +154,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     kills: 0,
     drops: createDrops(),
     keyDrops: 0,
+    betterKeys: false,
     hitStop: new HitStop(),
     events: new EventQueue<CombatEvent>(64, 'none'),
   };
@@ -197,6 +200,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.kills = 0;
   for (const d of state.drops) d.alive = false;
   state.keyDrops = 0;
+  state.betterKeys = false;
   stockStands(state);
   state.hitStop.remaining = 0;
   state.events.clear();

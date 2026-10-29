@@ -2,7 +2,7 @@
 // any action (the designer), with the dev keys free in a real build.
 import { check, near, section } from './harness';
 import { ACTIONS, DEFAULT_BINDINGS, hydrateBindings, isBindable, rebind, setDevKeysReserved } from '../src/input/bindings';
-import { keyLabel } from '../src/screens/keyLabel';
+import { keyLabel } from '../src/input/keyLabel';
 import { DEFAULT_SETTINGS, FOV_MAX, hydrateSave, verticalFov } from '../src/state/settings';
 import { devKeyAction } from '../src/state/devTools';
 import { isMouseSpike } from '../src/input/mouseSpike';

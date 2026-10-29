@@ -83,6 +83,12 @@ export function keyFor(roll: number): KeyKind {
   return r - v.whiteKeyOdds < 0 ? 'whiteKey' : 'goldKey';
 }
 
+/** Update 0.1.20 — a challenge room's key: white or gold (by their odds), never a normal one. */
+export function betterKeyFor(roll: number): KeyKind {
+  const v = ITEMS.v;
+  return roll * (v.whiteKeyOdds + v.goldKeyOdds) < v.whiteKeyOdds ? 'whiteKey' : 'goldKey';
+}
+
 /** Update 0.1.10 — what each costs in the shop on floor 1 (the designer's list; it was by grade: 50, 70, 100). */
 export const PRICE: Record<ItemKind, () => number> = {
   heart: () => ITEMS.v.priceHeart,

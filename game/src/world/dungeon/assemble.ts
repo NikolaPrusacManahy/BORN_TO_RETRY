@@ -87,6 +87,8 @@ export interface DungeonRoom {
   waves: EnemyKind[][];
   /** Update 0.0.21 — its perches: high-ledge spots where spitters stand (y: the ledge's top). */
   perches: Spot[];
+  /** Update 0.1.20 — a challenge room (floorPlan.ts). */
+  challenge: boolean;
 }
 
 export interface DungeonLevel {
@@ -218,6 +220,7 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
       tiles: r.layout.tiles.map(([c, row]) => ({ x: cellX(r.x0 + c), y: 0, z: cellZ(r.z0 + row) })),
       perches: r.layout.perches.map(([c, row]) => ({ x: cellX(r.x0 + c), y: HEIGHT.highLedge!, z: cellZ(r.z0 + row) })),
       waves: r.waves,
+      challenge: r.challenge,
     };
   });
   const arena: Arena = { name: `Dungeon ${plan.level}`, boxes, pads, playerStart: { ...plan.start }, spawns: [], dummies: [], turrets: [] };

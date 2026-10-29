@@ -15,6 +15,8 @@
 // Mushnub, and the Ninja (a mini boss beside the Spider).
 // The kinds are picked as before (weighted, the floor's roster, floor 1's later kinds from their rooms), with at most
 // Mini bosses a room of the big ones.
+// Update 0.1.20 — a challenge room (the designer): Challenge: more enemies on top of its count, and always Challenge:
+// mini bosses of the floor's (one in the first wave, the next in the last, and so on), no others.
 import type { Rng } from '../../core/rng';
 import { ENEMY_KINDS, EnemyKind, MINI_BOSSES } from '../enemies/kinds';
 import { ROOMS } from '../../tuning/rooms';
@@ -69,16 +71,37 @@ export function buyWave(count: number, depth: number, floor: number, rng: Rng, b
 }
 
 /** A fight room's waves (its count split over two, or three from 18), dearest first in each (brutes get the spots
- *  furthest from you). */
-export function planWaves(depth: number, floor: number, rng: Rng): EnemyKind[][] {
-  const n = roomCount(depth, floor);
+ *  furthest from you). `challenge`: a challenge room's. */
+export function planWaves(depth: number, floor: number, rng: Rng, challenge = false): EnemyKind[][] {
+  const v = ROOMS.v;
+  const n = roomCount(depth, floor) + (challenge ? Math.round(v.challengeExtra) : 0);
   const waves = n >= 18 ? 3 : 2;
   let bigs = 0;
-  return Array.from({ length: waves }, (_, w) => {
-    const wave = buyWave(Math.floor(n / waves) + (w < n % waves ? 1 : 0), depth, floor, rng, ROOMS.v.bigMax - bigs);
+  const plan = Array.from({ length: waves }, (_, w) => {
+    const wave = buyWave(Math.floor(n / waves) + (w < n % waves ? 1 : 0), depth, floor, rng, challenge ? 0 : v.bigMax - bigs);
     bigs += wave.filter(isBig).length;
-    return wave.sort((a, b) => COST[b] - COST[a]);
+    return wave;
   });
+  if (challenge) addMinis(plan, floor, rng);
+  return plan.map((wave) => wave.sort((a, b) => COST[b] - COST[a]));
+}
+
+/** Update 0.1.20 — a challenge room's mini bosses (the floor's, by weight), each in place of a wave's cheapest: the
+ *  first wave's, the last's, then the others'. */
+function addMinis(plan: EnemyKind[][], floor: number, rng: Rng) {
+  const minis = rosterOf(floor).filter(isBig);
+  if (minis.length === 0) return;
+  const order = [0, ...Array.from({ length: plan.length - 1 }, (_, i) => plan.length - 1 - i)];
+  const total = minis.reduce((s, k) => s + WEIGHT[k], 0);
+  for (let m = 0; m < Math.round(ROOMS.v.challengeMinis); m++) {
+    const wave = plan[order[m % order.length]];
+    let roll = rng() * total;
+    const kind = minis.find((k) => (roll -= WEIGHT[k]) < 0) ?? minis[minis.length - 1];
+    let at = -1;
+    for (let i = 0; i < wave.length; i++) if (!isBig(wave[i]) && (at < 0 || COST[wave[i]] < COST[wave[at]])) at = i;
+    if (at >= 0) wave[at] = kind;
+    else wave.push(kind);
+  }
 }
 
 /** Update 0.0.21 — spitters to stand on a room's perches, in every wave of a room with them. **(placeholder)** */

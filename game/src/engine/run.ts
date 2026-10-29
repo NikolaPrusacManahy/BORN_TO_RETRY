@@ -15,6 +15,7 @@
 // view follows the body and the fists grip it (execView.ts).
 // Update 0.1.14 — the level's parts, loading and restarting moved to runBase.ts. Dead in the dungeon, once it's black
 // the death screen shows (what killed you, the floor, the time, your kills) and the world holds still until Retry.
+// Update 0.1.20 — the [E] prompts and item cards (promptView.ts), while you're free to play.
 import * as THREE from 'three';
 import type { FrameStats } from '../core/frameStats';
 import type { Input } from '../input/input';
@@ -37,6 +38,8 @@ import { FISTS } from '../tuning/combat';
 import { LAB } from '../tuning/lab';
 import type { DebugInfo } from './hudStore';
 import { readCombatIntent, readPlayerIntent } from './intents';
+import { focusOf } from '../sim/items/focus';
+import { keyLabel } from '../input/keyLabel';
 import { applyMoveEvents } from './moveFeedback';
 import { fillDebug } from './overlayFeed';
 import { RunBase } from './runBase';
@@ -130,6 +133,9 @@ export class Run extends RunBase {
     this.arms.chest.update(tv.reach.k, tv.reach.left, tv.reach.right, this.camera, this.arms.camera);
     this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt, this.clock.alpha);
     followHeld(this.combat, this.look, this.arms, this.camera, real);
+    const free = locked && !p.dead && !this.show.locked && !shot.cinematic && !execHeld(this.combat.exec);
+    const focus = focusOf(this.treasure, this.combat, p, this.fighting, this.focus);
+    this.prompts.update(focus, this.camera, renderer, keyLabel(input.bindings.interact), free, this.combatScene.markAt());
     const d = this.level.dungeon;
     if (d) this.view.update?.(gameDt, d, this.camera.position);
     const f = this.combat.fists;

@@ -30,7 +30,7 @@ export interface Drop {
 export const DROP_POOL = 8;
 /** You take one this close to it (m, across), and within this height of it. */
 export const TAKE_REACH = 1.3;
-const TAKE_HEIGHT = 2;
+export const TAKE_HEIGHT = 2;
 
 const isBonus = (kind: DropKind): kind is BonusKind => (BONUS_KINDS as readonly string[]).includes(kind);
 

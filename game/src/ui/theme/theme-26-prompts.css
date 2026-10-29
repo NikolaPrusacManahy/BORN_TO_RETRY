@@ -1,0 +1,147 @@
+/* Update 0.1.20 — the prompts in play (engine/promptView.ts): an item's card over it (its name in its rarity's colour,
+   the rarity, what it does, what E does), the chest's "[E] to open", and "[E] TO EXECUTE" over the execution skull.
+   Placed each frame by the engine (transform); they fade in and out. Under the HUD. */
+.rb-prompts {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.rb-prompt,
+.rb-prompt-exec {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transition: opacity 0.12s ease-out;
+  will-change: transform;
+}
+
+.rb-prompt.is-on,
+.rb-prompt-exec.is-on {
+  opacity: 1;
+}
+
+.rb-prompt.is-off,
+.rb-prompt-exec.is-off {
+  visibility: hidden;
+}
+
+.rb-prompt {
+  --rb-rarity: #d8d2c8;
+  min-width: calc(150px * var(--rb-ui));
+  max-width: calc(260px * var(--rb-ui));
+  padding: calc(8px * var(--rb-ui)) calc(12px * var(--rb-ui)) calc(9px * var(--rb-ui));
+  background: rgba(12, 10, 14, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 2px solid var(--rb-rarity);
+  box-shadow: 0 0 calc(18px * var(--rb-ui)) color-mix(in srgb, var(--rb-rarity) 35%, transparent), 0 4px 14px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  font-family: var(--rb-font);
+  color: var(--rb-text);
+}
+
+.rb-prompt.is-uncommon {
+  --rb-rarity: #3dff6a;
+}
+
+.rb-prompt.is-rare {
+  --rb-rarity: #5c9dff;
+}
+
+.rb-prompt.is-epic {
+  --rb-rarity: #c27aff;
+}
+
+.rb-prompt.is-mythic {
+  --rb-rarity: #ff4a4a;
+}
+
+/* A chest: only what E does. */
+.rb-prompt.is-bare {
+  min-width: 0;
+  padding: calc(5px * var(--rb-ui)) calc(12px * var(--rb-ui));
+  border-top-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.rb-prompt-name {
+  font-family: 'Anton', var(--rb-font);
+  font-size: calc(22px * var(--rb-ui));
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: var(--rb-rarity);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.8);
+}
+
+.rb-prompt-rarity {
+  margin-top: 1px;
+  font-size: calc(11px * var(--rb-ui));
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--rb-rarity);
+  opacity: 0.85;
+}
+
+.rb-prompt-does {
+  margin-top: calc(5px * var(--rb-ui));
+  font-size: calc(14px * var(--rb-ui));
+  font-weight: 500;
+  line-height: 1.3;
+  color: #e4dde6;
+}
+
+.rb-prompt-act {
+  margin-top: calc(7px * var(--rb-ui));
+  font-size: calc(15px * var(--rb-ui));
+  font-weight: 700;
+  color: #fff;
+}
+
+.rb-prompt-name:empty,
+.rb-prompt-rarity:empty,
+.rb-prompt-does:empty,
+.rb-prompt-act:empty {
+  display: none;
+}
+
+.rb-prompt.is-bare .rb-prompt-act {
+  margin-top: 0;
+}
+
+.rb-prompt-key {
+  color: #ffd76a;
+  font-weight: 700;
+}
+
+/* Over the skull: crimson capitals, beating with it. */
+.rb-prompt-exec {
+  font-family: 'Anton', var(--rb-font);
+  font-size: calc(26px * var(--rb-ui));
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  color: #ff2a3a;
+  text-shadow: 0 0 10px rgba(255, 42, 58, 0.65), 0 2px 0 #2a0306, 0 0 2px #000;
+}
+
+.rb-prompt-exec.is-on {
+  animation: rb-prompt-beat 0.8s ease-out infinite;
+}
+
+.rb-prompt-exec .rb-prompt-key {
+  color: #fff;
+}
+
+@keyframes rb-prompt-beat {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  12% {
+    opacity: 1;
+  }
+}

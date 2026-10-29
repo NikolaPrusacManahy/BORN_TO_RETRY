@@ -26,6 +26,8 @@ import type { Levels, RunCallbacks } from './runLinks';
 import { Look } from './look';
 import { BossShow } from './boss/bossShow';
 import { TreasureView } from './treasureView';
+import { PromptView } from './promptView';
+import { emptyFocus } from '../sim/items/focus';
 import { HudFeed } from './overlayFeed';
 import { Viewmodel } from './viewmodel/viewmodel';
 import { cancelCharges } from '../sim/weapons/kiCharge';
@@ -46,6 +48,9 @@ export abstract class RunBase {
   protected readonly intent: PlayerIntent = emptyIntent();
   protected readonly combatIntent: CombatIntent = emptyCombatIntent();
   protected readonly shove: MoveResult = { grounded: false, hitCeiling: false, wall: false, wallNormal: new THREE.Vector3() };
+  /** Update 0.1.20 — the [E] prompts and item cards, and what they're about. */
+  protected readonly prompts: PromptView;
+  protected readonly focus = emptyFocus();
   protected level!: Level;
   protected view!: LevelView;
   protected combat!: CombatState;
@@ -85,6 +90,7 @@ export abstract class RunBase {
     const s = level.arena.playerStart;
     this.player = createPlayer(s.x, s.y, s.z, s.yaw);
     this.hudFeed = new HudFeed(hud);
+    this.prompts = new PromptView(renderer.domElement.parentElement);
     this.load(level, false);
   }
 
@@ -172,6 +178,7 @@ export abstract class RunBase {
     this.combatScene.dispose();
     this.view.dispose();
     this.treasureView.dispose();
+    this.prompts.dispose();
     this.level.physics.dispose();
   }
 }

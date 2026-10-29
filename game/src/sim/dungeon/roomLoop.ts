@@ -100,7 +100,9 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
       rr.state = 'fighting';
       rr.total = room.waves.reduce((n, w) => n + w.length, 0);
       rr.sent = 0;
-      combat.keyDrops = hasYeti(room.waves) ? 1 : 0;
+      // Update 0.1.20 — a challenge room gives Challenge: keys, each white or gold.
+      combat.keyDrops = room.challenge ? Math.round(ROOMS.v.challengeKeys) : hasYeti(room.waves) ? 1 : 0;
+      combat.betterKeys = room.challenge;
       combat.bonusDrops = BONUS.v.perRoom;
       rr.delay = FIRST_WAVE;
       for (const g of room.gates) run.shut[g] = true;

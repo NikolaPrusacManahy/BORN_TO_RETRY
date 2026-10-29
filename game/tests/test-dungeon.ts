@@ -84,8 +84,8 @@ section('Dungeon — a floor');
   const way = plan.rooms.filter((r) => r.depth <= PATH_FIGHTS + 1 && r.kind !== 'fight' || r.depth <= PATH_FIGHTS);
   check(`a start, ${PATH_FIGHTS} fight rooms on the way and the boss room`, plan.rooms[0].kind === 'start' && plan.rooms[PATH_FIGHTS + 1].kind === 'boss' && plan.rooms.slice(1, PATH_FIGHTS + 1).every((r) => r.kind === 'fight') && way.length >= 7);
   const sides = plan.rooms.length - (PATH_FIGHTS + 2);
-  // Update 0.0.13 — the shop, and maybe a fight.
-  check('and side rooms: the shop, maybe a fight', sides >= 1 && sides <= 2 && plan.rooms.slice(PATH_FIGHTS + 2).some((r) => r.kind === 'shop'), `${sides}`);
+  // Update 0.0.13 — the shop, and maybe a fight. Update 0.1.20 — and the challenge room.
+  check('and side rooms: the shop, maybe a fight, the challenge room', sides >= 2 && sides <= 3 && plan.rooms.slice(PATH_FIGHTS + 2).some((r) => r.kind === 'shop') && plan.rooms.slice(PATH_FIGHTS + 2).some((r) => r.challenge), `${sides}`);
   const slots = new Set(plan.rooms.map((r) => r.slot.join()));
   check('one room per slot', slots.size === plan.rooms.length);
   const fights = plan.rooms.filter((r) => r.kind === 'fight').map((r) => r.layout.template.id);
@@ -162,8 +162,9 @@ section('Dungeon — the level');
   const inBox = level.arena.boxes.some((b) => b.kind !== 'floor' && Math.abs(s.x - b.x) < b.w / 2 && Math.abs(s.z - b.z) < b.d / 2);
   check('nothing stands where you start', !inBox);
   check('a gate for every doorway, and the wooden gate', level.gates.length === level.plan.links.length * 2 + 1 && level.boss.gate === level.gates.length - 1);
-  // (Update 0.0.15 — 1000, was 900: the boss room's twelve pillars and the dark's walls.)
-  check('cells merged into a manageable number of boxes', level.arena.boxes.length < 1000, `${level.arena.boxes.length} boxes`);
+  // (Update 0.0.15 — 1000, was 900: the boss room's twelve pillars and the dark's walls. Update 0.1.20 — 1150: the
+  // challenge room.)
+  check('cells merged into a manageable number of boxes', level.arena.boxes.length < 1150, `${level.arena.boxes.length} boxes`);
   const exitCell = cellAt(level.plan, colAt(level.exit.x - 0.5), rowAt(level.exit.z - 0.5));
   check('the way down is the dark beyond the boss room', exitCell === 'dark' && level.rooms[level.boss.room].kind === 'boss');
 }
@@ -238,7 +239,9 @@ section('Dungeon — the room loop');
       for (const r of planFloor(seed, floor).rooms) {
         if (r.kind !== 'fight') continue;
         const n = r.waves.flat().length;
-        if (n !== roomCount(r.depth, floor)) off ||= `seed ${seed} floor ${floor} room ${r.index}: ${n}, not ${roomCount(r.depth, floor)}`;
+        // (Update 0.1.20 — a challenge room: Challenge: more enemies on top.)
+        const want = roomCount(r.depth, floor) + (r.challenge ? ROOMS.v.challengeExtra : 0);
+        if (n !== want) off ||= `seed ${seed} floor ${floor} room ${r.index}: ${n}, not ${want}`;
         bigs = Math.max(bigs, r.waves.flat().filter((k) => MINI_BOSSES.includes(k)).length);
       }
     }

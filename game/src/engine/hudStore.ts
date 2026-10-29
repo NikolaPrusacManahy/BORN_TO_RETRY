@@ -19,7 +19,8 @@ export interface MapRoom {
   z: number;
   w: number;
   h: number;
-  kind: RoomKind;
+  /** Update 0.1.20 — or a challenge room. */
+  kind: RoomKind | 'challenge';
   /** You're in it, you've been in it, or you only know of it. */
   state: 'here' | 'been' | 'known';
 }

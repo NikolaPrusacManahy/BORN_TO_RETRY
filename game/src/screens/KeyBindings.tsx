@@ -2,7 +2,7 @@
 // key, then press the new one; Esc cancels. A key another action uses swaps with it, so nothing is left unbound.
 import { useEffect, useRef, useState } from 'react';
 import { ACTIONS, Action, Bindings, DEFAULT_BINDINGS, isBindable, mouseCode, rebind } from '../input/bindings';
-import { keyLabel } from './keyLabel';
+import { keyLabel } from '../input/keyLabel';
 
 interface Props {
   bindings: Bindings;

@@ -141,9 +141,10 @@ section('Keys — the Yeti');
   let level: DungeonLevel | null = null;
   for (let seed = 1; !level && seed < 200; seed++) {
     const l = buildDungeon(planFloor(seed, 1));
-    if (l.rooms.some((r) => r.kind === 'fight' && r.waves.filter((w) => w.includes('brute')).length > 0)) level = l;
+    // (Not the challenge room: Update 0.1.20, test-challenge.ts.)
+    if (l.rooms.some((r) => r.kind === 'fight' && !r.challenge && r.waves.filter((w) => w.includes('brute')).length > 0)) level = l;
   }
-  const room = level!.rooms.find((r) => r.kind === 'fight' && hasYeti(r.waves))!;
+  const room = level!.rooms.find((r) => r.kind === 'fight' && !r.challenge && hasYeti(r.waves))!;
   check('a room with a Yeti has a chest', room.chest >= 0);
   const run = createDungeonRun(level!);
   const c = createCombat(level!.arena, false);

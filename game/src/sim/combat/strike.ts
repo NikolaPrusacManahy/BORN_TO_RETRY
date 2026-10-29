@@ -14,7 +14,7 @@ import { dodges } from '../enemies/ninja';
 import { ENEMY_STATS, MINI_BOSSES } from '../enemies/kinds';
 import { EXECUTION } from '../../tuning/execution';
 import { burstCoins } from './coins';
-import { damageFactor, keyFor } from '../items/items';
+import { betterKeyFor, damageFactor, keyFor } from '../items/items';
 import { dropItem } from '../items/drops';
 import { coinsFor, rollBonus } from '../items/bonuses';
 import { hitDummy } from './dummy';
@@ -106,7 +106,8 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   if (e.kind === 'grunt' && state.rng() < ENEMIES.v.gruntDrop) dropWeapon(state.pickups, 'sword', e.pos, state.events);
   if (MINI_BOSSES.includes(e.kind) && state.keyDrops > 0) {
     state.keyDrops--;
-    dropItem(state.drops, keyFor(state.rng()), e.pos, state.events);
+    // Update 0.1.20 — a challenge room's is white or gold.
+    dropItem(state.drops, (state.betterKeys ? betterKeyFor : keyFor)(state.rng()), e.pos, state.events);
   }
   // Update 0.0.12 — its coins burst out (any the pool can't hold go straight to your money).
   const s = ENEMY_STATS[e.kind]();

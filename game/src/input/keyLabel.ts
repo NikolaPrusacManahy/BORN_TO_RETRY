@@ -1,5 +1,6 @@
 // M1 — a short label for a key code ('ShiftLeft' → 'Shift', 'Mouse0' → 'LMB').
 // M1 step 9 — every key can be bound now, so punctuation, arrows, the numpad and the wheel get short names too.
+// Update 0.1.20 — moved from screens/ (the game's [E] prompts name the Interact key too).
 const MOUSE = ['LMB', 'MMB', 'RMB', 'Mouse 4', 'Mouse 5'];
 
 const NAMES: Record<string, string> = {

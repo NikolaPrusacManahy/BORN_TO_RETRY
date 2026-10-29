@@ -91,6 +91,11 @@ export class CombatScene {
     this.chunks.update(gameDt);
   }
 
+  /** Update 0.1.20 — where the execution skull is drawn now (null: none). */
+  markAt(): THREE.Vector3 | null {
+    return this.execMark.sprite.visible ? this.execMark.sprite.position : null;
+  }
+
   clear() {
     this.sparks.clear();
     this.chunks.clear();
