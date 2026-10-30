@@ -179,7 +179,12 @@ section('Floor 2 — mini bosses and the roster');
   // Update 0.1.18 (the designer: for floor 3 cut the Grunt, the Leaper and the Blue Demon).
   const three = rosterOf(3);
   // (Update 0.1.19 — and its own: the Skeleton, the Mushnub, the Ninja.)
-  check('floor 3: floor 2’s without the Grunt, the Leaper and the Blue Demon, and its own three', three.join() === [...two.filter((k) => k !== 'grunt' && k !== 'leaper' && k !== 'blueDemon'), 'skeleton', 'mushnub', 'ninja'].join(), three.join());
+  // (Update 0.2.7 — the designer swapped four: the Stinger for the Dragonling, the Wraith for the Skull Wraith, the Snake
+  // for the White Rabbit, the Spider for the Big Mushnub.)
+  const SWAP: Partial<Record<string, Enemy['kind']>> = { stinger: 'dragonling', wraith: 'skullWraith', snake: 'rabbit', spider: 'bigMushnub' };
+  // (And then no Spitter and no Wasp: the Dragonling in the Spitter's place.)
+  const cut3 = ['grunt', 'leaper', 'blueDemon', 'spitter', 'wasp'];
+  check('floor 3: floor 2’s without the Grunt, the Leaper, the Blue Demon, the Spitter and the Wasp, four swapped, and its own three', three.join() === [...two.filter((k) => !cut3.includes(k)).map((k) => SWAP[k] ?? k), 'skeleton', 'mushnub', 'ninja'].join(), three.join());
   // (Update 0.2.4 — floor 4 has its own: test-floor4.ts.)
   check('floor 4 has its own, and the floors past it send floor 4’s', rosterOf(4) !== three && rosterOf(7) === rosterOf(4));
   let cut = '';
@@ -188,12 +193,12 @@ section('Floor 2 — mini bosses and the roster');
     for (let depth = 1; depth <= 5; depth++) {
       for (const k of planWaves(depth, 3, createRng(seed)).flat()) {
         if (k === 'grunt' || k === 'leaper' || k === 'blueDemon') cut ||= `seed ${seed} room ${depth}: a ${k}`;
-        if (k === 'spider') spiders++;
+        if (k === 'bigMushnub') spiders++;
       }
     }
   }
   check('no floor 3 room plans one (20 floor plans)', cut === '', cut);
-  check('the Spider is one of floor 3’s mini bosses', spiders > 0);
+  check('the Big Mushnub is one of floor 3’s mini bosses (Update 0.2.7: in the Spider’s place)', spiders > 0);
 }
 
 section('Shop prices by floor');

@@ -292,6 +292,11 @@ EXEC_MOVES.hywirl = EXEC_MOVES.wraith;
 EXEC_MOVES.dinoBlob = EXEC_MOVES.grunt;
 EXEC_MOVES.lizard = EXEC_MOVES.grunt;
 EXEC_MOVES.skullOrc = EXEC_MOVES.brute;
+// Update 0.2.7 — floor 3's newcomers: the fliers the Wraith's, the Rabbit the Grunt's, the Big Mushnub the Yeti's.
+EXEC_MOVES.dragonling = EXEC_MOVES.wraith;
+EXEC_MOVES.skullWraith = EXEC_MOVES.wraith;
+EXEC_MOVES.rabbit = EXEC_MOVES.grunt;
+EXEC_MOVES.bigMushnub = EXEC_MOVES.brute;
 EXEC_MOVES.greenBlob = EXEC_MOVES.slime;
 EXEC_MOVES.blobling = EXEC_MOVES.slime;
 EXEC_MOVES.maskTribal = EXEC_MOVES.wraith;

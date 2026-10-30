@@ -26,6 +26,8 @@ export const BLAST = 4;
 /** Its once-only moves (Enemy.deeds). */
 export const SUMMONED = 1;
 export const BLASTED = 2;
+/** Update 0.2.7 (the designer: "can summon another set of skeleton after the massive explosion cast"). */
+export const SUMMONED_AGAIN = 4;
 /** Calling up its skeletons takes this long (s): it roars, arms up. */
 export const SUMMON_WINDUP = 1.2;
 /** The floor trembles this often while the blast charges (s). */
@@ -114,7 +116,7 @@ export function tryGrab(k: Enemy, index: number, player: PlayerState, w: EnemyWo
 /** Its skeletons come up out of the floor round it (they rise as a fallen one rebuilds), never right by you. */
 export function summon(k: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
   const v = BONE_KING.v;
-  k.deeds |= SUMMONED;
+  k.deeds |= k.deeds & SUMMONED ? SUMMONED_AGAIN : SUMMONED;
   w.events.push('kingSummon', index, k.pos.x, k.pos.y + v.kingHeight * 0.8, k.pos.z);
   const n = Math.round(v.summon);
   const base = yawTo(k, player.pos.x, player.pos.z);

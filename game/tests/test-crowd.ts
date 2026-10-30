@@ -130,7 +130,9 @@ section('Crowd — bosses need no turn');
   const g = spawnEnemy(enemies, 'dragon', new Vector3(6, 0, 0), 0);
   check('the Demon and the Dragon may always attack', armed(enemies[d]) && armed(enemies[g]) && ROLE.demon === null && ROLE.dragon === null);
   const plain = ENEMY_KINDS.filter((k) => ROLE[k] !== null);
-  const silent = plain.filter((k) => !readFileSync(new URL(`../src/sim/enemies/${k}.ts`, import.meta.url), 'utf-8').includes('armed('));
+  // (Update 0.2.7 — the Skull Wraith fights as the Wraith does: wraith.ts.)
+  const file = (k: string) => (k === 'skullWraith' ? 'wraith' : k);
+  const silent = plain.filter((k) => !readFileSync(new URL(`../src/sim/enemies/${file(k)}.ts`, import.meta.url), 'utf-8').includes('armed('));
   check(`every other kind’s attack waits for its turn (${plain.length} kinds)`, silent.length === 0, silent.join(', '));
 }
 

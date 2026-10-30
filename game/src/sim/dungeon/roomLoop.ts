@@ -225,6 +225,10 @@ function send(run: DungeonRun, i: number, player: PlayerState, combat: CombatSta
     if ((kind === 'spitter' || kind === 'tribal') && perches.length > 0) {
       slot = spawnAt(combat.enemies, kind, perches, player, rng, combat.events);
       if (slot >= 0) combat.enemies[slot].perch = combat.enemies[slot].pos.y;
+    } else if (kind === 'dragonling' && perches.length > 0) {
+      // Update 0.2.7 — floor 3's Dragonlings have the Spitters' place (the designer): they come in on the perches and
+      // take off from there (fliers: not standing on them).
+      slot = spawnAt(combat.enemies, kind, perches, player, rng, combat.events);
     } else {
       // Update 0.2.1 — the spots away from you again before any near you (10 at once can use them all).
       if (pool.length === 0) pool = [...(far.length > 0 ? far : room.spawns)];

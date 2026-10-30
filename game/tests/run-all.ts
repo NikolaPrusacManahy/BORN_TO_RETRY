@@ -42,6 +42,7 @@ import './test-dragon';
 import './test-lab';
 import './test-pistol';
 import './test-fixes025';
+import './test-floor3b';
 import './test-lava';
 import './test-floor3';
 import './test-execution';

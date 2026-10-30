@@ -153,6 +153,20 @@ export type CombatEvent =
   | 'tribalWindup'
   | 'tribalThrow'
   | 'tribalDodge'
+  // Update 0.2.7 — floor 3's newcomers: the Dragonling's warning (value: 0 a burst, 1 a spit in your face), a fireball,
+  // its dart off; the White Rabbit's warning (value: 0 a bonk, 1 a throw), its bonk, its carrot thrown; the Big
+  // Mushnub's warning (value: 0 smash, 1 spin), its smash, its spin, its split into Mushnubs. (The Skull Wraith's
+  // teleports are the Ninja's vanish and appear.)
+  | 'bratWindup'
+  | 'bratSpit'
+  | 'bratFlit'
+  | 'rabbitWindup'
+  | 'rabbitBonk'
+  | 'rabbitThrow'
+  | 'mushWindup'
+  | 'mushSmash'
+  | 'mushSpin'
+  | 'mushSplit'
   // (A Tribal jumping down from its perch to find you, and landing.)
   | 'tribalJump'
   | 'tribalLand'

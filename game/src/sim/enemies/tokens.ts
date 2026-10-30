@@ -11,6 +11,7 @@ import { CROWD } from '../../tuning/crowd';
 import { ENEMIES } from '../../tuning/enemies';
 import { FOES2 } from '../../tuning/foes2';
 import { FOES3 } from '../../tuning/foes3';
+import { FOES3B } from '../../tuning/foes3b';
 import type { PlayerState } from '../player/state';
 import { ENEMY_POOL, Enemy, EnemyPhase, EnemyWorld, isLive } from './enemy';
 import { ENEMY_STATS, EnemyKind } from './kinds';
@@ -49,10 +50,15 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   blobling: null,
   maskTribal: null,
   skullOrc: null,
+  // Update 0.2.7 — floor 3's newcomers wait their turn as floor 3's others do.
+  dragonling: 'ranged',
+  skullWraith: 'ranged',
+  rabbit: 'melee',
+  bigMushnub: 'heavy',
 };
 
 /** Kinds whose attack waits for its cooldown: they take a token only once it's ready (a token isn't held idle). */
-const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon']);
+const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon', 'dragonling', 'skullWraith']);
 
 /** How far a close fighter's attack reaches (m): waiting, it keeps out of it. */
 const REACH: Partial<Record<EnemyKind, () => number>> = {
@@ -64,6 +70,8 @@ const REACH: Partial<Record<EnemyKind, () => number>> = {
   skeleton: () => FOES3.v.skeletonReach,
   mushnub: () => FOES3.v.mushnubReach,
   ninja: () => FOES3.v.ninjaReach,
+  rabbit: () => FOES3B.v.rabbitReach,
+  bigMushnub: () => FOES3B.v.smashReach,
 };
 
 /** The phases an attack holds its token through: the run-in, the wind-up, a leap, a dive, a charge. */

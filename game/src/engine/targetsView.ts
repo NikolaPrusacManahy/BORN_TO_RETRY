@@ -1,6 +1,7 @@
 // M1 step 6 — draws the training dummies (posts that lean, slide and flash), the turret (its head glows red
 // while warning and turns to face you) and its orange orbs.
-// Update 0.2.4 — a shot that's a Tribal's spear or a Cactoro's spine is drawn as a shaft along its flight.
+// Update 0.2.4 — a shot that's a Tribal's spear or a Cactoro's spine is drawn as a shaft along its flight. Update 0.2.7
+// — and a White Rabbit's carrot: a fat orange one.
 import * as THREE from 'three';
 import type { CombatState } from '../sim/combat/state';
 import { TARGET_SHAPES } from '../sim/combat/targets';
@@ -88,6 +89,7 @@ export class TargetsView {
     const shaftGeo = this.geo(new THREE.CylinderGeometry(0, 1, 1, 6).translate(0, 0.5, 0));
     const spearMat = new THREE.MeshStandardMaterial({ color: 0x8a5a34, roughness: 0.8 });
     const spineMat = new THREE.MeshStandardMaterial({ color: 0xf0a040, roughness: 0.6 });
+    const carrotMat = new THREE.MeshStandardMaterial({ color: 0xff7418, roughness: 0.7 });
     for (let i = 0; i < state.orbs.length; i++) {
       const o = new THREE.Mesh(orbGeo, this.orbMat);
       o.visible = false;
@@ -98,6 +100,7 @@ export class TargetsView {
       s.castShadow = true;
       s.userData.spine = spineMat;
       s.userData.spear = spearMat;
+      s.userData.carrot = carrotMat;
       this.shafts.push(s);
       this.group.add(s);
     }
@@ -161,7 +164,8 @@ export class TargetsView {
         const spear = o.look === 'spear';
         s.material = s.userData[o.look] as THREE.Material;
         s.quaternion.setFromUnitVectors(UP, dir.copy(o.vel).normalize());
-        s.scale.set(spear ? 0.06 : 0.04, spear ? 1.7 : 0.6, spear ? 0.06 : 0.04);
+        const carrot = o.look === 'carrot';
+        s.scale.set(spear ? 0.06 : carrot ? 0.07 : 0.04, spear ? 1.7 : carrot ? 0.4 : 0.6, spear ? 0.06 : carrot ? 0.07 : 0.04);
         s.position.copy(o.pos).addScaledVector(dir, -s.scale.y * 0.5);
         continue;
       }

@@ -7,6 +7,8 @@
 // from in front of it on its club, and strikes back after enough of them. Also what they read of you: whether you're aiming at one. Pure.
 import { Vector3 } from 'three';
 import { FOES4 } from '../../tuning/foes4';
+import { FOES3B } from '../../tuning/foes3b';
+import { freeAt, hasCells } from '../../world/navGrid';
 import type { CombatState } from '../combat/state';
 import type { PlayerState } from '../player/state';
 import { Enemy, isLive, setPhase } from './enemy';
@@ -78,6 +80,8 @@ export function dodges(state: CombatState, i: number, dirX: number, dirZ: number
     }
     case 'ninja':
       return ninjaDodges(state, i, dirX, dirZ);
+    case 'skullWraith':
+      return skullBlinks(state, i);
     case 'tribal':
       if (e.blink > 0 || e.perch > 0 || state.rng() >= v.tribalDodge) return false;
       slideAside(e, e.pos.x - dirX, e.pos.z - dirZ, v.tribalSidestep, state.rng() < 0.5 ? 1 : -1);
@@ -133,4 +137,28 @@ export function dig(state: Pick<CombatState, 'enemies' | 'events'>, i: number) {
   e.pos.y = BURIED;
   e.prev.y = BURIED;
   setPhase(e, 'burrow');
+}
+
+/** Update 0.2.7 — the Skull Wraith (the designer: "teleports away for the 1st 2 hits … teleport anywhere on the map -
+ *  avoid structures so they can't get stuck"): its first Skull Wraith teleports hits it's gone from, to anywhere over
+ *  open floor in the room (a free cell of the fliers' grid, nothing tall there), well away from where it was. */
+export function skullBlinks(state: CombatState, i: number): boolean {
+  const e = state.enemies[i];
+  const v = FOES3B.v;
+  if (e.stage >= Math.round(v.skullBlinks) || e.phase === 'held' || e.frozen > 0) return false;
+  const g = state.nav.air;
+  for (let tries = 0; tries < 40; tries++) {
+    const x = hasCells(g) ? g.minX + state.rng() * g.cols * g.cell : e.pos.x + (state.rng() * 2 - 1) * 15;
+    const z = hasCells(g) ? g.minZ + state.rng() * g.rows * g.cell : e.pos.z + (state.rng() * 2 - 1) * 15;
+    if ((hasCells(g) && !freeAt(g, x, z)) || Math.hypot(x - e.pos.x, z - e.pos.z) < v.skullBlinkAway) continue;
+    state.events.push('ninjaVanish', i, e.pos.x, e.pos.y + 1, e.pos.z);
+    e.pos.set(x, e.pos.y, z);
+    e.prev.copy(e.pos);
+    e.vel.set(0, 0, 0);
+    e.stage++;
+    setPhase(e, 'chase');
+    state.events.push('ninjaAppear', i, e.pos.x, e.pos.y + 1, e.pos.z);
+    return true;
+  }
+  return false;
 }

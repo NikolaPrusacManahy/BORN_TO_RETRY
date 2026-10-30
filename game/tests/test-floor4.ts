@@ -126,7 +126,7 @@ section('Floor 4 — its enemies and its boss (the designer’s list)');
   check('none of the floors before it but the Wasp', four.filter((k) => before.has(k)).join() === 'wasp');
   check('the big Cactoro and the Skull Orc are mini bosses (their rooms have chests, they carry the keys)', MINI_BOSSES.includes('cactoroBig') && MINI_BOSSES.includes('skullOrc'));
   check('its boss is the Dino (and the floors past it); 15 coins in its chest', bossOf(4) === 'dino' && bossOf(7) === 'dino' && bossCoins('dino') === 15);
-  check('its perches hold Tribals (they throw from above)', percherOf(4) === 'tribal' && percherOf(3) === 'spitter');
+  check('its perches hold Tribals (they throw from above)', percherOf(4) === 'tribal' && percherOf(2) === 'spitter');
   let ok = true;
   for (let s = 1; s <= 40; s++) ok &&= planWaves(4, 4, createRng(s)).flat().every((k) => four.includes(k));
   check('every room’s waves come from its roster', ok);

@@ -9,7 +9,7 @@ import { Vector3 } from 'three';
 import { BONE_KING } from '../../tuning/boneKing';
 import type { PlayerState } from '../player/state';
 import { chaseDir } from './chase';
-import { BLAST, BLASTED, GRAB, moreThrows, SMASH, startBlast, startJump, stepBlast, stepJump, stepRebuild, summon, SUMMON, SUMMON_WINDUP, SUMMONED, THROW, throwSkeleton, tryGrab } from './boneKingMoves';
+import { BLAST, BLASTED, GRAB, moreThrows, SMASH, startBlast, startJump, stepBlast, stepJump, stepRebuild, summon, SUMMON, SUMMON_WINDUP, SUMMONED_AGAIN, SUMMONED, THROW, throwSkeleton, tryGrab } from './boneKingMoves';
 import { Enemy, EnemyWorld, radiusOf, setPhase, turn, walk, yawTo } from './enemy';
 import { ENEMY_STATS } from './kinds';
 
@@ -50,6 +50,8 @@ function pick(k: Enemy, dist: number, player: PlayerState, w: EnemyWorld): numbe
   const v = BONE_KING.v;
   if (k.stage > 0 && !(k.deeds & SUMMONED) && Math.round(v.summon) > 0) return SUMMON;
   if (k.stage > 0 && !(k.deeds & BLASTED) && k.hp <= ENEMY_STATS[k.kind]().hp * v.blastAt) return BLAST;
+  // Update 0.2.7 — after its blast, its skeletons once more.
+  if (k.stage > 0 && k.deeds & BLASTED && !(k.deeds & SUMMONED_AGAIN) && Math.round(v.summon) > 0) return SUMMON;
   const reach = dist - radiusOf(k) <= v.grabReach && player.pos.y - k.pos.y < 2;
   const odds = reach ? ODDS_REACH : dist <= v.kingNear ? ODDS_NEAR : dist <= v.kingFar ? ODDS_MID : ODDS_FAR;
   let move = SMASH;

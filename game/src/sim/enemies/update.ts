@@ -46,6 +46,9 @@ import { updateLizard } from './lizard';
 import { splitBlob, updateGreenBlob } from './greenBlob';
 import { updateMaskTribal } from './maskTribal';
 import { updateSkullOrc } from './skullOrc';
+import { updateDragonling } from './dragonling';
+import { updateRabbit } from './rabbit';
+import { splitMushnub, updateBigMushnub } from './bigMushnub';
 
 export type Update = (e: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number, world: CollisionWorld) => void;
 
@@ -79,9 +82,14 @@ const UPDATE: Record<EnemyKind, Update> = {
   blobling: updateGreenBlob,
   maskTribal: updateMaskTribal,
   skullOrc: updateSkullOrc,
+  // Update 0.2.7 — floor 3's newcomers (the Skull Wraith is the Wraith with teleports: evade.ts).
+  dragonling: updateDragonling,
+  skullWraith: updateWraith,
+  rabbit: updateRabbit,
+  bigMushnub: updateBigMushnub,
 };
 /** A dead boss's show, each tick until its slot frees. Update 0.2.4 — and a Green Blob splitting as it dies. */
-const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld) => void>> = { demon: doomDemon, dragon: doomDemon, boneKing: doomKing, dino: doomDemon, greenBlob: splitBlob };
+const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld) => void>> = { demon: doomDemon, dragon: doomDemon, boneKing: doomKing, dino: doomDemon, greenBlob: splitBlob, bigMushnub: splitMushnub };
 
 export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWorld, world: CollisionWorld, dt: number) {
   let any = false;

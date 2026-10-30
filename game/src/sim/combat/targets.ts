@@ -49,7 +49,7 @@ export interface Orb {
   /** Update 0.1.14 — who fired it. */
   by: Cause | null;
   /** Update 0.2.4 — a glowing orb, a Tribal's spear or a Cactoro's spine (how it's drawn). */
-  look: 'fire' | 'spear' | 'spine';
+  look: 'fire' | 'spear' | 'spine' | 'carrot';
 }
 
 export const ORB_POOL = 24;

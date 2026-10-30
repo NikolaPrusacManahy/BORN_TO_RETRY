@@ -42,7 +42,7 @@ section('Floor 3 — its own rooms');
   }
 }
 
-section('Floor 3 — spitters up high');
+section('Floor 3 — up high (Update 0.2.7: Dragonlings in the Spitters’ place)');
 {
   let seed = 1;
   while (!planFloor(seed, 3).rooms.some((r) => r.layout.template.id === 'the keep')) seed++;
@@ -50,7 +50,7 @@ section('Floor 3 — spitters up high');
   const level = buildDungeon(plan);
   const i = plan.rooms.findIndex((r) => r.layout.template.id === 'the keep');
   const room = level.rooms[i];
-  check(`every wave of a room with perches brings ${PERCHED} spitters for them`, room.waves.every((w) => w.filter((k) => k === 'spitter').length >= PERCHED));
+  check(`every wave of a room with perches brings ${PERCHED} Dragonlings for them, no Spitter`, room.waves.every((w) => w.filter((k) => k === 'dragonling').length >= PERCHED && !w.includes('spitter')));
   const run = createDungeonRun(level);
   const c = createCombat(level.arena, false);
   const p = createPlayer((room.min.x + room.max.x) / 2, 0, room.min.z + 3, 0);
@@ -59,17 +59,23 @@ section('Floor 3 — spitters up high');
   stepRooms(run, p, c, rng, DT);
   check('stepping in, the count is every enemy of every wave', enemiesLeft(run, c) === room.waves.flat().length, `${enemiesLeft(run, c)} / ${room.waves.flat().length}`);
   for (let k = 0; k < ticks(1.5); k++) stepRooms(run, p, c, rng, DT);
-  const perched = c.enemies.filter((e) => isLive(e) && e.perch > 0);
-  check(`the first wave's spitters stand on the perches (${HEIGHT.highLedge} m up)`, perched.length >= PERCHED && perched.every((e) => e.kind === 'spitter' && near(e.pos.y, HEIGHT.highLedge!, 1e-6) && room.perches.some((q) => near(q.x, e.pos.x, 1e-6) && near(q.z, e.pos.z, 1e-6))));
+  const onPerch = (x: number, z: number) => room.perches.some((q) => near(q.x, x, 1e-6) && near(q.z, z, 1e-6));
+  const came = c.enemies.filter((e) => isLive(e) && e.kind === 'dragonling' && onPerch(e.pos.x, e.pos.z));
+  check(`the first wave's Dragonlings come in on the perches (${HEIGHT.highLedge} m up) and take off from there`, came.length >= PERCHED && came.every((e) => near(e.pos.y, HEIGHT.highLedge!, 1e-6) && e.perch === 0));
+  // (A Spitter on a perch, as the perch rules still have one stand: floor 3 sends none now.)
+  const q = room.perches[0];
+  const si = spawnEnemy(c.enemies, 'spitter', new Vector3(q.x, q.y, q.z), 0);
+  c.enemies[si].perch = q.y;
   const before = enemiesLeft(run, c);
-  const s = perched[0];
+  const s = c.enemies[si];
   const at = s.pos.clone();
   // Watch them a while: they stay up there, and shoot at you.
   for (const e of c.enemies) if (isLive(e) && e.perch === 0) e.alive = false;
   // (You in the courtyard, in reach of the perches round it.)
   p.pos.set((room.min.x + room.max.x) / 2, 0, (room.min.z + room.max.z) / 2);
   let shots = 0;
-  for (let k = 0; k < ticks(4); k++) {
+  // (One of them: watched longer than two would need.)
+  for (let k = 0; k < ticks(8); k++) {
     updateEnemies(c.enemies, p, c, OPEN_WORLD, DT);
     updateOrbs(c.orbs, p, new FlatWorld(), c.events, DT);
     for (let e = 0; e < c.events.length; e++) if (c.events.at(e).kind === 'spit') shots++;

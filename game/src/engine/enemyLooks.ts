@@ -4,6 +4,9 @@
 // Update 0.2.3 — the Bone King: the Skeleton's model, massive; holding you, and charging its blast, it stands.
 // Update 0.2.4 — floor 4's: the Tribal (the Orc's rig: its spear throw is the Weapon swing), the Cactoro (the Mushnub's
 // rig), the big Cactoro and the Dino (the Orc's rig), the Hywirl (the Ghost's); under the sand, nothing shows.
+import { bratWindup } from '../sim/enemies/dragonling';
+import { rabbitWindup } from '../sim/enemies/rabbit';
+import { mushWindup } from '../sim/enemies/bigMushnub';
 import type { EnemyPhase } from '../sim/enemies/enemy';
 import type { EnemyKind } from '../sim/enemies/kinds';
 import { blueWindup } from '../sim/enemies/blueDemon';
@@ -84,6 +87,12 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
   blobling: { url: '/models/enemies/green_blob.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', air: 'Jump' }, lands: 8 / 30, windup: () => FOES4.v.blobWindup * 0.7, glow: [0.4, 1, 0.3] },
   maskTribal: { url: '/models/enemies/tribal_mask.glb', clips: { idle: 'Flying_Idle', move: 'Flying_Idle', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Fast_Flying' }, lands: 12 / 30, windup: () => FOES4.v.wardWindup, glow: [1, 0.85, 0.2] },
   skullOrc: { url: '/models/enemies/skull_orc.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 15 / 30, windup: orcWindup, glow: [1, 0.2, 0.1] },
+  // Update 0.2.7 — floor 3's newcomers: the Dragonling (Dragon_Evolved), the Skull Wraith (Ghost_Skull, the Wraith's
+  // clips), the White Rabbit (Bunny: its carrot swing is its attack), the Big Mushnub (MushroomKing).
+  dragonling: { url: '/models/enemies/dragonling.glb', clips: { idle: 'Flying_Idle', move: 'Fast_Flying', attack: 'Headbutt', hit: 'HitReact', death: 'Death', air: 'Fast_Flying' }, lands: 9 / 30, windup: bratWindup, glow: [1, 0.45, 0.08] },
+  skullWraith: { url: '/models/enemies/skull_wraith.glb', clips: { idle: 'Flying_Idle', move: 'Flying_Idle', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Flying_Idle' }, lands: 12 / 30, windup: () => FOES.v.wraithWindup, glow: [0.95, 0.9, 0.7] },
+  rabbit: { url: '/models/enemies/rabbit.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 15 / 30, windup: rabbitWindup, glow: [1, 0.6, 0.2] },
+  bigMushnub: { url: '/models/enemies/mushroom_king.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 15 / 30, windup: mushWindup, glow: [0.3, 0.75, 1] },
   dino: { url: '/models/enemies/velociraptor.glb', clips: { idle: 'Velociraptor_Idle', move: 'Velociraptor_Run', attack: 'Velociraptor_Attack', hit: 'Velociraptor_Idle', death: 'Velociraptor_Death', air: 'Velociraptor_Jump' }, lands: 10 / 24, windup: dinoWindup, glow: [1, 0.3, 0.08], posed: true },
   ninja: { url: '/models/enemies/ninja.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 20 / 30, windup: () => FOES3.v.ninjaWindup, glow: [1, 0.1, 0.35] },
   blueDemon: { url: '/models/enemies/bluedemon.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Run' }, lands: 17 / 30, windup: blueWindup, glow: [0.2, 0.55, 1] },
