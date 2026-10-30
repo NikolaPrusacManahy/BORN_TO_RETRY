@@ -20,6 +20,8 @@
 // Update 0.2.2 — the last floor's way down ends the run: once it's black, the same screen, saying you survived.
 // Update 0.2.3 — held in the Bone King's hand (sim/combat/grab.ts): no moving, the view on its skull, your attacks
 // still yours (each a hit on it).
+// Update 0.2.8 — pinned by the Velociraptor (sim/combat/pin.ts): no moving, the view up at its jaws, your dash key
+// still yours (a twist out of a bite).
 import * as THREE from 'three';
 import type { FrameStats } from '../core/frameStats';
 import type { Input } from '../input/input';
@@ -49,9 +51,11 @@ import { fillDebug } from './overlayFeed';
 import { RunBase } from './runBase';
 import { endsRun } from './runLinks';
 import { skullOf } from '../sim/combat/grab';
+import { jawsOf } from '../sim/combat/pin';
 import { sandSlow } from '../sim/dungeon/quicksand';
 
-/** Update 0.2.3 — held in the Bone King's hand, the view turns to its skull this fast (1/s). */
+/** Update 0.2.3 — held in the Bone King's hand, the view turns to its skull this fast (1/s) (Update 0.2.8: pinned, to
+ *  the Velociraptor's jaws). */
 const GRAB_TURN = 10;
 /** A height change bigger than this in one tick on the ground is a step: the camera smooths it (m). */
 const STEP_MIN = 0.1;
@@ -73,7 +77,7 @@ export class Run extends RunBase {
       const wasGrounded = p.grounded;
       // The dead don't steer or punch; nor does anyone during the boss room's show.
       const free = !p.dead && !this.show.locked && !this.chestShot.locked && !execHeld(this.combat.exec);
-      const held = this.combat.grab.on;
+      const held = this.combat.grab.on || this.combat.pin.on;
       readPlayerIntent(input, this.look, this.intent, free && !held);
       readCombatIntent(input, this.look, this.combatIntent, free);
       updateHealth(p, stepDt);
@@ -115,14 +119,16 @@ export class Run extends RunBase {
     // Update 0.0.13 — kneeling at a chest, the view turns to it and the mouse waits (and during the boss room's show).
     const kneeling = p.kneel > 0;
     const grab = this.combat.grab;
-    const still = kneeling || this.show.locked || this.chestShot.locked || execHeld(this.combat.exec) || grab.on;
+    const pin = this.combat.pin;
+    const still = kneeling || this.show.locked || this.chestShot.locked || execHeld(this.combat.exec) || grab.on || pin.on;
     const mouseDx = locked && !still ? input.mouseDX : 0;
     const mouseDy = locked && !still ? input.mouseDY : 0;
     if (locked && !still) this.look.apply(mouseDx, mouseDy, settings);
     if (kneeling) this.look.turnTo(p.kneelYaw, (CAMERA.v.kneelPitch * Math.PI) / 180, CAMERA.v.kneelTurn, real);
-    if (grab.on) {
-      // Held: the view on its skull.
-      skullOf(this.combat, grab.slot, this.skull);
+    if (grab.on || pin.on) {
+      // Held: the view on its skull (pinned: on its jaws).
+      if (grab.on) skullOf(this.combat, grab.slot, this.skull);
+      else jawsOf(this.combat, pin.slot, this.skull);
       const dx = this.skull.x - p.pos.x;
       const dz = this.skull.z - p.pos.z;
       this.look.turnTo(Math.atan2(-dx, -dz), Math.atan2(this.skull.y - p.pos.y - CAMERA.v.eyeHeight, Math.hypot(dx, dz)), GRAB_TURN, real);
@@ -161,6 +167,8 @@ export class Run extends RunBase {
     this.prompts.update(focus, this.camera, renderer, keyLabel(input.bindings.interact), free, this.combatScene.markAt());
     const d = this.level.dungeon;
     if (d) this.view.update?.(gameDt, d, this.camera.position);
+    // (The Velociraptor's sandstorm over the dungeon's haze.)
+    this.combatScene.raptor.sky(this.scene, this.combat);
     const f = this.combat.fists;
     const choosing = this.treasure.choosing >= 0 ? this.combat.items.keyPick : null;
     this.arms.palm.update(choosing, this.keyLook, real);
@@ -171,6 +179,7 @@ export class Run extends RunBase {
 
     fillDebug(debug, p, this.combat);
     this.hudFeed.attackKey = keyLabel(input.bindings.attack);
+    this.hudFeed.dashKey = keyLabel(input.bindings.dash);
     this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d, this.look.yaw, this.show.hud, choosing ?? '');
     // Dead: once it's black, the death screen (the dungeon: Retry is a new run) or the lab's start. The way down: the
     // next floor (Update 0.2.2: off the last, the run is won).

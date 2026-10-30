@@ -2,7 +2,8 @@
 // Small - Snake, Tribal, Cactoro, Slime; Flying - Hywirl, Wasp, Wraith"; "at least 10 different rooms with their
 // identity"; new enemies "frustrating and hard to kill … "They evade" or "they are smarter than ordinary enemies""). Its
 // look and rooms; quicksand; its roster; each new enemy's way of being hard; the Dino. (The new enemies' executions are
-// played in test-executions.ts; floors 1–7's layouts in test-dungeon.ts.)
+// played in test-executions.ts; floors 1–7's layouts in test-dungeon.ts.) Update 0.2.8 — the Velociraptor's in
+// test-raptor.ts.
 import { Vector3 } from 'three';
 import { check, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
@@ -16,15 +17,13 @@ import { inQuicksand, sandSlow } from '../src/sim/dungeon/quicksand';
 import { percherOf, planWaves, rosterOf } from '../src/sim/dungeon/wavePlan';
 import { BURIED } from '../src/sim/enemies/cactoro';
 import { AMBUSH } from '../src/sim/enemies/cactoroBig';
-import { BITE, CHARGE, STOMP, TAIL } from '../src/sim/enemies/dinoMoves';
 import { dodges } from '../src/sim/enemies/evade';
 import { isLive, setPhase, spawnEnemy } from '../src/sim/enemies/enemy';
-import { bossOf, EnemyKind, ENEMY_STATS, MINI_BOSSES } from '../src/sim/enemies/kinds';
+import { bossOf, EnemyKind, MINI_BOSSES } from '../src/sim/enemies/kinds';
 import { createPlayer, PlayerState } from '../src/sim/player/state';
 import { lizardSeen } from '../src/sim/enemies/lizard';
 import { COMBO, RIPOSTE } from '../src/sim/enemies/skullOrc';
 import { hitEnemy } from '../src/sim/enemies/enemy';
-import { DINO } from '../src/tuning/dino';
 import { FOES4 } from '../src/tuning/foes4';
 import { ROOMS } from '../src/tuning/rooms';
 import { Arena, boxAt } from '../src/world/arena';
@@ -242,75 +241,6 @@ section('Hywirl — out of your sights; it strikes only from your blind side');
   g.p.yaw = 0;
   const r2 = run(g, 4);
   check('your back turned, it gathers its wind and rushes you: hurt and thrown', r2.seen.indexOf('hywirlWindup') >= 0 && r2.seen.indexOf('hywirlWindup') < r2.seen.indexOf('hywirlGust') && r2.hurt);
-}
-
-section('Velociraptor — floor 4’s boss (the Dino’s moves)');
-{
-  const s = ENEMY_STATS.dino();
-  check(`a boss, ${s.height} m, never flinches`, s.boss && s.stagger === Infinity);
-  // Its charge waits out your dash.
-  const plain = fight('dino', new Vector3(0, 0, -14));
-  plain.e.move = CHARGE;
-  setPhase(plain.e, 'windup');
-  let start = -1;
-  run(plain, 2, (i) => {
-    if (start < 0 && plain.e.phase === 'charge') start = i * DT;
-  });
-  const held = fight('dino', new Vector3(0, 0, -14));
-  held.e.move = CHARGE;
-  setPhase(held.e, 'windup');
-  let start2 = -1;
-  run(held, 3, (i) => {
-    if (i * DT < DINO.v.chargeWindup) held.p.dashTime = 0.2;
-    else held.p.dashTime = 0;
-    if (start2 < 0 && held.e.phase === 'charge') start2 = i * DT;
-  });
-  check(`dash in its charge’s warning and it holds its charge (up to ${DINO.v.chargeHold} s) and aims again`, start > 0 && start2 > start + DINO.v.chargeHold * 0.8);
-  // Its charge steers after you.
-  const st = fight('dino', new Vector3(0, 0, -18));
-  st.e.move = CHARGE;
-  setPhase(st.e, 'windup');
-  run(st, DINO.v.chargeWindup + 0.05);
-  st.p.pos.set(8, 0, 0);
-  run(st, 0.4);
-  check('charging, it turns after you', st.e.phase === 'charge' && st.e.aim.x > 0.15);
-  // Behind it: its tail.
-  const t = fight('dino', new Vector3(0, 0, -6));
-  t.e.facing = 0;
-  t.e.cooldown = 0;
-  const rt = run(t, DINO.v.tailWindup + 0.2);
-  check('behind it, its tail sweeps round', t.e.move === TAIL && rt.seen.includes('dinoTail') && rt.hurt);
-  // Close: bites.
-  const b = fight('dino', new Vector3(0, 0, -5));
-  b.e.move = BITE;
-  setPhase(b.e, 'windup');
-  const rb = run(b, DINO.v.biteWindup + DINO.v.biteGap * 3 + 0.2);
-  check(`close by, ${Math.round(DINO.v.bites)} snaps`, count(rb.seen, 'dinoBite') === Math.round(DINO.v.bites) && rb.hurt);
-  const so = fight('dino', new Vector3(0, 0, -10));
-  so.e.move = STOMP;
-  setPhase(so.e, 'windup');
-  const rs = run(so, DINO.v.stompWindup + DINO.v.stompGap * 2 + 0.1);
-  check(`${Math.round(DINO.v.stomps)} stomps, each a quake ring`, count(rs.seen, 'dinoStomp') === Math.round(DINO.v.stomps));
-  // At half health: it roars, Cactoros come up, and it may pounce.
-  const rg = fight('dino', new Vector3(0, 0, -12));
-  rg.e.hp = s.hp * (DINO.v.rageAt - 0.01);
-  const rr = run(rg, 0.2);
-  const called = rg.c.enemies.filter((e) => isLive(e) && e.kind === 'dinoBlob').length;
-  check(`at ${DINO.v.rageAt * 100}% it roars once and its pack comes in: ${Math.round(DINO.v.rageCactoros)} Dinos`, rr.seen.includes('dinoRoar') && called === Math.round(DINO.v.rageCactoros) && rg.e.stage === 1);
-  const pounces = (stage: number) => {
-    const q = fight('dino', new Vector3(0, 0, -20), 9);
-    q.e.stage = stage;
-    let n = 0;
-    for (let i = 0; i < 12; i++) {
-      q.e.cooldown = 0;
-      setPhase(q.e, 'chase');
-      run(q, DT);
-      if (q.e.move === 4) n++;
-      setPhase(q.e, 'chase');
-    }
-    return n;
-  };
-  check('it pounces from afar only once it rages', pounces(0) === 0 && pounces(1) > 0);
 }
 
 section('Dino — hit and run (the Dino’s model, small)');

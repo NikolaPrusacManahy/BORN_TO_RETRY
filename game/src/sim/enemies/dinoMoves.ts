@@ -1,36 +1,39 @@
-// Update 0.2.4 — the Dino's moves once their warning is over (dino.ts picks them and warns): its charge (the Demon's
-// run with its own numbers, steering after you as it goes; a wall or a column stuns it), its bites (snaps in a row,
-// each a lunge), its tail (it spins: the tail sweeps all round, low enough to jump), its stomps (each a quake ring),
-// its pounce (raging: a leap to where you stand, its landing glowing on the floor) and its roar (raging, once:
-// Update 0.2.4, the Velociraptor's pack: small Dinos come running from round you). Pure.
-import { Vector3 } from 'three';
+// Update 0.2.4 — the Velociraptor's moves once their warning is over (dino.ts picks them and warns).
+// Update 0.2.8 — its new moves (the designer: "move sets that were not in the game yet"). Here, the pieces they share:
+// which move is which, its pace, its charge (the Demon's run with its own numbers, steering after you as it goes; a
+// wall or a column stuns it) and its pounces: a feint's, its own, a lunge out of the sandstorm, the dive off a wall,
+// each flying its own time, its landing glowing on the floor. In its frenzy a pounce of its own (or a feint's) landing
+// on you pins you (pin.ts). The hunt's moves are in dinoHunt.ts, the frenzy's in dinoFrenzy.ts, the blitz in
+// dinoBlitz.ts. Pure.
 import { DINO } from '../../tuning/dino';
-import { startQuake } from '../combat/quakes';
-import { BOSS } from '../../tuning/boss';
+import { startPin } from '../combat/pin';
 import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
 import { freeSpotNear } from './chase';
 import type { ChargeSpec } from './demonMoves';
-import { Enemy, EnemyWorld, radiusOf, setPhase, spawnEnemy, walk, yawTo } from './enemy';
+import { Enemy, EnemyWorld, radiusOf, setPhase, walk, yawTo } from './enemy';
 
-/** Which move (Enemy.move). */
+/** Which move (Enemy.move): the ones it picks (the sandstorm when its gap is over), then the ones that follow from
+ *  them (a feint's stop, a lunge out of the storm, a bite while it pins you). */
 export const CHARGE = 0;
-export const BITE = 1;
-export const TAIL = 2;
-export const STOMP = 3;
+export const KICK = 1;
+export const WALL = 2;
+export const SCREECH = 3;
 export const POUNCE = 4;
-/** Each snap lunges this far forward at most (m); its jaws reach this far round it (degrees off its facing). */
-const LUNGE = 1.6;
-const JAWS = 55;
-/** Its roar lasts this long (s); its pack comes in this far round you (m). */
-export const ROAR_TIME = 1.4;
-const CALL_OUT = 6;
+export const STORM = 5;
+export const BLITZ = 6;
+export const FEINT = 7;
+export const LUNGE = 8;
+export const BITE = 9;
+/** It rears up this long, calling up a sandstorm (s). */
+export const STORM_CALL = 1;
+/** Landing this far over you (m), it hasn't caught you. */
+const OVER = 2.5;
 
 const SPEC: ChargeSpec = { speed: 0, range: 0, damage: 0, shove: 0, height: 0 };
-const spot = new Vector3();
 
-/** How much quicker it is once it rages. */
-export const dinoPace = (d: Enemy) => (d.stage > 0 ? DINO.v.ragePace : 1);
+/** How much quicker it is in its frenzy. */
+export const dinoPace = (d: Enemy) => (d.stage > 0 ? DINO.v.frenzyPace : 1);
 
 /** Its charge's numbers as the knobs say now (one object, refilled). */
 export function dinoCharge(d: Enemy): ChargeSpec {
@@ -53,88 +56,55 @@ export function steer(d: Enemy, player: PlayerState, dt: number) {
   d.facing = turned;
 }
 
-/** One snap: a lunge at you, and its jaws close (you're hurt if they're on you). */
-export function snap(d: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
+/** How long its pounce `move` flies (s). */
+export function leapAir(move: number): number {
   const v = DINO.v;
-  const dx = player.pos.x - d.pos.x;
-  const dz = player.pos.z - d.pos.z;
-  const dist = Math.hypot(dx, dz);
-  d.facing = yawTo(d, player.pos.x, player.pos.z);
-  const lunge = Math.min(LUNGE, Math.max(0, dist - radiusOf(d) - 0.8));
-  if (lunge > 0) walk(d, dx / dist, dz / dist, lunge, w.nav.large);
-  w.events.push('dinoBite', index, d.pos.x - Math.sin(d.facing) * radiusOf(d), d.pos.y + v.dinoHeight * 0.55, d.pos.z - Math.cos(d.facing) * radiusOf(d));
-  const left = Math.hypot(player.pos.x - d.pos.x, player.pos.z - d.pos.z);
-  const off = Math.abs(Math.atan2(Math.sin(yawTo(d, player.pos.x, player.pos.z) - d.facing), Math.cos(yawTo(d, player.pos.x, player.pos.z) - d.facing)));
-  if (left > v.biteReach + radiusOf(d) * 0.5 || off > (JAWS * Math.PI) / 180 || player.pos.y - d.pos.y > v.dinoHeight * 0.7) return;
-  if (damagePlayer(player, v.biteDamage, d.kind)) throwYou(player, d, dx, dz, dist, 7, 3);
+  return move === FEINT ? v.feintAir : move === WALL ? v.wallAir : move === LUNGE ? v.lungeAir : v.pounceAir;
 }
 
-/** It spins: its tail sweeps all round, low (jump it). */
-export function tailSweep(d: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
-  const v = DINO.v;
-  w.events.push('dinoTail', index, d.pos.x, d.pos.y + 0.3, d.pos.z);
-  const dx = player.pos.x - d.pos.x;
-  const dz = player.pos.z - d.pos.z;
-  const dist = Math.hypot(dx, dz);
-  if (dist > v.tailReach + radiusOf(d) || player.pos.y - d.pos.y > v.tailClear) return;
-  if (damagePlayer(player, v.tailDamage, d.kind)) throwYou(player, d, dx, dz, dist, 12, 5);
-}
-
-/** A stomp: a quake ring rolls out (jump it). */
-export function stomp(d: Enemy, w: EnemyWorld) {
-  const v = DINO.v;
-  d.shots++;
-  w.events.push('dinoStomp', d.shots, d.pos.x, d.pos.y, d.pos.z);
-  startQuake(w.quakes, d.pos.x, d.pos.y, d.pos.z, v.quakeSpeed, v.quakeReach, v.quakeDamage, BOSS.v.quakeClear, d.kind);
-}
-
-/** Off it pounces, for the free spot nearest where you stand. False if there's nowhere to land. */
-export function startPounce(d: Enemy, index: number, player: PlayerState, w: EnemyWorld): boolean {
+/** Off it pounces (the move it's on says how), for the free spot nearest where you stand, landing at `ground`'s height.
+ *  False if there's nowhere to land. */
+export function startPounce(d: Enemy, player: PlayerState, w: EnemyWorld, ground = d.pos.y): boolean {
   d.aim.y = 0;
   if (!freeSpotNear(w.nav.large, player.pos.x, player.pos.z, d.aim)) return false;
-  d.aim.y = d.pos.y;
+  d.aim.y = ground;
   d.from.copy(d.pos);
   d.facing = yawTo(d, d.aim.x, d.aim.z);
   setPhase(d, 'leap');
-  w.events.push('dinoPounce', index, d.pos.x, d.pos.y + 1, d.pos.z);
+  w.events.push('dinoPounce', d.move, d.pos.x, d.pos.y + 1, d.pos.z);
   return true;
 }
 
-/** One tick of the pounce. Returns true once it has landed. */
-export function stepPounce(d: Enemy, index: number, player: PlayerState, w: EnemyWorld): boolean {
+/** One tick of a pounce. Landed, it hurts you in Pounce reach (or, in its frenzy, a pounce of its own pins you) and
+ *  stands ('recover'). */
+export function stepPounce(d: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
   const v = DINO.v;
-  const k = Math.min(1, d.t / v.pounceAir);
+  const k = Math.min(1, d.t / leapAir(d.move));
   d.pos.x = d.from.x + (d.aim.x - d.from.x) * k;
   d.pos.z = d.from.z + (d.aim.z - d.from.z) * k;
-  d.pos.y = d.from.y + 4 * v.pounceArc * k * (1 - k);
-  if (k < 1) return false;
+  // (Off a wall it drops at you; a lunge stays low; the rest go up and over.)
+  const arc = d.move === WALL ? 1 : d.move === LUNGE ? v.pounceArc * 0.4 : v.pounceArc;
+  d.pos.y = d.from.y + (d.aim.y - d.from.y) * k + 4 * arc * k * (1 - k);
+  if (k < 1) return;
   d.pos.copy(d.aim);
   walk(d, 0, 0, 0, w.nav.large);
-  w.events.push('dinoLand', index, d.pos.x, d.pos.y, d.pos.z);
+  setPhase(d, 'recover');
+  w.events.push('dinoLand', d.move, d.pos.x, d.pos.y, d.pos.z);
   const dx = player.pos.x - d.pos.x;
   const dz = player.pos.z - d.pos.z;
   const dist = Math.hypot(dx, dz);
-  if (dist <= v.pounceReach + radiusOf(d) && player.pos.y - d.pos.y <= 2.5 && damagePlayer(player, v.pounceDamage, d.kind)) throwYou(player, d, dx, dz, dist, 12, 7);
-  return true;
-}
-
-/** Its roar: its pack (small Dinos) comes running from round you. */
-export function roar(d: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
-  const v = DINO.v;
-  setPhase(d, 'roar');
-  w.events.push('dinoRoar', index, d.pos.x, d.pos.y + v.dinoHeight * 0.8, d.pos.z);
-  const n = Math.round(v.rageCactoros);
-  for (let i = 0; i < n; i++) {
-    const a = w.rng() * Math.PI * 2;
-    spot.set(player.pos.x + Math.cos(a) * CALL_OUT, 0, player.pos.z + Math.sin(a) * CALL_OUT);
-    if (!freeSpotNear(w.nav.small, spot.x, spot.z, spot)) continue;
-    spot.y = d.pos.y;
-    const s = spawnEnemy(w.enemies, 'dinoBlob', spot, yawTo(d, player.pos.x, player.pos.z));
-    if (s >= 0) w.events.push('enemySpawn', s, spot.x, spot.y, spot.z);
+  if (player.dead || player.pos.y - d.pos.y > OVER) return;
+  const pins = d.stage > 0 && (d.move === POUNCE || d.move === FEINT);
+  if (pins && dist <= v.pinReach + radiusOf(d) && player.invuln <= 0) {
+    startPin(w, index, player);
+    return;
   }
+  const damage = d.move === WALL ? v.wallDamage : d.move === LUNGE ? v.lungeDamage : v.pounceDamage;
+  if (dist <= v.pounceReach + radiusOf(d) && damagePlayer(player, damage, d.kind)) throwYou(player, d, dx, dz, dist, 12, 7);
 }
 
-function throwYou(player: PlayerState, d: Enemy, dx: number, dz: number, dist: number, shove: number, up: number) {
+/** Thrown off it, along (dx, dz) (`dist` long), `shove` hard and `up` into the air. */
+export function throwYou(player: PlayerState, d: Enemy, dx: number, dz: number, dist: number, shove: number, up: number) {
   const nx = dist > 1e-3 ? dx / dist : -Math.sin(d.facing);
   const nz = dist > 1e-3 ? dz / dist : -Math.cos(d.facing);
   player.vel.x += nx * shove;

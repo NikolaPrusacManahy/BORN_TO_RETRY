@@ -29,7 +29,8 @@ export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { demon: BOSS_NAME
  *  life only). */
 function markOf(boss: Enemy): number {
   if (boss.kind === 'boneKing') return boss.stage > 0 ? BONE_KING.v.blastAt : -1;
-  if (boss.kind === 'dino') return DINO.v.rageAt;
+  // (Update 0.2.8 — the Velociraptor: where its frenzy starts, then its blitz.)
+  if (boss.kind === 'dino') return boss.stage >= 2 ? -1 : boss.stage > 0 ? DINO.v.blitzAt : DINO.v.frenzyAt;
   return boss.kind === 'dragon' ? DRAGON.v.rageAt : BOSS.v.rageAt;
 }
 export const bossTitle = (floor: number) => `Warden of Floor ${floor}`;
@@ -62,6 +63,9 @@ export class BossShow {
   /** Real seconds since you stepped into the dark (−1: not yet), and of the floor's name left. */
   private exiting = -1;
   private title = 0;
+  /** Update 0.2.8 — the floor's name waits this long first (a new run's loader still covers the screen), and the name. */
+  private titleWait = 0;
+  private titleName = '';
   private readonly out = { cinematic: false, descend: false };
 
   constructor(private readonly run: DungeonRun | null) {
@@ -87,10 +91,13 @@ export class BossShow {
     return c.slow + (1 - c.slow) * k * k;
   }
 
-  /** The next floor's name shows as the black clears (after a load). */
-  arrive(floor: number) {
+  /** The next floor's name shows as the black clears (after a load). Update 0.2.8 — every floor's start, a new run's
+   *  too (the designer: "display FLOOR 1 when they start playing"); `wait`: after this long (s), the loader still up. */
+  arrive(floor: number, wait = 0) {
     this.title = CINEMA.v.floorTitle;
-    this.hud.floorName = `FLOOR ${floor}`;
+    this.titleWait = wait;
+    this.titleName = `FLOOR ${floor}`;
+    this.hud.floorName = wait > 0 ? '' : this.titleName;
   }
 
   /** After the camera rig has put the view in your eyes: takes the view over when the show wants it. Returns true when
@@ -99,7 +106,10 @@ export class BossShow {
     const out = this.out;
     out.cinematic = out.descend = false;
     this.slow = Math.max(0, this.slow - real);
-    this.title = Math.max(0, this.title - real);
+    if (this.titleWait > 0) {
+      this.titleWait = Math.max(0, this.titleWait - real);
+      if (this.titleWait <= 0) this.hud.floorName = this.titleName;
+    } else this.title = Math.max(0, this.title - real);
     if (this.title <= 0) this.hud.floorName = '';
     const run = this.run;
     const h = this.hud;

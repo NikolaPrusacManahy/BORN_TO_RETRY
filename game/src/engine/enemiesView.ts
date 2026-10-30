@@ -183,10 +183,13 @@ export class EnemiesView {
       const moved = Math.hypot(e.pos.x - e.prev.x, e.pos.z - e.prev.z) > 1e-4;
       slot.still = moved || e.phase !== 'chase' ? 0 : slot.still + dt;
       if (want === 'move' && slot.still > STILL && !flies(e.kind)) want = 'idle';
+      // Update 0.2.8 — the Velociraptor runs its charges, its sprint to a wall and its blitz (quicker).
+      const dash = e.kind === 'dino' && e.phase === 'charge';
+      if (dash) want = 'move';
       if (want !== b.role || (again && ONCE.includes(want))) this.play(b, want);
       attack.timeScale = look.lands / windup;
       b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? BONE_KING.v.kingRise : FOES3.v.skeletonRise);
-      b.actions.move.timeScale = e.phase === 'held' ? 3 : 1;
+      b.actions.move.timeScale = e.phase === 'held' ? 3 : dash ? 2 : 1;
       const ice = e.frozen > 0 ? 1 : 0;
       if (!ice && !b.root.userData.kept) b.mixer.update(dt);
       // Update 0.1.1 — you could execute it: a crimson pulse.
@@ -219,6 +222,11 @@ export class EnemiesView {
     if (b.role && b.role !== role) b.actions[b.role].fadeOut(FADE);
     next.reset().setEffectiveWeight(1).fadeIn(b.role ? FADE : 0).play();
     b.role = role;
+  }
+
+  /** Update 0.2.8 — the head bone of the body drawn for enemy slot `i` (null if none, or it has no 'Head'). */
+  headOf(i: number): THREE.Object3D | null {
+    return this.rootOf(i)?.getObjectByName('Head') ?? null;
   }
 
   /** Update 0.1.2 — the body drawn for enemy slot `i` (null if none). */

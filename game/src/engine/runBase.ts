@@ -33,6 +33,10 @@ import { HudFeed } from './overlayFeed';
 import { Viewmodel } from './viewmodel/viewmodel';
 import { cancelCharges } from '../sim/weapons/kiCharge';
 
+/** Update 0.2.8 (the designer: display "FLOOR 1" when they start playing) — a new run starts under the loader (at
+ *  least its LOAD_MIN, 1 s) and its black clearing (0.5 s): its floor's name waits that long. */
+export const LOADER_HIDES = 1.5;
+
 export abstract class RunBase {
   protected readonly scene = new THREE.Scene();
   protected readonly camera = new THREE.PerspectiveCamera(70, 16 / 9, 0.05, 400);
@@ -118,8 +122,9 @@ export abstract class RunBase {
     this.treasure = level.dungeon?.treasure ?? emptyTreasure();
     this.treasureView = new TreasureView(this.scene, this.treasure);
     this.show = new BossShow(level.dungeon);
-    // (Back to the Lab from its boss room: no floor's name.)
-    if (keep && level.dungeon) this.show.arrive(level.floor);
+    // (Back to the Lab from its boss room: no floor's name.) Update 0.2.8 (the designer: display "FLOOR 1" when they start
+    // playing): every floor's start shows its name, a new run's and a Retry's too; not the Lab's lone boss room.
+    if (level.dungeon && !level.bossRoom) this.show.arrive(level.floor);
     this.hazards = hazardsOf(level.arena);
     this.lava = lavaOf(level.arena);
     this.combat = createCombat(level.arena, !level.dungeon);
@@ -151,6 +156,12 @@ export abstract class RunBase {
       this.death.reset();
       this.cb.onRespawn();
     }
+  }
+
+  /** Update 0.2.8 — the floor's name waits `secs` (a new run's loader and its black still cover the screen: Game's
+   *  startRun, LOADER_HIDES). */
+  holdFloorTitle(secs: number) {
+    if (this.level.dungeon && !this.level.bossRoom) this.show.arrive(this.level.floor, secs);
   }
 
   /** F3 and Restart: the lab from its start; a dungeon floor laid out again from its start. Update 0.1.14 — the

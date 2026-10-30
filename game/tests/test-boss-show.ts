@@ -226,4 +226,11 @@ section('Boss show — the run');
   check('once black, down to the next floor', down);
   show.arrive(2);
   check('whose name shows', show.hud.floorName === 'FLOOR 2');
+  // Update 0.2.8 — a new run's "FLOOR 1" waits for the loader's black to clear.
+  show.arrive(1, 1.5);
+  check('a new run: its floor’s name waits while the loader covers the screen…', show.hud.floorName === '');
+  for (let i = 0; i < ticks(1.55); i++) show.update(DT, cam, look, combat);
+  check('…then shows: FLOOR 1', show.hud.floorName === 'FLOOR 1');
+  for (let i = 0; i < ticks(CINEMA.v.floorTitle + 0.1); i++) show.update(DT, cam, look, combat);
+  check('and goes after Floor title', show.hud.floorName === '');
 }

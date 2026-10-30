@@ -45,6 +45,7 @@ import { chestToOpen } from '../sim/dungeon/treasure';
 import type { DungeonRun } from '../sim/dungeon/roomLoop';
 import { CELL, GRID } from '../world/dungeon/floorPlan';
 import { BONE_KING } from '../tuning/boneKing';
+import { createRaptorHud, raptorHud, sameRaptor } from './raptorHud';
 
 /** HUD refresh interval (s); hits, hurts and health changes push at once. */
 const HUD_EVERY = 0.05;
@@ -66,8 +67,11 @@ const GRAB_FLASH = 1.1;
 export class HudFeed {
   private timer = 0;
   private bonus = -1;
-  /** Update 0.2.3 — your attack's key (the QTE says to press it), set by the run each frame. */
+  /** Update 0.2.3 — your attack's key (the QTE says to press it), set by the run each frame. Update 0.2.8 — and your
+   *  dash's (the Velociraptor's pin). */
   attackKey = '';
+  dashKey = '';
+  private readonly raptor = createRaptorHud();
 
   constructor(private readonly hud: HudStore) {}
 
@@ -101,7 +105,8 @@ export class HudFeed {
     const grabLeft = g.on ? Math.ceil(Math.max(0, 1 - g.t / BONE_KING.v.grabTime) * 20) / 20 : 0;
     const grabEnd = !g.on && g.since < GRAB_FLASH ? g.end : '';
     const bossMark = show.bossMark;
-    const grab = cur.grabHits === grabHits && cur.grabLeft === grabLeft && cur.grabEnd === grabEnd && cur.bossMark === bossMark && cur.attackKey === this.attackKey;
+    const raptor = raptorHud(p, combat, this.raptor);
+    const grab = cur.grabHits === grabHits && cur.grabLeft === grabLeft && cur.grabEnd === grabEnd && cur.bossMark === bossMark && cur.attackKey === this.attackKey && sameRaptor(cur, raptor) && cur.dashKey === this.dashKey;
     if (this.timer > 0 && same && shown && grab && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution && cur.chestHere === chestHere) return;
     this.bonus = bonus;
     const bonusLeft: Record<string, number> = {};
@@ -155,6 +160,8 @@ export class HudFeed {
       grabLeft,
       grabEnd,
       attackKey: this.attackKey,
+      ...raptor,
+      dashKey: this.dashKey,
     });
   }
 }

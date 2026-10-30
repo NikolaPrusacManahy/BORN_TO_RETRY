@@ -2,15 +2,16 @@
 // the designer's rule) — the Demon's charge, crash, slam and roar for the Dino's, a bite for its snaps, a punch's for
 // a blow the big Cactoro's thorns turn — and placeholder synth for the rest: a spear's whoosh, sand hissing as a
 // Cactoro digs and rising as it comes up, its spines' burst, a gust's howl as a Hywirl gathers its wind and rushes.
+// Update 0.2.8 — the Velociraptor's are raptorSounds.ts's.
 import type { CombatEvent } from '../sim/combat/state';
 import { FOES4 } from '../tuning/foes4';
 import type { AudioEngine } from './audio';
+import { playRaptor } from './raptorSounds';
 import { noise, tone } from './synth';
 
 /** Returns false for events it doesn't know. */
-export function playDesert(a: AudioEngine, kind: CombatEvent, _value: number, far: number): boolean {
+export function playDesert(a: AudioEngine, kind: CombatEvent, value: number, far: number): boolean {
   const v = FOES4.v;
-  const boss = Math.max(0.45, far);
   switch (kind) {
     case 'tribalWindup':
       tone(a, { from: 300, to: 520, dur: v.tribalWindup, gain: 0.08 * far, type: 'triangle' });
@@ -116,25 +117,7 @@ export function playDesert(a: AudioEngine, kind: CombatEvent, _value: number, fa
     case 'orcSlam':
       a.clips.play('bruteSlam', far);
       return true;
-    case 'dinoWindup':
-      tone(a, { from: 70, to: 120, dur: 0.6, gain: 0.18 * boss, type: 'sawtooth' });
-      return true;
-    case 'dinoCharge':
-      return a.clips.play('demonCharge', boss) || true;
-    case 'dinoCrash':
-      return a.clips.play('demonCrash', boss) || true;
-    case 'dinoBite':
-      return a.clips.play('bite', boss) || true;
-    case 'dinoTail':
-    case 'dinoPounce':
-      noise(a, { dur: 0.4, gain: 0.35 * boss, filter: 'bandpass', from: 400, to: 1400, q: 1.2 });
-      return true;
-    case 'dinoStomp':
-    case 'dinoLand':
-      return a.clips.play('demonSlam', boss) || true;
-    case 'dinoRoar':
-      return a.clips.play('demonRoar', boss) || true;
     default:
-      return false;
+      return playRaptor(a, kind, value, far);
   }
 }

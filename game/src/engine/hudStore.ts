@@ -1,5 +1,6 @@
 // M1 — what the HUD shows, pushed by the game a few times a second (React never runs per frame). Hit markers
 // and hurt flashes are counters: each new number restarts their animation.
+import { createRaptorHud } from './raptorHud';
 import type { MoveMode } from '../sim/player/state';
 import type { KeyKind } from '../sim/items/items';
 import type { WeaponKind } from '../sim/weapons/catalog';
@@ -99,6 +100,16 @@ export interface HudState {
   grabLeft: number;
   grabEnd: '' | 'free' | 'thrown';
   attackKey: string;
+  /** Update 0.2.8 — the Velociraptor's sand in your eyes, its screech's dash lock and its pin (raptorHud.ts), and your
+   *  dash's key. */
+  blind: number;
+  dashLocked: boolean;
+  pinDodges: number;
+  pinNeed: number;
+  pinGlow: boolean;
+  pinWasted: boolean;
+  pinEnd: '' | 'free' | 'bitten';
+  dashKey: string;
 }
 
 export interface HudStore {
@@ -108,7 +119,7 @@ export interface HudStore {
 }
 
 export function createHudStore(): HudStore {
-  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, mag: -1, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, tealRings: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, chestHere: false, execution: 0, bossMark: -1, grabHits: -1, grabNeed: 0, grabLeft: 0, grabEnd: '', attackKey: '' };
+  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, mag: -1, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, tealRings: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, chestHere: false, execution: 0, bossMark: -1, grabHits: -1, grabNeed: 0, grabLeft: 0, grabEnd: '', attackKey: '', ...createRaptorHud(), dashKey: '' };
   const subs = new Set<() => void>();
   return {
     get: () => state,

@@ -59,5 +59,6 @@ import './test-gold-chests';
 import './test-floor3-executions';
 import './test-bone-king';
 import './test-floor4';
+import './test-raptor';
 
 process.exit(summary() > 0 ? 1 : 0);

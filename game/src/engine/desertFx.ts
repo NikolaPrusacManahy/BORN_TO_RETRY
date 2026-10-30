@@ -3,6 +3,7 @@
 // an orange ring spreads (the small one's spines' reach, or the big one's ambush) until it does. The Dino's pounce: where
 // it'll land, a ring filling as it comes down. Update 0.2.4 — the Lizards' poison puddles (green, fading as they dry),
 // a golden shell round every enemy a Flying Tribal has warded, the Skull Orc's leap landing.
+// Update 0.2.8 — every one of the Velociraptor's leaps rings its landing (its pounce, a feint's, a lunge, its wall dive).
 import * as THREE from 'three';
 import type { CombatState } from '../sim/combat/state';
 import { ENEMY_POOL, isLive } from '../sim/enemies/enemy';
@@ -10,6 +11,7 @@ import { ENEMY_STATS, RADIUS } from '../sim/enemies/kinds';
 import { BURIED } from '../sim/enemies/cactoro';
 import { FOES4 } from '../tuning/foes4';
 import { DINO } from '../tuning/dino';
+import { leapAir } from '../sim/enemies/dinoMoves';
 import { PUDDLE_POOL } from '../sim/combat/puddles';
 
 const SAND = 0xd9b06a;
@@ -105,7 +107,7 @@ export class DesertFx {
     const dino = state.enemies.find((e) => e.kind === 'dino' && isLive(e) && e.phase === 'leap');
     this.landRing.visible = this.landFill.visible = !!dino;
     if (dino) {
-      const k = Math.min(1, dino.t / DINO.v.pounceAir);
+      const k = Math.min(1, dino.t / leapAir(dino.move));
       const r = DINO.v.pounceReach + RADIUS.dino;
       this.landRing.position.set(dino.aim.x, 0.06, dino.aim.z);
       this.landRing.scale.setScalar(r);

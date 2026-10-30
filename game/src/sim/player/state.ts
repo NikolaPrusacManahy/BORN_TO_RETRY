@@ -97,6 +97,10 @@ export interface PlayerState {
   /** Update 0.0.18 — poisoned: seconds left, and damage a second meanwhile. */
   poison: number;
   poisonDps: number;
+  /** Update 0.2.8 — the Velociraptor's: sand in your eyes (seconds left: the screen blurred), and no dashing (seconds
+   *  left: its screech). */
+  blind: number;
+  dashLock: number;
   /** Update 0.1.14 — what last took your health (null: nothing yet), and who poisoned you. */
   hurtBy: Cause | null;
   poisonBy: Cause | null;
@@ -147,6 +151,8 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     hpBonus: 0,
     poison: 0,
     poisonDps: 0,
+    blind: 0,
+    dashLock: 0,
     hurtBy: null,
     poisonBy: null,
     kneel: 0,
@@ -164,7 +170,7 @@ export function resetPlayer(p: PlayerState, x: number, y: number, z: number, yaw
   p.grounded = false;
   p.coyote = p.jumpBuffer = p.dashTime = p.slamBounce = p.slamImpact = p.invuln = p.slideTime = p.wallRunTime = p.wallRunCooldown = p.hurtTime = 0;
   p.hp = HEALTH.v.maxHp;
-  p.shield = p.kneel = p.hpBonus = p.poison = p.poisonDps = 0;
+  p.shield = p.kneel = p.hpBonus = p.poison = p.poisonDps = p.blind = p.dashLock = 0;
   p.dead = false;
   p.hurtBy = p.poisonBy = null;
   p.dashCharges = DASH.v.charges;

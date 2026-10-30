@@ -22,10 +22,14 @@
 // Update 0.1.9 — the Dual Daggers: right click held charges a volley of thrown daggers (knives.ts; no cuts meanwhile);
 // the daggers fly after the enemies move.
 // Update 0.2.3 — held in the Bone King's hand (grab.ts), nothing else moves: your attacks are hits on it.
+// Update 0.2.8 — pinned by the Velociraptor (pin.ts), nothing else moves either: your dash is a twist out of its bite.
+// Its sandstorm blows itself out (or ends with it).
 // Update 0.2.4 — the Pistol: its shots, aim and reloads (gun.ts) instead of swings; right click aims, so only a click
 // throws one with no bullets left.
 import { updatePuddles } from './puddles';
 import { stepGrab, tickGrab } from './grab';
+import { stepPin, tickPin } from './pin';
+import { isLive } from '../enemies/enemy';
 import { Vector3 } from 'three';
 import type { Spot } from '../../world/arena';
 import type { CollisionWorld } from '../collisionWorld';
@@ -82,6 +86,11 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   tickGrab(state.grab, dt);
   if (state.grab.on) {
     stepGrab(state, player, intent, dt);
+    return;
+  }
+  tickPin(state.pin, dt);
+  if (state.pin.on) {
+    stepPin(state, player, intent, dt);
     return;
   }
   const throwing = state.weapon !== null && state.weapon.throwing >= 0;
@@ -205,6 +214,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     player.slamImpact = 0;
   }
   updateEnemies(state.enemies, player, state, world, dt);
+  if (state.storm > 0) state.storm = state.enemies.some((e) => e.kind === 'dino' && isLive(e)) ? Math.max(0, state.storm - dt) : 0;
   updateQuakes(state.quakes, player, events, dt);
   updateBombs(state.bombs, player, events, dt, state.puddles);
   updatePuddles(state.puddles, player, dt);

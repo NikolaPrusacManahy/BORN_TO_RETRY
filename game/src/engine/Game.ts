@@ -11,6 +11,7 @@
 // Lab). The Lab's own waves are off unless switched on.
 // Update 0.0.20 — and any floor (1, 2, 3) from the Lab: a real run from there on (the way down goes on to the next
 // floor); dying, or Back, is the Lab again.
+import { LOADER_HIDES } from './runBase';
 import * as THREE from 'three';
 import { MAX_FRAME } from '../core/fixedStep';
 import { FrameStats } from '../core/frameStats';
@@ -160,6 +161,7 @@ export class Game {
     if (!ROSTER.find((c) => c.id === character)?.available) return;
     this.mode = 'play';
     this.newRun(this.inLab ? labLevel() : this.levels.fresh());
+    this.run?.holdFloorTitle(LOADER_HIDES);
     this.input.clear();
     this.cb.onRunStart(document.pointerLockElement === this.host);
   }

@@ -1,5 +1,6 @@
 // M1 — the dash: a flat burst in the direction you're moving (or facing), invincible for its length.
 // Charges refill one at a time.
+// Update 0.2.8 — not while the Velociraptor's screech has taken it (PlayerState.dashLock).
 import type { Vector3 } from 'three';
 import { DASH } from '../../tuning/movement';
 import { applyGravity } from './air';
@@ -14,7 +15,7 @@ export function refillDash(p: PlayerState, dt: number) {
 
 /** `wish`: wanted direction (length 1 or 0). Falls back to facing. Returns true if a dash started. */
 export function tryStartDash(p: PlayerState, pressed: boolean, wish: Vector3): boolean {
-  if (!pressed || p.dashCharges < 1 || p.dashTime > 0) return false;
+  if (!pressed || p.dashCharges < 1 || p.dashTime > 0 || p.dashLock > 0) return false;
   p.dashCharges -= 1;
   p.dashTime = DASH.v.duration;
   p.invuln = Math.max(p.invuln, DASH.v.duration);

@@ -26,6 +26,7 @@ import type { Orb } from '../combat/targets';
 import type { Quake } from '../combat/quakes';
 import type { Bomb } from '../combat/bombs';
 import type { Grab } from '../combat/grab';
+import type { Pin } from '../combat/pin';
 import type { Rng } from '../../core/rng';
 import type { PlayerState } from '../player/state';
 import type { Flow } from './chase';
@@ -98,6 +99,9 @@ export interface EnemyWorld {
   bombs: Bomb[];
   /** Update 0.2.3 — the Bone King's hold on you. */
   grab: Grab;
+  /** Update 0.2.8 — the Velociraptor's pin on you, and its sandstorm (seconds left). */
+  pin: Pin;
+  storm: number;
 }
 
 export const ENEMY_POOL = 16;

@@ -1,0 +1,80 @@
+/* Update 0.2.8 — the Velociraptor's on screen. Sand in your eyes: the view blurred and washed sandy, grains at the
+   edges, thinning as it wears off (--blind 1..0). Your dash taken by its screech: the dash bars grey and struck
+   through. Its pin: the grab's QTE look; the key dim and still while you wait, lit and pulsing with DASH! while a bite
+   glows, crimson with TOO SOON after a dash too early. */
+.rb-hud-sand {
+  --blind: 1;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  backdrop-filter: blur(calc(var(--blind) * 14px)) sepia(calc(var(--blind) * 0.8));
+  background:
+    radial-gradient(ellipse at 50% 55%, rgba(214, 178, 122, calc(var(--blind) * 0.25)) 0%, rgba(176, 132, 72, calc(var(--blind) * 0.85)) 75%),
+    repeating-radial-gradient(circle at 30% 40%, rgba(120, 84, 40, calc(var(--blind) * 0.18)) 0 1px, transparent 1px 5px);
+  transition:
+    backdrop-filter 0.05s linear,
+    background 0.05s linear;
+}
+
+.rb-hud-dash.is-locked .rb-hud-pip {
+  background: rgba(150, 150, 150, 0.25);
+  box-shadow:
+    0 0 0 1px rgba(214, 31, 58, 0.7),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+  animation: rb-dash-locked 0.5s ease-in-out infinite alternate;
+}
+
+.rb-hud-dash.is-locked::after {
+  content: '';
+  position: absolute;
+  left: -8px;
+  right: -8px;
+  top: 50%;
+  height: 2px;
+  background: #d61f3a;
+  box-shadow: 0 0 8px rgba(214, 31, 58, 0.8);
+}
+
+@keyframes rb-dash-locked {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.rb-pin .rb-qte-call {
+  animation: none;
+  min-height: 72px;
+}
+
+.rb-pin .rb-qte-key {
+  opacity: 0.45;
+  animation: none;
+}
+
+.rb-pin.is-now .rb-qte-call {
+  animation: rb-qte-shake 0.07s linear infinite;
+}
+
+.rb-pin.is-now .rb-qte-key {
+  opacity: 1;
+  border-color: #ffd76a;
+  box-shadow:
+    0 4px 0 rgba(255, 215, 106, 0.5),
+    0 0 18px rgba(255, 140, 40, 0.9);
+  animation: rb-qte-press 0.18s ease-in-out infinite;
+}
+
+.rb-pin.is-wasted .rb-qte-hit {
+  color: #ff8a9a;
+  text-shadow:
+    0 0 18px rgba(214, 31, 58, 1),
+    0 3px 0 rgba(0, 0, 0, 0.6);
+}
+
+.rb-pin.is-wasted .rb-qte-key {
+  border-color: #d61f3a;
+  color: #ff8a9a;
+}

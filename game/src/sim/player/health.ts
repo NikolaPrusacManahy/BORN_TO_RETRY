@@ -6,14 +6,18 @@
 // Update 0.0.18 — poison (the snake's bite, the wasp's sting): a little damage a second for a while, straight off your
 // health (the shield doesn't stop it, nor does a dash); a new dose starts it over.
 // Update 0.1.14 — each hurt says what did it (PlayerState.hurtBy), for the death screen; poison, who poisoned you.
+// Update 0.2.8 — the Velociraptor's sand in your eyes and its screech's dash lock wear off here too.
 import { HEALTH } from '../../tuning/health';
 import { ITEMS } from '../../tuning/items';
 import { LAB } from '../../tuning/lab';
 import type { Cause, PlayerState } from './state';
 
-/** Counts the hurt invincibility down, and the poison does its damage. Call once per tick. */
+/** Counts the hurt invincibility down (and the sand, and the dash lock), and the poison does its damage. Call once per
+ *  tick. */
 export function updateHealth(p: PlayerState, dt: number) {
   p.hurtTime = Math.max(0, p.hurtTime - dt);
+  p.blind = Math.max(0, p.blind - dt);
+  p.dashLock = Math.max(0, p.dashLock - dt);
   if (p.poison <= 0 || p.dead) return;
   p.poison = Math.max(0, p.poison - dt);
   if (LAB.v.god >= 1) return;

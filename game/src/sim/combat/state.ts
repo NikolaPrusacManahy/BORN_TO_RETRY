@@ -24,6 +24,7 @@ import { Quake, clearQuakes, createQuakes } from './quakes';
 import { Bomb, clearBombs, createBombs } from './bombs';
 import { createExecution, Execution } from './execution';
 import { createGrab, Grab } from './grab';
+import { createPin, Pin } from './pin';
 import { clearPuddles, createPuddles, Puddle } from './puddles';
 import { createDrops, Drop } from '../items/drops';
 import { Bonuses, createBonuses } from '../items/bonuses';
@@ -95,6 +96,9 @@ export interface CombatState {
   execTarget: number;
   /** Update 0.2.3 — the Bone King holding you (grab.ts). */
   grab: Grab;
+  /** Update 0.2.8 — the Velociraptor pinning you (pin.ts), and its sandstorm (seconds left; 0: none). */
+  pin: Pin;
+  storm: number;
   /** Update 0.1.12 — seconds since there was last an enemy you could execute (the sting plays only after a while). */
   execAway: number;
   /** Update 0.1.1 — the Lab's Meter: the Execution Power meter kept full. */
@@ -161,6 +165,8 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     exec: createExecution(),
     execTarget: -1,
     grab: createGrab(),
+    pin: createPin(),
+    storm: 0,
     execAway: Infinity,
     fullMeter: false,
     kills: 0,
@@ -211,6 +217,8 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.exec.active = false;
   state.execTarget = -1;
   state.grab = createGrab();
+  state.pin = createPin();
+  state.storm = 0;
   state.execAway = Infinity;
   state.kills = 0;
   for (const d of state.drops) d.alive = false;

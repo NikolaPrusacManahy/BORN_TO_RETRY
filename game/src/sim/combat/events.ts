@@ -148,8 +148,15 @@ export type CombatEvent =
   // Update 0.2.4 — floor 4's (value = its slot unless said): the Tribal drawing its spear, throwing it, springing aside;
   // a Cactoro digging in, the sand bulging where it'll come up, its ring of spines; the big Cactoro's warning (value =
   // its move), its volley, bursting up under you, shutting itself in its thorns, a blow turned by them; the Hywirl
-  // darting aside, gathering its wind, rushing, its gust catching you; the Dino's warning (value = its move), its
-  // charge, crashing, a snap (its jaws), its tail, a stomp (value = which), its pounce and landing, its roar.
+  // darting aside, gathering its wind, rushing, its gust catching you; the Velociraptor's warning (value = its move),
+  // its charge, crashing, its pounce and landing (value = the move: its own, a feint's, a lunge, the wall dive), its
+  // roar (its entrance).
+  // Update 0.2.8 — the Velociraptor's new moves (value = its slot unless said): a real charge's scrape (value = which),
+  // a feint stopping dead, its sand kick (value 1: it caught you), its sprint to a wall, its claws on the wall, calling
+  // up its sandstorm, its screech (value 1: it took your dash), its blitz, a slash (value = which), reeling (hit
+  // mid-blitz); its pin (sim/combat/pin.ts; value = the bite unless said, x, y, z its jaws): pinning you (x, y, z: you),
+  // a bite's glow, your twist out of it, a dash wasted too early, a bite on nothing (value = dodges so far), a bite on
+  // you, kicked off (value = its slot), letting you go (value = its slot).
   | 'tribalWindup'
   | 'tribalThrow'
   | 'tribalDodge'
@@ -185,12 +192,27 @@ export type CombatEvent =
   | 'dinoWindup'
   | 'dinoCharge'
   | 'dinoCrash'
-  | 'dinoBite'
-  | 'dinoTail'
-  | 'dinoStomp'
   | 'dinoPounce'
   | 'dinoLand'
   | 'dinoRoar'
+  | 'dinoScrape'
+  | 'dinoFeint'
+  | 'dinoKick'
+  | 'dinoSprint'
+  | 'dinoClaws'
+  | 'dinoStorm'
+  | 'dinoScreech'
+  | 'dinoBlitz'
+  | 'dinoSlash'
+  | 'dinoReel'
+  | 'dinoPin'
+  | 'pinCue'
+  | 'pinTwist'
+  | 'pinWasted'
+  | 'pinSnap'
+  | 'pinBite'
+  | 'pinFree'
+  | 'pinDone'
   // Update 0.2.4 — the Dino (value = its slot): its crouch, its pounce, its bite, its hop back.
   | 'dinoBlobWindup'
   | 'dinoBlobPounce'
