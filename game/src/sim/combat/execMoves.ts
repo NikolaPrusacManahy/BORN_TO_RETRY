@@ -5,7 +5,10 @@
 // Update 0.1.3 — the designer's second pass (spec MD_UPDATES/U013_EXECUTIONS.md): the orc tossed up by its head and
 // burst by an uppercut; the ninja's arms off one by one, three punches; the armabee in one hand; the ghost punched
 // away; the frog let go higher; the spider's chops harder; the blue demon's last blow to the face.
+// Update 0.2.2 — floor 3's (execMoves3.ts): the Ninja the leaper's, the Mushnub the slime's, the Skeleton crushed by
+// telekinesis. A standing body's `grip` height lifts it off the floor (0 for every other).
 import { ENEMY_STATS, EnemyKind } from '../enemies/kinds';
+import { NINJA, SKELETON } from './execMoves3';
 
 export type V3 = readonly [number, number, number];
 /** A blow: its sound, its sparks and its freeze. */
@@ -13,7 +16,7 @@ export type Blow = 'punch' | 'chop' | 'tear' | 'crush' | 'smash';
 export const BLOWS: readonly Blow[] = ['punch', 'chop', 'tear', 'crush', 'smash'];
 
 /** A keyframe (s in). Held: where your hands hold its grip and the way its body runs from there (its grip-to-head
- *  line); standing: where it stands (`grip` on the floor). Both as (right, up, ahead) of where you stood, in the frame
+ *  line); standing: where it stands (`grip` on the floor; Update 0.2.2: its height, how far it's lifted). Both as (right, up, ahead) of where you stood, in the frame
  *  turned `aim` of the way to where it's thrown (the wall). `grip` null: where it was. `look`: where you look (degrees
  *  left of the frame and above the horizon; null: where you looked). `hit`: it slams into the floor here (eased into).
  *  `glide`: straight through, not eased (a whirl); `snap`: sped into and out of, as a slam is, with no slam (a toss). */
@@ -261,6 +264,8 @@ export const EXEC_MOVES: Partial<Record<EnemyKind, ExecMove>> = {
     endAt: 1.35,
     half: 0.5,
   },
+  ninja: NINJA,
+  skeleton: SKELETON,
   blueDemon: {
     held: false,
     keys: [
@@ -276,6 +281,9 @@ export const EXEC_MOVES: Partial<Record<EnemyKind, ExecMove>> = {
     half: 0.5,
   },
 };
+
+// Update 0.2.2 — the Mushnub's is the slime's.
+EXEC_MOVES.mushnub = EXEC_MOVES.slime;
 
 /** The kinds you can execute. */
 export const EXECUTABLE = Object.keys(EXEC_MOVES) as EnemyKind[];

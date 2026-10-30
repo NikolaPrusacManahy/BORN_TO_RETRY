@@ -1,8 +1,14 @@
 // Update 0.0.19 (moved out of run.ts, which had grown past 300 lines) — what a run is told by the Game: when you die
 // and come back, and where its levels come from.
 // Update 0.1.14 — and the death screen: what killed you and how far you got.
+// Update 0.2.2 (the designer: "we stop at floor 7, not floor 10") — the run's last floor: its way down ends the run, the
+// same screen saying you survived.
 import type { Cause } from '../sim/player/state';
 import type { Level } from './level';
+
+/** Update 0.2.2 — the run's last floor: taking its way down ends the run. */
+export const LAST_FLOOR = 7;
+export const endsRun = (floor: number) => floor >= LAST_FLOOR;
 
 /** Update 0.1.14 — what the death screen shows. */
 export interface DeathInfo {
@@ -12,6 +18,8 @@ export interface DeathInfo {
   /** Seconds played since the run's start (not paused, not dead). */
   time: number;
   kills: number;
+  /** Update 0.2.2 — you took the last floor's way down: the run is won. */
+  won?: boolean;
 }
 
 export interface RunCallbacks {

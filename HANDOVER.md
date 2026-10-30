@@ -2,7 +2,13 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-10-30, after Update 0.2.1)
+## Next up (2026-10-30, after Update 0.2.2)
+- **The designer plays 0.2.2** (none of it seen in the game; the executions checked on Blender renders of the real view code, `tools/exec-shots.ts`). Claude's readings, to confirm:
+  - **"Big Ninja"**: floor 3's mini boss (`ninja`), not the leaper (already drawn as the Ninja). Its execution is the leaper's, stood at 1.7 m (it's 2.6 m) with the view raised; same timings, its face punched.
+  - **"the fungus"**: the Mushnub.
+  - **The Skeleton's telekinesis**: pulled to 2.1 m in front and lifted 0.55 m, shaking; the right hand out, open (low on the right so the skeleton shows beside it), closing into a fist; it bursts into 10 bone pieces where it hangs. No new sound: the crush blow's and the burst's. A Skeleton lying in pieces can't be executed (it starts standing); hitting its bones still finishes it.
+  - **Rooms**: 5 fight rooms on the way on floors 1–2, 6 on 3–4, 7 on 5–6, 8 on 7 (F1 → Rooms → Rooms on the way, One more room every). Enemy counts still grow per room deeper, so floor 7's 8th room has 35 (and its challenge room more). Floors 3+ have 7 room layouts: floor 5 needs 8 fight rooms (with the challenge room), floor 7 needs 9, so 1–2 layouts repeat there (never side by side). More floor 3+ rooms would fix it.
+  - **The end**: floor 7's way down (after its boss, the Dragon) fades to black and shows "Run complete — Survived" in gold with the floor, the time and the kills; Retry (a new run) or Menu. No unlocks or rewards yet.
 - **The designer plays 0.2.1** (none of it seen in the game). Claude's readings, to confirm:
   - **"every chest located in rooms"**: every fight room's chest is now buried while the room fights and rises with the view's trip (3.2 s, you don't move) as the room is won; the gates open at once (only the challenge room holds you). The boss's chest is shown by the wooden gate's shot as before.
   - **Gold chests**: a chest in a room with no mini boss opens with E alone (keys you carry aren't used) and gives 10, 20, 30 or 40 coins (the common chest's amounts), nothing else. On the floors as laid out, that's every chest that isn't in a mini boss's room, the challenge room or the boss room (the 1–2 extra chests a floor). Its light is common's (none); it looks like any chest.
@@ -50,7 +56,12 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   - Arms are checked by renders before reporting: `tools/hand-shots.ts` (fists, grips, the slam), `tools/exec-shots.ts <kinds>`, `tools/weapon-shots.ts` and `tools/book-shots.ts`, then `tools/blender/render_view.py --json … --out … --cull`. To render only some moments, filter the shots JSON (`pov.json` or `shots.json`) by name first.
   - Code edits ran as small Python scripts in the scratchpad (exact old → new pairs), because shell heredocs mangle quotes and em dashes.
 
-## Current state (2026-10-30): M1 done, M2 under way, M3 under way — Update 0.2.1
+## Current state (2026-10-30): M1 done, M2 under way, M3 under way — Update 0.2.2
+- **Update 0.2.2 — floor 3's executions, longer floors, the run ends at floor 7** (the designer's list; spec `MD_UPDATES/U022_FLOOR3_EXECUTIONS.md`).
+  - **Executions** (`sim/combat/execMoves3.ts`, out of execMoves.ts at the split limit): `NINJA` (the leaper's keys and blows, stood further, looks higher), `SKELETON` (standing, `grip` y lifting it: `execPose.ts` adds the keys' height to a standing body's middle; `stepExecution` puts the enemy there; a standing burst happens at its feet's height). `EXEC_MOVES.mushnub = slime`. Looks (`exec/looks.ts`): the Ninja the leaper's, the Mushnub the slime's, the Skeleton 10 bone pieces, `burst`, a `tremble` (`exec/body.ts` shakes a standing body). Hands (`exec/handMoves.ts`): `tearChopPunch(lift, on, up)` for the leaper and the Ninja, the slime's slam for the Mushnub, the Skeleton's palm → fist. `execTarget` skips a Skeleton in `rebuild`. An executed Skeleton dies for good (`fallsApart` is false while `held`, as before).
+  - **Rooms on the way** (`pathFights(level)`, floorPlan.ts; knobs `wayRooms` 5, `wayRoomsApart` 2; at most 8, as the 5 × 5 board holds them).
+  - **The end** (`LAST_FLOOR` 7, `endsRun`, runLinks.ts): run.ts `tell(won)` instead of loading floor 8; `DeathInfo.won`; `DeathScreen` "Run complete / Survived", gold (`.rb-won`).
+  - **Checked by tests** (`test-floor3-executions.ts`: the Ninja's and the Mushnub's the leaper's and the slime's; the Skeleton lifted, palm then fist, 10 pieces up in the air, never rebuilding, not targetable in pieces; 420 floors with 5–8 fight rooms, the shop and one challenge room; floor 7 the last; the end screen's words. test-executions plays all three with the real models; test-dungeon's reachability and way-out checks now cover floors 1–7). Unseen in the game.
 - **Update 0.2.1 — rising chests everywhere, gold chests, fewer coins, a keyed chest's aura, 10 at once in the challenge room** (the designer's two lists; spec `MD_UPDATES/U021_CHESTS.md`).
   - **Every room's chest rises** (`ChestSpot.rises` always; its box a gate): buried while its room fights, `raiseChest` as a plain fight room is won (roomLoop.ts), so `ChestShot` shows every one.
   - **Gold chests** (`ChestSpot.gold`, assemble.ts: not the challenge room's, and its room's waves have no mini boss): `keyless(c)` (treasure.ts) — no key opens it, E alone, no key used; `goldLoot(rolls)` (loot.ts): coins only, one of Chest coins 1–4. Focus shows "[E] to open" without a key.

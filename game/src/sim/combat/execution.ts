@@ -6,6 +6,8 @@
 // Update 0.1.2 — every enemy's (the designer's list): the moves are data (execMoves.ts). A body is held in your hands
 // or stands where it's pulled; its blows land at their times (each a freeze); it's thrown ahead, thrown at the nearest
 // wall (it bursts there), or dies where it is. Pure.
+// Update 0.2.2 — a standing body lifted off the floor is drawn there (the Skeleton's); a Skeleton lying in pieces can't
+// be executed (it starts standing in front of you).
 import { Vector3 } from 'three';
 import { EXECUTION } from '../../tuning/execution';
 import { wallBetween } from '../../world/navGrid';
@@ -84,7 +86,7 @@ export function execTarget(state: CombatState, player: PlayerState, yaw: number)
     const e = state.enemies[i];
     const up = e.pos.y - player.pos.y;
     // (Fliers cruise up to 3.6 m: the first move pulls one down into your hands.)
-    if (!isLive(e) || !EXEC_MOVES[e.kind] || up < -1.5 || up > 4.5) continue;
+    if (!isLive(e) || !EXEC_MOVES[e.kind] || e.phase === 'rebuild' || up < -1.5 || up > 4.5) continue;
     const dx = e.pos.x - player.pos.x;
     const dz = e.pos.z - player.pos.z;
     const d = Math.hypot(dx, dz) - RADIUS[e.kind];
@@ -188,7 +190,8 @@ export function stepExecution(state: CombatState, dt: number, player: PlayerStat
     pose(ex, move.endAt);
     if (move.end === 'burst') {
       b.copy(ex.middle);
-      b.y = ex.origin.y;
+      // (Update 0.2.2 — standing, where its feet are: lifted, it bursts where it hangs.)
+      b.y = move.held ? ex.origin.y : ex.middle.y - height * 0.5;
       finish(state, ex, b, 'execBurst', player);
       return;
     }
@@ -201,7 +204,7 @@ export function stepExecution(state: CombatState, dt: number, player: PlayerStat
   if (move.held || ex.thrown) {
     e.pos.copy(ex.middle);
     e.pos.y -= height * 0.5;
-  } else e.pos.set(ex.middle.x, ex.stand.y, ex.middle.z);
+  } else e.pos.set(ex.middle.x, ex.middle.y - height * 0.5, ex.middle.z);
   e.prev.copy(e.pos);
   if (ex.thrown && ex.t >= move.endAt + ex.flight) {
     b.set(ex.land.x, ex.origin.y, ex.land.z);

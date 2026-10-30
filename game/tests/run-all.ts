@@ -53,5 +53,6 @@ import './test-challenge';
 import './test-prompts';
 import './test-rewards';
 import './test-gold-chests';
+import './test-floor3-executions';
 
 process.exit(summary() > 0 ? 1 : 0);

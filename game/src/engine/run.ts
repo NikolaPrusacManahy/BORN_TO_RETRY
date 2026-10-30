@@ -17,6 +17,7 @@
 // the death screen shows (what killed you, the floor, the time, your kills) and the world holds still until Retry.
 // Update 0.1.20 — the [E] prompts and item cards (promptView.ts), while you're free to play.
 // Update 0.2.0 — a chest rising out of the floor takes the view to it and back (chestShot.ts); you don't move meanwhile.
+// Update 0.2.2 — the last floor's way down ends the run: once it's black, the same screen, saying you survived.
 import * as THREE from 'three';
 import type { FrameStats } from '../core/frameStats';
 import type { Input } from '../input/input';
@@ -44,6 +45,7 @@ import { keyLabel } from '../input/keyLabel';
 import { applyMoveEvents } from './moveFeedback';
 import { fillDebug } from './overlayFeed';
 import { RunBase } from './runBase';
+import { endsRun } from './runLinks';
 
 /** A height change bigger than this in one tick on the ground is a step: the camera smooths it (m). */
 const STEP_MIN = 0.1;
@@ -152,14 +154,22 @@ export class Run extends RunBase {
     fillDebug(debug, p, this.combat);
     this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d, this.look.yaw, this.show.hud, choosing ?? '');
     // Dead: once it's black, the death screen (the dungeon: Retry is a new run) or the lab's start. The way down: the
-    // next floor.
+    // next floor (Update 0.2.2: off the last, the run is won).
     if (this.death.update(real)) {
       if (!d) this.restartHere();
-      else if (!this.told) {
-        this.told = true;
-        this.silence();
-        this.cb.onDeathScreen({ by: p.hurtBy, floor: this.level.floor, time: this.played, kills: this.combat.kills });
-      }
-    } else if (shot.descend) this.load(this.levels.next(this.level), true);
+      else this.tell(false);
+    } else if (shot.descend) {
+      if (d && endsRun(this.level.floor)) this.tell(true);
+      else this.load(this.levels.next(this.level), true);
+    }
+  }
+
+  /** It's black: the death screen (or, `won`, the run's end); the world holds still until Retry. */
+  private tell(won: boolean) {
+    if (this.told) return;
+    this.told = true;
+    this.silence();
+    const p = this.player;
+    this.cb.onDeathScreen({ by: won ? null : p.hurtBy, floor: this.level.floor, time: this.played, kills: this.combat.kills, won });
   }
 }

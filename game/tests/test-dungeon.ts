@@ -21,7 +21,7 @@ import { MINI_BOSSES } from '../src/sim/enemies/kinds';
 import { ROOMS } from '../src/tuning/rooms';
 import { createPlayer } from '../src/sim/player/state';
 import { buildDungeon } from '../src/world/dungeon/assemble';
-import { CELL, cellAt, cellX, cellZ, colAt, FloorPlan, GRID, MAX_ROOM, PATH_FIGHTS, planFloor, rowAt } from '../src/world/dungeon/floorPlan';
+import { CELL, cellAt, cellX, cellZ, colAt, FloorPlan, GRID, MAX_ROOM, pathFights, planFloor, rowAt } from '../src/world/dungeon/floorPlan';
 import { DARK_DEPTH, OPPOSITE } from '../src/world/dungeon/wayOut';
 import { BOSS_ROOM, Cell, FIGHT_ROOMS, layOut, SHOP_ROOM, START_ROOM } from '../src/world/dungeon/rooms';
 import { CORE_INSET, dress, KIT } from '../src/world/dungeon/dressing';
@@ -81,6 +81,7 @@ function reach(plan: FloorPlan): Uint8Array {
 section('Dungeon — a floor');
 {
   const plan = planFloor(12345, 1);
+  const PATH_FIGHTS = pathFights(1);
   const way = plan.rooms.filter((r) => r.depth <= PATH_FIGHTS + 1 && r.kind !== 'fight' || r.depth <= PATH_FIGHTS);
   check(`a start, ${PATH_FIGHTS} fight rooms on the way and the boss room`, plan.rooms[0].kind === 'start' && plan.rooms[PATH_FIGHTS + 1].kind === 'boss' && plan.rooms.slice(1, PATH_FIGHTS + 1).every((r) => r.kind === 'fight') && way.length >= 7);
   const sides = plan.rooms.length - (PATH_FIGHTS + 2);
@@ -97,9 +98,10 @@ section('Dungeon — a floor');
 }
 {
   // Many runs: every room's inside reachable from the start, every spawn point free and connected in its room.
+  // (Update 0.2.2 — on all 7 floors: the longer ways deeper down.)
   let bad = '';
-  for (let seed = 1; seed <= 40 && !bad; seed++) {
-    const plan = planFloor(seed, 1 + (seed % 3));
+  for (let seed = 1; seed <= 56 && !bad; seed++) {
+    const plan = planFloor(seed, 1 + (seed % 7));
     const seen = reach(plan);
     for (const r of plan.rooms) {
       for (let row = 0; row < r.layout.h; row++) for (let col = 0; col < r.layout.w; col++) {
@@ -124,14 +126,14 @@ section('Dungeon — a floor');
       if (pockets > 0) bad ||= `seed ${seed}: room ${room.index} (${id}) has ${pockets} cells the grunts can't reach`;
     }
   }
-  check('40 floors: every floor cell of every room reachable, every spawn point free, no pocket the grunts cannot reach', !bad, bad);
+  check('56 floors (all 7): every floor cell of every room reachable, every spawn point free, no pocket the grunts cannot reach', !bad, bad);
 }
 {
   // Update 0.0.15 — the dark beyond the boss room's wooden gate: opposite its door, on ground nothing else uses, walled
   // round, reached through the gate.
   let bad = '';
-  for (let seed = 1; seed <= 60 && !bad; seed++) {
-    const plan = planFloor(seed * 7, 1 + (seed % 3));
+  for (let seed = 1; seed <= 70 && !bad; seed++) {
+    const plan = planFloor(seed * 7, 1 + (seed % 7));
     const o = plan.wayOut;
     const r = plan.rooms[o.room];
     if (r.kind !== 'boss' || r.doors.length !== 1 || o.side !== OPPOSITE[r.doors[0]]) bad ||= `seed ${seed}: the gate isn't opposite the boss room's door`;
@@ -150,7 +152,7 @@ section('Dungeon — a floor');
     const seen = reach(plan);
     if (!seen[o.z0 * GRID + o.x0] && !seen[o.z1 * GRID + o.x1]) bad ||= `seed ${seed}: the dark can't be reached`;
   }
-  check('60 floors: the dark beyond the wooden gate is opposite the door, on empty ground, walled round, reachable', !bad, bad);
+  check('70 floors (all 7): the dark beyond the wooden gate is opposite the door, on empty ground, walled round, reachable', !bad, bad);
 }
 
 section('Dungeon — the level');

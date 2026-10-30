@@ -15,11 +15,14 @@
 // own seed so the rest of the floor is as it was.
 // Update 0.2.0 (the designer: "always 1 challenge room in each floor"; "if a room leads nowhere … it should be a
 // challenge room") — no plain fight room off the way any more: the one dead-end fight room is the challenge room.
+// Update 0.2.2 (the designer: "every 2 floors, an additional room is added") — the fight rooms on the way: 5 on floors
+// 1–2, 6 on 3–4, 7 on 5–6, 8 on 7 (`pathFights`, Rooms knobs).
 import { createRng, Rng } from '../../core/rng';
 import type { EnemyKind } from '../../sim/enemies/kinds';
 import { hasYeti, perchWaves, planWaves } from '../../sim/dungeon/wavePlan';
 import { BOSS_ROOM, Cell, FIGHT_ROOMS, layOut, onFloor, RoomKind, RoomLayout, SHOP_ROOM, START_ROOM } from './rooms';
 import { NO_WAY_OUT, stampWayOut, WayOut } from './wayOut';
+import { ROOMS } from '../../tuning/rooms';
 
 /** Metres per cell; slots on the board; the largest room's side (cells); cells between neighbouring rooms' insides
  *  (their walls and the corridor); the floor grid's side (cells). */
@@ -29,8 +32,9 @@ export const MAX_ROOM = 36;
 const GAP = 6;
 const MARGIN = 4;
 export const GRID = SLOTS * (MAX_ROOM + GAP) + MARGIN * 2;
-/** Fight rooms on the way from the start to the way down. */
-export const PATH_FIGHTS = 5;
+/** Fight rooms on the way from the start to the way down on floor `level` (Update 0.2.2: one more every Rooms apart
+ *  floors; at most 8, as the board holds them). */
+export const pathFights = (level: number) => Math.min(8, Math.round(ROOMS.v.wayRooms) + Math.floor((Math.max(1, level) - 1) / Math.max(1, Math.round(ROOMS.v.wayRoomsApart))));
 /** Chance of a second chest on the floor. */
 const SECOND_CHEST = 0.35;
 
@@ -98,8 +102,8 @@ const key = (s: [number, number]) => s[1] * SLOTS + s[0];
 const inBoard = (c: number, r: number) => c >= 0 && r >= 0 && c < SLOTS && r < SLOTS;
 
 /** The way: start on the bottom row, then a random walk of unvisited neighbours (retried until it's long enough). */
-function wayThrough(rng: Rng): [number, number][] {
-  const length = PATH_FIGHTS + 2;
+function wayThrough(rng: Rng, fights: number): [number, number][] {
+  const length = fights + 2;
   for (let attempt = 0; attempt < 100; attempt++) {
     const path: [number, number][] = [[Math.floor(rng() * SLOTS), SLOTS - 1]];
     const seen = new Set([key(path[0])]);
@@ -125,7 +129,8 @@ function sideTo(a: [number, number], b: [number, number]): [Side, Side] {
 /** Lays out floor `level` of the run with `seed`. */
 export function planFloor(seed: number, level: number): FloorPlan {
   const rng = createRng(seed * 7919 + level * 104729);
-  const way = wayThrough(rng);
+  const n = pathFights(level);
+  const way = wayThrough(rng, n);
   // Update 0.0.20 — only the rooms this floor has (the lava rooms come from floor 2; Update 0.0.21: floor 3 has only its
   // own).
   const fights = FIGHT_ROOMS.filter((t) => onFloor(t, level));
@@ -164,10 +169,10 @@ export function planFloor(seed: number, level: number): FloorPlan {
     links.push([host, add(kind, slot, rooms[host].depth + 1, own, challenge)]);
     return true;
   };
-  if (!sideRoom('shop', 2, 4)) sideRoom('shop', 1, PATH_FIGHTS);
+  if (!sideRoom('shop', 2, 4)) sideRoom('shop', 1, n);
   const own = createRng(seed * 4513 + level * 389);
   // (Off a fight room on the way; with no room there, off any room but the boss's.)
-  if (!sideRoom('fight', 2, PATH_FIGHTS, own, true) && !sideRoom('fight', 1, PATH_FIGHTS, own, true)) sideRoom('fight', 0, Infinity, own, true, ['fight', 'shop', 'start']);
+  if (!sideRoom('fight', 2, n, own, true) && !sideRoom('fight', 1, n, own, true)) sideRoom('fight', 0, Infinity, own, true, ['fight', 'shop', 'start']);
   for (const r of rooms) if (r.kind === 'fight') r.waves = perchWaves(planWaves(r.depth, level, createRng(seed * 7717 + level * 131 + r.index * 17), r.challenge), r.layout.perches.length);
   placeChests(rooms, rng, own);
   for (const [a, b] of links) {

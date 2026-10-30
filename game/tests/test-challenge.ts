@@ -23,7 +23,7 @@ import { createPlayer } from '../src/sim/player/state';
 import { ITEMS } from '../src/tuning/items';
 import { ROOMS } from '../src/tuning/rooms';
 import { buildDungeon } from '../src/world/dungeon/assemble';
-import { CELL, cellAt, colAt, PATH_FIGHTS, planFloor, rowAt } from '../src/world/dungeon/floorPlan';
+import { CELL, cellAt, colAt, pathFights, planFloor, rowAt } from '../src/world/dungeon/floorPlan';
 import { SIGN_Y, signsOf } from '../src/world/dungeon/signs';
 import { roomSigns } from '../src/engine/roomSignsView';
 
@@ -43,7 +43,7 @@ section('Challenge rooms — one on every floor, off the way');
       rooms++;
       const minis = r.waves.flat().filter((k) => MINI_BOSSES.includes(k));
       const want = roomCount(r.depth, floor) + ROOMS.v.challengeExtra;
-      if (r.kind !== 'fight' || r.index < PATH_FIGHTS + 2) bad ||= `seed ${seed * 31} floor ${floor}: not a fight room off the way`;
+      if (r.kind !== 'fight' || r.index < pathFights(floor) + 2) bad ||= `seed ${seed * 31} floor ${floor}: not a fight room off the way`;
       else if (!r.chest) bad ||= `seed ${seed * 31} floor ${floor}: no chest`;
       else if (r.waves.flat().length !== want) bad ||= `seed ${seed * 31} floor ${floor}: ${r.waves.flat().length} enemies, not ${want}`;
       else if (minis.length !== ROOMS.v.challengeMinis) bad ||= `seed ${seed * 31} floor ${floor}: ${minis.length} mini bosses`;

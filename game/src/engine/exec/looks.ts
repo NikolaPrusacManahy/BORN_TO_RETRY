@@ -1,6 +1,8 @@
 // Update 0.1.2 — each execution as it's drawn (the designer's list, MD_UPDATES/U012_EXECUTIONS.md): which bones your
 // hands hold, which joints are held still, the pieces its model is cut into where its bones divide (an arm, a leg, a
 // half; an explosion takes every piece), when they come off, how its body is squashed, and what's left after.
+// Update 0.2.2 — floor 3's: the Ninja's as the leaper's (the same model), the Mushnub's as the slime's, the Skeleton
+// shaking in your hold and bursting into its bones (each limb in two).
 import type { EnemyKind } from '../../sim/enemies/kinds';
 import type { Side } from '../viewmodel/guard';
 import { BARRAGE, BARRAGE_GAP } from '../../sim/combat/execMoves';
@@ -36,6 +38,8 @@ export interface ExecLook {
   tongue?: { from: string; out: number };
   /** After it dies it keeps the pose the execution left it in (flattened, smashed). */
   keep?: boolean;
+  /** Update 0.2.2 — standing, it shakes this much (m) at `t` s in. */
+  tremble?: (t: number) => number;
 }
 
 const ease = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
@@ -96,7 +100,17 @@ export const EXEC_LOOKS: Partial<Record<EnemyKind, ExecLook>> = {
     keep: true,
   },
   blueDemon: { pieces: HUMANOID, burst: true },
+  // Update 0.2.2 — each limb (its arms are the 001 "legs") in two, its head, its ribs, its hips the rest; shaking harder
+  // as it's lifted, hardest as your fist closes.
+  skeleton: {
+    pieces: [['Torso'], ['Head'], ['LUpperLeg'], ['LDownLeg'], ['RUpperLeg'], ['RDownLeg'], ['LUpperLeg001'], ['LDownLeg001'], ['RUpperLeg001'], ['RDownLeg001']],
+    burst: true,
+    tremble: (t) => (t < 0.25 ? 0 : 0.012 + 0.03 * ease((t - 0.25) / 0.6)),
+  },
 };
+// Update 0.2.2 — the Ninja's as the leaper's; the Mushnub's as the slime's.
+EXEC_LOOKS.ninja = EXEC_LOOKS.leaper;
+EXEC_LOOKS.mushnub = EXEC_LOOKS.slime;
 
 /** The blue demon's barrage, for its jolts: each punch's time. */
 export const BARRAGE_TIMES = Array.from({ length: BARRAGE }, (_, i) => 0.25 + i * BARRAGE_GAP);

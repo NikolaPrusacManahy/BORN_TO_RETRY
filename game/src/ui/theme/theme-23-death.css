@@ -110,3 +110,13 @@
     transform: skewX(-8deg);
   }
 }
+
+/* Update 0.2.2 — the run's end (the last floor's way down): gold where the death screen is crimson. */
+.rb-death.rb-won {
+  background: radial-gradient(ellipse at center, rgba(90, 64, 6, 0.35), rgba(0, 0, 0, 0) 60%);
+}
+
+.rb-won .rb-death-cause {
+  color: #e8b931;
+  text-shadow: 0 0 28px rgba(232, 185, 49, 0.45);
+}

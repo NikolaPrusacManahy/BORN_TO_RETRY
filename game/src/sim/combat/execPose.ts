@@ -1,6 +1,7 @@
 // Update 0.1.2 — where an executed body is at a moment of its moves, and where you look (moved out of execution.ts):
 // keys eased into and out of (into a slam it speeds up), laid out from where you stood and looked, or turned towards
 // where it's thrown; held, its grip, its line and its middle; standing, where it's pulled; thrown, its arc. Pure.
+// Update 0.2.2 — standing, lifted off the floor as high as its keys' `grip` say (the Skeleton's telekinesis).
 import { Quaternion, Vector3 } from 'three';
 import { EXECUTION } from '../../tuning/execution';
 import type { Execution } from './execution';
@@ -79,9 +80,9 @@ export function pose(ex: Execution, t: number) {
     ex.dir.copy(da).applyQuaternion(none.identity().slerp(turn, u));
     ex.middle.copy(ex.grip).addScaledVector(ex.dir, height * move.half);
   } else {
-    // Standing: where it's pulled, upright.
+    // Standing: where it's pulled, upright (lifted as high as its keys say).
     ex.middle.lerpVectors(a, b, u);
-    ex.middle.y = ex.stand.y + height / 2;
+    ex.middle.y = ex.stand.y + height / 2 + (k0.grip?.[1] ?? 0) * (1 - u) + (k1.grip?.[1] ?? 0) * u;
     ex.dir.copy(UP);
     ex.grip.copy(ex.middle);
   }

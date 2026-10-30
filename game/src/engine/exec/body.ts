@@ -5,6 +5,7 @@
 // Update 0.1.2 — every enemy's (looks.ts): a body held whole is turned to show you its front; one standing turns to
 // face you, jolts back with each blow, and tumbles if it's sent flying; an arm reaching into your hand; a piece's bones
 // folded away once it's off.
+// Update 0.2.2 — a standing one may shake (the Skeleton in your telekinetic hold: looks.ts `tremble`).
 import * as THREE from 'three';
 import { Execution, moveOf } from '../../sim/combat/execution';
 import type { EnemyKind } from '../../sim/enemies/kinds';
@@ -122,6 +123,12 @@ export function placeStood(root: THREE.Object3D, ex: Execution, facing: number, 
   const back = Math.atan2(dx, dz);
   root.position.x -= Math.sin(back) * JOLT * jolt;
   root.position.z -= Math.cos(back) * JOLT * jolt;
+  const shake = EXEC_LOOKS[ex.kind]?.tremble?.(ex.t) ?? 0;
+  if (shake > 0) {
+    root.position.x += Math.sin(ex.t * 71) * shake;
+    root.position.y += Math.sin(ex.t * 89 + 1) * shake * 0.5;
+    root.position.z += Math.sin(ex.t * 53 + 2) * shake;
+  }
   if (ex.thrown) {
     // Tumbling end over end about its middle.
     const f = Math.min(1, (ex.t - move.endAt) / Math.max(0.05, ex.flight));

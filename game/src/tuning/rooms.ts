@@ -10,6 +10,8 @@
 // mini boss drops "only either a white key or a gold key").
 // Update 0.2.1 (the designer: "put 10 enemies at the same time", "making this room harder on purpose") — a challenge
 // room keeps Challenge: on field fighting.
+// Update 0.2.2 (the designer: "every 2 floors, an additional room is added, floor 3 = 6, floor 5 = 7, floor 7 = 8") —
+// the fight rooms on the way: Rooms on the way, one more every Rooms apart floors (the board holds 8 at most).
 import { group, knob } from './schema';
 
 export const ROOMS = group('rooms', 'Rooms', {
@@ -24,4 +26,6 @@ export const ROOMS = group('rooms', 'Rooms', {
   challengeMinis: knob(2, 0, 4, 1, 'Challenge: mini bosses', 'A challenge room always has this many mini bosses (and no more).'),
   challengeKeys: knob(1, 0, 4, 1, 'Challenge: keys', 'Keys its mini bosses drop (the first killed first), each white or gold.'),
   challengeField: knob(10, 1, 14, 1, 'Challenge: on field', 'In a challenge room, while it has more to send, at least this many are fighting.'),
+  wayRooms: knob(5, 3, 8, 1, 'Rooms on the way', 'Fight rooms between the start and the boss on floors 1–2.'),
+  wayRoomsApart: knob(2, 1, 5, 1, 'One more room every', 'Every this many floors down, one more fight room on the way (floor 3: 6, floor 5: 7, floor 7: 8).'),
 });

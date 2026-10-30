@@ -1,6 +1,7 @@
 // Update 0.1.14 — the death screen (the designer: play, lose, learn, retry): over the black, what killed you, how far you
 // got (the floor, the time, your kills), and Retry (a new run) or Menu. No hints (the designer's rule). 1.5× bigger than
 // first drawn (the designer, after the preview).
+// Update 0.2.2 — the run's end (the last floor's way down): the same, saying you survived, in gold.
 import type { DeathInfo } from '../engine/runLinks';
 import { causeName, clockText } from './deathText';
 
@@ -12,10 +13,10 @@ interface Props {
 
 export function DeathScreen({ info, onRetry, onMenu }: Props) {
   return (
-    <div className="rb-death">
+    <div className={info.won ? 'rb-death rb-won' : 'rb-death'}>
       <div className="rb-death-box">
-        <div className="rb-death-label">Killed by</div>
-        <div className="rb-death-cause">{causeName(info.by)}</div>
+        <div className="rb-death-label">{info.won ? 'Run complete' : 'Killed by'}</div>
+        <div className="rb-death-cause">{info.won ? 'Survived' : causeName(info.by)}</div>
         <div className="rb-death-stats">
           <div className="rb-death-stat">
             <span>Floor</span>

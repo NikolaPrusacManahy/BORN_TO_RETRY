@@ -20,7 +20,7 @@ A first-person action roguelike. You start every run with your bare hands, tear 
 | Players | Solo |
 | Platform | Desktop browser; Steam later via Electron |
 | Art | Quaternius low-poly (CC0): dark ruins, fog, rim light. **The dungeon is in daylight (Update 0.0.13, the designer: it was far too dark to play): open to the sky, sunlit, a pale haze.** |
-| Run | 3 floors × (5 rooms + a boss) = 18 rooms |
+| Run | **7 floors** (Update 0.2.2, the designer: "we stop at floor 7, not floor 10"), each a way of fight rooms and a boss: 5 fight rooms on floors 1–2, 6 on 3–4, 7 on 5–6, 8 on floor 7. Floor 7's way down ends the run: "Run complete — Survived". |
 | Carries over between runs | Character unlocks and stats only. Money resets. |
 
 ---
@@ -143,8 +143,11 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
     - **Yeti:** the right fist drawn back, trembling; one punch to the belly; it bursts into pieces.
     - **Spider:** three legs chopped off one by one (open hands; Update 0.1.3: wound up high, carried through, harder); the ground slam's fists smash it flat, as the slime's (Update 0.1.8).
     - **Blue Demon:** 30 punches, left and right in turn; one last to its face (Update 0.1.3); it bursts into pieces.
+    - **Big Ninja** (floor 3's mini boss; Update 0.2.2, the designer: "the same leaper execution basically"): the leaper's (the Ninja above, the same model): an arm torn off, the other chopped off, three punches to its face and away. It stands further off (1.7 m) and the view is higher, as it's 2.6 m tall.
+    - **Mushnub** (Update 0.2.2, the designer: "same as the slime"): the slime's ground slam; it's left flat.
+    - **Skeleton** (Update 0.2.2, the designer: "a telekinesis execution"): it's pulled in front of you (2.1 m) and lifted off the floor, shaking, as your right hand reaches out, open, its palm to it; your fist closes and it bursts into its bones (each limb in two, its head, its ribs, its hips) where it hangs. One shot: an executed Skeleton never rebuilds. One lying in pieces can't be executed.
   - Pieces are cut from the enemy's own model where its bones divide; they fly, bounce and lie for 6 s.
-  - Specs: `MD_UPDATES/U011_EXECUTION.md`, `MD_UPDATES/U012_EXECUTIONS.md`, `MD_UPDATES/U013_EXECUTIONS.md`. **(placeholders)**
+  - Specs: `MD_UPDATES/U011_EXECUTION.md`, `MD_UPDATES/U012_EXECUTIONS.md`, `MD_UPDATES/U013_EXECUTIONS.md`, `MD_UPDATES/U022_FLOOR3_EXECUTIONS.md`. **(placeholders)**
 - **Enemies left (Update 0.0.21, the designer):** in a fight, a skull and the number of enemies left (alive and still to come), top middle.
 
 ## 8. Shop and chests (Update 0.0.13, the designer)
@@ -229,7 +232,7 @@ One per floor, three in total, each with 2 phases. Floor 1's is the Demon, floor
 ---
 
 ## 10. The run
-- **A floor (Update 0.0.12, the designer: like Soul Knight's levels):** a map of rooms joined by corridors that you explore. From the start room a winding way of five fight rooms leads to the way down; side rooms branch off it: the shop (Update 0.0.13) and sometimes a fight. One or two fight rooms hold a chest. A small minimap (top right) shows the rooms you've been in and the ones beside them (the shop in gold, the boss room in red). **The way ends in the boss room (Update 0.0.15).** (Later: reward rooms.)
+- **A floor (Update 0.0.12, the designer: like Soul Knight's levels):** a map of rooms joined by corridors that you explore. From the start room a winding way of five fight rooms (Update 0.2.2, the designer: "every 2 floors, an additional room is added, floor 3 = 6, floor 5 = 7, floor 7 = 8": one more every 2 floors) leads to the way down; side rooms branch off it: the shop (Update 0.0.13) and sometimes a fight. One or two fight rooms hold a chest. A small minimap (top right) shows the rooms you've been in and the ones beside them (the shop in gold, the boss room in red). **The way ends in the boss room (Update 0.0.15).** (Later: reward rooms.)
 - **A room:** you step in → its doors slam shut → 2–3 waves of enemies → room cleared → the doors open.
 - **Signs (Update 0.1.20, the designer):** over every doorway into a room, on the corridor's side, a word says what's through it: **ROOM**, **CHALLENGE**, **SHOP** or **BOSS**.
 - **The challenge room (Update 0.1.20, the designer: "a challenging run but rewarding if mastered"):** one on every floor, off the way, so you choose to go in. **6 more enemies** than a room as deep, always **2 mini bosses** (the floor's), always **a chest**; its mini boss drops **a white key or a gold key**, never a normal one (one key a room, as everywhere). Outlined in fire on the minimap. **(placeholder: one key)** **Update 0.2.1 (the designer: "put 10 enemies at the same time, and it adds a new one from the counter when it gets reduced to 9", "harder on purpose"):** it opens with **10 at once** (its first wave if that's bigger) and keeps **10 fighting** while it has more to send: when one dies, the next comes (any other room keeps 5). Its count is as before.
@@ -246,7 +249,7 @@ Arenas are **hand-made templates assembled from a seed**, not random geometry, b
 1. **Room pool (Update 0.0.12):** nine hand-made fight rooms (colonnade, crossfire, altar, spike hall, ledges, maze, arena, twin, crypt), a start room and an exit room (Update 0.0.15: the boss room, 60 m square), drawn as text layouts on a 2 m grid and built from the Modular Dungeon Pack (parts 1 and 2: we're in dungeons). No room twice on a floor. **Update 0.0.13 (the designer): the fight rooms are twice the size** (24–36 cells, 48–72 m a side), with more long walls to wall-run and hide behind; the shop room.
 2. **Variation per room:** mirroring and quarter turns, optional cover on or off, and where enemies appear, all chosen from the seed.
 3. **The floor plan:** rooms on a 5 × 5 board; the way and its side rooms laid out from the seed; 4 m corridors join arched doorways in the middle of the walls.
-4. **Enemies per room (Update 0.1.1, the designer; was a point budget):** a fight room sends **8 + 3 per room deeper + 2 more every 2 floors down, from floor 2** (Update 0.1.16, the designer; it was 3 more every floor): floor 1: 8, 11, 14, 17, 20; floors 2–3 start at 10; 4–5 at 12; 6–7 at 14; 8–9 at 16; floor 10 at 18 (its last fight room 30), drawn from a weighted table (the cheap kinds more often), at most 2 mini bosses, in 2 waves (3 from 18). On floor 1 the leaper and the stinger come from the second room, the wraith and the brute from the third. **(placeholders)**
+4. **Enemies per room (Update 0.1.1, the designer; was a point budget):** a fight room sends **8 + 3 per room deeper + 2 more every 2 floors down, from floor 2** (Update 0.1.16, the designer; it was 3 more every floor): floor 1: 8, 11, 14, 17, 20; floors 2–3 start at 10; 4–5 at 12; 6–7 at 14 (Update 0.2.2: floor 7 is the last; its 8th fight room has 35), drawn from a weighted table (the cheap kinds more often), at most 2 mini bosses, in 2 waves (3 from 18). On floor 1 the leaper and the stinger come from the second room, the wraith and the brute from the third. **(placeholders)**
 5. **Rewards:** one shop per floor and one or two chests (Update 0.0.13); reward rooms drawn from a weighted table **(later)**.
 6. **Same seed, same run.** The seed shows on the run summary, so daily or shared-seed runs are easy later.
 

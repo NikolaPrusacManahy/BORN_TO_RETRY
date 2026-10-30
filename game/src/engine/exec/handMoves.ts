@@ -10,6 +10,9 @@
 // the F key and port it to the slime and spider executions"): its clasped fists (viewmodel/slamArms.ts) up as you look
 // up, down onto it at the blow (the slam's down pose, brought onto the body), eased and held as the slam's (its knobs);
 // the old clasped hammer is gone.
+// Update 0.2.2 — floor 3's: the Ninja's as the leaper's, its arm met higher (its bigger body); the
+// Mushnub's the slime's; the Skeleton's telekinesis: your right hand out, open, its palm to it, trembling as you hold
+// it, then closing into a fist.
 import type { EnemyKind } from '../../sim/enemies/kinds';
 import { BARRAGE, BARRAGE_GAP } from '../../sim/combat/execMoves';
 import { ARMS } from '../../tuning/arms';
@@ -92,6 +95,29 @@ function slam(from: number, at: number, on: string): HandKey[] {
   ];
 }
 
+/** The leaper's (Update 0.2.2: and the Ninja's): the arm on your right torn off, the other chopped, three punches on
+ *  `on` (`up` above the bone); `lift`: how much higher your right hand meets its arm (m). */
+function tearChopPunch(lift: number, on: string, up: number): HandKey[] {
+  const hit = (x: number): HandAt => ({ mode: 'fist', on, off: [x, up, 0.14] });
+  return [
+    { t: 0, L: G, R: G },
+    { t: 0.2, L: G, R: { mode: 'rope', me: [0.3, 1.2 + lift, 0.55], to: 'ShoulderL' } },
+    { t: 0.4, L: G, R: { mode: 'rope', me: [0.45, 1.15 + lift, 0.42], to: 'ShoulderL' } },
+    { t: 0.47, L: G, R: { mode: 'rope', me: [0.62, 1.05 + lift, 0.28], way: [-0.55, 0.1, 0.8] } },
+    { t: 0.6, L: chopUp(-0.6), R: COCK_R },
+    { t: 0.72, L: chopOn('LowerArmR'), R: COCK_R },
+    { t: 0.77, L: chopThrough(-0.7, 0.9), R: COCK_R },
+    { t: 0.8, L: COCK_L, R: COCK_R },
+    { t: 0.85, L: hit(-0.05), R: COCK_R },
+    { t: 0.93, L: COCK_L, R: COCK_R },
+    { t: 1.0, L: COCK_L, R: hit(0.05) },
+    { t: 1.1, L: COCK_L, R: { mode: 'fist', me: [0.32, 1.45, 0.1], way: [-0.1, 0, 1], shake: 0.006 } },
+    { t: 1.2, L: COCK_L, R: hit(0) },
+    { t: 1.32, L: COCK_L, R: hit(0) },
+    { t: 1.5, L: G, R: G },
+  ];
+}
+
 /** The tail's grip (the snake's): both hands round it, the left on its end. */
 const BY_LINE: HandKey[] = [
   { t: 0, L: G, R: G },
@@ -151,24 +177,22 @@ export const HAND_MOVES: Partial<Record<EnemyKind, readonly HandKey[]>> = {
   ],
   // The arm on your right torn off by your right hand; the one on your left chopped off by your left; its face punched
   // left, right, and a last right that sends it flying.
-  leaper: [
-    { t: 0, L: G, R: G },
-    { t: 0.2, L: G, R: { mode: 'rope', me: [0.3, 1.2, 0.55], to: 'ShoulderL' } },
-    { t: 0.4, L: G, R: { mode: 'rope', me: [0.45, 1.15, 0.42], to: 'ShoulderL' } },
-    { t: 0.47, L: G, R: { mode: 'rope', me: [0.62, 1.05, 0.28], way: [-0.55, 0.1, 0.8] } },
-    { t: 0.6, L: chopUp(-0.6), R: COCK_R },
-    { t: 0.72, L: chopOn('LowerArmR'), R: COCK_R },
-    { t: 0.77, L: chopThrough(-0.7, 0.9), R: COCK_R },
-    { t: 0.8, L: COCK_L, R: COCK_R },
-    { t: 0.85, L: { mode: 'fist', on: 'Head', off: [-0.05, 0.15, 0.14] }, R: COCK_R },
-    { t: 0.93, L: COCK_L, R: COCK_R },
-    { t: 1.0, L: COCK_L, R: { mode: 'fist', on: 'Head', off: [0.05, 0.15, 0.14] } },
-    { t: 1.1, L: COCK_L, R: { mode: 'fist', me: [0.32, 1.45, 0.1], way: [-0.1, 0, 1], shake: 0.006 } },
-    { t: 1.2, L: COCK_L, R: { mode: 'fist', on: 'Head', off: [0, 0.15, 0.14] } },
-    { t: 1.32, L: COCK_L, R: { mode: 'fist', on: 'Head', off: [0, 0.15, 0.14] } },
-    { t: 1.5, L: G, R: G },
-  ],
+  leaper: tearChopPunch(0, 'Head', 0.15),
+  // Update 0.2.2 — the Ninja's: the same, its arm met higher.
+  ninja: tearChopPunch(0.3, 'Head', 0.15),
   slime: [{ t: 0, L: G, R: G }, ...slam(0.28, 0.5, 'Head')],
+  mushnub: [{ t: 0, L: G, R: G }, ...slam(0.28, 0.5, 'Head')],
+  // Update 0.2.2 — the Skeleton's telekinesis: your right hand out, open, palm to it; held up, trembling; closed.
+  skeleton: [
+    { t: 0, L: G, R: G },
+    // (Low on your right, so it shows beside your hand, the palm turned in to it.)
+    { t: 0.25, L: G, R: { mode: 'palm', me: [0.36, 1.38, 1.1], way: [-0.18, 0.12, 1] } },
+    { t: 0.72, L: G, R: { mode: 'palm', me: [0.36, 1.4, 1.1], way: [-0.18, 0.12, 1], shake: 0.005 } },
+    { t: 0.88, L: G, R: { mode: 'fist', me: [0.36, 1.38, 1.05], way: [-0.18, 0.12, 1], shake: 0.01 } },
+    { t: 0.95, L: G, R: { mode: 'fist', me: [0.34, 1.36, 0.95], way: [-0.15, 0.2, 1] } },
+    { t: 1.15, L: G, R: { mode: 'fist', me: [0.34, 1.36, 0.95], way: [-0.15, 0.2, 1] } },
+    { t: 1.4, L: G, R: G },
+  ],
   frog: [
     { t: 0, L: G, R: G },
     { t: 0.15, L: G, R: { mode: 'rope', me: [0.22, 1.45, 0.5], to: 'Head' } },
