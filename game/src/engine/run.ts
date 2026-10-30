@@ -22,6 +22,8 @@
 // still yours (each a hit on it).
 // Update 0.2.8 — pinned by the Velociraptor (sim/combat/pin.ts): no moving, the view up at its jaws, your dash key
 // still yours (a twist out of a bite).
+// Update 0.2.9 — the lobby (sim/lobby/lobby.ts): its stations used with E and their cards, walking into the main gate;
+// what happens there is passed on (a choice to save, the gate) with its sound.
 import * as THREE from 'three';
 import type { FrameStats } from '../core/frameStats';
 import type { Input } from '../input/input';
@@ -53,6 +55,8 @@ import { endsRun } from './runLinks';
 import { skullOf } from '../sim/combat/grab';
 import { jawsOf } from '../sim/combat/pin';
 import { sandSlow } from '../sim/dungeon/quicksand';
+import { Lobby, lobbyFocus, stepLobby } from '../sim/lobby/lobby';
+import { playLobby } from '../audio/lobbySounds';
 
 /** Update 0.2.3 — held in the Bone King's hand, the view turns to its skull this fast (1/s) (Update 0.2.8: pinned, to
  *  the Velociraptor's jaws). */
@@ -87,6 +91,8 @@ export class Run extends RunBase {
       p.hpBonus = hpBonusOf(this.combat.items);
       const ci = this.combatIntent;
       if (stepTreasure(this.treasure, p, this.combat, ci.interactPressed, ci.switchKeyPressed, this.fighting, stepDt)) ci.interactPressed = false;
+      const lobby = this.level.lobby;
+      if (lobby && stepLobby(lobby, p, ci.interactPressed && free)) ci.interactPressed = false;
       stepPlayer(p, this.intent, this.level.physics, this.level.arena.pads, stepDt);
       checkHazards(p, this.hazards);
       lavaStep(p, this.lava, this.level.arena.playerStart, d, this.combat);
@@ -163,10 +169,13 @@ export class Run extends RunBase {
     this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt, this.clock.alpha);
     followHeld(this.combat, this.look, this.arms, this.camera, real);
     const free = locked && !p.dead && !this.show.locked && !shot.cinematic && !chestShot && !execHeld(this.combat.exec);
-    const focus = focusOf(this.treasure, this.combat, p, this.fighting, this.focus);
+    const lobby = this.level.lobby;
+    const focus = lobby ? lobbyFocus(lobby, this.focus) : focusOf(this.treasure, this.combat, p, this.fighting, this.focus);
     this.prompts.update(focus, this.camera, renderer, keyLabel(input.bindings.interact), free, this.combatScene.markAt());
     const d = this.level.dungeon;
     if (d) this.view.update?.(gameDt, d, this.camera.position);
+    else this.view.frame?.(real, this.camera.position);
+    if (lobby) this.lobbyNews(lobby);
     // (The Velociraptor's sandstorm over the dungeon's haze.)
     this.combatScene.raptor.sky(this.scene, this.combat);
     const f = this.combat.fists;
@@ -190,6 +199,24 @@ export class Run extends RunBase {
       if (d && endsRun(this.level.floor)) this.tell(true);
       else this.load(this.levels.next(this.level), true);
     }
+  }
+
+  /** Update 0.2.9 — what happened in the lobby since the last frame: its sound, and the App told. */
+  private lobbyNews(l: Lobby) {
+    for (const e of l.events) {
+      playLobby(this.audio, e);
+      if (e === 'pick') this.cb.onLobbyPick(l.difficulty, l.character);
+      else if (e === 'gate') this.cb.onLobbyGate();
+    }
+    l.events.length = 0;
+  }
+
+  /** Update 0.2.9 — through the gate: the portcullis rises. */
+  openGate() {
+    const l = this.level.lobby;
+    if (!l || l.opening) return;
+    l.opening = true;
+    playLobby(this.audio, 'open');
   }
 
   /** It's black: the death screen (or, `won`, the run's end); the world holds still until Retry. */

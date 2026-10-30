@@ -91,6 +91,7 @@ export class MusicPlayer {
   }
 }
 
-/** Update 0.1.17 — the menus' track plays on the menus (the gate, the camp, the character select) and fades out as a
- *  run starts (Play pressed). Pure. */
-export const menuMusicOn = (phase: string, starting: boolean) => !starting && (phase === 'menu' || phase === 'intro' || phase === 'select');
+/** Update 0.1.17 — the menus' track plays on the menus (the gate, the camp; Update 0.2.9 — and the lobby, paused or
+ *  asked at its gate, where the character select was) and fades out as a run starts (through the lobby's gate). Pure. */
+const MENU_PHASES = ['menu', 'intro', 'lobby', 'lobbyPaused', 'confirm'];
+export const menuMusicOn = (phase: string, starting: boolean) => !starting && MENU_PHASES.includes(phase);

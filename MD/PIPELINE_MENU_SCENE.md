@@ -1,6 +1,6 @@
 # Pipeline: the menu's scenes
 
-Three scenes, each built by its own Blender script with shared helpers (`game/tools/blender/scene_kit.py`): the main menu's gate (below), the settings camp, and the character select's prison corridor (at the end).
+Two scenes, each built by its own Blender script with shared helpers (`game/tools/blender/scene_kit.py`): the main menu's gate (below) and the settings camp. Then the lobby (Update 0.2.9, at the end), which the gate opens onto: a level the game lays out itself from the kits, with its own pieces and characters from a Blender script. (The character select's prison corridor, Update 0.0.8, is gone: the lobby replaced it.)
 
 ## The gate (Update 0.0.4)
 The main menu is a 3D scene built in Blender from Quaternius's **Modular Dungeon Pack** and **Ultimate Nature Pack** (both CC0, both flat colour) by a script, then loaded by the game as one `.glb`.
@@ -56,18 +56,21 @@ blender --background --disable-autoexec --python tools/blender/build_camp_scene.
 ```
 Previews: `Cam_Camp.png` (the shot), `Cam_Camp_From.png` (the glide's start) and `Overview.png`. Then `npm run verify`: `tests/test-camp.ts` checks the nodes, that everything stands on the ground with nothing grown together, the fire in sight on the left, and the glide.
 
-## The prison corridor (Update 0.0.8)
-`game/tools/blender/build_prison_scene.py` builds a corridor with a row of barred cells (dungeon pack arches, portcullis bars as doors, columns between), torches on the opposite wall, and one character per cell. Characters are the Quaternius `.blend` files (in `ASSETS/QUATERNIUS/Humanoid Rig/Individual Characters/Blend/`), posed out of the T-pose with the arms tool's bone math (`orient_bone`) and baked into static meshes (`bake_posed`). A missing file stands as a dark silhouette until it's there. Broken bits in the source meshes are repaired before export.
+## The lobby (Update 0.2.9)
+The hall you walk round between the main menu and a run (spec `MD_UPDATES/U029_LOBBY.md`). Unlike the gate and the camp it isn't one baked scene: the game lays it out in code, so its collision and its look come from the same data, and draws it from two kits.
+- **The layout** (`game/src/world/lobby/`): `spots.ts` (the hall's size, the gate, the dais, the altars, the boards, the roof's beams and chandeliers, where you start), `hall.ts` (the collision: walls, the roof, the portcullis, the dais, the characters, the furniture's boxes), `furniture.ts` (everything on the floor: piece, place, turn, scale, solid box), `hallDressing.ts` (the floor, walls, caps and cores, the ceiling and beams, the arch and portcullis, the dark beyond, the carpet, the wall torches and banners, the boards), `boards.ts` (what the boards say), `credits.ts`.
+- **The kits**: the dungeon's (`public/models/dungeon/kit.glb`, `kit_…`) and the lobby's own (`public/models/menu/lobby.glb`, `lobby_…` and the characters `Char_<id>`), built by `game/tools/blender/build_lobby_kit.py`: furniture and decorations from the Modular Dungeon Pack (parts 1 and 2) and the Ultimate RPG Pack, each centred on its origin; the roster's characters (ids from `game/src/sim/characters.ts`) posed out of the T-pose and baked (the posing came from the old prison script). Many of the packs' small things come huge (a book 1.2 m across): `furniture.ts` scales them to life.
+- **The game** (`game/src/engine/lobby/`): `lobbyView.ts` instances every placement (`engine/kitPieces.ts`), makes the beams, the chandeliers' rings and chains, the cores and the dark; draws the locked characters as black silhouettes; `lobbyLights.ts` lights it (no sun under the roof: `tuning/lobbyLight.ts`); `boardsView.ts` paints the boards on canvases.
 
-| Node | Used for |
-|---|---|
-| `Char_<id>`, `Door_<id>`, `Cell_<id>` | The character, its cell's bars (they lift; `DOOR_LIFT` 2.6 m is all the wall above hides), where it stands |
-| `Cam_<id>`, `Look_<id>` | The camera facing that cell (`PRISON_VFOV`, 58°) |
-| `CellLight_<id>`, `Torch_<n>` | The cell's light, the torches' flames |
-| `Cam_Prison_From`, `Look_Prison_From` | The glide in's start, at the corridor's end |
+Build the lobby's kit (from `game/`):
+```
+blender --background --disable-autoexec --python tools/blender/build_lobby_kit.py -- --part1 "../ASSETS/QUATERNIUS/Modular Dungeon Pack - part 1" --part2 "../ASSETS/QUATERNIUS/Modular Dungeon Pack - part2" --rpg "../ASSETS/QUATERNIUS/Ultimate RPG Pack" --characters "../ASSETS/QUATERNIUS/Humanoid Rig/Individual Characters/Blend" --glb public/models/menu/lobby.glb --previews <a scratch folder>
+```
+A new piece: add it to the script's lists, rebuild, then place it in `furniture.ts` (or `hallDressing.ts` for the walls).
 
-Ids and cell order come from `game/src/sim/characters.ts` (`CHARACTERS` in the script must match). Run (from `game/`):
+Look at the hall without a browser (from `game/`):
 ```
-blender --background --disable-autoexec --python tools/blender/build_prison_scene.py -- --kit "../ASSETS/QUATERNIUS/Modular Dungeon Pack" --characters "../ASSETS/QUATERNIUS/Humanoid Rig/Individual Characters/Blend" --glb public/models/menu/prison.glb --previews <a scratch folder>
+npx tsx tools/lobby-shots.ts <a scratch folder> [weakling|real|human]
+blender --background --python tools/blender/render_dungeon.py -- --json <that folder>/dungeon.json --kit public/models/dungeon/kit.glb --kit public/models/menu/lobby.glb --out <that folder> --day
 ```
-Previews: `From.png` (down the corridor), `Cell_<id>.png` for each cell, `Cell_adventurer_open.png`. Then `npm run verify`: `tests/test-prison.ts`.
+Previews: `overview.png` (from just under the roof), `start.png`, `gate.png`, `gate-close.png`, `difficulty.png`, `characters.png`, `credits.png`, `tables.png`, `from-gate.png`, three corners. Blender lights it roughly as the game does (`interior`: a warm fill, a key light, the lamps), not with its renderer. Then `npm run verify`: `tests/test-lobby.ts` checks the hall is closed, everything stands on something with nothing grown into anything, the carpet clear to the gate, the stations, the gate, and every piece and character in the kits.

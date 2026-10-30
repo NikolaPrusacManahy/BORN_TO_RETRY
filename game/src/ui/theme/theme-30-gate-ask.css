@@ -1,0 +1,58 @@
+/* Update 0.2.9 — the lobby gate's questions (screens/GateConfirm.tsx): over the held lobby, darkened at the edges, the
+   line large in the logo's face, two answers under it. Each question drops in with a jolt. As big as the death screen. */
+.rb-gate-ask {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  color: var(--rb-text);
+  background: radial-gradient(ellipse at center, rgba(8, 6, 8, 0.55), rgba(8, 6, 8, 0.9) 75%);
+  cursor: default;
+  user-select: none;
+}
+
+.rb-gate-ask-box {
+  zoom: 1.5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 760px;
+  text-align: center;
+  animation: rb-gate-ask-in 0.38s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.rb-gate-ask-says {
+  margin-bottom: 30px;
+  font-family: 'Anton', var(--rb-font);
+  font-size: clamp(30px, 5.4vw, 60px);
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #ffc75a;
+  text-shadow: 0 0 26px rgba(255, 150, 40, 0.35), 0 2px 0 rgba(0, 0, 0, 0.8);
+}
+
+.rb-gate-ask-answers {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes rb-gate-ask-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-18px) scale(1.06);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(3px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}

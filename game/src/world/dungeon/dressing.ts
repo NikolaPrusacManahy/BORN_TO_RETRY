@@ -17,6 +17,8 @@
 // it (floor, walls, the doorway and its gate, columns, wall dressing, litter); the rest stay the same.
 // Update 0.2.4 — the shop's dressing and floor 4's sand cells (palms and cacti in their beds, quicksand) are
 // dressExtras.ts's; sand cells get no paving.
+// Update 0.2.9 — the walls' and ledges' cores moved to cores.ts, with feet under them and behind a pit's faces: the sky no
+// longer shows along their feet.
 import { createRng } from '../../core/rng';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, Side } from './floorPlan';
 import { HEIGHT, LAVA_DEPTH } from './assemble';
@@ -24,6 +26,9 @@ import type { ArenaBox } from '../arena';
 import type { Cell } from './rooms';
 import { DungeonStyle, styleOf } from './styles';
 import { dressSand, dressShop, SANDY, SandCell } from './dressExtras';
+import { coresOf, surface } from './cores';
+
+export { CORE_BOTTOM, CORE_INSET } from './cores';
 
 export interface Placement {
   piece: string;
@@ -80,11 +85,6 @@ export const BARS_SCALE: [number, number, number] = [1.69, 1.12, 1];
 /** Update 0.0.20 — a column stack's middle pieces are this much shorter than their height (they overlap a little). */
 const STACK_OVERLAP = 0.01;
 const WALL_PIECE = 2;
-/** A core sits this far behind its faces' fronts (inside their depth), from below the floor to just under the top: the
- *  wall's caps, or a ledge's top tiles (0.25 thick). */
-export const CORE_INSET = 0.2;
-export const CORE_BOTTOM = -0.5;
-const CORE_TOP_GAP: Partial<Record<Cell, number>> = { wall: 0.02, ledge: 0.3, highLedge: 0.3 };
 const TORCH_REACH = 0.55;
 /** No wall torch closer than this to the wooden gate (m): its own two frame it. */
 const GATE_TORCHES = 9;
@@ -99,7 +99,6 @@ const DIRS: [number, number, Side][] = [
   [-1, 0, 'w'],
 ];
 
-const surface = (c: Cell) => c !== 'void' && c !== 'wall' && c !== 'dark';
 const height = (c: Cell) => HEIGHT[c] ?? 0;
 
 export function dress(plan: FloorPlan): Dressing {
@@ -263,30 +262,4 @@ function column(K: DungeonStyle, x: number, z: number, put: (piece: string, x: n
   put(K.column[0], x, 0, z);
   for (let i = 0; i < middles; i++) put(K.column[1], x, hb + i * (hm - STACK_OVERLAP), z);
   put(K.column[2], x, hb + middles * (hm - STACK_OVERLAP), z);
-}
-
-/** A core for every wall and ledge cell, pulled back from each side that has faces (one that looks onto lower ground). */
-function coresOf(plan: FloorPlan): ArenaBox[] {
-  const cores: ArenaBox[] = [];
-  const top = (c: Cell) => (c === 'wall' ? HEIGHT.wall! : c === 'ledge' || c === 'highLedge' ? height(c) : 0);
-  for (let row = 0; row < GRID; row++) {
-    for (let col = 0; col < GRID; col++) {
-      const c = cellAt(plan, col, row);
-      const h = top(c);
-      if (h === 0) continue;
-      // A side has faces when the cell beside it is lower ground (as the faces are placed above: not the void outside,
-      // not a doorway, whose arch covers it).
-      const faced = (dc: number, dr: number) => {
-        const n = cellAt(plan, col + dc, row + dr);
-        return surface(n) && n !== 'door' && top(n) < h;
-      };
-      const w0 = faced(-1, 0) ? CORE_INSET : 0;
-      const w1 = faced(1, 0) ? CORE_INSET : 0;
-      const d0 = faced(0, -1) ? CORE_INSET : 0;
-      const d1 = faced(0, 1) ? CORE_INSET : 0;
-      const y1 = h - CORE_TOP_GAP[c]!;
-      cores.push({ x: cellX(col) + (w0 - w1) / 2, y: (CORE_BOTTOM + y1) / 2, z: cellZ(row) + (d0 - d1) / 2, w: CELL - w0 - w1, h: y1 - CORE_BOTTOM, d: CELL - d0 - d1, kind: 'wall' });
-    }
-  }
-  return cores;
 }

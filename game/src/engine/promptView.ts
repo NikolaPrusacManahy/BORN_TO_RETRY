@@ -4,11 +4,15 @@
 // reach. At a chest, what E does (or that it needs a key). Over the enemy you can execute, over its skull: [E] TO
 // EXECUTE. The key is the one Interact is bound to. Page elements over the canvas, placed each frame where the thing
 // is on screen; their words are only written when what they show changes. Nothing without a page (the tests).
+// Update 0.2.9 — and the lobby's stations: a difficulty's or a character's name with "[E] to choose" (or "Chosen"), a
+// locked character's "Locked", the gate's "[E] to enter".
 import * as THREE from 'three';
 import type { Focus } from '../sim/items/focus';
 import { infoOf } from '../sim/items/itemInfo';
 
-const ACT: Record<Exclude<Focus['act'], null | 'execute' | 'locked'>, string> = { pick: 'to pick up', buy: 'to buy', open: 'to open' };
+const ACT: Record<Exclude<Focus['act'], null | 'execute' | 'locked' | 'chosen' | 'unavailable'>, string> = { pick: 'to pick up', buy: 'to buy', open: 'to open', choose: 'to choose', enter: 'to enter' };
+/** Update 0.2.9 — what a card says where E does nothing (a chest without a key; in the lobby, yours already, locked). */
+const NOTE: Partial<Record<Exclude<Focus['act'], null>, string>> = { locked: 'Needs a key', chosen: 'Chosen', unavailable: 'Locked' };
 /** The skull over an executable enemy (execMarkView.ts): its height on screen (a share of the screen's), and the gap
  *  over it (px). */
 const SKULL = 0.065;
@@ -61,7 +65,7 @@ export class PromptView {
     if (!this.root) return;
     renderer.getSize(size);
     const execute = show && f.act === 'execute';
-    const card = show && !execute && (f.item !== null || f.act !== null);
+    const card = show && !execute && (f.item !== null || f.act !== null || f.label !== null);
     this.setExec(execute ? key : '');
     if (execute) this.place(this.exec, mark ?? f.at, camera, SKULL * size.y * 0.5 + GAP);
     this.setCard(card ? f : null, key);
@@ -87,18 +91,21 @@ export class PromptView {
   }
 
   private setCard(f: Focus | null, key: string) {
-    const sig = f ? `${f.item}|${f.uses}|${f.act}|${key}` : '';
+    const sig = f ? `${f.item}|${f.uses}|${f.act}|${f.label}|${key}` : '';
     if (sig === this.shown) return;
     this.shown = sig;
     this.card.classList.toggle('is-on', f !== null);
     if (!f) return;
     const info = f.item ? infoOf(f.item, f.uses) : null;
-    this.card.className = `rb-prompt is-on${info ? '' : ' is-bare'}${info?.rarity ? ` is-${info.rarity}` : ''}`;
-    this.name.textContent = info?.name ?? '';
+    // (Update 0.2.9 — a lobby station: its name, if it has one, in place of an item's.)
+    const name = info?.name ?? f.label ?? '';
+    this.card.className = `rb-prompt is-on${name ? '' : ' is-bare'}${info?.rarity ? ` is-${info.rarity}` : ''}`;
+    this.name.textContent = name;
     this.rarity.textContent = info?.rarity ? info.rarity[0].toUpperCase() + info.rarity.slice(1) : '';
     this.does.textContent = info?.does ?? '';
-    if (f.act === 'locked') this.act.textContent = 'Needs a key';
-    else if (f.act && f.act !== 'execute') keyed(this.act, key, ACT[f.act]);
+    const note = f.act ? NOTE[f.act] : undefined;
+    if (note) this.act.textContent = note;
+    else if (f.act && f.act !== 'execute') keyed(this.act, key, ACT[f.act as keyof typeof ACT]);
     else this.act.textContent = '';
   }
 

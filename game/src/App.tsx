@@ -13,17 +13,21 @@
 // main menu. The Lab's panel moved to screens/useLabDock.tsx.
 // Update 0.1.14 — going into a run moved to screens/useRunStart.ts; after the character select, the loader (the logo's
 // retry arrow) bottom right on the black while the level loads.
+// Update 0.2.9 — the character select is gone (the designer: "scrap it"): Start locks the mouse and the gate opens onto
+// the lobby, a hall you walk round (its own phases: walking, paused, asked at its main gate). Its altars and dais
+// choose your difficulty and character (saved); its main gate asks your difficulty's questions (useLobbyGate.ts,
+// GateConfirm.tsx), then the run starts with the loader as before.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MenuView } from './engine/Game';
 import { CAMP_FADE } from './engine/menu/campScene';
-import { ROSTER, stepCell } from './sim/characters';
 import { INTRO } from './engine/menu/introTimeline';
 import { HEALTH } from './tuning/health';
 import { LAB } from './tuning/lab';
 import { setKnob } from './tuning/schema';
 import { CampMenu } from './screens/CampMenu';
-import { CharacterSelect } from './screens/CharacterSelect';
 import { GameHandle, GameView } from './screens/GameView';
+import { GateConfirm } from './screens/GateConfirm';
+import { useLobbyGate } from './screens/useLobbyGate';
 import { MainMenu } from './screens/MainMenu';
 import { PauseMenu } from './screens/PauseMenu';
 import { DeathScreen } from './screens/DeathScreen';
@@ -37,7 +41,8 @@ import { DebugOverlay } from './screens/DebugOverlay';
 import { Settings, loadSave, writeSave } from './state/settings';
 import { devKeyAction, devToolsEnabled } from './state/devTools';
 
-type Phase = 'menu' | 'intro' | 'select' | 'playing' | 'paused' | 'dead';
+/** Update 0.2.9 — 'lobby': walking round the lobby; 'lobbyPaused': its pause menu; 'confirm': its gate's questions. */
+type Phase = 'menu' | 'intro' | 'lobby' | 'lobbyPaused' | 'confirm' | 'playing' | 'paused' | 'dead';
 
 /** How long the black takes to clear off the lab (s). */
 const FADE_OUT = 0.5;
@@ -57,9 +62,6 @@ export default function App() {
   /** Going between the gate and the camp: the screen is fading to black. */
   const [switching, setSwitching] = useState(false);
   const switchTimer = useRef(0);
-  /** Character select: the selected cell. */
-  const [cell, setCell] = useState(0);
-  const cellRef = useRef(0);
   const view = useRef<GameHandle>(null);
   const tuningRef = useRef(false);
   const phaseRef = useRef<Phase>('menu');
@@ -85,10 +87,14 @@ export default function App() {
   const run = useRunStart(getGame, setBlack, enterRun, FADE_OUT);
   /** Update 0.1.17 — the menus' music (useMusic.ts). */
   useMusic(phase, run.starting);
+  /** Update 0.2.9 — the lobby's main gate and its questions (useLobbyGate.ts). */
+  const gate = useLobbyGate(getGame, run, save, setSave, go);
 
+  /** Back into play from the pause menu (the lobby's, or a run's). */
   const play = useCallback(async () => {
     const ok = await getGame()?.lock();
-    if (ok) go('playing');
+    const ph = phaseRef.current;
+    if (ok) go(ph === 'lobbyPaused' || ph === 'lobby' ? 'lobby' : 'playing');
   }, [getGame, go]);
 
   /** Update 0.1.14 — the death screen: up over the black, the mouse freed. */
@@ -117,30 +123,14 @@ export default function App() {
     go('menu');
   }, [getGame, go]);
 
+  /** Start: the mouse locked in its click or key (the lobby is walked in at once), the gate opening. */
   const start = useCallback(() => {
     const g = getGame();
     if (!g || phaseRef.current !== 'menu') return;
     go('intro');
-    g.startIntro();
-  }, [getGame, go]);
-
-  const stepSelect = useCallback(
-    (step: number) => {
-      const next = stepCell(cellRef.current, step);
-      if (next === cellRef.current) return;
-      cellRef.current = next;
-      setCell(next);
-      getGame()?.selectCell(next);
-    },
-    [getGame],
-  );
-
-  const playSelected = useCallback(() => {
-    const c = ROSTER[cellRef.current];
-    if (run.busy.current) return;
-    if (!c.available) return getGame()?.rattleCell();
-    run.playSelected(c.id);
-  }, [getGame, run.busy, run.playSelected]);
+    void g.lock();
+    g.startIntro({ difficulty: save.difficulty, character: save.character });
+  }, [getGame, go, save.difficulty, save.character]);
 
   /** Update 0.0.19 — the main menu's Lab: straight into the Lab. */
   const startLab = useCallback(() => {
@@ -169,28 +159,31 @@ export default function App() {
   const onLockChange = useCallback(
     (locked: boolean) => {
       const ph = phaseRef.current;
-      if (ph === 'menu' || ph === 'intro' || ph === 'select') return;
+      if (ph === 'menu' || ph === 'intro' || ph === 'confirm') return;
+      // The lobby: Esc pauses it (not while the tuning panel has the mouse, nor once you're going through the gate).
+      if (ph === 'lobby' || ph === 'lobbyPaused') {
+        if (!run.busy.current) go(locked || tuningRef.current ? 'lobby' : 'lobbyPaused');
+        return;
+      }
       if (locked) go('playing');
       else if (!tuningRef.current && !lab.ref.current && ph === 'playing') go('paused');
     },
-    [go, lab.ref],
+    [go, lab.ref, run.busy],
   );
 
-  /** Through the gate: the corridor shows under the black. */
+  /** Through the gate: the lobby shows under the black (paused if the mouse isn't locked). */
   const onIntroDone = useCallback(() => {
-    cellRef.current = 0;
-    setCell(0);
-    setMenuView('prison');
+    setMenuView('gate');
     setBlack(null);
-    go('select');
-  }, [go]);
+    go(getGame()?.locked ? 'lobby' : 'lobbyPaused');
+  }, [getGame, go]);
 
   const setTuningOpen = useCallback(
     (open: boolean) => {
       tuningRef.current = open;
       setTuning(open);
       if (open) getGame()?.unlock();
-      else if (phaseRef.current === 'playing') void play();
+      else if (phaseRef.current === 'playing' || phaseRef.current === 'lobby') void play();
     },
     [getGame, play],
   );
@@ -205,7 +198,7 @@ export default function App() {
       if (action === 'tuning') setTuningOpen(!tuningRef.current);
       else if (action === 'debug') setDebug((d) => !d);
       else if (action === 'respawn' && phaseRef.current === 'dead') retry();
-      else if (action === 'respawn' && phaseRef.current !== 'intro') getGame()?.restart();
+      else if (action === 'respawn' && phaseRef.current !== 'intro' && phaseRef.current !== 'confirm') getGame()?.restart();
       else if (action === 'god') setKnob(LAB, 'god', LAB.v.god >= 1 ? 0 : 1);
       else if (action === 'lab') getGame()?.toggleLab();
       else if (action === 'labPanel' && (phaseRef.current === 'playing' || lab.ref.current)) lab.setPanel(!lab.ref.current);
@@ -227,6 +220,7 @@ export default function App() {
 
   const onMenu = phase === 'menu' || phase === 'intro';
   const inGame = phase === 'playing' || phase === 'paused';
+  const paused = phase === 'paused' || phase === 'lobbyPaused';
   return (
     <GameView
       ref={view}
@@ -239,6 +233,8 @@ export default function App() {
       onDeath={() => setBlack(HEALTH.v.deathFade)}
       onRespawn={() => setBlack(null)}
       onDeathScreen={onDeathScreen}
+      onLobbyPick={gate.onPick}
+      onLobbyGate={gate.onGate}
       onReady={() => setReady(true)}
     >
       {onMenu && menuView === 'gate' && !tuning && <MainMenu ready={ready} leaving={phase === 'intro' || switching || run.starting} onStart={start} onSettings={() => switchMenu('camp')} onLab={dev ? startLab : undefined} />}
@@ -252,17 +248,8 @@ export default function App() {
           onBack={() => switchMenu('gate')}
         />
       )}
-      {phase === 'select' && !tuning && (
-        <CharacterSelect
-          index={cell}
-          bindings={save.settings.bindings}
-          leaving={switching || run.starting}
-          onStep={stepSelect}
-          onPlay={playSelected}
-          onBack={() => switchMenu('gate', () => go('menu'))}
-        />
-      )}
-      {phase === 'paused' && !tuning && (
+      {phase === 'confirm' && gate.ask && !tuning && <GateConfirm ask={gate.ask} onYes={gate.yes} onNo={gate.no} />}
+      {paused && !tuning && (
         <PauseMenu
           settings={save.settings}
           fullscreen={fullscreen}

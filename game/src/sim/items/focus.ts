@@ -13,8 +13,9 @@ import { TAKE_HEIGHT } from './drops';
 import type { InfoKind } from './itemInfo';
 import { anyKey } from './items';
 
-/** What E does here: take it, buy it, open the chest, execute; 'locked': a chest and no key; null: nothing. */
-export type FocusAct = 'pick' | 'buy' | 'open' | 'locked' | 'execute' | null;
+/** What E does here: take it, buy it, open the chest, execute; 'locked': a chest and no key; null: nothing. Update
+ *  0.2.9 — the lobby's (sim/lobby/lobby.ts): choose it, it's already chosen, go through the gate, a locked character. */
+export type FocusAct = 'pick' | 'buy' | 'open' | 'locked' | 'execute' | 'choose' | 'chosen' | 'enter' | 'unavailable' | null;
 
 export interface Focus {
   /** The item it's about (its card), or null (a chest, an execution, nothing). */
@@ -24,6 +25,8 @@ export interface Focus {
   act: FocusAct;
   /** Where it is (world m): its card hangs over it. */
   at: Vector3;
+  /** Update 0.2.9 — a lobby station's name, shown in place of an item's ('': no name; null: not a station). */
+  label: string | null;
 }
 
 /** Items further than this aren't shown (m). */
@@ -35,13 +38,14 @@ const OVER_TILE = 2.1;
 const OVER_CHEST = 1.2;
 const OVER_ITEM = 0.55;
 
-export const emptyFocus = (): Focus => ({ item: null, uses: -1, act: null, at: new Vector3() });
+export const emptyFocus = (): Focus => ({ item: null, uses: -1, act: null, at: new Vector3(), label: null });
 
 function set(f: Focus, item: InfoKind | null, uses: number, act: FocusAct, x: number, y: number, z: number): Focus {
   f.item = item;
   f.uses = uses;
   f.act = act;
   f.at.set(x, y, z);
+  f.label = null;
   return f;
 }
 

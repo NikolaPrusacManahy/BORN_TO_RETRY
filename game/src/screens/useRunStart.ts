@@ -2,22 +2,25 @@
 // main menu's Lab, locks the mouse inside the click (browsers require one) and fades to black. From the character select
 // the loader (RetryArrow.tsx) then shows bottom right while the level is built under the black, for at least LOAD_MIN,
 // and the black clears with it (the designer: "a little 1s loading screen after selecting a character").
+// Update 0.2.9 — the character select is gone: the lobby's main gate starts the run (on your difficulty).
 import { MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
 import type { Game } from '../engine/Game';
-import { PRISON } from '../engine/menu/prisonScene';
 import type { CharacterId } from '../sim/characters';
+import type { Difficulty } from '../sim/lobby/difficulty';
 
 /** The loader shows at least this long once it's black (s). **(placeholder)** */
 export const LOAD_MIN = 1;
+/** The fade to black into a run (s). */
+export const RUN_FADE = 0.45;
 
 export interface RunStart {
-  /** Play or Lab was pressed: until you're in, nothing else starts. */
+  /** Through the lobby's gate, or Lab pressed: until you're in, nothing else starts. */
   busy: MutableRefObject<boolean>;
   /** The screen it was pressed on slides away. */
   starting: boolean;
   /** The loader is up (until the black has cleared). */
   loading: boolean;
-  playSelected(id: CharacterId): void;
+  playSelected(id: CharacterId, difficulty: Difficulty): void;
   startLab(): void;
   /** The Game is in the run (its onRunStart). */
   onRunStart(locked: boolean): void;
@@ -44,19 +47,19 @@ export function useRunStart(getGame: () => Game | null, setBlack: (secs: number 
       busy.current = true;
       setStarting(true);
       void g.lock();
-      setBlack(PRISON.fade);
-      later(PRISON.fade, () => then(g));
+      setBlack(RUN_FADE);
+      later(RUN_FADE, () => then(g));
     },
     [getGame, setBlack, later],
   );
 
   const playSelected = useCallback(
-    (id: CharacterId) =>
+    (id: CharacterId, difficulty: Difficulty) =>
       begin((g) => {
         loadFrom.current = performance.now();
         setLoading(true);
         // Built once the loader is on screen (it keeps turning while the level is built).
-        requestAnimationFrame(() => later(0, () => g.startRun(id)));
+        requestAnimationFrame(() => later(0, () => g.startRun(id, difficulty)));
       }),
     [begin, later],
   );

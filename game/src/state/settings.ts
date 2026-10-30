@@ -1,6 +1,9 @@
 // Settings saved in localStorage (pattern from Last Ward). Every saved field needs a default here, or old
 // saves lose it on load.
+// Update 0.2.9 — and what you chose in the lobby: your difficulty and character.
 import { Bindings, DEFAULT_BINDINGS, hydrateBindings } from '../input/bindings';
+import { CharacterId, ROSTER } from '../sim/characters';
+import { DEFAULT_DIFFICULTY, Difficulty, isDifficulty } from '../sim/lobby/difficulty';
 
 export interface Settings {
   /** Mouse sensitivity multiplier, 0.1 – 5. */
@@ -20,6 +23,9 @@ export interface Settings {
 export interface SaveData {
   version: 1;
   settings: Settings;
+  /** Update 0.2.9 — chosen in the lobby (a character only if they're playable). */
+  difficulty: Difficulty;
+  character: CharacterId;
 }
 
 /** Named after the working title; kept when the game became Born To Retry so saved settings carry over. */
@@ -32,8 +38,12 @@ export const SENS_MAX = 5;
 export const DEFAULT_SETTINGS: Settings = { sensitivity: 1, invertY: false, fov: 100, volume: 0.8, sfxVolume: 1, musicVolume: 0.7, bindings: DEFAULT_BINDINGS };
 
 export function defaultSave(): SaveData {
-  return { version: 1, settings: { ...DEFAULT_SETTINGS, bindings: { ...DEFAULT_BINDINGS } } };
+  return { version: 1, settings: { ...DEFAULT_SETTINGS, bindings: { ...DEFAULT_BINDINGS } }, difficulty: DEFAULT_DIFFICULTY, character: DEFAULT_CHARACTER };
 }
+
+/** Update 0.2.9 — the character a new save has (the first playable one). */
+export const DEFAULT_CHARACTER: CharacterId = ROSTER.find((c) => c.available)!.id;
+const playable = (v: unknown): v is CharacterId => ROSTER.some((c) => c.id === v && c.available);
 
 const clamp = (v: unknown, lo: number, hi: number, d: number) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d);
 
@@ -42,8 +52,11 @@ export function hydrateSave(raw: unknown): SaveData {
   const base = defaultSave();
   if (!raw || typeof raw !== 'object') return base;
   const s: Partial<Settings> = (raw as { settings?: Partial<Settings> }).settings ?? {};
+  const { difficulty, character } = raw as Partial<Record<'difficulty' | 'character', unknown>>;
   return {
     version: 1,
+    difficulty: isDifficulty(difficulty) ? difficulty : DEFAULT_DIFFICULTY,
+    character: playable(character) ? character : DEFAULT_CHARACTER,
     settings: {
       sensitivity: clamp(s.sensitivity, SENS_MIN, SENS_MAX, DEFAULT_SETTINGS.sensitivity),
       invertY: typeof s.invertY === 'boolean' ? s.invertY : DEFAULT_SETTINGS.invertY,

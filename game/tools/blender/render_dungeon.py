@@ -6,6 +6,10 @@
 # daylight (engine/dungeonView.ts): the same sky colour and sun direction, not its renderer.
 # Update 0.0.15 — the boss room (tools/boss-shots.ts): coloured boxes by their game matrices (the wooden gate, the
 # dark), and the Demon in its stance (`--demon` <its .glb>).
+# Update 0.2.9 — the lobby (tools/lobby-shots.ts): more than one kit (`--kit` again: the lobby's own pieces and its
+# characters, lobby_… and Char_…), the locked characters as black silhouettes, and the boards with what they say. Its
+# roof: `roof` pieces and boxes marked `noShadow` cast none (the game's roof doesn't), chandelier `rings`; `interior`
+# with --day: no sun or sky, a warm fill from all round, a key light from above and point `lights` (watts).
 import argparse
 import json
 import math
@@ -20,7 +24,7 @@ def parse_args():
     argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
     p = argparse.ArgumentParser()
     p.add_argument('--json', required=True)
-    p.add_argument('--kit', required=True)
+    p.add_argument('--kit', required=True, action='append')
     p.add_argument('--out', required=True)
     p.add_argument('--width', type=int, default=1280)
     p.add_argument('--day', action='store_true')
@@ -56,6 +60,8 @@ def game_boxes(boxes):
             bpy.ops.object.mode_set(mode='OBJECT')
         mat.diffuse_color = col
         o.data.materials.append(mat)
+        if b.get('noShadow'):
+            o.visible_shadow = False
 
 
 def demon_at(path, d):
@@ -83,6 +89,86 @@ def demon_at(path, d):
     zs = [(o.matrix_world @ Vector(c)).z for o in new if o.type == 'MESH' for c in o.bound_box]
     if zs:
         root.location.z -= min(zs)
+
+
+def write_boards(boards):
+    """Update 0.2.9 — each board: a dark panel, its lines centred down it (each shrunk to fit), in its tone."""
+    tones = {'gold': (1.0, 0.62, 0.16), 'text': (0.86, 0.82, 0.76), 'dim': (0.22, 0.2, 0.2)}
+    mats = {}
+    for name, col in [('BoardBack', (0.018, 0.015, 0.018))] + [(f'Ink_{t}', c) for t, c in tones.items()]:
+        m = bpy.data.materials.new(name)
+        m.use_nodes = True
+        bsdf = m.node_tree.nodes['Principled BSDF']
+        bsdf.inputs['Base Color'].default_value = (*col, 1)
+        if name != 'BoardBack':
+            bsdf.inputs['Emission Color'].default_value = (*col, 1)
+            bsdf.inputs['Emission Strength'].default_value = 1.5
+        m.diffuse_color = (*col, 1)
+        mats[name] = m
+    for i, b in enumerate(boards):
+        rot = (math.pi / 2, 0, b['rot'])
+        normal = Vector((math.sin(b['rot']), -math.cos(b['rot']), 0))
+        centre = to_blender(b['x'], b['y'], b['z'])
+        bpy.ops.mesh.primitive_plane_add(size=1, location=centre, rotation=rot)
+        panel = bpy.context.active_object
+        panel.scale = (b['w'], b['h'], 1)
+        panel.data.materials.append(mats['BoardBack'])
+        lines = b['lines']
+        total = sum(l['size'] * 1.3 for l in lines) * b['h']
+        top = total / 2
+        for j, l in enumerate(lines):
+            h = l['size'] * b['h']
+            cu = bpy.data.curves.new(f'Board{i}_{j}', 'FONT')
+            cu.body = l['text']
+            cu.size = h
+            cu.align_x = 'CENTER'
+            cu.align_y = 'CENTER'
+            t = bpy.data.objects.new(f'Board{i}_{j}', cu)
+            t.rotation_euler = rot
+            t.location = centre + normal * 0.03 + Vector((0, 0, top - h * 0.65))
+            top -= h * 1.3
+            t.data.materials.append(mats['Ink_' + l['tone']])
+            bpy.context.scene.collection.objects.link(t)
+            bpy.context.view_layer.update()
+            if t.dimensions.x > b['w'] * 0.92:
+                k = b['w'] * 0.92 / t.dimensions.x
+                t.scale = (k, k, k)
+
+
+def interior(scene, data):
+    """Update 0.2.9 — under a roof: a warm fill from all round, a key light from high above, the point lights."""
+    scene.render.engine = 'BLENDER_EEVEE'
+    if scene.world is None:
+        scene.world = bpy.data.worlds.new('W')
+    scene.world.use_nodes = True
+    bg = scene.world.node_tree.nodes['Background']
+    bg.inputs['Color'].default_value = (0.42, 0.34, 0.26, 1)
+    bg.inputs['Strength'].default_value = 1.0
+    key = bpy.data.objects.new('Key', bpy.data.lights.new('Key', 'SUN'))
+    key.data.energy = 1.6
+    key.data.color = (1.0, 0.9, 0.75)
+    key.data.angle = math.radians(8)
+    key.rotation_euler = Vector((-0.15, -0.25, 1)).normalized().to_track_quat('Z', 'Y').to_euler()
+    scene.collection.objects.link(key)
+    for i, l in enumerate(data.get('lights', [])):
+        lo = bpy.data.objects.new(f'Lamp{i}', bpy.data.lights.new(f'Lamp{i}', 'POINT'))
+        lo.data.energy = l['w']
+        lo.data.color = l['color']
+        lo.data.shadow_soft_size = 0.3
+        lo.location = to_blender(l['x'], l['y'], l['z'])
+        scene.collection.objects.link(lo)
+
+
+def rings(data):
+    """Update 0.2.9 — the chandeliers' iron rings."""
+    mat = bpy.data.materials.new('Iron')
+    mat.use_nodes = True
+    mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = (0.02, 0.02, 0.022, 1)
+    for r in data.get('rings', []):
+        bpy.ops.mesh.primitive_torus_add(major_radius=r['r'], minor_radius=0.05, location=to_blender(r['x'], r['y'], r['z']))
+        o = bpy.context.active_object
+        o.data.materials.append(mat)
+        o.visible_shadow = False
 
 
 def srgb(h):
@@ -173,13 +259,18 @@ def main():
         data = json.load(f)
     for o in list(bpy.data.objects):
         bpy.data.objects.remove(o, do_unlink=True)
-    bpy.ops.import_scene.gltf(filepath=os.path.abspath(args.kit))
-    protos = {o.name: o for o in bpy.data.objects if o.name.startswith('kit_') and o.type == 'MESH'}
+    for kit in args.kit:
+        bpy.ops.import_scene.gltf(filepath=os.path.abspath(kit))
+    protos = {o.name: o for o in bpy.data.objects if o.name.startswith(('kit_', 'lobby_', 'Char_')) and o.type == 'MESH'}
     for o in protos.values():
         o.hide_render = True
     for p in data['pieces']:
         if p['piece'] in protos:
             place(protos[p['piece']], p)
+    for p in data.get('roof', []):
+        if p['piece'] in protos:
+            place(protos[p['piece']], p).visible_shadow = False
+    rings(data)
     # Update 0.0.20 — the floor's look's bars and cores (`style`: floor 3 is stone).
     style = data.get('style', {})
     bars = protos.get(style.get('bars', 'kit_p1_Arch_bars'))
@@ -203,10 +294,28 @@ def main():
         me.materials.append(core_mat)
         cores = bpy.data.objects.new('Cores', me)
         bpy.context.scene.collection.objects.link(cores)
-        # Update 0.0.20 — under the lava when the floor has pits (`slabY`).
-        bpy.ops.mesh.primitive_plane_add(size=1000, location=(0, 0, data.get('slabY', -0.45)))
-        bpy.context.active_object.data.materials.append(core_mat)
+        # Update 0.0.20 — under the lava when the floor has pits (`slabY`). Update 0.2.9 — only under the floor boxes,
+        # as the game lays it (`floors`), when the data has them: elsewhere the sky shows through, as in the game.
+        if 'floors' in data:
+            for f in data['floors']:
+                bpy.ops.mesh.primitive_plane_add(size=1, location=to_blender(f['x'], -0.45, f['z']))
+                bpy.context.active_object.scale = (f['w'], f['d'], 1)
+                bpy.context.active_object.data.materials.append(core_mat)
+        else:
+            bpy.ops.mesh.primitive_plane_add(size=1000, location=(0, 0, data.get('slabY', -0.45)))
+            bpy.context.active_object.data.materials.append(core_mat)
     game_boxes(data.get('boxes', []))
+    # Update 0.2.9 — the lobby's locked characters, black; its boards.
+    shade = bpy.data.materials.new('Silhouette')
+    shade.use_nodes = True
+    shade.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = (0.004, 0.004, 0.006, 1)
+    shade.node_tree.nodes['Principled BSDF'].inputs['Roughness'].default_value = 0.6
+    for name in data.get('silhouettes', []):
+        if name in protos:
+            mesh = protos[name].data
+            for i in range(len(mesh.materials)):
+                mesh.materials[i] = shade
+    write_boards(data.get('boards', []))
     # Update 0.2.4 — the look's colours (the desert's sandstone: `tint`, the floor tile's own `floorTint`) and its sand.
     recolour(style, protos)
     sand_cells(data.get('sand', []), style)
@@ -226,7 +335,9 @@ def main():
     if scene.world is None:
         scene.world = bpy.data.worlds.new('W')
     scene.world.color = (0.03, 0.025, 0.035)
-    if args.day:
+    if args.day and data.get('interior'):
+        interior(scene, data)
+    elif args.day:
         daylight(scene)
         # Update 0.2.4 — the look's own sky and sun.
         if style.get('sky') is not None:
@@ -250,12 +361,15 @@ def main():
     span = max(e['max']['x'] - e['min']['x'], e['max']['z'] - e['min']['z'])
     cam.data.type = 'ORTHO'
     cam.data.ortho_scale = span * 1.05
+    # (Under a roof: seen from just under it.)
+    cam.data.clip_start = 110.5 if data.get('interior') else 0.05
     cam.location = to_blender(cx, 120, cz)
     cam.rotation_euler = (0, 0, 0)
     scene.render.resolution_y = args.width
     scene.render.filepath = os.path.join(args.out, 'overview.png')
     bpy.ops.render.render(write_still=True)
     scene.render.resolution_y = round(args.width * 9 / 16)
+    cam.data.clip_start = 0.05
     for c in data['cams']:
         shoot(cam, os.path.join(args.out, c['name'] + '.png'), to_blender(*c['at']), to_blender(*c['to']))
 

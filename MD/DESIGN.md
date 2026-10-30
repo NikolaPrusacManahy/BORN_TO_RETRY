@@ -66,7 +66,7 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - **Death:** the world slows and fades to black. In the Feel Lab you're straight back at the start; in a run, death ends the run (M3).
 - **A floor's name (Update 0.2.8, the designer: "display FLOOR 1 when they start playing the game"):** every floor's start shows its name ("FLOOR 1" …) as the screen clears: a new run's (after its loader), a Retry's, the way down's, a floor from the Lab. Not the Lab's lone boss rooms.
 - **The death screen (Update 0.1.14, the designer: play, lose, learn, retry):** dead in a run, once it's black: "Killed by" and what killed you, large in crimson (an enemy by its name in the game, or the turret, spikes, lava, the fall; poison names who poisoned you), then the floor, the time played (m:ss, not counting the pause) and your kills. Retry starts a new run; Menu goes to the main menu. The world holds still behind it. No hints. Drawn big (1.5× the first draft, the designer).
-- **The loader (Update 0.1.14, the designer):** after Play on the character select and the fade to black, the logo's retry arrow turns bottom right on the black for at least a second while the level loads, then fades with the black. No words.
+- **The loader (Update 0.1.14, the designer):** after Play on the character select (Update 0.2.9: through the lobby's main gate) and the fade to black, the logo's retry arrow turns bottom right on the black for at least a second while the level loads, then fades with the black. No words.
 - **The Lab (Update 0.0.19, the designer; dev builds only):** the main menu's Lab goes straight into the Feel Lab. Its panel (F8) spawns any enemy or boss in front of you, any item, bonus, weapon or a chest, and takes you to a boss's real room (its show and fight, then back to the Lab). It also has Clear, Heal, the Lab's waves and invincibility. Spec `MD_UPDATES/M3_LAB.md`.
 - **Healing (Update 0.0.13, the designer): only from the shop.** The heart heals half your health (a chest can hold one too). Hits you land heal nothing (blood heal is gone). After a boss (Update 0.0.15): it leaves a heart (Update 0.2.0: in its chest). **Executions heal (Update 0.2.0, the designer): 15, a mini boss 25.**
 - **Poison (Update 0.0.18):** the snake's bite and the wasp's sting poison you: 3 a second for 4 s, past your shield. **(placeholder)**
@@ -280,8 +280,9 @@ Arenas are **hand-made templates assembled from a seed**, not random geometry, b
 6. **Same seed, same run.** The seed shows on the run summary, so daily or shared-seed runs are easy later.
 
 ## 12. Characters **(placeholder)**
-- **The roster (Update 0.0.8, the designer):** Joseph (the Adventurer): fists only, picks up used weapons. Fallen King, William Rich and Alpha Team are in the select screen, locked; their kits come later.
-- **Character select:** Start opens the gate onto a prison corridor, one character per barred cell. Selecting a playable character lifts his cell's bars; a locked cell stays shut.
+- **The roster (Update 0.0.8, the designer):** Joseph (the Adventurer): fists only, picks up used weapons. Fallen King, William Rich and Alpha Team stand locked (Update 0.2.9: as dark silhouettes in the lobby); their kits come later.
+- **The lobby (Update 0.2.9, the designer; it replaced the character select's prison corridor):** Start opens the gate onto a closed, roofed dungeon hall you walk round in first person. Its areas: the characters on a dais (one playable, the rest dark silhouettes), the difficulties at their altars, the credits on the wall, feast tables, and the big main gate showing your difficulty and character; walking into it (or E) starts the run. Spec `MD_UPDATES/U029_LOBBY.md`.
+- **Difficulties (Update 0.2.9, the designer):** WEAKLING EXPERIENCE, THE REAL EXPERIENCE, ARE YOU EVEN HUMAN?, chosen in the lobby and saved. The gate asks before letting you through: THE REAL EXPERIENCE "Ready for pain?", "Are you sure?", "Don't cry when you die", "Did I mention you only have 1 life? oops"; ARE YOU EVEN HUMAN? "Let's just assume you are not human"; each with two answers. **(What each changes: the designer's to say; for now all play as THE REAL EXPERIENCE, one life.)**
 - You start with one character. Winning a run unlocks the next one.
 - Each character has a **fist style**, a **movement twist** and a **passive**. Examples:
   - The Boxer (starter): fast jab combo, standard movement.
@@ -292,7 +293,7 @@ Arenas are **hand-made templates assembled from a seed**, not random geometry, b
 ## 13. Between runs **(placeholder)**
 - **Main menu (Update 0.0.4):** a low shot up a staircase at a dungeon gate with a portcullis, torches and banners, glowing white behind the bars. Rearing horse statues guard the stairs, with crates, a campfire and pale dead trees (Update 0.0.5). The BORN TO RETRY logo sits in the sky (skewed RETRY with a red offset, echoes trailing off it, a turning retry arrow; tagline "Die · Learn · Retry"). Start grinds the portcullis up and fades to black into the game (the designer cut the first-person walk-in). No hints on the menu (no key labels; the designer's rule for every interface).
 - **Settings (Update 0.0.7, the designer):** the main menu has Start and Settings. Settings moves to a night camp in a forest clearing: sat on a log by a campfire, the options beside it, in two tabs (General, Controls: the controls live inside the settings). Back returns to the gate. The pause menu shows the same options.
-- A small hub: pick a character, start a run, see stats and settings.
+- A small hub: pick a character, start a run, see stats and settings. (Update 0.2.9: the lobby is that hub; stats to come.)
 - Saved: unlocked characters, wins, best time, total kills, settings and key bindings.
 
 ---

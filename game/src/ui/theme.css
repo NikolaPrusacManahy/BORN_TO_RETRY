@@ -8,7 +8,6 @@
 @import './theme/theme-07-health.css';
 @import './theme/theme-08-controls.css';
 @import './theme/theme-09-camp.css';
-@import './theme/theme-10-select.css';
 @import './theme/theme-11-weapon.css';
 @import './theme/theme-12-money.css';
 @import './theme/theme-13-minimap.css';
@@ -28,3 +27,4 @@
 @import './theme/theme-27-grab.css';
 @import './theme/theme-28-gun.css';
 @import './theme/theme-29-raptor.css';
+@import './theme/theme-30-gate-ask.css';

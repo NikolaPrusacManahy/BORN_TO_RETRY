@@ -3,13 +3,15 @@
 // (tools/blender/render_dungeon.py).
 // Update 0.0.20 — the lava (an orange slab per lava cell) and two looks into each lava room on the floor.
 // Update 0.2.4 — the floor's sand (quicksand, and the beds palms and cacti stand in); the look's colours ride in `style`.
+// Update 0.2.9 — the slab under the floor only where the game has it (under the floor boxes: `floors`), so a gap at a
+// wall's foot shows the sky as it does in the game; and close looks along wall feet (`foot-…`).
 //   npx tsx tools/dungeon-shots.ts <out folder> [seed] [floor]
 //   blender --background --python tools/blender/render_dungeon.py -- --json <out folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <out folder>
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { buildDungeon, LAVA_DEPTH } from '../src/world/dungeon/assemble';
-import { CELL } from '../src/world/dungeon/floorPlan';
+import { CELL, cellAt, cellX, cellZ, GRID } from '../src/world/dungeon/floorPlan';
 import { dress } from '../src/world/dungeon/dressing';
 import { planFloor } from '../src/world/dungeon/floorPlan';
 import { DESERT_ROOMS } from '../src/world/dungeon/desertRooms';
@@ -54,7 +56,25 @@ for (const r of level.rooms) {
   cams.push({ name: `${id.replace(/ /g, '-')}-high`, at: [r.min.x + 3, 14, r.min.z + 3], to: [m.x, -1, m.z] });
   cams.push({ name: `${id.replace(/ /g, '-')}-eye`, at: [r.min.x + 5, 1.6, m.z + 1], to: [m.x, 0, m.z] });
 }
+// Update 0.2.9 — along the foot of a wall in the first fight room and in the corridor out of the start room, from
+// where you'd stand (1 m off it, eye height), looking along it.
+{
+  const solidCell = (col: number, row: number) => ['wall', 'ledge', 'highLedge'].includes(cellAt(level.plan, col, row));
+  let n = 0;
+  for (let row = 1; row < GRID - 1 && n < 4; row++) {
+    for (let col = 1; col < GRID - 1 && n < 4; col++) {
+      // A floor cell with a wall to its west and floor three cells on to the north.
+      if (cellAt(level.plan, col, row) !== 'floor' || !solidCell(col - 1, row)) continue;
+      if (![1, 2, 3].every((k) => cellAt(level.plan, col, row - k) === 'floor' && solidCell(col - 1, row - k))) continue;
+      if ((col * 7 + row * 3) % 5 !== n % 5) continue;
+      const x = cellX(col) - CELL / 2 + 0.9;
+      const z = cellZ(row);
+      cams.push({ name: `foot-${n++}`, at: [x, 1.6, z + 1], to: [x - 0.9, 0, z - 5] });
+    }
+  }
+}
+const floors = level.arena.boxes.filter((b) => b.kind === 'floor').map((b) => ({ x: b.x, z: b.z, w: b.w, d: b.d }));
 const lava = d.lava.map((c) => ({ m: new Matrix4().compose(new Vector3(c.x, -LAVA_DEPTH + 0.01, c.z), new Quaternion(), new Vector3(CELL, 0.02, CELL)).elements, color: [1, 0.32, 0.04] }));
 const extent = { min: { x: Math.min(...level.rooms.map((r) => r.min.x)) - 4, z: Math.min(...level.rooms.map((r) => r.min.z)) - 4 }, max: { x: Math.max(...level.rooms.map((r) => r.max.x)) + 4, z: Math.max(...level.rooms.map((r) => r.max.z)) + 4 } };
-writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ seed, floor, pieces: d.pieces, gates: d.gates, torches: d.torches, cores: d.cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, sand: d.sand, boxes: lava, slabY: lava.length ? -LAVA_DEPTH - 0.2 : -0.45 }));
+writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ seed, floor, pieces: d.pieces, gates: d.gates, torches: d.torches, cores: d.cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, sand: d.sand, boxes: lava, slabY: lava.length ? -LAVA_DEPTH - 0.2 : -0.45, floors }));
 console.log(`seed ${seed} floor ${floor}: ${level.rooms.length} rooms (${level.plan.rooms.map((r) => r.layout.template.id).join(', ')}), ${d.pieces.length} pieces, ${level.arena.boxes.length} boxes`);

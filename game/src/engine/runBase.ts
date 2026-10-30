@@ -127,7 +127,8 @@ export abstract class RunBase {
     if (level.dungeon && !level.bossRoom) this.show.arrive(level.floor);
     this.hazards = hazardsOf(level.arena);
     this.lava = lavaOf(level.arena);
-    this.combat = createCombat(level.arena, !level.dungeon);
+    // (Update 0.2.9 — the lobby has no enemies: no walk grids.)
+    this.combat = createCombat(level.arena, !level.dungeon && !level.lobby);
     this.combat.rng = createRng(level.fightSeed);
     this.combatScene = new CombatScene(this.scene, this.combat, this.audio, this.rig, this.arms);
     this.restartHere();
@@ -156,6 +157,23 @@ export abstract class RunBase {
       this.death.reset();
       this.cb.onRespawn();
     }
+  }
+
+  /** Update 0.2.9 — in the lobby (its stations, the main gate). */
+  get inLobby(): boolean {
+    return !!this.level.lobby;
+  }
+
+  /** Update 0.2.9 — turned back at the gate: just in front of it, facing it, the portcullis shut. */
+  backFromGate(spot: { x: number; y: number; z: number; yaw: number }) {
+    const l = this.level.lobby;
+    if (!l) return;
+    l.opening = false;
+    resetPlayer(this.player, spot.x, spot.y, spot.z, spot.yaw);
+    this.prev.copy(this.player.pos);
+    this.look.yaw = spot.yaw;
+    this.look.pitch = 0;
+    this.rig.reset();
   }
 
   /** Update 0.2.8 — the floor's name waits `secs` (a new run's loader and its black still cover the screen: Game's
