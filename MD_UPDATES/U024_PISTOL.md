@@ -58,3 +58,7 @@ Status: built (2026-10-30), in the Lab only (F8 → Items → Weapons → Pistol
 ## Update 0.2.5
 - Its bullet streaks now go (they stayed in the air); thinner. The hand closes where the designer circled on the grip:
   42% of the way up, nearer its back strap (spec `MD_UPDATES/U025_FIXES.md`).
+
+## Update 0.2.6
+- No spread and no aiming down the sights: every bullet goes straight to the crosshair; right click strikes with the
+  gun (spec `MD_UPDATES/U026_PISTOL_WHIP.md`). The Aiming section and the spread above are history.

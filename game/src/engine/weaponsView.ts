@@ -191,8 +191,8 @@ export class WeaponsView {
       }
     }
     this.arms.setWeapon(state.weapon ? this.held[state.weapon.kind] ?? null : null);
-    // Update 0.2.4 — the Pistol's aim, reload and magazine, for its arm.
-    this.arms.gun.sync(state.gun.aim, state.gun.reload, state.gun.empty, state.weapon?.mag ?? 0);
+    // Update 0.2.4 — the Pistol's reload and magazine, for its arm.
+    this.arms.gun.sync(state.gun.reload, state.gun.empty, state.weapon?.mag ?? 0);
   }
 
   /** A weapon just thrown: it starts from where the sword in the arms is (the arms' camera sits at the eye, so the

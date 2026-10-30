@@ -1,13 +1,5 @@
-/* Update 0.2.4 — the Pistol on the HUD: the crosshair fades while you aim down the sights (they're on it), and the
-   bullets left, above the weapon slots: the magazine big (red at 0), the rest small beside it. */
-.rb-hud-cross {
-  transition: opacity 0.1s ease;
-}
-
-.rb-hud-cross.is-aimed {
-  opacity: 0;
-}
-
+/* Update 0.2.4 — the Pistol on the HUD: the bullets left, above the weapon slots: the magazine big (red at 0), the
+   rest small beside it. */
 .rb-ammo {
   position: absolute;
   right: 48px;

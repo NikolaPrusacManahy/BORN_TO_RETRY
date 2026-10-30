@@ -1,9 +1,8 @@
-// Update 0.2.4 — the Pistol's poses (the designer: "hand holding it, we do not see left hand, we can aim with right
-// click and it aims like a normal fps game, reload animation top notch"). Each pose says where the rear sight is (the
+// Update 0.2.4 — the Pistol's poses (the designer: "hand holding it, we do not see left hand, … reload animation top
+// notch"). Each pose says where the rear sight is (the
 // arms camera's view: x right, y up, −z ahead, metres from the eye), where the gun points (its sights' line), its cant
-// (a roll about that line, + tops it to the left) and the way the elbow bends out. Aimed, the sights are on the
-// crosshair: the rear sight straight ahead of the eye, the line along the view. From the hip it sits low right, pointing
-// where the crosshair is far off. A one-handed reload: the gun cants over to show its grip, the magazine drops out, the
+// (a roll about that line, + tops it to the left) and the way the elbow bends out. It sits low right, turned in a
+// little. (Update 0.2.6 — no aimed pose: right click whips it.) A one-handed reload: the gun cants over to show its grip, the magazine drops out, the
 // hand dips out of sight for the new one (the magazine goes in there), comes back up canted, and from empty the thumb
 // lets the slide go home; then it settles. A throw: drawn back by the ear, then flung.
 import * as THREE from 'three';
@@ -30,9 +29,6 @@ const pose = (sight: [number, number, number], aim: [number, number, number], ro
 
 /** From the hip: low right, turned in a little so its left side shows, canted in. */
 export const HIP = pose([0.11, -0.085, -0.3], [-1.1, 0.3, -4], 10, [1, -0.7, 0.2]);
-/** Aimed down the sights: the rear sight on the line of sight at arm's length (one hand: the arm out nearly straight,
- *  the wrist turned in only a little). */
-export const AIMED = pose([0, 0, -0.64], [0, 0, -40], 0, [1, -0.6, 0]);
 
 /** A key of the reload or the throw: its time (share), the rear sight moved (m, view), the gun turned (degrees: muzzle
  *  up, muzzle left, cant). */
@@ -57,6 +53,10 @@ const UP = (t: number) => key(t, [-0.035, 0.02, 0.025], 6, 5, 26);
 export const RELOAD: readonly Key[] = [REST(0), SHOW(0.13), SHOW(0.24), DOWN(0.4), DOWN(0.6), UP(0.76), key(0.88, [0.004, -0.004, 0], -1.5, 0, -2), REST(1)];
 /** From empty: the same, and the thumb lets the slide go home at 0.8 (the gun jolts there). */
 export const RELOAD_EMPTY: readonly Key[] = [REST(0), SHOW(0.13), SHOW(0.24), DOWN(0.4), DOWN(0.6), UP(0.74), UP(0.79), key(0.84, [0, 0.01, 0.012], 7, 0, 18), key(0.93, [0.004, -0.004, 0], -1.5, 0, -2), REST(1)];
+/** Update 0.2.6 — right click (the designer: "a close range gun hit with it, like we are punching"): a pistol-whip, as
+ *  shares of its swing (sim/weapons/gun.ts WHIP_TIME; it lands at WHIP_HIT, ~0.4): drawn back a little, then thrust
+ *  out like a jab, turned on its side so its frame leads, held a moment, and back. */
+export const WHIP: readonly Key[] = [REST(0), key(0.25, [0.015, -0.015, 0.015], 6, -3, -8), key(0.42, [-0.08, 0.02, -0.2], 4, 2, 60), key(0.6, [-0.07, 0.015, -0.18], 2, 2, 58), REST(1)];
 /** A throw (its wind-up's share; then it's gone): drawn back up by the ear, then flung ahead. */
 export const THROW: readonly Key[] = [REST(0), key(0.6, [0.15, 0.06, 0.1], 30, -25, -30), key(1, [0.02, 0.04, -0.1], -15, 5, 0)];
 

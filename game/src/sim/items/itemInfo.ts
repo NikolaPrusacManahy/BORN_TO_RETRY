@@ -61,7 +61,7 @@ const DOES: Record<InfoKind, () => string> = {
   goldHammer: () => 'Heavy blows; a charged one shakes the floor.',
   daggers: () => `Very fast cuts; hold to throw a volley. +${pct(WEAPONS.v.daggerSpeed)} run speed.`,
   goldDaggers: () => `Very fast cuts; hold to throw a volley. +${pct(WEAPONS.v.daggerSpeed)} run speed.`,
-  pistol: () => `Shoots; hold right click to aim, R to reload. ${Math.round(GUN.v.pistolMag)} a magazine.`,
+  pistol: () => `Shoots where you look; right click strikes with it; R reloads. ${Math.round(GUN.v.pistolMag)} a magazine.`,
 };
 
 /** What isn't in a chest's tiers. */

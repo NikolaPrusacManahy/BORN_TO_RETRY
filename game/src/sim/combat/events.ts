@@ -262,6 +262,8 @@ export type CombatEvent =
   | 'magIn'
   | 'slideHome'
   | 'reloadDone'
+  // Update 0.2.6 — right click with the Pistol: a whip swung (what it hits is a punch's hit).
+  | 'pistolWhip'
   // Update 0.1.12 — an enemy you can execute comes into reach after a while with none (value: its slot): a sting.
   | 'execReady'
   | 'standRespawn';

@@ -1,7 +1,7 @@
 // Update 0.2.4 — the Pistol in the arms without a browser, as tools/view-shots.ts does for the swords: the game's own
-// Viewmodel posed with the Pistol at moments (hip, aimed, a shot's kick, the reload's beats, a throw's wind-up), the
+// Viewmodel posed with the Pistol at moments (hip, a shot's kick, the reload's beats, a whip, a throw's wind-up), the
 // posed meshes written out in the arms camera's space for Blender (tools/blender/render_view.py). It also says how hard
-// the wrist bends and, aimed, where the sights are on screen (both should sit on the crosshair, 0, 0).
+// the wrist bends and where its sights and muzzle are on screen.
 //   npx tsx tools/gun-shots.ts <out folder> [shot names]
 //   blender --background --python tools/blender/render_view.py -- --json <out folder>/shots.json --out <out folder>
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -33,13 +33,13 @@ interface GunShot {
 /** Into a reload `k` of the way (0 … 1), from empty or not, its beats played on the way. */
 const reloading = (k: number, empty: boolean) => (vm: Viewmodel, step: (n: number) => void) => {
   const total = reloadTime(empty);
-  vm.gun.sync(0, -1, false, empty ? 0 : 6);
+  vm.gun.sync(-1, false, empty ? 0 : 6);
   step(20);
   let t = 0;
   let out = false;
   while (t < k * total) {
     t += DT;
-    vm.gun.sync(0, t, empty, t / total >= 0.56 ? 15 : empty ? 0 : 6);
+    vm.gun.sync(t, empty, t / total >= 0.56 ? 8 : empty ? 0 : 6);
     if (!out && t / total >= 0.16) {
       out = true;
       vm.gun.magOut();
@@ -49,16 +49,14 @@ const reloading = (k: number, empty: boolean) => (vm: Viewmodel, step: (n: numbe
 };
 
 const SHOTS: GunShot[] = [
-  { name: 'grip-left', side: 'left', run: (vm, step) => (vm.gun.sync(0, -1, false, 8), step(30)) },
-  { name: 'grip-right', side: 'right', run: (vm, step) => (vm.gun.sync(0, -1, false, 8), step(30)) },
-  { name: 'grip-back', side: 'back', run: (vm, step) => (vm.gun.sync(0, -1, false, 8), step(30)) },
-  { name: 'hip', run: (vm, step) => (vm.gun.sync(0, -1, false, 15), step(30)) },
-  { name: 'aimed', run: (vm, step) => (vm.gun.sync(1, -1, false, 15), step(40)) },
-  { name: 'aimed-half', run: (vm, step) => (vm.gun.sync(0.5, -1, false, 15), step(40)) },
+  { name: 'grip-left', side: 'left', run: (vm, step) => (vm.gun.sync(-1, false, 8), step(30)) },
+  { name: 'grip-right', side: 'right', run: (vm, step) => (vm.gun.sync(-1, false, 8), step(30)) },
+  { name: 'grip-back', side: 'back', run: (vm, step) => (vm.gun.sync(-1, false, 8), step(30)) },
+  { name: 'hip', run: (vm, step) => (vm.gun.sync(-1, false, 15), step(30)) },
   {
     name: 'hip-kick',
     run: (vm, step) => {
-      vm.gun.sync(0, -1, false, 15);
+      vm.gun.sync(-1, false, 15);
       step(30);
       vm.gun.shot(14);
       step(4);
@@ -67,28 +65,19 @@ const SHOTS: GunShot[] = [
   {
     name: 'hip-flash',
     run: (vm, step) => {
-      vm.gun.sync(0, -1, false, 15);
+      vm.gun.sync(-1, false, 15);
       step(30);
       vm.gun.shot(14);
       step(1);
     },
   },
   {
-    name: 'aimed-kick',
-    run: (vm, step) => {
-      vm.gun.sync(1, -1, false, 15);
-      step(40);
-      vm.gun.shot(14);
-      step(4);
-    },
-  },
-  {
     name: 'empty-locked',
     run: (vm, step) => {
-      vm.gun.sync(0, -1, false, 1);
+      vm.gun.sync(-1, false, 1);
       step(30);
       vm.gun.shot(0);
-      vm.gun.sync(0, -1, false, 0);
+      vm.gun.sync(-1, false, 0);
       step(12);
     },
   },
@@ -98,10 +87,14 @@ const SHOTS: GunShot[] = [
   { name: 'reload-up', run: reloading(0.76, true) },
   { name: 'reload-home', run: reloading(0.86, true) },
   { name: 'reload-tactical-up', run: reloading(0.74, false) },
+  // Update 0.2.6 — right click: the whip, drawn back and landing.
+  { name: 'whip-back', run: (vm, step) => (vm.gun.sync(-1, false, 8), step(20), vm.gun.whip(), step(4)) },
+  { name: 'whip-hit', run: (vm, step) => (vm.gun.sync(-1, false, 8), step(20), vm.gun.whip(), step(8)) },
+  { name: 'whip-held', run: (vm, step) => (vm.gun.sync(-1, false, 8), step(20), vm.gun.whip(), step(11)) },
   {
     name: 'throw',
     run: (vm, step) => {
-      vm.gun.sync(0, -1, false, 15);
+      vm.gun.sync(-1, false, 15);
       step(20);
       vm.sword('throw');
       step(Math.round((WEAPONS.v.throwWindup * 0.7) / DT));

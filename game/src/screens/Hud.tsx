@@ -58,7 +58,7 @@ export function Hud({ store }: { store: HudStore }) {
   const s = useSyncExternalStore(store.subscribe, store.get);
   return (
     <div className={`rb-hud${s.cine ? ' is-cine' : ''}`}>
-      <div className={`rb-hud-cross${s.aimed ? ' is-aimed' : ''}`} />
+      <div className="rb-hud-cross" />
       {s.hits > 0 && <div key={`m${s.hits}`} className={`rb-hud-marker is-${s.marker}`} />}
       {s.hurts > 0 && <div key={`h${s.hurts}`} className="rb-hud-hurt" />}
       {s.shields > 0 && <div key={`s${s.shields}`} className="rb-hud-shieldhit" />}

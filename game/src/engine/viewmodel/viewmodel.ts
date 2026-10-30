@@ -13,8 +13,7 @@
 // fists' pose moved to fistArm.ts.
 // Update 0.1.9 — the Dual Daggers: one in each hand; the left plays its own moves and holds the second (offHand.ts).
 // The sway, bob and dips moved to armsMotion.ts.
-// Update 0.2.4 — the Pistol: the right arm follows the gun's pose (gunArms.ts), the left out of view; aimed, the arms
-// hold steady.
+// Update 0.2.4 — the Pistol: the right arm follows the gun's pose (gunArms.ts), the left out of view.
 import * as THREE from 'three';
 import { ARMS } from '../../tuning/arms';
 import { WEAPONS } from '../../tuning/weapons';
@@ -44,8 +43,6 @@ export const ARMS_URL = '/models/arms/adventurer.glb';
 const CHARGE_EASE = 14;
 /** Update 0.1.9 — how far a hand opens as it throws a dagger (0 … 1). */
 const RELEASE = 0.6;
-/** Update 0.2.4 — how much narrower the arms' lens is, aimed down a gun's sights. */
-const GUN_LENS = 0.45;
 
 const ease = (rate: number, dt: number) => 1 - Math.exp(-rate * dt);
 const smooth = (x: number) => x * x * (3 - 2 * x);
@@ -140,8 +137,7 @@ export class Viewmodel {
 
   /** The arms camera's lens for a screen of this aspect (vertical FOV from the Arms tuning). */
   setLens(aspect: number) {
-    // (Update 0.2.4 — aimed down a gun's sights, the arms' lens narrows too: the gun at arm's length reads bigger.)
-    const fov = ARMS.v.fov * (this.weapon?.userData.hold === 'gun' ? 1 - GUN_LENS * this.gun.aimed : 1);
+    const fov = ARMS.v.fov;
     if (this.camera.fov !== fov || this.camera.aspect !== aspect) {
       this.camera.fov = fov;
       this.camera.aspect = aspect;
@@ -195,7 +191,7 @@ export class Viewmodel {
     this.swordAnim.update(gameDt, realDt);
     this.off.anim.update(gameDt, realDt);
     this.slam.update(gameDt);
-    this.motion.update(gameDt, realDt, mouseDx, mouseDy, p, this.pivot, this.holder, this.weapon?.userData.hold === 'gun' ? this.gun.aimed : 0);
+    this.motion.update(gameDt, realDt, mouseDx, mouseDy, p, this.pivot, this.holder);
     this.gun.update(gameDt);
     this.armedVis = Math.max(0, Math.min(1, this.armedVis + ((this.weapon ? 1 : -1) * gameDt) / v.armedSwap));
     this.flip = Math.max(0, Math.min(1, this.flip + ((charge >= 0 ? 1 : -1) * gameDt) / v.daggerFlip));

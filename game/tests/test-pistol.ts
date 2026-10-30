@@ -1,9 +1,9 @@
-// Update 0.2.4 — the Pistol (the designer: "the pistol gun (not revolver) … hand holding it, we do not see left hand, we
-// can aim with right click and it aims like a normal fps game, reload animation top notch, throw with q key, max 15
-// bullets, testing testing"). Its rules (sim/weapons/gun.ts): a shot a click, hitscan, stopped by walls, spread wide
-// from the hip and tight aimed; right click aims (the view narrows, the mouse slows); R reloads, as does the last
-// bullet; the beats; Q throws it. In the hand (engine/viewmodel/gunArms.ts): aimed, the sights on the crosshair; the
-// left hand out of view; the wrist nearly straight; the slide and the magazine as the beats say.
+// Update 0.2.4 — the Pistol (the designer: "the pistol gun (not revolver) … hand holding it, we do not see left hand,
+// … reload animation top notch, throw with q key, … testing testing"). Its rules (sim/weapons/gun.ts): a shot a click,
+// hitscan, stopped by walls; R reloads, as does the last bullet; the beats; Q throws it. In the hand
+// (engine/viewmodel/gunArms.ts): the left hand out of view; the wrist nearly straight; the slide and the magazine as the
+// beats say. Update 0.2.6 (the designer): every bullet straight to the crosshair; right click a strike with the gun, no
+// aiming.
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { Vector3 } from 'three';
@@ -21,7 +21,7 @@ import { spawnEnemy } from '../src/sim/enemies/enemy';
 import { ENEMY_STATS } from '../src/sim/enemies/kinds';
 import { createPlayer, PlayerState } from '../src/sim/player/state';
 import { CASTS, SHOOTS, WEAPON_KINDS, WEAPON_STATS } from '../src/sim/weapons/catalog';
-import { aimTurn, MAG_IN, MAG_OUT, magSize, pistolDamage, reloadTime, viewZoom } from '../src/sim/weapons/gun';
+import { MAG_IN, MAG_OUT, magSize, pistolDamage, reloadTime, WHIP_HIT, WHIP_TIME } from '../src/sim/weapons/gun';
 import { FISTS } from '../src/tuning/combat';
 import { giveWeapon, selectSlot } from '../src/sim/weapons/slots';
 import { holding } from '../src/sim/weapons/weapons';
@@ -93,18 +93,16 @@ section('Pistol — shooting');
 {
   const { state, p, world } = lab();
   const e = spawnEnemy(state.enemies, 'grunt', new Vector3(0, 0, -10), 0);
-  run(state, p, world, g.pistolAimIn + 0.05, { heavyHeld: true });
-  const ev = tick(state, p, world, { attackPressed: true, heavyHeld: true });
+  const ev = tick(state, p, world, { attackPressed: true });
   const trace = ev.find((x) => x.kind === 'gunTrace')!;
-  check(`aimed at a Grunt 10 m off: it lands (${pistolDamage()}), and the bullet ends on it`, count(ev, 'hitShot') === 1 && state.enemies[e].hp === GRUNT_HP - pistolDamage() && trace.value === 1 && Math.abs(trace.z - state.enemies[e].pos.z) < 1);
+  check(`at a Grunt 10 m off: it lands (${pistolDamage()}), and the bullet ends on it`, count(ev, 'hitShot') === 1 && state.enemies[e].hp === GRUNT_HP - pistolDamage() && trace.value === 1 && Math.abs(trace.z - state.enemies[e].pos.z) < 1);
 }
 {
   const { state, p, world } = lab();
   p.yaw = -Math.PI / 2;
   world.walls.push({ x: 5, normalX: -1 });
   const e = spawnEnemy(state.enemies, 'grunt', new Vector3(8, 0, 0), 0);
-  run(state, p, world, g.pistolAimIn + 0.05, { heavyHeld: true, yaw: -Math.PI / 2 });
-  const ev = tick(state, p, world, { attackPressed: true, heavyHeld: true, yaw: -Math.PI / 2 });
+  const ev = tick(state, p, world, { attackPressed: true, yaw: -Math.PI / 2 });
   const trace = ev.find((x) => x.kind === 'gunTrace')!;
   check('a wall between: the bullet stops in it, the Grunt behind unhurt', trace.value === 0 && Math.abs(trace.x - 5) < 0.05 && state.enemies[e].hp === GRUNT_HP);
   const sky = lab();
@@ -112,43 +110,52 @@ section('Pistol — shooting');
   check('nothing in range: it ends nowhere', up.find((x) => x.kind === 'gunTrace')!.value === -1);
 }
 {
-  // How far off the aim bullets go: from the hip, and aimed (no shots in a row: no bloom).
-  const spread = (aimed: boolean) => {
-    const { state, p, world } = lab(10000);
-    if (aimed) run(state, p, world, g.pistolAimIn + 0.05, { heavyHeld: true });
-    let most = 0;
-    for (let i = 0; i < 300; i++) {
-      state.weapon!.cooldown = 0;
-      state.weapon!.mag = magSize();
-      state.gun.bloom = 0;
-      const ev = tick(state, p, world, { attackPressed: true, heavyHeld: aimed });
-      const t = ev.find((x) => x.kind === 'gunTrace')!;
-      const d = new Vector3(t.x, t.y, t.z).sub(new Vector3(0, ev.find((x) => x.kind === 'gunShot')!.y, 0)).normalize();
-      most = Math.max(most, THREE.MathUtils.radToDeg(Math.acos(Math.min(1, -d.z))));
-    }
-    return most;
-  };
-  const hip = spread(false);
-  const aimed = spread(true);
-  check(`from the hip bullets stray up to Pistol spread (${g.pistolSpread}°)`, hip <= g.pistolSpread + 0.01 && hip > g.pistolSpread * 0.8, `${hip.toFixed(2)}°`);
-  check(`aimed, up to Pistol aimed spread (${g.pistolAimSpread}°)`, aimed <= g.pistolAimSpread + 0.01, `${aimed.toFixed(2)}°`);
-  const { state, p, world } = lab();
-  run(state, p, world, 0.5, { attackPressed: true, attackHeld: true });
-  check('shots in a row widen it (bloom), and it fades', state.gun.bloom > 0 && (run(state, p, world, 2), state.gun.bloom === 0));
+  // Update 0.2.6 (the designer: "the bullet is going straight toward the crosshair"): every bullet along your look.
+  const { state, p, world } = lab(10000);
+  let most = 0;
+  for (let i = 0; i < 300; i++) {
+    state.weapon!.cooldown = 0;
+    state.weapon!.mag = magSize();
+    const pitch = (i % 7) * 0.05 - 0.15;
+    const yaw = (i % 11) * 0.3;
+    const ev = tick(state, p, world, { attackPressed: true, yaw, pitch });
+    const t = ev.find((x) => x.kind === 'gunTrace')!;
+    const eye = ev.find((x) => x.kind === 'gunShot')!;
+    const d = new Vector3(t.x - eye.x, t.y - eye.y, t.z - eye.z).normalize();
+    const look = new Vector3(-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
+    most = Math.max(most, THREE.MathUtils.radToDeg(Math.acos(Math.min(1, d.dot(look)))));
+  }
+  check('every bullet goes straight to the crosshair (no spread, shot after shot)', most < 0.01, `${most.toFixed(4)}°`);
 }
 
-section('Pistol — aiming (right click)');
+section('Pistol — right click: a strike with it (Update 0.2.6)');
 {
   const { state, p, world } = lab();
-  run(state, p, world, g.pistolAimIn + 2 * DT, { heavyHeld: true });
-  check(`right click held: aimed in ${g.pistolAimIn} s`, state.gun.aim === 1);
-  check(`aimed, the view narrows to ${g.pistolZoom} and the mouse slows to ${g.pistolAimTurn}`, Math.abs(viewZoom(state) - g.pistolZoom) < 1e-9 && Math.abs(aimTurn(state) - g.pistolAimTurn) < 1e-9);
-  run(state, p, world, g.pistolAimIn + 2 * DT);
-  check('let go: back to the hip, the view as it was', state.gun.aim === 0 && viewZoom(state) === 1 && aimTurn(state) === 1);
-  const none = createCombat(OPEN_ARENA, false);
-  check('no gun in hand: the view and mouse untouched', viewZoom(none) === 1 && aimTurn(none) === 1);
+  const e = spawnEnemy(state.enemies, 'grunt', new Vector3(0, 0, -1.6), 0);
+  state.enemies[e].cooldown = 99;
+  const swing = tick(state, p, world, { heavyHeld: true });
+  const ev = [...swing, ...run(state, p, world, WHIP_HIT + 0.02, { heavyHeld: true })];
+  check(`right click swings the gun (the designer: "like we are punching"): it lands ${g.pistolWhipDamage} on what's at a fist's reach`, count(swing, 'pistolWhip') === 1 && count(ev, 'hitFinisher') === 1 && state.enemies[e].hp === GRUNT_HP - g.pistolWhipDamage);
+  check('no bullet spent, no shot, no aiming', state.weapon!.mag === 8 && state.weapon!.uses === ROUNDS && count(ev, 'gunShot') === 0);
+  const held = run(state, p, world, 2, { heavyHeld: true });
+  const most = Math.ceil(2 / g.pistolWhipRate) + 1;
+  check(`held, it strikes again every Pistol whip rate (${g.pistolWhipRate} s)`, count(held, 'pistolWhip') >= most - 2 && count(held, 'pistolWhip') <= most);
+  const far = lab();
+  spawnEnemy(far.state.enemies, 'grunt', new Vector3(0, 0, -8), 0);
+  const miss = run(far.state, far.p, far.world, WHIP_TIME, { heavyHeld: true });
+  check('out of reach it whiffs, as a punch does', count(miss, 'whiff') === 1 && count(miss, 'hitFinisher') === 0);
+}
+{
+  const { state, p, world } = lab();
+  tick(state, p, world, { heavyHeld: true });
+  check('mid-swing, a click doesn’t shoot…', count(run(state, p, world, WHIP_TIME * 0.5, { attackPressed: true }), 'gunShot') === 0);
+  check('…it fires as the swing ends (the click kept)', count(run(state, p, world, WHIP_TIME), 'gunShot') === 1);
+  const r = lab();
+  r.state.weapon!.mag = 2;
+  tick(r.state, r.p, r.world, { reloadPressed: true });
+  check('reloading, no swing', count(run(r.state, r.p, r.world, 0.4, { heavyHeld: true }), 'pistolWhip') === 0);
   const empty = lab(0);
-  check('with no bullets left, right click aims (it doesn’t throw it)…', count(run(empty.state, empty.p, empty.world, 0.3, { heavyHeld: true }), 'throwStart') === 0);
+  check('with no bullets left, right click still strikes (it doesn’t throw it)…', count(run(empty.state, empty.p, empty.world, 0.3, { heavyHeld: true }), 'throwStart') === 0);
   check('…a click throws it, as any spent weapon', count(tick(empty.state, empty.p, empty.world, { attackPressed: true }), 'throwStart') === 1);
 }
 
@@ -208,7 +215,7 @@ section('Pistol — reloading');
 
 section('Pistol — in your hand');
 {
-  const pose = async (aim: number, then?: (vm: Viewmodel) => void, frames = 40) => {
+  const pose = async (then?: (vm: Viewmodel) => void, frames = 40) => {
     const arms = await load('../public/models/arms/adventurer.glb');
     const gun = await load('../public/models/weapons/pistol.glb');
     const vm = new Viewmodel(false);
@@ -218,7 +225,7 @@ section('Pistol — in your hand');
     vm.setWeapon(gun.scene);
     const p = createPlayer(0, 0, 0, 0);
     p.grounded = true;
-    vm.gun.sync(aim, -1, false, 15);
+    vm.gun.sync(-1, false, 8);
     for (let i = 0; i < frames; i++) vm.update(1 / 60, 1 / 60, 0, 0, p, -1);
     then?.(vm);
     vm.setLens(16 / 9);
@@ -232,33 +239,34 @@ section('Pistol — in your hand');
     const left = at('HandL').project(vm.camera);
     return { vm, gun: gun.scene, bend, screen, left };
   };
-  const hip = await pose(0);
+  const hip = await pose();
   check('from the hip: low right, the wrist nearly straight', hip.screen('Muzzle').x > 0 && hip.screen('RearSight').y < -0.2 && hip.bend < 25, `${hip.bend.toFixed(0)}°`);
   check('the left hand out of view (the designer)', Math.abs(hip.left.x) > 1 || Math.abs(hip.left.y) > 1 || hip.left.z > 1);
-  const aimed = await pose(1);
-  const rear = aimed.screen('RearSight');
-  const front = aimed.screen('FrontSight');
-  check('aimed: both sights on the crosshair', Math.hypot(rear.x, rear.y) < 0.005 && Math.hypot(front.x, front.y) < 0.005, `rear (${rear.x.toFixed(3)}, ${rear.y.toFixed(3)}), front (${front.x.toFixed(3)}, ${front.y.toFixed(3)})`);
-  check('aimed: the arm out, the wrist turned in no more than a real one-handed hold (< 40°)', aimed.bend < 40, `${aimed.bend.toFixed(0)}°`);
+  const whip = await pose((vm) => {
+    vm.gun.whip();
+    // (To where it lands.)
+    for (let i = 0; i < Math.round(WHIP_HIT * 60); i++) vm.update(1 / 60, 1 / 60, 0, 0, createPlayer(0, 0, 0, 0), -1);
+  });
+  check('the whip thrusts the gun out like a jab, on its side, the wrist nearly straight', whip.screen('Muzzle').x < hip.screen('Muzzle').x - 0.1 && whip.bend < 35, `wrist ${whip.bend.toFixed(0)}°`);
   const slide = (r: Awaited<ReturnType<typeof pose>>) => r.gun.getObjectByName('Slide')!.position.length();
-  const shot = await pose(0, (vm) => (vm.gun.shot(14), vm.update(1 / 120, 1 / 120, 0, 0, createPlayer(0, 0, 0, 0), -1)), 30);
-  const settled = await pose(0, (vm) => {
+  const shot = await pose((vm) => (vm.gun.shot(14), vm.update(1 / 120, 1 / 120, 0, 0, createPlayer(0, 0, 0, 0), -1)), 30);
+  const settled = await pose((vm) => {
     vm.gun.shot(14);
     for (let i = 0; i < 20; i++) vm.update(1 / 60, 1 / 60, 0, 0, createPlayer(0, 0, 0, 0), -1);
   });
-  const locked = await pose(0, (vm) => {
+  const locked = await pose((vm) => {
     vm.gun.shot(0);
-    vm.gun.sync(0, -1, false, 0);
+    vm.gun.sync(-1, false, 0);
     for (let i = 0; i < 20; i++) vm.update(1 / 60, 1 / 60, 0, 0, createPlayer(0, 0, 0, 0), -1);
   });
   check('a shot blows the slide back, and it comes home; the last one leaves it back (locked)', slide(shot) > 0.02 && slide(settled) < 0.002 && slide(locked) > 0.02);
-  const out = await pose(0, (vm) => {
+  const out = await pose((vm) => {
     vm.gun.magOut();
-    vm.gun.sync(0, reloadTime(false) * 0.3, false, 6);
+    vm.gun.sync(reloadTime(false) * 0.3, false, 6);
     vm.update(1 / 60, 1 / 60, 0, 0, createPlayer(0, 0, 0, 0), -1);
   });
-  const back = await pose(0, (vm) => {
-    vm.gun.sync(0, reloadTime(false) * 0.9, false, 15);
+  const back = await pose((vm) => {
+    vm.gun.sync(reloadTime(false) * 0.9, false, 8);
     vm.update(1 / 60, 1 / 60, 0, 0, createPlayer(0, 0, 0, 0), -1);
   });
   check('mid-reload the magazine is out of the gun; near the end it’s back in', !out.gun.getObjectByName('Magazine')!.visible && back.gun.getObjectByName('Magazine')!.visible);

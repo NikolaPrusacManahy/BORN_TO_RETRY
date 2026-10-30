@@ -1,27 +1,27 @@
 // Update 0.2.4 — the right arm holding the Pistol (the designer: "hand holding it, we do not see left hand"; the left
 // drops out of view as it does for a sword). The gun is posed (gunPoses.ts) and the arm follows it: its grip in the
-// fist, the knuckles along the sights, so the wrist stays nearly straight. Aimed (right click), it eases from the hip to
-// the sights on the crosshair. A shot: the muzzle kicks up about the wrist and the gun comes back (a spring), the slide
+// fist, the knuckles along the sights, so the wrist stays nearly straight. A shot: the muzzle kicks up about the wrist and the gun comes back (a spring), the slide
 // blows back and returns (it stays back once the magazine's empty), the trigger is pulled, a flash, a case thrown out
 // (gunFx.ts). The reload plays the sim's beats (sim/weapons/gun.ts): the magazine drops out and falls, the hand dips
 // out of sight and the new one goes in, and from empty the slide goes home with a jolt. A throw draws it back by the
 // ear first. The gun's parts and marks are the model's (tools/blender/export_pistol.py).
+// Update 0.2.6 — no aiming down the sights (the designer): right click whips it (gunPoses.ts WHIP), drawn back and
+// slammed forward on its side.
 import * as THREE from 'three';
-import { MAG_IN, MAG_OUT, SLIDE_HOME, reloadTime } from '../../sim/weapons/gun';
+import { MAG_IN, MAG_OUT, SLIDE_HOME, WHIP_TIME, reloadTime } from '../../sim/weapons/gun';
 import { ARMS } from '../../tuning/arms';
 import { GUN } from '../../tuning/gun';
 import { WEAPONS } from '../../tuning/weapons';
 import type { ArmPose, ArmsRig, SwordPose } from './armsRig';
 import { viewToModel } from './armsMath';
-import { AIMED, HIP, RELOAD, RELOAD_EMPTY, THROW, blankKey, gunFrame, keyAt } from './gunPoses';
+import { HIP, RELOAD, RELOAD_EMPTY, THROW, WHIP, blankKey, gunFrame, keyAt } from './gunPoses';
 import { emptySword } from './swordPoses';
 import { GunFx } from './gunFx';
 
 /** The fingers close round its grip this thick (radius, m). */
 export const GUN_GRIP = 0.022;
-/** The recoil's springs (stiffness, damping) and a shot's kick into them: the muzzle up (rad/s), the gun back (m/s);
- *  aimed, this share of it. */
-const KICK = { k: 260, c: 26, up: 3.8, back: 1.1, aimed: 0.55 };
+/** The recoil's springs (stiffness, damping) and a shot's kick into them: the muzzle up (rad/s), the gun back (m/s). */
+const KICK = { k: 260, c: 26, up: 3.8, back: 1.1 };
 /** The slide: how far back it goes (the gun's metres), how long it stays back after a shot (s), how fast it returns. */
 const SLIDE = { travel: 0.028, hold: 0.025, rate: 70 };
 const TRIGGER = { travel: 0.005, hold: 0.06 };
@@ -53,7 +53,6 @@ export class GunArms {
   /** Along the sights, the gun's own way (the slide moves back along it). */
   private readonly line = new THREE.Vector3(Math.cos(SLOPE), Math.sin(SLOPE), 0);
   // From the sim each frame.
-  private aim = 0;
   private reload = -1;
   private empty = false;
   private mag = 0;
@@ -66,6 +65,8 @@ export class GunArms {
   private sinceShot = 9;
   private locked = false;
   private throwing = -1;
+  /** Update 0.2.6 — seconds into a whip (−1: none). */
+  private whipping = -1;
   private time = 0;
   private readonly key = blankKey();
   private readonly sight = new THREE.Vector3();
@@ -84,7 +85,7 @@ export class GunArms {
   /** The gun model in hand (null: none): finds its parts and marks. */
   use(model: THREE.Object3D | null) {
     this.fx.clear();
-    this.throwing = -1;
+    this.throwing = this.whipping = -1;
     this.kick = this.kickV = this.back = this.backV = this.slide = 0;
     this.muzzle = model?.getObjectByName('Muzzle') ?? null;
     if (!model) {
@@ -121,17 +122,11 @@ export class GunArms {
     return true;
   }
 
-  /** The sim's state: aimed (0 … 1), seconds into a reload (−1: none) and whether it began empty, bullets in it. */
-  sync(aim: number, reload: number, empty: boolean, mag: number) {
-    this.aim = aim;
+  /** The sim's state: seconds into a reload (−1: none) and whether it began empty, bullets in it. */
+  sync(reload: number, empty: boolean, mag: number) {
     this.reload = reload;
     this.empty = empty;
     this.mag = mag;
-  }
-
-  /** How far it's aimed, eased (the view narrows by it; the arms' sway steadies). */
-  get aimed(): number {
-    return smooth(this.aim);
   }
 
   private get reloadK(): number {
@@ -140,9 +135,8 @@ export class GunArms {
 
   /** A shot left `left` bullets in it. */
   shot(left: number) {
-    const k = 1 - (1 - KICK.aimed) * this.aimed;
-    this.kickV += KICK.up * k * (0.85 + 0.3 * Math.random());
-    this.backV += KICK.back * k;
+    this.kickV += KICK.up * (0.85 + 0.3 * Math.random());
+    this.backV += KICK.back;
     this.sinceShot = 0;
     this.slide = 1;
     this.locked = left === 0;
@@ -176,21 +170,30 @@ export class GunArms {
     this.throwing = 0;
   }
 
+  /** Update 0.2.6 — right click: a whip begins. */
+  whip() {
+    this.whipping = 0;
+  }
+
   /** The right arm's pose holding it (model space). */
   pose(rig: ArmsRig, out: ArmPose): ArmPose {
-    const k = this.aimed;
-    const rest = 1 - k;
-    // (The arm goes out ahead of the turn: out of a bent arm quickly, so the wrist never bends far on the way.)
-    this.sight.lerpVectors(HIP.sight, AIMED.sight, 1 - (1 - k) * (1 - k));
-    this.target.lerpVectors(HIP.aim, AIMED.aim, k);
-    let roll = HIP.roll + (AIMED.roll - HIP.roll) * k;
-    this.a.lerpVectors(HIP.elbow, AIMED.elbow, k).normalize();
-    // Breathing, from the hip.
-    this.sight.y += Math.sin(this.time * 1.7) * 0.0025 * rest;
-    roll += Math.sin(this.time * 1.1) * 0.012 * rest;
+    this.sight.copy(HIP.sight);
+    this.target.copy(HIP.aim);
+    let roll = HIP.roll;
+    this.a.copy(HIP.elbow);
+    // Breathing.
+    this.sight.y += Math.sin(this.time * 1.7) * 0.0025;
+    roll += Math.sin(this.time * 1.1) * 0.012;
     this.along.subVectors(this.target, this.sight).normalize();
     const r = this.reloadK;
-    const key = r >= 0 ? keyAt(this.empty ? RELOAD_EMPTY : RELOAD, r, this.key) : this.throwing >= 0 ? keyAt(THROW, Math.min(1, this.throwing / Math.max(0.01, WEAPONS.v.throwWindup)), this.key) : null;
+    const key =
+      r >= 0
+        ? keyAt(this.empty ? RELOAD_EMPTY : RELOAD, r, this.key)
+        : this.throwing >= 0
+          ? keyAt(THROW, Math.min(1, this.throwing / Math.max(0.01, WEAPONS.v.throwWindup)), this.key)
+          : this.whipping >= 0
+            ? keyAt(WHIP, Math.min(1, this.whipping / WHIP_TIME), this.key)
+            : null;
     if (key) {
       this.sight.x += key.move[0];
       this.sight.y += key.move[1];
@@ -228,6 +231,7 @@ export class GunArms {
     this.time += dt;
     this.sinceShot += dt;
     if (this.throwing >= 0) this.throwing += dt;
+    if (this.whipping >= 0) this.whipping = this.whipping + dt >= WHIP_TIME ? -1 : this.whipping + dt;
     this.kickV += (-KICK.k * this.kick - KICK.c * this.kickV) * dt;
     this.kick += this.kickV * dt;
     this.backV += (-KICK.k * this.back - KICK.c * this.backV) * dt;
@@ -253,7 +257,7 @@ export class GunArms {
 
   clear() {
     this.fx.clear();
-    this.throwing = -1;
+    this.throwing = this.whipping = -1;
     this.kick = this.kickV = this.back = this.backV = 0;
   }
 }

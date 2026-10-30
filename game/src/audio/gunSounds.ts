@@ -49,6 +49,10 @@ export function playGun(a: AudioEngine, kind: CombatEvent, value: number, far: n
       return true;
     case 'reloadDone':
       return true;
+    // Update 0.2.6 — the whip's swing.
+    case 'pistolWhip':
+      noise(a, { dur: 0.13, gain: 0.2, filter: 'bandpass', from: 700, to: 2600, q: 1.3 });
+      return true;
     default:
       return false;
   }

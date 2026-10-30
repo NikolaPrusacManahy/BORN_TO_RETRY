@@ -1,9 +1,8 @@
-// Update 0.2.4 — the Pistol's events felt (foeFeedback.ts passes its events here): a shot kicks the arms (gunArms.ts)
-// and the view (less aimed) with a little shake; a bullet in a wall throws sparks and grit; the reload's beats (the
-// magazine dropping out, the slide going home) play on the arms.
+// Update 0.2.4 — the Pistol's events felt (foeFeedback.ts passes its events here): a shot kicks the arms (gunArms.ts;
+// Update 0.2.6: not the view, so the crosshair stays where the bullets go); a bullet in a wall throws sparks and grit;
+// the reload's beats (the magazine dropping out, the slide going home) and the whip play on the arms.
 import type * as THREE from 'three';
 import type { CombatEvent } from '../sim/combat/state';
-import { GUN } from '../tuning/gun';
 import type { FeedbackParts } from './combatFeedback';
 
 /** Returns false for events it doesn't know. */
@@ -11,8 +10,10 @@ export function gunFeedback(f: FeedbackParts, kind: CombatEvent, value: number, 
   switch (kind) {
     case 'gunShot':
       f.arms.gun.shot(value);
-      f.rig.kick(GUN.v.pistolKick * (1 - 0.45 * f.arms.gun.aimed));
-      f.rig.shake.add(0.05);
+      return true;
+    // Update 0.2.6 — right click: the gun swings (its blow lands as a punch does).
+    case 'pistolWhip':
+      f.arms.gun.whip();
       return true;
     case 'gunTrace':
       if (value === 0) {
