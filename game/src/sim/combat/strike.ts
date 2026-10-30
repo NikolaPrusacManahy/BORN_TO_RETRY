@@ -10,7 +10,7 @@ import { ENEMIES } from '../../tuning/enemies';
 import { FEEDBACK } from '../../tuning/combat';
 import { enemyAxis, hitEnemy, isLive, radiusOf } from '../enemies/enemy';
 import { dropWeapon } from '../weapons/weapons';
-import { dodges } from '../enemies/ninja';
+import { dodges } from '../enemies/evade';
 import { ENEMY_STATS, MINI_BOSSES } from '../enemies/kinds';
 import { EXECUTION } from '../../tuning/execution';
 import { burstCoins } from './coins';

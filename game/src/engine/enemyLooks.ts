@@ -2,6 +2,8 @@
 // when its blow lands, its wind-up's glow) and the role a phase plays. Floor 3's: the Skeleton, the Mushnub, the Ninja;
 // a Skeleton rebuilding rises (its own clip, `rise`), after lying in pieces (its death, held).
 // Update 0.2.3 — the Bone King: the Skeleton's model, massive; holding you, and charging its blast, it stands.
+// Update 0.2.4 — floor 4's: the Tribal (the Orc's rig: its spear throw is the Weapon swing), the Cactoro (the Mushnub's
+// rig), the big Cactoro and the Dino (the Orc's rig), the Hywirl (the Ghost's); under the sand, nothing shows.
 import type { EnemyPhase } from '../sim/enemies/enemy';
 import type { EnemyKind } from '../sim/enemies/kinds';
 import { blueWindup } from '../sim/enemies/blueDemon';
@@ -10,6 +12,10 @@ import { FOES } from '../tuning/foes';
 import { FOES2 } from '../tuning/foes2';
 import { FOES3 } from '../tuning/foes3';
 import { BONE_KING } from '../tuning/boneKing';
+import { FOES4 } from '../tuning/foes4';
+import { windupOf as bigWindup } from '../sim/enemies/cactoroBig';
+import { dinoWindup } from '../sim/enemies/dino';
+import { orcWindup } from '../sim/enemies/skullOrc';
 
 export type Role = 'idle' | 'move' | 'attack' | 'hit' | 'death' | 'air' | 'rise';
 export const ROLES: Role[] = ['idle', 'move', 'attack', 'hit', 'death', 'air', 'rise'];
@@ -65,6 +71,20 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
   skeleton: { url: '/models/enemies/skeleton.glb', clips: { ...newer('Skeleton', 'Running', 'Running'), rise: 'Skeleton_Spawn' }, lands: 18 / 30, windup: () => FOES3.v.skeletonWindup, glow: [0.85, 0.9, 1], posed: true },
   mushnub: { url: '/models/enemies/mushnub.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', air: 'Jump' }, lands: 8 / 30, windup: () => FOES3.v.mushnubWindup, glow: [0.2, 0.8, 1] },
   boneKing: { url: '/models/enemies/skeleton.glb', clips: { ...newer('Skeleton', 'Running', 'Running'), rise: 'Skeleton_Spawn' }, lands: 18 / 30, windup: (move) => [BONE_KING.v.throwWindup, BONE_KING.v.smashWindup, BONE_KING.v.grabWindup, 1.2][move] ?? 1, glow: [0.55, 0.85, 1], posed: true },
+  tribal: { url: '/models/enemies/tribal.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 15 / 30, windup: () => FOES4.v.tribalWindup, glow: [1, 0.45, 0.1] },
+  cactoro: { url: '/models/enemies/cactoro.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', air: 'Jump' }, lands: 8 / 30, windup: () => FOES4.v.cactoroRise, glow: [0.5, 1, 0.2] },
+  cactoroBig: { url: '/models/enemies/cactoro_big.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 15 / 30, windup: bigWindup, glow: [1, 0.6, 0.1] },
+  hywirl: { url: '/models/enemies/hywirl.glb', clips: { idle: 'Flying_Idle', move: 'Flying_Idle', attack: 'Headbutt', hit: 'HitReact', death: 'Death', air: 'Fast_Flying' }, lands: 9 / 30, windup: () => FOES4.v.hywirlWindup, glow: [0.85, 0.4, 1] },
+  // (The Dino: the Dino's model, small; crouching to pounce it ducks.)
+  dinoBlob: { url: '/models/enemies/dino.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Duck', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 44 / 30, windup: () => FOES4.v.dinoBlobWindup, glow: [1, 0.35, 0.6] },
+  // Update 0.2.4 — the third list: the Lizard (the big Frog), the Green Blob and its Bloblings, the Flying Tribal, the
+  // Skull Orc; the boss is the Velociraptor (its own clips; its id stays 'dino').
+  lizard: { url: '/models/enemies/lizard.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 12 / 30, windup: () => FOES4.v.lizardWindup, glow: [0.6, 1, 0.2] },
+  greenBlob: { url: '/models/enemies/green_blob.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', air: 'Jump' }, lands: 8 / 30, windup: () => FOES4.v.blobWindup, glow: [0.4, 1, 0.3] },
+  blobling: { url: '/models/enemies/green_blob.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', air: 'Jump' }, lands: 8 / 30, windup: () => FOES4.v.blobWindup * 0.7, glow: [0.4, 1, 0.3] },
+  maskTribal: { url: '/models/enemies/tribal_mask.glb', clips: { idle: 'Flying_Idle', move: 'Flying_Idle', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Fast_Flying' }, lands: 12 / 30, windup: () => FOES4.v.wardWindup, glow: [1, 0.85, 0.2] },
+  skullOrc: { url: '/models/enemies/skull_orc.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 15 / 30, windup: orcWindup, glow: [1, 0.2, 0.1] },
+  dino: { url: '/models/enemies/velociraptor.glb', clips: { idle: 'Velociraptor_Idle', move: 'Velociraptor_Run', attack: 'Velociraptor_Attack', hit: 'Velociraptor_Idle', death: 'Velociraptor_Death', air: 'Velociraptor_Jump' }, lands: 10 / 24, windup: dinoWindup, glow: [1, 0.3, 0.08], posed: true },
   ninja: { url: '/models/enemies/ninja.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 20 / 30, windup: () => FOES3.v.ninjaWindup, glow: [1, 0.1, 0.35] },
   blueDemon: { url: '/models/enemies/bluedemon.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Run' }, lands: 17 / 30, windup: blueWindup, glow: [0.2, 0.55, 1] },
 };
@@ -106,6 +126,9 @@ export function roleFor(phase: EnemyPhase, attackOver: boolean): Role {
     // charging its blast.
     case 'grab':
     case 'blast':
+      return 'idle';
+    // Update 0.2.4 — a Cactoro under the sand (not drawn).
+    case 'burrow':
       return 'idle';
   }
 }

@@ -282,8 +282,19 @@ export const EXEC_MOVES: Partial<Record<EnemyKind, ExecMove>> = {
   },
 };
 
-// Update 0.2.2 — the Mushnub's is the slime's.
+// Update 0.2.2 — the Mushnub's is the slime's. Update 0.2.4 — floor 4's: the Tribal's the Orc's (the same rig), the big
+// Cactoro's the Yeti's, the Cactoro's the slime's, the Hywirl's the ghost's (the same rig as the Wraith).
 EXEC_MOVES.mushnub = EXEC_MOVES.slime;
+EXEC_MOVES.tribal = EXEC_MOVES.grunt;
+EXEC_MOVES.cactoroBig = EXEC_MOVES.brute;
+EXEC_MOVES.cactoro = EXEC_MOVES.slime;
+EXEC_MOVES.hywirl = EXEC_MOVES.wraith;
+EXEC_MOVES.dinoBlob = EXEC_MOVES.grunt;
+EXEC_MOVES.lizard = EXEC_MOVES.grunt;
+EXEC_MOVES.skullOrc = EXEC_MOVES.brute;
+EXEC_MOVES.greenBlob = EXEC_MOVES.slime;
+EXEC_MOVES.blobling = EXEC_MOVES.slime;
+EXEC_MOVES.maskTribal = EXEC_MOVES.wraith;
 
 /** The kinds you can execute. */
 export const EXECUTABLE = Object.keys(EXEC_MOVES) as EnemyKind[];

@@ -5,6 +5,7 @@
 // Update 0.0.15 — and the Demon (boss/demonView.ts) and what its moves draw (boss/demonFx.ts).
 // Update 0.0.18 — and the Dragon (boss/dragonView.ts). Update 0.0.21 — and its fire bombs (boss/bombView.ts).
 // Update 0.2.3 — and the Bone King's thrown skeletons, its jumps' landings and its blast's reach (boss/kingView.ts).
+// Update 0.2.4 — and floor 4's burrowers' sand and warnings, the Dino's pounce landing (desertFx.ts).
 // Update 0.1.2 — and executions (exec/execScene.ts: the body, its pieces, the frog's tongue).
 // Update 0.1.4 — and the Grimoire's fireballs (fireView.ts). Update 0.1.9 — and the daggers' volley (knivesView.ts).
 // Update 0.1.12 — and the skull over the enemy you can execute (execMarkView.ts).
@@ -20,10 +21,12 @@ import { DemonView } from './boss/demonView';
 import { DragonView } from './boss/dragonView';
 import { BombView } from './boss/bombView';
 import { KingView } from './boss/kingView';
+import { DesertFx } from './desertFx';
 import { EnemiesView } from './enemiesView';
 import { ExecScene } from './exec/execScene';
 import { FireView } from './fireView';
 import { KnivesView } from './knivesView';
+import { GunView } from './gunView';
 import { ExecMarkView } from './execMarkView';
 import { Shockwaves } from './fx/shockwave';
 import { CoinsView } from './coinsView';
@@ -37,6 +40,7 @@ export class CombatScene {
   readonly exec: ExecScene;
   private readonly fire: FireView;
   private readonly knives: KnivesView;
+  private readonly gun: GunView;
   private readonly execMark: ExecMarkView;
   private readonly rootOf = (i: number) => this.enemies.rootOf(i);
   private readonly waves = new Shockwaves();
@@ -50,6 +54,7 @@ export class CombatScene {
   private readonly dragon: DragonView;
   private readonly bombs: BombView;
   private readonly king: KingView;
+  private readonly desert: DesertFx;
 
   constructor(scene: THREE.Scene, state: CombatState, audio: AudioEngine, rig: CameraRig, arms: Viewmodel) {
     this.targets = new TargetsView(scene, state);
@@ -60,11 +65,13 @@ export class CombatScene {
     this.dragon = new DragonView(scene);
     this.bombs = new BombView(scene);
     this.king = new KingView(scene);
+    this.desert = new DesertFx(scene);
     this.coins = new CoinsView(scene);
     scene.add(this.waves.group);
     this.weapons = new WeaponsView(scene, state, arms, rig.camera);
     this.fire = new FireView(scene, arms, rig.camera);
     this.knives = new KnivesView(scene, arms, rig.camera);
+    this.gun = new GunView(scene, arms, rig.camera);
     this.execMark = new ExecMarkView(scene, this.rootOf);
     this.sparks = new Burst(240, new THREE.MeshBasicMaterial({ color: 0xfff0c0 }), { speed: [4, 11], life: [0.12, 0.3], size: 0.05, gravity: 6, bounce: 0.3 });
     this.chunks = new Burst(160, new THREE.MeshStandardMaterial({ color: 0xb49a76, roughness: 0.85 }), { speed: [3, 7], life: [0.9, 1.4], size: 0.14, gravity: 20, bounce: 0.35 });
@@ -78,6 +85,7 @@ export class CombatScene {
   update(state: CombatState, listener: THREE.Vector3, playerChest: THREE.Vector3, gameDt: number, alpha: number) {
     this.feedback.apply(state, listener);
     this.demonFx.update(state, gameDt);
+    this.gun.update(state, gameDt);
     state.events.clear();
     this.targets.update(state, playerChest, gameDt);
     this.enemies.update(state, alpha, gameDt);
@@ -87,6 +95,7 @@ export class CombatScene {
     this.dragon.update(state, listener, alpha, gameDt);
     this.bombs.update(state, gameDt);
     this.king.update(state, gameDt, (i) => this.enemies.rootOf(i));
+    this.desert.update(state, gameDt);
     this.waves.update(gameDt);
     this.coins.update(state.coins, gameDt);
     this.weapons.update(state, gameDt);
@@ -108,8 +117,10 @@ export class CombatScene {
     this.demonFx.clear();
     this.bombs.clear();
     this.king.clear();
+    this.desert.clear();
     this.fire.clear();
     this.knives.clear();
+    this.gun.clear();
     this.execMark.clear();
     this.exec.clear();
   }
@@ -122,11 +133,13 @@ export class CombatScene {
     this.dragon.dispose();
     this.bombs.dispose();
     this.king.dispose();
+    this.desert.dispose();
     this.demonFx.dispose();
     this.waves.dispose();
     this.coins.dispose();
     this.weapons.dispose();
     this.fire.dispose();
+    this.gun.dispose();
     this.knives.dispose();
     this.execMark.dispose();
     for (const b of [this.sparks, this.chunks]) {

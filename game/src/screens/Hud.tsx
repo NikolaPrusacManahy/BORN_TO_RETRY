@@ -58,7 +58,7 @@ export function Hud({ store }: { store: HudStore }) {
   const s = useSyncExternalStore(store.subscribe, store.get);
   return (
     <div className={`rb-hud${s.cine ? ' is-cine' : ''}`}>
-      <div className="rb-hud-cross" />
+      <div className={`rb-hud-cross${s.aimed ? ' is-aimed' : ''}`} />
       {s.hits > 0 && <div key={`m${s.hits}`} className={`rb-hud-marker is-${s.marker}`} />}
       {s.hurts > 0 && <div key={`h${s.hurts}`} className="rb-hud-hurt" />}
       {s.shields > 0 && <div key={`s${s.shields}`} className="rb-hud-shieldhit" />}
@@ -113,6 +113,12 @@ export function Hud({ store }: { store: HudStore }) {
           </div>
         </div>
       </div>
+      {s.mag >= 0 && (
+        <div className="rb-ammo">
+          <b className={s.mag === 0 ? 'is-empty' : ''}>{s.mag}</b>
+          <span>{Math.max(0, s.uses - s.mag)}</span>
+        </div>
+      )}
       <WeaponSlots slots={s.slots} slot={s.slot} />
       <Bonuses left={s.bonusLeft} />
       <div className={`rb-hud-exec${s.execution >= 1 ? ' is-full' : ''}`} style={{ '--fill': s.execution } as CSSProperties}>

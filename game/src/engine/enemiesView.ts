@@ -19,6 +19,8 @@
 // Update 0.1.19 — each kind's look moved to enemyLooks.ts; floor 3's (a Skeleton rebuilding lies, then rises).
 // Update 0.2.3 — the Bone King (the Skeleton, massive): it lies and rebuilds on its own knobs, stands as it crouches to
 // jump, glows as its blast charges, and is gone once its bones burst.
+// Update 0.2.4 — a Cactoro under the sand isn't drawn (desertView.ts shows the sand moving over it); the Dino is gone
+// once it bursts. The Lizard, camouflaged, is barely seen (Lizard seen) except while it spits.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -29,6 +31,8 @@ import { ENEMIES } from '../tuning/enemies';
 import { FOES3 } from '../tuning/foes3';
 import { BONE_KING } from '../tuning/boneKing';
 import { SMASH } from '../sim/enemies/boneKingMoves';
+import { lizardSeen } from '../sim/enemies/lizard';
+import { FOES4 } from '../tuning/foes4';
 import { posedBounds } from './bodyMeasure';
 import { clipOf, FADE, LOOKS, ONCE, Role, ROLES, roleFor } from './enemyLooks';
 import { TongueView } from './tongueView';
@@ -146,7 +150,8 @@ export class EnemiesView {
       const look = LOOKS[e.kind];
       if (!e.alive || !b || !look) continue;
       // A slime that burst is gone (one killed dies as the others do); so is the Bone King once its bones burst.
-      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing') && e.phase === 'dead' && e.struck);
+      const buried = (e.kind === 'cactoro' || e.kind === 'cactoroBig') && e.pos.y < -1;
+      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino') && e.phase === 'dead' && e.struck) && !buried;
       if (!b.root.visible) continue;
       const windup = look.windup(e.move);
       const king = e.kind === 'boneKing';
@@ -178,6 +183,13 @@ export class EnemiesView {
       // Update 0.1.1 — you could execute it: a crimson pulse.
       const mark = state.execTarget === i ? 0.5 + 0.5 * Math.sin(e.t * 12) : 0;
       const flash = e.flash / 0.12 + mark * 0.3;
+      // Update 0.2.4 — the Lizard's camouflage.
+      const seen = e.kind === 'lizard' && !lizardSeen(e) ? FOES4.v.lizardHide : 1;
+      for (const m of b.mats) {
+        m.transparent = seen < 1;
+        m.opacity = seen;
+        m.depthWrite = seen >= 1;
+      }
       for (const m of b.mats) m.emissive.setRGB(flash + mark * 0.9 + glow * look.glow[0] + ice * 0.25, flash - mark * 0.3 + glow * look.glow[1] + ice * 0.55, flash - mark * 0.3 + glow * look.glow[2] + ice * 0.95);
       if (e.kind === 'brute' && e.phase === 'windup') this.ring(slot.ring, e.pos, glow);
       slot.phase = e.phase;

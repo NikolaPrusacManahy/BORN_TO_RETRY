@@ -27,5 +27,6 @@ export const ROOMS = group('rooms', 'Rooms', {
   challengeKeys: knob(1, 0, 4, 1, 'Challenge: keys', 'Keys its mini bosses drop (the first killed first), each white or gold.'),
   challengeField: knob(10, 1, 14, 1, 'Challenge: on field', 'In a challenge room, while it has more to send, at least this many are fighting.'),
   wayRooms: knob(5, 3, 8, 1, 'Rooms on the way', 'Fight rooms between the start and the boss on floors 1–2.'),
+  quicksand: knob(0.45, 0.1, 1, 0.05, 'Quicksand', 'In quicksand (floor 4’s desert) you move at this share of your speed.'),
   wayRoomsApart: knob(2, 1, 5, 1, 'One more room every', 'Every this many floors down, one more fight room on the way (floor 3: 6, floor 5: 7, floor 7: 8).'),
 });

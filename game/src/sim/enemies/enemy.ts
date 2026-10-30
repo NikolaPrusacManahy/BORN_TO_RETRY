@@ -17,6 +17,7 @@
 // Ninja's teleport rest.
 // Update 0.2.3 — the Bone King (boneKing.ts): brought down the first time it falls to pieces and rebuilds (its second
 // life), nothing hurting it meanwhile; it holds you in its hand ('grab') and charges its final blast ('blast').
+// Update 0.2.4 — under the sand ('burrow': the Cactoros), out of reach of every hit.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
@@ -31,7 +32,7 @@ import type { Flow } from './chase';
 import { ENEMY_STATS, EnemyKind, flies, SizeClass } from './kinds';
 import { FOES3 } from '../../tuning/foes3';
 
-export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive' | 'charge' | 'stun' | 'roar' | 'intro' | 'breath' | 'sky' | 'held' | 'rebuild' | 'grab' | 'blast';
+export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive' | 'charge' | 'stun' | 'roar' | 'intro' | 'breath' | 'sky' | 'held' | 'rebuild' | 'grab' | 'blast' | 'burrow';
 
 export interface Enemy {
   /** The slot is in use (a live enemy, or a body still lying there). */
@@ -80,6 +81,8 @@ export interface Enemy {
   blink: number;
   /** Update 0.2.3 — the Bone King's once-only moves done (bits: boneKing.ts). */
   deeds: number;
+  /** Update 0.2.4 — a Flying Tribal's ward on it: blows it shrugs off (maskTribal.ts, evade.ts). */
+  ward: number;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -135,6 +138,7 @@ export function createEnemies(): Enemy[] {
     fan: NaN,
     blink: 0,
     deeds: 0,
+    ward: 0,
   }));
 }
 
@@ -171,6 +175,7 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.fan = NaN;
   e.blink = 0;
   e.deeds = 0;
+  e.ward = 0;
   return i;
 }
 
@@ -272,7 +277,8 @@ export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, 
   e.vel.x += dirX * knock * s.knock;
   e.vel.z += dirZ * knock * s.knock;
   if (e.hp > 0) {
-    if (damage >= s.stagger && e.phase !== 'rebuild') setPhase(e, 'flinch');
+    // (Update 0.2.4 — the big Cactoro shut in its thorns stays shut.)
+    if (damage >= s.stagger && e.phase !== 'rebuild' && !(e.kind === 'cactoroBig' && e.phase === 'stun')) setPhase(e, 'flinch');
     return false;
   }
   e.hp = 0;

@@ -1,0 +1,15 @@
+// Update 0.2.4 — quicksand (floor 4's desert; the designer: rooms that give the player a hard time): standing in it,
+// you move at Quicksand of your speed (the floor's flat areas: DungeonLevel.sand). Pure.
+import type { ArenaBox } from '../../world/arena';
+import { ROOMS } from '../../tuning/rooms';
+import type { PlayerState } from '../player/state';
+
+/** Your feet in quicksand (on the floor, over one of its areas). */
+export function inQuicksand(p: PlayerState, sand: readonly ArenaBox[]): boolean {
+  if (p.pos.y > 0.3) return false;
+  for (const b of sand) if (Math.abs(p.pos.x - b.x) <= b.w / 2 && Math.abs(p.pos.z - b.z) <= b.d / 2) return true;
+  return false;
+}
+
+/** Your speed's share here (1: none of it). */
+export const sandSlow = (p: PlayerState, sand: readonly ArenaBox[]) => (inQuicksand(p, sand) ? ROOMS.v.quicksand : 1);

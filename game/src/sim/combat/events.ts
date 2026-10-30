@@ -145,6 +145,61 @@ export type CombatEvent =
   | 'kingCharge'
   | 'kingRumble'
   | 'kingBlast'
+  // Update 0.2.4 — floor 4's (value = its slot unless said): the Tribal drawing its spear, throwing it, springing aside;
+  // a Cactoro digging in, the sand bulging where it'll come up, its ring of spines; the big Cactoro's warning (value =
+  // its move), its volley, bursting up under you, shutting itself in its thorns, a blow turned by them; the Hywirl
+  // darting aside, gathering its wind, rushing, its gust catching you; the Dino's warning (value = its move), its
+  // charge, crashing, a snap (its jaws), its tail, a stomp (value = which), its pounce and landing, its roar.
+  | 'tribalWindup'
+  | 'tribalThrow'
+  | 'tribalDodge'
+  | 'cactoroDig'
+  | 'cactoroRise'
+  | 'cactoroSpines'
+  | 'cactoroWindup'
+  | 'cactoroVolley'
+  | 'cactoroErupt'
+  | 'cactoroGuard'
+  | 'cactoroBlock'
+  | 'hywirlDart'
+  | 'hywirlWindup'
+  | 'hywirlGust'
+  | 'hywirlHit'
+  | 'dinoWindup'
+  | 'dinoCharge'
+  | 'dinoCrash'
+  | 'dinoBite'
+  | 'dinoTail'
+  | 'dinoStomp'
+  | 'dinoPounce'
+  | 'dinoLand'
+  | 'dinoRoar'
+  // Update 0.2.4 — the Dino (value = its slot): its crouch, its pounce, its bite, its hop back.
+  | 'dinoBlobWindup'
+  | 'dinoBlobPounce'
+  | 'dinoBlobBite'
+  | 'dinoBlobHop'
+  // Update 0.2.4 — the Lizard showing itself, spitting, its glob splashing into a puddle; a Green Blob squashing down,
+  // hopping, landing, splitting (value = its slot); a Flying Tribal chanting, warding (value = the ally's slot), a ward
+  // turning a blow, its feathers; the Skull Orc's warning (value = its move), a swing, its guard turning a blow, its
+  // riposte, its leap and slam.
+  | 'lizardWindup'
+  | 'lizardSpit'
+  | 'poisonSplash'
+  | 'blobWindup'
+  | 'blobHop'
+  | 'blobLand'
+  | 'blobSplit'
+  | 'maskChant'
+  | 'maskWard'
+  | 'wardBlock'
+  | 'maskFeathers'
+  | 'orcWindup'
+  | 'orcSwing'
+  | 'orcBlock'
+  | 'orcRiposte'
+  | 'orcLeap'
+  | 'orcSlam'
   // Update 0.0.18 — the Dragon: a warning (value = its move), the beam starting, a fireball, the wing and the tail
   // swinging, its scream (rising in its show, and raging), an enemy burnt away by the beam (value = its slot).
   | 'dragonWindup'
@@ -192,6 +247,18 @@ export type CombatEvent =
   | 'knifeThrow'
   | 'hitKnife'
   | 'knifeStick'
+  // Update 0.2.4 — the Pistol: a shot (value: bullets left in the magazine; x, y, z = your eye), where its bullet ended
+  // (value 1: on a target, 0: a wall, −1: nowhere in range; x, y, z = there), a bullet landing (value 1); a reload begun
+  // (value 1: from empty), its magazine out (value: the bullets it held) and in (value: the bullets now in), the slide
+  // let go home (from empty), done.
+  | 'gunShot'
+  | 'gunTrace'
+  | 'hitShot'
+  | 'reloadStart'
+  | 'magOut'
+  | 'magIn'
+  | 'slideHome'
+  | 'reloadDone'
   // Update 0.1.12 — an enemy you can execute comes into reach after a while with none (value: its slot): a sting.
   | 'execReady'
   | 'standRespawn';

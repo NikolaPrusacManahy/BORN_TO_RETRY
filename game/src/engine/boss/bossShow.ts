@@ -14,6 +14,7 @@ import { ENEMY_STATS, EnemyKind } from '../../sim/enemies/kinds';
 import { DRAGON } from '../../tuning/dragon';
 import { BOSS } from '../../tuning/boss';
 import { BONE_KING } from '../../tuning/boneKing';
+import { DINO } from '../../tuning/dino';
 import type { Enemy } from '../../sim/enemies/enemy';
 import type { Look } from '../look';
 import { Cinema, Shot } from './cinema';
@@ -22,12 +23,13 @@ import { bossIn } from './demonView';
 /** The boss's name card. **(placeholder names)** */
 export const BOSS_NAME = 'THE DEMON';
 /** Update 0.0.18 — each boss's name. */
-export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { demon: BOSS_NAME, dragon: 'THE DRAGON', boneKing: 'THE BONE KING' };
+export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { demon: BOSS_NAME, dragon: 'THE DRAGON', boneKing: 'THE BONE KING', dino: 'THE VELOCIRAPTOR' };
 
 /** Update 0.2.3 — a boss bar's mark: where it rages (the Demon, the Dragon), or the Bone King's final blast (its second
  *  life only). */
 function markOf(boss: Enemy): number {
   if (boss.kind === 'boneKing') return boss.stage > 0 ? BONE_KING.v.blastAt : -1;
+  if (boss.kind === 'dino') return DINO.v.rageAt;
   return boss.kind === 'dragon' ? DRAGON.v.rageAt : BOSS.v.rageAt;
 }
 export const bossTitle = (floor: number) => `Warden of Floor ${floor}`;

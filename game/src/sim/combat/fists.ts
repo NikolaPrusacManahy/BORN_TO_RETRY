@@ -24,6 +24,8 @@ export interface CombatIntent {
   heavyHeld: boolean;
   /** M2 — Q: throw the held weapon; E: pick one up. */
   throwPressed: boolean;
+  /** Update 0.2.4 — R: reload the gun in hand. */
+  reloadPressed: boolean;
   interactPressed: boolean;
   /** Update 0.0.17 — a weapon slot picked (index; −1: none). */
   slotPressed: number;
@@ -51,7 +53,7 @@ export function createFists(): FistState {
 }
 
 export function emptyCombatIntent(): CombatIntent {
-  return { attackHeld: false, attackPressed: false, heavyHeld: false, throwPressed: false, interactPressed: false, slotPressed: -1, switchKeyPressed: false, yaw: 0, pitch: 0 };
+  return { attackHeld: false, attackPressed: false, heavyHeld: false, throwPressed: false, reloadPressed: false, interactPressed: false, slotPressed: -1, switchKeyPressed: false, yaw: 0, pitch: 0 };
 }
 
 export function emptyPunch(): Punch {

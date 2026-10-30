@@ -115,7 +115,7 @@ section('Shop — buying');
   takeItem('plate', p, c);
   // (Update 0.0.17 — the designer: 20 shield, was half your health.)
   check(`the silver armour plate gives ${ITEMS.v.silverShield} shield`, p.shield === ITEMS.v.silverShield);
-  c.weapon = { kind: 'sword', uses: 2, cooldown: 0, throwing: -1 };
+  c.weapon = { kind: 'sword', uses: 2, cooldown: 0, throwing: -1, mag: 0 };
   takeItem('goldSword', p, c);
   check(`the gold sword goes into your hand with ${ITEMS.v.goldSwordUses} uses`, c.weapon?.kind === 'goldSword' && c.weapon.uses === ITEMS.v.goldSwordUses);
   // (Update 0.0.17 — it goes in the next weapon slot; the sword you held stays in its own.)

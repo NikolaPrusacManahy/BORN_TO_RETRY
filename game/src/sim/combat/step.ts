@@ -22,6 +22,9 @@
 // Update 0.1.9 — the Dual Daggers: right click held charges a volley of thrown daggers (knives.ts; no cuts meanwhile);
 // the daggers fly after the enemies move.
 // Update 0.2.3 — held in the Bone King's hand (grab.ts), nothing else moves: your attacks are hits on it.
+// Update 0.2.4 — the Pistol: its shots, aim and reloads (gun.ts) instead of swings; right click aims, so only a click
+// throws one with no bullets left.
+import { updatePuddles } from './puddles';
 import { stepGrab, tickGrab } from './grab';
 import { Vector3 } from 'three';
 import type { Spot } from '../../world/arena';
@@ -33,7 +36,8 @@ import { asPierce, updateSlashes, usesFor } from '../weapons/swing';
 import { updateThrown } from '../weapons/thrown';
 import { castFireball, updateCasts, updateFireballs } from '../weapons/fireballs';
 import { dropKi, updateKi } from '../weapons/kiCharge';
-import { CASTS, RETURNS, SMASHES, VOLLEYS } from '../weapons/catalog';
+import { CASTS, RETURNS, SHOOTS, SMASHES, VOLLEYS } from '../weapons/catalog';
+import { dropGun, updateGun } from '../weapons/gun';
 import { dropVolley, updateKnives, updateVolley, volleyBusy } from '../weapons/knives';
 import { updateAxeCharge } from '../weapons/axeThrow';
 import { axeOut, callBack } from '../weapons/recall';
@@ -107,7 +111,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   if (intent.slotPressed >= 0 && !throwing && !state.fists.charging && !state.ki.charging) selectSlot(state, intent.slotPressed);
   const held = state.weapon;
   // (A charge that has burnt the book's last use is still let go as a cast, not a throw.)
-  const spent = held !== null && held.uses <= 0 && !state.ki.charging && (intent.attackPressed || intent.heavyHeld);
+  const spent = held !== null && held.uses <= 0 && !state.ki.charging && (intent.attackPressed || (intent.heavyHeld && !SHOOTS[held.kind]));
   if (held && !throwing && (intent.throwPressed || spent)) {
     held.throwing = 0;
     state.fists.charging = state.fists.chargeReady = false;
@@ -154,7 +158,12 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   const volley = w !== null && VOLLEYS[w.kind] && !busy;
   if (volley && w) updateVolley(state, w, player, intent.heavyHeld && player.kneel <= 0, intent.yaw, intent.pitch, dt, rate);
   else dropVolley(state);
-  let swung = axe || volley ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate);
+  const gun = w !== null && SHOOTS[w.kind] && !busy;
+  if (gun && w) {
+    aim(player, intent.yaw, intent.pitch, eye, dir);
+    updateGun(state, w, intent, eye, dir, world, dt, rate);
+  } else dropGun(state.gun);
+  let swung = axe || volley || gun ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate);
   if (axe && w) {
     const power = updateAxeCharge(state, intent.heavyHeld && !state.recallHeld, dt);
     if (power >= 0) {
@@ -176,7 +185,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     }
   } else dropKi(state.ki);
   if (swung && punch.kind === 'pierce' && w) asPierce(w, punch);
-  if (!swung && w && state.weapon === w && !casts && !busy && !state.fists.charging && !volleyBusy(state.volley)) swung = updateSlashes(w, intent, events, dt, punch, rate);
+  if (!swung && w && state.weapon === w && !casts && !gun && !busy && !state.fists.charging && !volleyBusy(state.volley)) swung = updateSlashes(w, intent, events, dt, punch, rate);
   if (swung) {
     aim(player, intent.yaw, intent.pitch, eye, dir);
     const landed = resolvePunch(punch, state, eye, dir, world);
@@ -197,7 +206,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   }
   updateEnemies(state.enemies, player, state, world, dt);
   updateQuakes(state.quakes, player, events, dt);
-  updateBombs(state.bombs, player, events, dt);
+  updateBombs(state.bombs, player, events, dt, state.puddles);
+  updatePuddles(state.puddles, player, dt);
   updateWaves(state.waves, state.enemies, spawns, player, state.rng, events, dt);
   updateThrown(state, world, player, dt);
   updateFireballs(state, world, dt);

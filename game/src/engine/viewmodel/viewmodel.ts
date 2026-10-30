@@ -13,11 +13,13 @@
 // fists' pose moved to fistArm.ts.
 // Update 0.1.9 — the Dual Daggers: one in each hand; the left plays its own moves and holds the second (offHand.ts).
 // The sway, bob and dips moved to armsMotion.ts.
+// Update 0.2.4 — the Pistol: the right arm follows the gun's pose (gunArms.ts), the left out of view; aimed, the arms
+// hold steady.
 import * as THREE from 'three';
 import { ARMS } from '../../tuning/arms';
 import { WEAPONS } from '../../tuning/weapons';
 import type { PlayerState } from '../../sim/player/state';
-import { ArmPose, ArmsRig } from './armsRig';
+import { ArmsRig } from './armsRig';
 import { ArmsAnim, PunchStyle } from './armsAnim';
 import { mixArm, pose } from './armsMath';
 import { ArmsMotion } from './armsMotion';
@@ -34,6 +36,7 @@ import { KeyPalm } from './palm';
 import { OffHand } from './offHand';
 import { holdWeapon, turnOpen, wrapOf } from './tipHold';
 import { SwordAnim, SwordMove } from './swordAnim';
+import { GUN_GRIP, GunArms } from './gunArms';
 import { emptySword } from './swordPoses';
 
 export const ARMS_URL = '/models/arms/adventurer.glb';
@@ -41,6 +44,8 @@ export const ARMS_URL = '/models/arms/adventurer.glb';
 const CHARGE_EASE = 14;
 /** Update 0.1.9 — how far a hand opens as it throws a dagger (0 … 1). */
 const RELEASE = 0.6;
+/** Update 0.2.4 — how much narrower the arms' lens is, aimed down a gun's sights. */
+const GUN_LENS = 0.45;
 
 const ease = (rate: number, dt: number) => 1 - Math.exp(-rate * dt);
 const smooth = (x: number) => x * x * (3 - 2 * x);
@@ -58,9 +63,10 @@ export class Viewmodel {
   readonly slam = new SlamArms();
   /** Update 0.1.9 — the left hand's own weapon (the Dual Daggers' second). */
   readonly off = new OffHand();
+  readonly gun = new GunArms(this.scene);
+  private readonly gunPose = pose();
   private readonly slamPose = { L: pose(), R: pose() };
   private readonly bookPose = pose();
-  private readonly reachPose = pose();
   private readonly knuckleL = new THREE.Vector3();
   private readonly knuckleR = new THREE.Vector3();
   private readonly pivot = new THREE.Object3D();
@@ -116,6 +122,7 @@ export class Viewmodel {
     if (model) this.swordAnim.use(movesOf(model));
     if (model && !this.weapon) this.swordAnim.reset();
     this.off.take(model?.userData.pair ?? null, model ? movesOf(model).pair : null);
+    this.gun.use(model?.userData.hold === 'gun' ? model : null);
     this.weapon = model;
     if (!model) return;
     model.matrixAutoUpdate = false;
@@ -133,7 +140,8 @@ export class Viewmodel {
 
   /** The arms camera's lens for a screen of this aspect (vertical FOV from the Arms tuning). */
   setLens(aspect: number) {
-    const fov = ARMS.v.fov;
+    // (Update 0.2.4 — aimed down a gun's sights, the arms' lens narrows too: the gun at arm's length reads bigger.)
+    const fov = ARMS.v.fov * (this.weapon?.userData.hold === 'gun' ? 1 - GUN_LENS * this.gun.aimed : 1);
     if (this.camera.fov !== fov || this.camera.aspect !== aspect) {
       this.camera.fov = fov;
       this.camera.aspect = aspect;
@@ -152,6 +160,7 @@ export class Viewmodel {
 
   /** M2 — the sword arm's next move. */
   sword(move: SwordMove) {
+    if (move === 'throw' && this.weapon?.userData.hold === 'gun') this.gun.throwStart();
     this.swordAnim.start(move);
     if (this.off.active) this.off.start(move);
   }
@@ -186,7 +195,8 @@ export class Viewmodel {
     this.swordAnim.update(gameDt, realDt);
     this.off.anim.update(gameDt, realDt);
     this.slam.update(gameDt);
-    this.motion.update(gameDt, realDt, mouseDx, mouseDy, p, this.pivot, this.holder);
+    this.motion.update(gameDt, realDt, mouseDx, mouseDy, p, this.pivot, this.holder, this.weapon?.userData.hold === 'gun' ? this.gun.aimed : 0);
+    this.gun.update(gameDt);
     this.armedVis = Math.max(0, Math.min(1, this.armedVis + ((this.weapon ? 1 : -1) * gameDt) / v.armedSwap));
     this.flip = Math.max(0, Math.min(1, this.flip + ((charge >= 0 ? 1 : -1) * gameDt) / v.daggerFlip));
 
@@ -200,10 +210,11 @@ export class Viewmodel {
     if (this.chest.weight > 0) this.chest.aimed();
     const armed = smooth(this.armedVis) * (1 - reach);
     const book = this.weapon?.userData.hold === 'book' ? armed : 0;
+    const gun = this.weapon?.userData.hold === 'gun' ? armed : 0;
     const palm = this.palm.mix;
     // A weapon in the right fist (posed first: a two-handed one's haft is where the left hand goes).
     const tremble = this.time < this.steadyUntil ? 0 : charge >= 1 ? 2 : 1;
-    const held = book === 0 && armed > 0 ? swordArm(rig, this.swordAnim, this.chargeVis, tremble, this.time, this.swordPose, this.swordArm) : null;
+    const held = book === 0 && gun === 0 && armed > 0 ? swordArm(rig, this.swordAnim, this.chargeVis, tremble, this.time, this.swordPose, this.swordArm) : null;
     const hands = held && this.swordAnim.moves.hands() !== 0 ? armed * (1 - palm) : 0;
     // (Put away, the second dagger's arm eases back to the guard, as the hammer's left hand does.)
     const pair = held && this.swordAnim.moves.pair ? armed * (1 - palm) : 0;
@@ -215,7 +226,7 @@ export class Viewmodel {
     const clasp = this.slam.weight * (1 - armed) * (1 - reach);
     if (clasp > 0) mixArm(left, this.slam.pose(rig, 'L', this.slamPose.L), clasp, left);
     if (palm > 0) mixArm(left, this.palm.pose(rig), palm, left);
-    if (reach > 0) this.toChest(rig, 'L', left, reach);
+    if (reach > 0) this.chest.pull(rig, 'L', left, reach, this.grip, this.holder, this.camera);
     rig.apply('L', left, v.wristBend + (1 - v.wristBend) * Math.max(palm, book, hands, pair, clasp, this.grip.bend('L')), this.off.pole(pair, this.elbowL));
     // (Update 0.1.6 — a fist, or the fingers round a two-handed haft, its own handle or something an execution holds:
     // handPose.ts.)
@@ -230,15 +241,19 @@ export class Viewmodel {
       mixArm(right, held, armed, right);
       this.elbow.copy(GUARD.R.pole).lerp(this.swordPose.elbow, armed);
       rig.apply('R', right, v.wristBend + (1 - v.wristBend) * armed, this.elbow);
+    } else if (gun > 0) {
+      mixArm(right, this.gun.pose(rig, this.gunPose), gun, right);
+      rig.apply('R', right, v.wristBend + (1 - v.wristBend) * gun, this.elbow.copy(GUARD.R.pole).lerp(this.gun.elbow, gun));
     } else {
       if (clasp > 0) mixArm(right, this.slam.pose(rig, 'R', this.slamPose.R), clasp, right);
-      if (reach > 0) this.toChest(rig, 'R', right, reach);
+      if (reach > 0) this.chest.pull(rig, 'R', right, reach, this.grip, this.holder, this.camera);
       rig.apply('R', right, v.wristBend + (1 - v.wristBend) * Math.max(clasp, this.grip.bend('R')));
     }
-    rig.openHand('R', Math.max(book * this.book.open('R'), this.grip.open('R'), held ? Math.max(RELEASE * this.swordAnim.letGo, turnOpen(moves, this.flip)) : 0), held ? wrapOf(moves, this.flip) : ROPE, held ? armed : this.grip.rope('R'), held ? this.swordPose.tilt : undefined);
+    rig.openHand('R', Math.max(book * this.book.open('R'), this.grip.open('R'), held ? Math.max(RELEASE * this.swordAnim.letGo, turnOpen(moves, this.flip)) : 0), held ? wrapOf(moves, this.flip) : gun > 0 ? GUN_GRIP : ROPE, held ? armed : gun || this.grip.rope('R'), held ? this.swordPose.tilt : gun > 0 ? this.gun.tilt : undefined);
     if (this.weapon) {
       this.weapon.visible = reach < 0.2 && !this.swordAnim.empty;
       if (book > 0) this.book.bookMatrix(rig, this.weapon.matrix);
+      else if (gun > 0) this.gun.matrix(rig, this.weapon.matrix);
       else holdWeapon(rig, moves, this.swordPose.tilt, this.flip, this.weapon.matrix);
       this.weapon.matrixWorldNeedsUpdate = true;
     }
@@ -247,18 +262,6 @@ export class Viewmodel {
     this.book.update(gameDt, book, rig, this.camera);
     this.palm.place(rig);
     if (this.chest.weight > 0) this.chest.settle(this.camera.worldToLocal(rig.knuckle('L', this.knuckleL)), this.camera.worldToLocal(rig.knuckle('R', this.knuckleR)));
-  }
-
-  /** Update 0.0.13 — one fist towards its spot on the chest's lid by `k`: knuckles ahead, the back of the hand up. The
-   *  spot is on screen, so it's carried into the model exactly (through the camera, the tilt and the holder). */
-  private toChest(rig: ArmsRig, side: Side, out: ArmPose, k: number) {
-    const r = this.reachPose;
-    this.camera.updateMatrixWorld(true);
-    if (this.grip.weight > 0) return mixArm(out, this.grip.pose(rig, side, this.holder, this.camera, out, r), smooth(k), out);
-    this.holder.worldToLocal(this.camera.localToWorld(r.fist.copy(this.chest.aim[side])));
-    r.knuckles.subVectors(r.fist, rig.between).normalize();
-    r.back.set(0, 1, 0);
-    mixArm(out, r, smooth(k), out);
   }
 
   /** Draws the arms over the world already on screen: depth cleared, colour kept. */
@@ -284,6 +287,7 @@ export class Viewmodel {
     this.off.reset();
     this.book.clear();
     this.slam.reset();
+    this.gun.clear();
     this.armedVis = this.weapon ? 1 : 0;
     this.motion.reset();
     this.chargeVis = this.flip = this.steadyUntil = 0;

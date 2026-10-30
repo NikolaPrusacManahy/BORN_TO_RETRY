@@ -5,7 +5,7 @@
 import type { RoomTemplate } from './rooms';
 import { quarter } from './fightRooms';
 
-const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 2 });
+const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 2, until: 3 });
 
 export const LAVA_ROOMS: readonly RoomTemplate[] = [
   // A lake round an island in the middle (16 m across), a bridge to it from either side (the enemies walk it; no

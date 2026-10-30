@@ -3,8 +3,11 @@
 // 1: brick walls and floor, the arch, its iron bars rising out of the floor to shut). Floor 3 is stone (part 2): grey
 // stone walls and floor, a deep stone arch with a portcullis that drops from above to shut and is drawn back up when
 // the room is won, stacked stone columns, rubble patches on the walls and grey rocks about. Pure data.
+// Update 0.2.4 — floor 4 is the desert (the designer: "a dessert theme floor", the Sun Temple mock-up): floor 3's stone
+// pieces recoloured sandstone (the kit is flat colours: each material's colour swapped), a sand floor, a warm sky and
+// sun; loose sand where palms and cacti stand (their beds) and quicksand (desertDressing.ts, sandView.ts).
 
-export type StyleId = 'brick' | 'stone';
+export type StyleId = 'brick' | 'stone' | 'sand';
 type Scale = [number, number, number];
 
 export interface DungeonStyle {
@@ -39,6 +42,18 @@ export interface DungeonStyle {
   litter: string[];
   /** The walls' and ledges' solid cores (linear rgb). */
   core: [number, number, number];
+  /** Update 0.2.4 — recoloured: each kit material (its name before any ".001") to a colour (sRGB hex), and the floor
+   *  tile's own apart from the walls'. */
+  tint?: Record<string, number>;
+  floorTint?: Record<string, number>;
+  /** Update 0.2.4 — the sky (the background and the haze), its light from above and from the ground, and the sun. */
+  sky?: number;
+  skyLight?: number;
+  ground?: number;
+  sun?: number;
+  /** Update 0.2.4 — loose sand (the beds palms and cacti stand in) and quicksand. */
+  sand?: number;
+  quicksand?: number;
 }
 
 export const BRICK: DungeonStyle = {
@@ -95,5 +110,21 @@ export const STONE: DungeonStyle = {
   core: [0.11, 0.11, 0.12],
 };
 
-/** Floor `floor`'s look: floors 1 and 2 brick, floor 3 (and on) stone. */
-export const styleOf = (floor: number): DungeonStyle => (floor >= 3 ? STONE : BRICK);
+/** Update 0.2.4 — the desert: floor 3's stone pieces in sandstone and sand, under a warm sky. */
+export const SAND: DungeonStyle = {
+  ...STONE,
+  id: 'sand',
+  litter: ['kit_n_Rock_2', 'kit_n_Rock_5', 'kit_p1_Skull', 'kit_p2_Bones', 'kit_n_Rock_2'],
+  core: [0.11, 0.065, 0.03],
+  tint: { RockLight: 0xd6a868, Rock: 0xad7a42, Steel: 0xa8782e, Bones: 0xefe2c4, Wood: 0xa4744a, DarkWood: 0x7a5434, Grey_Floor: 0xb48c55, Fire: 0xff8a3a },
+  floorTint: { RockLight: 0xecd3a0, Rock: 0xd8b47a },
+  sky: 0xf4d9a6,
+  skyLight: 0xfff0d8,
+  ground: 0x9a7448,
+  sun: 0xffd9a0,
+  sand: 0xe6c27e,
+  quicksand: 0xb98a4c,
+};
+
+/** Floor `floor`'s look: floors 1 and 2 brick, floor 3 stone, floor 4 (and on) the desert. */
+export const styleOf = (floor: number): DungeonStyle => (floor >= 4 ? SAND : floor === 3 ? STONE : BRICK);

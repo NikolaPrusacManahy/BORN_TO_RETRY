@@ -1,5 +1,6 @@
 // M1 step 6 — orbs: slow glowing shots from the turret. They hit you (unless you're dashing), pop on walls and
 // fizzle after a while. (The parry that sent them back was removed at the designer's request; it returns later.)
+// Update 0.2.4 — a shot's look: the Tribal's spear and the Cactoros' spines fly as orbs do.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { TARGETS } from '../../tuning/combat';
@@ -18,7 +19,7 @@ const b = new Vector3();
 const hitAt = new Vector3();
 
 /** Fires an orb from a free slot. Returns false when every slot is in use. */
-export function fireOrb(orbs: Orb[], from: Vector3, direction: Vector3, speed: number, damage: number, by: Cause | null = null): boolean {
+export function fireOrb(orbs: Orb[], from: Vector3, direction: Vector3, speed: number, damage: number, by: Cause | null = null, look: Orb['look'] = 'fire'): boolean {
   const o = orbs.find((x) => !x.alive);
   if (!o) return false;
   o.alive = true;
@@ -26,6 +27,7 @@ export function fireOrb(orbs: Orb[], from: Vector3, direction: Vector3, speed: n
   o.vel.copy(direction).multiplyScalar(speed);
   o.damage = damage;
   o.by = by;
+  o.look = look;
   o.life = ORB_LIFE;
   return true;
 }

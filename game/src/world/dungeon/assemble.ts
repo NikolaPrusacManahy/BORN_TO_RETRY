@@ -20,6 +20,8 @@ import { OPPOSITE } from './wayOut';
 import type { Cell, RoomKind } from './rooms';
 import type { EnemyKind } from '../../sim/enemies/kinds';
 import { hasYeti } from '../../sim/dungeon/wavePlan';
+// Update 0.2.4 — floor 4's desert: a palm's trunk and a cactus are narrow blocks in their cells (their sand is floor);
+// quicksand is floor too, listed apart (DungeonLevel.sand) for the slow you feel in it.
 
 /** Heights of what stands on a cell (m); the floor's top is y = 0. */
 export const HEIGHT: Partial<Record<Cell, number>> = { wall: 6, column: 4.9, low: 1.3, high: 2.85, ledge: 1, highLedge: 2.5, spikes: 0.3, chest: 0.9 };
@@ -114,7 +116,13 @@ export interface DungeonLevel {
   exit: { x: number; z: number; radius: number };
   chests: ChestSpot[];
   boss: BossLayout;
+  /** Update 0.2.4 — the quicksand (flat areas on the floor). */
+  sand: ArenaBox[];
 }
+
+/** Update 0.2.4 — a palm's trunk and a cactus: their blocks' sides and heights (m). */
+const PALM = { side: 0.7, h: 5 };
+const CACTUS = { side: 1.1, h: 2.2 };
 
 const hasFloor = (c: Cell) => c !== 'void' && c !== 'wall' && c !== 'lava';
 
@@ -200,6 +208,16 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
   merge(plan, hasFloor, (col, row, w, h) => cellsBox(col, row, w, h, -LAVA_DEPTH - 1, 0, 'floor'), boxes);
   merge(plan, (c) => c === 'lava', (col, row, w, h) => cellsBox(col, row, w, h, -LAVA_DEPTH - 1, -LAVA_DEPTH, 'lava'), boxes);
   merge(plan, (c) => BOX_KIND[c] !== undefined, (col, row, w, h, c) => cellsBox(col, row, w, h, 0, HEIGHT[c]!, BOX_KIND[c]!), boxes);
+  // Update 0.2.4 — the desert's palms and cacti; its quicksand.
+  for (let row = 0; row < GRID; row++) {
+    for (let col = 0; col < GRID; col++) {
+      const c = cellAt(plan, col, row);
+      const b = c === 'palm' ? PALM : c === 'cactus' ? CACTUS : null;
+      if (b) boxes.push({ x: cellX(col), y: b.h / 2, z: cellZ(row), w: b.side, h: b.h, d: b.side, kind: 'block' });
+    }
+  }
+  const sand: ArenaBox[] = [];
+  merge(plan, (c) => c === 'sand', (col, row, w, h) => cellsBox(col, row, w, h, -0.1, 0.1, 'accent'), sand);
   // Chests: a box the size of the model (one that rises: a gate, below).
   const chests: ChestSpot[] = [];
   for (const r of plan.rooms) {
@@ -262,5 +280,5 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
     gateAt: { x: woodGate.x, z: woodGate.z, rot: oz !== 0 ? 0 : Math.PI / 2, ox, oz },
     dark: { min: { x: cellX(out.x0) - CELL / 2, z: cellZ(out.z0) - CELL / 2 }, max: { x: cellX(out.x1) + CELL / 2, z: cellZ(out.z1) + CELL / 2 } },
   };
-  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests, boss };
+  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests, boss, sand };
 }

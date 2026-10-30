@@ -8,6 +8,9 @@
 // Update 0.1.19 — floor 3's (tuning/foes3.ts): the Skeleton (it rebuilds itself), the Mushnub, and the Ninja, a mini
 // boss (only a hard hit staggers it; it teleports away from some).
 // Update 0.2.3 — floor 3's boss, the Bone King (tuning/boneKing.ts): a massive Skeleton with two lives.
+// Update 0.2.4 — floor 4's (tuning/foes4.ts): the Tribal, the Cactoro, the big Cactoro (a mini boss), the Hywirl (a
+// flier), the Dino (the Dino's model, small: the designer didn't see a boss in it); and its boss, the Dino
+// (tuning/dino.ts), waiting for a better model.
 import { BOSS } from '../../tuning/boss';
 import { DRAGON } from '../../tuning/dragon';
 import { FOES2 } from '../../tuning/foes2';
@@ -15,12 +18,14 @@ import { ENEMIES } from '../../tuning/enemies';
 import { FOES } from '../../tuning/foes';
 import { FOES3 } from '../../tuning/foes3';
 import { BONE_KING } from '../../tuning/boneKing';
+import { FOES4 } from '../../tuning/foes4';
+import { DINO } from '../../tuning/dino';
 
-export type EnemyKind = 'grunt' | 'spitter' | 'brute' | 'leaper' | 'stinger' | 'wraith' | 'demon' | 'slime' | 'frog' | 'snake' | 'wasp' | 'spider' | 'blueDemon' | 'dragon' | 'skeleton' | 'mushnub' | 'ninja' | 'boneKing';
+export type EnemyKind = 'grunt' | 'spitter' | 'brute' | 'leaper' | 'stinger' | 'wraith' | 'demon' | 'slime' | 'frog' | 'snake' | 'wasp' | 'spider' | 'blueDemon' | 'dragon' | 'skeleton' | 'mushnub' | 'ninja' | 'boneKing' | 'tribal' | 'cactoro' | 'cactoroBig' | 'hywirl' | 'dino' | 'dinoBlob' | 'lizard' | 'greenBlob' | 'blobling' | 'maskTribal' | 'skullOrc';
 /** Which grid it finds its way on: the big ones need wider gaps; fliers go over low things. */
 export type SizeClass = 'small' | 'large' | 'air';
 
-export const ENEMY_KINDS: readonly EnemyKind[] = ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith', 'demon', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon', 'dragon', 'skeleton', 'mushnub', 'ninja', 'boneKing'];
+export const ENEMY_KINDS: readonly EnemyKind[] = ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith', 'demon', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon', 'dragon', 'skeleton', 'mushnub', 'ninja', 'boneKing', 'tribal', 'cactoro', 'cactoroBig', 'hywirl', 'dino', 'dinoBlob', 'lizard', 'greenBlob', 'blobling', 'maskTribal', 'skullOrc'];
 export const SIZE_CLASSES: readonly SizeClass[] = ['small', 'large', 'air'];
 
 export interface EnemyStats {
@@ -43,7 +48,7 @@ export interface EnemyStats {
 }
 
 /** Body radii (m). Not knobs: the walk grids are built for them. */
-export const RADIUS: Record<EnemyKind, number> = { grunt: 0.45, spitter: 0.4, brute: 0.85, leaper: 0.45, stinger: 0.5, wraith: 0.55, demon: 1.7, slime: 0.5, frog: 0.55, snake: 0.4, wasp: 0.5, spider: 1.3, blueDemon: 0.85, dragon: 1.8, skeleton: 0.45, mushnub: 0.45, ninja: 0.45, boneKing: 1.5 };
+export const RADIUS: Record<EnemyKind, number> = { grunt: 0.45, spitter: 0.4, brute: 0.85, leaper: 0.45, stinger: 0.5, wraith: 0.55, demon: 1.7, slime: 0.5, frog: 0.55, snake: 0.4, wasp: 0.5, spider: 1.3, blueDemon: 0.85, dragon: 1.8, skeleton: 0.45, mushnub: 0.45, ninja: 0.45, boneKing: 1.5, tribal: 0.45, cactoro: 0.5, cactoroBig: 1.1, hywirl: 0.55, dino: 1.8, dinoBlob: 0.5, lizard: 0.5, greenBlob: 0.6, blobling: 0.4, maskTribal: 0.55, skullOrc: 1 };
 /** The grid each size class walks: blocked for this radius (a little less than the brute's, so 2 m gaps stay open:
  *  the push out of walls keeps its body clear anyway). */
 export const GRID_RADIUS: Record<SizeClass, number> = { small: 0.45, large: 0.65, air: 0.6 };
@@ -67,6 +72,17 @@ const CACHE: Record<EnemyKind, EnemyStats> = {
   skeleton: blank('small'),
   mushnub: blank('small'),
   boneKing: blank('large', true),
+  tribal: blank('small'),
+  cactoro: blank('small'),
+  cactoroBig: blank('large'),
+  hywirl: blank('air'),
+  dino: blank('large', true),
+  dinoBlob: blank('small'),
+  lizard: blank('small'),
+  greenBlob: blank('small'),
+  blobling: blank('small'),
+  maskTribal: blank('air'),
+  skullOrc: blank('large'),
   ninja: blank('small'),
 };
 
@@ -170,14 +186,64 @@ export const ENEMY_STATS: Record<EnemyKind, () => EnemyStats> = {
     s.stunned = BOSS.v.stunBonus;
     return s;
   },
+  // Update 0.2.4 — floor 4's. The big Cactoro: only a hard hit staggers it (as a Yeti's). The Dino: a boss.
+  tribal: () => {
+    const v = FOES4.v;
+    return fill(CACHE.tribal, v.tribalHp, RADIUS.tribal, v.tribalHeight, v.tribalSpeed, 0.9, 0, 0.3, 1.4, v.tribalCoins);
+  },
+  cactoro: () => {
+    const v = FOES4.v;
+    return fill(CACHE.cactoro, v.cactoroHp, RADIUS.cactoro, v.cactoroHeight, v.cactoroDig, 0.8, 0, 0.25, 1.2, v.cactoroCoins);
+  },
+  cactoroBig: () => {
+    const v = FOES4.v;
+    return fill(CACHE.cactoroBig, v.bigHp, RADIUS.cactoroBig, v.bigHeight, v.bigSpeed, 0.3, ENEMIES.v.bruteStagger, 0.4, 2, v.bigCoins);
+  },
+  hywirl: () => {
+    const v = FOES4.v;
+    return fill(CACHE.hywirl, v.hywirlHp, RADIUS.hywirl, v.hywirlHeight, v.hywirlSpeed, 1, 0, 0.25, 1.4, v.hywirlCoins);
+  },
+  // (The Dino: the Dino's model, small.)
+  dinoBlob: () => {
+    const v = FOES4.v;
+    return fill(CACHE.dinoBlob, v.dinoBlobHp, RADIUS.dinoBlob, v.dinoBlobHeight, v.dinoBlobSpeed, 0.9, 0, 0.25, 1.4, v.dinoBlobCoins);
+  },
+  // Update 0.2.4 (the designer's third list) — the Lizard, the Green Blob and the Bloblings it splits into, the Flying
+  // Tribal, the Skull Orc (a mini boss: only a hard hit staggers it).
+  lizard: () => {
+    const v = FOES4.v;
+    return fill(CACHE.lizard, v.lizardHp, RADIUS.lizard, v.lizardHeight, v.lizardSpeed, 0.9, 0, 0.3, 1.4, v.lizardCoins);
+  },
+  greenBlob: () => {
+    const v = FOES4.v;
+    return fill(CACHE.greenBlob, v.blobHp, RADIUS.greenBlob, v.blobHeight, v.blobSpeed, 0.8, 0, 0.25, 0.4, 1);
+  },
+  blobling: () => {
+    const v = FOES4.v;
+    return fill(CACHE.blobling, v.bloblingHp, RADIUS.blobling, v.blobHeight * 0.55, v.bloblingSpeed, 1, 0, 0.2, 1, 0.5);
+  },
+  maskTribal: () => {
+    const v = FOES4.v;
+    return fill(CACHE.maskTribal, v.maskHp, RADIUS.maskTribal, v.maskHeight, v.maskSpeed, 1, 0, 0.3, 1.4, v.maskCoins);
+  },
+  skullOrc: () => {
+    const v = FOES4.v;
+    return fill(CACHE.skullOrc, v.orcHp, RADIUS.skullOrc, v.orcHeight, v.orcSpeed, 0.3, ENEMIES.v.bruteStagger, 0.4, 2, v.orcCoins);
+  },
+  dino: () => {
+    const v = DINO.v;
+    const s = fill(CACHE.dino, v.dinoHp, RADIUS.dino, v.dinoHeight, v.dinoSpeed, 0.05, Infinity, 0, doomTime() + DOOM_AFTER, 0);
+    s.stunned = BOSS.v.stunBonus;
+    return s;
+  },
 };
 
-/** Update 0.0.18 — each floor's boss. Update 0.2.3 — floor 3's the Bone King (and the floors past it, as their
- *  enemies are floor 3's). */
-export const bossOf = (floor: number): EnemyKind => (floor <= 1 ? 'demon' : floor === 2 ? 'dragon' : 'boneKing');
+/** Update 0.0.18 — each floor's boss. Update 0.2.3 — floor 3's the Bone King. Update 0.2.4 — floor 4's the Dino (and
+ *  the floors past it, as their enemies are floor 4's). */
+export const bossOf = (floor: number): EnemyKind => (floor <= 1 ? 'demon' : floor === 2 ? 'dragon' : floor === 3 ? 'boneKing' : 'dino');
 
 /** Update 0.0.18 — the mini bosses (the designer): a room with one has a chest, and the first killed drops its key. */
-export const MINI_BOSSES: readonly EnemyKind[] = ['brute', 'spider', 'blueDemon', 'ninja'];
+export const MINI_BOSSES: readonly EnemyKind[] = ['brute', 'spider', 'blueDemon', 'ninja', 'cactoroBig', 'skullOrc'];
 
 /** Update 0.0.15 — a boss's death show: up, hanging, sinking (s); its body bursts at the end, and its slot frees this
  *  long after. */

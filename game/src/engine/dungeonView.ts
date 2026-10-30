@@ -11,6 +11,8 @@
 // Update 0.0.15 — the boss room: its walls sliding back (boss/shell.ts), the portal (boss/portal.ts), the wooden gate
 // and the dark beyond it (boss/woodGate.ts), all following the room's show; no more glow over a trapdoor.
 // Update 0.0.20 — the lava in the pits (lavaView.ts); the dark slab lies only under the floor (a pit shows its lava).
+// Update 0.2.4 — a look may recolour the kit (the desert's sandstone) and bring its own sky and sun, its sand and
+// quicksand (sandView.ts).
 // Each floor's look (world/dungeon/styles.ts): its gates' bars (floor 3: a portcullis dropping from above), its cores'
 // colour, its walls in the boss room's sliding blocks. Update 0.1.20 — the words over the doorways (roomSignsView.ts).
 import * as THREE from 'three';
@@ -26,6 +28,7 @@ import { Portal } from './boss/portal';
 import { Shell } from './boss/shell';
 import { WoodGate } from './boss/woodGate';
 import { LavaView } from './lavaView';
+import { padsOf, SandView } from './sandView';
 import { roomSigns } from './roomSignsView';
 
 export const KIT_URL = '/models/dungeon/kit.glb';
@@ -70,6 +73,7 @@ export class DungeonView implements ArenaView {
   private readonly portal: Portal;
   private readonly woodGate: WoodGate;
   private readonly lava: LavaView;
+  private readonly sand: SandView;
   private relight = 0;
 
   constructor(
@@ -79,11 +83,12 @@ export class DungeonView implements ArenaView {
   ) {
     this.dressing = dress(level.plan);
     scene.add(this.group);
-    scene.background = new THREE.Color(SKY);
-    this.haze = new THREE.Fog(SKY, LIGHT.v.hazeNear, LIGHT.v.hazeFar);
+    const look = this.dressing.style;
+    scene.background = new THREE.Color(look.sky ?? SKY);
+    this.haze = new THREE.Fog(look.sky ?? SKY, LIGHT.v.hazeNear, LIGHT.v.hazeFar);
     scene.fog = this.haze;
-    this.sky = new THREE.HemisphereLight(SKY_LIGHT, GROUND_LIGHT, LIGHT.v.sky);
-    this.sun = new THREE.DirectionalLight(SUN, LIGHT.v.sun);
+    this.sky = new THREE.HemisphereLight(look.skyLight ?? SKY_LIGHT, look.ground ?? GROUND_LIGHT, LIGHT.v.sky);
+    this.sun = new THREE.DirectionalLight(look.sun ?? SUN, LIGHT.v.sun);
     this.sun.castShadow = LIGHT.v.shadows >= 1;
     this.sun.shadow.mapSize.set(2048, 2048);
     const sc = this.sun.shadow.camera;
@@ -99,7 +104,7 @@ export class DungeonView implements ArenaView {
       this.lights.push(l);
       this.group.add(l);
     }
-    this.pads();
+    this.group.add(padsOf(this.level.arena.pads, this.mats, this.geos));
     const box = this.solid();
     const b = level.boss;
     const shellMat = new THREE.MeshStandardMaterial({ color: SHELL, roughness: 1 });
@@ -108,6 +113,8 @@ export class DungeonView implements ArenaView {
     this.portal = new Portal(b.portal);
     this.woodGate = new WoodGate(scene, b, `FLOOR ${level.plan.level + 1}`);
     this.lava = new LavaView(this.dressing.lava);
+    this.sand = new SandView(this.dressing.sand, look.sand, look.quicksand);
+    this.group.add(this.sand.group);
     this.group.add(this.shell.group, this.portal.group, this.lava.group, roomSigns(level.plan, this.mats, this.geos));
     this.loaded = loadKit
       ? new GLTFLoader()
@@ -136,7 +143,7 @@ export class DungeonView implements ArenaView {
       root.traverse((o) => {
         if (!(o instanceof THREE.Mesh)) return;
         const local = inv.clone().multiply(o.matrixWorld);
-        const mat = this.material(o.material as THREE.MeshStandardMaterial);
+        const mat = this.material(o.material as THREE.MeshStandardMaterial, name);
         const inst = new THREE.InstancedMesh(o.geometry, mat, list.length);
         list.forEach((p, i) => {
           pos.set(p.x, p.y, p.z);
@@ -173,9 +180,14 @@ export class DungeonView implements ArenaView {
     this.shell.build(kit, (src) => this.material(src), style);
   }
 
-  /** The kit's flat colours, a little rough; fire glows. */
-  private material(src: THREE.MeshStandardMaterial): THREE.Material {
+  /** The kit's flat colours, a little rough; fire glows. Update 0.2.4 — recoloured as the look says (`piece`: the floor
+   *  tile has its own). */
+  private material(src: THREE.MeshStandardMaterial, piece = ''): THREE.Material {
     const mat = src.clone();
+    const look = this.dressing.style;
+    const base = src.name.split('.')[0];
+    const tint = (piece === look.floor ? look.floorTint?.[base] : undefined) ?? look.tint?.[base];
+    if (tint !== undefined) mat.color.setHex(tint);
     mat.roughness = 0.9;
     mat.metalness = 0;
     if (/fire|candle/i.test(src.name)) {
@@ -214,18 +226,6 @@ export class DungeonView implements ArenaView {
     return box;
   }
 
-  private pads() {
-    const mat = new THREE.MeshStandardMaterial({ color: 0x3ad6ff, emissive: 0x20a8ff, emissiveIntensity: 1.6, roughness: 0.4 });
-    const geo = new THREE.CylinderGeometry(0.85, 0.85, 0.08, 28);
-    this.mats.push(mat);
-    this.geos.push(geo);
-    for (const p of this.level.arena.pads) {
-      const pad = new THREE.Mesh(geo, mat);
-      pad.position.set(p.x, p.y + 0.04, p.z);
-      this.group.add(pad);
-    }
-  }
-
   /** `run`: its gates (shut or open) and the boss room's show; `at`: the camera, for the sun's shadows and the torch
    *  lights. */
   update(dt: number, run: DungeonRun, at: THREE.Vector3) {
@@ -235,6 +235,7 @@ export class DungeonView implements ArenaView {
     this.shell.set(wallsOpen(b));
     this.portal.update(dt, portalOpen(b));
     this.lava.update(dt);
+    this.sand.update(dt);
     this.woodGate.update(b.beat === 'open' ? Math.min(1, b.t / CINEMA.v.gateSwing) : 0);
     // Shut: the bars slam into the doorway (from under the floor, or down from over it); won: they draw back.
     const style = this.dressing.style;
@@ -289,6 +290,7 @@ export class DungeonView implements ArenaView {
     this.portal.dispose();
     this.woodGate.dispose();
     this.lava.dispose();
+    this.sand.dispose();
     for (const mat of this.mats) mat.dispose();
     for (const g of this.geos) g.dispose();
     this.scene.fog = null;

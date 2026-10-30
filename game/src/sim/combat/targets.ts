@@ -48,6 +48,8 @@ export interface Orb {
   life: number;
   /** Update 0.1.14 — who fired it. */
   by: Cause | null;
+  /** Update 0.2.4 — a glowing orb, a Tribal's spear or a Cactoro's spine (how it's drawn). */
+  look: 'fire' | 'spear' | 'spine';
 }
 
 export const ORB_POOL = 24;
@@ -62,7 +64,7 @@ export function createTurret(s: Spot): Turret {
 }
 
 export function createOrbs(): Orb[] {
-  return Array.from({ length: ORB_POOL }, () => ({ alive: false, pos: new Vector3(), vel: new Vector3(), damage: 0, life: 0, by: null }));
+  return Array.from({ length: ORB_POOL }, () => ({ alive: false, pos: new Vector3(), vel: new Vector3(), damage: 0, life: 0, by: null, look: 'fire' as Orb['look'] }));
 }
 
 /** The bottom and top of a dummy's capsule axis right now. */

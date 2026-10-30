@@ -111,6 +111,17 @@ export const EXEC_LOOKS: Partial<Record<EnemyKind, ExecLook>> = {
 // Update 0.2.2 — the Ninja's as the leaper's; the Mushnub's as the slime's.
 EXEC_LOOKS.ninja = EXEC_LOOKS.leaper;
 EXEC_LOOKS.mushnub = EXEC_LOOKS.slime;
+// Update 0.2.4 — floor 4's, as their moves (execMoves.ts).
+EXEC_LOOKS.tribal = EXEC_LOOKS.grunt;
+EXEC_LOOKS.cactoroBig = EXEC_LOOKS.brute;
+EXEC_LOOKS.cactoro = EXEC_LOOKS.slime;
+EXEC_LOOKS.hywirl = EXEC_LOOKS.wraith;
+EXEC_LOOKS.dinoBlob = EXEC_LOOKS.grunt;
+EXEC_LOOKS.lizard = EXEC_LOOKS.grunt;
+EXEC_LOOKS.skullOrc = EXEC_LOOKS.brute;
+EXEC_LOOKS.greenBlob = EXEC_LOOKS.slime;
+EXEC_LOOKS.blobling = EXEC_LOOKS.slime;
+EXEC_LOOKS.maskTribal = EXEC_LOOKS.wraith;
 
 /** The blue demon's barrage, for its jolts: each punch's time. */
 export const BARRAGE_TIMES = Array.from({ length: BARRAGE }, (_, i) => 0.25 + i * BARRAGE_GAP);

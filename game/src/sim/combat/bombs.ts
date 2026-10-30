@@ -3,11 +3,13 @@
 // after its fall time; the spot is marked from the moment it's thrown (engine/boss/bombView.ts). Landing, it bursts:
 // within its radius on the ground, you're hurt and thrown. A small pool, no garbage. Pure.
 // Update 0.2.3 — the Bone King throws skeletons the same way (`look` 'bones': they smash, 'boneCrash').
+// Update 0.2.4 — the Lizard's poison glob (`look` 'poison'): it splashes into a puddle (puddles.ts), no blast.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { damagePlayer } from '../player/health';
 import type { Cause, PlayerState } from '../player/state';
 import type { CombatEvent } from './state';
+import { addPuddle, Puddle } from './puddles';
 
 export interface Bomb {
   alive: boolean;
@@ -24,7 +26,7 @@ export interface Bomb {
   /** Update 0.1.14 — who threw it. */
   by: Cause | null;
   /** Update 0.2.3 — a fireball, or a skeleton (the Bone King's). */
-  look: 'fire' | 'bones';
+  look: 'fire' | 'bones' | 'poison';
 }
 
 export const BOMB_POOL = 12;
@@ -58,7 +60,7 @@ export function clearBombs(bombs: Bomb[]) {
 }
 
 /** Each bomb falls; landing, it bursts ('bombBlast', value = its radius). */
-export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQueue<CombatEvent>, dt: number) {
+export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQueue<CombatEvent>, dt: number, puddles: Puddle[] = []) {
   for (const b of bombs) {
     if (!b.alive) continue;
     b.t += dt;
@@ -67,6 +69,10 @@ export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQue
     b.pos.y += Math.sin(Math.PI * k) * ARC;
     if (k < 1) continue;
     b.alive = false;
+    if (b.look === 'poison') {
+      addPuddle(puddles, b.to.x, b.to.y, b.to.z, events);
+      continue;
+    }
     events.push(b.look === 'bones' ? 'boneCrash' : 'bombBlast', b.radius, b.to.x, b.to.y, b.to.z);
     const dx = player.pos.x - b.to.x;
     const dz = player.pos.z - b.to.z;

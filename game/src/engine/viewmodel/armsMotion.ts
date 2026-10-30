@@ -1,6 +1,8 @@
 // M1 step 6 — the arms' motion over their pose: they trail the mouse a little (sway), bob while running, dip on a
 // landing (a spring), pull back in a dash and drop in a slide. (Moved out of viewmodel.ts in Update 0.1.9, which had
 // grown past its size; no change in behaviour.)
+// Update 0.2.4 — `steady` (0 … 1: the Pistol aimed): the sway, bob and dips all but stop and the Arms tab's nudges
+// give way, so the sights sit on the crosshair.
 import type * as THREE from 'three';
 import type { PlayerState } from '../../sim/player/state';
 import { flatSpeed } from '../../sim/player/state';
@@ -28,7 +30,7 @@ export class ArmsMotion {
 
   /** Advances it and places the arms: `pivot` turned by the sway, `holder` moved by the bob, dip, pull and drop.
    *  `realDt` never stops (sway follows the mouse); `mouseDx/Dy`: this frame's mouse movement (px). */
-  update(gameDt: number, realDt: number, mouseDx: number, mouseDy: number, p: PlayerState, pivot: THREE.Object3D, holder: THREE.Object3D) {
+  update(gameDt: number, realDt: number, mouseDx: number, mouseDy: number, p: PlayerState, pivot: THREE.Object3D, holder: THREE.Object3D, steady = 0) {
     const v = ARMS.v;
     // Sway: the arms trail the mouse a little, then catch up. Turning right swings them left (+y turn);
     // looking up drops them (−x turn; mouse up is negative movementY).
@@ -45,9 +47,11 @@ export class ArmsMotion {
     this.pullZ += ((p.dashTime > 0 ? v.dashPull : 0) - this.pullZ) * ease(14, gameDt);
     this.dropY += ((p.sliding ? v.slideDrop : 0) - this.dropY) * ease(10, gameDt);
 
-    pivot.rotation.set(PREVIEW_PITCH + this.swayY, this.swayX, 0);
-    const bob = Math.sin(this.bobPhase) * v.bob * this.bobAmount;
-    holder.position.set(v.viewX + bob * 0.5, v.viewY - Math.abs(bob) + this.dipY - this.dropY, v.viewZ + this.pullZ);
+    const still = 1 - 0.85 * steady;
+    const nudge = 1 - steady;
+    pivot.rotation.set(PREVIEW_PITCH + this.swayY * still, this.swayX * still, 0);
+    const bob = Math.sin(this.bobPhase) * v.bob * this.bobAmount * still;
+    holder.position.set(v.viewX * nudge + bob * 0.5, v.viewY * nudge + (-Math.abs(bob) + this.dipY - this.dropY) * still, v.viewZ * nudge + this.pullZ * still);
   }
 
   reset() {

@@ -2,6 +2,7 @@
 // written as kit placements plus a few camera spots; Blender draws them with the real kit
 // (tools/blender/render_dungeon.py).
 // Update 0.0.20 — the lava (an orange slab per lava cell) and two looks into each lava room on the floor.
+// Update 0.2.4 — the floor's sand (quicksand, and the beds palms and cacti stand in); the look's colours ride in `style`.
 //   npx tsx tools/dungeon-shots.ts <out folder> [seed] [floor]
 //   blender --background --python tools/blender/render_dungeon.py -- --json <out folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <out folder>
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -11,6 +12,7 @@ import { buildDungeon, LAVA_DEPTH } from '../src/world/dungeon/assemble';
 import { CELL } from '../src/world/dungeon/floorPlan';
 import { dress } from '../src/world/dungeon/dressing';
 import { planFloor } from '../src/world/dungeon/floorPlan';
+import { DESERT_ROOMS } from '../src/world/dungeon/desertRooms';
 
 const out = process.argv[2];
 if (!out) throw new Error('usage: npx tsx tools/dungeon-shots.ts <out folder> [seed] [floor]');
@@ -46,13 +48,13 @@ const cams = [
 // Each lava room: from a corner high up, and from the walkway at eye height looking across the lava.
 for (const r of level.rooms) {
   const id = level.plan.rooms[r.index].layout.template.id;
-  // (Update 0.0.21 — and floor 3's two-level rooms.)
-  if (!id.startsWith('lava') && !['gauntlet', 'the keep', 'ramparts', 'towers', 'bridgeworks'].includes(id)) continue;
+  // (Update 0.0.21 — and floor 3's two-level rooms. Update 0.2.4 — and floor 4's desert rooms.)
+  if (!id.startsWith('lava') && !['gauntlet', 'the keep', 'ramparts', 'towers', 'bridgeworks'].includes(id) && !DESERT_ROOMS.some((t) => t.id === id)) continue;
   const m = { x: (r.min.x + r.max.x) / 2, z: (r.min.z + r.max.z) / 2 };
-  cams.push({ name: `${id.replace(' ', '-')}-high`, at: [r.min.x + 3, 14, r.min.z + 3], to: [m.x, -1, m.z] });
-  cams.push({ name: `${id.replace(' ', '-')}-eye`, at: [r.min.x + 5, 1.6, m.z + 1], to: [m.x, 0, m.z] });
+  cams.push({ name: `${id.replace(/ /g, '-')}-high`, at: [r.min.x + 3, 14, r.min.z + 3], to: [m.x, -1, m.z] });
+  cams.push({ name: `${id.replace(/ /g, '-')}-eye`, at: [r.min.x + 5, 1.6, m.z + 1], to: [m.x, 0, m.z] });
 }
 const lava = d.lava.map((c) => ({ m: new Matrix4().compose(new Vector3(c.x, -LAVA_DEPTH + 0.01, c.z), new Quaternion(), new Vector3(CELL, 0.02, CELL)).elements, color: [1, 0.32, 0.04] }));
 const extent = { min: { x: Math.min(...level.rooms.map((r) => r.min.x)) - 4, z: Math.min(...level.rooms.map((r) => r.min.z)) - 4 }, max: { x: Math.max(...level.rooms.map((r) => r.max.x)) + 4, z: Math.max(...level.rooms.map((r) => r.max.z)) + 4 } };
-writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ seed, floor, pieces: d.pieces, gates: d.gates, torches: d.torches, cores: d.cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, boxes: lava, slabY: lava.length ? -LAVA_DEPTH - 0.2 : -0.45 }));
+writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ seed, floor, pieces: d.pieces, gates: d.gates, torches: d.torches, cores: d.cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, sand: d.sand, boxes: lava, slabY: lava.length ? -LAVA_DEPTH - 0.2 : -0.45 }));
 console.log(`seed ${seed} floor ${floor}: ${level.rooms.length} rooms (${level.plan.rooms.map((r) => r.layout.template.id).join(', ')}), ${d.pieces.length} pieces, ${level.arena.boxes.length} boxes`);

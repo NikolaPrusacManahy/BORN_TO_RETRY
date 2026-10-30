@@ -7,7 +7,7 @@
 import type { RoomTemplate } from './rooms';
 import { quarter } from './fightRooms';
 
-const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 3 });
+const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 3, until: 3 });
 
 export const KEEP_ROOMS: readonly RoomTemplate[] = [
   // A raised square walk round a courtyard, open at the middle of each side; spitters on its corners and sides; steps

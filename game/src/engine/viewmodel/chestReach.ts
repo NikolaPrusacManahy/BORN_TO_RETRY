@@ -4,7 +4,12 @@
 // same spot on screen at arm's length in the arms camera, so the fists sit on the lid whatever the two FOVs are.
 // The arms aim a fist's middle, so while they're fully on the lid each target is nudged until the knuckles you see
 // are on its edge (`settle`).
+// Update 0.2.4 — a fist's pull towards its spot (`pull`) moved here from viewmodel.ts (it had reached its size).
 import * as THREE from 'three';
+import type { ArmPose, ArmsRig } from './armsRig';
+import { mixArm, pose } from './armsMath';
+import type { Side } from './guard';
+import type { HeldGrip } from './heldGrip';
 
 /** Through the opening (0..1): the fists are on the edge by REACH, follow it until HOLD, start back at LET_GO. */
 const REACH = 0.24;
@@ -24,6 +29,7 @@ export class ChestReach {
   /** Each fist's target in the arms camera's view (x right, y up, −z ahead), nudged (`aim`). */
   readonly view = { L: new THREE.Vector3(), R: new THREE.Vector3() };
   readonly aim = { L: new THREE.Vector3(), R: new THREE.Vector3() };
+  private readonly reachPose = pose();
   private readonly nudge = { L: new THREE.Vector3(), R: new THREE.Vector3() };
   private readonly ndc = new THREE.Vector3();
 
@@ -59,6 +65,19 @@ export class ChestReach {
   aimed() {
     this.aim.L.addVectors(this.view.L, this.nudge.L);
     this.aim.R.addVectors(this.view.R, this.nudge.R);
+  }
+
+  /** One fist towards its spot on the chest's lid by `k`: knuckles ahead, the back of the hand up. The spot is on
+   *  screen, so it's carried into the model exactly (through the camera, the tilt and the holder). (Or an execution's
+   *  grip's, while it holds something.) */
+  pull(rig: ArmsRig, side: Side, out: ArmPose, k: number, grip: HeldGrip, holder: THREE.Object3D, camera: THREE.PerspectiveCamera) {
+    const r = this.reachPose;
+    camera.updateMatrixWorld(true);
+    if (grip.weight > 0) return mixArm(out, grip.pose(rig, side, holder, camera, out, r), smooth(k), out);
+    holder.worldToLocal(camera.localToWorld(r.fist.copy(this.aim[side])));
+    r.knuckles.subVectors(r.fist, rig.between).normalize();
+    r.back.set(0, 1, 0);
+    mixArm(out, r, smooth(k), out);
   }
 
   private place(p: THREE.Vector3, world: THREE.PerspectiveCamera, arms: THREE.PerspectiveCamera, out: THREE.Vector3) {

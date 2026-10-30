@@ -180,7 +180,8 @@ section('Floor 2 — mini bosses and the roster');
   const three = rosterOf(3);
   // (Update 0.1.19 — and its own: the Skeleton, the Mushnub, the Ninja.)
   check('floor 3: floor 2’s without the Grunt, the Leaper and the Blue Demon, and its own three', three.join() === [...two.filter((k) => k !== 'grunt' && k !== 'leaper' && k !== 'blueDemon'), 'skeleton', 'mushnub', 'ninja'].join(), three.join());
-  check('floors past it send floor 3’s', rosterOf(4) === three && rosterOf(10) === three);
+  // (Update 0.2.4 — floor 4 has its own: test-floor4.ts.)
+  check('floor 4 has its own, and the floors past it send floor 4’s', rosterOf(4) !== three && rosterOf(7) === rosterOf(4));
   let cut = '';
   let spiders = 0;
   for (let seed = 1; seed <= 20; seed++) {

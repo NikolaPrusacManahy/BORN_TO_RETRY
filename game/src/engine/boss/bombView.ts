@@ -2,6 +2,7 @@
 // a big fireball on its arc, and on the floor where it will land a red ring as wide as its burst, filling in and
 // brightening as it comes, so the last moment reads. Pooled and updated in place.
 // Update 0.2.3 — a skeleton the Bone King throws is drawn by kingView.ts: here only its spot.
+// Update 0.2.4 — a Lizard's poison glob: a green ball.
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
 import { BOMB_POOL } from '../../sim/combat/bombs';
@@ -23,6 +24,7 @@ export class BombView {
   private readonly ringGeo = new THREE.RingGeometry(0.88, 1, 48).rotateX(-Math.PI / 2);
   private readonly discGeo = new THREE.CircleGeometry(1, 40).rotateX(-Math.PI / 2);
   private readonly ballMat = new THREE.MeshStandardMaterial({ color: 0x3a0800, emissive: 0xff6a10, emissiveIntensity: 3 });
+  private readonly poisonMat = new THREE.MeshStandardMaterial({ color: 0x2a5a10, emissive: 0x6aff30, emissiveIntensity: 1.6 });
   private readonly shown: Shown[] = [];
   private readonly mats: THREE.Material[] = [];
   private time = 0;
@@ -47,7 +49,8 @@ export class BombView {
       const s = this.shown[i];
       s.ball.visible = s.ring.visible = s.fill.visible = b.alive;
       if (!b.alive) continue;
-      s.ball.visible = b.look === 'fire';
+      s.ball.visible = b.look !== 'bones';
+      s.ball.material = b.look === 'poison' ? this.poisonMat : this.ballMat;
       const k = Math.min(1, b.t / b.fall);
       const flicker = 0.85 + 0.15 * Math.sin(this.time * 40 + i);
       s.ball.position.copy(b.pos);
@@ -71,6 +74,7 @@ export class BombView {
     this.ringGeo.dispose();
     this.discGeo.dispose();
     this.ballMat.dispose();
+    this.poisonMat.dispose();
     for (const m of this.mats) m.dispose();
   }
 }

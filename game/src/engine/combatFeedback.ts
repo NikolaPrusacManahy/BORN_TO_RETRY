@@ -111,6 +111,10 @@ export class CombatFeedback {
         case 'hitKnife':
           this.hit(0.8, fb.shakeJab * 0.5, fb.kickJab * 0.4, 'hit');
           break;
+        // Update 0.2.4 — a bullet landing.
+        case 'hitShot':
+          this.hit(0.6, fb.shakeJab * 0.3, 0, 'hit');
+          break;
         case 'knifeStick':
           this.f.sparks.spawn(at, back, 5, 0.7);
           break;

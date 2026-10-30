@@ -1,5 +1,8 @@
 /* Update 0.0.19 — the Lab's panel (dev builds): a fixed panel over the frozen world, scaled with the window; rows of
-   small slanted buttons. */
+   small slanted buttons.
+   Update 0.2.4 — reworked: the title and tabs on top, a body the same size on every tab (columns: a floor each, or a
+   kind of item each; the Sounds list scrolls in it), the tools below. Laid out inside the panels' box (uiScale.ts,
+   900 × 540) so it never runs off the window. */
 .rb-lab {
   position: absolute;
   inset: 0;
@@ -11,27 +14,75 @@
 }
 
 .rb-lab-panel {
-  width: 820px;
-  padding: 22px 28px 24px;
+  width: 892px;
+  padding: 18px 24px;
+}
+
+.rb-lab-top {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  height: 34px;
 }
 
 .rb-lab-title {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 26px;
+  line-height: 1;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   transform: skewX(-8deg);
 }
 
-.rb-lab-sec + .rb-lab-sec {
-  margin-top: 14px;
+.rb-lab-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.rb-lab-counts {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.rb-lab-body {
+  height: 380px;
+  margin: 14px 0;
+  overflow-y: auto;
+}
+
+.rb-lab-cols {
+  display: grid;
+  gap: 10px;
+  height: 100%;
+}
+
+.rb-lab-cols.is-floors {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.rb-lab-cols.is-items {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.rb-lab-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 6px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.rb-lab-col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 28px;
 }
 
 .rb-lab-head {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -39,19 +90,38 @@
   color: var(--rb-dim);
 }
 
-.rb-lab-counts {
+.rb-lab-col > .rb-lab-head {
   display: flex;
+  align-items: center;
+  height: 28px;
+}
+
+.rb-lab-list {
+  display: grid;
   gap: 4px;
 }
 
-.rb-lab-grid {
+/* A floor's boss, at the foot of its column. */
+.rb-lab-boss {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px;
+  margin-top: auto;
+}
+
+.rb-lab-foot {
+  display: flex;
+  justify-content: space-between;
+}
+
+.rb-lab-row {
+  display: flex;
   gap: 6px;
 }
 
 .rb-lab-btn,
-.rb-lab-count {
+.rb-lab-count,
+.rb-lab-tab {
   font-family: var(--rb-font);
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -61,22 +131,57 @@
   color: var(--rb-text);
   background: rgba(255, 255, 255, 0.08);
   clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  transition: background 0.08s;
 }
 
 .rb-lab-btn {
+  height: 28px;
+  padding: 0 10px;
   font-size: 12px;
-  padding: 9px 8px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rb-lab-list > .rb-lab-btn {
+  text-align: left;
+  padding-left: 14px;
+}
+
+.rb-lab-tab {
+  height: 30px;
+  padding: 0 18px;
+  font-size: 13px;
+  color: var(--rb-dim);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .rb-lab-count {
-  font-size: 11px;
-  padding: 3px 10px;
+  height: 26px;
+  padding: 0 12px;
+  font-size: 12px;
 }
 
 .rb-lab-btn:hover,
-.rb-lab-count:hover {
+.rb-lab-count:hover,
+.rb-lab-tab:hover {
   background: rgba(255, 255, 255, 0.18);
+  color: var(--rb-text);
+}
+
+.rb-lab-btn:active,
+.rb-lab-count:active,
+.rb-lab-tab:active {
+  transform: translateY(1px);
+}
+
+/* Mini bosses: warm. */
+.rb-lab-btn.is-mini {
+  background: rgba(255, 170, 60, 0.16);
+}
+
+.rb-lab-btn.is-mini:hover {
+  background: rgba(255, 170, 60, 0.32);
 }
 
 .rb-lab-btn.is-boss {
@@ -97,12 +202,19 @@
 }
 
 .rb-lab-btn.is-tool {
+  min-width: 78px;
   background: rgba(255, 255, 255, 0.04);
   box-shadow: inset 0 0 0 1px var(--rb-line);
 }
 
+.rb-lab-btn.is-tool:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
 .rb-lab-btn.is-on,
-.rb-lab-count.is-on {
+.rb-lab-btn.is-tool.is-on,
+.rb-lab-count.is-on,
+.rb-lab-tab.is-on {
   background: var(--rb-accent);
   color: #fff;
 }

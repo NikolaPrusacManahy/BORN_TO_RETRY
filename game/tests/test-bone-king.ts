@@ -80,7 +80,8 @@ function warnNow(f: Fight, move: number) {
 
 section('Bone King — floor 3’s boss, a massive Skeleton');
 {
-  check('floor 3’s boss is the Bone King (and the floors past it); floors 1 and 2 keep theirs', bossOf(3) === 'boneKing' && bossOf(7) === 'boneKing' && bossOf(1) === 'demon' && bossOf(2) === 'dragon');
+  // (Update 0.2.4 — floor 4's and on: the Dino.)
+  check('floor 3’s boss is the Bone King; floors 1 and 2 keep theirs', bossOf(3) === 'boneKing' && bossOf(1) === 'demon' && bossOf(2) === 'dragon');
   const s = ENEMY_STATS.boneKing();
   check(`massive (${s.height} m: a Skeleton is ${FOES3.v.skeletonHeight}), a boss that never flinches`, s.height >= 3 * FOES3.v.skeletonHeight && s.boss && s.stagger === Infinity);
   check(`its bar is lighter than the Dragon’s per life (${v.kingHp}), named, its chest 15 coins`, v.kingHp < 1600 && BOSS_NAMES.boneKing === 'THE BONE KING' && bossCoins('boneKing') === 15);

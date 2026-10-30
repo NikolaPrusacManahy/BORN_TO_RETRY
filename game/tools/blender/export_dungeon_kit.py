@@ -5,6 +5,8 @@
 #       --glb public/models/dungeon/kit.glb [--previews <folder>]
 # Update 0.0.20 — part 2's stone walls, floor, doorway, portcullis and column pieces for floor 3. Part 2's wall pieces
 # face +x; they're turned to face −y (the game's +z) as part 1's do.
+# Update 0.2.4 — the Ultimate Nature Pack's desert pieces for floor 4 (palms, cacti, rocks: kit_n_<piece>; `--nature`).
+#       ... --nature <Ultimate Nature Pack folder>
 import argparse
 import math
 import os
@@ -22,6 +24,8 @@ PART1 = ['Floor_Modular', 'Wall_Modular', 'WallCover_Modular', 'Arch', 'Arch_bar
 PART2 = ['Column', 'Column_Broken2', 'Rock1', 'Rock2', 'Rock3', 'Bones', 'Bones2', 'Torch_wall', 'Candelabrum_tall', 'Carpet',
          'ModularStoneWall', 'ModularStoneWall_top', 'ModularStoneWall_EntranceTop', 'ModularFloor', 'Entrance', 'Bars', 'WallRocks',
          'ModularColumn_bottom', 'ModularColumn_middle', 'ModularColumn_top', 'Rock4', 'Rock5']
+# Update 0.2.4 — floor 4's desert: palms and cacti in their sand beds, desert rocks.
+NATURE = ['PalmTree_1', 'PalmTree_3', 'Cactus_1', 'Cactus_3', 'CactusFlowers_2', 'Rock_2', 'Rock_5']
 # Faced +x as they come: turned a quarter so they face −y.
 TURN = {'ModularStoneWall', 'ModularStoneWall_top', 'ModularStoneWall_EntranceTop', 'Entrance', 'Bars', 'WallRocks'}
 
@@ -33,6 +37,7 @@ def parse_args():
     p.add_argument('--part2', required=True)
     p.add_argument('--glb', required=True)
     p.add_argument('--previews', default=None)
+    p.add_argument('--nature', default=None)
     return p.parse_args(argv)
 
 
@@ -41,7 +46,8 @@ def main():
     for o in list(bpy.data.objects):
         bpy.data.objects.remove(o, do_unlink=True)
     pieces = []
-    for prefix, folder, names in (('p1', args.part1, PART1), ('p2', args.part2, PART2)):
+    packs = [('p1', args.part1, PART1), ('p2', args.part2, PART2)] + ([('n', args.nature, NATURE)] if args.nature else [])
+    for prefix, folder, names in packs:
         protos = load_pieces(folder, names, {}, bake=True, recenter=names)
         for name, o in protos.items():
             if prefix == 'p2' and name in TURN:

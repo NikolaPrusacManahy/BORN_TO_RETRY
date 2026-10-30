@@ -85,6 +85,45 @@ def demon_at(path, d):
         root.location.z -= min(zs)
 
 
+def srgb(h):
+    c = [((h >> s) & 255) / 255 for s in (16, 8, 0)]
+    return tuple(x / 12.92 if x <= 0.04045 else ((x + 0.055) / 1.055) ** 2.4 for x in c)
+
+
+def recolour(style, protos):
+    """Update 0.2.4 — each kit material to the look's colour (by its name before any ".001"); the floor tile's own."""
+    tint, floor_tint = style.get('tint') or {}, style.get('floorTint') or {}
+    if not tint and not floor_tint:
+        return
+    fl = protos.get(style.get('floor'))
+    for o in protos.values():
+        for i, m in enumerate(o.data.materials):
+            if m is None or not m.use_nodes or 'Principled BSDF' not in m.node_tree.nodes:
+                continue
+            base = m.name.split('.')[0]
+            want = floor_tint.get(base) if o is fl and base in floor_tint else tint.get(base)
+            if want is None:
+                continue
+            mm = m.copy()
+            mm.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = (*srgb(want), 1)
+            o.data.materials[i] = mm
+
+
+def sand_cells(cells, style):
+    """Update 0.2.4 — loose sand: a flat tile per cell (quicksand darker)."""
+    for quick in (False, True):
+        mat = bpy.data.materials.new('Quicksand' if quick else 'Sand')
+        mat.use_nodes = True
+        col = srgb(style.get('quicksand' if quick else 'sand', 0xb98a4c if quick else 0xe6c27e))
+        mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = (*col, 1)
+        mat.diffuse_color = (*col, 1)
+        for c in cells:
+            if c['quick'] != quick:
+                continue
+            bpy.ops.mesh.primitive_plane_add(size=2, location=to_blender(c['x'], 0.015, c['z']))
+            bpy.context.active_object.data.materials.append(mat)
+
+
 def daylight(scene):
     """EEVEE with a sun (the game's direction, from the south-west) and a pale sky lighting the shade."""
     scene.render.engine = 'BLENDER_EEVEE'
@@ -168,6 +207,9 @@ def main():
         bpy.ops.mesh.primitive_plane_add(size=1000, location=(0, 0, data.get('slabY', -0.45)))
         bpy.context.active_object.data.materials.append(core_mat)
     game_boxes(data.get('boxes', []))
+    # Update 0.2.4 — the look's colours (the desert's sandstone: `tint`, the floor tile's own `floorTint`) and its sand.
+    recolour(style, protos)
+    sand_cells(data.get('sand', []), style)
     if args.demon and data.get('demon'):
         demon_at(args.demon, data['demon'])
     for pad in data['pads']:
@@ -186,6 +228,12 @@ def main():
     scene.world.color = (0.03, 0.025, 0.035)
     if args.day:
         daylight(scene)
+        # Update 0.2.4 — the look's own sky and sun.
+        if style.get('sky') is not None:
+            scene.world.node_tree.nodes['Background'].inputs['Color'].default_value = (*srgb(style['sky']), 1)
+        for o in scene.objects:
+            if o.type == 'LIGHT' and o.data.type == 'SUN' and style.get('sun') is not None:
+                o.data.color = srgb(style['sun'])
     scene.render.resolution_x = args.width
     scene.render.resolution_y = round(args.width * 9 / 16)
     scene.render.image_settings.file_format = 'PNG'

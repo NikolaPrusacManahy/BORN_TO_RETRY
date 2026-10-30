@@ -65,6 +65,16 @@ function SwordIcon({ gold }: { gold: boolean }) {
   );
 }
 
+/** Update 0.2.4 — the Pistol. */
+function PistolIcon() {
+  return (
+    <svg viewBox="0 0 32 32" className="rb-slot-icon">
+      <path d="M4 9h23v5H13l-1 3h-3l-2 9H3l3-12H4z" fill="#8b8f9c" stroke="#2a2018" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M9 18l-1.6 7" stroke="#6b3c1c" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function WeaponSlots({ slots, slot }: { slots: (HudSlot | null)[]; slot: number }) {
   return (
     <div className="rb-slots">
@@ -76,7 +86,7 @@ export function WeaponSlots({ slots, slot }: { slots: (HudSlot | null)[]; slot: 
         s ? (
           <span key={i} className={`rb-slot${slot === i + 1 ? ' is-on' : ''}${s.uses <= 0 ? ' is-broken' : ''}`}>
             <i className="rb-slot-n">{i + 2}</i>
-            {s.kind === 'grimoire' ? <BookIcon /> : s.kind === 'goldAxe' ? <AxeIcon /> : s.kind === 'hammer' || s.kind === 'goldHammer' ? <HammerIcon gold={s.kind === 'goldHammer'} /> : s.kind === 'daggers' || s.kind === 'goldDaggers' ? <DaggersIcon gold={s.kind === 'goldDaggers'} /> : <SwordIcon gold={s.kind === 'goldSword'} />}
+            {s.kind === 'pistol' ? <PistolIcon /> : s.kind === 'grimoire' ? <BookIcon /> : s.kind === 'goldAxe' ? <AxeIcon /> : s.kind === 'hammer' || s.kind === 'goldHammer' ? <HammerIcon gold={s.kind === 'goldHammer'} /> : s.kind === 'daggers' || s.kind === 'goldDaggers' ? <DaggersIcon gold={s.kind === 'goldDaggers'} /> : <SwordIcon gold={s.kind === 'goldSword'} />}
             <b className="rb-slot-uses">{s.uses}</b>
           </span>
         ) : null,

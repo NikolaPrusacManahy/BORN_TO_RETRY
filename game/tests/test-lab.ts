@@ -28,6 +28,13 @@ import { FEEL_LAB } from '../src/world/arenas/feelLab';
 import { buildDungeon } from '../src/world/dungeon/assemble';
 import { bossRoomStart } from '../src/world/dungeon/bossStart';
 import { planFloor } from '../src/world/dungeon/floorPlan';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { LabPanel } from '../src/screens/LabPanel';
+import { isMini, LAB_FLOORS, LAB_ITEMS } from '../src/screens/labLists';
+import { rosterOf } from '../src/sim/dungeon/wavePlan';
+import { bossOf } from '../src/sim/enemies/kinds';
+import { DROP_KINDS } from '../src/sim/items/drops';
 
 const s = FEEL_LAB.playerStart;
 const fresh = () => {
@@ -158,4 +165,30 @@ section('Lab — a boss room on demand');
     check(`and its show starts at once (the ${kind}'s)`, seen.includes('bossIntro') && run.boss.beat === 'intro' && run.boss.kind === kind);
   }
   check('F8 opens the Lab’s panel', devKeyAction('F8') === 'labPanel');
+}
+
+// Update 0.2.4 — the panel reworked (the designer: "make this interface a bit more comfier to navigate"): tabs, a
+// column a floor, laid out inside the panels' box (theme-19-lab.css: 9 buttons fit a floor's column, 10 an item's).
+section('Lab panel — a column a floor, the items by kind');
+{
+  const listed = LAB_FLOORS.flatMap((f) => f.enemies);
+  const fielded = [...new Set([1, 2, 3, 4].flatMap((f) => rosterOf(f)))];
+  check('every enemy of floors 1–4 is in the panel once', fielded.every((k) => listed.filter((l) => l === k).length === 1) && listed.length === fielded.length);
+  check('each under the first floor it comes on', LAB_FLOORS.every((f) => f.enemies.every((k) => rosterOf(f.floor).includes(k) && LAB_FLOORS.every((g) => g.floor >= f.floor || !rosterOf(g.floor).includes(k)))));
+  check('mini bosses last in their column', LAB_FLOORS.every((f) => f.enemies.findIndex(isMini) < 0 || f.enemies.slice(f.enemies.findIndex(isMini)).every(isMini)));
+  check('each floor with its boss', LAB_FLOORS.every((f) => f.boss === bossOf(f.floor)));
+  check('a floor’s column fits (9 enemies at most)', LAB_FLOORS.every((f) => f.enemies.length <= 9), LAB_FLOORS.map((f) => f.enemies.length).join(' '));
+  const items = LAB_ITEMS.flatMap(([, picks]) => picks.map(([, cmd]) => cmd));
+  const drops = items.flatMap((c) => (c.kind === 'item' ? [c.item] : []));
+  const weapons = items.flatMap((c) => (c.kind === 'weapon' ? [c.weapon as string] : []));
+  // (A weapon is a drop too; the panel gives it as a weapon.)
+  const loose = DROP_KINDS.filter((k) => !weapons.includes(k));
+  check('every item and bonus once, every weapon, a chest', loose.every((k) => drops.filter((d) => d === k).length === 1) && new Set(weapons).size === 9 && items.some((c) => c.kind === 'chest'));
+  check('an item’s column fits (10 at most)', LAB_ITEMS.every(([, picks]) => picks.length <= 10));
+  const html = renderToStaticMarkup(
+    createElement(LabPanel, { away: true, waves: false, meter: true, god: false, onCommand() {}, onBossRoom() {}, onFloor() {}, onBack() {}, onWaves() {}, onMeter() {}, onGod() {} }),
+  );
+  const count = (text: string) => html.split(text).length - 1;
+  check('it opens on Enemies: three tabs, four floors to play, four bosses with their rooms', (html.match(/rb-lab-tab[ "]/g) ?? []).length === 3 && count('>Play<') === 4 && count('>Room<') === 4 && html.includes('>Velociraptor<'));
+  check('below: Clear, Heal, Back; Waves, God, Meter, Stay', ['Clear', 'Heal', 'Back', 'Waves', 'God', 'Meter', 'Stay'].every((t) => html.includes(`>${t}<`)));
 }

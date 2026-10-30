@@ -3,11 +3,13 @@
 import { group, knob } from './schema';
 
 export const FISTS = group('fists', 'Fists', {
-  jabDamage: knob(10, 1, 50, 1, 'Jab damage', 'First two hits of the combo.'),
+  // Update 0.2.4 — the designer: a Grunt takes 6 hits, as they've played it for 30 hours (jab, jab, finisher, jab, jab,
+  // finisher: 7 + 7 + 10 + 7 + 7 + 10 for its 40). Every enemy takes the same. (Were 10 and 14: 4 hits.)
+  jabDamage: knob(7, 1, 50, 1, 'Jab damage', 'First two hits of the combo.'),
   jabKnock: knob(2, 0, 20, 0.5, 'Jab knockback', 'm/s.'),
   jabInterval: knob(0.18, 0.05, 0.6, 0.01, 'Jab interval', 'Seconds between jabs.'),
   comboWindow: knob(0.4, 0.1, 1.5, 0.05, 'Combo window', 'Jab again within this to continue the combo.'),
-  finisherDamage: knob(14, 1, 60, 1, 'Finisher damage', 'The third jab.'),
+  finisherDamage: knob(10, 1, 60, 1, 'Finisher damage', 'The third jab.'),
   finisherKnock: knob(8, 0, 30, 0.5, 'Finisher knockback', 'm/s.'),
   // Update 0.0.17 (the designer: it felt uncomfortable to get this close): melee reach +30% (was 2.2).
   reach: knob(2.9, 1, 5, 0.1, 'Reach', 'How far a punch hits (m).'),

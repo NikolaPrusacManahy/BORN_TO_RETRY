@@ -7,8 +7,9 @@
 // Update 0.0.12 — F is the ground slam (the designer).
 // Update 0.0.16 — Switch key (the wheel): the key you'll use at a chest.
 // Update 0.0.17 — Weapon 1–5 (the number keys): the weapon slots (1 is your fists).
+// Update 0.2.4 — Reload (R): the Pistol's magazine.
 
-export type Action = 'forward' | 'back' | 'left' | 'right' | 'jump' | 'dash' | 'slide' | 'slam' | 'attack' | 'heavy' | 'throw' | 'interact' | 'switchKey' | 'slot1' | 'slot2' | 'slot3' | 'slot4' | 'slot5';
+export type Action = 'forward' | 'back' | 'left' | 'right' | 'jump' | 'dash' | 'slide' | 'slam' | 'attack' | 'heavy' | 'throw' | 'reload' | 'interact' | 'switchKey' | 'slot1' | 'slot2' | 'slot3' | 'slot4' | 'slot5';
 /** Update 0.0.17 — the weapon slot actions, in slot order. */
 export const SLOT_ACTIONS: readonly Action[] = ['slot1', 'slot2', 'slot3', 'slot4', 'slot5'];
 export type Bindings = Record<Action, string>;
@@ -26,6 +27,7 @@ export const ACTIONS: { id: Action; label: string }[] = [
   { id: 'attack', label: 'Attack' },
   { id: 'heavy', label: 'Heavy' },
   { id: 'throw', label: 'Throw' },
+  { id: 'reload', label: 'Reload' },
   { id: 'interact', label: 'Interact' },
   { id: 'switchKey', label: 'Switch key' },
   { id: 'slot1', label: 'Fists' },
@@ -47,6 +49,7 @@ export const DEFAULT_BINDINGS: Bindings = {
   attack: 'Mouse0',
   heavy: 'Mouse2',
   throw: 'KeyQ',
+  reload: 'KeyR',
   interact: 'KeyE',
   switchKey: 'WheelDown',
   slot1: 'Digit1',

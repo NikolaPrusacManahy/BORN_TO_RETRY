@@ -15,12 +15,15 @@
 // walls standing in lava faced down to it, and a warm light over a pit every few cells (the torch lights).
 // Update 0.0.20 — each floor its look (styles.ts): floors 1–2 brick, floor 3 stone. The pieces a look changes come from
 // it (floor, walls, the doorway and its gate, columns, wall dressing, litter); the rest stay the same.
+// Update 0.2.4 — the shop's dressing and floor 4's sand cells (palms and cacti in their beds, quicksand) are
+// dressExtras.ts's; sand cells get no paving.
 import { createRng } from '../../core/rng';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, Side } from './floorPlan';
 import { HEIGHT, LAVA_DEPTH } from './assemble';
 import type { ArenaBox } from '../arena';
 import type { Cell } from './rooms';
 import { DungeonStyle, styleOf } from './styles';
+import { dressSand, dressShop, SANDY, SandCell } from './dressExtras';
 
 export interface Placement {
   piece: string;
@@ -52,6 +55,8 @@ export interface Dressing {
   /** Update 0.0.20 — the lava cells' middles, and the floor's look. */
   lava: { x: number; z: number }[];
   style: DungeonStyle;
+  /** Update 0.2.4 — loose sand: quicksand and the beds palms and cacti stand in. */
+  sand: SandCell[];
 }
 
 /** Kit pieces (export_dungeon_kit.py names). */
@@ -67,8 +72,6 @@ export const KIT = {
   spikes: 'kit_p1_Trap_spikes',
   torch: 'kit_p2_Torch_wall',
   banner: 'kit_p1_Banner_wall',
-  carpet: 'kit_p2_Carpet',
-  candelabrum: 'kit_p2_Candelabrum_tall',
 } as const;
 
 /** The arch is stretched so its opening is the 4 m doorway (it's 2.3 m wide, 3.1 m tall as it comes). */
@@ -106,6 +109,7 @@ export function dress(plan: FloorPlan): Dressing {
   const pieces: Placement[] = [];
   const torches: Dressing['torches'] = [];
   const lava: Dressing['lava'] = [];
+  const sand: SandCell[] = [];
   const put = (piece: string, x: number, y: number, z: number, rot = 0, sx = 1, sy = 1, sz = 1) => pieces.push({ piece, x, y, z, rot, sx, sy, sz });
   const inRoom = new Int16Array(GRID * GRID).fill(-1);
   for (const r of plan.rooms) for (let row = -1; row <= r.layout.h; row++) for (let col = -1; col <= r.layout.w; col++) inRoom[(r.z0 + row) * GRID + r.x0 + col] = r.index;
@@ -119,7 +123,7 @@ export function dress(plan: FloorPlan): Dressing {
       const c = cellAt(plan, col, row);
       const x = cellX(col);
       const z = cellZ(row);
-      if (surface(c) && c !== 'lava') put(K.floor, x, K.floorY, z);
+      if (surface(c) && c !== 'lava' && !SANDY.has(c)) put(K.floor, x, K.floorY, z);
       // A pit's sides: a face down to the lava on every side of this cell that looks onto it (walls get theirs below).
       if (surface(c) && c !== 'lava') {
         for (const [dc, dr, side] of DIRS) {
@@ -158,6 +162,11 @@ export function dress(plan: FloorPlan): Dressing {
           break;
         case 'column':
           column(K, x, z, put);
+          break;
+        case 'sand':
+        case 'palm':
+        case 'cactus':
+          dressSand(c, x, z, rng, put, sand);
           break;
         case 'low':
           put(KIT.crate, x, 0, z, Math.floor(rng() * 4) * (Math.PI / 2), 1.38, 1, 1.38);
@@ -220,24 +229,7 @@ export function dress(plan: FloorPlan): Dressing {
       }
     }
   }
-  // The shop: a carpet in front of the row of tiles, a candelabrum at each end.
-  for (const r of plan.rooms) {
-    const tiles = r.layout.tiles;
-    if (r.kind !== 'shop' || tiles.length === 0) continue;
-    const row = tiles[0][1];
-    const along = tiles.every((t) => t[1] === row);
-    const xs = tiles.map((t) => cellX(r.x0 + t[0]));
-    const zs = tiles.map((t) => cellZ(r.z0 + t[1]));
-    const midX = (Math.min(...xs) + Math.max(...xs)) / 2;
-    const midZ = (Math.min(...zs) + Math.max(...zs)) / 2;
-    // Towards the room's middle from the tiles.
-    const inward = cellZ(r.z0 + r.layout.h / 2) - CELL / 2 > midZ ? 1 : -1;
-    if (along) {
-      put(KIT.carpet, midX, 0.01, midZ + inward * 3.4, Math.PI / 2, 1.4, 1, 1.4);
-      put(KIT.candelabrum, Math.min(...xs) - CELL, 0, midZ);
-      put(KIT.candelabrum, Math.max(...xs) + CELL, 0, midZ);
-    }
-  }
+  dressShop(plan, put);
   // The way down: the wall over the wooden gate's doorway (on the room's side), a torch either side of it.
   const out = plan.wayOut;
   const ns = out.side === 'n' || out.side === 's';
@@ -257,7 +249,7 @@ export function dress(plan: FloorPlan): Dressing {
     put(KIT.torch, tx, TORCH_Y, tz, FACING[inward] - Math.PI / 2);
     torches.push({ x: ns ? tx : gx - ox * (CELL / 2 + 0.95), y: TORCH_Y + 1.2, z: ns ? gz - oz * (CELL / 2 + 0.95) : tz });
   }
-  return { pieces, gates, torches, cores: coresOf(plan), lava, style: K };
+  return { pieces, gates, torches, cores: coresOf(plan), lava, style: K, sand };
 }
 
 /** A column: one piece, or a stack up to the columns' height (a bottom, middles, a top). */

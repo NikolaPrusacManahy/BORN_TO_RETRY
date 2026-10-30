@@ -27,6 +27,7 @@ export function readCombatIntent(input: Input, look: Look, i: CombatIntent, aliv
   i.attackPressed = live && input.actionPressed('attack');
   i.heavyHeld = live && input.action('heavy');
   i.throwPressed = live && input.actionPressed('throw');
+  i.reloadPressed = live && input.actionPressed('reload');
   i.interactPressed = live && input.actionPressed('interact');
   i.switchKeyPressed = live && input.actionPressed('switchKey');
   i.slotPressed = -1;

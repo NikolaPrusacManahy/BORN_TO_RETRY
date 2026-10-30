@@ -37,6 +37,18 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   demon: null,
   dragon: null,
   boneKing: null,
+  // Update 0.2.4 — floor 4's go their own ways (they don't wait their turn: that's what makes them hard).
+  tribal: null,
+  cactoro: null,
+  cactoroBig: null,
+  hywirl: null,
+  dino: null,
+  dinoBlob: null,
+  lizard: null,
+  greenBlob: null,
+  blobling: null,
+  maskTribal: null,
+  skullOrc: null,
 };
 
 /** Kinds whose attack waits for its cooldown: they take a token only once it's ready (a token isn't held idle). */

@@ -92,6 +92,8 @@ def main():
         clear()
         for m in shot['meshes']:
             add_mesh(m)
+        # (Update 0.2.4 — a shot may have its own lens: the Pistol aimed narrows the arms'.)
+        cam.data.angle = math.radians(shot.get('fov', data['fov']))
         crosshair()
         scene.render.filepath = os.path.join(args.out, shot['name'] + '.png')
         bpy.ops.render.render(write_still=True)

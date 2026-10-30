@@ -49,6 +49,8 @@ import { fillDebug } from './overlayFeed';
 import { RunBase } from './runBase';
 import { endsRun } from './runLinks';
 import { skullOf } from '../sim/combat/grab';
+import { sandSlow } from '../sim/dungeon/quicksand';
+import { aimTurn, viewZoom } from '../sim/weapons/gun';
 
 /** Update 0.2.3 — held in the Bone King's hand, the view turns to its skull this fast (1/s). */
 const GRAB_TURN = 10;
@@ -77,7 +79,8 @@ export class Run extends RunBase {
       readCombatIntent(input, this.look, this.combatIntent, free);
       updateHealth(p, stepDt);
       // (Update 0.1.9 — and the weapon in your hand: the Dual Daggers' +15%.)
-      p.speedMul = moveFactor(this.combat);
+      // (Update 0.2.4 — and quicksand.)
+      p.speedMul = moveFactor(this.combat) * (d ? sandSlow(p, d.level.sand) : 1);
       p.hpBonus = hpBonusOf(this.combat.items);
       const ci = this.combatIntent;
       if (stepTreasure(this.treasure, p, this.combat, ci.interactPressed, ci.switchKeyPressed, this.fighting, stepDt)) ci.interactPressed = false;
@@ -116,7 +119,9 @@ export class Run extends RunBase {
     const still = kneeling || this.show.locked || this.chestShot.locked || execHeld(this.combat.exec) || grab.on;
     const mouseDx = locked && !still ? input.mouseDX : 0;
     const mouseDy = locked && !still ? input.mouseDY : 0;
-    if (locked && !still) this.look.apply(mouseDx, mouseDy, settings);
+    // (Update 0.2.4 — aimed down a gun's sights, the mouse slows and the view narrows.)
+    const turn = aimTurn(this.combat);
+    if (locked && !still) this.look.apply(mouseDx * turn, mouseDy * turn, settings);
     if (kneeling) this.look.turnTo(p.kneelYaw, (CAMERA.v.kneelPitch * Math.PI) / 180, CAMERA.v.kneelTurn, real);
     if (grab.on) {
       // Held: the view on its skull.
@@ -142,7 +147,7 @@ export class Run extends RunBase {
     }
     this.sounds.setSliding(p.sliding && p.grounded);
     this.sounds.setWallRunning(p.wallRunning);
-    this.rig.update(real * scale, this.clock.alpha, this.prev, p, this.look, settings.fov, aspect);
+    this.rig.update(real * scale, this.clock.alpha, this.prev, p, this.look, settings.fov * viewZoom(this.combat), aspect);
     // The boss room's show may take the view.
     const shot = this.show.update(real, this.camera, this.look, this.combat);
     const chestShot = !shot.cinematic && this.chestShot.update(real, this.treasure, this.camera);

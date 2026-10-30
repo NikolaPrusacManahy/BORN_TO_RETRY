@@ -1,5 +1,6 @@
 // M1 — placeholder sounds made in code (no files yet): pitch-swept tones and filtered noise. Real samples
 // replace them in M4; until then movement still needs to sound like something.
+// Update 0.2.4 — either can start a moment later (`delay`, s): a sound in beats (the Pistol's magazine going in).
 import type { AudioEngine } from './audio';
 
 interface Tone {
@@ -8,6 +9,7 @@ interface Tone {
   dur: number;
   gain: number;
   type?: OscillatorType;
+  delay?: number;
 }
 
 interface Noise {
@@ -17,12 +19,13 @@ interface Noise {
   from: number;
   to: number;
   q?: number;
+  delay?: number;
 }
 
 export function tone(a: AudioEngine, t: Tone) {
   const ctx = a.ctx;
   if (!ctx || !a.sfx) return;
-  const now = ctx.currentTime;
+  const now = ctx.currentTime + (t.delay ?? 0);
   const osc = ctx.createOscillator();
   const g = ctx.createGain();
   osc.type = t.type ?? 'sine';
@@ -38,7 +41,7 @@ export function tone(a: AudioEngine, t: Tone) {
 export function noise(a: AudioEngine, n: Noise) {
   const ctx = a.ctx;
   if (!ctx || !a.sfx || !a.noise) return;
-  const now = ctx.currentTime;
+  const now = ctx.currentTime + (n.delay ?? 0);
   const src = ctx.createBufferSource();
   src.buffer = a.noise;
   const f = ctx.createBiquadFilter();

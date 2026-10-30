@@ -4,6 +4,7 @@
 // teleports away from Ninja dodge chance of them (seeded): gone from where it stood, back on its feet Ninja teleport
 // nearest to furthest further along the blow's way (turned up to 60° aside), on free floor, its wind-up dropped, and
 // not again for Ninja dodge rest. Not while held in an execution. Pure.
+// Update 0.2.4 — asked by evade.ts, which answers for every enemy that slips your blows.
 import { Vector3 } from 'three';
 import { FOES3 } from '../../tuning/foes3';
 import type { CombatState } from '../combat/state';
@@ -37,7 +38,7 @@ export function updateNinja(n: Enemy, index: number, player: PlayerState, w: Ene
 
 /** A hit along (dirX, dirZ) is about to land on enemy `i`: true if it's a Ninja that teleports away instead (the hit
  *  misses). */
-export function dodges(state: CombatState, i: number, dirX: number, dirZ: number): boolean {
+export function ninjaDodges(state: CombatState, i: number, dirX: number, dirZ: number): boolean {
   const e = state.enemies[i];
   if (e.kind !== 'ninja' || !isLive(e) || e.phase === 'held' || e.blink > 0 || e.frozen > 0) return false;
   if (state.rng() >= FOES3.v.ninjaDodge) return false;

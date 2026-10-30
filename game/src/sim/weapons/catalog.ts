@@ -13,24 +13,30 @@
 // Update 0.1.9 — the Dual Daggers (the designer: one in each hand, very fast hits, they last very long, +15% move speed
 // while held: `HASTE`). Their cuts are the sword's swing with their own numbers; right click held throws a volley of
 // them (`VOLLEYS`, weapons/knives.ts).
+// Update 0.2.4 — the Pistol (the designer: "the pistol gun (not revolver)"): it shoots (`SHOOTS`, weapons/gun.ts):
+// left click a shot, right click held aims down the sights, R reloads its magazine (15), Q throws it. Its uses are its
+// bullets.
+import { GUN } from '../../tuning/gun';
 import { ITEMS } from '../../tuning/items';
 import { WEAPONS } from '../../tuning/weapons';
 
-export type WeaponKind = 'sword' | 'goldSword' | 'grimoire' | 'goldAxe' | 'hammer' | 'daggers' | 'goldHammer' | 'goldDaggers';
-export const WEAPON_KINDS: readonly WeaponKind[] = ['sword', 'goldSword', 'grimoire', 'goldAxe', 'hammer', 'daggers', 'goldHammer', 'goldDaggers'];
+export type WeaponKind = 'sword' | 'goldSword' | 'grimoire' | 'goldAxe' | 'hammer' | 'daggers' | 'goldHammer' | 'goldDaggers' | 'pistol';
+export const WEAPON_KINDS: readonly WeaponKind[] = ['sword', 'goldSword', 'grimoire', 'goldAxe', 'hammer', 'daggers', 'goldHammer', 'goldDaggers', 'pistol'];
 
 /** What the HUD calls each weapon. */
-export const WEAPON_NAME: Record<WeaponKind, string> = { sword: 'Sword', goldSword: 'Gold Sword', grimoire: 'Grimoire', goldAxe: 'Gold Axe', hammer: 'Hammer', daggers: 'Dual Daggers', goldHammer: 'Gold Hammer', goldDaggers: 'Gold Daggers' };
+export const WEAPON_NAME: Record<WeaponKind, string> = { sword: 'Sword', goldSword: 'Gold Sword', grimoire: 'Grimoire', goldAxe: 'Gold Axe', hammer: 'Hammer', daggers: 'Dual Daggers', goldHammer: 'Gold Hammer', goldDaggers: 'Gold Daggers', pistol: 'Pistol' };
 /** Update 0.1.4 — it casts fire (left click a fireball, right click held a charged one) rather than swinging. */
-export const CASTS: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: true, goldAxe: false, hammer: false, daggers: false, goldHammer: false, goldDaggers: false };
+export const CASTS: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: true, goldAxe: false, hammer: false, daggers: false, goldHammer: false, goldDaggers: false, pistol: false };
 /** Update 0.1.5 — thrown with right click, it stays where it lands (it doesn't break) and right click calls it back. */
-export const RETURNS: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: false, goldAxe: true, hammer: false, daggers: false, goldHammer: false, goldDaggers: false };
+export const RETURNS: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: false, goldAxe: true, hammer: false, daggers: false, goldHammer: false, goldDaggers: false, pistol: false };
 /** Update 0.1.5 — its charged blow smashes the floor: a shockwave rolls out across the room. */
-export const SMASHES: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: false, goldAxe: false, hammer: true, daggers: false, goldHammer: true, goldDaggers: false };
+export const SMASHES: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: false, goldAxe: false, hammer: true, daggers: false, goldHammer: true, goldDaggers: false, pistol: false };
 /** Update 0.1.9 — right click held charges a volley of thrown daggers (knives.ts) rather than a charged blow. */
-export const VOLLEYS: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: false, goldAxe: false, hammer: false, daggers: true, goldHammer: false, goldDaggers: true };
+export const VOLLEYS: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: false, goldAxe: false, hammer: false, daggers: true, goldHammer: false, goldDaggers: true, pistol: false };
+/** Update 0.2.4 — it shoots: left click a bullet, right click held aims, a magazine to reload (weapons/gun.ts). */
+export const SHOOTS: Record<WeaponKind, boolean> = { sword: false, goldSword: false, grimoire: false, goldAxe: false, hammer: false, daggers: false, goldHammer: false, goldDaggers: false, pistol: true };
 /** Update 0.1.9 — extra run speed while it's in your hand (0.15: +15%). */
-export const HASTE: Record<WeaponKind, () => number> = { sword: () => 0, goldSword: () => 0, grimoire: () => 0, goldAxe: () => 0, hammer: () => 0, daggers: () => WEAPONS.v.daggerSpeed, goldHammer: () => 0, goldDaggers: () => WEAPONS.v.daggerSpeed };
+export const HASTE: Record<WeaponKind, () => number> = { sword: () => 0, goldSword: () => 0, grimoire: () => 0, goldAxe: () => 0, hammer: () => 0, daggers: () => WEAPONS.v.daggerSpeed, goldHammer: () => 0, goldDaggers: () => WEAPONS.v.daggerSpeed, pistol: () => 0 };
 
 export interface WeaponStats {
   name: string;
@@ -83,6 +89,8 @@ export const WEAPON_STATS: Record<WeaponKind, () => WeaponStats> = {
   daggers: () => daggerStats(WEAPON_NAME.daggers, WEAPONS.v.daggerUses),
   goldHammer: () => hammerStats(WEAPON_NAME.goldHammer, WEAPONS.v.goldHammerUses),
   goldDaggers: () => daggerStats(WEAPON_NAME.goldDaggers, WEAPONS.v.goldDaggerUses),
+  // (Its uses are its bullets; it never swings, and right click aims.)
+  pistol: () => ({ ...swordStats(WEAPON_NAME.pistol, Math.round(GUN.v.pistolRounds)), interval: GUN.v.pistolInterval }),
 };
 
 function hammerStats(name: string, uses: number): WeaponStats {

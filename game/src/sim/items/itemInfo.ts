@@ -3,6 +3,7 @@
 // chest's tiers, loot.ts; the rest by where they stand among them: the Hammer and the normal key common, the Dual
 // Daggers and the white key rare, the gold key epic; the kill bonuses have none), and one line on what it does, with
 // the numbers as they're set now. For everything that can lie on the floor, stand on a shop tile or be picked up. Pure.
+import { GUN } from '../../tuning/gun';
 import { BONUS } from '../../tuning/bonus';
 import { ITEMS } from '../../tuning/items';
 import { WEAPONS } from '../../tuning/weapons';
@@ -60,6 +61,7 @@ const DOES: Record<InfoKind, () => string> = {
   goldHammer: () => 'Heavy blows; a charged one shakes the floor.',
   daggers: () => `Very fast cuts; hold to throw a volley. +${pct(WEAPONS.v.daggerSpeed)} run speed.`,
   goldDaggers: () => `Very fast cuts; hold to throw a volley. +${pct(WEAPONS.v.daggerSpeed)} run speed.`,
+  pistol: () => `Shoots; hold right click to aim, R to reload. ${Math.round(GUN.v.pistolMag)} a magazine.`,
 };
 
 /** What isn't in a chest's tiers. */

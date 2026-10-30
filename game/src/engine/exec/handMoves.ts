@@ -258,3 +258,15 @@ export const HAND_MOVES: Partial<Record<EnemyKind, readonly HandKey[]>> = {
   ],
   blueDemon: barrage(),
 };
+
+// Update 0.2.4 — floor 4's hands, as their moves (execMoves.ts).
+HAND_MOVES.tribal = HAND_MOVES.grunt;
+HAND_MOVES.cactoroBig = HAND_MOVES.brute;
+HAND_MOVES.cactoro = HAND_MOVES.slime;
+HAND_MOVES.hywirl = HAND_MOVES.wraith;
+HAND_MOVES.dinoBlob = HAND_MOVES.grunt;
+HAND_MOVES.lizard = HAND_MOVES.grunt;
+HAND_MOVES.skullOrc = HAND_MOVES.brute;
+HAND_MOVES.greenBlob = HAND_MOVES.slime;
+HAND_MOVES.blobling = HAND_MOVES.slime;
+HAND_MOVES.maskTribal = HAND_MOVES.wraith;

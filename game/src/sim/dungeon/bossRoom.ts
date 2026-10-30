@@ -9,12 +9,14 @@
 // Update 0.2.0 (the designer: "bosses no longer drop the rewards right away, instead a chest spawns 3 m away from the
 // exit gate") — its body bursts with nothing; what it left (its coins, a key, a heart) is in the chest that rises in
 // front of the wooden gate as it opens (treasure.ts, roomLoop.ts).
-// Update 0.2.3 — floor 3's is the Bone King: it roars as it takes its stance.
+// Update 0.2.3 — floor 3's is the Bone King: it roars as it takes its stance. Update 0.2.4 — floor 4's the Dino (it
+// roars too).
 import type { Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import { BOSS } from '../../tuning/boss';
 import { DRAGON } from '../../tuning/dragon';
 import { BONE_KING } from '../../tuning/boneKing';
+import { DINO } from '../../tuning/dino';
 import { CINEMA } from '../../tuning/cinema';
 import { clearQuakes } from '../combat/quakes';
 import { clearBombs } from '../combat/bombs';
@@ -71,7 +73,7 @@ function callsOf(kind: EnemyKind): Calls | null {
 }
 
 /** The coins a boss leaves (Update 0.2.0: in its chest). */
-export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : BOSS.v.demonCoins);
+export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : BOSS.v.demonCoins);
 
 /** The show's beats, in seconds from stepping in. */
 export interface IntroBeats {
@@ -163,6 +165,7 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
         b.stance = true;
         if (b.kind === 'dragon') ev.push('dragonScream', b.slot, boss.pos.x, height * 0.8, boss.pos.z);
         if (b.kind === 'boneKing') ev.push('kingRoar', b.slot, boss.pos.x, height * 0.85, boss.pos.z);
+        if (b.kind === 'dino') ev.push('dinoRoar', b.slot, boss.pos.x, height * 0.85, boss.pos.z);
       }
       if (b.t >= s.end) {
         boss.pos.y = 0;

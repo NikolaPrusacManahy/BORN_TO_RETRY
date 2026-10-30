@@ -221,7 +221,7 @@ function send(run: DungeonRun, i: number, player: PlayerState, combat: CombatSta
   for (let k = 0; k < kinds.length; k++) {
     const kind = kinds[k];
     let slot: number;
-    if (kind === 'spitter' && perches.length > 0) {
+    if ((kind === 'spitter' || kind === 'tribal') && perches.length > 0) {
       slot = spawnAt(combat.enemies, kind, perches, player, rng, combat.events);
       if (slot >= 0) combat.enemies[slot].perch = combat.enemies[slot].pos.y;
     } else {

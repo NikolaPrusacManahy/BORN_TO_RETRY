@@ -34,8 +34,8 @@ section('Bindings — anything the player wants');
   setDevKeysReserved(false);
   check('in a real build the dev keys are free to bind', isBindable('F1') && isBindable('F4') && isBindable('Backquote'));
   setDevKeysReserved(true);
-  // (Update 0.0.16 — one more for Switch key; Update 0.0.17 — five for the weapon slots.)
-  const codes = ['WheelUp', 'WheelDown', 'Mouse3', 'Mouse4', 'ControlLeft', 'KeyZ', 'Tab', 'CapsLock', 'ArrowUp', 'Numpad0', 'KeyX', 'AltLeft', 'KeyV', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0'];
+  // (Update 0.0.16 — one more for Switch key; Update 0.0.17 — five for the weapon slots; Update 0.2.4 — Reload.)
+  const codes = ['WheelUp', 'WheelDown', 'Mouse3', 'Mouse4', 'ControlLeft', 'KeyZ', 'Tab', 'CapsLock', 'ArrowUp', 'Numpad0', 'KeyX', 'KeyN', 'AltLeft', 'KeyV', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0'];
   let b = DEFAULT_BINDINGS;
   for (const [i, a] of ACTIONS.entries()) b = rebind(b, a.id, codes[i]);
   check('every action can take a key at once, all different', new Set(Object.values(b)).size === ACTIONS.length && ACTIONS.every((a, i) => b[a.id] === codes[i]));

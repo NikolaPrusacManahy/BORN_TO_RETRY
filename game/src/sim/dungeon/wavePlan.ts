@@ -17,21 +17,26 @@
 // Mini bosses a room of the big ones.
 // Update 0.1.20 — a challenge room (the designer): Challenge: more enemies on top of its count, and always Challenge:
 // mini bosses of the floor's (one in the first wave, the next in the last, and so on), no others.
+// Update 0.2.4 — floor 4's own (the designer: none of the floors before it, but the Wasp): the Tribal, the Cactoro,
+// the Dino (the boss's old model, small), the Lizard, the Green Blob; the Hywirl, the Wasp, the Flying Tribal flying;
+// the big Cactoro and the Skull Orc its mini bosses. Its perches hold Tribals (they throw from above).
 import type { Rng } from '../../core/rng';
 import { ENEMY_KINDS, EnemyKind, MINI_BOSSES } from '../enemies/kinds';
 import { ROOMS } from '../../tuning/rooms';
 
-export const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3, demon: 99, slime: 1, frog: 2, snake: 1, wasp: 2, spider: 4, blueDemon: 4, dragon: 99, skeleton: 1, mushnub: 1, ninja: 4, boneKing: 99 };
+export const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3, demon: 99, slime: 1, frog: 2, snake: 1, wasp: 2, spider: 4, blueDemon: 4, dragon: 99, skeleton: 1, mushnub: 1, ninja: 4, boneKing: 99, tribal: 2, cactoro: 2, cactoroBig: 4, hywirl: 2, dino: 99, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 1, maskTribal: 2, skullOrc: 4 };
 /** How often each kind is picked, and the first room (on floor 1) it comes in. **(placeholders)** The Demon is never
  *  bought: it's the boss room's. */
-const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1, demon: 0, slime: 2, frog: 1.5, snake: 2, wasp: 1.5, spider: 0.6, blueDemon: 0.6, dragon: 0, skeleton: 3, mushnub: 3, ninja: 0.6, boneKing: 0 };
-const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3, demon: Infinity, slime: 1, frog: 1, snake: 1, wasp: 1, spider: 1, blueDemon: 1, dragon: Infinity, skeleton: 1, mushnub: 1, ninja: 1, boneKing: Infinity };
+const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1, demon: 0, slime: 2, frog: 1.5, snake: 2, wasp: 1.5, spider: 0.6, blueDemon: 0.6, dragon: 0, skeleton: 3, mushnub: 3, ninja: 0.6, boneKing: 0, tribal: 2.5, cactoro: 2.5, cactoroBig: 0.6, hywirl: 1.8, dino: 0, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 0, maskTribal: 1.2, skullOrc: 0.6 };
+const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3, demon: Infinity, slime: 1, frog: 1, snake: 1, wasp: 1, spider: 1, blueDemon: 1, dragon: Infinity, skeleton: 1, mushnub: 1, ninja: 1, boneKing: Infinity, tribal: 1, cactoro: 1, cactoroBig: 1, hywirl: 1, dino: Infinity, dinoBlob: 1, lizard: 1, greenBlob: 1, blobling: Infinity, maskTribal: 1, skullOrc: 1 };
 /** Each floor's enemies (index: the floor; past the last, the last's). */
 const ROSTER: readonly (readonly EnemyKind[])[] = [
   [],
   ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith'],
   ['grunt', 'spitter', 'leaper', 'stinger', 'wraith', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon'],
   ['spitter', 'stinger', 'wraith', 'slime', 'frog', 'snake', 'wasp', 'spider', 'skeleton', 'mushnub', 'ninja'],
+  // Update 0.2.4 — floor 4, the desert (the designer's list).
+  ['tribal', 'cactoro', 'dinoBlob', 'lizard', 'greenBlob', 'hywirl', 'wasp', 'maskTribal', 'cactoroBig', 'skullOrc'],
 ];
 
 /** The enemies floor `floor` sends. */
@@ -104,20 +109,23 @@ function addMinis(plan: EnemyKind[][], floor: number, rng: Rng) {
   }
 }
 
+/** Update 0.2.4 — who stands on a floor's perches and throws from above. */
+export const percherOf = (floor: number): EnemyKind => (floor >= 4 ? 'tribal' : 'spitter');
+
 /** Update 0.0.21 — spitters to stand on a room's perches, in every wave of a room with them. **(placeholder)** */
 export const PERCHED = 2;
 
 /** Update 0.0.21 — a room with `perches`: every wave brings spitters to stand on them (as many as it has, up to
- *  PERCHED). Rooms without perches are as planned. Update 0.1.1 — they take the place of the wave's cheapest (not
+ *  PERCHED; Update 0.2.4: the floor's percher, `kind`: floor 4's Tribals). Rooms without perches are as planned. Update 0.1.1 — they take the place of the wave's cheapest (not
  *  added: the room's count stays). */
-export function perchWaves(waves: EnemyKind[][], perches: number): EnemyKind[][] {
+export function perchWaves(waves: EnemyKind[][], perches: number, kind: EnemyKind = 'spitter'): EnemyKind[][] {
   const n = Math.min(perches, PERCHED);
   if (n <= 0) return waves;
   for (const w of waves) {
-    let need = n - w.filter((k) => k === 'spitter').length;
+    let need = n - w.filter((k) => k === kind).length;
     for (let i = w.length - 1; i >= 0 && need > 0; i--) {
-      if (w[i] === 'spitter' || isBig(w[i])) continue;
-      w[i] = 'spitter';
+      if (w[i] === kind || isBig(w[i])) continue;
+      w[i] = kind;
       need--;
     }
     w.sort((a, b) => COST[b] - COST[a]);
