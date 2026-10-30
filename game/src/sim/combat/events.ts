@@ -153,6 +153,9 @@ export type CombatEvent =
   | 'tribalWindup'
   | 'tribalThrow'
   | 'tribalDodge'
+  // (A Tribal jumping down from its perch to find you, and landing.)
+  | 'tribalJump'
+  | 'tribalLand'
   | 'cactoroDig'
   | 'cactoroRise'
   | 'cactoroSpines'

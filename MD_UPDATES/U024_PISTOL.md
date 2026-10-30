@@ -54,3 +54,7 @@ Status: built (2026-10-30), in the Lab only (F8 → Items → Weapons → Pistol
 ## (placeholders)
 - Every number but the 8, the 40 and the 5. Where it comes from in a run (shop, chests, drops): not yet, the Lab only.
 - Its sounds: code-made until recordings are found.
+
+## Update 0.2.5
+- Its bullet streaks now go (they stayed in the air); thinner. The hand closes where the designer circled on the grip:
+  42% of the way up, nearer its back strap (spec `MD_UPDATES/U025_FIXES.md`).

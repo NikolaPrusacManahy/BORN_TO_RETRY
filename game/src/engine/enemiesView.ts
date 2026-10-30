@@ -26,7 +26,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import type { CombatState } from '../sim/combat/state';
 import { ENEMY_POOL, EnemyPhase } from '../sim/enemies/enemy';
-import { ENEMY_KINDS, ENEMY_STATS, EnemyKind } from '../sim/enemies/kinds';
+import { ENEMY_KINDS, ENEMY_STATS, EnemyKind, flies } from '../sim/enemies/kinds';
 import { ENEMIES } from '../tuning/enemies';
 import { FOES3 } from '../tuning/foes3';
 import { BONE_KING } from '../tuning/boneKing';
@@ -54,7 +54,12 @@ interface Slot {
   phase: EnemyPhase | null;
   t: number;
   ring: THREE.Mesh;
+  /** Seconds it has stood still in its chase. */
+  still: number;
 }
+
+/** Update 0.2.5 — standing still in its chase this long (s), one on its feet stands rather than runs on the spot. */
+const STILL = 0.12;
 
 export class EnemiesView {
   readonly group = new THREE.Group();
@@ -73,7 +78,7 @@ export class EnemiesView {
       const ring = new THREE.Mesh(this.ringGeo, this.ringMat.clone());
       ring.visible = false;
       this.group.add(ring);
-      this.slots.push({ bodies: {}, kind: null, phase: null, t: 0, ring });
+      this.slots.push({ bodies: {}, kind: null, phase: null, t: 0, ring, still: 0 });
     }
     const loader = new GLTFLoader();
     this.loaded = loadModels
@@ -174,6 +179,10 @@ export class EnemiesView {
       if (e.phase === 'rebuild' && e.t >= (king ? BONE_KING.v.kingDown : FOES3.v.skeletonDown)) want = 'rise';
       // Update 0.2.3 — the Bone King stands as it crouches to jump (its attack is a swing).
       if (king && e.phase === 'windup' && e.move === SMASH) want = 'idle';
+      // Update 0.2.5 (the designer: Tribals on a perch "just run on the spot"): one on its feet that hasn't moved a while stands.
+      const moved = Math.hypot(e.pos.x - e.prev.x, e.pos.z - e.prev.z) > 1e-4;
+      slot.still = moved || e.phase !== 'chase' ? 0 : slot.still + dt;
+      if (want === 'move' && slot.still > STILL && !flies(e.kind)) want = 'idle';
       if (want !== b.role || (again && ONCE.includes(want))) this.play(b, want);
       attack.timeScale = look.lands / windup;
       b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? BONE_KING.v.kingRise : FOES3.v.skeletonRise);

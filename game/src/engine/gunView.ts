@@ -1,6 +1,8 @@
 // Update 0.2.4 — the Pistol's shots in the world: each bullet a bright streak racing from the muzzle you see (its spot
 // on screen carried from the arms' camera into the world's) to where it ended, a flash of light round you, and a hole
 // where it hit a wall, fading after a while. (The sparks, the arms and the sounds are the feedback's.)
+// Update 0.2.5 (the designer: "Pistol bullets remain, looks ugly"): a streak's tail ran only as far as its head, which stops
+// where the bullet ended, so it never got there and the streak stayed; now its tail runs on and it's gone. Thinner.
 import * as THREE from 'three';
 import type { CombatState } from '../sim/combat/state';
 import type { Viewmodel } from './viewmodel/viewmodel';
@@ -9,7 +11,7 @@ const TRACERS = 8;
 const HOLES = 24;
 /** A streak's speed (m/s) and longest length (m); the flash's light and how fast it fades (shares a second). */
 const SPEED = 420;
-const STREAK = 7;
+const STREAK = 4;
 const FLASH = { intensity: 30, distance: 9, fade: 40 };
 /** A hole's size (m) and life (s); the muzzle's distance from your eye in the world (m). */
 const HOLE = { size: 0.045, life: 8 };
@@ -29,13 +31,13 @@ export class GunView {
   private next = 0;
   private nextHole = 0;
   private readonly light = new THREE.PointLight(0xffb060, 0, FLASH.distance, 2);
-  private readonly tracerMat = new THREE.MeshBasicMaterial({ color: 0xffe2a0, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+  private readonly tracerMat = new THREE.MeshBasicMaterial({ color: 0xffe2a0, transparent: true, opacity: 0.7, depthWrite: false, blending: THREE.AdditiveBlending });
   private readonly holeMat = new THREE.MeshBasicMaterial({ color: 0x15100c, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
   private readonly eye = new THREE.Vector3();
   private readonly ndc = new THREE.Vector3();
   private readonly dir = new THREE.Vector3();
   private readonly mid = new THREE.Vector3();
-  private readonly geo = new THREE.CylinderGeometry(0.012, 0.012, 1, 6, 1, true).rotateX(Math.PI / 2);
+  private readonly geo = new THREE.CylinderGeometry(0.006, 0.006, 1, 6, 1, true).rotateX(Math.PI / 2);
   private readonly holeGeo = new THREE.CircleGeometry(1, 12);
 
   constructor(
@@ -76,8 +78,9 @@ export class GunView {
       if (t.t < 0) continue;
       t.t += dt;
       const total = t.from.distanceTo(t.to);
-      const head = Math.min(total, t.t * SPEED);
-      const tail = Math.max(0, head - t.len);
+      const run = t.t * SPEED;
+      const head = Math.min(total, run);
+      const tail = Math.min(total, Math.max(0, run - t.len));
       t.mesh.visible = tail < total;
       if (!t.mesh.visible) {
         t.t = -1;

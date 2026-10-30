@@ -40,7 +40,7 @@ import type { PlayerState } from '../player/state';
 import { BossRun, createBossRun, startShow, stepBoss } from './bossRoom';
 import { bossOf } from '../enemies/kinds';
 import { createTreasure, raiseChest, Treasure } from './treasure';
-import { rewardDone, startReward } from './reward';
+import { rewardDone, startReward, takeKeys } from './reward';
 import { CHEST_D, CHEST_W } from '../../world/dungeon/assemble';
 
 /** Update 0.2.0 — 'reward': a challenge room won, shut until its reward is taken. */
@@ -161,6 +161,7 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
     }
     rr.state = 'cleared';
     raiseChest(run.treasure, room.chest, combat);
+    takeKeys(run, i, player, combat, rng);
     for (const g of room.gates) run.shut[g] = false;
     ev.push('gatesOpen', i, (room.min.x + room.max.x) / 2, 1, (room.min.z + room.max.z) / 2);
   }

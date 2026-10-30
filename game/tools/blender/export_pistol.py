@@ -22,6 +22,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from scene_kit import export_glb, setup_previews, shoot  # noqa: E402
 
 PARTS = ('Slide', 'Trigger', 'Magazine')
+# Where the fist closes on the grip: this share of the way up it, this share of the way from its back to its front.
+# (Update 0.2.5: the designer circled where on the grip panel the fingers belong: 0.42 puts them there.)
+HOLD_UP = 0.42
+HOLD_BACK = 0.42
 # The game's (x, y, z) as Blender's (x, −z, y): y up there is z up here.
 TO_BLENDER = Matrix(((1, 0, 0), (0, 0, -1), (0, 1, 0))).to_4x4()
 # The pack's flat colours (its Diffuse nodes), a little sheen on the metal.
@@ -43,6 +47,8 @@ def parse_args():
     p.add_argument('--length', type=float, required=True, help='muzzle to the back of the grip in the game (m)')
     p.add_argument('--previews', required=True)
     p.add_argument('--engine', default='BLENDER_EEVEE')
+    p.add_argument('--hold-up', type=float, default=HOLD_UP, help='where the fist closes: share of the way up the grip')
+    p.add_argument('--hold-back', type=float, default=HOLD_BACK, help='share of the way from its back to its front')
     return p.parse_args(argv)
 
 
@@ -94,11 +100,12 @@ def main():
     mag_pts = [gun[i] for i, p in enumerate(parts) if p == 'Magazine']
     frame_pts = [gun[i] for i, p in enumerate(parts) if p == 'Frame']
     slide_pts = [gun[i] for i, p in enumerate(parts) if p == 'Slide']
-    # The grip: from the magazine's floor up to the slide's underside; held in the middle, centred front to back in the
-    # frame there.
+    # The grip: from the magazine's floor up to the slide's underside; held a little below its middle (Update 0.2.5,
+    # the designer: the hold "needs a little bit of fixing", then circled where on the grip panel the fingers go: "put
+    # the grip here, more accurate"), the palm close to the back strap.
     lo = min(p.y for p in mag_pts)
     hi = min(p.y for p in slide_pts)
-    mid = lo + (hi - lo) * 0.45
+    mid = lo + (hi - lo) * args.hold_up
     band = [p for p in frame_pts if abs(p.y - mid) < (hi - lo) * 0.08]
     back = min(p.x for p in band)
     # (The grip's front strap: the band's points behind the trigger guard, which reaches further forward.)
@@ -106,7 +113,7 @@ def main():
     print(f'magazine {min(p.x for p in mag_pts):.2f}..{mag_front:.2f} deep; the band {sorted(round(p.x, 2) for p in band)}')
     front = min((p.x for p in band if p.x > mag_front), default=mag_front)
     cz = (max(p.z for p in band) + min(p.z for p in band)) / 2
-    grip = Vector(((back + front) / 2, mid, cz))
+    grip = Vector((back + (front - back) * args.hold_back, mid, cz))
     length = max(p.x for p in gun) - back
     scale = args.length / length
     print(f'grip axis {tuple(round(c, 3) for c in up)}, {math.degrees(math.acos(up.z)):.1f} deg from upright')

@@ -26,6 +26,8 @@ async function load(path: string) {
 interface GunShot {
   name: string;
   run: (vm: Viewmodel, step: (n: number) => void) => void;
+  /** A close look at the hand on the grip from the gun's left, right or back (not the arms camera's view). */
+  side?: 'left' | 'right' | 'back';
 }
 
 /** Into a reload `k` of the way (0 … 1), from empty or not, its beats played on the way. */
@@ -47,6 +49,9 @@ const reloading = (k: number, empty: boolean) => (vm: Viewmodel, step: (n: numbe
 };
 
 const SHOTS: GunShot[] = [
+  { name: 'grip-left', side: 'left', run: (vm, step) => (vm.gun.sync(0, -1, false, 8), step(30)) },
+  { name: 'grip-right', side: 'right', run: (vm, step) => (vm.gun.sync(0, -1, false, 8), step(30)) },
+  { name: 'grip-back', side: 'back', run: (vm, step) => (vm.gun.sync(0, -1, false, 8), step(30)) },
   { name: 'hip', run: (vm, step) => (vm.gun.sync(0, -1, false, 15), step(30)) },
   { name: 'aimed', run: (vm, step) => (vm.gun.sync(1, -1, false, 15), step(40)) },
   { name: 'aimed-half', run: (vm, step) => (vm.gun.sync(0.5, -1, false, 15), step(40)) },
@@ -131,7 +136,24 @@ for (const shot of SHOTS) {
   vm.setLens(ASPECT);
   vm.scene.updateMatrixWorld(true);
   vm.camera.updateMatrixWorld(true);
-  const toCam = vm.camera.matrixWorldInverse;
+  let toCam = vm.camera.matrixWorldInverse;
+  let fov = vm.camera.fov;
+  if (shot.side) {
+    const frame = model.getObjectByName('Frame')!;
+    frame.updateWorldMatrix(true, false);
+    const o = new THREE.Vector3().setFromMatrixPosition(frame.matrixWorld);
+    const ahead = new THREE.Vector3(1, 0, 0).transformDirection(frame.matrixWorld);
+    const up = new THREE.Vector3(0, 1, 0).transformDirection(frame.matrixWorld);
+    const right = new THREE.Vector3(0, 0, 1).transformDirection(frame.matrixWorld);
+    const cam = new THREE.PerspectiveCamera(40, ASPECT, 0.01, 10);
+    const off = shot.side === 'left' ? right.clone().multiplyScalar(-0.34) : shot.side === 'right' ? right.clone().multiplyScalar(0.34) : ahead.clone().multiplyScalar(-0.3).addScaledVector(up, 0.12);
+    cam.position.copy(o).add(off).addScaledVector(up, 0.03);
+    cam.up.copy(up);
+    cam.lookAt(o.clone().addScaledVector(up, 0.03).addScaledVector(ahead, 0.03));
+    cam.updateMatrixWorld(true);
+    toCam = cam.matrixWorldInverse;
+    fov = 40;
+  }
   const meshes: { color: number[]; pos: number[]; idx: number[] }[] = [];
   vm.scene.traverse((o) => {
     if (!(o instanceof THREE.Mesh) || !o.visible) return;
@@ -151,7 +173,7 @@ for (const shot of SHOTS) {
     const c = m.color ?? new THREE.Color(1, 1, 1);
     meshes.push({ color: [c.r, c.g, c.b], pos, idx });
   });
-  shots.push({ name: shot.name, fov: vm.camera.fov, meshes });
+  shots.push({ name: shot.name, fov, meshes });
   const at = (n: string) => arms.scene.getObjectByName(n)!.getWorldPosition(new THREE.Vector3());
   const fore = at('HandR').sub(at('LowerArmR')).normalize();
   const hand = at('Middle2R').sub(at('HandR')).normalize();

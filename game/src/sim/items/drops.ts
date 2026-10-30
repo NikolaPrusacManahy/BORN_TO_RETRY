@@ -38,13 +38,16 @@ export function createDrops(): Drop[] {
   return Array.from({ length: DROP_POOL }, () => ({ alive: false, kind: 'key' as DropKind, pos: new Vector3(), life: 0, manual: false }));
 }
 
-/** `kind` falls at `at` (on the floor under it), or (`manual`) waits there for E. Reuses a slot when every one is in
- *  use (one that isn't waiting for E, if it can). */
-export function dropItem(drops: Drop[], kind: DropKind, at: Vector3, events: EventQueue<CombatEvent>, manual = false) {
-  const d = drops.find((x) => !x.alive) ?? drops.find((x) => !x.manual) ?? drops[0];
+const isKey = (k: DropKind) => k === 'key' || k === 'whiteKey' || k === 'goldKey';
+
+/** `kind` falls at `at` (on the floor under it, `ground` m up), or (`manual`) waits there for E. Reuses a slot when
+ *  every one is in use (one that isn't waiting for E, if it can). Update 0.2.5 — never a key's: a bonus lying there goes
+ *  first (a key overwritten left a chest with no key to open it). */
+export function dropItem(drops: Drop[], kind: DropKind, at: Vector3, events: EventQueue<CombatEvent>, manual = false, ground = 0) {
+  const d = drops.find((x) => !x.alive) ?? drops.find((x) => !x.manual && isBonus(x.kind)) ?? drops.find((x) => !x.manual && !isKey(x.kind)) ?? drops.find((x) => !x.manual) ?? drops[0];
   d.alive = true;
   d.kind = kind;
-  d.pos.set(at.x, manual ? at.y : 0, at.z);
+  d.pos.set(at.x, manual ? at.y : ground, at.z);
   d.life = isBonus(kind) && !manual ? BONUS.v.life : Infinity;
   d.manual = manual;
   events.push('itemDrop', DROP_KINDS.indexOf(kind), at.x, d.pos.y + 0.5, at.z);

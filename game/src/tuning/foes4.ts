@@ -24,13 +24,18 @@ export const FOES4 = group('foes4', 'Floor 4 enemies', {
   tribalSidestepRest: knob(1.4, 0.3, 5, 0.1, 'Tribal sidestep rest', 'Seconds before it can spring aside again.'),
   tribalAimed: knob(0.25, 0, 1.5, 0.05, 'Tribal aim read', 'You aim at it this long (s) and it springs aside.'),
   tribalDodge: knob(0.35, 0, 1, 0.05, 'Tribal dodge chance', 'Of your hits that would land, the share it rolls away from.'),
+  // Update 0.2.5 (the designer: on a high spot "they just run on the spot and remain stuck"): from a perch it throws far, and with
+  // you out of its sight or reach it jumps down to find you.
+  tribalPerchFar: knob(34, 10, 80, 1, 'Tribal perch range', 'From a perch it throws this far (m).'),
+  tribalPerchWait: knob(1.5, 0.2, 8, 0.1, 'Tribal perch patience', 'Seconds on a perch with you out of its sight or range before it jumps down to find you.'),
   tribalCoins: knob(2, 0, 50, 0.5, 'Tribal coins', 'Coins it drops when killed.'),
   cactoroHp: knob(30, 5, 300, 5, 'Cactoro health', 'Damage to kill one.'),
   cactoroHeight: knob(1.2, 0.5, 3, 0.05, 'Cactoro size', 'Its model is scaled to this (m).'),
   cactoroDig: knob(7, 1, 20, 0.5, 'Cactoro under sand', 'How fast it travels under the sand (m/s).'),
   cactoroBehind: knob(2.6, 1, 6, 0.1, 'Cactoro comes up behind', 'It comes up this far behind you (m).'),
   cactoroRise: knob(0.5, 0.15, 1.5, 0.05, 'Cactoro rise', 'The sand bulges this long before it comes up (s): your warning.'),
-  cactoroUp: knob(1.8, 0.5, 5, 0.1, 'Cactoro stays up', 'Seconds it stays up after its spines, before it digs in again.'),
+  // (Update 0.2.5, the designer: "stay 0.8 sec longer, they stay up too little, no time to hit them": was 1.8.)
+  cactoroUp: knob(2.6, 0.5, 5, 0.1, 'Cactoro stays up', 'Seconds it stays up after its spines, before it digs in again.'),
   spinesReach: knob(2.6, 1, 6, 0.1, 'Spines reach', 'Its spines hit you this close as it comes up (m).'),
   spinesDamage: knob(12, 1, 100, 1, 'Spines damage', 'To you, per burst that hits.'),
   cactoroDuck: knob(0.5, 0, 1, 0.05, 'Cactoro duck chance', 'Of your hits that would land while it’s up, the share it ducks under the sand from.'),

@@ -15,6 +15,9 @@ const SAND = 0xe6c27e;
 /** Returns false for events it doesn't know. `near`: 1 at the camera, 0 far off. */
 export function desertFeedback(f: FeedbackParts, kind: CombatEvent, _value: number, at: THREE.Vector3, back: THREE.Vector3, near: (far: number) => number): boolean {
   switch (kind) {
+    case 'tribalLand':
+      f.chunks.spawn(at, UP, 8, 0.7);
+      return true;
     case 'cactoroDig':
       f.chunks.spawn(at, UP, 10, 0.8);
       return true;

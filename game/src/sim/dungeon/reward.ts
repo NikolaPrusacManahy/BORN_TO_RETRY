@@ -21,6 +21,14 @@ const inside = (r: DungeonRoom, x: number, z: number) => x >= r.min.x && x <= r.
 export function startReward(run: DungeonRun, i: number, player: PlayerState, combat: CombatState, rng: Rng) {
   const room = run.level.rooms[i];
   if (room.chest >= 0) raiseChest(run.treasure, room.chest, combat);
+  takeKeys(run, i, player, combat, rng);
+}
+
+/** Update 0.2.5 — room `i` is won: the keys lying in it are yours, and one its mini boss never dropped (the designer
+ *  found a chest that needed a key in a room with none: one dropped under where the chest rises, or taken by another
+ *  drop when they were all in use). Every room's, as the challenge room's always were. */
+export function takeKeys(run: DungeonRun, i: number, player: PlayerState, combat: CombatState, rng: Rng) {
+  const room = run.level.rooms[i];
   for (const d of combat.drops) {
     if (!d.alive || d.manual || (d.kind !== 'key' && d.kind !== 'whiteKey' && d.kind !== 'goldKey') || !inside(room, d.pos.x, d.pos.z)) continue;
     d.alive = false;

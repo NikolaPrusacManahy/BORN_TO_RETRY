@@ -107,12 +107,13 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   if (MINI_BOSSES.includes(e.kind) && state.keyDrops > 0) {
     state.keyDrops--;
     // Update 0.1.20 — a challenge room's is white or gold.
-    dropItem(state.drops, (state.betterKeys ? betterKeyFor : keyFor)(state.rng()), e.pos, state.events);
+    // (On what it stood on: a perch's top, or the floor.)
+    dropItem(state.drops, (state.betterKeys ? betterKeyFor : keyFor)(state.rng()), e.pos, state.events, false, Math.max(0, e.perch));
   }
   // Update 0.0.12 — its coins burst out (any the pool can't hold go straight to your money).
   const s = ENEMY_STATS[e.kind]();
   state.money += burstCoins(state.coins, e.pos, coinsFor(s.coins, state, state.rng), state.rng);
   const bonus = s.boss ? null : rollBonus(state, state.rng);
-  if (bonus) dropItem(state.drops, bonus, e.pos, state.events);
+  if (bonus) dropItem(state.drops, bonus, e.pos, state.events, false, Math.max(0, e.perch));
   return true;
 }

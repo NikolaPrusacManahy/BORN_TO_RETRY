@@ -18,6 +18,13 @@ export function playDesert(a: AudioEngine, kind: CombatEvent, _value: number, fa
     case 'tribalThrow':
       noise(a, { dur: 0.22, gain: 0.3 * far, filter: 'bandpass', from: 1400, to: 3800, q: 1.5 });
       return true;
+    case 'tribalJump':
+      noise(a, { dur: 0.14, gain: 0.12 * far, filter: 'bandpass', from: 700, to: 1800, q: 1.2 });
+      return true;
+    case 'tribalLand':
+      tone(a, { from: 150, to: 60, dur: 0.12, gain: 0.3 * far });
+      noise(a, { dur: 0.1, gain: 0.18 * far, filter: 'lowpass', from: 1600, to: 300 });
+      return true;
     case 'tribalDodge':
     case 'hywirlDart':
       noise(a, { dur: 0.16, gain: 0.22 * far, filter: 'highpass', from: 1800, to: 4200 });
