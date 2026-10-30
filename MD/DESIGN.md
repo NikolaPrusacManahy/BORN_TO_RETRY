@@ -198,7 +198,7 @@ Models come from Quaternius's Bestiary/Dungeon Monsters and Ultimate Monsters pa
 
 **Lava (Update 0.0.20, the designer):** some rooms from floor 2 on have lava pits (the lava lake, the lava bridges, the gauntlet), with walls in or beside the lava to wall-run across and a walkway round every pit. Falling in costs 50 health and puts you back at the floor's start (the fight you left starts over); with 50 or less, you die.
 
-**Floor 3's enemies (Update 0.1.18, the designer: no Grunt, Leaper or Blue Demon; Update 0.1.19: the Skeleton, the Mushnub, the Ninja):** the Spitter, the Stinger, the Wraith, the Slime, the Frog, the Snake, the Wasp, the Skeleton and the Mushnub, and the Spider and the Ninja as its mini bosses. Its boss is to be the Dino (the Dragon stands in).
+**Floor 3's enemies (Update 0.1.18, the designer: no Grunt, Leaper or Blue Demon; Update 0.1.19: the Skeleton, the Mushnub, the Ninja):** the Spitter, the Stinger, the Wraith, the Slime, the Frog, the Snake, the Wasp, the Skeleton and the Mushnub, and the Spider and the Ninja as its mini bosses. Its boss is the **Bone King** (Update 0.2.3, the designer: a massive Skeleton; it was to be the Dino, the Dragon standing in).
 
 **Floor 3's rooms (Update 0.0.21, the designer):** none of floors 1–2's rooms; the lava rooms and four of its own with an upper floor 2.5 m up (the keep, ramparts, towers, bridgeworks), reached by steps, jump pads and wall runs. Spitters stand on perches up there and shoot down: climb up and take them out.
 
@@ -207,7 +207,7 @@ Models come from Quaternius's Bestiary/Dungeon Monsters and Ultimate Monsters pa
 **Poison (Update 0.0.18):** 3 damage a second for 4 s, straight off your health (not the shield); a new dose starts it over; the screen's edge pulses green. **(placeholder numbers)**
 
 ### Bosses
-One per floor, three in total, each with 2 phases. Floor 1's is the Demon, floor 2's the Dragon (Update 0.0.18); floor 3's is to come from the designer, and until then the Dragon guards it.
+One per floor, each with 2 phases. Floor 1's is the Demon, floor 2's the Dragon (Update 0.0.18), floor 3's the Bone King (Update 0.2.3); floors 4–7 have floor 3's for now.
 
 **The Demon (Update 0.0.15, the designer: build it as pitched, bigger, with an aura; spec `MD_UPDATES/M3_BOSS.md`).** The Demon from Ultimate Monsters, 6.5 m tall, 1200 health, never flinches. Its aura: a glow behind it, embers, a ring of fire at its feet, a red light. Every pause it picks a move by how far you are, each warned (glow, sound, a mark on the floor):
 - **Charge:** lowers its head (red), then runs straight across the room: 25 and thrown aside if it hits you; into a wall or a column it's stunned 2.2 s and takes 1.5× damage.
@@ -226,6 +226,14 @@ One per floor, three in total, each with 2 phases. Floor 1's is the Demon, floor
 - **Phase 2 (half health; Update 0.0.21, the designer):** it screams and flies up at once, 5–8 s in the air, bombing the ground round you with massive fireballs (each landing spot shows as a ring until it lands); then it's back down, quicker and faster. No minions (no more wasps).
 - **Flame burst (Update 0.0.21, the designer: rare):** stay close to it for about 30 s in all and it charges up (glowing, its reach ringed on the floor) and bursts into flame round it: run.
 - **Death:** the Demon's show; a key, a heart and its coins (Update 0.2.0: in its chest; Update 0.2.1, the designer: **15 coins**). **(placeholder numbers)**
+
+**The Bone King (Update 0.2.3, the designer: "the boss of floor 3 is also Skeleton, but massive"; spec `MD_UPDATES/U023_BONE_KING.md`).** The Skeleton, 6 m tall, never flinches; it rises out of the portal and **roars** in its stance. **Two lives, one lighter bar** (1000 a life; the Dragon has 1600): brought down the first time it **falls to pieces like its skeletons**, lies there 3 s (nothing hurts it) and **rebuilds** over 3 s, its bar filling again: **phase 2** (quicker between moves). Every pause it picks a move by how far you are, each warned:
+- **Thrown skeletons:** it reaches down and throws **3 skeletons** at you, one every 0.6 s (the designer: "a moderate pace"); each lands where you stood as it was thrown, its spot glowing on the floor while it flies, and smashes into bones (16, thrown back). Keep moving.
+- **Jump-smash:** it crouches and **jumps, smashes, jumps again, smashes**, each jump for where you are then (its landing glows on the floor while it's in the air): 24 close by, and a quake ring each time (jump it).
+- **The grab (close by):** it reaches for you; caught, you're **held up in front of its face** (the world holds still) and the screen calls for hits: **HIT!** with your attack key, a **combo count** slamming in with each hit, a pip per hit, the time draining. **10 hits in 3.2 s**: you break free (BROKE FREE) and it reels 2 s (hits do more). Too few: it **throws you at the nearest wall** (30, THROWN).
+- **Phase 2, once:** it opens its second life calling **3 skeletons** up out of the floor round it (they fight as any Skeleton, revive and all).
+- **Phase 2 at 25% or less, once: the final blast.** It stands and **charges for 3 s**, the floor trembling more and more, and **its reach shows on the floor** (a ring, a disc filling it): **half the room's floor** round it. Inside when it goes off: 60 and thrown. Get out past the ring. (Its bar's mark sits at 25% in its second life.)
+- **Death:** it crumbles where it stands and its bones burst; its chest (15 coins, a key, a heart) rises by the wooden gate. **(placeholder numbers)**
 
 **The boss room (Update 0.0.15, the designer):** stepping in, the view leaves your eyes and rises over the room; its walls slide back as it grows; a portal opens in the middle and the boss rises out of it, takes its stance beside its name; the view glides back and the fight starts. Once it's dead, a wooden gate in the far wall swings open onto the dark: the way down.
 

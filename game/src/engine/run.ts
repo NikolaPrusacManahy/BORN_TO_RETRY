@@ -18,6 +18,8 @@
 // Update 0.1.20 — the [E] prompts and item cards (promptView.ts), while you're free to play.
 // Update 0.2.0 — a chest rising out of the floor takes the view to it and back (chestShot.ts); you don't move meanwhile.
 // Update 0.2.2 — the last floor's way down ends the run: once it's black, the same screen, saying you survived.
+// Update 0.2.3 — held in the Bone King's hand (sim/combat/grab.ts): no moving, the view on its skull, your attacks
+// still yours (each a hit on it).
 import * as THREE from 'three';
 import type { FrameStats } from '../core/frameStats';
 import type { Input } from '../input/input';
@@ -46,13 +48,18 @@ import { applyMoveEvents } from './moveFeedback';
 import { fillDebug } from './overlayFeed';
 import { RunBase } from './runBase';
 import { endsRun } from './runLinks';
+import { skullOf } from '../sim/combat/grab';
 
+/** Update 0.2.3 — held in the Bone King's hand, the view turns to its skull this fast (1/s). */
+const GRAB_TURN = 10;
 /** A height change bigger than this in one tick on the ground is a step: the camera smooths it (m). */
 const STEP_MIN = 0.1;
 /** Fall below this and you die (m). */
 const KILL_Y = -20;
 
 export class Run extends RunBase {
+  private readonly skull = new THREE.Vector3();
+
   /** Runs this frame's sim ticks. Stops early when a hit starts a hit-stop, so the freeze begins on the hit. */
   private tick(gameDt: number, input: Input): number {
     const p = this.player;
@@ -65,7 +72,8 @@ export class Run extends RunBase {
       const wasGrounded = p.grounded;
       // The dead don't steer or punch; nor does anyone during the boss room's show.
       const free = !p.dead && !this.show.locked && !this.chestShot.locked && !execHeld(this.combat.exec);
-      readPlayerIntent(input, this.look, this.intent, free);
+      const held = this.combat.grab.on;
+      readPlayerIntent(input, this.look, this.intent, free && !held);
       readCombatIntent(input, this.look, this.combatIntent, free);
       updateHealth(p, stepDt);
       // (Update 0.1.9 — and the weapon in your hand: the Dual Daggers' +15%.)
@@ -104,11 +112,19 @@ export class Run extends RunBase {
     const locked = input.locked;
     // Update 0.0.13 — kneeling at a chest, the view turns to it and the mouse waits (and during the boss room's show).
     const kneeling = p.kneel > 0;
-    const still = kneeling || this.show.locked || this.chestShot.locked || execHeld(this.combat.exec);
+    const grab = this.combat.grab;
+    const still = kneeling || this.show.locked || this.chestShot.locked || execHeld(this.combat.exec) || grab.on;
     const mouseDx = locked && !still ? input.mouseDX : 0;
     const mouseDy = locked && !still ? input.mouseDY : 0;
     if (locked && !still) this.look.apply(mouseDx, mouseDy, settings);
     if (kneeling) this.look.turnTo(p.kneelYaw, (CAMERA.v.kneelPitch * Math.PI) / 180, CAMERA.v.kneelTurn, real);
+    if (grab.on) {
+      // Held: the view on its skull.
+      skullOf(this.combat, grab.slot, this.skull);
+      const dx = this.skull.x - p.pos.x;
+      const dz = this.skull.z - p.pos.z;
+      this.look.turnTo(Math.atan2(-dx, -dz), Math.atan2(this.skull.y - p.pos.y - CAMERA.v.eyeHeight, Math.hypot(dx, dz)), GRAB_TURN, real);
+    }
     input.clearMouse();
 
     const frozen = this.combat.hitStop.tick(real) || this.hold || this.told;
@@ -152,6 +168,7 @@ export class Run extends RunBase {
     if (!shot.cinematic && !chestShot) this.arms.render(renderer, aspect);
 
     fillDebug(debug, p, this.combat);
+    this.hudFeed.attackKey = keyLabel(input.bindings.attack);
     this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d, this.look.yaw, this.show.hud, choosing ?? '');
     // Dead: once it's black, the death screen (the dungeon: Retry is a new run) or the lab's start. The way down: the
     // next floor (Update 0.2.2: off the last, the run is won).

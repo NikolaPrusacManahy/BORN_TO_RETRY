@@ -1,6 +1,7 @@
 // Update 0.0.21 — the Dragon's fire bombs as you see them (the designer: "the player can see where it will land"): each
 // a big fireball on its arc, and on the floor where it will land a red ring as wide as its burst, filling in and
 // brightening as it comes, so the last moment reads. Pooled and updated in place.
+// Update 0.2.3 — a skeleton the Bone King throws is drawn by kingView.ts: here only its spot.
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
 import { BOMB_POOL } from '../../sim/combat/bombs';
@@ -46,6 +47,7 @@ export class BombView {
       const s = this.shown[i];
       s.ball.visible = s.ring.visible = s.fill.visible = b.alive;
       if (!b.alive) continue;
+      s.ball.visible = b.look === 'fire';
       const k = Math.min(1, b.t / b.fall);
       const flicker = 0.85 + 0.15 * Math.sin(this.time * 40 + i);
       s.ball.position.copy(b.pos);

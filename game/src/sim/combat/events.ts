@@ -124,6 +124,27 @@ export type CombatEvent =
   | 'ninjaStrike'
   | 'ninjaVanish'
   | 'ninjaAppear'
+  // Update 0.2.3 — the Bone King (value = its slot unless said): its warning (value = the move), a skeleton thrown and
+  // smashing where it lands (value = its radius), a jump and its landing (value = which jump: 1, 2), its grab, each of
+  // your hits held (value = the hits so far), you breaking free, you thrown at the wall, falling to pieces and
+  // rebuilding (its second life starting: its roar), calling up skeletons, its final blast charging, the floor
+  // trembling (value = how far charged, 0..1) and the blast (value = its radius).
+  | 'kingWindup'
+  | 'kingThrow'
+  | 'boneCrash'
+  | 'kingJump'
+  | 'kingSmash'
+  | 'kingGrab'
+  | 'kingQteHit'
+  | 'kingFree'
+  | 'kingThrowYou'
+  | 'kingCollapse'
+  | 'kingRise'
+  | 'kingRoar'
+  | 'kingSummon'
+  | 'kingCharge'
+  | 'kingRumble'
+  | 'kingBlast'
   // Update 0.0.18 — the Dragon: a warning (value = its move), the beam starting, a fireball, the wing and the tail
   // swinging, its scream (rising in its show, and raging), an enemy burnt away by the beam (value = its slot).
   | 'dragonWindup'

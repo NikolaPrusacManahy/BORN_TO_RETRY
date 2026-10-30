@@ -17,6 +17,8 @@
 // Update 0.1.1 — one held in an execution is placed by it (exec/execScene.ts, after this), thrashing; one you
 // could execute now pulses crimson.
 // Update 0.1.19 — each kind's look moved to enemyLooks.ts; floor 3's (a Skeleton rebuilding lies, then rises).
+// Update 0.2.3 — the Bone King (the Skeleton, massive): it lies and rebuilds on its own knobs, stands as it crouches to
+// jump, glows as its blast charges, and is gone once its bones burst.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -25,6 +27,8 @@ import { ENEMY_POOL, EnemyPhase } from '../sim/enemies/enemy';
 import { ENEMY_KINDS, ENEMY_STATS, EnemyKind } from '../sim/enemies/kinds';
 import { ENEMIES } from '../tuning/enemies';
 import { FOES3 } from '../tuning/foes3';
+import { BONE_KING } from '../tuning/boneKing';
+import { SMASH } from '../sim/enemies/boneKingMoves';
 import { posedBounds } from './bodyMeasure';
 import { clipOf, FADE, LOOKS, ONCE, Role, ROLES, roleFor } from './enemyLooks';
 import { TongueView } from './tongueView';
@@ -141,11 +145,12 @@ export class EnemiesView {
       slot.ring.visible = false;
       const look = LOOKS[e.kind];
       if (!e.alive || !b || !look) continue;
-      // A slime that burst is gone (one killed dies as the others do).
-      b.root.visible = !(e.kind === 'slime' && e.phase === 'dead' && e.struck);
+      // A slime that burst is gone (one killed dies as the others do); so is the Bone King once its bones burst.
+      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing') && e.phase === 'dead' && e.struck);
       if (!b.root.visible) continue;
       const windup = look.windup(e.move);
-      const glow = e.phase === 'windup' ? Math.min(1, e.t / windup) : 0;
+      const king = e.kind === 'boneKing';
+      const glow = e.phase === 'windup' ? Math.min(1, e.t / windup) : e.phase === 'blast' ? Math.min(1, e.t / BONE_KING.v.blastCharge) : 0;
       const swell = e.kind === 'slime' ? 1 + 0.35 * glow : 1;
       const scale = (ENEMY_STATS[e.kind]().height / b.root.userData.height) * swell;
       b.root.scale.setScalar(scale);
@@ -161,10 +166,12 @@ export class EnemiesView {
       // Update 0.1.2 — one standing in an execution stands still (one held thrashes).
       let want: Role = e.phase === 'held' && !moveOf(e.kind).held ? 'idle' : roleFor(e.phase, attack.time >= attack.getClip().duration - 0.01);
       // Update 0.1.19 — a Skeleton in pieces lies there, then rises as it rebuilds (its clip sped to fit the knob).
-      if (e.phase === 'rebuild' && e.t >= FOES3.v.skeletonDown) want = 'rise';
+      if (e.phase === 'rebuild' && e.t >= (king ? BONE_KING.v.kingDown : FOES3.v.skeletonDown)) want = 'rise';
+      // Update 0.2.3 — the Bone King stands as it crouches to jump (its attack is a swing).
+      if (king && e.phase === 'windup' && e.move === SMASH) want = 'idle';
       if (want !== b.role || (again && ONCE.includes(want))) this.play(b, want);
       attack.timeScale = look.lands / windup;
-      b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, FOES3.v.skeletonRise);
+      b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? BONE_KING.v.kingRise : FOES3.v.skeletonRise);
       b.actions.move.timeScale = e.phase === 'held' ? 3 : 1;
       const ice = e.frozen > 0 ? 1 : 0;
       if (!ice && !b.root.userData.kept) b.mixer.update(dt);

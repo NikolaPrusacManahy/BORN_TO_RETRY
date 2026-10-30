@@ -12,6 +12,9 @@ import { CINEMA } from '../../tuning/cinema';
 import type { CombatState } from '../../sim/combat/state';
 import { ENEMY_STATS, EnemyKind } from '../../sim/enemies/kinds';
 import { DRAGON } from '../../tuning/dragon';
+import { BOSS } from '../../tuning/boss';
+import { BONE_KING } from '../../tuning/boneKing';
+import type { Enemy } from '../../sim/enemies/enemy';
 import type { Look } from '../look';
 import { Cinema, Shot } from './cinema';
 import { bossIn } from './demonView';
@@ -19,7 +22,14 @@ import { bossIn } from './demonView';
 /** The boss's name card. **(placeholder names)** */
 export const BOSS_NAME = 'THE DEMON';
 /** Update 0.0.18 — each boss's name. */
-export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { demon: BOSS_NAME, dragon: 'THE DRAGON' };
+export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { demon: BOSS_NAME, dragon: 'THE DRAGON', boneKing: 'THE BONE KING' };
+
+/** Update 0.2.3 — a boss bar's mark: where it rages (the Demon, the Dragon), or the Bone King's final blast (its second
+ *  life only). */
+function markOf(boss: Enemy): number {
+  if (boss.kind === 'boneKing') return boss.stage > 0 ? BONE_KING.v.blastAt : -1;
+  return boss.kind === 'dragon' ? DRAGON.v.rageAt : BOSS.v.rageAt;
+}
 export const bossTitle = (floor: number) => `Warden of Floor ${floor}`;
 /** The name card shows this long either side of the stance (s). */
 const CARD_EDGE = 0.25;
@@ -30,8 +40,9 @@ export interface ShowHud {
   card: boolean;
   bossName: string;
   bossTitle: string;
-  /** The boss's health (0..1), −1: no bar. */
+  /** The boss's health (0..1), −1: no bar. Update 0.2.3 — where its bar's mark is (−1: none). */
   bossHp: number;
+  bossMark: number;
   veil: boolean;
   floorName: string;
 }
@@ -41,7 +52,7 @@ const eye = new THREE.Vector3();
 const view: Shot = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
 
 export class BossShow {
-  readonly hud: ShowHud = { cine: false, card: false, bossName: BOSS_NAME, bossTitle: '', bossHp: -1, veil: false, floorName: '' };
+  readonly hud: ShowHud = { cine: false, card: false, bossName: BOSS_NAME, bossTitle: '', bossHp: -1, bossMark: -1, veil: false, floorName: '' };
   private readonly cinema: Cinema | null;
   private beat: BossBeat = 'waiting';
   /** Real seconds of the death's slow motion left. */
@@ -125,7 +136,10 @@ export class BossShow {
       if (b.beat === 'intro' && run.boss.kind === 'dragon') this.scream(camera, b.t);
     }
     const boss = bossIn(combat);
-    if ((b.beat === 'fight' || b.beat === 'dying') && boss) h.bossHp = Math.max(0, boss.hp / ENEMY_STATS[boss.kind]().hp);
+    if ((b.beat === 'fight' || b.beat === 'dying') && boss) {
+      h.bossHp = Math.max(0, boss.hp / ENEMY_STATS[boss.kind]().hp);
+      h.bossMark = markOf(boss);
+    }
     // Into the dark.
     if (run.exited && this.exiting < 0) this.exiting = 0;
     if (this.exiting >= 0) {
@@ -143,6 +157,7 @@ export class BossShow {
     this.hud.bossName = BOSS_NAMES[boss.kind] ?? BOSS_NAME;
     this.hud.bossTitle = '';
     this.hud.bossHp = Math.max(0, boss.hp / ENEMY_STATS[boss.kind]().hp);
+    this.hud.bossMark = markOf(boss);
   }
 
   /** Update 0.0.18 — the Dragon screams as it takes its stance: the view shakes, hardest mid-scream. */

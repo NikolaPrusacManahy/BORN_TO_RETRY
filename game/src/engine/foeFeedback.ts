@@ -13,6 +13,7 @@ import { DRAGON } from '../tuning/dragon';
 import { FOES2 } from '../tuning/foes2';
 import type { FeedbackParts } from './combatFeedback';
 import { execFeedback } from './execFeedback';
+import { kingFeedback } from './boss/kingFeedback';
 
 const UP = new THREE.Vector3(0, 1, 0);
 
@@ -85,7 +86,8 @@ export function foes2Feedback(f: FeedbackParts, kind: CombatEvent, value: number
       f.chunks.spawn(at, UP, 6, 0.6);
       break;
     default:
-      execFeedback(f, kind, value, at, back, near);
+      // (Update 0.2.3 — the Bone King's.)
+      if (!kingFeedback(f, kind, value, at, back, near)) execFeedback(f, kind, value, at, back, near);
       break;
   }
 }

@@ -1,6 +1,7 @@
 // Update 0.1.19 (out of enemiesView.ts, which had reached its size) — each kind's look (its model, its clips by role,
 // when its blow lands, its wind-up's glow) and the role a phase plays. Floor 3's: the Skeleton, the Mushnub, the Ninja;
 // a Skeleton rebuilding rises (its own clip, `rise`), after lying in pieces (its death, held).
+// Update 0.2.3 — the Bone King: the Skeleton's model, massive; holding you, and charging its blast, it stands.
 import type { EnemyPhase } from '../sim/enemies/enemy';
 import type { EnemyKind } from '../sim/enemies/kinds';
 import { blueWindup } from '../sim/enemies/blueDemon';
@@ -8,6 +9,7 @@ import { ENEMIES } from '../tuning/enemies';
 import { FOES } from '../tuning/foes';
 import { FOES2 } from '../tuning/foes2';
 import { FOES3 } from '../tuning/foes3';
+import { BONE_KING } from '../tuning/boneKing';
 
 export type Role = 'idle' | 'move' | 'attack' | 'hit' | 'death' | 'air' | 'rise';
 export const ROLES: Role[] = ['idle', 'move', 'attack', 'hit', 'death', 'air', 'rise'];
@@ -62,6 +64,7 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
   // 20/30).
   skeleton: { url: '/models/enemies/skeleton.glb', clips: { ...newer('Skeleton', 'Running', 'Running'), rise: 'Skeleton_Spawn' }, lands: 18 / 30, windup: () => FOES3.v.skeletonWindup, glow: [0.85, 0.9, 1], posed: true },
   mushnub: { url: '/models/enemies/mushnub.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', air: 'Jump' }, lands: 8 / 30, windup: () => FOES3.v.mushnubWindup, glow: [0.2, 0.8, 1] },
+  boneKing: { url: '/models/enemies/skeleton.glb', clips: { ...newer('Skeleton', 'Running', 'Running'), rise: 'Skeleton_Spawn' }, lands: 18 / 30, windup: (move) => [BONE_KING.v.throwWindup, BONE_KING.v.smashWindup, BONE_KING.v.grabWindup, 1.2][move] ?? 1, glow: [0.55, 0.85, 1], posed: true },
   ninja: { url: '/models/enemies/ninja.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 20 / 30, windup: () => FOES3.v.ninjaWindup, glow: [1, 0.1, 0.35] },
   blueDemon: { url: '/models/enemies/bluedemon.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Run' }, lands: 17 / 30, windup: blueWindup, glow: [0.2, 0.55, 1] },
 };
@@ -99,6 +102,11 @@ export function roleFor(phase: EnemyPhase, attackOver: boolean): Role {
     // Update 0.1.19 — a Skeleton in pieces (enemiesView.ts: rising once it rebuilds).
     case 'rebuild':
       return 'death';
+    // Update 0.2.3 — the Bone King holding you up to its face (standing: its arm reaching to you is kingView.ts's), and
+    // charging its blast.
+    case 'grab':
+    case 'blast':
+      return 'idle';
   }
 }
 

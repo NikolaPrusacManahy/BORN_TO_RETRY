@@ -21,6 +21,8 @@
 // engine/execMarkView.ts's).
 // Update 0.1.9 — the Dual Daggers: right click held charges a volley of thrown daggers (knives.ts; no cuts meanwhile);
 // the daggers fly after the enemies move.
+// Update 0.2.3 — held in the Bone King's hand (grab.ts), nothing else moves: your attacks are hits on it.
+import { stepGrab, tickGrab } from './grab';
 import { Vector3 } from 'three';
 import type { Spot } from '../../world/arena';
 import type { CollisionWorld } from '../collisionWorld';
@@ -73,6 +75,11 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   // Update 0.0.13 — kneeling at a chest, you don't fight.
   if (player.kneel > 0) intent = IDLE;
   settleHand(state);
+  tickGrab(state.grab, dt);
+  if (state.grab.on) {
+    stepGrab(state, player, intent, dt);
+    return;
+  }
   const throwing = state.weapon !== null && state.weapon.throwing >= 0;
   if (state.fullMeter) state.execution = 1;
   state.execTarget = execTarget(state, player, intent.yaw);

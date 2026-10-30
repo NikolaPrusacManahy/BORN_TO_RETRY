@@ -4,6 +4,7 @@
 // Update 0.0.12 — and shockwaves (slams).
 // Update 0.0.15 — and the Demon (boss/demonView.ts) and what its moves draw (boss/demonFx.ts).
 // Update 0.0.18 — and the Dragon (boss/dragonView.ts). Update 0.0.21 — and its fire bombs (boss/bombView.ts).
+// Update 0.2.3 — and the Bone King's thrown skeletons, its jumps' landings and its blast's reach (boss/kingView.ts).
 // Update 0.1.2 — and executions (exec/execScene.ts: the body, its pieces, the frog's tongue).
 // Update 0.1.4 — and the Grimoire's fireballs (fireView.ts). Update 0.1.9 — and the daggers' volley (knivesView.ts).
 // Update 0.1.12 — and the skull over the enemy you can execute (execMarkView.ts).
@@ -18,6 +19,7 @@ import { DemonFx } from './boss/demonFx';
 import { DemonView } from './boss/demonView';
 import { DragonView } from './boss/dragonView';
 import { BombView } from './boss/bombView';
+import { KingView } from './boss/kingView';
 import { EnemiesView } from './enemiesView';
 import { ExecScene } from './exec/execScene';
 import { FireView } from './fireView';
@@ -47,6 +49,7 @@ export class CombatScene {
   private readonly demonFx: DemonFx;
   private readonly dragon: DragonView;
   private readonly bombs: BombView;
+  private readonly king: KingView;
 
   constructor(scene: THREE.Scene, state: CombatState, audio: AudioEngine, rig: CameraRig, arms: Viewmodel) {
     this.targets = new TargetsView(scene, state);
@@ -56,6 +59,7 @@ export class CombatScene {
     this.demonFx = new DemonFx(scene);
     this.dragon = new DragonView(scene);
     this.bombs = new BombView(scene);
+    this.king = new KingView(scene);
     this.coins = new CoinsView(scene);
     scene.add(this.waves.group);
     this.weapons = new WeaponsView(scene, state, arms, rig.camera);
@@ -82,6 +86,7 @@ export class CombatScene {
     this.demon.update(state, listener, alpha, gameDt);
     this.dragon.update(state, listener, alpha, gameDt);
     this.bombs.update(state, gameDt);
+    this.king.update(state, gameDt, (i) => this.enemies.rootOf(i));
     this.waves.update(gameDt);
     this.coins.update(state.coins, gameDt);
     this.weapons.update(state, gameDt);
@@ -102,6 +107,7 @@ export class CombatScene {
     this.waves.clear();
     this.demonFx.clear();
     this.bombs.clear();
+    this.king.clear();
     this.fire.clear();
     this.knives.clear();
     this.execMark.clear();
@@ -115,6 +121,7 @@ export class CombatScene {
     this.demon.dispose();
     this.dragon.dispose();
     this.bombs.dispose();
+    this.king.dispose();
     this.demonFx.dispose();
     this.waves.dispose();
     this.coins.dispose();

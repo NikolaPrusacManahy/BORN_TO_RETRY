@@ -2,6 +2,7 @@
 // massive fireballs; you can see where each will land). A bomb is lobbed from its mouth to a spot on the floor and lands
 // after its fall time; the spot is marked from the moment it's thrown (engine/boss/bombView.ts). Landing, it bursts:
 // within its radius on the ground, you're hurt and thrown. A small pool, no garbage. Pure.
+// Update 0.2.3 — the Bone King throws skeletons the same way (`look` 'bones': they smash, 'boneCrash').
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { damagePlayer } from '../player/health';
@@ -22,6 +23,8 @@ export interface Bomb {
   shove: number;
   /** Update 0.1.14 — who threw it. */
   by: Cause | null;
+  /** Update 0.2.3 — a fireball, or a skeleton (the Bone King's). */
+  look: 'fire' | 'bones';
 }
 
 export const BOMB_POOL = 12;
@@ -29,11 +32,11 @@ export const BOMB_POOL = 12;
 const ARC = 3;
 
 export function createBombs(): Bomb[] {
-  return Array.from({ length: BOMB_POOL }, () => ({ alive: false, from: new Vector3(), to: new Vector3(), pos: new Vector3(), t: 0, fall: 1, radius: 1, damage: 0, shove: 0, by: null }));
+  return Array.from({ length: BOMB_POOL }, () => ({ alive: false, from: new Vector3(), to: new Vector3(), pos: new Vector3(), t: 0, fall: 1, radius: 1, damage: 0, shove: 0, by: null, look: 'fire' as Bomb['look'] }));
 }
 
 /** Throws one from `from` to land at `to` (on the floor). False if every slot is in use. */
-export function dropBomb(bombs: Bomb[], from: Vector3, to: Vector3, fall: number, radius: number, damage: number, shove: number, by: Cause | null = null): boolean {
+export function dropBomb(bombs: Bomb[], from: Vector3, to: Vector3, fall: number, radius: number, damage: number, shove: number, by: Cause | null = null, look: Bomb['look'] = 'fire'): boolean {
   const b = bombs.find((x) => !x.alive);
   if (!b) return false;
   b.alive = true;
@@ -46,6 +49,7 @@ export function dropBomb(bombs: Bomb[], from: Vector3, to: Vector3, fall: number
   b.damage = damage;
   b.shove = shove;
   b.by = by;
+  b.look = look;
   return true;
 }
 
@@ -63,7 +67,7 @@ export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQue
     b.pos.y += Math.sin(Math.PI * k) * ARC;
     if (k < 1) continue;
     b.alive = false;
-    events.push('bombBlast', b.radius, b.to.x, b.to.y, b.to.z);
+    events.push(b.look === 'bones' ? 'boneCrash' : 'bombBlast', b.radius, b.to.x, b.to.y, b.to.z);
     const dx = player.pos.x - b.to.x;
     const dz = player.pos.z - b.to.z;
     const d = Math.hypot(dx, dz);

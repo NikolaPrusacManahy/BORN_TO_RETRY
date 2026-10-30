@@ -151,7 +151,8 @@ section('Dragon — rage and death');
 
 section('Dragon — floor 2’s boss room');
 {
-  check('floor 1’s boss is the Demon, floor 2’s the Dragon (floor 3: the Dragon for now)', bossOf(1) === 'demon' && bossOf(2) === 'dragon' && bossOf(3) === 'dragon');
+  // (Update 0.2.3 — floor 3's is the Bone King now: test-bone-king.ts.)
+  check('floor 1’s boss is the Demon, floor 2’s the Dragon', bossOf(1) === 'demon' && bossOf(2) === 'dragon');
   const level = buildDungeon(planFloor(4242, 2));
   const b = level.boss;
   const room = level.rooms[b.room];

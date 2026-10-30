@@ -5,6 +5,7 @@
 // Update 0.0.15 — the boss room's show (letterbox, name card, the boss's health, the black, the floor's name).
 // Update 0.0.16 — white and gold keys, and the key you'd use at a chest.
 // Update 0.0.17 — max health with the red rings, the green and purple rings, the weapon slots, the kill bonuses.
+// Update 0.2.3 — the boss bar's mark; held in the Bone King's hand, the QTE (your hits, the time left, how it ended).
 import type { CombatState } from '../sim/combat/state';
 import { PlayerState, flatSpeed, moveMode } from '../sim/player/state';
 import { WEAPON_NAME } from '../sim/weapons/catalog';
@@ -42,6 +43,7 @@ import { enemiesLeft } from '../sim/dungeon/enemyCount';
 import { chestToOpen } from '../sim/dungeon/treasure';
 import type { DungeonRun } from '../sim/dungeon/roomLoop';
 import { CELL, GRID } from '../world/dungeon/floorPlan';
+import { BONE_KING } from '../tuning/boneKing';
 
 /** HUD refresh interval (s); hits, hurts and health changes push at once. */
 const HUD_EVERY = 0.05;
@@ -57,9 +59,14 @@ export function fillDebug(d: DebugInfo, p: PlayerState, combat: CombatState) {
   d.god = LAB.v.god >= 1;
 }
 
+/** Update 0.2.3 — how long the end of a hold flashes on screen (s). */
+const GRAB_FLASH = 1.1;
+
 export class HudFeed {
   private timer = 0;
   private bonus = -1;
+  /** Update 0.2.3 — your attack's key (the QTE says to press it), set by the run each frame. */
+  attackKey = '';
 
   constructor(private readonly hud: HudStore) {}
 
@@ -87,7 +94,13 @@ export class HudFeed {
     const rings = cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.greenRings === it.greenRings && cur.tealRings === it.tealRings;
     const sig = slotSig(combat);
     const bonus = bonusSig(combat);
-    if (this.timer > 0 && same && shown && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution && cur.chestHere === chestHere) return;
+    const g = combat.grab;
+    const grabHits = g.on ? g.hits : -1;
+    const grabLeft = g.on ? Math.ceil(Math.max(0, 1 - g.t / BONE_KING.v.grabTime) * 20) / 20 : 0;
+    const grabEnd = !g.on && g.since < GRAB_FLASH ? g.end : '';
+    const bossMark = show.bossMark;
+    const grab = cur.grabHits === grabHits && cur.grabLeft === grabLeft && cur.grabEnd === grabEnd && cur.bossMark === bossMark && cur.attackKey === this.attackKey;
+    if (this.timer > 0 && same && shown && grab && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution && cur.chestHere === chestHere) return;
     this.bonus = bonus;
     const bonusLeft: Record<string, number> = {};
     for (const k of BONUS_KINDS) bonusLeft[k] = Math.ceil((combat.bonuses[k] / bonusLength(k)) * BONUS_STEP) / BONUS_STEP;
@@ -133,6 +146,12 @@ export class HudFeed {
       enemiesLeft: left,
       chestHere,
       execution,
+      bossMark,
+      grabHits,
+      grabNeed: Math.round(BONE_KING.v.grabHits),
+      grabLeft,
+      grabEnd,
+      attackKey: this.attackKey,
     });
   }
 }

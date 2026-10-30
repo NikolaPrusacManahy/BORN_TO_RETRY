@@ -15,6 +15,8 @@
 // Update 0.1.15 — its attack token (tokens.ts) and its angle round you (spread.ts); bodies pushing apart moved to
 // bodies.ts. Update 0.1.19 — a Skeleton brought down falls to pieces to rebuild (its own phase: skeleton.ts); the
 // Ninja's teleport rest.
+// Update 0.2.3 — the Bone King (boneKing.ts): brought down the first time it falls to pieces and rebuilds (its second
+// life), nothing hurting it meanwhile; it holds you in its hand ('grab') and charges its final blast ('blast').
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
@@ -22,13 +24,14 @@ import type { CombatEvent } from '../combat/state';
 import type { Orb } from '../combat/targets';
 import type { Quake } from '../combat/quakes';
 import type { Bomb } from '../combat/bombs';
+import type { Grab } from '../combat/grab';
 import type { Rng } from '../../core/rng';
 import type { PlayerState } from '../player/state';
 import type { Flow } from './chase';
 import { ENEMY_STATS, EnemyKind, flies, SizeClass } from './kinds';
 import { FOES3 } from '../../tuning/foes3';
 
-export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive' | 'charge' | 'stun' | 'roar' | 'intro' | 'breath' | 'sky' | 'held' | 'rebuild';
+export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive' | 'charge' | 'stun' | 'roar' | 'intro' | 'breath' | 'sky' | 'held' | 'rebuild' | 'grab' | 'blast';
 
 export interface Enemy {
   /** The slot is in use (a live enemy, or a body still lying there). */
@@ -63,7 +66,8 @@ export interface Enemy {
   stage: number;
   /** Update 0.0.18 — shots fired in this burst (the Dragon's fireballs). */
   shots: number;
-  /** Update 0.0.21 — seconds you've stayed close (the Dragon's flame burst); the ledge it stands on (m; 0: the floor). */
+  /** Update 0.0.21 — seconds you've stayed close (the Dragon's flame burst); the ledge it stands on (m; 0: the floor).
+   *  Update 0.2.3 — the Bone King: its blast's radius (m). */
   near: number;
   perch: number;
   /** Update 0.1.15 — it holds an attack token (tokens.ts), for how long (s), and how long before it may take one again. */
@@ -74,6 +78,8 @@ export interface Enemy {
   fan: number;
   /** Update 0.1.19 — the Ninja: seconds before it can teleport away again (ninja.ts). */
   blink: number;
+  /** Update 0.2.3 — the Bone King's once-only moves done (bits: boneKing.ts). */
+  deeds: number;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -87,6 +93,8 @@ export interface EnemyWorld {
   events: EventQueue<CombatEvent>;
   enemies: Enemy[];
   bombs: Bomb[];
+  /** Update 0.2.3 — the Bone King's hold on you. */
+  grab: Grab;
 }
 
 export const ENEMY_POOL = 16;
@@ -126,6 +134,7 @@ export function createEnemies(): Enemy[] {
     rest: 0,
     fan: NaN,
     blink: 0,
+    deeds: 0,
   }));
 }
 
@@ -161,6 +170,7 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.tokenFor = e.rest = 0;
   e.fan = NaN;
   e.blink = 0;
+  e.deeds = 0;
   return i;
 }
 
@@ -247,13 +257,15 @@ export function inLine(e: Enemy, player: PlayerState, nav: NavGrid, level: numbe
 }
 
 /** Update 0.1.19 — brought down now, does it fall to pieces (to rebuild: skeleton.ts) rather than die? A Skeleton, not
- *  while in pieces or held in an execution, until its revives are used. */
-export const fallsApart = (e: Enemy) => e.kind === 'skeleton' && e.phase !== 'rebuild' && e.phase !== 'held' && e.stage < Math.round(FOES3.v.skeletonRevives);
+ *  while in pieces or held in an execution, until its revives are used. Update 0.2.3 — the Bone King, in its first life. */
+export const fallsApart = (e: Enemy) => (e.kind === 'skeleton' && e.phase !== 'rebuild' && e.phase !== 'held' && e.stage < Math.round(FOES3.v.skeletonRevives)) || (e.kind === 'boneKing' && e.stage === 0 && e.phase !== 'rebuild');
 
 /** Damages an enemy pushed along (dirX, dirZ) (length 1). A hit at least as hard as its stagger flinches it
  *  (cancelling its attack). Returns true if it died. */
 export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, dirZ: number): boolean {
   if (!isLive(e)) return false;
+  // Update 0.2.3 — the Bone King rebuilding: nothing hurts it.
+  if (e.kind === 'boneKing' && e.phase === 'rebuild') return false;
   const s = ENEMY_STATS[e.kind]();
   e.flash = 0.12;
   e.hp -= e.phase === 'stun' ? damage * s.stunned : damage;

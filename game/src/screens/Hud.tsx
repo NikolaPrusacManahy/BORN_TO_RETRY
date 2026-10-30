@@ -7,12 +7,14 @@
 // Update 0.0.13 — the shield: a blue bar just above the health bar (a hit on it flashes the edge blue); keys and rings
 // you carry beside your coins.
 // Update 0.0.15 — the boss room's show (BossHud.tsx); while it has the view, the rest fades out.
+// Update 0.2.3 — the Bone King's grab QTE (GrabQte.tsx).
 // Update 0.0.16 — white and gold keys beside the normal ones; at a chest, the key picker (KeyPicker.tsx).
 // Update 0.0.17 — four rings (red, blue, green, purple); the weapon slots in place of the weapon's name and uses; the
 // kill bonuses that are on (HudSlots.tsx).
 import { CSSProperties, useSyncExternalStore } from 'react';
 import type { HudStore } from '../engine/hudStore';
 import { BossHud } from './BossHud';
+import { GrabQte } from './GrabQte';
 import { KeyIcon, KeyPicker } from './KeyPicker';
 import { Bonuses, WeaponSlots } from './HudSlots';
 import { Minimap } from './Minimap';
@@ -123,6 +125,7 @@ export function Hud({ store }: { store: HudStore }) {
       </div>
       <KeyPicker counts={{ key: s.keys, whiteKey: s.whiteKeys, goldKey: s.goldKeys }} pick={s.keyPick} />
       <BossHud s={s} />
+      <GrabQte s={s} />
     </div>
   );
 }

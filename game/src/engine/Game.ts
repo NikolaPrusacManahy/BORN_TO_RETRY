@@ -196,9 +196,10 @@ export class Game {
     if (this.lab) this.run?.labCommand(cmd);
   }
 
-  /** Update 0.0.19 — the Demon's (floor 1) or the Dragon's (floor 2) boss room, from the Lab. */
-  labBoss(kind: 'demon' | 'dragon') {
-    if (this.lab) this.newRun(bossRoomLevel(newSeed(), kind === 'demon' ? 1 : 2));
+  /** Update 0.0.19 — the Demon's (floor 1) or the Dragon's (floor 2) boss room, from the Lab. Update 0.2.3 — or the
+   *  Bone King's (floor 3). */
+  labBoss(kind: 'demon' | 'dragon' | 'boneKing') {
+    if (this.lab) this.newRun(bossRoomLevel(newSeed(), kind === 'demon' ? 1 : kind === 'dragon' ? 2 : 3));
   }
 
   /** Update 0.0.20 — floor `floor` (1–3) from the Lab, from its start. */

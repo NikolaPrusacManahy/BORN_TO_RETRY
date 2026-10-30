@@ -36,6 +36,7 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   ninja: 'heavy',
   demon: null,
   dragon: null,
+  boneKing: null,
 };
 
 /** Kinds whose attack waits for its cooldown: they take a token only once it's ready (a token isn't held idle). */

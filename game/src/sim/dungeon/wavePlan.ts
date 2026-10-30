@@ -21,11 +21,11 @@ import type { Rng } from '../../core/rng';
 import { ENEMY_KINDS, EnemyKind, MINI_BOSSES } from '../enemies/kinds';
 import { ROOMS } from '../../tuning/rooms';
 
-export const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3, demon: 99, slime: 1, frog: 2, snake: 1, wasp: 2, spider: 4, blueDemon: 4, dragon: 99, skeleton: 1, mushnub: 1, ninja: 4 };
+export const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3, demon: 99, slime: 1, frog: 2, snake: 1, wasp: 2, spider: 4, blueDemon: 4, dragon: 99, skeleton: 1, mushnub: 1, ninja: 4, boneKing: 99 };
 /** How often each kind is picked, and the first room (on floor 1) it comes in. **(placeholders)** The Demon is never
  *  bought: it's the boss room's. */
-const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1, demon: 0, slime: 2, frog: 1.5, snake: 2, wasp: 1.5, spider: 0.6, blueDemon: 0.6, dragon: 0, skeleton: 3, mushnub: 3, ninja: 0.6 };
-const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3, demon: Infinity, slime: 1, frog: 1, snake: 1, wasp: 1, spider: 1, blueDemon: 1, dragon: Infinity, skeleton: 1, mushnub: 1, ninja: 1 };
+const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1, demon: 0, slime: 2, frog: 1.5, snake: 2, wasp: 1.5, spider: 0.6, blueDemon: 0.6, dragon: 0, skeleton: 3, mushnub: 3, ninja: 0.6, boneKing: 0 };
+const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3, demon: Infinity, slime: 1, frog: 1, snake: 1, wasp: 1, spider: 1, blueDemon: 1, dragon: Infinity, skeleton: 1, mushnub: 1, ninja: 1, boneKing: Infinity };
 /** Each floor's enemies (index: the floor; past the last, the last's). */
 const ROSTER: readonly (readonly EnemyKind[])[] = [
   [],

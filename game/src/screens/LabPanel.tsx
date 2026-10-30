@@ -5,6 +5,7 @@
 // room for the Lab. The world holds still while it's open.
 // Update 0.0.20 — Floor 1, 2 or 3: a run from that floor's start (Back leaves it too).
 // Update 0.1.17 — Sounds: the recorded clips to listen to and pick from (LabSounds.tsx), in place of the lists.
+// Update 0.2.3 — the Bone King, and its boss room (floor 3's).
 import { useState } from 'react';
 import { LabSounds } from './LabSounds';
 import type { EnemyKind } from '../sim/enemies/kinds';
@@ -21,7 +22,7 @@ interface Props {
   god: boolean;
   /** `stay`: keep the panel open (shift-click). */
   onCommand(cmd: LabCommand, stay: boolean): void;
-  onBossRoom(kind: 'demon' | 'dragon'): void;
+  onBossRoom(kind: 'demon' | 'dragon' | 'boneKing'): void;
   onFloor(floor: number): void;
   onBack(): void;
   onWaves(): void;
@@ -135,6 +136,12 @@ export function LabPanel({ away, waves, meter, god, onCommand, onBossRoom, onFlo
                 </button>
                 <button className="rb-lab-btn is-boss" onClick={() => onBossRoom('dragon')}>
                   Dragon room
+                </button>
+                <button className="rb-lab-btn is-boss" onClick={run({ kind: 'enemy', enemy: 'boneKing', count: 1 })}>
+                  Bone King
+                </button>
+                <button className="rb-lab-btn is-boss" onClick={() => onBossRoom('boneKing')}>
+                  Bone King room
                 </button>
               </div>
             </section>

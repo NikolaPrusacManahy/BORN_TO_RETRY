@@ -22,6 +22,7 @@ import { Coin, createCoins } from './coins';
 import { Quake, clearQuakes, createQuakes } from './quakes';
 import { Bomb, clearBombs, createBombs } from './bombs';
 import { createExecution, Execution } from './execution';
+import { createGrab, Grab } from './grab';
 import { createDrops, Drop } from '../items/drops';
 import { Bonuses, createBonuses } from '../items/bonuses';
 import { createBag } from '../weapons/slots';
@@ -86,6 +87,8 @@ export interface CombatState {
   execution: number;
   exec: Execution;
   execTarget: number;
+  /** Update 0.2.3 — the Bone King holding you (grab.ts). */
+  grab: Grab;
   /** Update 0.1.12 — seconds since there was last an enemy you could execute (the sting plays only after a while). */
   execAway: number;
   /** Update 0.1.1 — the Lab's Meter: the Execution Power meter kept full. */
@@ -149,6 +152,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     execution: 0,
     exec: createExecution(),
     execTarget: -1,
+    grab: createGrab(),
     execAway: Infinity,
     fullMeter: false,
     kills: 0,
@@ -196,6 +200,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.execution = 0;
   state.exec.active = false;
   state.execTarget = -1;
+  state.grab = createGrab();
   state.execAway = Infinity;
   state.kills = 0;
   for (const d of state.drops) d.alive = false;

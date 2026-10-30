@@ -1,0 +1,199 @@
+/* Update 0.2.3 — the Bone King's grab QTE: under the middle of the view, HIT! (slanted, shaking) beside your attack's
+   key (a key cap, pulsing); the combo count slamming in with each hit (×N, bigger, a crimson glow); a pip lit per hit;
+   the time left draining under them (crimson as it runs low). As it ends, BROKE FREE (gold) or THROWN (crimson). */
+.rb-qte {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+  user-select: none;
+  z-index: 12;
+}
+
+.rb-qte-call {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  animation: rb-qte-shake 0.12s linear infinite;
+}
+
+.rb-qte-hit {
+  font-family: 'Anton', var(--rb-font);
+  font-size: clamp(40px, 6vw, 72px);
+  line-height: 1;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff3e6;
+  text-shadow:
+    0 0 18px rgba(214, 31, 58, 0.85),
+    0 3px 0 rgba(0, 0, 0, 0.6);
+  transform: skewX(-10deg);
+}
+
+.rb-qte-key {
+  min-width: 52px;
+  padding: 6px 12px;
+  border: 2px solid rgba(255, 243, 230, 0.9);
+  border-radius: 8px;
+  background: rgba(20, 8, 10, 0.75);
+  font-family: var(--rb-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff3e6;
+  text-align: center;
+  box-shadow: 0 4px 0 rgba(255, 243, 230, 0.35);
+  animation: rb-qte-press 0.36s ease-in-out infinite;
+}
+
+.rb-qte-combo {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  height: 64px;
+  animation: rb-qte-slam 0.22s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.rb-qte-combo b {
+  font-family: 'Anton', var(--rb-font);
+  font-size: 60px;
+  line-height: 1;
+  color: #ffd76a;
+  text-shadow:
+    0 0 22px rgba(214, 31, 58, 0.9),
+    0 3px 0 rgba(0, 0, 0, 0.6);
+  transform: skewX(-10deg);
+}
+
+.rb-qte-combo span {
+  font-family: var(--rb-mono);
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255, 243, 230, 0.8);
+}
+
+.rb-qte-pips {
+  display: flex;
+  gap: 6px;
+}
+
+.rb-qte-pips i {
+  width: 16px;
+  height: 16px;
+  transform: rotate(45deg);
+  border: 2px solid rgba(255, 243, 230, 0.55);
+  background: rgba(0, 0, 0, 0.35);
+  transition:
+    background 0.08s,
+    box-shadow 0.08s;
+}
+
+.rb-qte-pips i.is-on {
+  border-color: #ffd76a;
+  background: #d61f3a;
+  box-shadow: 0 0 12px rgba(214, 31, 58, 0.9);
+}
+
+.rb-qte-time {
+  width: min(360px, 60vw);
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.rb-qte-time i {
+  display: block;
+  height: 100%;
+  width: calc(var(--left) * 100%);
+  background: #fff3e6;
+  transition: width 0.1s linear;
+}
+
+.rb-qte.is-urgent .rb-qte-time i {
+  background: #d61f3a;
+}
+
+.rb-qte.is-urgent .rb-qte-call {
+  animation-duration: 0.07s;
+}
+
+.rb-qte-end {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translateX(-50%) skewX(-8deg);
+  font-family: 'Anton', var(--rb-font);
+  font-size: clamp(44px, 7vw, 88px);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 12;
+  animation: rb-qte-end 1.1s ease-out forwards;
+}
+
+.rb-qte-end.is-free {
+  color: #e8b931;
+  text-shadow: 0 0 28px rgba(232, 185, 49, 0.55);
+}
+
+.rb-qte-end.is-thrown {
+  color: #d61f3a;
+  text-shadow: 0 0 28px rgba(214, 31, 58, 0.55);
+}
+
+@keyframes rb-qte-shake {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(2px, -1px);
+  }
+  50% {
+    transform: translate(-1px, 2px);
+  }
+  75% {
+    transform: translate(-2px, -1px);
+  }
+}
+
+@keyframes rb-qte-press {
+  50% {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 rgba(255, 243, 230, 0.35);
+  }
+}
+
+@keyframes rb-qte-slam {
+  from {
+    opacity: 0.4;
+    transform: scale(1.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes rb-qte-end {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) skewX(-8deg) scale(1.4);
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(-50%) skewX(-8deg) scale(1);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

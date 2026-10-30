@@ -1,0 +1,52 @@
+// Update 0.2.3 — the Bone King, floor 3's boss (the designer: "the boss of floor 3 is also Skeleton, but massive"; "one
+// lighter health bar, he revives like other skeletons and that is phase 2 starts"; skeletons thrown at you "3 of them
+// at moderate pace"; "jumps -> smash -> jump again -> smash"; a close grab you break by hitting it 10 times in a row or
+// you're thrown at the wall; in phase 2 "summons 3 skeletons once only"; at 25% or less, once, "charge up a final
+// explosion … charges up for 3 seconds, 50% of the room range"). Placeholders past the designer's words.
+import { group, knob } from './schema';
+
+export const BONE_KING = group('boneKing', 'Bone King', {
+  kingHp: knob(1000, 100, 6000, 50, 'Bone King health', 'Damage to bring it down, each life (it has two: the second starts as it rebuilds).'),
+  kingHeight: knob(6, 3, 10, 0.1, 'Bone King size', 'Its model is scaled to this (m); its hit capsule follows.'),
+  kingSpeed: knob(4.5, 1, 12, 0.25, 'Bone King speed', 'How fast it walks at you (m/s).'),
+  kingTurn: knob(2.5, 0.5, 8, 0.1, 'Bone King turn', 'How fast it turns to you (rad/s).'),
+  kingPause: knob(1.4, 0.2, 5, 0.1, 'Bone King pause', 'Seconds between its moves.'),
+  kingPause2: knob(0.75, 0.2, 1.5, 0.05, 'Phase 2 pause', 'Its pause in its second life, times this.'),
+  kingNear: knob(7, 3, 15, 0.5, 'Bone King close', 'Closer than this (m), it grabs or smashes.'),
+  kingFar: knob(15, 8, 30, 0.5, 'Bone King far', 'Further than this (m), it mostly throws.'),
+  kingDown: knob(3, 0.5, 8, 0.1, 'Bone King lies', 'Brought down the first time, it lies in pieces this long (s); nothing hurts it.'),
+  kingRise: knob(3, 0.5, 8, 0.1, 'Bone King rebuild', 'Seconds it takes to rebuild itself (its bar fills again): then its second phase.'),
+  throwWindup: knob(0.8, 0.2, 2, 0.05, 'Throw wind-up', 'It reaches down for a skeleton (s).'),
+  throws: knob(3, 1, 6, 1, 'Skeletons thrown', 'Skeletons it throws at you, one after another (the designer: 3).'),
+  throwGap: knob(0.6, 0.2, 2, 0.05, 'Throw gap', 'Seconds between them (the designer: a moderate pace).'),
+  throwFall: knob(1.0, 0.4, 2.5, 0.05, 'Throw flight', 'Seconds a thrown skeleton flies (its spot glows on the floor meanwhile).'),
+  throwRadius: knob(1.8, 0.5, 4, 0.1, 'Throw burst', 'A thrown skeleton smashes everything this close to where it lands (m).'),
+  throwDamage: knob(16, 1, 100, 1, 'Throw damage', 'To you, per thrown skeleton that lands on you.'),
+  throwShove: knob(7, 0, 25, 0.5, 'Throw shove', 'How hard a landing throws you (m/s).'),
+  smashWindup: knob(0.6, 0.2, 2, 0.05, 'Smash wind-up', 'It crouches before its first jump (s).'),
+  smashAir: knob(0.9, 0.3, 2, 0.05, 'Smash jump', 'Seconds each jump is in the air (its landing glows on the floor meanwhile).'),
+  smashArc: knob(5, 1, 12, 0.5, 'Smash height', 'How high each jump goes (m).'),
+  smashBetween: knob(0.4, 0.1, 1.5, 0.05, 'Smash crouch', 'Seconds between landing and jumping again.'),
+  smashReach: knob(4.5, 1, 10, 0.25, 'Smash reach', 'Each landing hits you this close (m).'),
+  smashDamage: knob(24, 1, 100, 1, 'Smash damage', 'To you, per landing that catches you.'),
+  smashShove: knob(12, 0, 30, 0.5, 'Smash shove', 'How hard a landing throws you (m/s).'),
+  quakeReach: knob(13, 0, 30, 0.5, 'Smash quake reach', 'Each landing sends a quake ring this far (m): jump it.'),
+  quakeSpeed: knob(15, 3, 40, 0.5, 'Smash quake speed', 'How fast the quake ring rolls out (m/s).'),
+  quakeDamage: knob(12, 0, 100, 1, 'Smash quake damage', 'To you, if the ring passes under you.'),
+  grabWindup: knob(0.55, 0.2, 1.5, 0.05, 'Grab wind-up', 'It reaches for you (s).'),
+  grabReach: knob(3.5, 1, 8, 0.25, 'Grab reach', 'It catches you this close to its body (m), in front of it.'),
+  grabHits: knob(10, 1, 30, 1, 'Grab hits', 'Hits to break free (the designer: 10 in a row).'),
+  grabTime: knob(3.2, 1, 8, 0.1, 'Grab time', 'Seconds you have to land them before it throws you.'),
+  grabHitDamage: knob(10, 0, 100, 1, 'Grab hit damage', 'Each of those hits hurts it this much.'),
+  grabStun: knob(2, 0, 5, 0.1, 'Grab break stun', 'Broken free, it reels this long (s): hits do more.'),
+  grabThrowDamage: knob(30, 1, 100, 1, 'Grab throw damage', 'To you, thrown at the wall.'),
+  grabThrowSpeed: knob(24, 5, 50, 1, 'Grab throw speed', 'How hard it throws you at the nearest wall (m/s).'),
+  summon: knob(3, 0, 6, 1, 'Phase 2 skeletons', 'Skeletons it calls up out of the floor, once, as its second life starts.'),
+  blastAt: knob(0.25, 0, 1, 0.05, 'Blast at', 'In its second life, at this share of its health or less, it charges its final blast (once).'),
+  blastCharge: knob(3, 1, 8, 0.1, 'Blast charge', 'Seconds it charges (the designer: 3); the floor shows how far it reaches.'),
+  blastShare: knob(0.5, 0.1, 1, 0.05, 'Blast size', 'Share of the room’s floor its blast covers (the designer: 50% of the room).'),
+  blastDamage: knob(60, 1, 200, 1, 'Blast damage', 'To you, inside it when it goes off.'),
+  blastShove: knob(18, 0, 40, 0.5, 'Blast shove', 'How hard it throws you (m/s).'),
+  kingRecover: knob(1.1, 0.2, 4, 0.1, 'Bone King recover', 'It stands this long after a move (s).'),
+  kingCoins: knob(15, 0, 300, 5, 'Bone King coins', 'Coins in its chest.'),
+});

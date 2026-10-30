@@ -7,18 +7,20 @@
 // Spider and Blue Demon (only a hard hit staggers them); and floor 2's boss, the Dragon (tuning/dragon.ts).
 // Update 0.1.19 — floor 3's (tuning/foes3.ts): the Skeleton (it rebuilds itself), the Mushnub, and the Ninja, a mini
 // boss (only a hard hit staggers it; it teleports away from some).
+// Update 0.2.3 — floor 3's boss, the Bone King (tuning/boneKing.ts): a massive Skeleton with two lives.
 import { BOSS } from '../../tuning/boss';
 import { DRAGON } from '../../tuning/dragon';
 import { FOES2 } from '../../tuning/foes2';
 import { ENEMIES } from '../../tuning/enemies';
 import { FOES } from '../../tuning/foes';
 import { FOES3 } from '../../tuning/foes3';
+import { BONE_KING } from '../../tuning/boneKing';
 
-export type EnemyKind = 'grunt' | 'spitter' | 'brute' | 'leaper' | 'stinger' | 'wraith' | 'demon' | 'slime' | 'frog' | 'snake' | 'wasp' | 'spider' | 'blueDemon' | 'dragon' | 'skeleton' | 'mushnub' | 'ninja';
+export type EnemyKind = 'grunt' | 'spitter' | 'brute' | 'leaper' | 'stinger' | 'wraith' | 'demon' | 'slime' | 'frog' | 'snake' | 'wasp' | 'spider' | 'blueDemon' | 'dragon' | 'skeleton' | 'mushnub' | 'ninja' | 'boneKing';
 /** Which grid it finds its way on: the big ones need wider gaps; fliers go over low things. */
 export type SizeClass = 'small' | 'large' | 'air';
 
-export const ENEMY_KINDS: readonly EnemyKind[] = ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith', 'demon', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon', 'dragon', 'skeleton', 'mushnub', 'ninja'];
+export const ENEMY_KINDS: readonly EnemyKind[] = ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith', 'demon', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon', 'dragon', 'skeleton', 'mushnub', 'ninja', 'boneKing'];
 export const SIZE_CLASSES: readonly SizeClass[] = ['small', 'large', 'air'];
 
 export interface EnemyStats {
@@ -41,7 +43,7 @@ export interface EnemyStats {
 }
 
 /** Body radii (m). Not knobs: the walk grids are built for them. */
-export const RADIUS: Record<EnemyKind, number> = { grunt: 0.45, spitter: 0.4, brute: 0.85, leaper: 0.45, stinger: 0.5, wraith: 0.55, demon: 1.7, slime: 0.5, frog: 0.55, snake: 0.4, wasp: 0.5, spider: 1.3, blueDemon: 0.85, dragon: 1.8, skeleton: 0.45, mushnub: 0.45, ninja: 0.45 };
+export const RADIUS: Record<EnemyKind, number> = { grunt: 0.45, spitter: 0.4, brute: 0.85, leaper: 0.45, stinger: 0.5, wraith: 0.55, demon: 1.7, slime: 0.5, frog: 0.55, snake: 0.4, wasp: 0.5, spider: 1.3, blueDemon: 0.85, dragon: 1.8, skeleton: 0.45, mushnub: 0.45, ninja: 0.45, boneKing: 1.5 };
 /** The grid each size class walks: blocked for this radius (a little less than the brute's, so 2 m gaps stay open:
  *  the push out of walls keeps its body clear anyway). */
 export const GRID_RADIUS: Record<SizeClass, number> = { small: 0.45, large: 0.65, air: 0.6 };
@@ -64,6 +66,7 @@ const CACHE: Record<EnemyKind, EnemyStats> = {
   dragon: blank('large', true),
   skeleton: blank('small'),
   mushnub: blank('small'),
+  boneKing: blank('large', true),
   ninja: blank('small'),
 };
 
@@ -160,10 +163,18 @@ export const ENEMY_STATS: Record<EnemyKind, () => EnemyStats> = {
     const v = FOES3.v;
     return fill(CACHE.ninja, v.ninjaHp, RADIUS.ninja, v.ninjaHeight, v.ninjaSpeed, 0.4, ENEMIES.v.bruteStagger, 0.35, 1.6, v.ninjaCoins);
   },
+  // Update 0.2.3 — floor 3's boss: like the Demon, never flinches, and takes more while stunned.
+  boneKing: () => {
+    const v = BONE_KING.v;
+    const s = fill(CACHE.boneKing, v.kingHp, RADIUS.boneKing, v.kingHeight, v.kingSpeed, 0.05, Infinity, 0, doomTime() + DOOM_AFTER, 0);
+    s.stunned = BOSS.v.stunBonus;
+    return s;
+  },
 };
 
-/** Update 0.0.18 — each floor's boss (floor 3 has floor 2's for now). */
-export const bossOf = (floor: number): EnemyKind => (floor <= 1 ? 'demon' : 'dragon');
+/** Update 0.0.18 — each floor's boss. Update 0.2.3 — floor 3's the Bone King (and the floors past it, as their
+ *  enemies are floor 3's). */
+export const bossOf = (floor: number): EnemyKind => (floor <= 1 ? 'demon' : floor === 2 ? 'dragon' : 'boneKing');
 
 /** Update 0.0.18 — the mini bosses (the designer): a room with one has a chest, and the first killed drops its key. */
 export const MINI_BOSSES: readonly EnemyKind[] = ['brute', 'spider', 'blueDemon', 'ninja'];
