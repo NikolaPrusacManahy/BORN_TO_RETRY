@@ -211,7 +211,7 @@ section('Chests');
 section('Chests — the item waits for E');
 {
   // (Update 0.1.11 — the designer: a chest's item is taken with E, never by itself. A gold key and these rolls give an
-  // epic chest: the Gold Axe and its coins.)
+  // epic chest: the Gold Axe, and Update 0.2.1, no coins with it.)
   const { t, p, c } = chestScene(0);
   c.items.goldKeys = 1;
   c.items.keyPick = 'goldKey';
@@ -229,7 +229,7 @@ section('Chests — the item waits for E');
   const d = waiting();
   check(`opened: its item (${loot.item}) rises out and hovers over the chest, not yours yet`, loot.item === 'goldAxe' && !!d && d.kind === 'goldAxe' && near(d.pos.x, 0, 1e-6) && near(d.pos.z, 0, 1e-6) && d.pos.y > 0.3 && c.weapon === null);
   const coinsOut = c.coins.filter((q) => q.alive).length + c.money - before;
-  check(`its coins still come to you by themselves (${ITEMS.v.epicCoins})`, coinsOut === ITEMS.v.epicCoins, `${coinsOut}`);
+  check('no coins with it (Update 0.2.1)', coinsOut === 0, `${coinsOut}`);
   // Walk right over it, and wait.
   p.pos.set(0, 0, 0.4);
   for (let i = 0; i < ticks(30); i++) stepCombat(c, p, emptyCombatIntent(), w, DT);

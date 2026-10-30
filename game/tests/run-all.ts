@@ -52,5 +52,6 @@ import './test-foes3';
 import './test-challenge';
 import './test-prompts';
 import './test-rewards';
+import './test-gold-chests';
 
 process.exit(summary() > 0 ? 1 : 0);

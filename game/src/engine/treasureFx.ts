@@ -2,11 +2,15 @@
 // and bobbing where it fell; and a chest's light as its lid opens, in the colour of its rarity: none for common, green
 // for uncommon, blue for rare, purple for epic, yellow for legendary (a light and a column of glow).
 // Update 0.1.10 — mythic replaces legendary, and its colour is red (the designer).
+// Update 0.2.1 (the designer: "an aura around the chests that needs a key, like a gold aura, little bit") — a chest a
+// key opens (not a gold chest, not the boss's) glows soft gold while it's shut: a halo round it and a pool of light on
+// the floor under it, breathing slowly; it comes up with the chest and fades as the lid lifts.
 import * as THREE from 'three';
 import type { Chest } from '../sim/dungeon/treasure';
 import type { Rarity } from '../sim/dungeon/loot';
 import type { Drop, DropKind } from '../sim/items/drops';
 import { ITEMS } from '../tuning/items';
+import { auraTexture } from './keyLooks';
 
 export const RARITY_COLOUR: Record<Rarity, number | null> = { common: null, uncommon: 0x3dff6a, rare: 0x3d8bff, epic: 0xb04dff, mythic: 0xff2a2a };
 /** A floor item's height (m), bob and turn. */
@@ -113,5 +117,47 @@ export class ChestGlows {
   dispose() {
     this.geo.dispose();
     for (const g of this.glows) (g.column.material as THREE.Material).dispose();
+  }
+}
+
+/** Update 0.2.1 — the aura's gold (the gold key's), its halo and floor pool across (m), and how strong each is. */
+const AURA_GOLD = 0xffd23a;
+const HALO = 2.6;
+const POOL = 2.8;
+const HALO_GLOW = 0.5;
+const POOL_GLOW = 0.6;
+
+/** Update 0.2.1 — a keyed chest's soft gold aura (in the chest's own space: it rises with it). */
+export class ChestAura {
+  readonly group = new THREE.Group();
+  private readonly halo = new THREE.SpriteMaterial({ map: auraTexture(), color: AURA_GOLD, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+  private readonly pool = new THREE.MeshBasicMaterial({ map: auraTexture(), color: AURA_GOLD, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+  private readonly geo = new THREE.PlaneGeometry(POOL, POOL).rotateX(-Math.PI / 2);
+
+  constructor() {
+    const halo = new THREE.Sprite(this.halo);
+    halo.position.y = 0.5;
+    halo.scale.setScalar(HALO);
+    const pool = new THREE.Mesh(this.geo, this.pool);
+    pool.position.y = 0.02;
+    // A glow casts no shadow (TreasureView gives every other mesh one).
+    pool.userData.noShadow = true;
+    this.group.add(halo, pool);
+    this.group.visible = false;
+  }
+
+  /** `k`: how strong (0: none, 1: full); `time` for its breathing. */
+  set(k: number, time: number) {
+    this.group.visible = k > 0;
+    if (k <= 0) return;
+    const b = k * (0.85 + 0.15 * Math.sin(time * 2.2));
+    this.halo.opacity = HALO_GLOW * b;
+    this.pool.opacity = POOL_GLOW * b;
+  }
+
+  dispose() {
+    this.halo.dispose();
+    this.pool.dispose();
+    this.geo.dispose();
   }
 }

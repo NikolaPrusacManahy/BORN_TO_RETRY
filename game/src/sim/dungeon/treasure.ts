@@ -12,6 +12,8 @@
 // Update 0.2.0 (the designer) — some chests rise out of the floor: the challenge room's once it's won, the boss's once
 // it's dead (`raiseChest`); until then they're buried (not there). The boss's opens without a key and holds what the
 // boss used to leave as it burst: its coins, a key and a heart (the items wait over it for E, side by side).
+// Update 0.2.1 (the designer) — every room's chest rises once its room is won. A gold chest (a room with no mini boss:
+// no key drops there) opens without a key, and gives coins only.
 import type { Rng } from '../../core/rng';
 import { ITEMS } from '../../tuning/items';
 import type { ChestSpot, DungeonLevel } from '../../world/dungeon/assemble';
@@ -21,7 +23,7 @@ import { anyKey, checkPick, ITEM_KINDS, ItemKind, keyFor, KeyKind, nextKey, pric
 import { startKneel } from '../player/kneel';
 import type { PlayerState } from '../player/state';
 import { dropItem, takeWaiting } from '../items/drops';
-import { Loot, LootRolls, RARITIES, rollLoot } from './loot';
+import { goldLoot, Loot, LootRolls, RARITIES, rollLoot } from './loot';
 import { BOSS_LOOT, bossCoins } from './bossRoom';
 import { coinsFor } from '../items/bonuses';
 import type { EnemyKind } from '../enemies/kinds';
@@ -105,6 +107,9 @@ export function createTreasure(level: DungeonLevel, rng: Rng, boss: EnemyKind = 
 /** Update 0.0.19 — no shop and no chests yet (the Lab's: its panel adds chests). */
 export const emptyTreasure = (): Treasure => ({ shop: -1, offers: [], chests: [], choosing: -1 });
 
+/** Update 0.2.1 — no key opens it (a boss's chest, a gold chest): E alone does. */
+export const keyless = (c: Chest) => c.boss !== null || c.spot.gold;
+
 /** The chest you could open from where you stand: in reach and in front of it (−1: none). */
 export function chestInReach(t: Treasure, player: PlayerState): number {
   for (let i = 0; i < t.chests.length; i++) {
@@ -171,7 +176,7 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
   const inv = state.items;
   if (ci >= 0 && !fighting(t.chests[ci].spot.room)) {
     const c = t.chests[ci];
-    const free = c.boss !== null;
+    const free = keyless(c);
     if (!free && anyKey(inv)) {
       t.choosing = ci;
       checkPick(inv);
@@ -187,7 +192,7 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
       return true;
     }
     c.key = free ? null : useKey(inv);
-    c.loot = c.boss ? { rarity: 'mythic', item: null, coins: coinsFor(bossCoins(c.boss), state, state.rng) } : rollLoot(c.key!, c.rolls);
+    c.loot = c.boss ? { rarity: 'mythic', item: null, coins: coinsFor(bossCoins(c.boss), state, state.rng) } : c.spot.gold ? goldLoot(c.rolls) : rollLoot(c.key!, c.rolls);
     c.state = 'opening';
     c.t = 0;
     t.choosing = -1;

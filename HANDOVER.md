@@ -2,7 +2,14 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-10-29, after Update 0.2.0)
+## Next up (2026-10-30, after Update 0.2.1)
+- **The designer plays 0.2.1** (none of it seen in the game). Claude's readings, to confirm:
+  - **"every chest located in rooms"**: every fight room's chest is now buried while the room fights and rises with the view's trip (3.2 s, you don't move) as the room is won; the gates open at once (only the challenge room holds you). The boss's chest is shown by the wooden gate's shot as before.
+  - **Gold chests**: a chest in a room with no mini boss opens with E alone (keys you carry aren't used) and gives 10, 20, 30 or 40 coins (the common chest's amounts), nothing else. On the floors as laid out, that's every chest that isn't in a mini boss's room, the challenge room or the boss room (the 1–2 extra chests a floor). Its light is common's (none); it looks like any chest.
+  - **15 coins** in the Demon's and the Dragon's chests (the gold ingots' +% still applies).
+  - **The gold aura** (second list, same update): on every chest a key opens (mini boss rooms, the challenge room), while it's shut; strength judged on a rough Blender stand-in (`ChestAura` in treasureFx.ts: halo 0.5, pool 0.6), not the game's renderer. Gold chests and the boss's don't glow.
+  - **The challenge room, 10 at once**: it opens with 10 (or its first wave if bigger) and one comes in as one dies, while it has more; its count is unchanged. Where its plan has two waves (17 enemies, shallow floor-1 challenge rooms), both mini bosses can be in the opening ten.
+- **The guns** (`ASSETS/QUATERNIUS/Guns`, the designer asked what Claude thinks; nothing made from them): six rigged low-poly guns (Pistol, Revolver, P90, Shotgun, Rifle, Sniper Rifle), 950–2,800 triangles, flat colours (in Cycles diffuse nodes, so the export must carry them over), each with a small armature (trigger, magazine, slide/drum/hammer/bolt) and Fire/Reload clips (7–46 frames at 24 fps). The library has no gun sounds (Sonniss pack1–5). Waiting on the designer: whether guns belong in the game at all, and which.
 - **The designer plays 0.2.0** (none of it seen in the game). Claude's readings of the list, to confirm:
   - **"the gate remain open"**: read as the challenge room's gates staying *shut* until the reward is taken, then opening (that's what "aren't allowed to leave" needs).
   - **"scrap whatever ring gives the 15% damage"**: the purple ring (+20% damage) is gone. The green ring (+15% attack speed) stays; say if it was meant too.
@@ -43,7 +50,15 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   - Arms are checked by renders before reporting: `tools/hand-shots.ts` (fists, grips, the slam), `tools/exec-shots.ts <kinds>`, `tools/weapon-shots.ts` and `tools/book-shots.ts`, then `tools/blender/render_view.py --json … --out … --cull`. To render only some moments, filter the shots JSON (`pov.json` or `shots.json`) by name first.
   - Code edits ran as small Python scripts in the scratchpad (exact old → new pairs), because shell heredocs mangle quotes and em dashes.
 
-## Current state (2026-10-29): M1 done, M2 under way, M3 under way — Update 0.2.0
+## Current state (2026-10-30): M1 done, M2 under way, M3 under way — Update 0.2.1
+- **Update 0.2.1 — rising chests everywhere, gold chests, fewer coins, a keyed chest's aura, 10 at once in the challenge room** (the designer's two lists; spec `MD_UPDATES/U021_CHESTS.md`).
+  - **Every room's chest rises** (`ChestSpot.rises` always; its box a gate): buried while its room fights, `raiseChest` as a plain fight room is won (roomLoop.ts), so `ChestShot` shows every one.
+  - **Gold chests** (`ChestSpot.gold`, assemble.ts: not the challenge room's, and its room's waves have no mini boss): `keyless(c)` (treasure.ts) — no key opens it, E alone, no key used; `goldLoot(rolls)` (loot.ts): coins only, one of Chest coins 1–4. Focus shows "[E] to open" without a key.
+  - **No coins with an epic or mythic chest's item** (`epicCoins`, `mythicCoins` gone).
+  - **Boss coins 15** (`demonCoins`, `dragonCoins`).
+  - **A keyed chest's gold aura** (`ChestAura`, treasureFx.ts, a child of the chest's body so it rises with it): halo sprite + floor pool, additive, the key auras' texture (`auraTexture`, keyLooks.ts, now exported); on while `!keyless(c)` and shut, coming in as it rises, gone by the lid's LID_UP. No light (no shader recompiles); the pool casts no shadow (`userData.noShadow`, skipped by TreasureView's shadow pass).
+  - **Challenge room 10 at once** (F1 → Rooms → Challenge: on field, 10): `stepRooms` keeps that many fighting in a challenge room (the opening at least that many). `send` refills its spot pool with the spots away from you before any near you, and an enemy with no free slot (16, bodies still lying) goes back on the plan (`rr.sent` handed back), so none is lost from the count.
+  - **Checked by tests** (`test-gold-chests.ts`: 1,500 floors, every chest rises, gold exactly where no mini boss; a room's chest rising as it's won and the view going to it; a gold chest opened with no key, coins only; 15 coins from a boss's chest. Changed: test-keys, test-shop, test-dungeon, test-loadout, test-prompts, test-rewards; the aura in test-gold-chests, 10 at once and no lost enemies in test-challenge, test-lab's body count). Unseen in the game.
 - **Update 0.2.0 — challenge rewards, the boss's chest, the teal ring, healing executions** (the designer's list; spec `MD_UPDATES/U020_REWARDS.md`).
   - **One challenge room a floor, the only dead end:** no plain side fight room any more (`SIDE_FIGHT` gone); the challenge room always placed (off a fight room on the way, else any room but the boss's). Checked on 15,000 floors.
   - **Rising chests** (`ChestSpot.rises`, `.gate`): the challenge room's and the boss's are `buried` (not drawn, not solid) until `raiseChest` (`rising`, Chest rising 1.4 s, then `shut`). Their boxes are gates after the wooden gate (solid once up and you're clear of them). Stones fly, the ground trembles, a grinding rumble. `engine/chestShot.ts`: the view glides from your eyes to 4.2 m in front of the chest, 2.4 m up, holds, glides back; the run is locked meanwhile (letterbox).

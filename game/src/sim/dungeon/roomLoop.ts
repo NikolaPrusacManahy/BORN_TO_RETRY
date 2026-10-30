@@ -19,6 +19,10 @@
 // Update 0.2.0 (the designer) — a won challenge room keeps its gates shut until you've taken its reward (reward.ts:
 // 'reward', its chest rising out of the floor); the boss's chest rises as the wooden gate opens. A chest that has
 // risen is solid (its box is a gate), once you're clear of it.
+// Update 0.2.1 (the designer: "every chest located in rooms") — any room's chest rises as the room is won.
+// Update 0.2.1 (the designer: "put 10 enemies at the same time, and it adds a new one from the counter when it gets
+// reduced to 9") — a challenge room opens with Challenge: on field (10) and keeps that many fighting while it has more
+// to send. An enemy with no free slot (bodies still lying) waits its turn: it's still to come.
 import { createRng, Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import type { DungeonLevel } from '../../world/dungeon/assemble';
@@ -141,7 +145,7 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
     rr.delay -= dt;
     if (rr.sent < rr.total) {
       // Keep the field full: the opening (its first wave, at least Enemies on field), then one at a time.
-      const min = ROOMS.v.fieldMin;
+      const min = room.challenge ? ROOMS.v.challengeField : ROOMS.v.fieldMin;
       if (rr.delay <= 0 && live < min) {
         send(run, i, player, combat, rng, rr.sent === 0 ? Math.max(room.waves[0]?.length ?? 0, min) : 1);
         rr.delay = ROOMS.v.reinforceGap;
@@ -156,6 +160,7 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
       continue;
     }
     rr.state = 'cleared';
+    raiseChest(run.treasure, room.chest, combat);
     for (const g of room.gates) run.shut[g] = false;
     ev.push('gatesOpen', i, (room.min.x + room.max.x) / 2, 1, (room.min.z + room.max.z) / 2);
   }
@@ -213,13 +218,21 @@ function send(run: DungeonRun, i: number, player: PlayerState, combat: CombatSta
   let pool: Spot[] = [...(far.length > 0 ? far : room.spawns)];
   // Update 0.0.21 — spitters take the perches no one stands on, first.
   const perches = room.perches.filter((p) => !combat.enemies.some((e) => isLive(e) && e.perch > 0 && Math.hypot(e.pos.x - p.x, e.pos.z - p.z) < 0.5));
-  for (const kind of kinds) {
+  for (let k = 0; k < kinds.length; k++) {
+    const kind = kinds[k];
+    let slot: number;
     if (kind === 'spitter' && perches.length > 0) {
-      const slot = spawnAt(combat.enemies, kind, perches, player, rng, combat.events);
+      slot = spawnAt(combat.enemies, kind, perches, player, rng, combat.events);
       if (slot >= 0) combat.enemies[slot].perch = combat.enemies[slot].pos.y;
-      continue;
+    } else {
+      // Update 0.2.1 — the spots away from you again before any near you (10 at once can use them all).
+      if (pool.length === 0) pool = [...(far.length > 0 ? far : room.spawns)];
+      slot = spawnAt(combat.enemies, kind, pool, player, rng, combat.events);
     }
-    if (pool.length === 0) pool = [...room.spawns];
-    spawnAt(combat.enemies, kind, pool, player, rng, combat.events);
+    // Update 0.2.1 — no free slot: this one and the rest are still to come.
+    if (slot < 0) {
+      rr.sent -= kinds.length - k;
+      return;
+    }
   }
 }

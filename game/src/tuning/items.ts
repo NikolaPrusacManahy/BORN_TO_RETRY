@@ -14,6 +14,7 @@
 // floor down); chests common (coins, a heart, the silver plate), uncommon (the gold armour, the Great Heart), rare (the
 // gold sword, every ring), epic (the Gold Axe or the Gold Hammer, and 60 coins), mythic (the Gold Daggers or the
 // Grimoire, and 100 coins; it replaces legendary, its colour red); the purple ring +20% damage.
+// Update 0.2.1 (the designer: "too unbalanced for lucky players") — no coins with an epic or mythic chest's item.
 import { group, knob } from './schema';
 
 const price = (def: number, what: string) => knob(def, 0, 500, 5, `Price: ${what}`, `Coins for ${what} on floor 1.`);
@@ -54,18 +55,16 @@ export const ITEMS = group('items', 'Shop & chests', {
   buyReach: knob(1.6, 0.5, 4, 0.1, 'Buy reach', 'How close to an item (m) E buys it.'),
   chestReach: knob(2, 0.8, 4, 0.1, 'Chest reach', 'How close to a chest (m) E opens it.'),
   chestTime: knob(1.3, 0.5, 3, 0.05, 'Chest opening', 'Seconds you kneel and lift the lid.'),
-  chestRise: knob(1.4, 0.2, 5, 0.1, 'Chest rising', 'Seconds a challenge room\'s or a boss\'s chest takes to rise out of the floor.'),
+  chestRise: knob(1.4, 0.2, 5, 0.1, 'Chest rising', 'Seconds a chest takes to rise out of the floor once its room is won.'),
   common: knob(45, 0, 100, 1, 'Chest: common', 'Weight of a common chest (coins, a heart or the silver plate).'),
   uncommon: knob(30, 0, 100, 1, 'Chest: uncommon', 'Weight of an uncommon chest (the gold armour or the Great Heart).'),
   rare: knob(15, 0, 100, 1, 'Chest: rare', 'Weight of a rare chest (the gold sword or a ring).'),
-  epic: knob(8, 0, 100, 1, 'Chest: epic', 'Weight of an epic chest (the Gold Axe or the Gold Hammer, and Epic coins).'),
-  mythic: knob(2, 0, 100, 1, 'Chest: mythic', 'Weight of a mythic chest (the Gold Daggers or the Grimoire, and Mythic coins).'),
-  coins1: knob(10, 0, 300, 5, 'Chest coins 1', 'Coins in a common chest: one of the four amounts.'),
-  coins2: knob(20, 0, 300, 5, 'Chest coins 2', 'Coins in a common chest: one of the four amounts.'),
-  coins3: knob(30, 0, 300, 5, 'Chest coins 3', 'Coins in a common chest: one of the four amounts.'),
-  coins4: knob(40, 0, 300, 5, 'Chest coins 4', 'Coins in a common chest: one of the four amounts.'),
-  epicCoins: knob(60, 0, 500, 5, 'Epic coins', 'Coins an epic chest always gives with its item.'),
-  mythicCoins: knob(100, 0, 500, 5, 'Mythic coins', 'Coins a mythic chest always gives with its item.'),
+  epic: knob(8, 0, 100, 1, 'Chest: epic', 'Weight of an epic chest (the Gold Axe or the Gold Hammer).'),
+  mythic: knob(2, 0, 100, 1, 'Chest: mythic', 'Weight of a mythic chest (the Gold Daggers, the Grimoire or the teal ring).'),
+  coins1: knob(10, 0, 300, 5, 'Chest coins 1', 'Coins in a common or a gold chest: one of the four amounts.'),
+  coins2: knob(20, 0, 300, 5, 'Chest coins 2', 'Coins in a common or a gold chest: one of the four amounts.'),
+  coins3: knob(30, 0, 300, 5, 'Chest coins 3', 'Coins in a common or a gold chest: one of the four amounts.'),
+  coins4: knob(40, 0, 300, 5, 'Chest coins 4', 'Coins in a common or a gold chest: one of the four amounts.'),
   keyOdds: knob(70, 0, 100, 1, 'Key: normal', 'Weight of a normal key (shop, Yeti).'),
   whiteKeyOdds: knob(25, 0, 100, 1, 'Key: white', 'Weight of a white key: no common or uncommon loot.'),
   goldKeyOdds: knob(5, 0, 100, 1, 'Key: gold', 'Weight of a gold key: only epic or mythic loot.'),

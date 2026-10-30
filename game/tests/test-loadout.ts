@@ -52,7 +52,7 @@ const step = (c: CombatState, p: PlayerState, w: FlatWorld, intent: Partial<Comb
 
 section('Loadout — less gold');
 {
-  check('kills give half the coins they did', ENEMIES.v.gruntCoins === 1 && ENEMIES.v.spitterCoins === 2 && ENEMIES.v.bruteCoins === 5 && FOES.v.leaperCoins === 2 && FOES.v.stingerCoins === 1.5 && FOES.v.wraithCoins === 2.5 && BOSS.v.demonCoins === 30);
+  check('kills give half the coins they did', ENEMIES.v.gruntCoins === 1 && ENEMIES.v.spitterCoins === 2 && ENEMIES.v.bruteCoins === 5 && FOES.v.leaperCoins === 2 && FOES.v.stingerCoins === 1.5 && FOES.v.wraithCoins === 2.5 && BOSS.v.demonCoins === 15);
   const c = createCombat(bare);
   const rng = createRng(4);
   let sum = 0;

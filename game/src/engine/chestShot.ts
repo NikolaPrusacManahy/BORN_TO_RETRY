@@ -3,6 +3,7 @@
 // little above it, looking down at it; holds while the chest comes up; then glides back into your eyes. You don't move
 // or fight meanwhile (the run reads `locked`). Not for the boss's chest: the wooden gate's shot shows that one. Pure
 // maths on the camera (no rendering), so it's tested headless.
+// Update 0.2.1 (the designer) — every room's chest rises once its room is won, so every one gets the shot.
 import * as THREE from 'three';
 import type { Treasure } from '../sim/dungeon/treasure';
 import { ITEMS } from '../tuning/items';

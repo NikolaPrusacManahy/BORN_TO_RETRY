@@ -12,11 +12,14 @@
 // Update 0.2.0 — chests that rise out of the floor (the designer): the challenge room's once it's won, and the boss's,
 // 3 m in front of the wooden gate, once the boss is dead. Until then they aren't there: their boxes are gates (solid
 // once they're up), after the wooden gate's.
+// Update 0.2.1 (the designer) — every room's chest rises once its room is won; a chest in a room with no mini boss
+// (nothing there drops a key) is a gold chest: no key opens it, and it holds coins.
 import type { Arena, ArenaBox, BoxKind, JumpPad, Spot } from '../arena';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, PlacedRoom, Side } from './floorPlan';
 import { OPPOSITE } from './wayOut';
 import type { Cell, RoomKind } from './rooms';
 import type { EnemyKind } from '../../sim/enemies/kinds';
+import { hasYeti } from '../../sim/dungeon/wavePlan';
 
 /** Heights of what stands on a cell (m); the floor's top is y = 0. */
 export const HEIGHT: Partial<Record<Cell, number>> = { wall: 6, column: 4.9, low: 1.3, high: 2.85, ledge: 1, highLedge: 2.5, spikes: 0.3, chest: 0.9 };
@@ -73,6 +76,8 @@ export interface ChestSpot {
   rises: boolean;
   boss: boolean;
   gate: number;
+  /** Update 0.2.1 — a gold chest: its room has no mini boss (no key drops there), so it opens without one; coins only. */
+  gold: boolean;
 }
 
 export interface DungeonRoom {
@@ -163,7 +168,7 @@ function chestSpot(r: PlacedRoom): ChestSpot {
   else if (col === w - 1) fx = -1;
   else if (Math.abs(col + 0.5 - w / 2) > Math.abs(row + 0.5 - h / 2)) fx = col < w / 2 ? 1 : -1;
   else fz = row < h / 2 ? 1 : -1;
-  return { room: r.index, x: cellX(r.x0 + col) - fx * CHEST_BACK, z: cellZ(r.z0 + row) - fz * CHEST_BACK, rot: Math.atan2(fx, fz), fx, fz, rises: r.challenge, boss: false, gate: -1 };
+  return { room: r.index, x: cellX(r.x0 + col) - fx * CHEST_BACK, z: cellZ(r.z0 + row) - fz * CHEST_BACK, rot: Math.atan2(fx, fz), fx, fz, rises: true, boss: false, gate: -1, gold: !r.challenge && !hasYeti(r.waves) };
 }
 
 /** A chest's box: the size of the model (not the whole cell). */
@@ -245,7 +250,7 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
   const [ox, oz] = out.side === 'n' ? [0, -1] : out.side === 's' ? [0, 1] : out.side === 'w' ? [-1, 0] : [1, 0];
   // Update 0.2.0 — the boss's chest, in front of the wooden gate, facing into the room; then every rising chest's box.
   const out3 = CELL / 2 + BOSS_CHEST_OUT;
-  br.chest = chests.push({ room: out.room, x: woodGate.x - ox * out3, z: woodGate.z - oz * out3, rot: Math.atan2(-ox, -oz), fx: -ox, fz: -oz, rises: true, boss: true, gate: -1 }) - 1;
+  br.chest = chests.push({ room: out.room, x: woodGate.x - ox * out3, z: woodGate.z - oz * out3, rot: Math.atan2(-ox, -oz), fx: -ox, fz: -oz, rises: true, boss: true, gate: -1, gold: false }) - 1;
   for (const c of chests) if (c.rises) c.gate = gates.push(chestBox(c)) - 1;
   const boss: BossLayout = {
     room: out.room,

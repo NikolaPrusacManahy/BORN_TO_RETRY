@@ -24,8 +24,8 @@ const AURA_SIZE = 2.2;
 
 let auraTex: THREE.DataTexture | null = null;
 
-/** A soft round glow (made in code: no image to load). */
-function auraTexture(): THREE.DataTexture {
+/** A soft round glow (made in code: no image to load). Update 0.2.1 — a keyed chest's aura too (treasureFx.ts). */
+export function auraTexture(): THREE.DataTexture {
   if (auraTex) return auraTex;
   const n = 64;
   const data = new Uint8Array(n * n * 4);

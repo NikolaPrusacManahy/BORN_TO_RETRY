@@ -123,7 +123,8 @@ section('Lab — items, weapons and chests');
   const items = await parseUntextured(new URL('../public/models/items/items.glb', import.meta.url));
   view.attach(items.scene);
   view.update(c, new THREE.Vector3(), 0);
-  const bodies = () => view.group.children.filter((o) => o instanceof THREE.Group && o.visible && o.children.length === 2).length;
+  // Its base, its lid (Update 0.2.1: and its aura).
+  const bodies = () => view.group.children.filter((o) => o instanceof THREE.Group && o.visible && o.children.length === 3).length;
   check('each chest has its body in the view', bodies() === LAB_CHESTS);
 
   runLab({ kind: 'enemy', enemy: 'grunt', count: 5 }, c, p, YAW, t);

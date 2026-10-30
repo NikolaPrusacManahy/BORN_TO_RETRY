@@ -6,15 +6,16 @@
 // Update 0.0.16 — the three keys (keyLooks.ts: on end, the white and gold ones in their auras), items on the floor and
 // each chest's light by its rarity (treasureFx.ts).
 // Update 0.0.18 — each tag shows its own offer's price (red when you can't pay it).
+// Update 0.2.1 — a chest a key opens in its soft gold aura (treasureFx.ts) while it's shut.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { CombatState } from '../sim/combat/state';
-import type { Treasure } from '../sim/dungeon/treasure';
+import { keyless, Treasure } from '../sim/dungeon/treasure';
 import { ITEM_KINDS, ItemKind } from '../sim/items/items';
 import { DROP_KINDS, DropKind } from '../sim/items/drops';
 import { ITEMS } from '../tuning/items';
 import { itemLooks } from './keyLooks';
-import { ChestGlows, DropsView } from './treasureFx';
+import { ChestAura, ChestGlows, DropsView } from './treasureFx';
 
 export const ITEMS_URL = '/models/items/items.glb';
 /** An item turns this high over its tile (m) at this speed (rad/s); its price floats above it. */
@@ -43,6 +44,7 @@ export function lidAngle(k: number): number {
 interface ChestBody {
   root: THREE.Object3D;
   lid: THREE.Object3D;
+  aura: ChestAura;
 }
 
 interface Flyer {
@@ -163,7 +165,7 @@ export class TreasureView {
       this.flyers[kind] = { obj, from: new THREE.Vector3(), t: -1 };
     }
     this.group.traverse((o) => {
-      if (o instanceof THREE.Mesh) o.castShadow = true;
+      if (o instanceof THREE.Mesh && !o.userData.noShadow) o.castShadow = true;
     });
   }
 
@@ -194,6 +196,10 @@ export class TreasureView {
       const k = c.state === 'open' ? 1 : c.state === 'opening' ? c.t / ITEMS.v.chestTime : 0;
       body.lid.rotation.x = -lidAngle(k);
       if (c.state === 'opening') this.lip(body, k);
+      // Update 0.2.1 — a chest a key opens glows while shut: coming up with it, fading as its lid lifts.
+      const up = c.state === 'rising' ? Math.min(1, c.t / ITEMS.v.chestRise) : 1;
+      const glow = c.state === 'shut' ? 1 : c.state === 'rising' ? up : c.state === 'opening' ? Math.max(0, 1 - k / LID_UP) : 0;
+      body.aura.set(keyless(c) ? 0 : glow, this.time);
     }
     for (const kind of ITEM_KINDS) {
       const f = this.flyers[kind];
@@ -224,8 +230,10 @@ export class TreasureView {
       root.traverse((o) => {
         if (o instanceof THREE.Mesh) o.castShadow = true;
       });
+      const aura = new ChestAura();
+      root.add(aura.group);
       this.group.add(root);
-      this.chests.push({ root, lid });
+      this.chests.push({ root, lid, aura });
     }
     for (let i = 0; i < this.chests.length; i++) {
       const c = chests[i];
@@ -265,6 +273,7 @@ export class TreasureView {
   dispose() {
     this.group.removeFromParent();
     this.glows.dispose();
+    for (const c of this.chests) c.aura.dispose();
     for (const t of this.tags.values()) {
       t.cheap.dispose();
       t.dear.dispose();

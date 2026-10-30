@@ -4,6 +4,7 @@
 // and gets faster. The death show is the Demon's (tuning/boss.ts). Placeholders past the designer's words.
 // Update 0.0.21 (the designer) — no more wasps; raging, it flies up for 5–8 s and bombs the ground with fireballs (their
 // landing spots shown); and a flame burst round it when you've stayed close too long.
+// Update 0.2.1 (the designer) — its chest gives 15 coins, like every boss's.
 import { group, knob } from './schema';
 
 export const DRAGON = group('dragon', 'Dragon (boss)', {
@@ -71,6 +72,6 @@ export const DRAGON = group('dragon', 'Dragon (boss)', {
   burstRadius: knob(9, 3, 20, 0.5, 'Burst reach', 'How far its flames reach (m).'),
   burstDamage: knob(35, 1, 100, 1, 'Burst damage', 'To you, in the flames.'),
   burstShove: knob(20, 0, 40, 0.5, 'Burst shove', 'How hard the flames throw you (m/s).'),
-  dragonCoins: knob(40, 0, 300, 5, 'Dragon coins', 'Coins that burst out of it.'),
+  dragonCoins: knob(15, 0, 300, 5, 'Dragon coins', 'Coins in its chest.'),
   labDragons: knob(0, 0, 1, 1, 'Lab dragon', 'A dragon in the Feel Lab waves (to try the fight).'),
 });

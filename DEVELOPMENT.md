@@ -158,7 +158,7 @@ Update 0.0.12: `slamHit.ts` (your ground slam's blast: every target in reach, ha
 | `engine/enemyLooks.ts` | Update 0.1.19 (out of enemiesView.ts) — each kind's look: its model, its clips by role (`rise`: the Skeleton rebuilding), when its blow lands, its wind-up's glow; the role each phase plays |
 | `engine/coinsView.ts`, `engine/fx/shockwave.ts` | Update 0.0.12 — the flying coins (instanced); slam shockwave rings |
 | `engine/treasureView.ts` | Update 0.0.13 — the shop's tiles, turning items and price tags; the chests and their lids; items flying into you; where an opening lid's front edge is (for the hands) |
-| `engine/keyLooks.ts`, `engine/treasureFx.ts` | Update 0.0.16 — the three keys' looks (on end, tinted, the white and gold in auras); items on the floor; each chest's light by rarity |
+| `engine/keyLooks.ts`, `engine/treasureFx.ts` | Update 0.0.16 — the three keys' looks (on end, tinted, the white and gold in auras); items on the floor; each chest's light by rarity. Update 0.2.1 — `ChestAura`: a keyed chest's soft gold aura |
 | `engine/pairLook.ts` | Update 0.1.9 — a pair (the Dual Daggers) shown as two crossed: on the floor, in flight, on a shop tile |
 | `engine/promptView.ts` | Update 0.1.20 — the item card and the [E] prompts: page elements over the canvas, placed each frame where the thing is on screen (the execution prompt over the skull: `CombatScene.markAt`) |
 | `world/dungeon/signs.ts`, `engine/roomSignsView.ts` | Update 0.1.20 — the words over the doorways (Room, Challenge, Shop, Boss): where each stands (on the corridor's side of the wall, over the arch) and their canvas words |

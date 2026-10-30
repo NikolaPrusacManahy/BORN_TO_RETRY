@@ -6,7 +6,7 @@
 import { Vector3 } from 'three';
 import { WEAPONS } from '../../tuning/weapons';
 import type { CombatState } from '../combat/state';
-import { chestInReach, offerInReach, Treasure } from '../dungeon/treasure';
+import { chestInReach, keyless, offerInReach, Treasure } from '../dungeon/treasure';
 import { ENEMY_STATS } from '../enemies/kinds';
 import type { PlayerState } from '../player/state';
 import { TAKE_HEIGHT } from './drops';
@@ -69,8 +69,8 @@ export function focusOf(t: Treasure, state: CombatState, p: PlayerState, fightin
   const ci = p.grounded ? chestInReach(t, p) : -1;
   if (ci >= 0 && !fighting(t.chests[ci].spot.room)) {
     const c = t.chests[ci].spot;
-    // (Update 0.2.0 — a boss's chest needs no key.)
-    return set(out, null, -1, t.chests[ci].boss || anyKey(state.items) ? 'open' : 'locked', c.x, OVER_CHEST, c.z);
+    // (Update 0.2.0 — a boss's chest needs no key; Update 0.2.1, nor a gold chest.)
+    return set(out, null, -1, keyless(t.chests[ci]) || anyKey(state.items) ? 'open' : 'locked', c.x, OVER_CHEST, c.z);
   }
   const oi = offerInReach(t, p);
   if (oi >= 0) {

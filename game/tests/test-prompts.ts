@@ -61,8 +61,10 @@ section('Prompts — what E does here');
   at(o.x + ITEMS.v.buyReach + 0.6, o.z + 3);
   focusOf(t, c, p, never, f);
   check(`a few steps off (within ${LOOK_RANGE} m): only its card`, f.item !== null && f.act === null);
-  // A chest.
-  const spot = level.chests[0];
+  // A chest (one a key opens), risen (Update 0.2.1: every room's chest rises once its room is won).
+  const ci = level.chests.findIndex((s) => !s.gold && !s.boss);
+  t.chests[ci].state = 'shut';
+  const spot = level.chests[ci];
   at(spot.x + spot.fx * 1.2, spot.z + spot.fz * 1.2);
   focusOf(t, c, p, never, f);
   check('in front of a chest, no key: it needs one', f.item === null && f.act === 'locked');

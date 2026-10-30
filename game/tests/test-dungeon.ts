@@ -161,9 +161,10 @@ section('Dungeon — the level');
   check('you start on open floor in the start room', startCell === 'floor' && level.plan.rooms[0].kind === 'start');
   const inBox = level.arena.boxes.some((b) => b.kind !== 'floor' && Math.abs(s.x - b.x) < b.w / 2 && Math.abs(s.z - b.z) < b.d / 2);
   check('nothing stands where you start', !inBox);
-  // (Update 0.2.0 — then a box for each chest that rises: the challenge room's and the boss's.)
+  // (Update 0.2.0 — then a box for each chest that rises: the challenge room's and the boss's. Update 0.2.1 — every
+  // chest rises.)
   const rising = level.chests.filter((c) => c.rises).length;
-  check('a gate for every doorway, the wooden gate, and each rising chest', level.gates.length === level.plan.links.length * 2 + 1 + rising && level.boss.gate === level.plan.links.length * 2 && rising === 2);
+  check('a gate for every doorway, the wooden gate, and each rising chest', level.gates.length === level.plan.links.length * 2 + 1 + rising && level.boss.gate === level.plan.links.length * 2 && rising === level.chests.length);
   // (Update 0.0.15 — 1000, was 900: the boss room's twelve pillars and the dark's walls. Update 0.1.20 — 1150: the
   // challenge room.)
   check('cells merged into a manageable number of boxes', level.arena.boxes.length < 1150, `${level.arena.boxes.length} boxes`);

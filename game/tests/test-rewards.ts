@@ -205,7 +205,7 @@ section('Executions heal');
 
 section('The view goes to a rising chest and back');
 {
-  const spot: ChestSpot = { room: 0, x: 10, z: 5, rot: 0, fx: 0, fz: 1, rises: true, boss: false, gate: -1 };
+  const spot: ChestSpot = { room: 0, x: 10, z: 5, rot: 0, fx: 0, fz: 1, rises: true, boss: false, gate: -1, gold: false };
   const chest = { spot, state: 'rising', t: 0, rolls: [0, 0, 0], key: null, loot: null, given: false, boss: null } as Treasure['chests'][number];
   const t: Treasure = { shop: -1, offers: [], chests: [chest], choosing: -1 };
   const shot = new ChestShot();

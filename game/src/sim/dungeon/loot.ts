@@ -8,6 +8,8 @@
 // Update 0.1.10 — the designer's sort: common (coins, a heart, the silver plate), uncommon (the gold armour, the Great
 // Heart), rare (the gold sword, every ring), epic (the Gold Axe or the Gold Hammer) and mythic (the Gold Daggers or the
 // Grimoire), the last two with coins too (60, 100). Mythic replaces legendary.
+// Update 0.2.1 (the designer: "too unbalanced for lucky players") — an epic or mythic chest gives its item only, no
+// coins. A gold chest (a room with no mini boss to drop a key: no key opens it) gives coins only.
 import { ITEMS } from '../../tuning/items';
 import type { ItemKind, KeyKind } from '../items/items';
 
@@ -24,9 +26,6 @@ export const TIER: Record<Rarity, readonly (ItemKind | 'coins')[]> = {
   mythic: ['goldDaggers', 'grimoire', 'tealRing'],
 };
 
-/** Update 0.1.10 — coins each rarity gives as well as its item (the designer: epic 60, mythic 100). */
-const WITH_COINS: Record<Rarity, () => number> = { common: () => 0, uncommon: () => 0, rare: () => 0, epic: () => ITEMS.v.epicCoins, mythic: () => ITEMS.v.mythicCoins };
-
 /** The rarities each key opens. */
 export const KEY_TIERS: Record<KeyKind, readonly Rarity[]> = {
   key: RARITIES,
@@ -36,7 +35,7 @@ export const KEY_TIERS: Record<KeyKind, readonly Rarity[]> = {
 
 export interface Loot {
   rarity: Rarity;
-  /** The item (null: coins only), and the coins (Update 0.1.10 — an epic or mythic chest gives both). */
+  /** The item (null: coins only), and the coins (none with an item: Update 0.2.1). */
   item: ItemKind | null;
   coins: number;
 }
@@ -64,7 +63,15 @@ export function rollLoot(key: KeyKind, rolls: LootRolls): Loot {
   rarity = RARITIES[i];
   const pool = TIER[rarity];
   const pick = pool[Math.min(pool.length - 1, Math.floor(rolls[1] * pool.length))];
-  if (pick !== 'coins') return { rarity, item: pick, coins: WITH_COINS[rarity]() };
-  const amounts = [v.coins1, v.coins2, v.coins3, v.coins4];
-  return { rarity, item: null, coins: amounts[Math.min(3, Math.floor(rolls[2] * 4))] };
+  if (pick !== 'coins') return { rarity, item: pick, coins: 0 };
+  return { rarity, item: null, coins: coinsOf(rolls) };
 }
+
+/** One of the four amounts, by the coins roll. */
+function coinsOf(rolls: LootRolls): number {
+  const v = ITEMS.v;
+  return [v.coins1, v.coins2, v.coins3, v.coins4][Math.min(3, Math.floor(rolls[2] * 4))];
+}
+
+/** Update 0.2.1 — a gold chest's: coins only (a common chest's amount, by its coins roll). */
+export const goldLoot = (rolls: LootRolls): Loot => ({ rarity: 'common', item: null, coins: coinsOf(rolls) });

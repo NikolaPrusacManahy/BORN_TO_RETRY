@@ -4,13 +4,17 @@
 // challenge room, off the way (you choose to go in); its count is a fight room's as deep plus 6, two of them the floor's
 // mini bosses (one in the first wave, one in the last), it always has a chest, and its key is white or gold. Over each
 // doorway into a room, on the corridor's side, its word.
+// Update 0.2.1 (the designer: "put 10 enemies at the same time, and it adds a new one from the counter when it gets
+// reduced to 9") — a challenge room opens with 10 and keeps 10 fighting while it has more to send.
 import * as THREE from 'three';
 import { check, near, section } from './harness';
 import { DT } from './fakes/flatWorld';
 import { createRng } from '../src/core/rng';
 import { emptyTargetHit, landHit } from '../src/sim/combat/strike';
 import { createCombat } from '../src/sim/combat/state';
-import { createDungeonRun, roomCount, stepRooms } from '../src/sim/dungeon/roomLoop';
+import { createDungeonRun, FIRST_WAVE, roomCount, stepRooms } from '../src/sim/dungeon/roomLoop';
+import { enemiesLeft } from '../src/sim/dungeon/enemyCount';
+import { isLive } from '../src/sim/enemies/enemy';
 import { rosterOf } from '../src/sim/dungeon/wavePlan';
 import { spawnEnemy } from '../src/sim/enemies/enemy';
 import { MINI_BOSSES } from '../src/sim/enemies/kinds';
@@ -127,4 +131,66 @@ section('Signs — a word over every doorway into a room');
   const plan = planFloor(5, 1);
   const group = roomSigns(plan, [], []);
   check('each is drawn, its word on it', group.children.length === signsOf(plan).length && group.children.every((m) => m.name.startsWith('sign ')));
+}
+
+section('Challenge rooms — 10 fighting at once (Update 0.2.1)');
+{
+  const want = ROOMS.v.challengeField;
+  const enter = (seed: number) => {
+    const level = buildDungeon(planFloor(seed, 1));
+    const i = level.rooms.findIndex((r) => r.challenge);
+    const room = level.rooms[i];
+    const run = createDungeonRun(level);
+    const c = createCombat(level.arena, false);
+    const p = createPlayer((room.min.x + room.max.x) / 2, 0, (room.min.z + room.max.z) / 2, 0);
+    p.grounded = true;
+    const rng = createRng(seed);
+    const tick = (t: number) => {
+      for (let k = 0; k < Math.round(t / DT); k++) stepRooms(run, p, c, rng, DT);
+    };
+    tick(FIRST_WAVE + 0.1);
+    return { room, rr: run.rooms[i], run, c, p, tick, live: () => c.enemies.filter(isLive) };
+  };
+  let opening = '';
+  let thin = '';
+  let counter = '';
+  let rooms = 0;
+  for (const seed of [77, 5, 903, 1234]) {
+    const { room, rr, run, c, p, tick, live } = enter(seed);
+    rooms++;
+    const first = live();
+    if (first.length !== Math.max(want, room.waves[0].length) || !first.every((e) => e.perch > 0 || Math.hypot(e.pos.x - p.pos.x, e.pos.z - p.pos.z) >= 6 - 1e-6)) opening ||= `seed ${seed}: ${first.length} at first`;
+    // Kill them one at a time: one comes as one dies, from the counter.
+    let kills = 0;
+    for (let k = 0; k < 400 && rr.state === 'fighting'; k++) {
+      const now = live();
+      if (rr.total - rr.sent > 0 && now.length < want) thin ||= `seed ${seed}: ${now.length} fighting with ${rr.total - rr.sent} still to come`;
+      if (now.length === 0) break;
+      const left = enemiesLeft(run, c);
+      now[0].alive = false;
+      kills++;
+      if (rr.state === 'fighting' && enemiesLeft(run, c) !== left - 1) counter ||= `seed ${seed}: ${left} then ${enemiesLeft(run, c)}`;
+      tick(ROOMS.v.reinforceGap + 0.05);
+    }
+    if (kills !== rr.total || rr.state !== 'reward') thin ||= `seed ${seed}: ${kills} of ${rr.total} killed, room ${rr.state}`;
+  }
+  check(`it opens with ${want} at once (its first wave if bigger), none closer than 6 m (${rooms} rooms)`, !opening, opening);
+  check(`while it has more to send, ${want} are fighting: when one dies (9 left), the next comes`, !thin, thin);
+  check('the counter goes down one a kill', !counter, counter);
+
+  // No free slot (bodies still lying): the next waits, still counted, and comes once there's room.
+  const { rr, run, c, tick, live } = enter(77);
+  for (const e of c.enemies) {
+    if (e.alive) continue;
+    e.alive = true;
+    e.phase = 'dead';
+  }
+  live()[0].phase = 'dead';
+  const sent = rr.sent;
+  const left = enemiesLeft(run, c);
+  tick(ROOMS.v.reinforceGap + 0.05);
+  check('every slot taken by a body: none comes, none is lost', live().length === ROOMS.v.challengeField - 1 && rr.sent === sent && enemiesLeft(run, c) === left);
+  for (const e of c.enemies) if (e.phase === 'dead') e.alive = false;
+  tick(ROOMS.v.reinforceGap + 0.05);
+  check('the bodies gone, it comes', live().length === ROOMS.v.challengeField && rr.sent === sent + 1);
 }
