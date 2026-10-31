@@ -8,6 +8,7 @@
 // Update 0.2.6 — no aiming down the sights (the designer): right click whips it (gunPoses.ts WHIP), drawn back and
 // slammed forward on its side.
 import * as THREE from 'three';
+import { stepSpring } from '../../core/spring';
 import { MAG_IN, MAG_OUT, SLIDE_HOME, WHIP_TIME, reloadTime } from '../../sim/weapons/gun';
 import { ARMS } from '../../tuning/arms';
 import { GUN } from '../../tuning/gun';
@@ -56,11 +57,9 @@ export class GunArms {
   private reload = -1;
   private empty = false;
   private mag = 0;
-  // The recoil and the moving parts.
-  private kick = 0;
-  private kickV = 0;
-  private back = 0;
-  private backV = 0;
+  // The recoil (Update 0.2.14 — springs stepped in slices: core/spring.ts) and the moving parts.
+  private readonly kick = { x: 0, v: 0 };
+  private readonly back = { x: 0, v: 0 };
   private slide = 0;
   private sinceShot = 9;
   private locked = false;
@@ -86,7 +85,7 @@ export class GunArms {
   use(model: THREE.Object3D | null) {
     this.fx.clear();
     this.throwing = this.whipping = -1;
-    this.kick = this.kickV = this.back = this.backV = this.slide = 0;
+    this.kick.x = this.kick.v = this.back.x = this.back.v = this.slide = 0;
     this.muzzle = model?.getObjectByName('Muzzle') ?? null;
     if (!model) {
       this.parts = null;
@@ -135,8 +134,8 @@ export class GunArms {
 
   /** A shot left `left` bullets in it. */
   shot(left: number) {
-    this.kickV += KICK.up * (0.85 + 0.3 * Math.random());
-    this.backV += KICK.back;
+    this.kick.v += KICK.up * (0.85 + 0.3 * Math.random());
+    this.back.v += KICK.back;
     this.sinceShot = 0;
     this.slide = 1;
     this.locked = left === 0;
@@ -163,7 +162,7 @@ export class GunArms {
 
   slideHome() {
     this.locked = false;
-    this.kickV += KICK.up * 0.35;
+    this.kick.v += KICK.up * 0.35;
   }
 
   throwStart() {
@@ -202,7 +201,7 @@ export class GunArms {
       this.along.applyQuaternion(this.turn.setFromAxisAngle(VIEW_Y, THREE.MathUtils.degToRad(key.left)));
       roll += THREE.MathUtils.degToRad(key.roll);
     }
-    const s = gunFrame(this.sight, this.along, roll, this.kick, this.back, this.rear, this.slope, this.scale, this.a, this.sp);
+    const s = gunFrame(this.sight, this.along, roll, this.kick.x, this.back.x, this.rear, this.slope, this.scale, this.a, this.sp);
     viewToModel(s.grip, rig.eye);
     viewToModel(s.blade, null);
     viewToModel(s.edge, null);
@@ -232,10 +231,8 @@ export class GunArms {
     this.sinceShot += dt;
     if (this.throwing >= 0) this.throwing += dt;
     if (this.whipping >= 0) this.whipping = this.whipping + dt >= WHIP_TIME ? -1 : this.whipping + dt;
-    this.kickV += (-KICK.k * this.kick - KICK.c * this.kickV) * dt;
-    this.kick += this.kickV * dt;
-    this.backV += (-KICK.k * this.back - KICK.c * this.backV) * dt;
-    this.back += this.backV * dt;
+    stepSpring(this.kick, KICK.k, KICK.c, dt);
+    stepSpring(this.back, KICK.k, KICK.c, dt);
     const r = this.reloadK;
     // The slide stays back on an empty magazine until a reload from empty lets it go.
     const held = this.mag === 0 || (r >= 0 && this.empty && r < SLIDE_HOME) || this.locked;
@@ -258,6 +255,6 @@ export class GunArms {
   clear() {
     this.fx.clear();
     this.throwing = this.whipping = -1;
-    this.kick = this.kickV = this.back = this.backV = 0;
+    this.kick.x = this.kick.v = this.back.x = this.back.v = 0;
   }
 }

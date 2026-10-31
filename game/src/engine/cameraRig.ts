@@ -1,7 +1,9 @@
 // M1 — places the first-person camera each frame: the interpolated body position, eye height (lower while
 // sliding), a spring dip on landing, smoothed steps, FOV kick with speed and dashes, roll tilt, and shake.
 // Update 0.2.11 — swimming (floor 6): the view bobs and sways slowly, as if held up by the water.
+// Update 0.2.14 — the dip spring is stepped in slices (core/spring.ts): on a slow frame it flew the view into the sky.
 import * as THREE from 'three';
+import { stepSpring } from '../core/spring';
 import { CAMERA } from '../tuning/camera';
 import { MOVE } from '../tuning/movement';
 import type { PlayerState } from '../sim/player/state';
@@ -27,8 +29,7 @@ export class CameraRig {
   private eye = CAMERA.v.eyeHeight;
   private fovExtra = 0;
   private roll = 0;
-  private dipY = 0;
-  private dipV = 0;
+  private readonly dip = { x: 0, v: 0 };
   private stepOffset = 0;
   private kickPitch = 0;
   private swimT = 0;
@@ -40,7 +41,7 @@ export class CameraRig {
   land(speed: number) {
     const depth = Math.min(CAMERA.v.landDipMax, speed * CAMERA.v.landDip);
     // With this damping a kick of depth × ω × 2.2 peaks at about `depth`.
-    this.dipV -= depth * Math.sqrt(CAMERA.v.springStiffness) * 2.2;
+    this.dip.v -= depth * Math.sqrt(CAMERA.v.springStiffness) * 2.2;
   }
 
   /** M1 step 6 — a hit nods the view down by `deg`, then it eases back. */
@@ -61,9 +62,7 @@ export class CameraRig {
     const eye = p.kneel > 0 ? v.kneelEyeHeight : p.sliding ? v.slideEyeHeight : v.eyeHeight;
     this.eye += (eye - this.eye) * ease(v.eyeRate, dt);
     this.stepOffset *= 1 - ease(STEP_EASE, dt);
-    const accel = -v.springStiffness * this.dipY - v.springDamping * this.dipV;
-    this.dipV += accel * dt;
-    this.dipY += this.dipV * dt;
+    stepSpring(this.dip, v.springStiffness, v.springDamping, dt);
 
     const speed = Math.hypot(p.vel.x, p.vel.z);
     const fovTarget = (p.dashTime > 0 ? v.dashFovKick : 0) + Math.min(v.speedFovMax, Math.max(0, speed - MOVE.v.runSpeed) * v.speedFov);
@@ -89,7 +88,7 @@ export class CameraRig {
     this.shake.update(dt);
     this.kickPitch *= 1 - ease(KICK_EASE, dt);
     const s = this.shake;
-    this.camera.position.set(this.at.x + s.x, this.at.y + this.eye + this.dipY + this.stepOffset + bob + s.y, this.at.z + s.z);
+    this.camera.position.set(this.at.x + s.x, this.at.y + this.eye + this.dip.x + this.stepOffset + bob + s.y, this.at.z + s.z);
     this.camera.rotation.set(look.pitch + s.pitch + this.kickPitch, look.yaw + s.yaw, this.roll + s.roll, 'YXZ');
     const fov = verticalFov(hFov + this.fovExtra, aspect);
     if (Math.abs(this.camera.fov - fov) > 0.01 || this.camera.aspect !== aspect) {
@@ -101,7 +100,7 @@ export class CameraRig {
 
   reset() {
     this.eye = CAMERA.v.eyeHeight;
-    this.fovExtra = this.roll = this.dipY = this.dipV = this.stepOffset = this.kickPitch = 0;
+    this.fovExtra = this.roll = this.dip.x = this.dip.v = this.stepOffset = this.kickPitch = 0;
     this.shake.trauma = 0;
   }
 }

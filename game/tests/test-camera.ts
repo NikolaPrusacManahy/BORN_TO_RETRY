@@ -7,6 +7,8 @@ import { CameraRig } from '../src/engine/cameraRig';
 import { createPlayer } from '../src/sim/player/state';
 import { CAMERA, SHAKE } from '../src/tuning/camera';
 import { verticalFov } from '../src/state/settings';
+import { Spring, stepSpring } from '../src/core/spring';
+import { MAX_FRAME } from '../src/core/fixedStep';
 
 section('Camera — look and shake');
 {
@@ -78,4 +80,43 @@ section('Camera — rig');
   check('a step up does not jolt the view', Math.abs(cam.position.y - before) < 0.05, `moved ${(cam.position.y - before).toFixed(3)} m`);
   for (let i = 0; i < 120; i++) frame();
   check('then the view eases up to the new height', near(cam.position.y, 0.35 + CAMERA.v.eyeHeight, 0.01));
+}
+
+section('Camera — slow frames (Update 0.2.14)');
+{
+  // An alpha tester's view flew into the sky and back after landings: the dip spring, stepped once a frame, grew on
+  // every frame slower than ~12 fps. Stepped in slices, it settles at any frame rate.
+  for (const fps of [8, 4]) {
+    const cam = new THREE.PerspectiveCamera();
+    const rig = new CameraRig(cam);
+    const p = createPlayer(0, 0, 0, 0);
+    p.grounded = true;
+    const look = new Look();
+    rig.update(1 / 120, 1, p.pos, p, look, 100, 16 / 9);
+    rig.land(20);
+    let far = 0;
+    for (let i = 0; i < fps * 3; i++) {
+      rig.update(1 / fps, 1, p.pos, p, look, 100, 16 / 9);
+      far = Math.max(far, Math.abs(cam.position.y - CAMERA.v.eyeHeight));
+    }
+    check(`at ${fps} fps a landing's dip stays within its tuned depth`, far <= CAMERA.v.landDipMax + 1e-6, `${far.toFixed(3)} m from the eye`);
+    check(`and settles`, near(cam.position.y, CAMERA.v.eyeHeight, 0.01), `${(cam.position.y - CAMERA.v.eyeHeight).toFixed(3)} m off`);
+  }
+}
+{
+  // The same springs as the arms' dip (140, 16) and the gun's recoil (260, 26): one long frame or many short ones.
+  for (const [k, c] of [[140, 16], [260, 26], [600, 60]]) {
+    const slow: Spring = { x: 0, v: -3 };
+    const fast: Spring = { x: 0, v: -3 };
+    let far = 0;
+    for (let i = 0; i < 8; i++) {
+      stepSpring(slow, k, c, MAX_FRAME);
+      far = Math.max(far, Math.abs(slow.x));
+    }
+    for (let i = 0; i < 240; i++) stepSpring(fast, k, c, 1 / 120);
+    check(`a spring (${k}, ${c}) at 4 fps never flies off and settles as at 120`, far < 0.3 && Math.abs(slow.x) < 1e-3 && Math.abs(fast.x) < 1e-3, `furthest ${far.toFixed(3)}, ends ${slow.x.toFixed(5)}`);
+  }
+  const s: Spring = { x: 0.1, v: 0 };
+  stepSpring(s, 140, 16, 0);
+  check('no time, no change', s.x === 0.1 && s.v === 0);
 }

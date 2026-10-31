@@ -2,6 +2,7 @@
 // landing (a spring), pull back in a dash and drop in a slide. (Moved out of viewmodel.ts in Update 0.1.9, which had
 // grown past its size; no change in behaviour.)
 import type * as THREE from 'three';
+import { stepSpring } from '../../core/spring';
 import type { PlayerState } from '../../sim/player/state';
 import { flatSpeed } from '../../sim/player/state';
 import { ARMS } from '../../tuning/arms';
@@ -16,14 +17,14 @@ export class ArmsMotion {
   private swayY = 0;
   private bobPhase = 0;
   private bobAmount = 0;
-  private dipY = 0;
-  private dipV = 0;
+  /** The landing dip (Update 0.2.14 — a spring stepped in slices: core/spring.ts). */
+  private readonly dip = { x: 0, v: 0 };
   private pullZ = 0;
   private dropY = 0;
 
   /** A landing at `speed` m/s dips the arms. */
   land(speed: number) {
-    this.dipV -= Math.min(0.12, speed * ARMS.v.landDip) * 18;
+    this.dip.v -= Math.min(0.12, speed * ARMS.v.landDip) * 18;
   }
 
   /** Advances it and places the arms: `pivot` turned by the sway, `holder` moved by the bob, dip, pull and drop.
@@ -40,17 +41,16 @@ export class ArmsMotion {
     this.bobAmount += ((running ? Math.min(1, speed / 12) : 0) - this.bobAmount) * ease(8, gameDt);
     this.bobPhase += speed * gameDt * v.bobRate * Math.PI;
     // Landing dip spring, dash pull and slide drop.
-    this.dipV += (-140 * this.dipY - 16 * this.dipV) * gameDt;
-    this.dipY += this.dipV * gameDt;
+    stepSpring(this.dip, 140, 16, gameDt);
     this.pullZ += ((p.dashTime > 0 ? v.dashPull : 0) - this.pullZ) * ease(14, gameDt);
     this.dropY += ((p.sliding ? v.slideDrop : 0) - this.dropY) * ease(10, gameDt);
 
     pivot.rotation.set(PREVIEW_PITCH + this.swayY, this.swayX, 0);
     const bob = Math.sin(this.bobPhase) * v.bob * this.bobAmount;
-    holder.position.set(v.viewX + bob * 0.5, v.viewY - Math.abs(bob) + this.dipY - this.dropY, v.viewZ + this.pullZ);
+    holder.position.set(v.viewX + bob * 0.5, v.viewY - Math.abs(bob) + this.dip.x - this.dropY, v.viewZ + this.pullZ);
   }
 
   reset() {
-    this.swayX = this.swayY = this.dipY = this.dipV = this.pullZ = this.dropY = 0;
+    this.swayX = this.swayY = this.dip.x = this.dip.v = this.pullZ = this.dropY = 0;
   }
 }
