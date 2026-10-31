@@ -67,6 +67,10 @@ export abstract class RunBase {
   protected level!: Level;
   protected view!: LevelView;
   protected combat!: CombatState;
+  /** Update 0.2.15 — the Scars this run carries. */
+  get scars(): number {
+    return this.combat?.items.scars ?? 0;
+  }
   protected combatScene!: CombatScene;
   protected hazards: ArenaBox[] = [];
   /** Update 0.0.20 — lava: falling in sends you back to the level's start. */

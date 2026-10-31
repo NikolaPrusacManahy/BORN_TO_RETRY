@@ -119,6 +119,11 @@ export interface CombatState {
   /** Update 0.2.12 — ARE YOU EVEN HUMAN? (the designer: "just fists and nothing else"): nothing is dropped or found (no
    *  swords, coins, keys, bonuses, chests, rewards); executions still heal (the designer: "executions always heals"). */
   bare: boolean;
+  /** Update 0.2.15 — the Scars': you're off the ground this tick (Air Butcher); the enemies your dash or slide has
+   *  bumped, and which of them it is (Shoulder Charge, Bowling: sim/scars/scarMoves.ts). */
+  inAir: boolean;
+  bumped: number[];
+  bumpMove: number;
   hitStop: HitStop;
   events: EventQueue<CombatEvent>;
 }
@@ -186,6 +191,9 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     keyDrops: 0,
     betterKeys: false,
     bare: false,
+    inAir: false,
+    bumped: [],
+    bumpMove: 0,
     hitStop: new HitStop(),
     events: new EventQueue<CombatEvent>(64, 'none'),
   };
@@ -240,6 +248,8 @@ export function resetCombat(state: CombatState, arena: Arena) {
   for (const d of state.drops) d.alive = false;
   state.keyDrops = 0;
   state.betterKeys = false;
+  state.bumped.length = 0;
+  state.bumpMove = 0;
   stockStands(state);
   state.hitStop.remaining = 0;
   state.events.clear();

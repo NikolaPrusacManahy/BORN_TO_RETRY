@@ -9,7 +9,7 @@ import type { CombatState } from '../combat/state';
 import { chestInReach, keyless, offerInReach, Treasure } from '../dungeon/treasure';
 import { ENEMY_STATS } from '../enemies/kinds';
 import type { PlayerState } from '../player/state';
-import { TAKE_HEIGHT } from './drops';
+import { landed, TAKE_HEIGHT } from './drops';
 import type { InfoKind } from './itemInfo';
 import { anyKey } from './items';
 
@@ -62,7 +62,7 @@ export function focusOf(t: Treasure, state: CombatState, p: PlayerState, fightin
   let bestD = reach;
   for (let i = 0; i < state.drops.length; i++) {
     const d = state.drops[i];
-    if (!d.alive || !d.manual || Math.abs(p.pos.y - d.pos.y) > TAKE_HEIGHT || flat(p, d.pos.x, d.pos.z) > bestD) continue;
+    if (!d.alive || !d.manual || !landed(d) || Math.abs(p.pos.y - d.pos.y) > TAKE_HEIGHT || flat(p, d.pos.x, d.pos.z) > bestD) continue;
     bestD = flat(p, d.pos.x, d.pos.z);
     best = i;
   }
@@ -100,7 +100,7 @@ export function focusOf(t: Treasure, state: CombatState, p: PlayerState, fightin
   // Nothing to use: the nearest item to read about.
   bestD = LOOK_RANGE;
   for (const d of state.drops) {
-    if (!d.alive || Math.abs(p.pos.y - d.pos.y) > TAKE_HEIGHT || flat(p, d.pos.x, d.pos.z) > bestD) continue;
+    if (!d.alive || !landed(d) || Math.abs(p.pos.y - d.pos.y) > TAKE_HEIGHT || flat(p, d.pos.x, d.pos.z) > bestD) continue;
     bestD = flat(p, d.pos.x, d.pos.z);
     set(out, d.kind, -1, null, d.pos.x, d.pos.y + OVER_ITEM, d.pos.z);
   }

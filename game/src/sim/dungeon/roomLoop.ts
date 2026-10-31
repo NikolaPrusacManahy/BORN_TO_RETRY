@@ -85,7 +85,8 @@ export const FIRST_WAVE = 0.7;
 const SPAWN_CLEAR = 6;
 export { buyWave, roomCount } from './wavePlan';
 
-export function createDungeonRun(level: DungeonLevel): DungeonRun {
+/** Update 0.2.15 — `last`: the run's last floor (its boss's chest offers no Scars). */
+export function createDungeonRun(level: DungeonLevel, last = false): DungeonRun {
   return {
     level,
     rooms: level.rooms.map((r) => ({ state: r.kind === 'fight' || r.kind === 'boss' ? 'idle' : 'cleared', sent: 0, total: 0, delay: 0 })),
@@ -95,7 +96,7 @@ export function createDungeonRun(level: DungeonLevel): DungeonRun {
     shut: level.gates.map((_, i) => i === level.boss.gate),
     nav: level.rooms.map(() => null),
     exited: false,
-    treasure: createTreasure(level, createRng(level.plan.seed * 131 + level.plan.level * 17), bossOf(level.plan.level)),
+    treasure: createTreasure(level, createRng(level.plan.seed * 131 + level.plan.level * 17), bossOf(level.plan.level), !last),
     boss: createBossRun(bossOf(level.plan.level)),
     tide: createTide(),
     checkpoint: null,

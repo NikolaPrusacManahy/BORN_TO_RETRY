@@ -16,10 +16,11 @@ import { ITEMS } from '../../tuning/items';
 import type { CombatState } from '../combat/state';
 import { addShield, healPlayer, maxHpOf, maxShield } from '../player/health';
 import type { PlayerState } from '../player/state';
-import { HASTE, WEAPON_STATS } from '../weapons/catalog';
+import { HASTE } from '../weapons/catalog';
 import { giveWeapon } from '../weapons/slots';
 import { holding } from '../weapons/weapons';
 import { hasteFactor } from './bonuses';
+import { newUses } from '../scars/scars';
 
 export type ItemKind = 'heart' | 'plate' | 'goldSword' | 'redRing' | 'blueRing' | 'key' | 'whiteKey' | 'goldKey' | 'goldPlate' | 'greenRing' | 'tealRing' | 'grimoire' | 'goldAxe' | 'hammer' | 'daggers' | 'goldHammer' | 'goldDaggers' | 'greatHeart' | 'pistol';
 export const ITEM_KINDS: readonly ItemKind[] = ['heart', 'plate', 'goldSword', 'redRing', 'blueRing', 'key', 'whiteKey', 'goldKey', 'goldPlate', 'greenRing', 'tealRing', 'grimoire', 'goldAxe', 'hammer', 'daggers', 'goldHammer', 'goldDaggers', 'greatHeart', 'pistol'];
@@ -37,12 +38,14 @@ export interface Inventory {
   greenRings: number;
   /** Update 0.2.0 — teal rings (the purple ring is gone). */
   tealRings: number;
+  /** Update 0.2.15 — the Scars (sim/scars/scars.ts: one bit each). */
+  scars: number;
   /** The key you'd use at a chest. */
   keyPick: KeyKind;
 }
 
 export function createInventory(): Inventory {
-  return { keys: 0, whiteKeys: 0, goldKeys: 0, redRings: 0, blueRings: 0, greenRings: 0, tealRings: 0, keyPick: 'key' };
+  return { keys: 0, whiteKeys: 0, goldKeys: 0, redRings: 0, blueRings: 0, greenRings: 0, tealRings: 0, scars: 0, keyPick: 'key' };
 }
 
 const KEY_FIELD: Record<KeyKind, 'keys' | 'whiteKeys' | 'goldKeys'> = { key: 'keys', whiteKey: 'whiteKeys', goldKey: 'goldKeys' };
@@ -152,7 +155,8 @@ export function takeItem(kind: ItemKind, p: PlayerState, state: CombatState) {
       addShield(p, ITEMS.v.goldShield);
       break;
     case 'goldSword':
-      giveWeapon(state, holding('goldSword', WEAPON_STATS.goldSword().uses), p.pos);
+      // (Update 0.2.15 — Collector, a Scar: more uses.)
+      giveWeapon(state, holding('goldSword', newUses(state, 'goldSword')), p.pos);
       break;
     // Update 0.1.4 — the Grimoire.
     case 'grimoire':
@@ -164,7 +168,7 @@ export function takeItem(kind: ItemKind, p: PlayerState, state: CombatState) {
     case 'goldDaggers':
     // Update 0.2.12 — the Pistol (the designer: uncommon), loaded.
     case 'pistol':
-      giveWeapon(state, holding(kind, WEAPON_STATS[kind]().uses), p.pos);
+      giveWeapon(state, holding(kind, newUses(state, kind)), p.pos);
       break;
     case 'redRing':
       // More max health, and the health to fill it.

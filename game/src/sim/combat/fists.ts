@@ -74,8 +74,9 @@ function set(out: Punch, kind: PunchKind, damage: number, knock: number, charge 
 }
 
 /** Advances the fists. Writes a punch into `out` and returns true when one is thrown this tick. `armed`: holding a
- *  weapon (no jabs; a full charge lets go a 'pierce', which the caller turns into the weapon's). */
-export function updateFists(f: FistState, intent: CombatIntent, events: EventQueue<CombatEvent>, dt: number, out: Punch, armed = false, rate = 1): boolean {
+ *  weapon (no jabs; a full charge lets go a 'pierce', which the caller turns into the weapon's). Update 0.2.15 —
+ *  `chargeRate`: how fast the charge fills (Hair Trigger's ×2). */
+export function updateFists(f: FistState, intent: CombatIntent, events: EventQueue<CombatEvent>, dt: number, out: Punch, armed = false, rate = 1, chargeRate = 1): boolean {
   const v = FISTS.v;
   f.jabCooldown = Math.max(0, f.jabCooldown - dt);
   f.comboTimer = Math.max(0, f.comboTimer - dt);
@@ -88,7 +89,8 @@ export function updateFists(f: FistState, intent: CombatIntent, events: EventQue
       f.charge = 0;
       events.push('chargeStart');
     } else {
-      f.charge = Math.min(v.chargeTime, f.charge + dt);
+      // (Update 0.2.15 — `chargeRate`: Hair Trigger fills it quicker.)
+      f.charge = Math.min(v.chargeTime, f.charge + dt * chargeRate);
       if (f.charge >= v.chargeTime && !f.chargeReady) {
         f.chargeReady = true;
         events.push('chargeReady');

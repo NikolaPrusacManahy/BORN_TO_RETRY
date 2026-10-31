@@ -96,6 +96,7 @@ export class Run extends RunBase {
       const wade = d && p.swimTop === 0 ? (bossOn ? floodSlow(p, this.combat.flood) : tideSlow(p, d.tide, d.level.tide)) : 1;
       p.speedMul = moveFactor(this.combat) * (d ? sandSlow(p, d.level.sand) * wade : 1);
       p.hpBonus = hpBonusOf(this.combat.items);
+      p.scars = this.combat.items.scars;
       const ci = this.combatIntent;
       if (stepTreasure(this.treasure, p, this.combat, ci.interactPressed, ci.switchKeyPressed, this.fighting, stepDt)) ci.interactPressed = false;
       const lobby = this.level.lobby;

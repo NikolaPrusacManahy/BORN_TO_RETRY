@@ -28,6 +28,8 @@ import './test-swim';
 import './test-floor6-foes';
 import './test-floor6-minis';
 import './test-whale';
+import './test-scars';
+import './test-scar-moves';
 import './test-alpha';
 import './test-credit';
 import './test-grunt';

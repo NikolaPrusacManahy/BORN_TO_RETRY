@@ -59,6 +59,11 @@
   --rb-rarity: #ff4a4a;
 }
 
+/* Update 0.2.15 — a Scar: crimson, its tag ("Scar · Dash") where a rarity would be. */
+.rb-prompt.is-scar {
+  --rb-rarity: #ff2a4a;
+}
+
 /* A chest: only what E does. */
 .rb-prompt.is-bare {
   min-width: 0;

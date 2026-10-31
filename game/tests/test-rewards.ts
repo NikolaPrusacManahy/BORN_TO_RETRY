@@ -22,6 +22,7 @@ import { MINI_BOSSES } from '../src/sim/enemies/kinds';
 import { dropItem } from '../src/sim/items/drops';
 import { emptyFocus, focusOf } from '../src/sim/items/focus';
 import { createPlayer } from '../src/sim/player/state';
+import { isScar } from '../src/sim/scars/scars';
 import { CINEMA } from '../src/tuning/cinema';
 import { EXECUTION } from '../src/tuning/execution';
 import { ITEMS } from '../src/tuning/items';
@@ -166,9 +167,11 @@ section('The boss’s chest');
   const money = c.money;
   stepTreasure(run.treasure, p, c, true, false, () => false, DT);
   for (let k = 0; k < ticks(ITEMS.v.chestTime + DT); k++) stepTreasure(run.treasure, p, c, false, false, () => false, DT);
-  const items = c.drops.filter((d) => d.alive && d.manual);
+  // (Update 0.2.15 — no key any more, the designer: "the chest on a boss won does not give a key anymore, it gives
+  // scars": test-scars.ts.)
+  const items = c.drops.filter((d) => d.alive && d.manual && !isScar(d.kind));
   const coins = c.money + c.coins.filter((q) => q.alive).length - money;
-  check('opened: its coins burst out, and a key and a heart wait over it side by side', chest.state === 'open' && coins > 0 && items.length === 2 && items.some((d) => d.kind === 'key') && items.some((d) => d.kind === 'heart') && near(items[0].pos.distanceTo(items[1].pos), 0.5, 1e-6), `${coins} coins, ${items.map((d) => d.kind)}`);
+  check('opened: its coins burst out, and its heart waits over it (no key)', chest.state === 'open' && coins > 0 && items.length === 1 && items[0].kind === 'heart' && near(items[0].pos.x, chest.spot.x, 1e-6) && near(items[0].pos.z, chest.spot.z, 1e-6), `${coins} coins, ${items.map((d) => d.kind)}`);
 }
 
 section('Executions heal');
@@ -206,7 +209,7 @@ section('Executions heal');
 section('The view goes to a rising chest and back');
 {
   const spot: ChestSpot = { room: 0, x: 10, z: 5, rot: 0, fx: 0, fz: 1, rises: true, boss: false, gate: -1, gold: false };
-  const chest = { spot, state: 'rising', t: 0, rolls: [0, 0, 0], key: null, loot: null, given: false, boss: null } as Treasure['chests'][number];
+  const chest = { spot, state: 'rising', t: 0, rolls: [0, 0, 0], key: null, loot: null, given: false, boss: null, scars: false } as Treasure['chests'][number];
   const t: Treasure = { shop: -1, offers: [], chests: [chest], choosing: -1 };
   const shot = new ChestShot();
   const cam = new THREE.PerspectiveCamera();

@@ -8,6 +8,8 @@ import { crossedPair } from './pairLook';
 import type { KeyKind } from '../sim/items/items';
 import type { DropKind } from '../sim/items/drops';
 import type { BonusKind } from '../sim/items/bonuses';
+import { SCAR_KINDS } from '../sim/scars/scars';
+import { scarLook } from './scarLook';
 
 /** Each key's metal, and its aura's colour (none for the normal key). */
 const METAL: Record<KeyKind, { color: number; metal: number; rough: number; glow: number } | null> = {
@@ -87,7 +89,8 @@ function bonusLook(kind: BonusKind | 'greatHeart', proto: THREE.Object3D): THREE
   return look;
 }
 
-/** Every item's look: the keys built from the key, the daggers crossed, the rest as they come. */
+/** Every item's look: the keys built from the key, the daggers crossed, the rest as they come. Update 0.2.15 — and the
+ *  Scars' (scarLook.ts: made in code). */
 export function itemLooks(protos: Partial<Record<DropKind, THREE.Object3D>>): Partial<Record<DropKind, THREE.Object3D>> {
   const out = { ...protos };
   const key = protos.key;
@@ -102,5 +105,6 @@ export function itemLooks(protos: Partial<Record<DropKind, THREE.Object3D>>): Pa
     const p = protos[kind];
     if (p) out[kind] = bonusLook(kind, p);
   }
+  for (const kind of SCAR_KINDS) out[kind] = scarLook(kind);
   return out;
 }

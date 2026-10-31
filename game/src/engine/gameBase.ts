@@ -138,6 +138,11 @@ export abstract class GameBase {
     if (this.inLab) this.run.labCommand({ kind: 'meter', on: this.labMeter });
   }
 
+  /** Update 0.2.15 — the Scars the run carries (the pause menu lists them). */
+  scars(): number {
+    return this.run?.scars ?? 0;
+  }
+
   /** Back to the start, full health; the targets back in place and whole (F3, Restart). */
   restart() {
     this.run?.restart();

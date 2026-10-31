@@ -2,6 +2,7 @@
 // first target it passes takes a big hit (and a hit-stop); a wall stops it. Either way it breaks.
 // Update 0.1.5 — except a Gold Axe with uses left: it turns end over end, drops where it hits, sticks in a wall, and
 // comes back when called (recall.ts).
+// Update 0.2.15 — Ricochet (a Scar): one that hits an enemy turns on to the next one, once (sim/scars/scarMoves.ts).
 import { Vector3 } from 'three';
 import { FEEDBACK } from '../../tuning/combat';
 import { WEAPONS } from '../../tuning/weapons';
@@ -10,6 +11,7 @@ import type { CombatState } from '../combat/state';
 import { emptyTargetHit, landHit, nearestTarget } from '../combat/strike';
 import type { PlayerState } from '../player/state';
 import { drop, landed, stick, updateReturning } from './recall';
+import { ricochet } from '../scars/scarMoves';
 import { THROWN_GRAVITY } from './weapons';
 
 /** How close it must pass a target's capsule to hit it (m). */
@@ -38,6 +40,7 @@ export function updateThrown(state: CombatState, world: CollisionWorld, player: 
       state.hitStop.request(FEEDBACK.v.stopHeavy);
       if (t.returns && landed(t, t.pos.lerp(next, hit.s))) continue;
       if (t.returns) state.events.push('weaponBroken');
+      if (hit.kind === 'enemy' && ricochet(state, t, hit.point, hit.index)) continue;
       shatter(state, t.pos);
       t.alive = false;
       continue;

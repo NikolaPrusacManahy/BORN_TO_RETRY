@@ -14,6 +14,8 @@
 // boss used to leave as it burst: its coins, a key and a heart (the items wait over it for E, side by side).
 // Update 0.2.1 (the designer) — every room's chest rises once its room is won. A gold chest (a room with no mini boss:
 // no key drops there) opens without a key, and gives coins only.
+// Update 0.2.15 — a boss's chest (not the run's last) and a challenge room's offer Scars with their loot
+// (sim/scars/scarOffer.ts).
 import type { Rng } from '../../core/rng';
 import { ITEMS } from '../../tuning/items';
 import type { ChestSpot, DungeonLevel } from '../../world/dungeon/assemble';
@@ -28,6 +30,7 @@ import { BOSS_LOOT, bossCoins } from './bossRoom';
 import { coinsFor } from '../items/bonuses';
 import type { EnemyKind } from '../enemies/kinds';
 import { Vector3 } from 'three';
+import { offerScars } from '../scars/scarOffer';
 
 export interface Offer {
   kind: ItemKind;
@@ -55,6 +58,8 @@ export interface Chest {
   given: boolean;
   /** Update 0.2.0 — a boss's chest: which boss (no key opens it; its loot is the boss's); null: a key opens it. */
   boss: EnemyKind | null;
+  /** Update 0.2.15 — its loot comes with Scars to choose from. */
+  scars: boolean;
 }
 
 export interface Treasure {
@@ -92,15 +97,16 @@ function shuffle<T>(list: T[], rng: Rng): T[] {
   return list;
 }
 
-/** The shop's offers and the chests' rolls for a floor (seeded); `boss`: the floor's (its chest's loot). */
-export function createTreasure(level: DungeonLevel, rng: Rng, boss: EnemyKind = 'demon'): Treasure {
+/** The shop's offers and the chests' rolls for a floor (seeded); `boss`: the floor's (its chest's loot). Update 0.2.15
+ *  — `bossScars`: its chest offers Scars (not on the run's last floor). */
+export function createTreasure(level: DungeonLevel, rng: Rng, boss: EnemyKind = 'demon', bossScars = true): Treasure {
   const shop = level.rooms.find((r) => r.kind === 'shop');
   const drawn = shuffle([...SHOP_DRAWN], rng).slice(0, SHOP_TILES - SHOP_ALWAYS.length);
   // A key on offer is a normal, white or gold one.
   const kinds = shuffle([...SHOP_ALWAYS, ...drawn.map((k) => (k === 'key' ? keyFor(rng()) : k))], rng);
   const floor = level.plan?.level ?? 1;
   const offers = shop ? shop.tiles.slice(0, SHOP_TILES).map((t, i) => ({ kind: kinds[i], price: priceOf(kinds[i], floor), sold: false, x: t.x, z: t.z })) : [];
-  const chests = level.chests.map((spot): Chest => ({ spot, state: spot.rises ? 'buried' : 'shut', t: 0, rolls: [rng(), rng(), rng()], key: null, loot: null, given: false, boss: spot.boss ? boss : null }));
+  const chests = level.chests.map((spot): Chest => ({ spot, state: spot.rises ? 'buried' : 'shut', t: 0, rolls: [rng(), rng(), rng()], key: null, loot: null, given: false, boss: spot.boss ? boss : null, scars: spot.boss ? bossScars : !!level.rooms[spot.room]?.challenge }));
   return { shop: shop ? shop.index : -1, offers, chests, choosing: -1 };
 }
 
@@ -158,7 +164,8 @@ export function raiseChest(t: Treasure, i: number, state: CombatState) {
  *  is mid-fight. Returns true if E was used here (so it doesn't also pick up a weapon). */
 export function stepTreasure(t: Treasure, player: PlayerState, state: CombatState, interact: boolean, switchKey: boolean, fighting: (room: number) => boolean, dt: number): boolean {
   const T = ITEMS.v.chestTime;
-  for (const c of t.chests) {
+  for (let i = 0; i < t.chests.length; i++) {
+    const c = t.chests[i];
     if (c.state === 'rising') {
       c.t += dt;
       if (c.t >= ITEMS.v.chestRise) c.state = 'shut';
@@ -166,7 +173,7 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
     }
     if (c.state !== 'opening') continue;
     c.t += dt;
-    if (!c.given && c.t >= T * LOOT_AT) giveLoot(c, state);
+    if (!c.given && c.t >= T * LOOT_AT) giveLoot(c, i, state);
     if (c.t >= T) c.state = 'open';
   }
   t.choosing = -1;
@@ -218,8 +225,8 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
 
 /** The lid is up: its glow (by rarity), then coins burst out and fly to you (Update 0.1.10 — an epic or mythic chest
  *  gives both), and the item rises out and hovers over the chest till you take it with E (Update 0.1.11 — the designer:
- *  not taken by itself). */
-function giveLoot(c: Chest, state: CombatState) {
+ *  not taken by itself). Update 0.2.15 — and Scars to choose from, before it (`i`: the chest). */
+function giveLoot(c: Chest, i: number, state: CombatState) {
   c.given = true;
   const loot = c.loot!;
   state.events.push('chestRarity', RARITIES.indexOf(loot.rarity), c.spot.x, 0.8, c.spot.z);
@@ -235,4 +242,5 @@ function giveLoot(c: Chest, state: CombatState) {
     const s = (k - (items.length - 1) / 2) * LOOT_GAP;
     dropItem(state.drops, kind, at.set(c.spot.x + c.spot.fz * s, LOOT_HEIGHT, c.spot.z - c.spot.fx * s), state.events, true);
   });
+  if (c.scars) offerScars(state, c.spot.x, c.spot.z, c.spot.fx, c.spot.fz, i);
 }

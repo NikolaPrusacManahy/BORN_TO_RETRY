@@ -47,8 +47,9 @@ export interface BossRun {
   calling: boolean;
 }
 
-/** What the boss leaves you (Update 0.2.0: in its chest). **(placeholder)** */
-export const BOSS_LOOT: readonly ItemKind[] = ['key', 'heart'];
+/** What the boss leaves you (Update 0.2.0: in its chest). Update 0.2.15 — no key any more (the designer: "the chest on
+ *  a boss won does not give a key anymore, it gives scars"): its heart (and its coins, and Scars). */
+export const BOSS_LOOT: readonly ItemKind[] = ['heart'];
 /** It calls again only while fewer than this many grunts are left. */
 const CALL_UNDER = 2;
 /** Grunts never appear closer to you than this, if there's room (m). */

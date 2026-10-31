@@ -2,7 +2,20 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-10-31, Update 0.2.14: the first tester's bug)
+## Next up (2026-10-31, Update 0.2.15: Scars)
+- **Scars: one choice after each big fight** (the designer asked "is this even a rouge like?"; Claude proposed in-run
+  choices; "Yes, build Scars"; spec `MD_UPDATES/U0215_SCARS.md`). A boss's chest (not the run's last) and a challenge
+  room's offer three Scars: they bounce out and land on the floor in an arc before the chest (the designer, after the
+  first build: "it does not get picked up automatically, when opening a chest it bounces out and land on the floor");
+  E takes one, the rest fade. The boss's chest gives no key any more ("it gives scars"): its coins, its heart, Scars. 14 of them, each changing a move
+  (dash, slide, slam, fists, weapons, executions, bonuses); no damage or healing. Shown on their cards, the HUD (claw
+  marks by your coins) and the pause menu. Lab: F8 → Items → Scars (Offer). Checked by tests (`test-scars.ts`,
+  `test-scar-moves.ts`) and on 240 real floors (every offer over free ground); **unseen in the game**: the look of the
+  claw marks, their bounce out of a chest and where they land, the HUD icons, the pause list, and how each Scar feels (Pogo's 5 m, the
+  shoves' knock, Ricochet's turn). To grow: the pool (14) is small for the full game's 13 choices; Afterimage, Burning
+  Trail, Cracked, Boomerang and Shrapnel are proposed and not built; Pacts and weapon twists after.
+
+## Before (2026-10-31, Update 0.2.14: the first tester's bug)
 - **The view flew into the sky and back after landings** (the first alpha feedback, a tester on a laptop; spec
   `MD_UPDATES/U0214_VIEW_SPRINGS.md`): the camera's landing dip, the arms' dip and the Pistol's recoil were springs
   stepped once a frame, and grew wildly under ~12 fps. Now stepped in slices (`core/spring.ts`). Test in

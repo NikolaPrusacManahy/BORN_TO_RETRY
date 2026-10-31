@@ -17,6 +17,8 @@ import { burstCoins } from './coins';
 import { betterKeyFor, keyFor } from '../items/items';
 import { dropItem } from '../items/drops';
 import { coinsFor, rollBonus } from '../items/bonuses';
+import { newUses, scarred } from '../scars/scars';
+import { SCARS } from '../../tuning/scars';
 import { hitDummy } from './dummy';
 import { segmentDistance } from './geometry';
 import type { CombatEvent, CombatState } from './state';
@@ -100,12 +102,15 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   // Update 0.1.0 — every kill of yours fills the Execution Power meter. Update 0.1.13 — counted in whole kills: ten
   // tenths added up came to 0.9999999999999999, which looked full but couldn't execute (only the Lab's Meter, which sets
   // it to 1, could): the designer found executions "just in the Lab".
+  // (Update 0.2.15 — Air Butcher, a Scar: a kill in the air counts double.)
   const steps = Math.max(1, Math.round(EXECUTION.v.killsToFill));
-  state.execution = Math.min(1, Math.round(state.execution * steps + 1) / steps);
+  const worth = state.inAir && scarred(state, 'airButcher') ? Math.round(SCARS.v.airButcher) : 1;
+  state.execution = Math.min(1, Math.round(state.execution * steps + worth) / steps);
   const e = state.enemies[t.index];
   // (Update 0.2.12 — ARE YOU EVEN HUMAN?: nothing comes of a kill but the meter.)
   if (state.bare) return true;
-  if (e.kind === 'grunt' && state.rng() < ENEMIES.v.gruntDrop) dropWeapon(state.pickups, 'sword', e.pos, state.events);
+  // (Update 0.2.15 — Collector, a Scar: more uses.)
+  if (e.kind === 'grunt' && state.rng() < ENEMIES.v.gruntDrop) dropWeapon(state.pickups, 'sword', e.pos, state.events, newUses(state, 'sword'));
   if (MINI_BOSSES.includes(e.kind) && state.keyDrops > 0) {
     state.keyDrops--;
     // Update 0.1.20 — a challenge room's is white or gold.

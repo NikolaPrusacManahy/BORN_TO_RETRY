@@ -18,6 +18,7 @@ import { DungeonView } from './dungeonView';
 import type { Lobby } from '../sim/lobby/lobby';
 import { LOBBY_HALL } from '../world/lobby/hall';
 import { LobbyView } from './lobby/lobbyView';
+import { endsRun } from './runLinks';
 
 export interface LevelView extends ArenaView {
   /** The dungeon's gates (shut or open), the boss room's show (Update 0.0.15) and its torch lights near `at`.
@@ -52,7 +53,8 @@ export function dungeonLevel(seed: number, floor: number): Level {
   const d = buildDungeon(planFloor(seed, floor));
   const physics = new RapierWorld(d.arena);
   physics.addGates(d.gates);
-  const dungeon = createDungeonRun(d);
+  // (Update 0.2.15 — the run's last boss offers no Scars: the run ends there.)
+  const dungeon = createDungeonRun(d, endsRun(floor));
   prepareNav(dungeon);
   return { arena: d.arena, physics, dungeon, seed, floor, fightSeed: seed * 13 + floor, draw: (scene) => new DungeonView(scene, d) };
 }

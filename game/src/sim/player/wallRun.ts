@@ -2,7 +2,8 @@
 // into it), not rising fast and moving along it fast enough, you run along it for up to 2 s on a gentle arc. Jump to push off towards the other side; the next wall
 // you reach starts a fresh run, so runs chain. A wall can't be run on twice without landing in between.
 import { Vector3 } from 'three';
-import { MOVE, WALL, WALLRUN } from '../../tuning/movement';
+import { DASH, MOVE, WALL, WALLRUN } from '../../tuning/movement';
+import { hasScar } from '../scars/scars';
 import type { CollisionWorld } from '../collisionWorld';
 import type { PlayerIntent } from './intent';
 import type { PlayerState } from './state';
@@ -42,6 +43,8 @@ export function tryStartWallRun(p: PlayerState, intent: PlayerIntent, wish: Vect
   p.wallRunTime = 0;
   p.wallNormal.copy(n);
   p.vel.y = WALLRUN.v.startUp;
+  // (Update 0.2.15 — Second Wind, a Scar: a wall run gives you back a dash.)
+  if (hasScar(p.scars, 'secondWind')) p.dashCharges = Math.min(DASH.v.charges, p.dashCharges + 1);
   p.events.push('wallRunStart');
   return true;
 }

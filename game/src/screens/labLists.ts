@@ -1,7 +1,9 @@
 // Update 0.2.4 — what the Lab's panel lists (the designer: "make this interface a bit more comfier to navigate"): a
 // column a floor, each with the enemies it brings in (on the first floor each comes, the mini bosses last), its boss and
 // a run from its start; the items by kind. The floors' columns follow their rosters, so a new enemy shows up by itself.
+// Update 0.2.15 — the Scars: an offer of three in front of you (as a chest's), or one at your feet.
 import { rosterOf } from '../sim/dungeon/wavePlan';
+import { SCAR_KINDS, SCAR_NAME } from '../sim/scars/scars';
 import { bossOf, EnemyKind, MINI_BOSSES } from '../sim/enemies/kinds';
 import type { DropKind } from '../sim/items/drops';
 import type { LabCommand } from '../sim/lab/labCommands';
@@ -91,6 +93,9 @@ export const LAB_ITEMS: readonly [string, Pick[]][] = [
   ['Rings', [item('redRing', 'Red ring'), item('tealRing', 'Teal ring'), item('greenRing', 'Green ring'), item('blueRing', 'Blue ring')]],
   ['Keys', [item('key', 'Key'), item('whiteKey', 'White key'), item('goldKey', 'Gold key'), ['Chest', { kind: 'chest' }]]],
   ['Bonuses', [item('snowflake', 'Snowflake'), item('goldIngots', 'Gold ingots'), item('bluePotion', 'Blue potion')]],
+  // (Two columns: a column holds 10 at most.)
+  ['Scars', [['Offer', { kind: 'scars' }], ...SCAR_KINDS.slice(0, 7).map((k) => item(k, SCAR_NAME[k]))]],
+  ['More Scars', SCAR_KINDS.slice(7).map((k) => item(k, SCAR_NAME[k]))],
   [
     'Weapons',
     [

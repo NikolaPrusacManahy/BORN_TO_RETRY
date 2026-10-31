@@ -1,0 +1,37 @@
+/* theme-33 — Update 0.2.15: the Scars you carry, listed in the pause menu (screens/PauseMenu.tsx): each one's name in
+   crimson, the move it changes, and what it does. */
+.rb-pause-scars {
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.rb-pause-scars li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 10px;
+  align-items: baseline;
+  padding-left: 10px;
+  border-left: 3px solid #ff2a3a;
+}
+
+.rb-pause-scars b {
+  color: #ff4a5a;
+  letter-spacing: 0.04em;
+}
+
+.rb-pause-scars i {
+  font-style: normal;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.rb-pause-scars span {
+  grid-column: 1 / -1;
+  font-size: 14px;
+  opacity: 0.85;
+}

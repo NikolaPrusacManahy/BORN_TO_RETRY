@@ -257,6 +257,7 @@ export default function App() {
       {paused && !tuning && (
         <PauseMenu
           settings={save.settings}
+          scars={getGame()?.scars() ?? 0}
           fullscreen={fullscreen}
           onChange={changeSettings}
           onResume={() => void play()}

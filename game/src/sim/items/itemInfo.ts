@@ -9,6 +9,7 @@ import { ITEMS } from '../../tuning/items';
 import { WEAPONS } from '../../tuning/weapons';
 import { Rarity, TIER } from '../dungeon/loot';
 import { WEAPON_NAME, WEAPON_STATS, WeaponKind } from '../weapons/catalog';
+import { isScar, SCAR_DOES, SCAR_MOVE, SCAR_NAME } from '../scars/scars';
 import type { DropKind } from './drops';
 
 export type InfoKind = DropKind | WeaponKind;
@@ -17,6 +18,8 @@ export interface ItemInfo {
   name: string;
   rarity: Rarity | null;
   does: string;
+  /** Update 0.2.15 — shown in place of a rarity: a Scar's "Scar · the move it changes" (null: none). */
+  tag: string | null;
 }
 
 const pct = (share: number) => `${Math.round(share * 100)}%`;
@@ -36,6 +39,7 @@ const NAME: Record<Exclude<InfoKind, WeaponKind>, string> = {
   snowflake: 'Snowflake',
   goldIngots: 'Gold Ingots',
   bluePotion: 'Blue Potion',
+  ...SCAR_NAME,
 };
 
 const DOES: Record<InfoKind, () => string> = {
@@ -62,6 +66,7 @@ const DOES: Record<InfoKind, () => string> = {
   daggers: () => `Very fast cuts; hold to throw a volley. +${pct(WEAPONS.v.daggerSpeed)} run speed.`,
   goldDaggers: () => `Very fast cuts; hold to throw a volley. +${pct(WEAPONS.v.daggerSpeed)} run speed.`,
   pistol: () => `Shoots where you look; right click strikes with it; R reloads. ${Math.round(GUN.v.pistolMag)} a magazine.`,
+  ...SCAR_DOES,
 };
 
 /** What isn't in a chest's tiers. */
@@ -70,7 +75,7 @@ const RARITY_ELSE: Partial<Record<InfoKind, Rarity>> = { sword: 'common', hammer
 const BONUSES: readonly InfoKind[] = ['snowflake', 'goldIngots', 'bluePotion'];
 
 export function rarityOf(kind: InfoKind): Rarity | null {
-  if (BONUSES.includes(kind)) return null;
+  if (BONUSES.includes(kind) || isScar(kind)) return null;
   for (const r of Object.keys(TIER) as Rarity[]) if ((TIER[r] as readonly string[]).includes(kind)) return r;
   return RARITY_ELSE[kind] ?? null;
 }
@@ -81,7 +86,7 @@ export const isWeapon = (kind: InfoKind): kind is WeaponKind => kind in WEAPON_S
 export function infoOf(kind: InfoKind, uses = -1): ItemInfo {
   if (isWeapon(kind)) {
     const n = uses >= 0 ? uses : WEAPON_STATS[kind]().uses;
-    return { name: WEAPON_NAME[kind], rarity: rarityOf(kind), does: `${DOES[kind]()} ${n} uses.` };
+    return { name: WEAPON_NAME[kind], rarity: rarityOf(kind), does: `${DOES[kind]()} ${n} uses.`, tag: null };
   }
-  return { name: NAME[kind], rarity: rarityOf(kind), does: DOES[kind]() };
+  return { name: NAME[kind], rarity: rarityOf(kind), does: DOES[kind](), tag: isScar(kind) ? `Scar · ${SCAR_MOVE[kind]}` : null };
 }

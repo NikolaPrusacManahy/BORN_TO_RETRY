@@ -60,6 +60,8 @@ export interface Thrown {
   speed: number;
   struck: number[];
   struckN: number;
+  /** Update 0.2.15 — Ricochet: enemies it has turned from. */
+  bounces: number;
 }
 
 /** Flying out; falling where it hit something or ran out; lying (or stuck in a wall); flying back to you. */
@@ -91,6 +93,7 @@ export function createThrown(): Thrown[] {
     speed: 0,
     struck: new Array<number>(16).fill(-1),
     struckN: 0,
+    bounces: 0,
   }));
 }
 
@@ -114,8 +117,8 @@ export function placePickup(pickups: Pickup[], kind: WeaponKind, uses: number, a
 }
 
 /** A drop from an enemy, with the weapon's uses. */
-export function dropWeapon(pickups: Pickup[], kind: WeaponKind, at: Vector3, events: EventQueue<CombatEvent>) {
-  placePickup(pickups, kind, WEAPON_STATS[kind]().uses, at);
+export function dropWeapon(pickups: Pickup[], kind: WeaponKind, at: Vector3, events: EventQueue<CombatEvent>, uses = WEAPON_STATS[kind]().uses) {
+  placePickup(pickups, kind, uses, at);
   events.push('weaponDrop', 0, at.x, at.y, at.z);
 }
 
@@ -169,5 +172,6 @@ export function throwWeapon(held: HeldWeapon, thrown: Thrown[], eye: Vector3, di
   t.uses = held.uses;
   t.speed = 0;
   t.struckN = 0;
+  t.bounces = 0;
   events.push('throw', t.returns ? 1 : 0, t.pos.x, t.pos.y, t.pos.z);
 }

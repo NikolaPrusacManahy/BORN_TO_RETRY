@@ -97,6 +97,8 @@ export interface PlayerState {
   speedMul: number;
   /** Update 0.0.17 — max health on top of the base (the red rings). */
   hpBonus: number;
+  /** Update 0.2.15 — the Scars you carry (sim/scars/scars.ts: one bit each; the run's, copied here each tick). */
+  scars: number;
   /** Update 0.0.18 — poisoned: seconds left, and damage a second meanwhile. */
   poison: number;
   poisonDps: number;
@@ -159,6 +161,7 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     shield: 0,
     speedMul: 1,
     hpBonus: 0,
+    scars: 0,
     poison: 0,
     poisonDps: 0,
     blind: 0,

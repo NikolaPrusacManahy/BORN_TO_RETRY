@@ -35,7 +35,7 @@ function slotSig(combat: CombatState): number {
 /** Steps of the bonuses' time left, as one number. */
 function bonusSig(combat: CombatState): number {
   let sig = 0;
-  for (const k of BONUS_KINDS) sig = sig * 64 + Math.ceil((combat.bonuses[k] / bonusLength(k)) * BONUS_STEP);
+  for (const k of BONUS_KINDS) sig = sig * 64 + Math.ceil((combat.bonuses[k] / bonusLength(k, combat)) * BONUS_STEP);
   return sig;
 }
 import type { DebugInfo, HudStore } from './hudStore';
@@ -97,7 +97,7 @@ export class HudFeed {
     const bossHp = show.bossHp < 0 ? -1 : Math.ceil(show.bossHp * 100) / 100;
     const shown = cur.cine === show.cine && cur.card === show.card && cur.bossHp === bossHp && cur.veil === show.veil && cur.floorName === show.floorName && cur.bossTitle === show.bossTitle;
     const keys = cur.keys === it.keys && cur.whiteKeys === it.whiteKeys && cur.goldKeys === it.goldKeys && cur.keyPick === keyPick;
-    const rings = cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.greenRings === it.greenRings && cur.tealRings === it.tealRings;
+    const rings = cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.greenRings === it.greenRings && cur.tealRings === it.tealRings && cur.scars === it.scars;
     const sig = slotSig(combat);
     const bonus = bonusSig(combat);
     const g = combat.grab;
@@ -110,7 +110,7 @@ export class HudFeed {
     if (this.timer > 0 && same && shown && grab && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution && cur.chestHere === chestHere) return;
     this.bonus = bonus;
     const bonusLeft: Record<string, number> = {};
-    for (const k of BONUS_KINDS) bonusLeft[k] = Math.ceil((combat.bonuses[k] / bonusLength(k)) * BONUS_STEP) / BONUS_STEP;
+    for (const k of BONUS_KINDS) bonusLeft[k] = Math.ceil((combat.bonuses[k] / bonusLength(k, combat)) * BONUS_STEP) / BONUS_STEP;
     this.timer = HUD_EVERY;
     this.hud.set({
       dashCharges: Math.floor(p.dashCharges * 20) / 20,
@@ -135,6 +135,7 @@ export class HudFeed {
       blueRings: it.blueRings,
       greenRings: it.greenRings,
       tealRings: it.tealRings,
+      scars: it.scars,
       slots: combat.bag.slice(1).map((w) => (w ? { kind: w.kind, uses: w.uses } : null)),
       slot: combat.slot,
       slotSig: sig,

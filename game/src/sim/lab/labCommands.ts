@@ -5,6 +5,8 @@
 // on the floor away; Heal fills your health and ends poison. Pure.
 // Update 0.1.1 — Meter (the designer: "max execution gauge, only inside the Lab"): on, the Execution Power meter stays
 // full.
+// Update 0.2.15 — Scars: an offer of three bounces out in front of you, as out of a chest (a Scar alone falls at your
+// feet).
 import { Vector3 } from 'three';
 import type { CombatState } from '../combat/state';
 import { clearQuakes } from '../combat/quakes';
@@ -17,12 +19,14 @@ import { maxHpOf } from '../player/health';
 import type { PlayerState } from '../player/state';
 import { WEAPON_STATS, WeaponKind } from '../weapons/catalog';
 import { placePickup } from '../weapons/weapons';
+import { offerScars } from '../scars/scarOffer';
 
 export type LabCommand =
   | { kind: 'enemy'; enemy: EnemyKind; count: number }
   | { kind: 'item'; item: DropKind }
   | { kind: 'weapon'; weapon: WeaponKind }
   | { kind: 'chest' }
+  | { kind: 'scars' }
   | { kind: 'clear' }
   | { kind: 'heal' }
   | { kind: 'meter'; on: boolean };
@@ -33,6 +37,8 @@ const AHEAD = { small: 7, large: 10, air: 8, boss: 16, item: 2.5, weapon: 2.5, c
 const SPREAD = 2.5;
 /** At most this many chests in the Lab (the oldest goes). */
 export const LAB_CHESTS = 6;
+/** Update 0.2.15 — the Lab's offer of Scars (as a chest's index: taking one fades the rest). */
+const LAB_OFFER = 100;
 
 const at = new Vector3();
 
@@ -68,12 +74,17 @@ export function runLab(cmd: LabCommand, state: CombatState, player: PlayerState,
     case 'chest': {
       ahead(AHEAD.chest);
       // Its front (where you kneel) faces you.
-      const chest: Chest = { spot: { room: -1, x: at.x, z: at.z, rot: Math.atan2(-fx, -fz), fx: -fx, fz: -fz, rises: false, boss: false, gate: -1, gold: false }, state: 'shut', t: 0, rolls: [state.rng(), state.rng(), state.rng()], key: null, loot: null, given: false, boss: null };
+      const chest: Chest = { spot: { room: -1, x: at.x, z: at.z, rot: Math.atan2(-fx, -fz), fx: -fx, fz: -fz, rises: false, boss: false, gate: -1, gold: false }, state: 'shut', t: 0, rolls: [state.rng(), state.rng(), state.rng()], key: null, loot: null, given: false, boss: null, scars: false };
       if (treasure.chests.length >= LAB_CHESTS) treasure.chests.shift();
       treasure.chests.push(chest);
       state.events.push('itemDrop', -1, at.x, 0.5, at.z);
       return 1;
     }
+    case 'scars':
+      // (An earlier one's left over fade first.)
+      for (const d of state.drops) if (d.alive && d.offer === LAB_OFFER) d.alive = false;
+      // (Thrown out of a spot a metre before you.)
+      return offerScars(state, player.pos.x + fx, player.pos.z + fz, fx, fz, LAB_OFFER);
     case 'clear':
       for (const e of state.enemies) e.alive = false;
       for (const o of state.orbs) o.alive = false;

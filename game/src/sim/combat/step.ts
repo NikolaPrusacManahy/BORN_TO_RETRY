@@ -65,6 +65,7 @@ import type { CombatState } from './state';
 import { execHeld, execTarget, stepExecution, tryExecute } from './execution';
 import { stepFlood } from '../enemies/drownedKingMoves';
 import { updateTurret } from './turret';
+import { bumpEnemies, chargeRate, payCharge, pogo } from '../scars/scarMoves';
 
 /** Update 0.1.12 — seconds with no enemy you could execute before a new one stings again. */
 const EXEC_QUIET = 0.75;
@@ -86,6 +87,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   if (player.kneel > 0) intent = IDLE;
   // (Update 0.2.10 — the water drags you only while something drags you: the Drowned King's whirlpool, each tick.)
   player.current.set(0, 0, 0);
+  // (Update 0.2.15 — Air Butcher's kills in the air.)
+  state.inAir = !player.grounded;
   settleHand(state);
   tickGrab(state.grab, dt);
   if (state.grab.on) {
@@ -176,7 +179,9 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     aim(player, intent.yaw, intent.pitch, eye, dir);
     updateGun(state, w, intent, eye, dir, world, dt, rate);
   } else dropGun(state.gun);
-  let swung = axe || volley || gun ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate);
+  // (Update 0.2.15 — Hair Trigger: the fists' charge fills quicker, for a dash.)
+  let swung = axe || volley || gun ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate, chargeRate(state, player));
+  if (swung && punch.kind === 'heavy') payCharge(state, player);
   if (axe && w) {
     const power = updateAxeCharge(state, intent.heavyHeld && !state.recallHeld, dt);
     if (power >= 0) {
@@ -214,7 +219,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   for (const t of state.turrets) updateTurret(t, player.pos, world, state.orbs, events, dt);
   updateOrbs(state.orbs, player, world, events, dt);
   if (player.slamImpact > 0) {
-    slamImpact(state, player.pos, player.slamImpact);
+    // (Update 0.2.15 — Pogo: a slam that kills bounces you back up.)
+    pogo(state, player, slamImpact(state, player.pos, player.slamImpact));
     player.slamImpact = 0;
   }
   // (Update 0.2.10 — an Urchin's thorns: your blows on it with its spikes out hurt you.)
@@ -222,6 +228,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     damagePlayer(player, state.thorns, 'urchin');
     state.thorns = 0;
   }
+  // (Update 0.2.15 — Shoulder Charge and Bowling.)
+  bumpEnemies(state, player);
   updateEnemies(state.enemies, player, state, world, dt);
   if (state.storm > 0) state.storm = state.enemies.some((e) => e.kind === 'dino' && isLive(e)) ? Math.max(0, state.storm - dt) : 0;
   stepFlood(state, dt);

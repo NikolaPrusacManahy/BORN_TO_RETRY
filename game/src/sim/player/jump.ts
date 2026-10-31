@@ -1,6 +1,8 @@
 // M1 — jumping from the ground, with coyote time and a jump buffer. What you were doing changes the jump:
 // out of a dash or a slide you keep their speed, and right after a slam landing you bounce higher.
 import { DASH, MOVE, SLAM, SLIDE } from '../../tuning/movement';
+import { SCARS } from '../../tuning/scars';
+import { hasScar } from '../scars/scars';
 import type { PlayerState } from './state';
 import { endSlide } from './slide';
 
@@ -25,8 +27,10 @@ export function tryGroundJump(p: PlayerState): boolean {
     p.dashTime = 0;
     p.events.push('dashJump');
   } else if (p.sliding) {
-    p.vel.x = p.slideDir.x * p.slideCur * SLIDE.v.jumpKeep;
-    p.vel.z = p.slideDir.z * p.slideCur * SLIDE.v.jumpKeep;
+    // (Update 0.2.15 — Slingshot, a Scar: more of the slide's speed.)
+    const keep = SLIDE.v.jumpKeep * (hasScar(p.scars, 'slingshot') ? SCARS.v.slingshot : 1);
+    p.vel.x = p.slideDir.x * p.slideCur * keep;
+    p.vel.z = p.slideDir.z * p.slideCur * keep;
     endSlide(p);
     p.events.push('slideJump');
   } else if (p.slamBounce > 0) {
