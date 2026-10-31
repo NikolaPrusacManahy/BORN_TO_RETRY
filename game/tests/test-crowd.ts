@@ -26,9 +26,9 @@ const events = new EventQueue<CombatEvent>(512, 'none');
 const OPEN = arenaWorld(events);
 
 /** `n` of `kind` round a player at the origin (facing −z), `dist` m out, the first straight ahead; ready at once. */
-function round(kind: EnemyKind, n: number, dist: number) {
-  const p = createPlayer(0, 0, 0, 0);
-  p.grounded = true;
+function round(kind: EnemyKind, n: number, dist: number, y = 0) {
+  const p = createPlayer(0, y, 0, 0);
+  p.grounded = y === 0;
   const enemies = createEnemies();
   for (let k = 0; k < n; k++) {
     const a = (k / n) * Math.PI * 2;
@@ -132,7 +132,9 @@ section('Crowd — bosses need no turn');
   const plain = ENEMY_KINDS.filter((k) => ROLE[k] !== null);
   // (Update 0.2.7 — the Skull Wraith fights as the Wraith does: wraith.ts. Update 0.2.10 — the Spawnling is the
   // Squidle's: squidle.ts.)
-  const file = (k: string) => (k === 'skullWraith' ? 'wraith' : k === 'spawnling' ? 'squidle' : k);
+  // (Update 0.2.11 — floor 6's: reefFish.ts, rammers.ts, manta.ts.)
+  const FILES: Record<string, string> = { skullWraith: 'wraith', spawnling: 'squidle', clownfish: 'reefFish', angelfish: 'reefFish', tuna: 'rammers', dolphin: 'rammers', mantaRay: 'manta' };
+  const file = (k: string) => FILES[k] ?? k;
   const silent = plain.filter((k) => !readFileSync(new URL(`../src/sim/enemies/${file(k)}.ts`, import.meta.url), 'utf-8').includes('armed('));
   check(`every other kind’s attack waits for its turn (${plain.length} kinds)`, silent.length === 0, silent.join(', '));
 }
@@ -140,9 +142,9 @@ section('Crowd — bosses need no turn');
 /** Phases that are an attack under way. */
 const ATTACKING: ReadonlySet<EnemyPhase> = new Set<EnemyPhase>(['windup', 'leap', 'dive', 'charge']);
 
-/** `n` of `kind` round you for `secs`: the most attacking at once, how many attacked at all. */
-function brawl(kind: EnemyKind, n: number, dist: number, secs: number) {
-  const { p, enemies } = round(kind, n, dist);
+/** `n` of `kind` round you for `secs` (you `y` m up): the most attacking at once, how many attacked at all. */
+function brawl(kind: EnemyKind, n: number, dist: number, secs: number, y = 0) {
+  const { p, enemies } = round(kind, n, dist, y);
   let most = 0;
   const struck = new Set<number>();
   let close = 0;
@@ -182,7 +184,8 @@ setKnob(LAB, 'god', 1);
 for (const kind of ENEMY_KINDS) {
   const role = ROLE[kind];
   if (!role) continue;
-  const b = brawl(kind, 5, 7, 15);
+  // (Update 0.2.11 — on the floor you're safe from the Dolphin: you swim, 3 m up.)
+  const b = brawl(kind, 5, 7, 15, kind === 'dolphin' ? 3 : 0);
   check(`5 ${kind}s: at most ${limitOf(role)} attacking at once, and they attack`, b.most <= limitOf(role) && b.struck >= 1, `most ${b.most}, ${b.struck} attacked`);
 }
 setKnob(LAB, 'god', 0);

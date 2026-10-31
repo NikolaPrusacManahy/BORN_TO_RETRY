@@ -3,6 +3,8 @@
 // desert cells (the designer: palms and cacti grow in sand, never out of paving): a palm or a cactus stands in a bed of
 // loose sand (no paving under it); quicksand is loose sand you sink in (sandView.ts draws the sand). Pure.
 // Update 0.2.10 — floor 5's willows, each in a bed of mud (the style's `sand` colour).
+// Update 0.2.11 — floor 6's drowned trees (dead willows, dead trees, dead birches) and its seaweed, each in a bed of
+// silt (the style's `sand` colour): seaweed grows only out of silt, never out of paving.
 import type { Rng } from '../../core/rng';
 import { CELL, cellX, cellZ, FloorPlan } from './floorPlan';
 import type { Cell } from './rooms';
@@ -17,7 +19,7 @@ export interface SandCell {
 }
 
 /** The cells that are sand, not paving. */
-export const SANDY: ReadonlySet<Cell> = new Set<Cell>(['sand', 'palm', 'cactus', 'willow']);
+export const SANDY: ReadonlySet<Cell> = new Set<Cell>(['sand', 'palm', 'cactus', 'willow', 'snag', 'weed']);
 
 /** The desert's pieces (export_dungeon_kit.py's Nature pack ones), and their sizes in the game (the pack's palms are
  *  4–4.5 m, its cacti 1–2 m: scaled up to the rooms). */
@@ -29,7 +31,15 @@ export const DESERT = {
   /** Update 0.2.10 — floor 5's weeping willows (2.4–2.9 m as they come). */
   willows: ['kit_n_Willow_1', 'kit_n_Willow_3', 'kit_n_Willow_Dead_2'],
   willowScale: 2.1,
+  /** Update 0.2.11 — floor 6's drowned trees (2.2–3.2 m as they come: the trunk's block is the willow's), and its seaweed
+   *  (the pack's grass and a plant: 1–1.2 m and 0.9 m as they come, stretched tall). */
+  snags: ['kit_n_Willow_Dead_2', 'kit_n_Willow_Dead_4', 'kit_n_CommonTree_Dead_2', 'kit_n_CommonTree_Dead_3', 'kit_n_BirchTree_Dead_3'],
+  snagScale: 1.6,
+  weeds: ['kit_n_Grass', 'kit_n_Grass_2', 'kit_n_Plant_3'],
 };
+
+/** Update 0.2.11 — the seaweed pieces (they sway: engine/underwater.ts). */
+export const SEAWEED: ReadonlySet<string> = new Set(DESERT.weeds);
 
 const SHOP = { carpet: 'kit_p2_Carpet', candelabrum: 'kit_p2_Candelabrum_tall' };
 
@@ -67,5 +77,19 @@ export function dressSand(c: Cell, x: number, z: number, rng: Rng, put: Put, san
   } else if (c === 'willow') {
     const s = DESERT.willowScale * (0.85 + 0.3 * rng());
     put(DESERT.willows[Math.floor(rng() * DESERT.willows.length)], x, 0, z, turn, s, s, s);
+  } else if (c === 'snag') {
+    const s = DESERT.snagScale * (0.85 + 0.3 * rng());
+    put(DESERT.snags[Math.floor(rng() * DESERT.snags.length)], x, 0, z, turn, s, s, s);
+    weeds(x, z, 2, rng, put);
+  } else if (c === 'weed') weeds(x, z, 3 + Math.floor(rng() * 3), rng, put);
+}
+
+/** Update 0.2.11 — a few clumps of seaweed about a silt cell (tall blades and a low clump now and then). */
+function weeds(x: number, z: number, n: number, rng: Rng, put: Put) {
+  for (let i = 0; i < n; i++) {
+    const piece = DESERT.weeds[rng() < 0.2 ? 2 : Math.floor(rng() * 2)];
+    const tall = piece === DESERT.weeds[2] ? 1.4 + rng() * 0.6 : 2.2 + rng() * 1.6;
+    const wide = piece === DESERT.weeds[2] ? 1.3 + rng() * 0.4 : 1.8 + rng() * 0.6;
+    put(piece, x + (rng() - 0.5) * 1.5, 0, z + (rng() - 0.5) * 1.5, rng() * Math.PI * 2, wide, tall, wide);
   }
 }

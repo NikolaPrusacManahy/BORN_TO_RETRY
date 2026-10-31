@@ -67,7 +67,8 @@ section('Floor 5 — its enemies');
 {
   const roster = rosterOf(5);
   check('nine of its own: seven, and two mini bosses', roster.length === 9 && MINI_BOSSES.includes('deepOne') && MINI_BOSSES.includes('bogBrute') && roster.every((k) => !rosterOf(4).includes(k)));
-  check('the Big Glub is its percher; the floors past it send floor 5’s', percherOf(5) === 'bigGlub' && rosterOf(7) === roster);
+  // (Update 0.2.11 — floor 6 sends its own: test-floor6-foes.ts.)
+  check('the Big Glub is its percher; floor 6 sends none of floor 5’s', percherOf(5) === 'bigGlub' && percherOf(6) !== 'bigGlub' && rosterOf(6).every((k) => !roster.includes(k)));
   check('each has a name to die by', roster.every((k) => !!CAUSE_NAMES[k]));
 }
 

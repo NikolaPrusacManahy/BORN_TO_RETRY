@@ -1,5 +1,6 @@
 // M1 — places the first-person camera each frame: the interpolated body position, eye height (lower while
 // sliding), a spring dip on landing, smoothed steps, FOV kick with speed and dashes, roll tilt, and shake.
+// Update 0.2.11 — swimming (floor 6): the view bobs and sways slowly, as if held up by the water.
 import * as THREE from 'three';
 import { CAMERA } from '../tuning/camera';
 import { MOVE } from '../tuning/movement';
@@ -13,6 +14,11 @@ const DEG = Math.PI / 180;
 const STEP_EASE = 18;
 /** How fast a hit's camera kick eases back (per second). */
 const KICK_EASE = 14;
+/** Update 0.2.11 — swimming: the bob's height (m) and the sway's roll (rad), and how fast each goes (rad/s). */
+const SWIM_BOB = 0.06;
+const SWIM_ROLL = 0.018;
+const SWIM_BOB_RATE = 1.5;
+const SWIM_ROLL_RATE = 0.8;
 
 const ease = (rate: number, dt: number) => 1 - Math.exp(-rate * dt);
 
@@ -25,6 +31,7 @@ export class CameraRig {
   private dipV = 0;
   private stepOffset = 0;
   private kickPitch = 0;
+  private swimT = 0;
   private readonly at = new THREE.Vector3();
 
   constructor(readonly camera: THREE.PerspectiveCamera) {}
@@ -72,12 +79,17 @@ export class CameraRig {
     const wallSide = Math.sign(p.wallNormal.x * rightX + p.wallNormal.z * rightZ);
     if (p.wallRunning) rollTarget = -wallSide * v.wallRunTilt * DEG;
     else if (p.onWall && !p.grounded) rollTarget -= wallSide * v.wallTilt * DEG;
+    // (Update 0.2.11 — held up by the water.)
+    const swimming = p.swimTop > 0;
+    if (swimming) this.swimT += dt;
+    if (swimming) rollTarget += Math.sin(this.swimT * SWIM_ROLL_RATE) * SWIM_ROLL;
     this.roll += (rollTarget - this.roll) * ease(v.tiltRate, dt);
+    const bob = swimming ? Math.sin(this.swimT * SWIM_BOB_RATE) * SWIM_BOB : 0;
 
     this.shake.update(dt);
     this.kickPitch *= 1 - ease(KICK_EASE, dt);
     const s = this.shake;
-    this.camera.position.set(this.at.x + s.x, this.at.y + this.eye + this.dipY + this.stepOffset + s.y, this.at.z + s.z);
+    this.camera.position.set(this.at.x + s.x, this.at.y + this.eye + this.dipY + this.stepOffset + bob + s.y, this.at.z + s.z);
     this.camera.rotation.set(look.pitch + s.pitch + this.kickPitch, look.yaw + s.yaw, this.roll + s.roll, 'YXZ');
     const fov = verticalFov(hFov + this.fovExtra, aspect);
     if (Math.abs(this.camera.fov - fov) > 0.01 || this.camera.aspect !== aspect) {

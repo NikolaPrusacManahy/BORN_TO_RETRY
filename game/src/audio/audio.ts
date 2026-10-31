@@ -2,8 +2,14 @@
 // buses feeding the master. The context starts on the first click (browsers require a gesture).
 // Update 0.1.17 — and the recorded clips start loading then (clips.ts), and the music the screens want plays
 // (music.ts). `AudioEngine.current`: the game's (the screens wake it on the first click or key).
+// Update 0.2.11 — under water (floor 6) the sounds are muffled: a low-pass between the SFX bus and the master.
 import { ClipBank } from './clips';
 import { MusicPlayer } from './music';
+import { UNDERWATER } from '../tuning/underwater';
+
+/** Out of the water the low-pass lets everything through (Hz); it eases between the two this fast (s). */
+const OPEN = 20000;
+const MUFFLE_EASE = 0.25;
 
 export interface Volumes {
   master: number;
@@ -16,6 +22,8 @@ export class AudioEngine {
   sfx: GainNode | null = null;
   private master: GainNode | null = null;
   music: GainNode | null = null;
+  private muffler: BiquadFilterNode | null = null;
+  private muffled = false;
   /** Two seconds of white noise, shared by every noise-based sound. */
   noise: AudioBuffer | null = null;
   /** Update 0.1.17 — the recorded clips, the music, and the game's engine. */
@@ -41,7 +49,10 @@ export class AudioEngine {
     this.master = ctx.createGain();
     this.master.connect(comp).connect(ctx.destination);
     this.sfx = ctx.createGain();
-    this.sfx.connect(this.master);
+    this.muffler = ctx.createBiquadFilter();
+    this.muffler.type = 'lowpass';
+    this.muffler.frequency.value = OPEN;
+    this.sfx.connect(this.muffler).connect(this.master);
     this.music = ctx.createGain();
     this.music.connect(this.master);
     this.noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
@@ -59,6 +70,13 @@ export class AudioEngine {
     this.master!.gain.value = v.master;
     this.sfx!.gain.value = v.sfx;
     this.music!.gain.value = v.music;
+  }
+
+  /** Update 0.2.11 — under water or not (cheap to call every frame). */
+  muffle(on: boolean) {
+    if (!this.ctx || !this.muffler || on === this.muffled) return;
+    this.muffled = on;
+    this.muffler.frequency.setTargetAtTime(on ? UNDERWATER.v.muffle : OPEN, this.ctx.currentTime, MUFFLE_EASE);
   }
 
   dispose() {

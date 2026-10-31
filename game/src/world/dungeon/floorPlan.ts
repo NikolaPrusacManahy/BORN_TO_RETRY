@@ -17,6 +17,8 @@
 // challenge room") — no plain fight room off the way any more: the one dead-end fight room is the challenge room.
 // Update 0.2.2 (the designer: "every 2 floors, an additional room is added") — the fight rooms on the way: 5 on floors
 // 1–2, 6 on 3–4, 7 on 5–6, 8 on 7 (`pathFights`, Rooms knobs).
+// Update 0.2.11 — a floor may have a challenge room of its own (`RoomTemplate.challenge`: floor 6's drowned heart):
+// always its challenge room, never on the way.
 import { createRng, Rng } from '../../core/rng';
 import type { EnemyKind } from '../../sim/enemies/kinds';
 import { hasYeti, perchWaves, percherOf, planWaves } from '../../sim/dungeon/wavePlan';
@@ -133,7 +135,10 @@ export function planFloor(seed: number, level: number): FloorPlan {
   const way = wayThrough(rng, n);
   // Update 0.0.20 — only the rooms this floor has (the lava rooms come from floor 2; Update 0.0.21: floor 3 has only its
   // own).
-  const fights = FIGHT_ROOMS.filter((t) => onFloor(t, level));
+  const here = FIGHT_ROOMS.filter((t) => onFloor(t, level));
+  // (Update 0.2.11 — a floor's own challenge room, if it has one, is never on the way: floor 6's.)
+  const fights = here.filter((t) => !t.challenge);
+  const arena = here.find((t) => t.challenge);
   for (let i = fights.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [fights[i], fights[j]] = [fights[j], fights[i]];
@@ -143,7 +148,7 @@ export function planFloor(seed: number, level: number): FloorPlan {
   const taken = new Set<number>();
   const add = (kind: RoomKind, slot: [number, number], depth: number, own = rng, challenge = false) => {
     // (A challenge room: one not on the floor yet, with a place for its chest.)
-    const fresh = challenge ? fights.find((f) => f.rows.some((row) => row.includes('T')) && !rooms.some((r) => r.layout.template === f)) : undefined;
+    const fresh = challenge ? (arena ?? fights.find((f) => f.rows.some((row) => row.includes('T')) && !rooms.some((r) => r.layout.template === f))) : undefined;
     const t = kind === 'start' ? START_ROOM : kind === 'boss' ? BOSS_ROOM : kind === 'shop' ? SHOP_ROOM : (fresh ?? fights[rooms.filter((r) => r.kind === 'fight').length % fights.length]);
     rooms.push({ index: rooms.length, kind, layout: layOut(t, own), slot, x0: 0, z0: 0, doors: [], depth, chest: null, waves: [], challenge });
     taken.add(key(slot));

@@ -93,3 +93,4 @@ blender --background --python tools/blender/render_view.py -- --json <out folder
 - `film-forehand-*` and `film-backhand-*` film a slash every 15 ms; `tools/contact_sheet.py` tiles frames into one image.
 - `--crop` renders part of the frame larger (fractions: left, bottom, right, top), for the hand's grip.
 - Flat light and no world behind: it shows poses, not the game's look.
+- **Update 0.2.11 — floor 6's fish** (the Animated Fish pack, `ASSETS/QUATERNIUS/Underwater_floor/used_fish/`): exported with the same script, `--attack Swim --engine BLENDER_WORKBENCH` (they have one clip, `Swim`; the Angelfish's is `Swim.001`). They face −y as the monsters do. In the game every role plays their swim clip (`enemyLooks.ts` `SWIM`); the rest is turned in code (`fishPose.ts`). The Drowned Prince is `drowned_king.glb`, smaller.

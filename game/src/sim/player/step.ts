@@ -1,7 +1,10 @@
 // M1 — one movement tick: timers → actions (dash, slide, wall run, jumps) → velocity → collision → landing.
 // Each mechanic lives in its own module; this file only decides the order.
+// Update 0.2.11 — under water (floor 6) you swim instead (swim.ts): no dash, slide, wall run or wall jump, the slam
+// still dives; kicks come back slower; your eyes never leave the water.
 import { Vector3 } from 'three';
 import { MOVE, WALL } from '../../tuning/movement';
+import { SWIM } from '../../tuning/swim';
 import type { JumpPad } from '../../world/arena';
 import type { CollisionWorld, MoveResult } from '../collisionWorld';
 import { airMove, applyGravity } from './air';
@@ -14,6 +17,7 @@ import { checkPads } from './jumpPad';
 import { landSlam, tryStartSlam, updateSlam } from './slam';
 import { armSlide, canStartSlide, endSlide, slideOver, startSlide, updateSlide } from './slide';
 import type { PlayerState } from './state';
+import { swim, swimCeiling } from './swim';
 import { applyWallSlide, tryWallJump } from './wallJump';
 import { endWallRun, tryStartWallRun, updateWallRun, wallRunJump } from './wallRun';
 
@@ -46,9 +50,19 @@ export function stepPlayer(p: PlayerState, intent: PlayerIntent, world: Collisio
   p.slamBounce = Math.max(0, p.slamBounce - dt);
   p.invuln = Math.max(0, p.invuln - dt);
   p.wallRunCooldown = Math.max(0, p.wallRunCooldown - dt);
-  refillDash(p, dt);
+  refillDash(p, p.swimTop > 0 ? dt / SWIM.v.kickRefill : dt);
   wishDirection(intent.moveX, intent.moveZ, p.yaw, wish);
+  if (p.swimTop > 0) {
+    if (tryStartSlam(p, intent.slamPressed, world)) endWallRun(p);
+    if (p.slamming) updateSlam(p);
+    else swim(p, intent, dt);
+  } else steer(p, intent, world, dt);
+  checkPads(p, pads);
+  collide(p, intent, world, dt);
+}
 
+/** On foot: the actions, then the velocity. */
+function steer(p: PlayerState, intent: PlayerIntent, world: CollisionWorld, dt: number) {
   // Actions. Update 0.0.3 — the slide key no longer slams in the air: a slide pressed in the air waits for the
   // landing. Update 0.0.12 — the slam has its own key (F).
   if (tryStartDash(p, intent.dashPressed, wish)) endWallRun(p);
@@ -73,9 +87,10 @@ export function stepPlayer(p: PlayerState, intent: PlayerIntent, world: Collisio
       applyWallSlide(p, wish);
     }
   }
-  checkPads(p, pads);
+}
 
-  // Collision.
+/** Moves you as far as the world lets you, then what that did: walls, the ceiling, landing. */
+function collide(p: PlayerState, intent: PlayerIntent, world: CollisionWorld, dt: number) {
   const wasGrounded = p.grounded;
   const fallSpeed = -p.vel.y;
   delta.copy(p.vel).multiplyScalar(dt);
@@ -96,6 +111,12 @@ export function stepPlayer(p: PlayerState, intent: PlayerIntent, world: Collisio
     }
   }
   if (move.hitCeiling && p.vel.y > 0) p.vel.y = 0;
+  // (Update 0.2.11 — swimming, never out of the water.)
+  const ceiling = swimCeiling(p.swimTop);
+  if (p.swimTop > 0 && p.pos.y > ceiling) {
+    p.pos.y = ceiling;
+    p.vel.y = Math.min(0, p.vel.y);
+  }
 
   p.grounded = move.grounded && p.vel.y <= 0;
   if (wasGrounded && !p.grounded && p.vel.y <= 0) p.coyote = MOVE.v.coyoteTime; // walked off a ledge

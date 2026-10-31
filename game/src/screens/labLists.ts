@@ -7,7 +7,7 @@ import type { DropKind } from '../sim/items/drops';
 import type { LabCommand } from '../sim/lab/labCommands';
 import type { WeaponKind } from '../sim/weapons/catalog';
 
-export type LabBoss = 'demon' | 'dragon' | 'boneKing' | 'dino' | 'drownedKing';
+export type LabBoss = 'demon' | 'dragon' | 'boneKing' | 'dino' | 'drownedKing' | 'whale';
 
 const NAMES: Partial<Record<EnemyKind, string>> = {
   grunt: 'Grunt',
@@ -48,6 +48,14 @@ const NAMES: Partial<Record<EnemyKind, string>> = {
   deepOne: 'Deep One',
   bogBrute: 'Bog Brute',
   drownedKing: 'Drowned King',
+  clownfish: 'Clownfish',
+  tuna: 'Tuna',
+  angelfish: 'Angelfish',
+  dolphin: 'Dolphin',
+  drownedPrince: 'Drowned Prince',
+  mantaRay: 'Manta Ray',
+  shark: 'Shark',
+  whale: 'Old Whale',
   demon: 'Demon',
   dragon: 'Dragon',
   boneKing: 'Bone King',
@@ -60,15 +68,17 @@ export interface LabFloor {
   floor: number;
   /** The enemies it brings in, the mini bosses last. */
   enemies: EnemyKind[];
-  boss: LabBoss;
+  /** Update 0.2.11 — null while the floor's boss is the floor before's (floor 6's isn't made yet). */
+  boss: LabBoss | null;
 }
 
 export const LAB_FLOORS: readonly LabFloor[] = (() => {
   const seen = new Set<EnemyKind>();
-  return [1, 2, 3, 4, 5].map((floor) => {
+  return [1, 2, 3, 4, 5, 6].map((floor) => {
     const fresh = rosterOf(floor).filter((k) => !seen.has(k));
     for (const k of fresh) seen.add(k);
-    return { floor, enemies: [...fresh.filter((k) => !isMini(k)), ...fresh.filter(isMini)], boss: bossOf(floor) as LabBoss };
+    const boss = floor > 1 && bossOf(floor) === bossOf(floor - 1) ? null : (bossOf(floor) as LabBoss);
+    return { floor, enemies: [...fresh.filter((k) => !isMini(k)), ...fresh.filter(isMini)], boss };
   });
 })();
 

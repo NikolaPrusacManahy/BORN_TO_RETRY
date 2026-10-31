@@ -77,6 +77,14 @@ export class MoveSounds {
       case 'dash':
         noise(a, { dur: 0.2, gain: 0.35, filter: 'bandpass', from: 600, to: 2600, q: 1.2 });
         break;
+      // Update 0.2.11 — under water: a kick's push of water and its bubbles; pushing off the floor.
+      case 'swimKick':
+        noise(a, { dur: 0.32, gain: 0.4, filter: 'lowpass', from: 900, to: 180 });
+        for (let i = 0; i < 4; i++) tone(a, { from: 260 + i * 70, to: 520 + i * 90, dur: 0.06, gain: 0.08, delay: 0.05 + i * 0.05 });
+        break;
+      case 'swimPush':
+        noise(a, { dur: 0.22, gain: 0.25, filter: 'lowpass', from: 600, to: 150 });
+        break;
       case 'slam':
         noise(a, { dur: 0.25, gain: 0.25, filter: 'bandpass', from: 2400, to: 300, q: 1.5 });
         break;

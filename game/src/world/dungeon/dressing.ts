@@ -155,7 +155,8 @@ export function dress(plan: FloorPlan): Dressing {
             const room = inRoom[(row + dr) * GRID + col + dc];
             // (Not beside the wooden gate: it has its own pair.)
             const byGate = Math.hypot(x - plan.wayOut.doorX, z - plan.wayOut.doorZ) < GATE_TORCHES;
-            if (room >= 0 && (col * 3 + row * 5) % 7 === 0 && !nearDoor(col + dc, row + dr) && !byGate) {
+            // (Update 0.2.11 — none under water.)
+            if (room >= 0 && K.under === undefined && (col * 3 + row * 5) % 7 === 0 && !nearDoor(col + dc, row + dr) && !byGate) {
               const tx = x + dc * (CELL / 2 + TORCH_REACH);
               const tz = z + dr * (CELL / 2 + TORCH_REACH);
               put(KIT.torch, tx, TORCH_Y, tz, FACING[side] - Math.PI / 2);
@@ -172,10 +173,14 @@ export function dress(plan: FloorPlan): Dressing {
         case 'palm':
         case 'cactus':
         case 'willow':
+        case 'snag':
+        case 'weed':
           dressSand(c, x, z, rng, put, sand);
           break;
         case 'low':
-          put(KIT.crate, x, 0, z, Math.floor(rng() * 4) * (Math.PI / 2), 1.38, 1, 1.38);
+          // (Update 0.2.11 — or the look's own: floor 6's mossy boulders.)
+          if (K.low) put(K.low, x, 0, z, rng() * Math.PI * 2, ...(K.lowScale ?? [1, 1, 1]));
+          else put(KIT.crate, x, 0, z, Math.floor(rng() * 4) * (Math.PI / 2), 1.38, 1, 1.38);
           break;
         case 'high':
           put(KIT.broken, x, 0, z, Math.floor(rng() * 4) * (Math.PI / 2));
@@ -255,6 +260,8 @@ export function dress(plan: FloorPlan): Dressing {
     const az = ns ? fz : fz + (k * CELL) / 2;
     put(K.wall, ax, 2 * WALL_PIECE, az, FACING[inward]);
     put(K.cap, ax, 3 * WALL_PIECE, az, FACING[inward]);
+    // (Update 0.2.11 — none under water.)
+    if (K.under !== undefined) continue;
     const tx = ns ? gx + k * 1.6 * CELL : gx - ox * (CELL / 2 + TORCH_REACH);
     const tz = ns ? gz - oz * (CELL / 2 + TORCH_REACH) : gz + k * 1.6 * CELL;
     put(KIT.torch, tx, TORCH_Y, tz, FACING[inward] - Math.PI / 2);

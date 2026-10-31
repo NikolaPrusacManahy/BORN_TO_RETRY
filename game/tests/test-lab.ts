@@ -172,11 +172,12 @@ section('Lab — a boss room on demand');
 section('Lab panel — a column a floor, the items by kind');
 {
   const listed = LAB_FLOORS.flatMap((f) => f.enemies);
-  const fielded = [...new Set([1, 2, 3, 4, 5].flatMap((f) => rosterOf(f)))];
-  check('every enemy of floors 1–5 is in the panel once', fielded.every((k) => listed.filter((l) => l === k).length === 1) && listed.length === fielded.length);
+  const fielded = [...new Set([1, 2, 3, 4, 5, 6].flatMap((f) => rosterOf(f)))];
+  check('every enemy of floors 1–6 is in the panel once', fielded.every((k) => listed.filter((l) => l === k).length === 1) && listed.length === fielded.length);
   check('each under the first floor it comes on', LAB_FLOORS.every((f) => f.enemies.every((k) => rosterOf(f.floor).includes(k) && LAB_FLOORS.every((g) => g.floor >= f.floor || !rosterOf(g.floor).includes(k)))));
   check('mini bosses last in their column', LAB_FLOORS.every((f) => f.enemies.findIndex(isMini) < 0 || f.enemies.slice(f.enemies.findIndex(isMini)).every(isMini)));
-  check('each floor with its boss', LAB_FLOORS.every((f) => f.boss === bossOf(f.floor)));
+  // (Update 0.2.11 — floor 6's boss isn't made yet: the Drowned King stands in, listed under floor 5.)
+  check('each floor with its boss (none while it’s the floor before’s)', LAB_FLOORS.every((f) => f.boss === bossOf(f.floor) || (f.boss === null && bossOf(f.floor) === bossOf(f.floor - 1))));
   check('a floor’s column fits (9 enemies at most)', LAB_FLOORS.every((f) => f.enemies.length <= 9), LAB_FLOORS.map((f) => f.enemies.length).join(' '));
   const items = LAB_ITEMS.flatMap(([, picks]) => picks.map(([, cmd]) => cmd));
   const drops = items.flatMap((c) => (c.kind === 'item' ? [c.item] : []));
@@ -189,6 +190,6 @@ section('Lab panel — a column a floor, the items by kind');
     createElement(LabPanel, { away: true, waves: false, meter: true, god: false, onCommand() {}, onBossRoom() {}, onFloor() {}, onBack() {}, onWaves() {}, onMeter() {}, onGod() {} }),
   );
   const count = (text: string) => html.split(text).length - 1;
-  check('it opens on Enemies: three tabs, five floors to play, five bosses with their rooms', (html.match(/rb-lab-tab[ "]/g) ?? []).length === 3 && count('>Play<') === 5 && count('>Room<') === 5 && html.includes('>Velociraptor<') && html.includes('>Drowned King<'));
+  check('it opens on Enemies: three tabs, six floors to play, six bosses with their rooms', (html.match(/rb-lab-tab[ "]/g) ?? []).length === 3 && count('>Play<') === 6 && count('>Room<') === 6 && html.includes('>Velociraptor<') && html.includes('>Drowned King<') && html.includes('>Old Whale<'));
   check('below: Clear, Heal, Back; Waves, God, Meter, Stay', ['Clear', 'Heal', 'Back', 'Waves', 'God', 'Meter', 'Stay'].every((t) => html.includes(`>${t}<`)));
 }

@@ -28,6 +28,8 @@ import type { CombatState } from '../sim/combat/state';
 import { ENEMY_POOL, EnemyPhase } from '../sim/enemies/enemy';
 import { ENEMY_KINDS, ENEMY_STATS, EnemyKind, flies } from '../sim/enemies/kinds';
 import { ENEMIES } from '../tuning/enemies';
+import { SWIMS } from '../sim/enemies/kinds6';
+import { fishPose } from './fishPose';
 import { FOES3 } from '../tuning/foes3';
 import { BONE_KING } from '../tuning/boneKing';
 import { SMASH } from '../sim/enemies/boneKingMoves';
@@ -158,7 +160,7 @@ export class EnemiesView {
       // A slime that burst is gone (one killed dies as the others do); so is the Bone King once its bones burst.
       // (Update 0.2.10 — and floor 5's under the water: drownedFx.ts shows their fins.)
       const buried = ((e.kind === 'cactoro' || e.kind === 'cactoroBig') && e.pos.y < -1) || submerged(e);
-      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing') && e.phase === 'dead' && e.struck) && !buried;
+      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing' || e.kind === 'whale') && e.phase === 'dead' && e.struck) && !buried;
       if (!b.root.visible) continue;
       const windup = look.windup(e.move);
       const king = e.kind === 'boneKing';
@@ -171,6 +173,8 @@ export class EnemiesView {
       b.root.position.copy(this.at.copy(e.prev).lerp(e.pos, alpha));
       b.root.position.y -= b.root.userData.lowest * scale;
       b.root.rotation.set(0, turn, 0);
+      // (Update 0.2.11 — a fish tips, wriggles and dies belly up.)
+      fishPose(b.root, e, dt);
       const attack = b.actions.attack;
       // A clip restarts when it changes, or when the same phase starts over (hit again mid-flinch); a wind-up's
       // attack carries on through the recovery.
@@ -187,7 +191,7 @@ export class EnemiesView {
       if (want === 'move' && slot.still > STILL && !flies(e.kind)) want = 'idle';
       // Update 0.2.8 — the Velociraptor runs its charges, its sprint to a wall and its blitz (quicker).
       // (Update 0.2.10 — and the Drowned King its surf.)
-      const dash = (e.kind === 'dino' || e.kind === 'drownedKing') && e.phase === 'charge';
+      const dash = ((e.kind === 'dino' || e.kind === 'drownedKing') && e.phase === 'charge') || (SWIMS.has(e.kind) && (e.phase === 'charge' || e.phase === 'dive' || e.phase === 'leap'));
       if (dash) want = 'move';
       if (want !== b.role || (again && ONCE.includes(want))) this.play(b, want);
       attack.timeScale = look.lands / windup;

@@ -21,8 +21,9 @@ import { LobbyView } from './lobby/lobbyView';
 
 export interface LevelView extends ArenaView {
   /** The dungeon's gates (shut or open), the boss room's show (Update 0.0.15) and its torch lights near `at`.
-   *  Update 0.2.10 — `flood`: the Drowned King's water in its room (m). */
-  update?(dt: number, run: DungeonRun, at: THREE.Vector3, flood?: number): void;
+   *  Update 0.2.10 — `flood`: the Drowned King's water in its room (m). Update 0.2.11 — `kicks`: your kicks under
+   *  water so far (each lets out bubbles). */
+  update?(dt: number, run: DungeonRun, at: THREE.Vector3, flood?: number, kicks?: number): void;
   /** Update 0.2.9 — anywhere else (the lobby): its own life each frame; `at`: the camera. */
   frame?(dt: number, at: THREE.Vector3): void;
 }

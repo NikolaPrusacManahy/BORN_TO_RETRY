@@ -18,9 +18,10 @@ import { styleOf } from '../src/world/dungeon/styles';
 section('Floor 5 — the Drowned Temple: its look and its rooms');
 {
   const s = styleOf(5);
-  check('floor 5 (and on) is the Drowned Temple: floor 3’s stone recoloured, a grey-green sky, water', s.id === 'drowned' && !!s.tint && !!s.floorTint && s.sky !== undefined && s.water !== undefined && styleOf(7).id === 'drowned' && styleOf(4).id === 'sand');
+  // (Update 0.2.11 — floor 6 has its own: test-floor6.ts.)
+  check('floor 5 is the Drowned Temple: floor 3’s stone recoloured, a grey-green sky, water', s.id === 'drowned' && !!s.tint && !!s.floorTint && s.sky !== undefined && s.water !== undefined && styleOf(6).id !== 'drowned' && styleOf(4).id === 'sand');
   const ids = DROWNED_ROOMS.map((r) => r.id);
-  check(`${ids.length} rooms of its own, each different: ${ids.join(', ')}`, ids.length >= 10 && new Set(ids).size === ids.length && DROWNED_ROOMS.every((r) => r.from === 5));
+  check(`${ids.length} rooms of its own, each different: ${ids.join(', ')}`, ids.length >= 10 && new Set(ids).size === ids.length && DROWNED_ROOMS.every((r) => r.from === 5 && r.until === 5));
   let bad = '';
   for (let seed = 1; seed <= 40; seed++) {
     const fights = planFloor(seed * 17, 5).rooms.filter((r) => r.kind === 'fight').map((r) => r.layout.template.id);

@@ -19,6 +19,7 @@ import { DRAGON } from '../../tuning/dragon';
 import { BONE_KING } from '../../tuning/boneKing';
 import { DINO } from '../../tuning/dino';
 import { DROWNED } from '../../tuning/drowned';
+import { WHALE } from '../../tuning/whale';
 import { CINEMA } from '../../tuning/cinema';
 import { clearQuakes } from '../combat/quakes';
 import { clearBombs } from '../combat/bombs';
@@ -75,6 +76,13 @@ function callsOf(kind: EnemyKind): Calls | null {
     CALLS.every = Infinity;
     return CALLS;
   }
+  // (Update 0.2.11 — the Old Whale's brood of Clownfish, once.)
+  if (kind === 'whale') {
+    CALLS.kind = 'clownfish';
+    CALLS.count = WHALE.v.brood;
+    CALLS.every = Infinity;
+    return CALLS;
+  }
   if (kind !== 'demon') return null;
   CALLS.kind = 'grunt';
   CALLS.count = BOSS.v.summonGrunts;
@@ -83,7 +91,7 @@ function callsOf(kind: EnemyKind): Calls | null {
 }
 
 /** The coins a boss leaves (Update 0.2.0: in its chest). */
-export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : BOSS.v.demonCoins);
+export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : kind === 'whale' ? WHALE.v.whaleCoins : BOSS.v.demonCoins);
 
 /** The show's beats, in seconds from stepping in. */
 export interface IntroBeats {

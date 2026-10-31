@@ -1,0 +1,35 @@
+// Update 0.2.11 — floor 6's boss, the Old Whale (the designer's Whale; its moves are Claude's proposal as accepted):
+// huge, swimming laps round its room. **(placeholders)**
+import { group, knob } from './schema';
+
+export const WHALE = group('whale', 'Old Whale', {
+  whaleHp: knob(2600, 200, 10000, 50, 'Whale health', 'Damage to kill it.'),
+  whaleHeight: knob(4.5, 2, 8, 0.1, 'Whale size', 'Its body is this tall (m; about three times as long).'),
+  whaleSpeed: knob(9, 2, 25, 0.5, 'Whale speed', 'How fast it swims its laps (m/s).'),
+  lapRing: knob(17, 6, 26, 0.5, 'Lap', 'It swims round its room this far from the middle (m).'),
+  wakeWidth: knob(7, 0, 15, 0.5, 'Wake width', 'Its wake drags you this close to it (m).'),
+  wakePull: knob(3.5, 0, 10, 0.25, 'Wake pull', 'How hard its wake drags you along (m/s).'),
+  phase2At: knob(0.5, 0, 1, 0.05, 'Phase 2 at', 'Below this share of its health (and next on its laps) it turns on you.'),
+  gap: knob(1.8, 0.3, 6, 0.1, 'Whale rest', 'Seconds between its moves.'),
+  ramWarn: knob(1, 0.3, 3, 0.05, 'Ram warning', 'Its lane marks where it’ll ram this long first (s).'),
+  ramSpeed: knob(24, 6, 50, 0.5, 'Ram speed', 'How fast it rams (m/s).'),
+  ramDamage: knob(30, 1, 100, 1, 'Ram damage', 'To you, rammed.'),
+  ramStun: knob(2.2, 0, 6, 0.1, 'Ram stunned', 'Into a wall it’s stunned this long (s): hits do more.'),
+  songWindup: knob(1.2, 0.3, 3, 0.05, 'Song wind-up', 'It draws breath this long before it sings (s).'),
+  songSpeed: knob(14, 4, 40, 0.5, 'Song speed', 'How fast its song rolls out (m/s): get behind something.'),
+  songReach: knob(40, 10, 80, 1, 'Song reach', 'How far its song carries (m).'),
+  songDamage: knob(18, 1, 100, 1, 'Song damage', 'To you, in the open when it passes.'),
+  inhaleWindup: knob(0.7, 0.2, 2, 0.05, 'Inhale wind-up', 'Its mouth opens this long before it draws the water in (s).'),
+  inhaleTime: knob(3, 0.5, 8, 0.1, 'Inhale length', 'Seconds it draws the water in.'),
+  inhaleReach: knob(24, 5, 50, 1, 'Inhale reach', 'It pulls you from this far in front of it (m).'),
+  inhalePull: knob(5.5, 0, 15, 0.25, 'Inhale pull', 'How hard it pulls you to its mouth (m/s; you swim at 6.5).'),
+  swallowDamage: knob(40, 1, 150, 1, 'Swallowed', 'To you, swallowed (then spat out).'),
+  breachRise: knob(1.4, 0.3, 4, 0.1, 'Breach rise', 'Seconds it takes to rise to the top before it crashes down.'),
+  breachWarn: knob(0.9, 0.2, 3, 0.05, 'Breach warning', 'Where it’ll crash shows this long before (s).'),
+  breachDrop: knob(20, 5, 50, 0.5, 'Breach drop speed', 'How fast it crashes down (m/s).'),
+  breachReach: knob(14, 3, 30, 0.5, 'Breach shock reach', 'Its crash shakes the floor this far round (m).'),
+  breachFloor: knob(1.6, 0.3, 4, 0.1, 'Breach shock height', 'The shock hits you this close to the floor (m): be off it.'),
+  breachDamage: knob(28, 1, 100, 1, 'Breach damage', 'To you, shaken off the floor or under it.'),
+  brood: knob(5, 0, 12, 1, 'Brood', 'Clownfish it calls, once, as it turns on you.'),
+  whaleCoins: knob(18, 0, 100, 1, 'Whale coins', 'Coins in its chest.'),
+});

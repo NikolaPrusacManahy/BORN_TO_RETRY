@@ -9,8 +9,12 @@
 // Update 0.2.10 — floor 5 is the Drowned Temple (the designer chose it): floor 3's stone pieces wet and mossy (recoloured
 // as the desert's were), under a pale grey-green haze; willows in beds of mud (`sand`: the beds' colour), mossy rocks,
 // stumps and logs along the walls; its pits and its tide are water (`water`).
+// Update 0.2.11 — floor 6 is the Sunken Grove, fully under water (the designer: "a floor that has been fully flooded …
+// moss, rotten surface, trees"): floor 3's stone rotted and furred with algae, the water's top just over the walls
+// (`under`: you swim), drowned trees in beds of silt (`sand`: the silt's colour), seaweed, mossy boulders for low cover
+// (`low`), no torches; the haze a bright blue-green.
 
-export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned';
+export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned' | 'sunken';
 type Scale = [number, number, number];
 
 export interface DungeonStyle {
@@ -59,6 +63,12 @@ export interface DungeonStyle {
   quicksand?: number;
   /** Update 0.2.10 — water (its colour): the fight rooms flood (tide.ts). */
   water?: number;
+  /** Update 0.2.11 — fully under water: the water's top over the floor (m; you swim, sim/player/swim.ts), and no
+   *  torches. */
+  under?: number;
+  /** Update 0.2.11 — low cover's piece and its size (crates when not given). */
+  low?: string;
+  lowScale?: Scale;
 }
 
 export const BRICK: DungeonStyle = {
@@ -148,5 +158,25 @@ export const DROWNED: DungeonStyle = {
   water: 0x2b7880,
 };
 
-/** Floor `floor`'s look: floors 1 and 2 brick, floor 3 stone, floor 4 the desert, floor 5 (and on) the Drowned Temple. */
-export const styleOf = (floor: number): DungeonStyle => (floor >= 5 ? DROWNED : floor === 4 ? SAND : floor === 3 ? STONE : BRICK);
+/** Update 0.2.11 — the Sunken Grove: floor 3's stone rotted under the water, algae on it, silt where the trees stand. */
+export const SUNKEN: DungeonStyle = {
+  ...STONE,
+  id: 'sunken',
+  litter: ['kit_n_Rock_Moss_1', 'kit_n_Rock_Moss_6', 'kit_n_TreeStump_Moss', 'kit_n_WoodLog_Moss', 'kit_n_WoodLog_Moss', 'kit_p1_Skull', 'kit_p2_Bones'],
+  core: [0.02, 0.035, 0.03],
+  tint: { RockLight: 0x62785c, Rock: 0x46584a, Steel: 0x3f5552, Bones: 0xc7ccb4, Wood: 0x43392a, DarkWood: 0x30291e, Grey_Floor: 0x5a654f, Fire: 0x6fd6c0, White: 0xb4bba6, Black: 0x2b2f27, Green: 0x5b7f3c, DarkGreen: 0x33502c },
+  floorTint: { RockLight: 0x59614a, Rock: 0x3f4737 },
+  sky: 0x86c3c6,
+  skyLight: 0xdaf6f1,
+  ground: 0x3d6b5f,
+  sun: 0xe8fbff,
+  sand: 0x5b5139,
+  quicksand: 0x4a412c,
+  under: 6.5,
+  low: 'kit_n_Rock_Moss_6',
+  lowScale: [2.1, 1.8, 1.75],
+};
+
+/** Floor `floor`'s look: floors 1 and 2 brick, floor 3 stone, floor 4 the desert, floor 5 the Drowned Temple, floor 6
+ *  (and on) the Sunken Grove. */
+export const styleOf = (floor: number): DungeonStyle => (floor >= 6 ? SUNKEN : floor === 5 ? DROWNED : floor === 4 ? SAND : floor === 3 ? STONE : BRICK);

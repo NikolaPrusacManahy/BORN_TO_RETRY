@@ -16,6 +16,7 @@
 // Each floor's look (world/dungeon/styles.ts): its gates' bars (floor 3: a portcullis dropping from above), its cores'
 // colour, its walls in the boss room's sliding blocks. Update 0.1.20 — the words over the doorways (roomSignsView.ts).
 // Update 0.2.10 — floor 5's water: the tide over its rooms and the lily pads on it (waterView.ts), its pools.
+// Update 0.2.11 — floor 6 under water (underwater.ts): the surface overhead, its haze, caustics on everything.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { portalOpen, wallsOpen } from '../sim/dungeon/bossRoom';
@@ -33,6 +34,9 @@ import { padsOf, SandView } from './sandView';
 import { roomSigns } from './roomSignsView';
 import { WaterView } from './waterView';
 import { lightNearest } from './torchLights';
+import { Underwater, underwaterOf } from './underwater';
+import { UNDERWATER } from '../tuning/underwater';
+import { SEAWEED } from '../world/dungeon/dressExtras';
 
 export const KIT_URL = '/models/dungeon/kit.glb';
 /** The sky (the background and the haze), and the sky light's colours above and from the ground. */
@@ -78,6 +82,7 @@ export class DungeonView implements ArenaView {
   private readonly lava: LavaView;
   private readonly sand: SandView;
   private readonly water: WaterView;
+  private readonly under: Underwater | null;
   private relight = 0;
 
   constructor(
@@ -120,6 +125,8 @@ export class DungeonView implements ArenaView {
     this.sand = new SandView(this.dressing.sand, look.sand, look.quicksand);
     this.water = new WaterView(level.tide, look.water ?? 0, level.boss.end);
     this.group.add(this.sand.group, this.water.group);
+    this.under = underwaterOf(level, this.dressing.sand);
+    if (this.under) this.group.add(this.under.group);
     this.group.add(this.shell.group, this.portal.group, this.lava.group, roomSigns(level.plan, this.mats, this.geos));
     this.loaded = loadKit
       ? new GLTFLoader()
@@ -184,6 +191,7 @@ export class DungeonView implements ArenaView {
     }
     this.shell.build(kit, (src) => this.material(src), style);
     this.water.build(kit, this.dressing.floats);
+    this.under?.patchAll(this.group);
   }
 
   /** The kit's flat colours, a little rough; fire glows. Update 0.2.4 — recoloured as the look says (`piece`: the floor
@@ -196,6 +204,7 @@ export class DungeonView implements ArenaView {
     if (tint !== undefined) mat.color.setHex(tint);
     mat.roughness = 0.9;
     mat.metalness = 0;
+    this.under?.patch(mat, SEAWEED.has(piece));
     if (/fire|candle/i.test(src.name)) {
       mat.emissive.copy(src.color);
       mat.emissiveIntensity = 2.2;
@@ -234,15 +243,16 @@ export class DungeonView implements ArenaView {
 
   /** `run`: its gates (shut or open) and the boss room's show; `at`: the camera, for the sun's shadows and the torch
    *  lights. */
-  update(dt: number, run: DungeonRun, at: THREE.Vector3, flood = 0) {
+  update(dt: number, run: DungeonRun, at: THREE.Vector3, flood = 0, kicks = 0) {
     const shut = run.shut;
     this.daylight(at);
+    this.under?.update(dt, at, kicks);
     const b = run.boss;
     this.shell.set(wallsOpen(b));
     this.portal.update(dt, portalOpen(b));
     this.lava.update(dt);
     this.sand.update(dt);
-    this.water.update(run.tide.level, flood, dt);
+    this.water.update(run.tide.level, this.under ? 0 : flood, dt);
     this.woodGate.update(b.beat === 'open' ? Math.min(1, b.t / CINEMA.v.gateSwing) : 0);
     // Shut: the bars slam into the doorway (from under the floor, or down from over it); won: they draw back.
     const style = this.dressing.style;
@@ -266,8 +276,8 @@ export class DungeonView implements ArenaView {
     this.sky.intensity = v.sky;
     this.sun.intensity = v.sun;
     this.sun.castShadow = v.shadows >= 1;
-    this.haze.near = v.hazeNear;
-    this.haze.far = v.hazeFar;
+    this.haze.near = this.under ? UNDERWATER.v.hazeNear : v.hazeNear;
+    this.haze.far = this.under ? UNDERWATER.v.hazeFar : v.hazeFar;
     for (const l of this.lights) l.intensity = v.torches;
     this.sun.target.position.set(at.x, 0, at.z);
     this.sun.position.set(at.x + SUN_DIR.x * 100, SUN_DIR.y * 100, at.z + SUN_DIR.z * 100);
@@ -280,6 +290,7 @@ export class DungeonView implements ArenaView {
     this.lava.dispose();
     this.sand.dispose();
     this.water.dispose();
+    this.under?.dispose();
     for (const mat of this.mats) mat.dispose();
     for (const g of this.geos) g.dispose();
     this.scene.fog = null;

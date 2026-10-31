@@ -65,8 +65,9 @@ export abstract class RunBase {
   protected hazards: ArenaBox[] = [];
   /** Update 0.0.20 — lava: falling in sends you back to the level's start. */
   protected lava: ArenaBox[] = [];
-  /** Counts hits on you (and, Update 0.0.13, on your shield), for the HUD's flashes. */
-  protected readonly hits = { hurts: 0, shields: 0 };
+  /** Counts hits on you (and, Update 0.0.13, on your shield), for the HUD's flashes. Update 0.2.11 — and your kicks
+   *  under water (bubbles). */
+  protected readonly hits = { hurts: 0, shields: 0, kicks: 0 };
   /** Update 0.0.13 — the shop and the chests. Update 0.0.19 — every level's (the Lab's: chests from its panel). */
   protected treasure: Treasure = emptyTreasure();
   protected treasureView!: TreasureView;
@@ -204,6 +205,7 @@ export abstract class RunBase {
   silence() {
     this.sounds.setSliding(false);
     this.sounds.setWallRunning(false);
+    this.audio.muffle(false);
   }
 
   dispose() {

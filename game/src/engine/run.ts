@@ -57,6 +57,7 @@ import { jawsOf } from '../sim/combat/pin';
 import { sandSlow } from '../sim/dungeon/quicksand';
 import { floodSlow, stepTide, tideSlow } from '../sim/dungeon/tide';
 import { Lobby, lobbyFocus, stepLobby } from '../sim/lobby/lobby';
+import { styleOf } from '../world/dungeon/styles';
 import { playLobby } from '../audio/lobbySounds';
 
 /** Update 0.2.3 — held in the Bone King's hand, the view turns to its skull this fast (1/s) (Update 0.2.8: pinned, to
@@ -90,8 +91,9 @@ export class Run extends RunBase {
       const bossOn = !!d && d.boss.beat !== 'waiting';
       // (Update 0.1.9 — and the weapon in your hand: the Dual Daggers' +15%.)
       // (Update 0.2.4 — and quicksand.)
-      // (Update 0.2.10 — and wading at high water, or in the Drowned King's.)
-      const wade = d ? (bossOn ? floodSlow(p, this.combat.flood) : tideSlow(p, d.tide, d.level.tide)) : 1;
+      // (Update 0.2.10 — and wading at high water, or in the Drowned King's. Update 0.2.11 — under water you swim.)
+      p.swimTop = d ? (styleOf(this.level.floor).under ?? 0) : 0;
+      const wade = d && p.swimTop === 0 ? (bossOn ? floodSlow(p, this.combat.flood) : tideSlow(p, d.tide, d.level.tide)) : 1;
       p.speedMul = moveFactor(this.combat) * (d ? sandSlow(p, d.level.sand) * wade : 1);
       p.hpBonus = hpBonusOf(this.combat.items);
       const ci = this.combatIntent;
@@ -101,8 +103,9 @@ export class Run extends RunBase {
       stepPlayer(p, this.intent, this.level.physics, this.level.arena.pads, stepDt);
       checkHazards(p, this.hazards);
       lavaStep(p, this.lava, this.level.arena.playerStart, d, this.combat);
-      // (Update 0.2.10 — the water's level where the fight is: floor 5's enemies use it.)
-      this.combat.tide = bossOn ? this.combat.flood : d && d.level.tide.length > 0 ? d.tide.level : 0;
+      // (Update 0.2.10 — the water's level where the fight is: floor 5's enemies use it. Update 0.2.11 — under water,
+      // its top: floor 6's fish swim under it.)
+      this.combat.tide = p.swimTop > 0 ? p.swimTop : bossOn ? this.combat.flood : d && d.level.tide.length > 0 ? d.tide.level : 0;
       stepCombat(this.combat, p, this.combatIntent, this.level.physics, stepDt, d || !this.waves ? [] : this.level.arena.spawns);
       if (d) {
         if (d.level.tide.length > 0 && !bossOn) stepTide(d.tide, this.combat.events, stepDt);
@@ -158,6 +161,8 @@ export class Run extends RunBase {
 
     applyMoveEvents(p.events, this.rig, this.sounds, this.arms, this.hits);
     p.events.clear();
+    // (Update 0.2.11 — under water, muffled.)
+    this.audio.muffle(p.swimTop > 0);
     if (p.dead && !this.death.active) {
       this.death.start();
       this.cb.onDeath();
@@ -181,7 +186,7 @@ export class Run extends RunBase {
     const focus = lobby ? lobbyFocus(lobby, this.focus) : focusOf(this.treasure, this.combat, p, this.fighting, this.focus);
     this.prompts.update(focus, this.camera, renderer, keyLabel(input.bindings.interact), free, this.combatScene.markAt());
     const d = this.level.dungeon;
-    if (d) this.view.update?.(gameDt, d, this.camera.position, this.combat.flood);
+    if (d) this.view.update?.(gameDt, d, this.camera.position, this.combat.flood, this.hits.kicks);
     else this.view.frame?.(real, this.camera.position);
     if (lobby) this.lobbyNews(lobby);
     // (The Velociraptor's sandstorm over the dungeon's haze.)

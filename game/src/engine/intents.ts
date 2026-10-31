@@ -16,6 +16,9 @@ export function readPlayerIntent(input: Input, look: Look, i: PlayerIntent, aliv
   i.slidePressed = live && input.actionPressed('slide');
   i.slideHeld = live && input.action('slide');
   i.slamPressed = live && input.actionPressed('slam');
+  // (Update 0.2.11 — swimming.)
+  i.pitch = look.pitch;
+  i.jumpHeld = live && input.action('jump');
 }
 
 /** M1 step 6. */

@@ -14,7 +14,7 @@
 // Mushnub's the slime's; the Skeleton's telekinesis: your right hand out, open, its palm to it, trembling as you hold
 // it, then closing into a fist.
 import type { EnemyKind } from '../../sim/enemies/kinds';
-import { BARRAGE, BARRAGE_GAP, FLOOR5_LIKE } from '../../sim/combat/execMoves';
+import { BARRAGE, BARRAGE_GAP, ALIKE } from '../../sim/combat/execMoves';
 import { ARMS } from '../../tuning/arms';
 
 type V3 = readonly [number, number, number];
@@ -275,4 +275,4 @@ HAND_MOVES.greenBlob = HAND_MOVES.slime;
 HAND_MOVES.blobling = HAND_MOVES.slime;
 HAND_MOVES.maskTribal = HAND_MOVES.wraith;
 // Update 0.2.10 — floor 5's hands, as their moves (execMoves.ts).
-for (const [kind, like] of FLOOR5_LIKE) HAND_MOVES[kind] = HAND_MOVES[like];
+for (const [kind, like] of ALIKE) HAND_MOVES[kind] = HAND_MOVES[like];

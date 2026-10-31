@@ -58,7 +58,7 @@
 }
 
 .rb-lab-cols.is-floors {
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
 }
 
 .rb-lab-cols.is-items {

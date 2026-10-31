@@ -30,7 +30,10 @@ export type MoveEvent =
   | 'death'
   // Update 0.0.13 — the shield took a hit (value = how much), and it's gone.
   | 'shieldHit'
-  | 'shieldBreak';
+  | 'shieldBreak'
+  // Update 0.2.11 — swimming: a kick, pushing off the floor.
+  | 'swimKick'
+  | 'swimPush';
 
 /** Update 0.1.14 — what hurt you (the death screen names what killed you): an enemy's kind, or the world. */
 export type Cause = EnemyKind | 'turret' | 'spikes' | 'lava' | 'fall';
@@ -105,6 +108,9 @@ export interface PlayerState {
    *  Drowned King's whirlpool), set each tick by what drags you. */
   ink: number;
   current: Vector3;
+  /** Update 0.2.11 — under water (floor 6): you swim (swim.ts) and this is the water's top over the floor (m); 0: on
+   *  foot. Set by the run each tick. */
+  swimTop: number;
   /** Update 0.1.14 — what last took your health (null: nothing yet), and who poisoned you. */
   hurtBy: Cause | null;
   poisonBy: Cause | null;
@@ -158,6 +164,7 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     blind: 0,
     ink: 0,
     current: new Vector3(),
+    swimTop: 0,
     dashLock: 0,
     hurtBy: null,
     poisonBy: null,

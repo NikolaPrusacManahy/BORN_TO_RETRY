@@ -102,14 +102,16 @@ export function LabPanel({ away, waves, meter, god, onCommand, onBossRoom, onFlo
                       </button>
                     ))}
                   </div>
-                  <div className="rb-lab-boss">
-                    <button className="rb-lab-btn is-boss" onClick={run({ kind: 'enemy', enemy: f.boss, count: 1 })}>
-                      {labName(f.boss)}
-                    </button>
-                    <button className="rb-lab-btn is-boss" onClick={() => onBossRoom(f.boss)}>
-                      Room
-                    </button>
-                  </div>
+                  {f.boss && (
+                    <div className="rb-lab-boss">
+                      <button className="rb-lab-btn is-boss" onClick={run({ kind: 'enemy', enemy: f.boss, count: 1 })}>
+                        {labName(f.boss)}
+                      </button>
+                      <button className="rb-lab-btn is-boss" onClick={() => onBossRoom(f.boss!)}>
+                        Room
+                      </button>
+                    </div>
+                  )}
                 </section>
               ))}
             </div>

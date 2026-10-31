@@ -16,6 +16,7 @@ import { BOSS } from '../../tuning/boss';
 import { BONE_KING } from '../../tuning/boneKing';
 import { DINO } from '../../tuning/dino';
 import { DROWNED } from '../../tuning/drowned';
+import { WHALE } from '../../tuning/whale';
 import type { Enemy } from '../../sim/enemies/enemy';
 import type { Look } from '../look';
 import { Cinema, Shot } from './cinema';
@@ -24,7 +25,7 @@ import { bossIn } from './demonView';
 /** The boss's name card. **(placeholder names)** */
 export const BOSS_NAME = 'THE DEMON';
 /** Update 0.0.18 — each boss's name. */
-export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { demon: BOSS_NAME, dragon: 'THE DRAGON', boneKing: 'THE BONE KING', dino: 'THE VELOCIRAPTOR', drownedKing: 'THE DROWNED KING' };
+export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { demon: BOSS_NAME, dragon: 'THE DRAGON', boneKing: 'THE BONE KING', dino: 'THE VELOCIRAPTOR', drownedKing: 'THE DROWNED KING', whale: 'THE OLD WHALE' };
 
 /** Update 0.2.3 — a boss bar's mark: where it rages (the Demon, the Dragon), or the Bone King's final blast (its second
  *  life only). */
@@ -34,6 +35,8 @@ function markOf(boss: Enemy): number {
   if (boss.kind === 'dino') return boss.stage >= 2 ? -1 : boss.stage > 0 ? DINO.v.blitzAt : DINO.v.frenzyAt;
   // (Update 0.2.10 — the Drowned King: where it rises for good.)
   if (boss.kind === 'drownedKing') return boss.stage > 0 ? -1 : DROWNED.v.risenAt;
+  // (Update 0.2.11 — the Old Whale: where it turns on you.)
+  if (boss.kind === 'whale') return boss.stage > 0 ? -1 : WHALE.v.phase2At;
   return boss.kind === 'dragon' ? DRAGON.v.rageAt : BOSS.v.rageAt;
 }
 export const bossTitle = (floor: number) => `Warden of Floor ${floor}`;

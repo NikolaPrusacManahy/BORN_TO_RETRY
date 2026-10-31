@@ -26,6 +26,10 @@ import { FOES5 } from '../tuning/foes5';
 import { deepWindup } from '../sim/enemies/deepOne';
 import { bogWindup } from '../sim/enemies/bogBrute';
 import { drownedWindup } from '../sim/enemies/drownedKing';
+import { FOES6 } from '../tuning/foes6';
+import { FOES6B } from '../tuning/foes6b';
+import { mantaWindup } from '../sim/enemies/manta';
+import { whaleWindup } from '../sim/enemies/whale';
 
 export type Role = 'idle' | 'move' | 'attack' | 'hit' | 'death' | 'air' | 'rise';
 export const ROLES: Role[] = ['idle', 'move', 'attack', 'hit', 'death', 'air', 'rise'];
@@ -53,6 +57,10 @@ export interface Look {
 const BLOB = { idle: 'Idle', move: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', air: 'Jump' };
 const FLIER = { idle: 'Flying_Idle', move: 'Fast_Flying', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Fast_Flying' };
 const BIG = { idle: 'Idle', move: 'Walk', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' };
+/** Update 0.2.11 — floor 6's fish have one clip, their swim: everything is it (their wind-ups beat it faster; the rest
+ *  is turned in code: fishPose.ts). */
+const swimming = (clip: string) => ({ idle: clip, move: clip, attack: clip, hit: clip, death: clip, air: clip });
+const SWIM = swimming('Swim');
 
 const newer = (name: string, move: string, air: string): Record<Exclude<Role, 'rise'>, string> => ({
   idle: `${name}_Idle`,
@@ -119,6 +127,15 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
   bogBrute: { url: '/models/enemies/bog_brute.glb', clips: BIG, lands: 15 / 30, windup: bogWindup, glow: [0.5, 1, 0.3] },
   // (Its boss: the Fish, huge, a crown on its head: tools/blender/export_monster.py --crown.)
   drownedKing: { url: '/models/enemies/drowned_king.glb', clips: BIG, lands: 15 / 30, windup: drownedWindup, glow: [0.3, 1, 0.85] },
+  // Update 0.2.11 — floor 6's: the designer's fish (export_monster.py, their one clip), the Prince the King's model.
+  clownfish: { url: '/models/enemies/clownfish.glb', clips: SWIM, lands: 0.6, windup: () => FOES6.v.clownWindup, glow: [1, 0.55, 0.2] },
+  tuna: { url: '/models/enemies/tuna.glb', clips: SWIM, lands: 1.6, windup: () => FOES6.v.tunaWindup, glow: [0.6, 0.85, 1] },
+  angelfish: { url: '/models/enemies/angelfish.glb', clips: swimming('Swim.001'), lands: 0.8, windup: () => FOES6.v.angelWindup, glow: [1, 0.9, 0.3] },
+  dolphin: { url: '/models/enemies/dolphin.glb', clips: SWIM, lands: 1.2, windup: () => FOES6.v.dolphinWindup, glow: [0.5, 0.9, 1] },
+  drownedPrince: { url: '/models/enemies/drowned_king.glb', clips: BIG, lands: 15 / 30, windup: () => FOES6.v.princeWindup, glow: [0.3, 1, 0.85] },
+  mantaRay: { url: '/models/enemies/manta_ray.glb', clips: SWIM, lands: 1.5, windup: mantaWindup, glow: [0.6, 0.4, 1] },
+  shark: { url: '/models/enemies/shark.glb', clips: SWIM, lands: 1, windup: () => FOES6B.v.sharkWindup, glow: [1, 0.2, 0.15] },
+  whale: { url: '/models/enemies/whale.glb', clips: SWIM, lands: 2, windup: whaleWindup, glow: [0.4, 0.8, 1] },
   blueDemon: { url: '/models/enemies/bluedemon.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Run' }, lands: 17 / 30, windup: blueWindup, glow: [0.2, 0.55, 1] },
 };
 

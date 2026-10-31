@@ -32,7 +32,8 @@ section('Challenge rooms — one on every floor, off the way');
   let bad = '';
   let rooms = 0;
   for (let seed = 1; seed <= 40; seed++) {
-    for (const floor of [1, 2, 3, 4]) {
+    // (Update 0.2.11 — floors 5 and 6 too: floor 6 has a challenge room of its own.)
+    for (const floor of [1, 2, 3, 4, 5, 6]) {
       const plan = planFloor(seed * 31, floor);
       const ch = plan.rooms.filter((r) => r.challenge);
       if (ch.length !== 1) {

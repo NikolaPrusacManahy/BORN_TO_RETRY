@@ -69,10 +69,20 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   deepOne: 'heavy',
   bogBrute: 'heavy',
   drownedKing: null,
+  // Update 0.2.11 — floor 6's: the fish take turns (the Tuna's charge as a spitter's shot); the Prince on its perch and
+  // the Whale go their own ways.
+  clownfish: 'melee',
+  tuna: 'ranged',
+  angelfish: 'melee',
+  dolphin: 'melee',
+  drownedPrince: null,
+  mantaRay: 'heavy',
+  shark: 'heavy',
+  whale: null,
 };
 
 /** Kinds whose attack waits for its cooldown: they take a token only once it's ready (a token isn't held idle). */
-const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon', 'dragonling', 'skullWraith', 'glub', 'squidle']);
+const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon', 'dragonling', 'skullWraith', 'glub', 'squidle', 'clownfish', 'tuna', 'angelfish', 'dolphin', 'mantaRay', 'shark']);
 
 /** How far a close fighter's attack reaches (m): waiting, it keeps out of it. */
 const REACH: Partial<Record<EnemyKind, () => number>> = {

@@ -31,6 +31,7 @@ import type { Rng } from '../../core/rng';
 import type { PlayerState } from '../player/state';
 import type { Flow } from './chase';
 import { ENEMY_STATS, EnemyKind, flies, SizeClass } from './kinds';
+import { fishLength } from './kinds6';
 import { FOES3 } from '../../tuning/foes3';
 
 export type EnemyPhase = 'chase' | 'windup' | 'recover' | 'flinch' | 'dead' | 'leap' | 'dive' | 'charge' | 'stun' | 'roar' | 'intro' | 'breath' | 'sky' | 'held' | 'rebuild' | 'grab' | 'blast' | 'burrow';
@@ -195,11 +196,12 @@ export const radiusOf = (e: Enemy) => ENEMY_STATS[e.kind]().radius;
 /** Walls push it: always a flier (on its own grid), a walker only on the ground. */
 export const grounded = (e: Enemy) => flies(e.kind) || e.pos.y < OFF_GROUND;
 
-/** The bottom and top of its hit capsule's axis. */
+/** The bottom and top of its hit capsule's axis. Update 0.2.11 — a fish's lies along it (its tail to its nose). */
 export function enemyAxis(e: Enemy, bottom: Vector3, top: Vector3) {
   const s = ENEMY_STATS[e.kind]();
-  bottom.set(e.pos.x, e.pos.y + s.radius, e.pos.z);
-  top.set(e.pos.x, e.pos.y + Math.max(s.radius, s.height - s.radius), e.pos.z);
+  const half = Math.max(0, fishLength(e.kind, s.height) / 2 - s.radius);
+  bottom.set(e.pos.x + Math.sin(e.facing) * half, e.pos.y + s.radius, e.pos.z + Math.cos(e.facing) * half);
+  top.set(e.pos.x - Math.sin(e.facing) * half, e.pos.y + Math.max(s.radius, s.height - s.radius), e.pos.z - Math.cos(e.facing) * half);
 }
 
 /** The yaw that faces from `e` towards (x, z). */

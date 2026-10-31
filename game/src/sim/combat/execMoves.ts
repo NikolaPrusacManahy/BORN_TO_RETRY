@@ -301,9 +301,9 @@ EXEC_MOVES.greenBlob = EXEC_MOVES.slime;
 EXEC_MOVES.blobling = EXEC_MOVES.slime;
 EXEC_MOVES.maskTribal = EXEC_MOVES.wraith;
 // Update 0.2.10 — floor 5's: the blobs the slime's, the fliers the Wraith's, the mini bosses the Yeti's (the same rigs;
-// their hands and looks follow this too: handMoves.ts, looks.ts).
-export const FLOOR5_LIKE: readonly [EnemyKind, EnemyKind][] = [['snapper', 'slime'], ['urchin', 'slime'], ['jelly', 'slime'], ['spawnling', 'slime'], ['glub', 'wraith'], ['bigGlub', 'wraith'], ['squidle', 'wraith'], ['deepOne', 'brute'], ['bogBrute', 'brute']];
-for (const [kind, like] of FLOOR5_LIKE) EXEC_MOVES[kind] = EXEC_MOVES[like];
+// their hands and looks follow this too: handMoves.ts, looks.ts). Update 0.2.11 — and floor 6's: the fish the Wraith's (the mini bosses too: one mesh, nothing to burst), the Prince the Orc's.
+export const ALIKE: readonly [EnemyKind, EnemyKind][] = [['snapper', 'slime'], ['urchin', 'slime'], ['jelly', 'slime'], ['spawnling', 'slime'], ['glub', 'wraith'], ['bigGlub', 'wraith'], ['squidle', 'wraith'], ['deepOne', 'brute'], ['bogBrute', 'brute'], ['clownfish', 'wraith'], ['tuna', 'wraith'], ['angelfish', 'wraith'], ['dolphin', 'wraith'], ['drownedPrince', 'grunt'], ['mantaRay', 'wraith'], ['shark', 'wraith']];
+for (const [kind, like] of ALIKE) EXEC_MOVES[kind] = EXEC_MOVES[like];
 
 /** The kinds you can execute. */
 export const EXECUTABLE = Object.keys(EXEC_MOVES) as EnemyKind[];

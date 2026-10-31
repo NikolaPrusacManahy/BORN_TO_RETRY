@@ -14,6 +14,9 @@ export interface PlayerIntent {
   slideHeld: boolean;
   /** Update 0.0.12 — F: the ground slam. */
   slamPressed: boolean;
+  /** Update 0.2.11 — swimming (swim.ts): the look's pitch (rad, up +) and jump held (rising). */
+  pitch?: number;
+  jumpHeld?: boolean;
 }
 
 export function emptyIntent(yaw = 0): PlayerIntent {

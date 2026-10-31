@@ -59,6 +59,13 @@ import { updateSpawnling, updateSquidle } from './squidle';
 import { updateDeepOne } from './deepOne';
 import { updateBogBrute } from './bogBrute';
 import { updateDrownedKing } from './drownedKing';
+import { updateAngelfish, updateClownfish } from './reefFish';
+import { updateDolphin, updateTuna } from './rammers';
+import { updatePrince } from './prince';
+import { updateManta } from './manta';
+import { updateShark } from './shark';
+import { updateWhale } from './whale';
+import { floatUp } from './fishSwim';
 
 export type Update = (e: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number, world: CollisionWorld) => void;
 
@@ -107,9 +114,19 @@ const UPDATE: Record<EnemyKind, Update> = {
   deepOne: updateDeepOne,
   bogBrute: updateBogBrute,
   drownedKing: updateDrownedKing,
+  // Update 0.2.11 — floor 6's.
+  clownfish: updateClownfish,
+  tuna: updateTuna,
+  angelfish: updateAngelfish,
+  dolphin: updateDolphin,
+  drownedPrince: updatePrince,
+  mantaRay: updateManta,
+  shark: updateShark,
+  whale: updateWhale,
 };
-/** A dead boss's show, each tick until its slot frees. Update 0.2.4 — and a Green Blob splitting as it dies. */
-const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld) => void>> = { demon: doomDemon, dragon: doomDemon, boneKing: doomKing, dino: doomDemon, drownedKing: doomDemon, greenBlob: splitBlob, bigMushnub: splitMushnub };
+/** A dead boss's show, each tick until its slot frees. Update 0.2.4 — and a Green Blob splitting as it dies.
+ *  Update 0.2.11 — and a dead fish floating up. */
+const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld, dt: number) => void>> = { demon: doomDemon, dragon: doomDemon, boneKing: doomKing, dino: doomDemon, drownedKing: doomDemon, greenBlob: splitBlob, bigMushnub: splitMushnub, clownfish: floatUp, tuna: floatUp, angelfish: floatUp, dolphin: floatUp, mantaRay: floatUp, shark: floatUp, whale: doomDemon };
 
 export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWorld, world: CollisionWorld, dt: number) {
   let any = false;
@@ -134,7 +151,7 @@ export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWor
       if (waits(e, player)) wait(e, player, w, dt);
       else UPDATE[e.kind](e, i, player, w, dt, world);
       fanOut(e, player, w, dt);
-    }    else if (e.alive && e.phase === 'dead') DOOM[e.kind]?.(e, i, w);
+    }    else if (e.alive && e.phase === 'dead') DOOM[e.kind]?.(e, i, w, dt);
   }
   separateEnemies(enemies, w.nav);
 }
