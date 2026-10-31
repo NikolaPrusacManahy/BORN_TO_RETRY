@@ -91,7 +91,8 @@ export class MusicPlayer {
   }
 }
 
-/** Update 0.1.17 — the menus' track plays on the menus (the gate, the camp; Update 0.2.9 — and the lobby, paused or
- *  asked at its gate, where the character select was) and fades out as a run starts (through the lobby's gate). Pure. */
-const MENU_PHASES = ['menu', 'intro', 'lobby', 'lobbyPaused', 'confirm'];
+/** Update 0.1.17 — the menus' track plays on the menus (the gate, the camp) and fades out as a run starts. Update 0.2.9
+ *  — it played on in the lobby; Update 0.2.13 — no more (the designer: "remove the main menu music that is played in
+ *  the lobby"): it fades out as the gate opens onto the lobby. Pure. */
+const MENU_PHASES = ['menu', 'intro'];
 export const menuMusicOn = (phase: string, starting: boolean) => !starting && MENU_PHASES.includes(phase);

@@ -200,7 +200,7 @@ section('Lobby — the boards and the credits');
 
 section('Lobby — music and light');
 {
-  check('the menus’ track plays in the lobby, paused or asked at the gate', ['lobby', 'lobbyPaused', 'confirm'].every((p) => menuMusicOn(p, false)));
-  check('and fades out as you go through the gate', !menuMusicOn('lobby', true));
+  // (Update 0.2.13 — the designer: "remove the main menu music that is played in the lobby".)
+  check('the menus’ track plays on the menus, not in the lobby (paused or asked at the gate either)', menuMusicOn('menu', false) && ['lobby', 'lobbyPaused', 'confirm'].every((p) => !menuMusicOn(p, false)));
   check('under its roof the lobby is lit from all round (as bright as the dungeon’s shade)', LOBBY_LIGHT.v.fill >= 1.5 && LOBBY_LIGHT.v.chandeliers > 0 && LOBBY_LIGHT.v.key > 0);
 }

@@ -2,6 +2,8 @@
 // free slot (2, then 3, 4, 5) and into your hand; the number keys swap between them. All full: the new one takes the
 // place of the one in your hand (slot 2 if your fists are out), which falls at your feet. A thrown weapon leaves its
 // slot empty and your fists come out. `CombatState.weapon` is always the weapon in the picked slot (null: fists).
+// Update 0.2.13 — no gaps (the designer: "when you get rid of the sword in 2nd slot, then slot 3 should become slot 2
+// now and key 2 should be the right key to equip that one"): the weapons after an emptied slot move down one.
 // **(placeholders: five slots; a new weapon goes into your hand)** Pure.
 import type { Vector3 } from 'three';
 import type { CombatState } from '../combat/state';
@@ -60,9 +62,21 @@ export function selectSlot(state: CombatState, slot: number): boolean {
   return true;
 }
 
-/** The weapon in your hand is gone (thrown): its slot is empty, your fists are out. */
+/** The weapon in your hand is gone (thrown): its slot is empty, the ones after it move down, your fists are out. */
 export function emptyHand(state: CombatState) {
   if (state.slot > 0) state.bag[state.slot] = null;
+  closeGaps(state.bag);
   state.slot = 0;
   state.weapon = null;
+}
+
+/** Update 0.2.13 — the weapons packed into the first slots after the fists, in their order. */
+function closeGaps(bag: (HeldWeapon | null)[]) {
+  let to = 1;
+  for (let from = 1; from < bag.length; from++) {
+    const w = bag[from];
+    if (!w) continue;
+    bag[from] = null;
+    bag[to++] = w;
+  }
 }

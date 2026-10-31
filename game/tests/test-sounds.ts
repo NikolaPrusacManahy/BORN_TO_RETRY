@@ -170,8 +170,9 @@ section('Music (the designer’s own, ASSETS/BGM)');
   }
   check(`every track is there, an MP3 under 8 MB (${Object.keys(TRACKS).join(', ')})`, off === '', off);
   // (Update 0.2.9 — the lobby took the character select's place.)
-  check('the menus’ track plays on the main menu, through the gate and in the lobby', ['menu', 'intro', 'lobby'].every((p) => menuMusicOn(p, false)));
-  check('and fades out as a run starts, and isn’t on in a run, paused or dead', !menuMusicOn('lobby', true) && !menuMusicOn('menu', true) && ['playing', 'paused', 'dead'].every((p) => !menuMusicOn(p, false)));
+  // (Update 0.2.13 — not in the lobby: the designer.)
+  check('the menus’ track plays on the main menu and as its gate opens, not in the lobby', ['menu', 'intro'].every((p) => menuMusicOn(p, false)) && !menuMusicOn('lobby', false));
+  check('and fades out as a run starts, and isn’t on in a run, paused or dead', !menuMusicOn('menu', true) && ['playing', 'paused', 'dead'].every((p) => !menuMusicOn(p, false)));
   setMusic('menu');
   setMusic(null);
   check('asking for music before the sound engine has started is fine (it plays once it starts)', true);

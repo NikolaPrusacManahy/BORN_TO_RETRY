@@ -228,6 +228,21 @@ section('Loadout — weapon slots');
   takeItem('goldSword', p, c);
   check('all full: the new one takes the place of the one in your hand, which falls at your feet', c.slot === 3 && c.weapon?.kind === 'goldSword' && c.pickups.some((q) => q.alive && q.uses === 3));
 }
+{
+  // Update 0.2.13 — the designer: a sword in slots 2 and 3; get rid of slot 2's, and slot 3's is slot 2's now (key 2).
+  const { c, p, w } = scene();
+  takeItem('goldSword', p, c);
+  takeItem('hammer', p, c);
+  takeItem('daggers', p, c);
+  step(c, p, w, { slotPressed: 1 });
+  for (let i = 0; i < ticks(WEAPONS.v.throwWindup + 0.05); i++) step(c, p, w, { throwPressed: i === 0 });
+  check('throw slot 2’s: the ones after it move down (slot 3’s is slot 2’s, slot 4’s slot 3’s)', c.bag[1]?.kind === 'hammer' && c.bag[2]?.kind === 'daggers' && c.bag[3] === null && c.slot === 0);
+  step(c, p, w, { slotPressed: 1 });
+  check('key 2 takes it up', c.slot === 1 && c.weapon?.kind === 'hammer');
+  step(c, p, w, { slotPressed: 0 });
+  step(c, p, w, { slotPressed: 3 });
+  check('and the emptied last key does nothing', c.slot === 0 && c.weapon === null);
+}
 
 section('The designer sort (Update 0.1.10)');
 {

@@ -40,7 +40,7 @@ A first-person action roguelike. You start every run with your bare hands, tear 
 | R | Reload the Pistol (Update 0.2.4) |
 | E | Interact: pick up, buy, open |
 | Mouse wheel | Switch key, in front of a chest (Update 0.0.16) |
-| 1–5 | Weapon slots: 1 your fists, 2–5 the weapons you carry (Update 0.0.17, the designer) |
+| 1–5 | Weapon slots: 1 your fists, 2–5 the weapons you carry (Update 0.0.17, the designer); no gaps: a weapon gone, the ones after it move down a slot (Update 0.2.13, the designer) |
 | Esc | Pause |
 
 No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we test whether the browser's keyboard lock can capture Ctrl; in the Steam build it is free. **(placeholder: C for slide)**
@@ -311,7 +311,7 @@ Arenas are **hand-made templates assembled from a seed**, not random geometry, b
 ## 14. Art and audio
 - **Packs:** Modular Dungeon (the main menu's gate), Ultimate Nature (flat colour; the menu's dead trees), Modular Ruins, Bestiary/Dungeon Monsters, Ultimate Monsters, Fantasy Props MegaKit (melee weapons), Ultimate Guns (firearms), Universal Base Characters (first-person arms).
 - **Look:** dark palette, fog, strong rim light so enemies read clearly against the background. Baked lighting in Blender for the arenas.
-- **Audio:** hits matter more than music. Every punch, impact, parry, dash and kill needs a clear, punchy sound. Music rises with the action.
+- **Audio:** hits matter more than music. Every punch, impact, parry, dash and kill needs a clear, punchy sound. Music rises with the action. The menus' track plays on the menus only, not in the lobby (Update 0.2.13, the designer).
 - **Recorded sounds (Update 0.1.17, the designer):** human-made only, so the Steam page needs no AI notice: the Sonniss GDC 2026 bundle (royalty-free) and the designer's own recordings. Six batches picked by ear in the Lab (Sounds): combat, coins and chests, the bosses and magic, the enemies' warnings, the player's moves, the executions. No footsteps (the designer: "no need in this game"); the slide, the jump and the dash keep their made sounds. The rest is still made in code until its round. **Music (Update 0.1.17):** the designer's own; the menus' track loops on the menus and fades out into a run; the fights' music to come.
 
 ## 15. Tech
