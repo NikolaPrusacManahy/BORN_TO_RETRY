@@ -43,6 +43,7 @@ import { bossOf } from '../enemies/kinds';
 import { createTreasure, raiseChest, Treasure } from './treasure';
 import { rewardDone, startReward, takeKeys } from './reward';
 import { CHEST_D, CHEST_W } from '../../world/dungeon/assemble';
+import { Checkpoint, doorSpot } from './checkpoint';
 
 /** Update 0.2.0 — 'reward': a challenge room won, shut until its reward is taken. */
 export type RoomState = 'idle' | 'fighting' | 'reward' | 'cleared';
@@ -73,6 +74,9 @@ export interface DungeonRun {
   boss: BossRun;
   /** Update 0.2.10 — floor 5's tide (its clock and level; nothing floods on a dry floor). */
   tide: Tide;
+  /** Update 0.2.12 — where lava (and, on WEAKLING, death) sends you: outside the door of the last fight room you went
+   *  into (checkpoint.ts); null: the floor's start. */
+  checkpoint: Checkpoint | null;
 }
 
 /** Seconds from the gates shutting to the first wave. */
@@ -94,6 +98,7 @@ export function createDungeonRun(level: DungeonLevel): DungeonRun {
     treasure: createTreasure(level, createRng(level.plan.seed * 131 + level.plan.level * 17), bossOf(level.plan.level)),
     boss: createBossRun(bossOf(level.plan.level)),
     tide: createTide(),
+    checkpoint: null,
   };
 }
 
@@ -112,12 +117,13 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
     const room = run.level.rooms[i];
     if (rr.state === 'idle' && run.current === i && !player.dead) {
       rr.state = 'fighting';
+      run.checkpoint = doorSpot(run, i, player);
       rr.total = room.waves.reduce((n, w) => n + w.length, 0);
       rr.sent = 0;
       // Update 0.1.20 — a challenge room gives Challenge: keys, each white or gold.
-      combat.keyDrops = room.challenge ? Math.round(ROOMS.v.challengeKeys) : hasYeti(room.waves) ? 1 : 0;
+      combat.keyDrops = combat.bare ? 0 : room.challenge ? Math.round(ROOMS.v.challengeKeys) : hasYeti(room.waves) ? 1 : 0;
       combat.betterKeys = room.challenge;
-      combat.bonusDrops = BONUS.v.perRoom;
+      combat.bonusDrops = combat.bare ? 0 : BONUS.v.perRoom;
       rr.delay = FIRST_WAVE;
       for (const g of room.gates) run.shut[g] = true;
       enterNav(run, i, combat);
@@ -157,8 +163,8 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
       continue;
     }
     if (live > 0) continue;
-    // Update 0.2.0 — a challenge room: shut till its reward is taken.
-    if (room.challenge) {
+    // Update 0.2.0 — a challenge room: shut till its reward is taken. (Update 0.2.12 — ARE YOU EVEN HUMAN?: no reward.)
+    if (room.challenge && !combat.bare) {
       rr.state = 'reward';
       startReward(run, i, player, combat, rng);
       continue;

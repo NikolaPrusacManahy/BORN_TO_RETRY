@@ -5,14 +5,15 @@
 // EXECUTE. The key is the one Interact is bound to. Page elements over the canvas, placed each frame where the thing
 // is on screen; their words are only written when what they show changes. Nothing without a page (the tests).
 // Update 0.2.9 — and the lobby's stations: a difficulty's or a character's name with "[E] to choose" (or "Chosen"), a
-// locked character's "Locked", the gate's "[E] to enter".
+// locked character's "Locked" (Update 0.2.12 — the designer: "coming soon characters instead of Locked"), the gate's
+// "[E] to enter".
 import * as THREE from 'three';
 import type { Focus } from '../sim/items/focus';
 import { infoOf } from '../sim/items/itemInfo';
 
 const ACT: Record<Exclude<Focus['act'], null | 'execute' | 'locked' | 'chosen' | 'unavailable'>, string> = { pick: 'to pick up', buy: 'to buy', open: 'to open', choose: 'to choose', enter: 'to enter' };
 /** Update 0.2.9 — what a card says where E does nothing (a chest without a key; in the lobby, yours already, locked). */
-const NOTE: Partial<Record<Exclude<Focus['act'], null>, string>> = { locked: 'Needs a key', chosen: 'Chosen', unavailable: 'Locked' };
+const NOTE: Partial<Record<Exclude<Focus['act'], null>, string>> = { locked: 'Needs a key', chosen: 'Chosen', unavailable: 'Coming soon' };
 /** The skull over an executable enemy (execMarkView.ts): its height on screen (a share of the screen's), and the gap
  *  over it (px). */
 const SKULL = 0.065;

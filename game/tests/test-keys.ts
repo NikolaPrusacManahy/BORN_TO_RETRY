@@ -62,7 +62,8 @@ section('Keys — loot by rarity');
   check(`a normal key: common ${ITEMS.v.common}%, uncommon ${ITEMS.v.uncommon}%, rare ${ITEMS.v.rare}%, epic ${ITEMS.v.epic}%, mythic ${ITEMS.v.mythic}%`,
     near(share('common'), 0.45, 0.015) && near(share('uncommon'), 0.3, 0.015) && near(share('rare'), 0.15, 0.01) && near(share('epic'), 0.08, 0.008) && near(share('mythic'), 0.02, 0.005),
     RARITIES.map((r) => `${r} ${(share(r) * 100).toFixed(1)}%`).join(', '));
-  const all = ['coins', 'heart', 'plate', 'goldPlate', 'greatHeart', 'goldSword', 'redRing', 'blueRing', 'greenRing', 'tealRing', 'goldAxe', 'goldHammer', 'goldDaggers', 'grimoire'];
+  // (Update 0.2.12 — and the Pistol, uncommon.)
+  const all = ['coins', 'heart', 'plate', 'goldPlate', 'greatHeart', 'pistol', 'goldSword', 'redRing', 'blueRing', 'greenRing', 'tealRing', 'goldAxe', 'goldHammer', 'goldDaggers', 'grimoire'];
   check('everything in the sort turns up', all.every((k) => t.items.has(k)) && t.items.size === all.length, [...t.items].join(', '));
   // (Update 0.2.1 — the designer: no coins with an epic or mythic chest's item any more.)
   check('a chest gives coins or an item, never both (epic and mythic too)', [...t.withItem.common, ...t.withItem.uncommon, ...t.withItem.rare, ...t.withItem.epic, ...t.withItem.mythic].every((c) => c === 0) && t.withItem.epic.size > 0 && t.withItem.mythic.size > 0);

@@ -103,6 +103,8 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   const steps = Math.max(1, Math.round(EXECUTION.v.killsToFill));
   state.execution = Math.min(1, Math.round(state.execution * steps + 1) / steps);
   const e = state.enemies[t.index];
+  // (Update 0.2.12 — ARE YOU EVEN HUMAN?: nothing comes of a kill but the meter.)
+  if (state.bare) return true;
   if (e.kind === 'grunt' && state.rng() < ENEMIES.v.gruntDrop) dropWeapon(state.pickups, 'sword', e.pos, state.events);
   if (MINI_BOSSES.includes(e.kind) && state.keyDrops > 0) {
     state.keyDrops--;

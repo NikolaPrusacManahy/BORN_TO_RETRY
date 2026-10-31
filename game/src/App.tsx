@@ -17,6 +17,8 @@
 // the lobby, a hall you walk round (its own phases: walking, paused, asked at its main gate). Its altars and dais
 // choose your difficulty and character (saved); its main gate asks your difficulty's questions (useLobbyGate.ts,
 // GateConfirm.tsx), then the run starts with the loader as before.
+// Update 0.2.12 — the boot screens over the main menu first (CreditIntro.tsx: the studio's logo, the tips; the menu
+// waits for them).
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MenuView } from './engine/Game';
 import { CAMP_FADE } from './engine/menu/campScene';
@@ -38,6 +40,7 @@ import { useRunStart } from './screens/useRunStart';
 import { RunLoader } from './screens/RetryArrow';
 import { useMusic } from './screens/useMusic';
 import { DebugOverlay } from './screens/DebugOverlay';
+import { CreditIntro } from './screens/CreditIntro';
 import { Settings, loadSave, writeSave } from './state/settings';
 import { devKeyAction, devToolsEnabled } from './state/devTools';
 
@@ -49,6 +52,8 @@ const FADE_OUT = 0.5;
 
 export default function App() {
   const [save, setSave] = useState(loadSave);
+  /** Update 0.2.12 — the boot screens (the studio's logo, the tips) are up. */
+  const [credits, setCredits] = useState(true);
   const [phase, setPhase] = useState<Phase>('menu');
   const [ready, setReady] = useState(false);
   /** The fade to black: how long it takes to go black (s), or null when clear. */
@@ -237,7 +242,7 @@ export default function App() {
       onLobbyGate={gate.onGate}
       onReady={() => setReady(true)}
     >
-      {onMenu && menuView === 'gate' && !tuning && <MainMenu ready={ready} leaving={phase === 'intro' || switching || run.starting} onStart={start} onSettings={() => switchMenu('camp')} onLab={dev ? startLab : undefined} />}
+      {onMenu && menuView === 'gate' && !tuning && <MainMenu ready={ready && !credits} leaving={phase === 'intro' || switching || run.starting} onStart={start} onSettings={() => switchMenu('camp')} onLab={dev ? startLab : undefined} />}
       {phase === 'menu' && menuView === 'camp' && !tuning && (
         <CampMenu
           settings={save.settings}
@@ -270,6 +275,7 @@ export default function App() {
       {lab.panel(dev && !tuning)}
       {dev && tuning && <TuningPanel onClose={() => setTuningOpen(false)} />}
       {dev && debug && <DebugOverlay getGame={getGame} />}
+      {credits && <CreditIntro onDone={() => setCredits(false)} />}
     </GameView>
   );
 }

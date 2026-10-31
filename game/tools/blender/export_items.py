@@ -9,6 +9,7 @@
 # the glTF export drops).
 #   blender --background --disable-autoexec --python tools/blender/export_items.py -- --rpg <Ultimate RPG Pack>
 #       --dungeon <Modular Dungeon Pack - part 1> --glb public/models/items/items.glb [--previews <folder>]
+#       [--guns <Guns pack>] (Update 0.2.12: the Pistol)
 import argparse
 import os
 import sys
@@ -47,6 +48,8 @@ ITEMS = {
     'item_goldIngots': ('Gold_Ingots', 0.5, {}),
     'item_bluePotion': ('Potion5_Filled', 0.5, {'Liquid': (0.1, 0.35, 1.0), 'Glass': (0.45, 0.7, 1.0)}),
 }
+# Update 0.2.12 — the Pistol in a chest (the Guns pack's: `--guns`).
+GUNS = {'item_pistol': ('Pistol', 0.5, {})}
 
 
 def recolor(o, colours):
@@ -65,6 +68,7 @@ def parse_args():
     p.add_argument('--dungeon', required=True)
     p.add_argument('--glb', required=True)
     p.add_argument('--previews', default=None)
+    p.add_argument('--guns', default=None)
     return p.parse_args(argv)
 
 
@@ -81,10 +85,15 @@ def load(path):
 
 
 def bake(o):
-    """Its transform baked into its mesh (shared meshes are copied first)."""
+    """Its transform baked into its mesh (shared meshes are copied first). Update 0.2.12 — off its rig (the Guns pack's
+    pistol hangs from one: the export skips a child whose parent isn't in the scene), as it rests."""
     if o.data.users > 1:
         o.data = o.data.copy()
-    o.data.transform(o.matrix_world)
+    world = o.matrix_world.copy()
+    o.parent = None
+    for m in [m for m in o.modifiers if m.type == 'ARMATURE']:
+        o.modifiers.remove(m)
+    o.data.transform(world)
     o.matrix_world = Matrix.Identity(4)
 
 
@@ -101,8 +110,9 @@ def main():
     for o in list(bpy.data.objects):
         bpy.data.objects.remove(o, do_unlink=True)
     made = []
-    for name, (blend, size, colours) in ITEMS.items():
-        objs = load(os.path.join(args.rpg, blend + '.blend'))
+    packs = [(args.rpg, ITEMS)] + ([(args.guns, GUNS)] if args.guns else [])
+    for name, folder, (blend, size, colours) in [(n, f, spec) for f, table in packs for n, spec in table.items()]:
+        objs = load(os.path.join(folder, blend + '.blend'))
         for o in objs:
             bake(o)
             recolor(o, colours)

@@ -12,7 +12,8 @@ export const GUN = group('gun', 'Pistol', {
   pistolKnock: knob(2.5, 0, 30, 0.5, 'Pistol knock', 'How hard a bullet pushes what it hits (m/s).'),
   pistolInterval: knob(0.14, 0.05, 1, 0.01, 'Pistol fire rate', 'Fewest seconds between shots: one shot a click.'),
   pistolMag: knob(8, 1, 50, 1, 'Pistol magazine', 'Bullets a magazine holds (the designer: 8).'),
-  pistolRounds: knob(40, 1, 300, 1, 'Pistol rounds', 'Bullets in a pistol you find, its magazine included (the designer: 40; its uses: none left and the next click throws it).'),
+  // Update 0.2.12 — the designer: 60 (was 40).
+  pistolRounds: knob(60, 1, 300, 1, 'Pistol rounds', 'Bullets in a pistol you find, its magazine included (the designer: 60; its uses: none left and the next click throws it).'),
   pistolRange: knob(80, 10, 200, 5, 'Pistol range', 'How far a bullet goes (m).'),
   pistolWhipDamage: knob(10, 1, 100, 1, 'Pistol whip damage', 'Right click: a strike with the gun at a fist’s reach (a finisher punch’s, at first).'),
   pistolWhipKnock: knob(8, 0, 30, 0.5, 'Pistol whip knock', 'How hard the whip pushes what it hits (m/s).'),

@@ -38,6 +38,8 @@ export const ITEMS = group('items', 'Shop & chests', {
   priceGoldDaggers: price(110, 'the Gold Daggers'),
   priceTealRing: price(110, 'the teal ring (the Gold Daggers\' price: the designer)'),
   priceGreatHeart: price(90, 'the Great Heart (not sold: chests only)'),
+  // Update 0.2.12 — the Pistol in a chest (uncommon).
+  pricePistol: price(60, 'the Pistol (not sold: chests only)'),
   priceRise: knob(0.15, 0, 1, 0.01, 'Price rise', 'Prices go up this share on every floor down (0.15: +15%, on top of the last).'),
   heartHeal: knob(0.5, 0.05, 1, 0.05, 'Heart heal', 'Share of max health a heart heals.'),
   greatHeartHeal: knob(1, 0.05, 1, 0.05, 'Great Heart heal', 'Share of max health the Great Heart (a chest\'s better heart) heals.'),

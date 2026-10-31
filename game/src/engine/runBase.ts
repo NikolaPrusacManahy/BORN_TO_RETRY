@@ -3,6 +3,8 @@
 // (the next floor keeps what you carry; otherwise a fresh start), back to its start, and the Lab's commands. The play
 // loop (the ticks and the frame) is run.ts's.
 // Update 0.1.14 — the time played since the run's start, and the death screen up (Restart, its Retry, is a new run).
+// Update 0.2.12 — the run plays by its difficulty (the designer): on WEAKLING EXPERIENCE a death sends you back to the
+// checkpoint (`respawn`); on ARE YOU EVEN HUMAN? there's nothing to find (`CombatState.bare`) and no shop.
 import * as THREE from 'three';
 import { FixedStep } from '../core/fixedStep';
 import { createRng } from '../core/rng';
@@ -32,6 +34,10 @@ import { emptyFocus } from '../sim/items/focus';
 import { HudFeed } from './overlayFeed';
 import { Viewmodel } from './viewmodel/viewmodel';
 import { cancelCharges } from '../sim/weapons/kiCharge';
+import type { Difficulty } from '../sim/lobby/difficulty';
+import { abandonAll } from '../sim/dungeon/checkpoint';
+import { maxHpOf } from '../sim/player/health';
+import { hpBonusOf } from '../sim/items/items';
 
 /** Update 0.2.8 (the designer: display "FLOOR 1" when they start playing) — a new run starts under the loader (at
  *  least its LOAD_MIN, 1 s) and its black clearing (0.5 s): its floor's name waits that long. */
@@ -90,6 +96,7 @@ export abstract class RunBase {
     hud: HudStore,
     protected readonly cb: RunCallbacks,
     protected readonly levels: Levels,
+    readonly difficulty: Difficulty = 'real',
   ) {
     // Loading the same models again (each floor) comes from memory.
     THREE.Cache.enabled = true;
@@ -121,6 +128,8 @@ export abstract class RunBase {
     if (!keep) this.played = 0;
     this.view = level.draw(this.scene, this.renderer);
     this.treasure = level.dungeon?.treasure ?? emptyTreasure();
+    // (Update 0.2.12 — ARE YOU EVEN HUMAN?: no shop.)
+    if (this.difficulty === 'human') this.treasure.offers.length = 0;
     this.treasureView = new TreasureView(this.scene, this.treasure);
     this.show = new BossShow(level.dungeon);
     // (Back to the Lab from its boss room: no floor's name.) Update 0.2.8 (the designer: display "FLOOR 1" when they start
@@ -131,6 +140,7 @@ export abstract class RunBase {
     // (Update 0.2.9 — the lobby has no enemies: no walk grids.)
     this.combat = createCombat(level.arena, !level.dungeon && !level.lobby);
     this.combat.rng = createRng(level.fightSeed);
+    this.combat.bare = this.difficulty === 'human';
     this.combatScene = new CombatScene(this.scene, this.combat, this.audio, this.rig, this.arms);
     this.restartHere();
     if (keep && old) {
@@ -158,6 +168,27 @@ export abstract class RunBase {
       this.death.reset();
       this.cb.onRespawn();
     }
+  }
+
+  /** Update 0.2.12 — WEAKLING EXPERIENCE (the designer: "no one life punishment, player just respawn"): dead, you're
+   *  back at the checkpoint (outside the door of the room you died in), full health, all you carry kept; the fight
+   *  starts over when you go back in, the boss's too. */
+  protected respawn() {
+    const d = this.level.dungeon;
+    const at = d?.checkpoint ?? this.level.arena.playerStart;
+    if (d) abandonAll(d, this.combat);
+    resetPlayer(this.player, at.x, at.y, at.z, at.yaw);
+    this.player.hpBonus = hpBonusOf(this.combat.items);
+    this.player.hp = maxHpOf(this.player);
+    this.arms.reset();
+    this.combatScene.clear();
+    this.prev.copy(this.player.pos);
+    this.look.yaw = at.yaw;
+    this.look.pitch = 0;
+    this.rig.reset();
+    this.clock.reset();
+    this.death.reset();
+    this.cb.onRespawn();
   }
 
   /** Update 0.2.9 — in the lobby (its stations, the main gate). */

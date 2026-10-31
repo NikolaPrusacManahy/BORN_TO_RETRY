@@ -42,10 +42,8 @@ export interface LobbyChoice {
 
 export class Game extends GameBase {
   private readonly menus: MenuScenes;
-  /** Update 0.2.9 — what you chose in the lobby last; and the difficulty the run was started on (nothing reads it yet:
-   *  what each difficulty changes is still the designer's to say). */
+  /** Update 0.2.9 — what you chose in the lobby last (the run's difficulty: GameBase.runDifficulty). */
   private choice: LobbyChoice = { difficulty: 'real', character: 'adventurer' };
-  runDifficulty: Difficulty = 'real';
   private readonly resizeObs: ResizeObserver;
   private raf = 0;
   private last = performance.now();

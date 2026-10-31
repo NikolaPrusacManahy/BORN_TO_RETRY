@@ -27,8 +27,8 @@ export const WEAPONS = group('weapons', 'Weapons', {
   throwSpin: knob(0, 0, 60, 1, 'Throw spin', 'End over end in flight (rad/s; looks only). 0 flies tip first.'),
   pickupRange: knob(2, 0.5, 5, 0.1, 'Pickup range', 'How close a weapon on the ground must be to pick it up with E (m).'),
   standRespawn: knob(3, 0.5, 30, 0.5, 'Stand respawn', 'Seconds before the lab stand has a sword again.'),
-  // Update 0.1.4 — the designer: a Grimoire has 25 charges (was 12).
-  grimoireUses: knob(25, 1, 100, 1, 'Grimoire uses', 'Casts a Grimoire holds (each step of a charge burns one more).'),
+  // Update 0.1.4 — the designer: a Grimoire has 25 charges (was 12). Update 0.2.12 — the designer: 50.
+  grimoireUses: knob(50, 1, 100, 1, 'Grimoire uses', 'Casts a Grimoire holds (each step of a charge burns one more).'),
   castInterval: knob(0.5, 0.15, 2, 0.01, 'Cast interval', 'Seconds between fireballs while left click is held.'),
   fireSpeed: knob(34, 5, 80, 1, 'Fireball speed', 'How fast a fireball flies (m/s).'),
   fireLife: knob(1.5, 0.3, 4, 0.1, 'Fireball range', 'Seconds a fireball flies before it bursts on its own.'),

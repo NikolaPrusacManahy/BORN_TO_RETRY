@@ -64,7 +64,8 @@ async function load(path: string) {
 section('Pistol — the weapon');
 {
   check('a weapon of its own that shoots (no other does; it casts nothing)', WEAPON_KINDS.includes('pistol') && SHOOTS.pistol && WEAPON_KINDS.filter((k) => SHOOTS[k]).length === 1 && !CASTS.pistol);
-  check('8 bullets in a magazine, 40 in all (the designer: "8 bullets per magazine, 40 in total")', g.pistolMag === 8 && ROUNDS === 40);
+  // (Update 0.2.12 — the designer: 60 in all, was 40.)
+  check('8 bullets in a magazine, 60 in all (the designer: "8 bullets per magazine", then "set ammo amount of pistol to 60")', g.pistolMag === 8 && ROUNDS === 60);
   check(`a new one comes loaded: 8 in, ${ROUNDS} in all (its uses)`, holding('pistol', ROUNDS).mag === 8 && WEAPON_STATS.pistol().uses === ROUNDS);
   check('with fewer than 8 in all, the magazine holds what there is', holding('pistol', 5).mag === 5);
   // Fists: jab, jab, finisher, again, till it drops.

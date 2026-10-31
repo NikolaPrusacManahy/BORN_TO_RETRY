@@ -63,7 +63,8 @@ const pw = (): KiPower => ({ damage: 0, splash: 0, burst: 0, size: 0, speed: 0, 
 section('Grimoire — the book');
 {
   check('a weapon of its own that casts (the swords don\'t)', WEAPON_KINDS.includes('grimoire') && CASTS.grimoire && !CASTS.sword && !CASTS.goldSword);
-  check(`${w.grimoireUses} uses (the designer: 25)`, WEAPON_STATS.grimoire().uses === w.grimoireUses && w.grimoireUses === 25);
+  // (Update 0.2.12 — the designer: 50, was 25.)
+  check(`${w.grimoireUses} uses (the designer: 50)`, WEAPON_STATS.grimoire().uses === w.grimoireUses && w.grimoireUses === 50);
   check('it charges 50% faster than at first: half a second a charge, the full charge in 5 s (was 1 s and 10 s)', w.kiStep === 0.5 && kiFull() === 5 && kiMid() === 2.5);
   const book = await parseUntextured(new URL('../public/models/weapons/grimoire.glb', import.meta.url));
   let meshes = 0;

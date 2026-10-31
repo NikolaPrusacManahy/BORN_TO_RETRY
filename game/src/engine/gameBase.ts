@@ -12,6 +12,7 @@ import { DebugInfo, HudStore, createDebugInfo } from './hudStore';
 import { bossRoomLevel, dungeonLevel, labLevel, Level, newSeed } from './level';
 import { Run } from './run';
 import type { Levels, RunCallbacks } from './runLinks';
+import type { Difficulty } from '../sim/lobby/difficulty';
 import { createRenderer } from './renderer';
 
 /** 'menu': a menu scene, idle; 'intro': Start pressed, the gate opening; 'play': a level (the lobby, a run, the Lab). */
@@ -42,6 +43,9 @@ export abstract class GameBase {
   private labWaves = false;
   /** Update 0.1.1 — the Lab's Meter: its Execution Power meter kept full (on at first; never outside the Lab). */
   private labMeter = true;
+  /** Update 0.2.9 — the difficulty the run was started on (Update 0.2.12: the run plays by it; the Lab's is the real
+   *  one). */
+  runDifficulty: Difficulty = 'real';
   protected readonly levels: Levels = {
     fresh: () => (this.inLab ? labLevel() : dungeonLevel(newSeed(), 1)),
     next: (l: Level) => (this.inLab && l.bossRoom ? labLevel() : dungeonLevel(l.seed, l.floor + 1)),
@@ -129,7 +133,7 @@ export abstract class GameBase {
 
   protected newRun(level: Level) {
     this.run?.dispose();
-    this.run = new Run(level, this.audio, this.renderer, this.hud, this.cb, this.levels);
+    this.run = new Run(level, this.audio, this.renderer, this.hud, this.cb, this.levels, this.inLab ? 'real' : this.runDifficulty);
     this.run.waves = !this.inLab || this.labWaves;
     if (this.inLab) this.run.labCommand({ kind: 'meter', on: this.labMeter });
   }

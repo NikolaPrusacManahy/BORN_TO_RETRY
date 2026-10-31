@@ -102,7 +102,9 @@ export class Run extends RunBase {
       if (lobby && stepLobby(lobby, p, ci.interactPressed && free)) ci.interactPressed = false;
       stepPlayer(p, this.intent, this.level.physics, this.level.arena.pads, stepDt);
       checkHazards(p, this.hazards);
-      lavaStep(p, this.lava, this.level.arena.playerStart, d, this.combat);
+      // (Update 0.2.12 — back to the checkpoint: outside the room you were in.)
+      const back = d?.checkpoint ?? this.level.arena.playerStart;
+      if (lavaStep(p, this.lava, back, d, this.combat)) this.look.yaw = back.yaw;
       // (Update 0.2.10 — the water's level where the fight is: floor 5's enemies use it. Update 0.2.11 — under water,
       // its top: floor 6's fish swim under it.)
       this.combat.tide = p.swimTop > 0 ? p.swimTop : bossOn ? this.combat.flood : d && d.level.tide.length > 0 ? d.tide.level : 0;
@@ -207,6 +209,8 @@ export class Run extends RunBase {
     // next floor (Update 0.2.2: off the last, the run is won).
     if (this.death.update(real)) {
       if (!d) this.restartHere();
+      // (Update 0.2.12 — WEAKLING EXPERIENCE: back to the checkpoint, no death screen.)
+      else if (this.difficulty === 'weakling') this.respawn();
       else this.tell(false);
     } else if (shot.descend) {
       if (d && endsRun(this.level.floor)) this.tell(true);

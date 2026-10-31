@@ -251,6 +251,7 @@ function finish(state: CombatState, ex: Execution, at: Vector3, kind: 'execLand'
   hit.point.copy(e.pos);
   landHit(state, hit, 1e6, 0, F.x, F.z, 'hitHeavy', 1);
   state.execution = 0;
+  // (Update 0.2.12 — the designer: "executions always heals", on ARE YOU EVEN HUMAN? too.)
   if (!player.dead) healPlayer(player, MINI_BOSSES.includes(e.kind) ? v.healBig : v.heal);
   for (let i = 0; i < state.enemies.length; i++) {
     const o = state.enemies[i];

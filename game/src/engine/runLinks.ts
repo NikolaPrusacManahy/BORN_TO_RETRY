@@ -9,8 +9,9 @@ import type { CharacterId } from '../sim/characters';
 import type { Difficulty } from '../sim/lobby/difficulty';
 import type { Level } from './level';
 
-/** Update 0.2.2 — the run's last floor: taking its way down ends the run. */
-export const LAST_FLOOR = 7;
+/** Update 0.2.2 — the run's last floor: taking its way down ends the run. Update 0.2.12 — the alpha's (the designer:
+ *  "allow room 1 to 5 only, don't include 6 yet"): floor 5's way down wins it (the game's is 7). */
+export const LAST_FLOOR = 5;
 export const endsRun = (floor: number) => floor >= LAST_FLOOR;
 
 /** Update 0.1.14 — what the death screen shows. */

@@ -246,8 +246,8 @@ section('The designer sort (Update 0.1.10)');
   for (let seed = 1; seed <= 200; seed++) for (const o of createTreasure(buildDungeon(planFloor(seed, 1)), createRng(seed)).offers) shop.add(o.kind);
   check('the shop sells the Gold Hammer and the Gold Daggers too', shop.has('goldHammer') && shop.has('goldDaggers'));
   const tiers = RARITIES.map((r) => `${r}: ${TIER[r].join(' ')}`).join('; ');
-  check('chests: common coins, heart, plate; uncommon gold armour, Great Heart; rare gold sword, rings; epic Gold Axe, Gold Hammer; mythic Gold Daggers, Grimoire',
-    tiers === 'common: coins heart plate; uncommon: goldPlate greatHeart; rare: goldSword redRing blueRing greenRing; epic: goldAxe goldHammer; mythic: goldDaggers grimoire tealRing', tiers);
+  check('chests: common coins, heart, plate; uncommon gold armour, Great Heart, the Pistol (Update 0.2.12); rare gold sword, rings; epic Gold Axe, Gold Hammer; mythic Gold Daggers, Grimoire',
+    tiers === 'common: coins heart plate; uncommon: goldPlate greatHeart pistol; rare: goldSword redRing blueRing greenRing; epic: goldAxe goldHammer; mythic: goldDaggers grimoire tealRing', tiers);
   check('mythic replaces legendary, and its glow is red', RARITIES[4] === 'mythic' && RARITY_COLOUR.mythic === 0xff2a2a);
   const c = createCombat(bare);
   const p = createPlayer(0, 0, 0, 0);

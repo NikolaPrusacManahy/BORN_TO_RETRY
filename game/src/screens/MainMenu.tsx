@@ -71,7 +71,8 @@ export function MainMenu({ ready, leaving, onStart, onSettings, onLab }: Props) 
         )}
       </nav>
 
-      <div className="rb-menu-foot">v{version}</div>
+      {/* (Update 0.2.12 — the alpha's label, the designer: "Alpha version label is good".) */}
+      <div className="rb-menu-foot">Alpha v{version}</div>
     </div>
   );
 }

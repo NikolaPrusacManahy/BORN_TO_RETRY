@@ -1,0 +1,61 @@
+/* theme-32 — Update 0.2.12: the boot screens (screens/CreditIntro.tsx), as Last Ward's: the studio title, then the
+   full-screen tip, on black. */
+.rb-credit {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* The studio GIF's own black, so it sits seamlessly on the screen. */
+  background: #030101;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Card 1: the studio title types itself out (public/ui/studio.gif, plays once). The fade is an inline opacity. */
+.rb-credit-studio {
+  width: min(720px, 82vw);
+  height: auto;
+}
+
+/* Card 2: the full-screen tip, fading in. */
+.rb-credit-tips {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  opacity: 0;
+  animation: rb-credit-in 0.7s ease-out forwards;
+}
+
+.rb-credit-tip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0;
+  font-family: var(--rb-mono);
+  font-size: 17px;
+  letter-spacing: 0.06em;
+  color: var(--rb-text);
+}
+
+.rb-credit-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 36px;
+  border: 2px solid var(--rb-text);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+@keyframes rb-credit-in {
+  to {
+    opacity: 1;
+  }
+}

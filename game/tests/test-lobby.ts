@@ -35,7 +35,8 @@ section('Lobby — the roster and the difficulties');
   const real = GATE_ASKS.real.map((a) => a.says.replace(/’/g, "'"));
   check('THE REAL EXPERIENCE: the gate asks the designer’s four lines, in order', real.join(' | ') === "Ready for pain? | Are you sure? | Don't cry when you die | Did I mention you only have 1 life? oops", real.join(' | '));
   check('ARE YOU EVEN HUMAN?: one line', GATE_ASKS.human.length === 1 && GATE_ASKS.human[0].says.replace(/’/g, "'") === "Let's just assume you are not human");
-  check('WEAKLING EXPERIENCE: straight through', GATE_ASKS.weakling.length === 0);
+  // (Update 0.2.12 — the designer: "give a mocking pop-up for the weakling experience".)
+  check('WEAKLING EXPERIENCE: it mocks you, three times', GATE_ASKS.weakling.map((a) => a.says).join(' / ') === 'Hmm? Not feeling like playing properly? / Bro, just play it normally / Alright “Weakling”, go on and enjoy your run…');
   const all = [...GATE_ASKS.real, ...GATE_ASKS.human];
   check('every question has two different answers', all.every((a) => a.yes.trim() && a.no.trim() && a.yes !== a.no));
 }
@@ -72,7 +73,8 @@ section('Lobby — the hall');
   check('the characters stand on the dais', FIGURES.every((f) => f.x > DAIS.x0 + 0.5 && f.x < w - 0.5 && f.z > DAIS.z0 && f.z < DAIS.z1));
   const dressing = dressHall();
   check('a closed roof over the whole hall', dressing.ceiling.length === (2 * w * 2 * d) / 4 && LOBBY_HALL.boxes.some((b) => b.y - b.h / 2 >= HALL.wallH - 0.5 && b.w >= 2 * w && b.d >= 2 * d));
-  check('three boards for the credits, one per difficulty, one over the gate', ['gate', 'difficulty', 'credits'].map((k) => dressing.boards.filter((b) => b.kind === k).length).join() === '1,3,3');
+  // (Update 0.2.12 — two: no fonts or code credited.)
+  check('two boards for the credits, one per difficulty, one over the gate', ['gate', 'difficulty', 'credits'].map((k) => dressing.boards.filter((b) => b.kind === k).length).join() === '1,3,2');
 }
 
 await initPhysics();
@@ -141,7 +143,7 @@ section('Lobby — the stations');
   const king = FIGURES[1];
   stepLobby(l, at(DAIS.x0 - 0.6, king.z), false);
   lobbyFocus(l, f);
-  check('at a silhouette: Locked, no name', f.act === 'unavailable' && f.label === '');
+  check('at a silhouette: Coming soon, no name', f.act === 'unavailable' && f.label === '');
   stepLobby(l, at(DAIS.x0 - 0.6, king.z), true);
   check('E there: still Joseph (a knock)', l.character === 'adventurer' && l.events.join() === 'locked');
   l.events.length = 0;
@@ -181,7 +183,8 @@ section('Lobby — the boards and the credits');
   check('the gate shows your difficulty and character', boardLines(gate, 'human', 'Joseph').map((l) => l.text).join(' / ') === 'ARE YOU EVEN HUMAN? / JOSEPH');
   const altars = d.boards.filter((b) => b.kind === 'difficulty').map((b) => boardLines(b, 'weakling', 'Joseph')[0]);
   check('each altar’s board, yours lit', altars.map((l) => `${l.text}:${l.tone}`).join() === 'WEAKLING EXPERIENCE:gold,THE REAL EXPERIENCE:dim,ARE YOU EVEN HUMAN?:dim');
-  check('credits: models, sound, fonts and code', CREDITS.map((c) => c.title).join() === 'MODELS,SOUND,FONTS & CODE');
+  // (Update 0.2.12 — the designer: no fonts or code credited.)
+  check('credits: models and sound (no fonts or code)', CREDITS.map((c) => c.title).join() === 'MODELS,SOUND');
   const text = CREDITS.flatMap((c) => c.lines).join(' ');
   check('Quaternius and each of its packs in the game', ['Quaternius', 'Modular Dungeon Pack', 'Ultimate Nature Pack', 'Ultimate RPG Pack', 'Ultimate Monsters'].every((s) => text.includes(s)));
   const manifest = JSON.parse(readFileSync(new URL('../public/sounds/manifest.json', import.meta.url), 'utf8')) as Record<string, unknown>;

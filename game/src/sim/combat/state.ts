@@ -116,6 +116,9 @@ export interface CombatState {
   keyDrops: number;
   /** Update 0.1.20 — they're a challenge room's: white or gold, never a normal key. */
   betterKeys: boolean;
+  /** Update 0.2.12 — ARE YOU EVEN HUMAN? (the designer: "just fists and nothing else"): nothing is dropped or found (no
+   *  swords, coins, keys, bonuses, chests, rewards); executions still heal (the designer: "executions always heals"). */
+  bare: boolean;
   hitStop: HitStop;
   events: EventQueue<CombatEvent>;
 }
@@ -182,6 +185,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     drops: createDrops(),
     keyDrops: 0,
     betterKeys: false,
+    bare: false,
     hitStop: new HitStop(),
     events: new EventQueue<CombatEvent>(64, 'none'),
   };

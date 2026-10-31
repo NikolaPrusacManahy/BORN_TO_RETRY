@@ -1,8 +1,10 @@
 // Update 0.2.9 — the difficulties (the designer: "a difficulty selection area with the choice of "THE REAL EXPERIENCE",
 // "WEAKLING EXEPRIENCE" "ARE YOU EVEN HUMAN?""), chosen at their altars in the lobby and shown over the main gate, and
 // what the gate asks before it lets you through on one (the designer's words; each with two answers: on through, or
-// back into the lobby). What each changes in a run is still the designer's to say: nothing yet (THE REAL EXPERIENCE is
-// the game as it is: one life, a death ends the run). Pure.
+// back into the lobby). Pure.
+// Update 0.2.12 — what each changes in a run (the designer): WEAKLING EXPERIENCE respawns you at your checkpoint (no
+// one-life punishment: runBase.ts `respawn`); THE REAL EXPERIENCE is one life; ARE YOU EVEN HUMAN? is fists and nothing
+// else, one life (CombatState.bare, no shop).
 
 export type Difficulty = 'weakling' | 'real' | 'human';
 
@@ -32,9 +34,14 @@ export interface GateAsk {
 
 /** What the gate asks, in turn, before you go through on each difficulty (none: straight through). The designer: THE
  *  REAL EXPERIENCE "will ask 3 times if they are sure about this choice", then the last line; ARE YOU EVEN HUMAN? "Let's
- *  just assume you are not human"; each "with 2 logical response choices". */
+ *  just assume you are not human"; each "with 2 logical response choices". Update 0.2.12 — WEAKLING EXPERIENCE mocks you
+ *  (the designer: "give a mocking pop-up for the weakling experience"; the answers are Claude's). */
 export const GATE_ASKS: Readonly<Record<Difficulty, readonly GateAsk[]>> = {
-  weakling: [],
+  weakling: [
+    { says: 'Hmm? Not feeling like playing properly?', yes: 'Not today', no: 'Fine, I will' },
+    { says: 'Bro, just play it normally', yes: 'No thanks', no: 'You’re right' },
+    { says: 'Alright “Weakling”, go on and enjoy your run…', yes: 'I will', no: 'Wait…' },
+  ],
   real: [
     { says: 'Ready for pain?', yes: 'Born ready', no: 'Not yet' },
     { says: 'Are you sure?', yes: 'Dead sure', no: 'Let me think' },

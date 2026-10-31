@@ -147,7 +147,8 @@ export function chestToOpen(t: Treasure, level: DungeonLevel, x: number, z: numb
 /** Update 0.2.0 — chest `i` starts rising out of the floor (if it's buried). */
 export function raiseChest(t: Treasure, i: number, state: CombatState) {
   const c = t.chests[i];
-  if (!c || c.state !== 'buried') return;
+  // (Update 0.2.12 — ARE YOU EVEN HUMAN?: no chests.)
+  if (!c || c.state !== 'buried' || state.bare) return;
   c.state = 'rising';
   c.t = 0;
   state.events.push('chestRise', i, c.spot.x, 0, c.spot.z);
