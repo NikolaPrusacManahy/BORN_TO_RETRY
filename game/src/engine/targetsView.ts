@@ -35,6 +35,8 @@ export class TargetsView {
   private readonly orbs: THREE.Mesh[] = [];
   private readonly shafts: THREE.Mesh[] = [];
   private readonly orbMat = new THREE.MeshBasicMaterial({ color: ORB_COLOR });
+  /** Update 0.2.10 — floor 5's Glubs' water bolts. */
+  private readonly waterMat = new THREE.MeshBasicMaterial({ color: 0x6fe0ff, transparent: true, opacity: 0.85 });
   private readonly geos: THREE.BufferGeometry[] = [];
   private readonly look = new THREE.Vector3();
 
@@ -156,8 +158,9 @@ export class TargetsView {
       const o = state.orbs[i];
       const m = this.orbs[i];
       const s = this.shafts[i];
-      m.visible = o.alive && o.look === 'fire';
-      s.visible = o.alive && o.look !== 'fire';
+      m.visible = o.alive && (o.look === 'fire' || o.look === 'water');
+      s.visible = o.alive && o.look !== 'fire' && o.look !== 'water';
+      m.material = o.look === 'water' ? this.waterMat : this.orbMat;
       if (!o.alive) continue;
       if (s.visible) {
         // Its point first, the way it flies.
@@ -180,5 +183,7 @@ export class TargetsView {
     this.group.traverse((o) => {
       if (o instanceof THREE.Mesh) (o.material as THREE.Material).dispose();
     });
+    this.waterMat.dispose();
+    this.orbMat.dispose();
   }
 }

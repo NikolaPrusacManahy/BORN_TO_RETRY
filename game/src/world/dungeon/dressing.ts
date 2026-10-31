@@ -62,6 +62,8 @@ export interface Dressing {
   style: DungeonStyle;
   /** Update 0.2.4 — loose sand: quicksand and the beds palms and cacti stand in. */
   sand: SandCell[];
+  /** Update 0.2.10 — lily pads on the tide (they ride its level: waterView.ts). */
+  floats: Placement[];
 }
 
 /** Kit pieces (export_dungeon_kit.py names). */
@@ -89,6 +91,9 @@ const TORCH_REACH = 0.55;
 /** No wall torch closer than this to the wooden gate (m): its own two frame it. */
 const GATE_TORCHES = 9;
 const TORCH_Y = 2.2;
+/** Update 0.2.10 — a flooding room's floor cell has a lily pad this often. */
+const LILY_PADS = 0.06;
+const LILY_PAD = 'kit_n_Lilypad';
 
 /** A turn that points a piece's front (+z) along a direction. */
 const FACING: Record<Side, number> = { s: 0, n: Math.PI, e: Math.PI / 2, w: -Math.PI / 2 };
@@ -109,6 +114,7 @@ export function dress(plan: FloorPlan): Dressing {
   const torches: Dressing['torches'] = [];
   const lava: Dressing['lava'] = [];
   const sand: SandCell[] = [];
+  const floats: Placement[] = [];
   const put = (piece: string, x: number, y: number, z: number, rot = 0, sx = 1, sy = 1, sz = 1) => pieces.push({ piece, x, y, z, rot, sx, sy, sz });
   const inRoom = new Int16Array(GRID * GRID).fill(-1);
   for (const r of plan.rooms) for (let row = -1; row <= r.layout.h; row++) for (let col = -1; col <= r.layout.w; col++) inRoom[(r.z0 + row) * GRID + r.x0 + col] = r.index;
@@ -165,6 +171,7 @@ export function dress(plan: FloorPlan): Dressing {
         case 'sand':
         case 'palm':
         case 'cactus':
+        case 'willow':
           dressSand(c, x, z, rng, put, sand);
           break;
         case 'low':
@@ -187,6 +194,11 @@ export function dress(plan: FloorPlan): Dressing {
           break;
         }
         case 'floor':
+          // Update 0.2.10 — a lily pad now and then on a room the tide floods.
+          if (K.water !== undefined && inRoom[row * GRID + col] >= 0 && plan.rooms[inRoom[row * GRID + col]].kind === 'fight' && rng() < LILY_PADS) {
+            const s = 0.55 + 0.3 * rng();
+            floats.push({ piece: LILY_PAD, x: x + (rng() - 0.5) * 1.2, y: 0, z: z + (rng() - 0.5) * 1.2, rot: rng() * Math.PI * 2, sx: s, sy: s, sz: s });
+          }
           if (inRoom[row * GRID + col] >= 0 && !nearDoor(col, row) && rng() < 0.08) {
             // Litter against a wall.
             for (const [dc, dr] of DIRS) {
@@ -248,7 +260,7 @@ export function dress(plan: FloorPlan): Dressing {
     put(KIT.torch, tx, TORCH_Y, tz, FACING[inward] - Math.PI / 2);
     torches.push({ x: ns ? tx : gx - ox * (CELL / 2 + 0.95), y: TORCH_Y + 1.2, z: ns ? gz - oz * (CELL / 2 + 0.95) : tz });
   }
-  return { pieces, gates, torches, cores: coresOf(plan), lava, style: K, sand };
+  return { pieces, gates, torches, cores: coresOf(plan), lava, style: K, sand, floats };
 }
 
 /** A column: one piece, or a stack up to the columns' height (a bottom, middles, a top). */

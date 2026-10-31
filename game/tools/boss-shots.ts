@@ -2,7 +2,8 @@
 // sliding walls at `k` (0: the small room you walk into, 1: slid back), the wooden gate (shut, or open with `--open`)
 // and the dark, and the Demon in its stance at the portal; the cameras are the show's own shots. Blender draws it with
 // the real kit (tools/blender/render_dungeon.py).
-//   npx tsx tools/boss-shots.ts <out folder> [seed] [k] [--open]
+// Update 0.2.10 — any floor's (`floor`): its look, its boss at its size (the Drowned King's room flooded deep).
+//   npx tsx tools/boss-shots.ts <out folder> [seed] [k] [floor] [--open]
 //   blender --background --python tools/blender/render_dungeon.py -- --json <out folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <out folder> --day
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -12,7 +13,8 @@ import { Cinema, Shot } from '../src/engine/boss/cinema';
 import { Shell } from '../src/engine/boss/shell';
 import { WoodGate } from '../src/engine/boss/woodGate';
 import { introBeats } from '../src/sim/dungeon/bossRoom';
-import { BOSS } from '../src/tuning/boss';
+import { bossOf, ENEMY_STATS } from '../src/sim/enemies/kinds';
+import { DROWNED } from '../src/tuning/drowned';
 import { buildDungeon } from '../src/world/dungeon/assemble';
 import { dress, KIT, Placement } from '../src/world/dungeon/dressing';
 import { planFloor } from '../src/world/dungeon/floorPlan';
@@ -20,12 +22,13 @@ import type { ArenaBox } from '../src/world/arena';
 
 const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const out = args[0];
-if (!out) throw new Error('usage: npx tsx tools/boss-shots.ts <out folder> [seed] [k] [--open]');
+if (!out) throw new Error('usage: npx tsx tools/boss-shots.ts <out folder> [seed] [k] [floor] [--open]');
 const seed = Number(args[1] ?? 4242);
 const k = Number(args[2] ?? 0);
+const floor = Number(args[3] ?? 1);
 const open = process.argv.includes('--open');
 mkdirSync(out, { recursive: true });
-const level = buildDungeon(planFloor(seed, 1));
+const level = buildDungeon(planFloor(seed, floor));
 const d = dress(level.plan);
 const b = level.boss;
 const room = level.rooms[b.room];
@@ -66,7 +69,7 @@ if (shell.group.visible) {
 
 // The wooden gate and the dark: boxes with their colours.
 const scene = new THREE.Scene();
-const gate = new WoodGate(scene, b, 'FLOOR 2');
+const gate = new WoodGate(scene, b, `FLOOR ${floor + 1}`);
 gate.update(open ? 1 : 0);
 scene.updateMatrixWorld(true);
 scene.traverse((o) => {
@@ -97,7 +100,12 @@ const cams = [
   { name: 'boss-gate', at: [g.x - g.ox * 11, 3.2, g.z - g.oz * 11], to: [g.x + g.ox * 2, 2, g.z + g.oz * 2] },
   { name: 'boss-gate-close', at: [g.x - g.ox * 4, 1.6, g.z - g.oz * 4], to: [g.x + g.ox * 3, 1.5, g.z + g.oz * 3] },
 ];
-const demon = { x: b.portal.x, z: b.portal.z, yaw: Math.atan2(-(eye.x - b.portal.x), -(eye.z - b.portal.z)), height: BOSS.v.demonHeight };
+const kind = bossOf(floor);
+const demon = { x: b.portal.x, z: b.portal.z, yaw: Math.atan2(-(eye.x - b.portal.x), -(eye.z - b.portal.z)), height: ENEMY_STATS[kind]().height };
 const extent = { min: { x: room.min.x - 8, z: room.min.z - 8 }, max: { x: room.max.x + 8, z: room.max.z + 8 } };
-writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ seed, floor: 1, pieces, gates: d.gates, torches: d.torches, cores, pads: level.arena.pads, exit: level.exit, cams, extent, boxes, demon }));
+const floors = level.arena.boxes.filter((x) => x.kind === 'floor').map((x) => ({ x: x.x, z: x.z, w: x.w, d: x.d }));
+// (The Drowned King's room in its flood.)
+const end = b.end;
+const water = kind === 'drownedKing' ? { level: DROWNED.v.floodDeep, rooms: [{ x: (end.min.x + end.max.x) / 2, z: (end.min.z + end.max.z) / 2, w: end.max.x - end.min.x, d: end.max.z - end.min.z }] } : null;
+writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ seed, floor, pieces, water, gates: d.gates, torches: d.torches, cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, sand: d.sand, boxes, demon, floors }));
 console.log(`seed ${seed}: boss room ${b.room} (entrance ${b.entrance}), walls at ${k}, gate ${open ? 'open' : 'shut'}, ${pieces.length} pieces, ${boxes.length} gate boxes`);

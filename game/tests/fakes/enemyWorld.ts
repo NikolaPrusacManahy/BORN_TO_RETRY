@@ -24,7 +24,7 @@ export const OPEN_WORLD = new FlatWorld();
 export const OPEN_ARENA: Arena = { name: 'open', boxes: [], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] };
 
 export function worldFor(events: EventQueue<CombatEvent>, small: NavGrid, large: NavGrid = small, air: NavGrid = small, enemies: Enemy[] = []): EnemyWorld {
-  return { nav: { small, large, air }, flow: { small: createFlow(small), large: createFlow(large), air: createFlow(air) }, orbs: createOrbs(), quakes: createQuakes(), rng: createRng(1), events, enemies, bombs: createBombs(), grab: createGrab(), pin: createPin(), storm: 0 };
+  return { nav: { small, large, air }, flow: { small: createFlow(small), large: createFlow(large), air: createFlow(air) }, orbs: createOrbs(), quakes: createQuakes(), rng: createRng(1), events, enemies, bombs: createBombs(), grab: createGrab(), pin: createPin(), storm: 0, tide: 0, flood: 0 };
 }
 
 /** An arena's grids for both sizes. */

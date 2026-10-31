@@ -10,13 +10,15 @@
 // exit gate") — its body bursts with nothing; what it left (its coins, a key, a heart) is in the chest that rises in
 // front of the wooden gate as it opens (treasure.ts, roomLoop.ts).
 // Update 0.2.3 — floor 3's is the Bone King: it roars as it takes its stance. Update 0.2.4 — floor 4's the Dino (it
-// roars too).
+// roars too). Update 0.2.10 — floor 5's the Drowned King: it roars too, and as it rises for good it calls its brood of
+// Spawnlings, once (the designer: "only one wave of smaller minions, once only, not infinite").
 import type { Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import { BOSS } from '../../tuning/boss';
 import { DRAGON } from '../../tuning/dragon';
 import { BONE_KING } from '../../tuning/boneKing';
 import { DINO } from '../../tuning/dino';
+import { DROWNED } from '../../tuning/drowned';
 import { CINEMA } from '../../tuning/cinema';
 import { clearQuakes } from '../combat/quakes';
 import { clearBombs } from '../combat/bombs';
@@ -57,7 +59,8 @@ export function createBossRun(kind: EnemyKind = 'demon'): BossRun {
   return { kind, stance: false, beat: 'waiting', t: 0, slot: -1, summon: 0, calling: false };
 }
 
-/** Update 0.0.18 — who a boss calls once it rages, how many and how often (s) (Update 0.0.21: only the Demon calls). */
+/** Update 0.0.18 — who a boss calls once it rages, how many and how often (s) (Update 0.0.21: only the Demon calls;
+ *  Update 0.2.10: and the Drowned King, once: never again, `every` Infinity). */
 interface Calls {
   kind: EnemyKind;
   count: number;
@@ -66,14 +69,21 @@ interface Calls {
 const CALLS: Calls = { kind: 'grunt', count: 0, every: 0 };
 
 function callsOf(kind: EnemyKind): Calls | null {
+  if (kind === 'drownedKing') {
+    CALLS.kind = 'spawnling';
+    CALLS.count = DROWNED.v.brood;
+    CALLS.every = Infinity;
+    return CALLS;
+  }
   if (kind !== 'demon') return null;
+  CALLS.kind = 'grunt';
   CALLS.count = BOSS.v.summonGrunts;
   CALLS.every = BOSS.v.summonEvery;
   return CALLS;
 }
 
 /** The coins a boss leaves (Update 0.2.0: in its chest). */
-export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : BOSS.v.demonCoins);
+export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : BOSS.v.demonCoins);
 
 /** The show's beats, in seconds from stepping in. */
 export interface IntroBeats {
@@ -166,6 +176,7 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
         if (b.kind === 'dragon') ev.push('dragonScream', b.slot, boss.pos.x, height * 0.8, boss.pos.z);
         if (b.kind === 'boneKing') ev.push('kingRoar', b.slot, boss.pos.x, height * 0.85, boss.pos.z);
         if (b.kind === 'dino') ev.push('dinoRoar', b.slot, boss.pos.x, height * 0.85, boss.pos.z);
+        if (b.kind === 'drownedKing') ev.push('drownedRoar', b.slot, boss.pos.x, height * 0.85, boss.pos.z);
       }
       if (b.t >= s.end) {
         boss.pos.y = 0;
@@ -241,9 +252,13 @@ function minions(combat: CombatState, slot: number): number {
   return n;
 }
 
-/** Its minions at the room's spawn spots, away from you (seeded). */
+/** Its minions at the room's spawn spots, away from you (seeded). Update 0.2.10 — out of spots away from you (the
+ *  Drowned King's brood is many), the room's others, round again. */
 function call(spawns: readonly Spot[], player: PlayerState, combat: CombatState, rng: Rng, calls: Calls) {
   const far = spawns.filter((s) => Math.hypot(s.x - player.pos.x, s.z - player.pos.z) >= CALL_CLEAR);
   const pool = [...(far.length > 0 ? far : spawns)];
-  for (let n = 0; n < calls.count && pool.length > 0; n++) spawnAt(combat.enemies, calls.kind, pool, player, rng, combat.events);
+  for (let n = 0; n < calls.count && spawns.length > 0; n++) {
+    if (pool.length === 0) pool.push(...spawns);
+    spawnAt(combat.enemies, calls.kind, pool, player, rng, combat.events);
+  }
 }

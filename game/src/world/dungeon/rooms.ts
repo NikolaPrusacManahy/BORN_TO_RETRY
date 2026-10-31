@@ -15,19 +15,21 @@
 // (`until`).
 // Update 0.2.4 — floor 4's desert (desertRooms.ts): Q quicksand (floor you sink in), Y a palm and K a cactus, each in a
 // bed of sand.
+// Update 0.2.10 — floor 5's Drowned Temple (drownedRooms.ts): W a willow in a bed of mud (and no pits).
 import type { Rng } from '../../core/rng';
 import { FIGHT_ROOMS as FIRST_ROOMS, quarter } from './fightRooms';
 import { LAVA_ROOMS } from './lavaRooms';
 import { KEEP_ROOMS } from './keepRooms';
 import { DESERT_ROOMS } from './desertRooms';
+import { DROWNED_ROOMS } from './drownedRooms';
 
 /** Every fight room (Update 0.0.20: the lava rooms too, from their floor on; Update 0.0.21: floor 3's). */
-export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...LAVA_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS];
+export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...LAVA_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS];
 
 /** Update 0.0.21 — the rooms floor `floor` has. */
 export const onFloor = (t: RoomTemplate, floor: number) => (t.from ?? 1) <= floor && floor <= (t.until ?? Infinity);
 
-export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus';
+export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow';
 export type RoomKind = 'start' | 'fight' | 'boss' | 'shop';
 
 export interface RoomTemplate {
@@ -58,6 +60,7 @@ const CHAR: Record<string, Cell> = {
   Q: 'sand',
   Y: 'palm',
   K: 'cactus',
+  W: 'willow',
 };
 
 export const START_ROOM: RoomTemplate = {

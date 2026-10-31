@@ -6,6 +6,7 @@
 # Run (from game/):
 #   blender --background --disable-autoexec --python tools/blender/export_monster.py -- \
 #     --blend "<Ultimate Monsters>/used_monster/blobs/Orc.blend" --glb public/models/enemies/orc.glb --previews <folder>
+# Update 0.2.10 — `--crown <Ultimate RPG Pack>/Crown.blend`: a crown on its head, riding its Head bone (the Drowned King).
 import argparse
 import math
 import os
@@ -28,6 +29,7 @@ def parse_args():
     # Update 0.0.12 — the clip to time (where its blow lands): 'Weapon' for the Orc and the Yeti, 'Bite_Front' for the
     # Wizard's spit.
     p.add_argument('--attack', default='Weapon')
+    p.add_argument('--crown', default=None)
     return p.parse_args(argv)
 
 
@@ -61,6 +63,53 @@ def swing_timing(arm, action_name):
     return best[0] - f0, f1 - f0
 
 
+def crown_on(arm, path):
+    """Update 0.2.10 — a crown from `path` on the monster's head, riding its Head bone: as wide as most of the head, sat
+    on its top."""
+    scene = bpy.context.scene
+    with bpy.data.libraries.load(os.path.abspath(path), link=False) as (src, dst):
+        dst.objects = [n for n in src.objects]
+    crowns = [o for o in dst.objects if o is not None and o.type == 'MESH']
+    for o in crowns:
+        scene.collection.objects.link(o)
+    crown = crowns[0]
+    bpy.context.view_layer.update()
+    body = next(o for o in scene.objects if o.type == 'MESH' and o not in crowns and o.vertex_groups.get('Head'))
+    head = body.vertex_groups['Head'].index
+    pts = [body.matrix_world @ v.co for v in body.data.vertices if any(g.group == head and g.weight > 0.5 for g in v.groups)]
+    # Its dome: the highest slice of the head still wide (a fin or a horn on top pokes up through the crown).
+    lo_z = min(p.z for p in pts)
+    hi_z = max(p.z for p in pts)
+    full = max(p.x for p in pts) - min(p.x for p in pts)
+    top = lo_z
+    xs = [p.x for p in pts]
+    ys = [p.y for p in pts]
+    for i in range(40):
+        z0 = lo_z + (hi_z - lo_z) * i / 40
+        z1 = lo_z + (hi_z - lo_z) * (i + 1) / 40
+        band = [p for p in pts if z0 <= p.z < z1]
+        if len(band) < 3 or max(p.x for p in band) - min(p.x for p in band) < full * 0.55:
+            continue
+        top = z1
+        xs = [p.x for p in band]
+        ys = [p.y for p in band]
+    width = max(xs) - min(xs)
+    cz = [c[2] for c in crown.bound_box]
+    k = width * 0.8 / max(crown.dimensions.x, 1e-3)
+    crown.scale = (k, k, k)
+    bpy.context.view_layer.update()
+    low = min((crown.matrix_world @ Vector(c)).z for c in crown.bound_box)
+    crown.location = Vector(((max(xs) + min(xs)) / 2, (max(ys) + min(ys)) / 2, crown.location.z + top - low - width * 0.06))
+    bpy.context.view_layer.update()
+    world = crown.matrix_world.copy()
+    crown.parent = arm
+    crown.parent_type = 'BONE'
+    crown.parent_bone = 'Head'
+    bpy.context.view_layer.update()
+    crown.matrix_world = world
+    print(f'crown on its head at {top:.2f} m, {width * 0.8:.2f} m across ({len(cz)} corners)')
+
+
 def main():
     args = parse_args()
     bpy.ops.wm.open_mainfile(filepath=os.path.abspath(args.blend), load_ui=False, use_scripts=False)
@@ -68,6 +117,8 @@ def main():
     if not arm.animation_data:
         arm.animation_data_create()
     print('actions:', ', '.join(a.name for a in bpy.data.actions))
+    if args.crown:
+        crown_on(arm, args.crown)
     timing = swing_timing(arm, args.attack)
     if timing:
         hit, frames = timing

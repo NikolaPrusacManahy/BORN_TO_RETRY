@@ -4,6 +4,8 @@
 // within its radius on the ground, you're hurt and thrown. A small pool, no garbage. Pure.
 // Update 0.2.3 — the Bone King throws skeletons the same way (`look` 'bones': they smash, 'boneCrash').
 // Update 0.2.4 — the Lizard's poison glob (`look` 'poison'): it splashes into a puddle (puddles.ts), no blast.
+// Update 0.2.10 — the Drowned King's geysers (`look` 'geyser'): nothing falls, the floor rings where it'll burst up
+// ('geyserBurst'), throwing you high.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { damagePlayer } from '../player/health';
@@ -26,12 +28,16 @@ export interface Bomb {
   /** Update 0.1.14 — who threw it. */
   by: Cause | null;
   /** Update 0.2.3 — a fireball, or a skeleton (the Bone King's). */
-  look: 'fire' | 'bones' | 'poison';
+  /** (Update 0.2.10 — 'bubble': floor 5's Big Glub's; it pops, 'bubblePop'. 'geyser': the Drowned King's.) */
+  look: 'fire' | 'bones' | 'poison' | 'bubble' | 'geyser';
 }
 
 export const BOMB_POOL = 12;
 /** How high its arc rises over the straight line (m). */
 const ARC = 3;
+/** A geyser throws you up this fast (m/s); a blast, this. */
+const GEYSER_UP = 11;
+const BLAST_UP = 6;
 
 export function createBombs(): Bomb[] {
   return Array.from({ length: BOMB_POOL }, () => ({ alive: false, from: new Vector3(), to: new Vector3(), pos: new Vector3(), t: 0, fall: 1, radius: 1, damage: 0, shove: 0, by: null, look: 'fire' as Bomb['look'] }));
@@ -73,7 +79,7 @@ export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQue
       addPuddle(puddles, b.to.x, b.to.y, b.to.z, events);
       continue;
     }
-    events.push(b.look === 'bones' ? 'boneCrash' : 'bombBlast', b.radius, b.to.x, b.to.y, b.to.z);
+    events.push(b.look === 'bones' ? 'boneCrash' : b.look === 'bubble' ? 'bubblePop' : b.look === 'geyser' ? 'geyserBurst' : 'bombBlast', b.radius, b.to.x, b.to.y, b.to.z);
     const dx = player.pos.x - b.to.x;
     const dz = player.pos.z - b.to.z;
     const d = Math.hypot(dx, dz);
@@ -82,7 +88,7 @@ export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQue
     const nz = d > 1e-3 ? dz / d : 0;
     player.vel.x += nx * b.shove;
     player.vel.z += nz * b.shove;
-    player.vel.y = Math.max(player.vel.y, 6);
+    player.vel.y = Math.max(player.vel.y, b.look === 'geyser' ? GEYSER_UP : BLAST_UP);
     player.grounded = false;
   }
 }

@@ -4,6 +4,9 @@
 // Update 0.2.3 — the Bone King: the Skeleton's model, massive; holding you, and charging its blast, it stands.
 // Update 0.2.4 — floor 4's: the Tribal (the Orc's rig: its spear throw is the Weapon swing), the Cactoro (the Mushnub's
 // rig), the big Cactoro and the Dino (the Orc's rig), the Hywirl (the Ghost's); under the sand, nothing shows.
+// Update 0.2.10 — floor 5's: the blobs (the Snapper, the Urchin, the Jelly, the Spawnling: Bite_Front 7/30), the fliers
+// (the Glubs' spit is a Punch, 6/30 and 9/30; the Squidle's dive a Headbutt, 7/30), the mini bosses (the big rig's
+// Weapon, 15/30); under the water, nothing shows (the Snapper's fin is drownedFx.ts's).
 import { bratWindup } from '../sim/enemies/dragonling';
 import { rabbitWindup } from '../sim/enemies/rabbit';
 import { mushWindup } from '../sim/enemies/bigMushnub';
@@ -19,6 +22,10 @@ import { FOES4 } from '../tuning/foes4';
 import { windupOf as bigWindup } from '../sim/enemies/cactoroBig';
 import { dinoWindup } from '../sim/enemies/dino';
 import { orcWindup } from '../sim/enemies/skullOrc';
+import { FOES5 } from '../tuning/foes5';
+import { deepWindup } from '../sim/enemies/deepOne';
+import { bogWindup } from '../sim/enemies/bogBrute';
+import { drownedWindup } from '../sim/enemies/drownedKing';
 
 export type Role = 'idle' | 'move' | 'attack' | 'hit' | 'death' | 'air' | 'rise';
 export const ROLES: Role[] = ['idle', 'move', 'attack', 'hit', 'death', 'air', 'rise'];
@@ -42,6 +49,11 @@ export interface Look {
 }
 
 /** Update 0.0.18 — a newer-pack monster's clips (`<Name>_Idle`, …); `move` and `air` name their own. */
+/** Update 0.2.10 — the blobs', the fliers' and the big rig's clips. */
+const BLOB = { idle: 'Idle', move: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', air: 'Jump' };
+const FLIER = { idle: 'Flying_Idle', move: 'Fast_Flying', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Fast_Flying' };
+const BIG = { idle: 'Idle', move: 'Walk', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' };
+
 const newer = (name: string, move: string, air: string): Record<Exclude<Role, 'rise'>, string> => ({
   idle: `${name}_Idle`,
   move: `${name}_${move}`,
@@ -95,6 +107,18 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
   bigMushnub: { url: '/models/enemies/mushroom_king.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 15 / 30, windup: mushWindup, glow: [0.3, 0.75, 1] },
   dino: { url: '/models/enemies/velociraptor.glb', clips: { idle: 'Velociraptor_Idle', move: 'Velociraptor_Run', attack: 'Velociraptor_Attack', hit: 'Velociraptor_Idle', death: 'Velociraptor_Death', air: 'Velociraptor_Jump' }, lands: 10 / 24, windup: dinoWindup, glow: [1, 0.3, 0.08], posed: true },
   ninja: { url: '/models/enemies/ninja.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 20 / 30, windup: () => FOES3.v.ninjaWindup, glow: [1, 0.1, 0.35] },
+  // Update 0.2.10 — floor 5's.
+  snapper: { url: '/models/enemies/snapper.glb', clips: BLOB, lands: 7 / 30, windup: (move) => (move === 1 ? FOES5.v.snapperRise : FOES5.v.snapperWindup), glow: [0.3, 0.9, 1] },
+  urchin: { url: '/models/enemies/urchin.glb', clips: BLOB, lands: 7 / 30, windup: () => FOES5.v.urchinWindup, glow: [1, 0.3, 0.2] },
+  jelly: { url: '/models/enemies/jelly.glb', clips: BLOB, lands: 7 / 30, windup: () => FOES5.v.jellyGlow, glow: [1, 0.55, 0.95] },
+  spawnling: { url: '/models/enemies/spawnling.glb', clips: BLOB, lands: 7 / 30, windup: () => FOES5.v.spawnWindup, glow: [0.75, 0.3, 1] },
+  glub: { url: '/models/enemies/glub.glb', clips: FLIER, lands: 6 / 30, windup: () => FOES5.v.glubWindup, glow: [0.3, 0.8, 1] },
+  bigGlub: { url: '/models/enemies/big_glub.glb', clips: FLIER, lands: 9 / 30, windup: () => FOES5.v.bubbleWindup, glow: [0.4, 0.95, 1] },
+  squidle: { url: '/models/enemies/squidle.glb', clips: { ...FLIER, attack: 'Headbutt' }, lands: 7 / 30, windup: () => FOES5.v.squidleWindup, glow: [1, 0.3, 0.6] },
+  deepOne: { url: '/models/enemies/deep_one.glb', clips: BIG, lands: 15 / 30, windup: deepWindup, glow: [0.7, 0.3, 1] },
+  bogBrute: { url: '/models/enemies/bog_brute.glb', clips: BIG, lands: 15 / 30, windup: bogWindup, glow: [0.5, 1, 0.3] },
+  // (Its boss: the Fish, huge, a crown on its head: tools/blender/export_monster.py --crown.)
+  drownedKing: { url: '/models/enemies/drowned_king.glb', clips: BIG, lands: 15 / 30, windup: drownedWindup, glow: [0.3, 1, 0.85] },
   blueDemon: { url: '/models/enemies/bluedemon.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Run' }, lands: 17 / 30, windup: blueWindup, glow: [0.2, 0.55, 1] },
 };
 

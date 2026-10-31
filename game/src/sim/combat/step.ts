@@ -26,6 +26,7 @@
 // Its sandstorm blows itself out (or ends with it).
 // Update 0.2.4 — the Pistol: its shots, aim and reloads (gun.ts) instead of swings; right click aims, so only a click
 // throws one with no bullets left.
+import { damagePlayer } from '../player/health';
 import { updatePuddles } from './puddles';
 import { stepGrab, tickGrab } from './grab';
 import { stepPin, tickPin } from './pin';
@@ -62,6 +63,7 @@ import { attackRate } from '../items/items';
 import { emptyHand, giveWeapon, selectSlot, settleHand } from '../weapons/slots';
 import type { CombatState } from './state';
 import { execHeld, execTarget, stepExecution, tryExecute } from './execution';
+import { stepFlood } from '../enemies/drownedKingMoves';
 import { updateTurret } from './turret';
 
 /** Update 0.1.12 — seconds with no enemy you could execute before a new one stings again. */
@@ -82,6 +84,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   const events = state.events;
   // Update 0.0.13 — kneeling at a chest, you don't fight.
   if (player.kneel > 0) intent = IDLE;
+  // (Update 0.2.10 — the water drags you only while something drags you: the Drowned King's whirlpool, each tick.)
+  player.current.set(0, 0, 0);
   settleHand(state);
   tickGrab(state.grab, dt);
   if (state.grab.on) {
@@ -213,8 +217,14 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     slamImpact(state, player.pos, player.slamImpact);
     player.slamImpact = 0;
   }
+  // (Update 0.2.10 — an Urchin's thorns: your blows on it with its spikes out hurt you.)
+  if (state.thorns > 0) {
+    damagePlayer(player, state.thorns, 'urchin');
+    state.thorns = 0;
+  }
   updateEnemies(state.enemies, player, state, world, dt);
   if (state.storm > 0) state.storm = state.enemies.some((e) => e.kind === 'dino' && isLive(e)) ? Math.max(0, state.storm - dt) : 0;
+  stepFlood(state, dt);
   updateQuakes(state.quakes, player, events, dt);
   updateBombs(state.bombs, player, events, dt, state.puddles);
   updatePuddles(state.puddles, player, dt);

@@ -7,7 +7,7 @@ import type { DropKind } from '../sim/items/drops';
 import type { LabCommand } from '../sim/lab/labCommands';
 import type { WeaponKind } from '../sim/weapons/catalog';
 
-export type LabBoss = 'demon' | 'dragon' | 'boneKing' | 'dino';
+export type LabBoss = 'demon' | 'dragon' | 'boneKing' | 'dino' | 'drownedKing';
 
 const NAMES: Partial<Record<EnemyKind, string>> = {
   grunt: 'Grunt',
@@ -38,6 +38,16 @@ const NAMES: Partial<Record<EnemyKind, string>> = {
   skullWraith: 'Skull Wraith',
   rabbit: 'White Rabbit',
   bigMushnub: 'Big Mushnub',
+  snapper: 'Snapper',
+  urchin: 'Urchin',
+  jelly: 'Jelly',
+  glub: 'Glub',
+  bigGlub: 'Big Glub',
+  squidle: 'Squidle',
+  spawnling: 'Spawnling',
+  deepOne: 'Deep One',
+  bogBrute: 'Bog Brute',
+  drownedKing: 'Drowned King',
   demon: 'Demon',
   dragon: 'Dragon',
   boneKing: 'Bone King',
@@ -55,7 +65,7 @@ export interface LabFloor {
 
 export const LAB_FLOORS: readonly LabFloor[] = (() => {
   const seen = new Set<EnemyKind>();
-  return [1, 2, 3, 4].map((floor) => {
+  return [1, 2, 3, 4, 5].map((floor) => {
     const fresh = rosterOf(floor).filter((k) => !seen.has(k));
     for (const k of fresh) seen.add(k);
     return { floor, enemies: [...fresh.filter((k) => !isMini(k)), ...fresh.filter(isMini)], boss: bossOf(floor) as LabBoss };

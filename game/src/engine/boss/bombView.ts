@@ -25,6 +25,8 @@ export class BombView {
   private readonly discGeo = new THREE.CircleGeometry(1, 40).rotateX(-Math.PI / 2);
   private readonly ballMat = new THREE.MeshStandardMaterial({ color: 0x3a0800, emissive: 0xff6a10, emissiveIntensity: 3 });
   private readonly poisonMat = new THREE.MeshStandardMaterial({ color: 0x2a5a10, emissive: 0x6aff30, emissiveIntensity: 1.6 });
+  /** Update 0.2.10 — floor 5's Big Glub's bubbles. */
+  private readonly bubbleMat = new THREE.MeshStandardMaterial({ color: 0x9ff0ff, emissive: 0x2a9ab8, emissiveIntensity: 0.8, transparent: true, opacity: 0.6, roughness: 0.1 });
   private readonly shown: Shown[] = [];
   private readonly mats: THREE.Material[] = [];
   private time = 0;
@@ -49,8 +51,8 @@ export class BombView {
       const s = this.shown[i];
       s.ball.visible = s.ring.visible = s.fill.visible = b.alive;
       if (!b.alive) continue;
-      s.ball.visible = b.look !== 'bones';
-      s.ball.material = b.look === 'poison' ? this.poisonMat : this.ballMat;
+      s.ball.visible = b.look !== 'bones' && b.look !== 'geyser';
+      s.ball.material = b.look === 'poison' ? this.poisonMat : b.look === 'bubble' ? this.bubbleMat : this.ballMat;
       const k = Math.min(1, b.t / b.fall);
       const flicker = 0.85 + 0.15 * Math.sin(this.time * 40 + i);
       s.ball.position.copy(b.pos);
@@ -75,6 +77,7 @@ export class BombView {
     this.discGeo.dispose();
     this.ballMat.dispose();
     this.poisonMat.dispose();
+    this.bubbleMat.dispose();
     for (const m of this.mats) m.dispose();
   }
 }

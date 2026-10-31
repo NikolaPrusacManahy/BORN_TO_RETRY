@@ -7,6 +7,7 @@
 // Update 0.2.3 — and the Bone King's thrown skeletons, its jumps' landings and its blast's reach (boss/kingView.ts).
 // Update 0.2.4 — and floor 4's burrowers' sand and warnings, the Dino's pounce landing (desertFx.ts).
 // Update 0.2.8 — the Velociraptor's sandstorm, its eyes in it, its blitz's afterimages (boss/raptorFx.ts).
+// Update 0.2.10 — floor 5's fins, rings on the water, spikes and lash lines (drownedFx.ts).
 // Update 0.1.2 — and executions (exec/execScene.ts: the body, its pieces, the frog's tongue).
 // Update 0.1.4 — and the Grimoire's fireballs (fireView.ts). Update 0.1.9 — and the daggers' volley (knivesView.ts).
 // Update 0.1.12 — and the skull over the enemy you can execute (execMarkView.ts).
@@ -24,6 +25,7 @@ import { BombView } from './boss/bombView';
 import { KingView } from './boss/kingView';
 import { DesertFx } from './desertFx';
 import { RaptorFx } from './boss/raptorFx';
+import { DrownedFx } from './drownedFx';
 import { EnemiesView } from './enemiesView';
 import { ExecScene } from './exec/execScene';
 import { FireView } from './fireView';
@@ -57,6 +59,7 @@ export class CombatScene {
   private readonly bombs: BombView;
   private readonly king: KingView;
   private readonly desert: DesertFx;
+  private readonly drowned: DrownedFx;
   readonly raptor: RaptorFx;
 
   constructor(scene: THREE.Scene, state: CombatState, audio: AudioEngine, rig: CameraRig, arms: Viewmodel) {
@@ -69,6 +72,7 @@ export class CombatScene {
     this.bombs = new BombView(scene);
     this.king = new KingView(scene);
     this.desert = new DesertFx(scene);
+    this.drowned = new DrownedFx(scene);
     this.raptor = new RaptorFx(scene);
     this.coins = new CoinsView(scene);
     scene.add(this.waves.group);
@@ -100,6 +104,7 @@ export class CombatScene {
     this.bombs.update(state, gameDt);
     this.king.update(state, gameDt, (i) => this.enemies.rootOf(i));
     this.desert.update(state, gameDt);
+    this.drowned.update(state, gameDt);
     this.raptor.update(state, alpha, gameDt, (i) => this.enemies.headOf(i));
     this.waves.update(gameDt);
     this.coins.update(state.coins, gameDt);
@@ -123,6 +128,7 @@ export class CombatScene {
     this.bombs.clear();
     this.king.clear();
     this.desert.clear();
+    this.drowned.clear();
     this.fire.clear();
     this.knives.clear();
     this.gun.clear();
@@ -139,6 +145,7 @@ export class CombatScene {
     this.bombs.dispose();
     this.king.dispose();
     this.desert.dispose();
+    this.drowned.dispose();
     this.raptor.dispose();
     this.demonFx.dispose();
     this.waves.dispose();

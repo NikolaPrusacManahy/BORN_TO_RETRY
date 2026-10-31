@@ -5,12 +5,15 @@
 // Update 0.2.4 — the floor's sand (quicksand, and the beds palms and cacti stand in); the look's colours ride in `style`.
 // Update 0.2.9 — the slab under the floor only where the game has it (under the floor boxes: `floors`), so a gap at a
 // wall's foot shows the sky as it does in the game; and close looks along wall feet (`foot-…`).
+// Update 0.2.10 — floor 5's water: the tide at high water over its rooms (`water`), its lily pads on it; and looks into
+// its rooms.
 //   npx tsx tools/dungeon-shots.ts <out folder> [seed] [floor]
 //   blender --background --python tools/blender/render_dungeon.py -- --json <out folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <out folder>
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { buildDungeon, LAVA_DEPTH } from '../src/world/dungeon/assemble';
+import { TIDE } from '../src/tuning/tide';
 import { CELL, cellAt, cellX, cellZ, GRID } from '../src/world/dungeon/floorPlan';
 import { dress } from '../src/world/dungeon/dressing';
 import { planFloor } from '../src/world/dungeon/floorPlan';
@@ -74,7 +77,20 @@ for (const r of level.rooms) {
   }
 }
 const floors = level.arena.boxes.filter((b) => b.kind === 'floor').map((b) => ({ x: b.x, z: b.z, w: b.w, d: b.d }));
+const wet = d.style.water !== undefined;
 const lava = d.lava.map((c) => ({ m: new Matrix4().compose(new Vector3(c.x, -LAVA_DEPTH + 0.01, c.z), new Quaternion(), new Vector3(CELL, 0.02, CELL)).elements, color: [1, 0.32, 0.04] }));
+const high = TIDE.v.depth;
+const water = wet ? { level: high, rooms: level.tide.map((b) => ({ x: b.x, z: b.z, w: b.w, d: b.d })) } : null;
+const pieces = [...d.pieces, ...(wet ? d.floats.map((f) => ({ ...f, y: high + 0.015 })) : [])];
+if (wet) {
+  // Into the first fight rooms at eye height, standing in the water.
+  for (const r of level.rooms.filter((x) => x.kind === 'fight').slice(0, 4)) {
+    const id = level.plan.rooms[r.index].layout.template.id.replace(/ /g, '-');
+    const m = { x: (r.min.x + r.max.x) / 2, z: (r.min.z + r.max.z) / 2 };
+    cams.push({ name: `${id}-eye`, at: [r.min.x + 4, 1.6, r.min.z + 4], to: [m.x, 0.6, m.z] });
+    cams.push({ name: `${id}-high`, at: [r.min.x + 3, 14, r.min.z + 3], to: [m.x, -1, m.z] });
+  }
+}
 const extent = { min: { x: Math.min(...level.rooms.map((r) => r.min.x)) - 4, z: Math.min(...level.rooms.map((r) => r.min.z)) - 4 }, max: { x: Math.max(...level.rooms.map((r) => r.max.x)) + 4, z: Math.max(...level.rooms.map((r) => r.max.z)) + 4 } };
-writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ seed, floor, pieces: d.pieces, gates: d.gates, torches: d.torches, cores: d.cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, sand: d.sand, boxes: lava, slabY: lava.length ? -LAVA_DEPTH - 0.2 : -0.45, floors }));
+writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ seed, floor, pieces, water, gates: d.gates, torches: d.torches, cores: d.cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, sand: d.sand, boxes: lava, slabY: lava.length ? -LAVA_DEPTH - 0.2 : -0.45, floors }));
 console.log(`seed ${seed} floor ${floor}: ${level.rooms.length} rooms (${level.plan.rooms.map((r) => r.layout.template.id).join(', ')}), ${d.pieces.length} pieces, ${level.arena.boxes.length} boxes`);

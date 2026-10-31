@@ -14,11 +14,14 @@
 // once they're up), after the wooden gate's.
 // Update 0.2.1 (the designer) — every room's chest rises once its room is won; a chest in a room with no mini boss
 // (nothing there drops a key) is a gold chest: no key opens it, and it holds coins.
+// Update 0.2.10 — floor 5's willows (a trunk's block, as a palm's), and the rooms its tide floods (`tide`: every fight
+// room's inside, on a floor whose look is water).
 import type { Arena, ArenaBox, BoxKind, JumpPad, Spot } from '../arena';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, PlacedRoom, Side } from './floorPlan';
 import { OPPOSITE } from './wayOut';
 import type { Cell, RoomKind } from './rooms';
 import type { EnemyKind } from '../../sim/enemies/kinds';
+import { styleOf } from './styles';
 import { hasYeti } from '../../sim/dungeon/wavePlan';
 // Update 0.2.4 — floor 4's desert: a palm's trunk and a cactus are narrow blocks in their cells (their sand is floor);
 // quicksand is floor too, listed apart (DungeonLevel.sand) for the slow you feel in it.
@@ -118,11 +121,15 @@ export interface DungeonLevel {
   boss: BossLayout;
   /** Update 0.2.4 — the quicksand (flat areas on the floor). */
   sand: ArenaBox[];
+  /** Update 0.2.10 — the rooms the tide floods (their insides; none on a dry floor). */
+  tide: ArenaBox[];
 }
 
 /** Update 0.2.4 — a palm's trunk and a cactus: their blocks' sides and heights (m). */
 const PALM = { side: 0.7, h: 5 };
 const CACTUS = { side: 1.1, h: 2.2 };
+/** Update 0.2.10 — a willow's trunk. */
+const WILLOW = { side: 0.8, h: 5 };
 
 const hasFloor = (c: Cell) => c !== 'void' && c !== 'wall' && c !== 'lava';
 
@@ -212,7 +219,7 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
   for (let row = 0; row < GRID; row++) {
     for (let col = 0; col < GRID; col++) {
       const c = cellAt(plan, col, row);
-      const b = c === 'palm' ? PALM : c === 'cactus' ? CACTUS : null;
+      const b = c === 'palm' ? PALM : c === 'cactus' ? CACTUS : c === 'willow' ? WILLOW : null;
       if (b) boxes.push({ x: cellX(col), y: b.h / 2, z: cellZ(row), w: b.side, h: b.h, d: b.side, kind: 'block' });
     }
   }
@@ -280,5 +287,6 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
     gateAt: { x: woodGate.x, z: woodGate.z, rot: oz !== 0 ? 0 : Math.PI / 2, ox, oz },
     dark: { min: { x: cellX(out.x0) - CELL / 2, z: cellZ(out.z0) - CELL / 2 }, max: { x: cellX(out.x1) + CELL / 2, z: cellZ(out.z1) + CELL / 2 } },
   };
-  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests, boss, sand };
+  const tide = styleOf(plan.level).water === undefined ? [] : rooms.filter((r) => r.kind === 'fight').map((r): ArenaBox => ({ x: (r.min.x + r.max.x) / 2, y: 0, z: (r.min.z + r.max.z) / 2, w: r.max.x - r.min.x, h: 0, d: r.max.z - r.min.z, kind: 'accent' }));
+  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests, boss, sand, tide };
 }

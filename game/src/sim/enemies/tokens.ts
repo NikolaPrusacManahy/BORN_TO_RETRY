@@ -12,6 +12,8 @@ import { ENEMIES } from '../../tuning/enemies';
 import { FOES2 } from '../../tuning/foes2';
 import { FOES3 } from '../../tuning/foes3';
 import { FOES3B } from '../../tuning/foes3b';
+import { FOES5 } from '../../tuning/foes5';
+import { FOES5B } from '../../tuning/foes5b';
 import type { PlayerState } from '../player/state';
 import { ENEMY_POOL, Enemy, EnemyPhase, EnemyWorld, isLive } from './enemy';
 import { ENEMY_STATS, EnemyKind } from './kinds';
@@ -55,10 +57,22 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   skullWraith: 'ranged',
   rabbit: 'melee',
   bigMushnub: 'heavy',
+  // Update 0.2.10 — floor 5's: its close fighters and spitters wait their turns (it's the hardest floor yet by its mix,
+  // not its swarm); the ones that ambush from the water and the percher go their own ways.
+  snapper: null,
+  urchin: 'melee',
+  jelly: null,
+  glub: 'ranged',
+  bigGlub: null,
+  squidle: 'melee',
+  spawnling: 'melee',
+  deepOne: 'heavy',
+  bogBrute: 'heavy',
+  drownedKing: null,
 };
 
 /** Kinds whose attack waits for its cooldown: they take a token only once it's ready (a token isn't held idle). */
-const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon', 'dragonling', 'skullWraith']);
+const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon', 'dragonling', 'skullWraith', 'glub', 'squidle']);
 
 /** How far a close fighter's attack reaches (m): waiting, it keeps out of it. */
 const REACH: Partial<Record<EnemyKind, () => number>> = {
@@ -72,6 +86,10 @@ const REACH: Partial<Record<EnemyKind, () => number>> = {
   ninja: () => FOES3.v.ninjaReach,
   rabbit: () => FOES3B.v.rabbitReach,
   bigMushnub: () => FOES3B.v.smashReach,
+  urchin: () => FOES5.v.urchinTrigger * 0.6,
+  spawnling: () => FOES5.v.spawnReach,
+  deepOne: () => FOES5B.v.clawReach,
+  bogBrute: () => 3.2,
 };
 
 /** The phases an attack holds its token through: the run-in, the wind-up, a leap, a dive, a charge. */

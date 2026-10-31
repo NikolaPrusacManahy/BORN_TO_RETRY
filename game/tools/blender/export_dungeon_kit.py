@@ -7,6 +7,7 @@
 # face +x; they're turned to face −y (the game's +z) as part 1's do.
 # Update 0.2.4 — the Ultimate Nature Pack's desert pieces for floor 4 (palms, cacti, rocks: kit_n_<piece>; `--nature`).
 #       ... --nature <Ultimate Nature Pack folder>
+# Update 0.2.10 — and floor 5's, the Drowned Temple: weeping willows, lily pads, mossy rocks, a mossy stump and log.
 import argparse
 import math
 import os
@@ -25,7 +26,9 @@ PART2 = ['Column', 'Column_Broken2', 'Rock1', 'Rock2', 'Rock3', 'Bones', 'Bones2
          'ModularStoneWall', 'ModularStoneWall_top', 'ModularStoneWall_EntranceTop', 'ModularFloor', 'Entrance', 'Bars', 'WallRocks',
          'ModularColumn_bottom', 'ModularColumn_middle', 'ModularColumn_top', 'Rock4', 'Rock5']
 # Update 0.2.4 — floor 4's desert: palms and cacti in their sand beds, desert rocks.
-NATURE = ['PalmTree_1', 'PalmTree_3', 'Cactus_1', 'Cactus_3', 'CactusFlowers_2', 'Rock_2', 'Rock_5']
+NATURE = ['PalmTree_1', 'PalmTree_3', 'Cactus_1', 'Cactus_3', 'CactusFlowers_2', 'Rock_2', 'Rock_5',
+          # Update 0.2.10 — floor 5's.
+          'Willow_1', 'Willow_3', 'Willow_Dead_2', 'Lilypad', 'Rock_Moss_1', 'Rock_Moss_4', 'Rock_Moss_6', 'TreeStump_Moss', 'WoodLog_Moss']
 # Faced +x as they come: turned a quarter so they face −y.
 TURN = {'ModularStoneWall', 'ModularStoneWall_top', 'ModularStoneWall_EntranceTop', 'Entrance', 'Bars', 'WallRocks'}
 

@@ -17,6 +17,7 @@ import type { Cause, PlayerState } from './state';
 export function updateHealth(p: PlayerState, dt: number) {
   p.hurtTime = Math.max(0, p.hurtTime - dt);
   p.blind = Math.max(0, p.blind - dt);
+  p.ink = Math.max(0, p.ink - dt);
   p.dashLock = Math.max(0, p.dashLock - dt);
   if (p.poison <= 0 || p.dead) return;
   p.poison = Math.max(0, p.poison - dt);

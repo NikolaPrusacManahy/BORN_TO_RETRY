@@ -4,6 +4,7 @@
 // altar and on the playable character. Flames flicker, each a little out of step.
 import * as THREE from 'three';
 import { LOBBY_LIGHT } from '../../tuning/lobbyLight';
+import { lightNearest } from '../torchLights';
 import type { HallDressing } from '../../world/lobby/hallDressing';
 import { ALTARS, FIGURES, DAIS } from '../../world/lobby/spots';
 
@@ -79,26 +80,7 @@ export class LobbyLights {
     this.relight -= dt;
     if (this.relight > 0) return;
     this.relight = RELIGHT;
-    // The nearest torches get the lights (a few comparisons; nothing made per frame).
-    const t = this.d.torches;
-    for (let n = 0; n < this.torches.length; n++) {
-      let best = -1;
-      let bestD = Infinity;
-      for (let i = 0; i < t.length; i++) {
-        const d = (t[i].x - at.x) ** 2 + (t[i].z - at.z) ** 2;
-        if (d >= bestD) continue;
-        let used = false;
-        for (let j = 0; j < n; j++) used ||= this.torches[j].userData.torch === i;
-        if (!used) {
-          bestD = d;
-          best = i;
-        }
-      }
-      const l = this.torches[n];
-      l.visible = best >= 0;
-      l.userData.torch = best;
-      if (best >= 0) l.position.set(t[best].x, t[best].y, t[best].z);
-    }
+    lightNearest(this.torches, this.d.torches, at);
   }
 
   /** Straight to your difficulty's altar (no glide), as you come in. */

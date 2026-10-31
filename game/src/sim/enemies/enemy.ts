@@ -102,6 +102,10 @@ export interface EnemyWorld {
   /** Update 0.2.8 — the Velociraptor's pin on you, and its sandstorm (seconds left). */
   pin: Pin;
   storm: number;
+  /** Update 0.2.10 — the water's level where the fight is (m; 0: dry): floor 5's enemies use it. The Drowned King's
+   *  room's water (m), which it floods and drains. */
+  tide: number;
+  flood: number;
 }
 
 export const ENEMY_POOL = 16;

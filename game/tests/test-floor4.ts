@@ -77,7 +77,8 @@ const face = (p: PlayerState, x: number, z: number) => (p.yaw = Math.atan2(-(x -
 section('Floor 4 — the desert: its look, its rooms, its sand');
 {
   const s = styleOf(4);
-  check('floor 4 (and on) is the desert: the stone pieces in sandstone, a warm sky and sun, sand', s.id === 'sand' && !!s.tint && !!s.floorTint && s.sky !== undefined && styleOf(7).id === 'sand' && styleOf(3).id === 'stone');
+  // (Update 0.2.10 — floor 5 on is the Drowned Temple: test-floor5.ts.)
+  check('floor 4 is the desert: the stone pieces in sandstone, a warm sky and sun, sand', s.id === 'sand' && !!s.tint && !!s.floorTint && s.sky !== undefined && styleOf(5).id !== 'sand' && styleOf(3).id === 'stone');
   const ids = DESERT_ROOMS.map((r) => r.id);
   check(`${ids.length} rooms of its own (at least 10), each different: ${ids.join(', ')}`, ids.length >= 10 && new Set(ids).size === ids.length && DESERT_ROOMS.every((r) => r.from === 4));
   let bad = '';
@@ -124,7 +125,8 @@ section('Floor 4 — its enemies and its boss (the designer’s list)');
   const before = new Set([1, 2, 3].flatMap((f) => rosterOf(f)));
   check('none of the floors before it but the Wasp', four.filter((k) => before.has(k)).join() === 'wasp');
   check('the big Cactoro and the Skull Orc are mini bosses (their rooms have chests, they carry the keys)', MINI_BOSSES.includes('cactoroBig') && MINI_BOSSES.includes('skullOrc'));
-  check('its boss is the Dino (and the floors past it); 15 coins in its chest', bossOf(4) === 'dino' && bossOf(7) === 'dino' && bossCoins('dino') === 15);
+  // (Update 0.2.10 — floor 5's is the Drowned King: test-floor5.ts.)
+  check('its boss is the Dino; 15 coins in its chest', bossOf(4) === 'dino' && bossOf(5) !== 'dino' && bossCoins('dino') === 15);
   check('its perches hold Tribals (they throw from above)', percherOf(4) === 'tribal' && percherOf(2) === 'spitter');
   let ok = true;
   for (let s = 1; s <= 40; s++) ok &&= planWaves(4, 4, createRng(s)).flat().every((k) => four.includes(k));

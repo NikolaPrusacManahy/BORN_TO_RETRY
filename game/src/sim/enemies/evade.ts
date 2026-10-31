@@ -5,6 +5,9 @@
 // almost all of them, except while it's open after a bite. Each has a rest before it can slip another (Enemy.blink).
 // Any enemy a Flying Tribal has warded shrugs off blows while its ward lasts (Enemy.ward); the Skull Orc turns every blow
 // from in front of it on its club, and strikes back after enough of them. Also what they read of you: whether you're aiming at one. Pure.
+import { FOES5 } from '../../tuning/foes5';
+import { spiked } from './urchin';
+import { submerged } from './drownedKingMoves';
 import { Vector3 } from 'three';
 import { FOES4 } from '../../tuning/foes4';
 import { FOES3B } from '../../tuning/foes3b';
@@ -118,6 +121,17 @@ export function dodges(state: CombatState, i: number, dirX: number, dirZ: number
       hopAway(e, e.pos.x - dirX, e.pos.z - dirZ, v.dinoBlobHop);
       e.blink = v.dinoBlobDodgeRest;
       state.events.push('dinoBlobHop', i, e.pos.x, e.pos.y + 0.5, e.pos.z);
+      return true;
+    // Update 0.2.10 — floor 5's: under the water, out of reach; an Urchin with its spikes out turns the blow, and its
+    // thorns hurt you (step.ts takes them from CombatState.thorns).
+    case 'snapper':
+    case 'bogBrute':
+    case 'drownedKing':
+      return submerged(e);
+    case 'urchin':
+      if (!spiked(e)) return false;
+      state.thorns += FOES5.v.urchinThorns;
+      state.events.push('urchinThorns', i, e.pos.x, e.pos.y + 0.6, e.pos.z);
       return true;
     case 'hywirl':
       if (e.blink > 0 || state.rng() >= v.hywirlDodge) return false;

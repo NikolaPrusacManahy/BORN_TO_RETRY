@@ -1,5 +1,7 @@
 // Update 0.1.4 — the combat events (moved out of state.ts, which re-exports them, to keep it short). What each one's
 // value and x, y, z mean is next to it.
+import type { DrownedEvent } from './events5';
+
 export type CombatEvent =
   | 'none'
   // Punches thrown (for the arms): value = combo step for jabs, charge (0..1) for heavy.
@@ -302,4 +304,6 @@ export type CombatEvent =
   | 'pistolWhip'
   // Update 0.1.12 — an enemy you can execute comes into reach after a while with none (value: its slot): a sting.
   | 'execReady'
-  | 'standRespawn';
+  | 'standRespawn'
+  // Update 0.2.10 — floor 5's (events5.ts).
+  | DrownedEvent;

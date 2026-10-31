@@ -79,6 +79,9 @@ export function stepPlayer(p: PlayerState, intent: PlayerIntent, world: Collisio
   const wasGrounded = p.grounded;
   const fallSpeed = -p.vel.y;
   delta.copy(p.vel).multiplyScalar(dt);
+  // (Update 0.2.10 — and the water dragging you.)
+  delta.x += p.current.x * dt;
+  delta.z += p.current.z * dt;
   if (p.grounded && p.vel.y <= 0) delta.y = -GROUND_STICK;
   world.movePlayer(p.pos, delta, p.sliding, move);
 

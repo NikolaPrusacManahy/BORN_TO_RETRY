@@ -10,6 +10,7 @@
 # characters, lobby_… and Char_…), the locked characters as black silhouettes, and the boards with what they say. Its
 # roof: `roof` pieces and boxes marked `noShadow` cast none (the game's roof doesn't), chandelier `rings`; `interior`
 # with --day: no sun or sky, a warm fill from all round, a key light from above and point `lights` (watts).
+# Update 0.2.10 — floor 5's tide at high water (`water`: its level and the rooms it floods), see-through green.
 import argparse
 import json
 import math
@@ -73,7 +74,8 @@ def demon_at(path, d):
     root = next((o for o in new if o.parent is None), new[0])
     if arm and arm.animation_data is None:
         arm.animation_data_create()
-    act = next((a for a in bpy.data.actions if a.name.endswith('Wave')), None)
+    # (Update 0.2.10 — a boss with no Wave stands in its Idle.)
+    act = next((a for a in bpy.data.actions if a.name.endswith('Wave')), None) or next((a for a in bpy.data.actions if a.name.endswith('Idle')), None)
     if arm and act:
         arm.animation_data.action = act
         bpy.context.scene.frame_set(30)
@@ -157,6 +159,31 @@ def interior(scene, data):
         lo.data.shadow_soft_size = 0.3
         lo.location = to_blender(l['x'], l['y'], l['z'])
         scene.collection.objects.link(lo)
+
+
+def water_sheets(data, style):
+    """Update 0.2.10 — the tide's water over each room it floods, at its level, see-through."""
+    w = data.get('water')
+    if not w:
+        return
+    mat = bpy.data.materials.new('Water')
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes['Principled BSDF']
+    col = (*srgb(style.get('water', 0x2b7880)), 1)
+    bsdf.inputs['Base Color'].default_value = col
+    bsdf.inputs['Roughness'].default_value = 0.12
+    bsdf.inputs['Alpha'].default_value = 0.72
+    mat.diffuse_color = (*col[:3], 0.72)
+    try:
+        mat.surface_render_method = 'BLENDED'
+    except AttributeError:
+        mat.blend_method = 'BLEND'
+    for r in w['rooms']:
+        bpy.ops.mesh.primitive_plane_add(size=1, location=to_blender(r['x'], w['level'], r['z']))
+        o = bpy.context.active_object
+        o.scale = (r['w'], r['d'], 1)
+        o.data.materials.append(mat)
+        o.visible_shadow = False
 
 
 def rings(data):
@@ -319,6 +346,7 @@ def main():
     # Update 0.2.4 — the look's colours (the desert's sandstone: `tint`, the floor tile's own `floorTint`) and its sand.
     recolour(style, protos)
     sand_cells(data.get('sand', []), style)
+    water_sheets(data, style)
     if args.demon and data.get('demon'):
         demon_at(args.demon, data['demon'])
     for pad in data['pads']:

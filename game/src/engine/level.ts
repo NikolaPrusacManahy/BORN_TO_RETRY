@@ -20,8 +20,9 @@ import { LOBBY_HALL } from '../world/lobby/hall';
 import { LobbyView } from './lobby/lobbyView';
 
 export interface LevelView extends ArenaView {
-  /** The dungeon's gates (shut or open), the boss room's show (Update 0.0.15) and its torch lights near `at`. */
-  update?(dt: number, run: DungeonRun, at: THREE.Vector3): void;
+  /** The dungeon's gates (shut or open), the boss room's show (Update 0.0.15) and its torch lights near `at`.
+   *  Update 0.2.10 — `flood`: the Drowned King's water in its room (m). */
+  update?(dt: number, run: DungeonRun, at: THREE.Vector3, flood?: number): void;
   /** Update 0.2.9 — anywhere else (the lobby): its own life each frame; `at`: the camera. */
   frame?(dt: number, at: THREE.Vector3): void;
 }

@@ -101,6 +101,10 @@ export interface PlayerState {
    *  left: its screech). */
   blind: number;
   dashLock: number;
+  /** Update 0.2.10 — the Squidle's ink over your view (seconds left); the water dragging you along (m/s, flat: the
+   *  Drowned King's whirlpool), set each tick by what drags you. */
+  ink: number;
+  current: Vector3;
   /** Update 0.1.14 — what last took your health (null: nothing yet), and who poisoned you. */
   hurtBy: Cause | null;
   poisonBy: Cause | null;
@@ -152,6 +156,8 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     poison: 0,
     poisonDps: 0,
     blind: 0,
+    ink: 0,
+    current: new Vector3(),
     dashLock: 0,
     hurtBy: null,
     poisonBy: null,
@@ -166,11 +172,12 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
 export function resetPlayer(p: PlayerState, x: number, y: number, z: number, yaw: number) {
   p.pos.set(x, y, z);
   p.vel.set(0, 0, 0);
+  p.current.set(0, 0, 0);
   p.yaw = yaw;
   p.grounded = false;
   p.coyote = p.jumpBuffer = p.dashTime = p.slamBounce = p.slamImpact = p.invuln = p.slideTime = p.wallRunTime = p.wallRunCooldown = p.hurtTime = 0;
   p.hp = HEALTH.v.maxHp;
-  p.shield = p.kneel = p.hpBonus = p.poison = p.poisonDps = p.blind = p.dashLock = 0;
+  p.shield = p.kneel = p.hpBonus = p.poison = p.poisonDps = p.blind = p.dashLock = p.ink = 0;
   p.dead = false;
   p.hurtBy = p.poisonBy = null;
   p.dashCharges = DASH.v.charges;

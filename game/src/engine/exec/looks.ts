@@ -5,7 +5,7 @@
 // shaking in your hold and bursting into its bones (each limb in two).
 import type { EnemyKind } from '../../sim/enemies/kinds';
 import type { Side } from '../viewmodel/guard';
-import { BARRAGE, BARRAGE_GAP } from '../../sim/combat/execMoves';
+import { BARRAGE, BARRAGE_GAP, FLOOR5_LIKE } from '../../sim/combat/execMoves';
 
 type V3 = readonly [number, number, number];
 
@@ -126,6 +126,8 @@ EXEC_LOOKS.bigMushnub = EXEC_LOOKS.brute;
 EXEC_LOOKS.greenBlob = EXEC_LOOKS.slime;
 EXEC_LOOKS.blobling = EXEC_LOOKS.slime;
 EXEC_LOOKS.maskTribal = EXEC_LOOKS.wraith;
+// Update 0.2.10 — floor 5's, as their moves (execMoves.ts).
+for (const [kind, like] of FLOOR5_LIKE) EXEC_LOOKS[kind] = EXEC_LOOKS[like];
 
 /** The blue demon's barrage, for its jolts: each punch's time. */
 export const BARRAGE_TIMES = Array.from({ length: BARRAGE }, (_, i) => 0.25 + i * BARRAGE_GAP);

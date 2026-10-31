@@ -54,3 +54,12 @@ export function segmentDistance(p1: Vector3, q1: Vector3, p2: Vector3, q2: Vecto
   if (out) out.s = s;
   return c1.distanceTo(c2);
 }
+
+/** Update 0.2.10 — how far the point (px, pz) is from the segment (ax, az)–(bx, bz), across the floor (m). */
+export function segmentDistance2D(ax: number, az: number, bx: number, bz: number, px: number, pz: number): number {
+  const ux = bx - ax;
+  const uz = bz - az;
+  const len2 = ux * ux + uz * uz;
+  const t = len2 > 1e-9 ? Math.max(0, Math.min(1, ((px - ax) * ux + (pz - az) * uz) / len2)) : 0;
+  return Math.hypot(px - (ax + ux * t), pz - (az + uz * t));
+}

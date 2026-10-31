@@ -66,6 +66,7 @@ export function Hud({ store }: { store: HudStore }) {
       {s.shields > 0 && <div key={`s${s.shields}`} className="rb-hud-shieldhit" />}
       {s.poisoned && <div className="rb-hud-poison" />}
       {s.blind > 0 && <div className="rb-hud-sand" style={{ '--blind': s.blind } as CSSProperties} />}
+      {s.ink > 0 && <div className="rb-hud-ink" style={{ '--ink': s.ink } as CSSProperties} />}
       {s.enemiesLeft >= 0 && s.bossHp < 0 && (
         <div className="rb-hud-left">
           <Skull />

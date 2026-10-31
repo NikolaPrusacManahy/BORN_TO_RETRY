@@ -99,6 +99,12 @@ export interface CombatState {
   /** Update 0.2.8 — the Velociraptor pinning you (pin.ts), and its sandstorm (seconds left; 0: none). */
   pin: Pin;
   storm: number;
+  /** Update 0.2.10 — the water's level where the fight is (floor 5's tide, or the Drowned King's flood; 0: dry), and
+   *  the thorns' damage owed to you this tick (an Urchin hit with its spikes out: urchin.ts). The Drowned King's room's
+   *  water (m: drownedKing.ts floods and drains it; Run makes it the tide while its fight is on). */
+  tide: number;
+  thorns: number;
+  flood: number;
   /** Update 0.1.12 — seconds since there was last an enemy you could execute (the sting plays only after a while). */
   execAway: number;
   /** Update 0.1.1 — the Lab's Meter: the Execution Power meter kept full. */
@@ -167,6 +173,9 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     grab: createGrab(),
     pin: createPin(),
     storm: 0,
+    tide: 0,
+    thorns: 0,
+    flood: 0,
     execAway: Infinity,
     fullMeter: false,
     kills: 0,
@@ -219,6 +228,9 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.grab = createGrab();
   state.pin = createPin();
   state.storm = 0;
+  state.tide = 0;
+  state.thorns = 0;
+  state.flood = 0;
   state.execAway = Infinity;
   state.kills = 0;
   for (const d of state.drops) d.alive = false;

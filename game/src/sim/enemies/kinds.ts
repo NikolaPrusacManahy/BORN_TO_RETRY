@@ -13,7 +13,13 @@
 // (tuning/dino.ts), waiting for a better model.
 // Update 0.2.7 — floor 3's newcomers (tuning/foes3b.ts): the Dragonling and the Skull Wraith (fliers), the White Rabbit,
 // and the Big Mushnub (a mini boss: only a hard hit staggers it).
+// Update 0.2.10 — floor 5's, the Drowned Temple (tuning/foes5.ts, foes5b.ts): the Snapper, the Urchin, the Spawnling;
+// the Jelly, the Glub, the Big Glub and the Squidle (fliers); the Deep One and the Bog Brute (mini bosses); and its
+// boss, the Drowned King (tuning/drowned.ts): their numbers are kinds5.ts's; what every kind's numbers are, and how
+// they're filled, kindStats.ts's.
 import { BOSS } from '../../tuning/boss';
+import { blank, DOOM_AFTER, doomTime, EnemyStats, fill, SizeClass } from './kindStats';
+import { CACHE5, RADIUS5, STATS5 } from './kinds5';
 import { DRAGON } from '../../tuning/dragon';
 import { FOES2 } from '../../tuning/foes2';
 import { ENEMIES } from '../../tuning/enemies';
@@ -24,39 +30,20 @@ import { BONE_KING } from '../../tuning/boneKing';
 import { FOES4 } from '../../tuning/foes4';
 import { DINO } from '../../tuning/dino';
 
-export type EnemyKind = 'grunt' | 'spitter' | 'brute' | 'leaper' | 'stinger' | 'wraith' | 'demon' | 'slime' | 'frog' | 'snake' | 'wasp' | 'spider' | 'blueDemon' | 'dragon' | 'skeleton' | 'mushnub' | 'ninja' | 'boneKing' | 'tribal' | 'cactoro' | 'cactoroBig' | 'hywirl' | 'dino' | 'dinoBlob' | 'lizard' | 'greenBlob' | 'blobling' | 'maskTribal' | 'skullOrc' | 'dragonling' | 'skullWraith' | 'rabbit' | 'bigMushnub';
-/** Which grid it finds its way on: the big ones need wider gaps; fliers go over low things. */
-export type SizeClass = 'small' | 'large' | 'air';
+export type { EnemyStats, SizeClass } from './kindStats';
+export { doomTime, DOOM_AFTER } from './kindStats';
 
-export const ENEMY_KINDS: readonly EnemyKind[] = ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith', 'demon', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon', 'dragon', 'skeleton', 'mushnub', 'ninja', 'boneKing', 'tribal', 'cactoro', 'cactoroBig', 'hywirl', 'dino', 'dinoBlob', 'lizard', 'greenBlob', 'blobling', 'maskTribal', 'skullOrc', 'dragonling', 'skullWraith', 'rabbit', 'bigMushnub'];
+export type EnemyKind = 'grunt' | 'spitter' | 'brute' | 'leaper' | 'stinger' | 'wraith' | 'demon' | 'slime' | 'frog' | 'snake' | 'wasp' | 'spider' | 'blueDemon' | 'dragon' | 'skeleton' | 'mushnub' | 'ninja' | 'boneKing' | 'tribal' | 'cactoro' | 'cactoroBig' | 'hywirl' | 'dino' | 'dinoBlob' | 'lizard' | 'greenBlob' | 'blobling' | 'maskTribal' | 'skullOrc' | 'dragonling' | 'skullWraith' | 'rabbit' | 'bigMushnub' | 'snapper' | 'urchin' | 'jelly' | 'glub' | 'bigGlub' | 'squidle' | 'spawnling' | 'deepOne' | 'bogBrute' | 'drownedKing';
+
+export const ENEMY_KINDS: readonly EnemyKind[] = ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith', 'demon', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon', 'dragon', 'skeleton', 'mushnub', 'ninja', 'boneKing', 'tribal', 'cactoro', 'cactoroBig', 'hywirl', 'dino', 'dinoBlob', 'lizard', 'greenBlob', 'blobling', 'maskTribal', 'skullOrc', 'dragonling', 'skullWraith', 'rabbit', 'bigMushnub', 'snapper', 'urchin', 'jelly', 'glub', 'bigGlub', 'squidle', 'spawnling', 'deepOne', 'bogBrute', 'drownedKing'];
 export const SIZE_CLASSES: readonly SizeClass[] = ['small', 'large', 'air'];
 
-export interface EnemyStats {
-  hp: number;
-  /** Its body's radius (m: fixed, the walk grids are built for it) and height (its hit capsule's and model's). */
-  radius: number;
-  height: number;
-  speed: number;
-  /** A hit's knock times this slides it. */
-  knock: number;
-  /** A hit at least this hard flinches it (0: any hit). */
-  stagger: number;
-  flinch: number;
-  deathTime: number;
-  coins: number;
-  size: SizeClass;
-  /** Update 0.0.15 — a boss (its death is a show: boss.ts), and what a hit on it while stunned is worth. */
-  boss: boolean;
-  stunned: number;
-}
-
 /** Body radii (m). Not knobs: the walk grids are built for them. */
-export const RADIUS: Record<EnemyKind, number> = { grunt: 0.45, spitter: 0.4, brute: 0.85, leaper: 0.45, stinger: 0.5, wraith: 0.55, demon: 1.7, slime: 0.5, frog: 0.55, snake: 0.4, wasp: 0.5, spider: 1.3, blueDemon: 0.85, dragon: 1.8, skeleton: 0.45, mushnub: 0.45, ninja: 0.45, boneKing: 1.5, tribal: 0.45, cactoro: 0.5, cactoroBig: 1.1, hywirl: 0.55, dino: 1.8, dinoBlob: 0.5, lizard: 0.5, greenBlob: 0.6, blobling: 0.4, maskTribal: 0.55, skullOrc: 1, dragonling: 0.55, skullWraith: 0.55, rabbit: 0.45, bigMushnub: 1.05 };
+export const RADIUS: Record<EnemyKind, number> = { grunt: 0.45, spitter: 0.4, brute: 0.85, leaper: 0.45, stinger: 0.5, wraith: 0.55, demon: 1.7, slime: 0.5, frog: 0.55, snake: 0.4, wasp: 0.5, spider: 1.3, blueDemon: 0.85, dragon: 1.8, skeleton: 0.45, mushnub: 0.45, ninja: 0.45, boneKing: 1.5, tribal: 0.45, cactoro: 0.5, cactoroBig: 1.1, hywirl: 0.55, dino: 1.8, dinoBlob: 0.5, lizard: 0.5, greenBlob: 0.6, blobling: 0.4, maskTribal: 0.55, skullOrc: 1, dragonling: 0.55, skullWraith: 0.55, rabbit: 0.45, bigMushnub: 1.05, ...RADIUS5 };
 /** The grid each size class walks: blocked for this radius (a little less than the brute's, so 2 m gaps stay open:
  *  the push out of walls keeps its body clear anyway). */
 export const GRID_RADIUS: Record<SizeClass, number> = { small: 0.45, large: 0.65, air: 0.6 };
 
-const blank = (size: SizeClass, boss = false): EnemyStats => ({ hp: 0, radius: 0, height: 0, speed: 0, knock: 0, stagger: 0, flinch: 0, deathTime: 0, coins: 0, size, boss, stunned: 1 });
 const CACHE: Record<EnemyKind, EnemyStats> = {
   grunt: blank('small'),
   spitter: blank('small'),
@@ -91,20 +78,9 @@ const CACHE: Record<EnemyKind, EnemyStats> = {
   skullWraith: blank('air'),
   rabbit: blank('small'),
   bigMushnub: blank('large'),
+  ...CACHE5,
 };
 
-function fill(s: EnemyStats, hp: number, radius: number, height: number, speed: number, knock: number, stagger: number, flinch: number, deathTime: number, coins: number): EnemyStats {
-  s.hp = hp;
-  s.radius = radius;
-  s.height = height;
-  s.speed = speed;
-  s.knock = knock;
-  s.stagger = stagger;
-  s.flinch = flinch;
-  s.deathTime = deathTime;
-  s.coins = coins;
-  return s;
-}
 
 /** A kind's numbers as the knobs say now (one object per kind, refilled: nothing is made per call). */
 export const ENEMY_STATS: Record<EnemyKind, () => EnemyStats> = {
@@ -254,25 +230,23 @@ export const ENEMY_STATS: Record<EnemyKind, () => EnemyStats> = {
     const v = FOES3B.v;
     return fill(CACHE.bigMushnub, v.mushHp, RADIUS.bigMushnub, v.mushHeight, v.mushSpeed, 0.3, ENEMIES.v.bruteStagger, 0.4, 2, v.mushCoins);
   },
+  // Update 0.2.10 — floor 5's. The Deep One and the Bog Brute: only a hard hit staggers them (as a Yeti's).
   dino: () => {
     const v = DINO.v;
     const s = fill(CACHE.dino, v.dinoHp, RADIUS.dino, v.dinoHeight, v.dinoSpeed, 0.05, Infinity, 0, doomTime() + DOOM_AFTER, 0);
     s.stunned = BOSS.v.stunBonus;
     return s;
   },
+  ...STATS5,
 };
 
-/** Update 0.0.18 — each floor's boss. Update 0.2.3 — floor 3's the Bone King. Update 0.2.4 — floor 4's the Dino (and
- *  the floors past it, as their enemies are floor 4's). */
-export const bossOf = (floor: number): EnemyKind => (floor <= 1 ? 'demon' : floor === 2 ? 'dragon' : floor === 3 ? 'boneKing' : 'dino');
+/** Update 0.0.18 — each floor's boss. Update 0.2.3 — floor 3's the Bone King. Update 0.2.4 — floor 4's the Dino.
+ *  Update 0.2.10 — floor 5's the Drowned King (and the floors past it, as their enemies are floor 5's). */
+export const bossOf = (floor: number): EnemyKind => (floor <= 1 ? 'demon' : floor === 2 ? 'dragon' : floor === 3 ? 'boneKing' : floor === 4 ? 'dino' : 'drownedKing');
 
 /** Update 0.0.18 — the mini bosses (the designer): a room with one has a chest, and the first killed drops its key. */
-export const MINI_BOSSES: readonly EnemyKind[] = ['brute', 'spider', 'blueDemon', 'ninja', 'cactoroBig', 'skullOrc', 'bigMushnub'];
+export const MINI_BOSSES: readonly EnemyKind[] = ['brute', 'spider', 'blueDemon', 'ninja', 'cactoroBig', 'skullOrc', 'bigMushnub', 'deepOne', 'bogBrute'];
 
-/** Update 0.0.15 — a boss's death show: up, hanging, sinking (s); its body bursts at the end, and its slot frees this
- *  long after. */
-export const doomTime = () => BOSS.v.doomRise + BOSS.v.doomHang + BOSS.v.doomDrop;
-export const DOOM_AFTER = 0.1;
 
 /** Fliers (they stay up; their bodies fall when they die). */
 export const flies = (kind: EnemyKind) => CACHE[kind].size === 'air';

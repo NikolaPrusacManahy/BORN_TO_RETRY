@@ -17,6 +17,7 @@ import { kingFeedback } from './boss/kingFeedback';
 import { desertFeedback } from './desertFeedback';
 import { gunFeedback } from './gunFeedback';
 import { foes3bFeedback } from './foes3bFeedback';
+import { drownedFeedback } from './drownedFeedback';
 
 const UP = new THREE.Vector3(0, 1, 0);
 
@@ -89,8 +90,8 @@ export function foes2Feedback(f: FeedbackParts, kind: CombatEvent, value: number
       f.chunks.spawn(at, UP, 6, 0.6);
       break;
     default:
-      // (Update 0.2.3 — the Bone King's; Update 0.2.4 — floor 4's.)
-      if (!kingFeedback(f, kind, value, at, back, near) && !desertFeedback(f, kind, value, at, back, near) && !gunFeedback(f, kind, value, at, back) && !foes3bFeedback(f, kind, value, at, back, near)) execFeedback(f, kind, value, at, back, near);
+      // (Update 0.2.3 — the Bone King's; Update 0.2.4 — floor 4's; Update 0.2.10 — floor 5's.)
+      if (!kingFeedback(f, kind, value, at, back, near) && !desertFeedback(f, kind, value, at, back, near) && !gunFeedback(f, kind, value, at, back) && !foes3bFeedback(f, kind, value, at, back, near) && !drownedFeedback(f, kind, value, at, back, near)) execFeedback(f, kind, value, at, back, near);
       break;
   }
 }

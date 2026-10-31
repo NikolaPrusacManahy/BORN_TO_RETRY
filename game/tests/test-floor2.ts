@@ -186,7 +186,8 @@ section('Floor 2 — mini bosses and the roster');
   const cut3 = ['grunt', 'leaper', 'blueDemon', 'spitter', 'wasp'];
   check('floor 3: floor 2’s without the Grunt, the Leaper, the Blue Demon, the Spitter and the Wasp, four swapped, and its own three', three.join() === [...two.filter((k) => !cut3.includes(k)).map((k) => SWAP[k] ?? k), 'skeleton', 'mushnub', 'ninja'].join(), three.join());
   // (Update 0.2.4 — floor 4 has its own: test-floor4.ts.)
-  check('floor 4 has its own, and the floors past it send floor 4’s', rosterOf(4) !== three && rosterOf(7) === rosterOf(4));
+  // (Update 0.2.10 — and floor 5 has its own: test-floor5.ts.)
+  check('floor 4 has its own, and floor 5 its own', rosterOf(4) !== three && rosterOf(5) !== rosterOf(4));
   let cut = '';
   let spiders = 0;
   for (let seed = 1; seed <= 20; seed++) {

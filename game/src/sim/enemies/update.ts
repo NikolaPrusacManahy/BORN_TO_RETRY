@@ -7,6 +7,8 @@
 // Update 0.0.18 — floor 2's: the Slime, the Frog, the Snake, the Wasp, the Spider and the Blue Demon.
 // Update 0.1.19 — floor 3's: the Skeleton, the Mushnub and the Ninja. Update 0.2.3 — and its boss, the Bone King.
 // Update 0.2.4 — floor 4's: the Tribal, the Cactoros, the Hywirl, and its boss, the Dino.
+// Update 0.2.10 — floor 5's: the Snapper, the Urchin, the Jelly, the Glubs, the Squidle, the Spawnling, the Deep One and
+// the Bog Brute.
 // Update 0.1.15 — attack tokens (tokens.ts): dealt before anyone moves; a close fighter without one, near you, waits its
 // turn on a ring instead of its own moves. Then each one's angle round you (spread.ts): coming at you, it fans out.
 import type { CollisionWorld } from '../collisionWorld';
@@ -49,6 +51,14 @@ import { updateSkullOrc } from './skullOrc';
 import { updateDragonling } from './dragonling';
 import { updateRabbit } from './rabbit';
 import { splitMushnub, updateBigMushnub } from './bigMushnub';
+import { updateSnapper } from './snapper';
+import { updateUrchin } from './urchin';
+import { updateJelly } from './jelly';
+import { updateBigGlub, updateGlub } from './glub';
+import { updateSpawnling, updateSquidle } from './squidle';
+import { updateDeepOne } from './deepOne';
+import { updateBogBrute } from './bogBrute';
+import { updateDrownedKing } from './drownedKing';
 
 export type Update = (e: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number, world: CollisionWorld) => void;
 
@@ -87,9 +97,19 @@ const UPDATE: Record<EnemyKind, Update> = {
   skullWraith: updateWraith,
   rabbit: updateRabbit,
   bigMushnub: updateBigMushnub,
+  snapper: updateSnapper,
+  urchin: updateUrchin,
+  jelly: updateJelly,
+  glub: updateGlub,
+  bigGlub: updateBigGlub,
+  squidle: updateSquidle,
+  spawnling: updateSpawnling,
+  deepOne: updateDeepOne,
+  bogBrute: updateBogBrute,
+  drownedKing: updateDrownedKing,
 };
 /** A dead boss's show, each tick until its slot frees. Update 0.2.4 — and a Green Blob splitting as it dies. */
-const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld) => void>> = { demon: doomDemon, dragon: doomDemon, boneKing: doomKing, dino: doomDemon, greenBlob: splitBlob, bigMushnub: splitMushnub };
+const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld) => void>> = { demon: doomDemon, dragon: doomDemon, boneKing: doomKing, dino: doomDemon, drownedKing: doomDemon, greenBlob: splitBlob, bigMushnub: splitMushnub };
 
 export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWorld, world: CollisionWorld, dt: number) {
   let any = false;

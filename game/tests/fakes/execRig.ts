@@ -25,7 +25,7 @@ import { CAMERA } from '../../src/tuning/camera';
 import type { Arena } from '../../src/world/arena';
 
 export const ASPECT = 16 / 9;
-export const MODEL: Record<string, string> = { grunt: 'orc', spitter: 'wizard', brute: 'yeti', leaper: 'ninja', stinger: 'armabee', wraith: 'ghost', slime: 'slime', frog: 'frog', snake: 'snake', wasp: 'wasp', spider: 'spider', blueDemon: 'bluedemon', skeleton: 'skeleton', mushnub: 'mushnub', ninja: 'ninja', tribal: 'tribal', cactoro: 'cactoro', cactoroBig: 'cactoro_big', hywirl: 'hywirl', dinoBlob: 'dino', lizard: 'lizard', greenBlob: 'green_blob', blobling: 'green_blob', maskTribal: 'tribal_mask', skullOrc: 'skull_orc', dragonling: 'dragonling', skullWraith: 'skull_wraith', rabbit: 'rabbit', bigMushnub: 'mushroom_king' };
+export const MODEL: Record<string, string> = { grunt: 'orc', spitter: 'wizard', brute: 'yeti', leaper: 'ninja', stinger: 'armabee', wraith: 'ghost', slime: 'slime', frog: 'frog', snake: 'snake', wasp: 'wasp', spider: 'spider', blueDemon: 'bluedemon', skeleton: 'skeleton', mushnub: 'mushnub', ninja: 'ninja', tribal: 'tribal', cactoro: 'cactoro', cactoroBig: 'cactoro_big', hywirl: 'hywirl', dinoBlob: 'dino', lizard: 'lizard', greenBlob: 'green_blob', blobling: 'green_blob', maskTribal: 'tribal_mask', skullOrc: 'skull_orc', dragonling: 'dragonling', skullWraith: 'skull_wraith', rabbit: 'rabbit', bigMushnub: 'mushroom_king', snapper: 'snapper', urchin: 'urchin', jelly: 'jelly', glub: 'glub', bigGlub: 'big_glub', squidle: 'squidle', spawnling: 'spawnling', deepOne: 'deep_one', bogBrute: 'bog_brute' };
 /** Fliers are met where they swoop to, a little above you. */
 const UP: Partial<Record<EnemyKind, number>> = { stinger: 1.2, wraith: 1.2, wasp: 1.2 };
 

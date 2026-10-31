@@ -6,8 +6,11 @@
 // Update 0.2.4 — floor 4 is the desert (the designer: "a dessert theme floor", the Sun Temple mock-up): floor 3's stone
 // pieces recoloured sandstone (the kit is flat colours: each material's colour swapped), a sand floor, a warm sky and
 // sun; loose sand where palms and cacti stand (their beds) and quicksand (desertDressing.ts, sandView.ts).
+// Update 0.2.10 — floor 5 is the Drowned Temple (the designer chose it): floor 3's stone pieces wet and mossy (recoloured
+// as the desert's were), under a pale grey-green haze; willows in beds of mud (`sand`: the beds' colour), mossy rocks,
+// stumps and logs along the walls; its pits and its tide are water (`water`).
 
-export type StyleId = 'brick' | 'stone' | 'sand';
+export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned';
 type Scale = [number, number, number];
 
 export interface DungeonStyle {
@@ -54,6 +57,8 @@ export interface DungeonStyle {
   /** Update 0.2.4 — loose sand (the beds palms and cacti stand in) and quicksand. */
   sand?: number;
   quicksand?: number;
+  /** Update 0.2.10 — water (its colour): the fight rooms flood (tide.ts). */
+  water?: number;
 }
 
 export const BRICK: DungeonStyle = {
@@ -126,5 +131,22 @@ export const SAND: DungeonStyle = {
   quicksand: 0xb98a4c,
 };
 
-/** Floor `floor`'s look: floors 1 and 2 brick, floor 3 stone, floor 4 (and on) the desert. */
-export const styleOf = (floor: number): DungeonStyle => (floor >= 4 ? SAND : floor === 3 ? STONE : BRICK);
+/** Update 0.2.10 — the Drowned Temple: floor 3's stone, wet and mossy, under a grey-green haze; willows in mud. */
+export const DROWNED: DungeonStyle = {
+  ...STONE,
+  id: 'drowned',
+  litter: ['kit_n_Rock_Moss_1', 'kit_n_Rock_Moss_4', 'kit_n_Rock_Moss_6', 'kit_n_TreeStump_Moss', 'kit_n_WoodLog_Moss', 'kit_p1_Skull', 'kit_p2_Bones'],
+  core: [0.035, 0.05, 0.042],
+  tint: { RockLight: 0x8f9f88, Rock: 0x63766a, Steel: 0x587069, Bones: 0xd9ddc9, Wood: 0x6b5a40, DarkWood: 0x4a3c2a, Grey_Floor: 0x7e8d80, Fire: 0xff9a4a },
+  floorTint: { RockLight: 0x7c8b7b, Rock: 0x56655a },
+  sky: 0xc3d5cf,
+  skyLight: 0xe8f1ec,
+  ground: 0x506b5c,
+  sun: 0xf1f3e6,
+  sand: 0x4b3d2c,
+  quicksand: 0x3a2f22,
+  water: 0x2b7880,
+};
+
+/** Floor `floor`'s look: floors 1 and 2 brick, floor 3 stone, floor 4 the desert, floor 5 (and on) the Drowned Temple. */
+export const styleOf = (floor: number): DungeonStyle => (floor >= 5 ? DROWNED : floor === 4 ? SAND : floor === 3 ? STONE : BRICK);

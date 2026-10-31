@@ -23,6 +23,7 @@
 // Update 0.2.1 (the designer: "put 10 enemies at the same time, and it adds a new one from the counter when it gets
 // reduced to 9") — a challenge room opens with Challenge: on field (10) and keeps that many fighting while it has more
 // to send. An enemy with no free slot (bodies still lying) waits its turn: it's still to come.
+import { createTide, Tide } from './tide';
 import { createRng, Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import type { DungeonLevel } from '../../world/dungeon/assemble';
@@ -70,6 +71,8 @@ export interface DungeonRun {
   treasure: Treasure;
   /** Update 0.0.15 — the boss room. */
   boss: BossRun;
+  /** Update 0.2.10 — floor 5's tide (its clock and level; nothing floods on a dry floor). */
+  tide: Tide;
 }
 
 /** Seconds from the gates shutting to the first wave. */
@@ -90,6 +93,7 @@ export function createDungeonRun(level: DungeonLevel): DungeonRun {
     exited: false,
     treasure: createTreasure(level, createRng(level.plan.seed * 131 + level.plan.level * 17), bossOf(level.plan.level)),
     boss: createBossRun(bossOf(level.plan.level)),
+    tide: createTide(),
   };
 }
 
@@ -222,7 +226,8 @@ function send(run: DungeonRun, i: number, player: PlayerState, combat: CombatSta
   for (let k = 0; k < kinds.length; k++) {
     const kind = kinds[k];
     let slot: number;
-    if ((kind === 'spitter' || kind === 'tribal') && perches.length > 0) {
+    // (Update 0.2.10 — and floor 5's Big Glubs: they hang over their perches.)
+    if ((kind === 'spitter' || kind === 'tribal' || kind === 'bigGlub') && perches.length > 0) {
       slot = spawnAt(combat.enemies, kind, perches, player, rng, combat.events);
       if (slot >= 0) combat.enemies[slot].perch = combat.enemies[slot].pos.y;
     } else if (kind === 'dragonling' && perches.length > 0) {

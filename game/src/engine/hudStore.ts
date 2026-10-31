@@ -109,6 +109,8 @@ export interface HudState {
   pinGlow: boolean;
   pinWasted: boolean;
   pinEnd: '' | 'free' | 'bitten';
+  /** Update 0.2.10 — floor 5's Squidle's ink over your view (raptorHud.ts). */
+  ink: number;
   dashKey: string;
 }
 

@@ -38,6 +38,7 @@ import { clipOf, FADE, LOOKS, ONCE, Role, ROLES, roleFor } from './enemyLooks';
 import { TongueView } from './tongueView';
 import { gripOf, stillOf } from './exec/body';
 import { moveOf } from '../sim/combat/execution';
+import { submerged } from '../sim/enemies/drownedKingMoves';
 
 interface Body {
   root: THREE.Object3D;
@@ -155,8 +156,9 @@ export class EnemiesView {
       const look = LOOKS[e.kind];
       if (!e.alive || !b || !look) continue;
       // A slime that burst is gone (one killed dies as the others do); so is the Bone King once its bones burst.
-      const buried = (e.kind === 'cactoro' || e.kind === 'cactoroBig') && e.pos.y < -1;
-      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino') && e.phase === 'dead' && e.struck) && !buried;
+      // (Update 0.2.10 — and floor 5's under the water: drownedFx.ts shows their fins.)
+      const buried = ((e.kind === 'cactoro' || e.kind === 'cactoroBig') && e.pos.y < -1) || submerged(e);
+      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing') && e.phase === 'dead' && e.struck) && !buried;
       if (!b.root.visible) continue;
       const windup = look.windup(e.move);
       const king = e.kind === 'boneKing';
@@ -184,7 +186,8 @@ export class EnemiesView {
       slot.still = moved || e.phase !== 'chase' ? 0 : slot.still + dt;
       if (want === 'move' && slot.still > STILL && !flies(e.kind)) want = 'idle';
       // Update 0.2.8 — the Velociraptor runs its charges, its sprint to a wall and its blitz (quicker).
-      const dash = e.kind === 'dino' && e.phase === 'charge';
+      // (Update 0.2.10 — and the Drowned King its surf.)
+      const dash = (e.kind === 'dino' || e.kind === 'drownedKing') && e.phase === 'charge';
       if (dash) want = 'move';
       if (want !== b.role || (again && ONCE.includes(want))) this.play(b, want);
       attack.timeScale = look.lands / windup;

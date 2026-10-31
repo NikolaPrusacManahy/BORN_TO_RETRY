@@ -24,11 +24,11 @@ import type { Rng } from '../../core/rng';
 import { ENEMY_KINDS, EnemyKind, MINI_BOSSES } from '../enemies/kinds';
 import { ROOMS } from '../../tuning/rooms';
 
-export const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3, demon: 99, slime: 1, frog: 2, snake: 1, wasp: 2, spider: 4, blueDemon: 4, dragon: 99, skeleton: 1, mushnub: 1, ninja: 4, boneKing: 99, tribal: 2, cactoro: 2, cactoroBig: 4, hywirl: 2, dino: 99, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 1, maskTribal: 2, skullOrc: 4, dragonling: 2, skullWraith: 3, rabbit: 1, bigMushnub: 4 };
+export const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3, demon: 99, slime: 1, frog: 2, snake: 1, wasp: 2, spider: 4, blueDemon: 4, dragon: 99, skeleton: 1, mushnub: 1, ninja: 4, boneKing: 99, tribal: 2, cactoro: 2, cactoroBig: 4, hywirl: 2, dino: 99, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 1, maskTribal: 2, skullOrc: 4, dragonling: 2, skullWraith: 3, rabbit: 1, bigMushnub: 4, snapper: 2, urchin: 2, jelly: 2, glub: 2, bigGlub: 3, squidle: 2, spawnling: 1, deepOne: 4, bogBrute: 4, drownedKing: 99 };
 /** How often each kind is picked, and the first room (on floor 1) it comes in. **(placeholders)** The Demon is never
  *  bought: it's the boss room's. */
-const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1, demon: 0, slime: 2, frog: 1.5, snake: 2, wasp: 1.5, spider: 0.6, blueDemon: 0.6, dragon: 0, skeleton: 3, mushnub: 3, ninja: 0.6, boneKing: 0, tribal: 2.5, cactoro: 2.5, cactoroBig: 0.6, hywirl: 1.8, dino: 0, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 0, maskTribal: 1.2, skullOrc: 0.6, dragonling: 2, skullWraith: 1, rabbit: 2, bigMushnub: 0.6 };
-const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3, demon: Infinity, slime: 1, frog: 1, snake: 1, wasp: 1, spider: 1, blueDemon: 1, dragon: Infinity, skeleton: 1, mushnub: 1, ninja: 1, boneKing: Infinity, tribal: 1, cactoro: 1, cactoroBig: 1, hywirl: 1, dino: Infinity, dinoBlob: 1, lizard: 1, greenBlob: 1, blobling: Infinity, maskTribal: 1, skullOrc: 1, dragonling: 1, skullWraith: 1, rabbit: 1, bigMushnub: 1 };
+const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1, demon: 0, slime: 2, frog: 1.5, snake: 2, wasp: 1.5, spider: 0.6, blueDemon: 0.6, dragon: 0, skeleton: 3, mushnub: 3, ninja: 0.6, boneKing: 0, tribal: 2.5, cactoro: 2.5, cactoroBig: 0.6, hywirl: 1.8, dino: 0, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 0, maskTribal: 1.2, skullOrc: 0.6, dragonling: 2, skullWraith: 1, rabbit: 2, bigMushnub: 0.6, snapper: 2.5, urchin: 2, jelly: 1.5, glub: 2, bigGlub: 0.8, squidle: 1.8, spawnling: 3, deepOne: 0.6, bogBrute: 0.6, drownedKing: 0 };
+const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3, demon: Infinity, slime: 1, frog: 1, snake: 1, wasp: 1, spider: 1, blueDemon: 1, dragon: Infinity, skeleton: 1, mushnub: 1, ninja: 1, boneKing: Infinity, tribal: 1, cactoro: 1, cactoroBig: 1, hywirl: 1, dino: Infinity, dinoBlob: 1, lizard: 1, greenBlob: 1, blobling: Infinity, maskTribal: 1, skullOrc: 1, dragonling: 1, skullWraith: 1, rabbit: 1, bigMushnub: 1, snapper: 1, urchin: 1, jelly: 1, glub: 1, bigGlub: 1, squidle: 1, spawnling: 1, deepOne: 1, bogBrute: 1, drownedKing: Infinity };
 /** Each floor's enemies (index: the floor; past the last, the last's). */
 const ROSTER: readonly (readonly EnemyKind[])[] = [
   [],
@@ -40,6 +40,8 @@ const ROSTER: readonly (readonly EnemyKind[])[] = [
   ['dragonling', 'skullWraith', 'slime', 'frog', 'rabbit', 'bigMushnub', 'skeleton', 'mushnub', 'ninja'],
   // Update 0.2.4 — floor 4, the desert (the designer's list).
   ['tribal', 'cactoro', 'dinoBlob', 'lizard', 'greenBlob', 'hywirl', 'wasp', 'maskTribal', 'cactoroBig', 'skullOrc'],
+  // Update 0.2.10 — floor 5, the Drowned Temple (Claude's proposal as accepted): none of the floors before it.
+  ['snapper', 'urchin', 'jelly', 'glub', 'bigGlub', 'squidle', 'spawnling', 'deepOne', 'bogBrute'],
 ];
 
 /** The enemies floor `floor` sends. */
@@ -114,7 +116,8 @@ function addMinis(plan: EnemyKind[][], floor: number, rng: Rng) {
 
 /** Update 0.2.4 — who stands on a floor's perches and throws from above. Update 0.2.7 — floor 3's Spitters went: the
  *  Dragonling has their place (a flier: it comes in their stead in a perch room's waves, from its spawns, not a perch). */
-export const percherOf = (floor: number): EnemyKind => (floor >= 4 ? 'tribal' : floor === 3 ? 'dragonling' : 'spitter');
+// Update 0.2.10 — floor 5's Big Glubs (fliers hanging over the perches).
+export const percherOf = (floor: number): EnemyKind => (floor >= 5 ? 'bigGlub' : floor === 4 ? 'tribal' : floor === 3 ? 'dragonling' : 'spitter');
 
 /** Update 0.0.21 — spitters to stand on a room's perches, in every wave of a room with them. **(placeholder)** */
 export const PERCHED = 2;

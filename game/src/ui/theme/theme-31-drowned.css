@@ -1,0 +1,17 @@
+/* Update 0.2.10 — floor 5's on screen: the Squidle's ink over your view, blots of black ink thickest at the middle and
+   the edges, thinning as it wears off (--ink 1..0). */
+.rb-hud-ink {
+  --ink: 1;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  backdrop-filter: blur(calc(var(--ink) * 6px));
+  background:
+    radial-gradient(circle at 38% 46%, rgba(6, 4, 10, calc(var(--ink) * 0.92)) 0 14%, transparent 26%),
+    radial-gradient(circle at 63% 58%, rgba(6, 4, 10, calc(var(--ink) * 0.88)) 0 11%, transparent 22%),
+    radial-gradient(circle at 52% 34%, rgba(10, 6, 16, calc(var(--ink) * 0.8)) 0 8%, transparent 17%),
+    radial-gradient(ellipse at 50% 50%, rgba(8, 6, 14, calc(var(--ink) * 0.35)) 30%, rgba(4, 2, 8, calc(var(--ink) * 0.9)) 85%);
+  transition:
+    backdrop-filter 0.05s linear,
+    background 0.05s linear;
+}

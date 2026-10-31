@@ -46,6 +46,14 @@ blender --background --disable-autoexec --python tools/blender/export_monster.py
 ## Update 0.0.17 — more items
 `export_items.py` (same command as Update 0.0.13) now also exports item_goldPlate (Armor_Golden), item_greenRing (Ring6), item_purpleRing (Ring5, gem purple), item_blueRing (now Ring4, gem blue), item_snowflake (Snowflake1, icy), item_goldIngots (Gold_Ingots) and item_bluePotion (Potion5_Filled, liquid and glass blue). A recolour gives the part a plain flat material: some pack colours live in shader nodes the glTF export drops (the liquids and the snowflake came out mint green).
 
+## Update 0.2.10 — floor 5's (the Drowned Temple)
+The blobs with `--attack Bite_Front`, the fliers with `--attack Punch` (the Squidle `Headbutt`), the big ones with `--attack Weapon`, from `<Ultimate Monsters>/used_monster/…` now: blobs Fish → `snapper.glb`, GreenSpikyBlob → `urchin.glb`, PinkBlob → `jelly.glb`, Alien → `spawnling.glb`; flying Glub → `glub.glb`, Glub_Evolved → `big_glub.glb`, Squidle → `squidle.glb`; mini_boss Alien → `deep_one.glb`, Monkroose → `bog_brute.glb`; Boss Fish → `drowned_king.glb`. Frames where blows land: blobs 7/30, Glub 6/30, Big Glub 9/30, Squidle 7/30, the big ones 15/30.
+
+The Drowned King wears a crown: `--crown "<Ultimate RPG Pack>/Crown.blend"` puts the crown's mesh on the monster's head (sized to 55% of its head's width, sat on the top of the dome) and parents it to the Head bone, so it rides the head in every clip:
+```
+blender --background --disable-autoexec --python tools/blender/export_monster.py -- --blend "<Ultimate Monsters>/used_monster/Boss/Fish.blend" --glb public/models/enemies/drowned_king.glb --previews <folder> --attack Weapon --crown "<Ultimate RPG Pack>/Crown.blend"
+```
+
 ## A held weapon: `game/tools/blender/export_weapon.py`
 
 Update 0.1.5: a weapon whose head sticks out to one side (an axe) needs `--handle-center` (centre on the handle where it's held), and `--edge-out` (turn its blade to +x, the way the knuckles face). The Gold Axe and the Hammer:
