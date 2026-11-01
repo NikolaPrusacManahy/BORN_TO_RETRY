@@ -2,9 +2,10 @@
 // blow that lands, a deep thump you feel more than hear, whatever the blow's own sound (a recorded clip or the synth's);
 // a kill's deeper and longer, with a crack. (Its rush of air under a dash: taken out, the designer: "remove the rush of
 // air".) Each layer can be turned off in the Lab's Sounds (soundLayers.ts).
+// Update 0.3.2 (the designer: executions "brutal") — a bone crunch under an execution's blows, a bigger one at its end.
 import type { CombatEvent } from '../sim/combat/state';
 import type { AudioEngine } from './audio';
-import { crack, OFF, thump } from './soundLayers';
+import { crack, crunch, OFF, thump } from './soundLayers';
 
 /** A blow's thump (nothing for the rest). */
 export function impactLayer(a: AudioEngine, kind: CombatEvent, value: number) {
@@ -28,6 +29,13 @@ export function impactLayer(a: AudioEngine, kind: CombatEvent, value: number) {
     case 'kill':
       if (!OFF.has('killThump')) thump(a, 0.7, 0.24);
       if (!OFF.has('killCrack')) crack(a);
+      return;
+    case 'execBlow':
+      if (!OFF.has('crunch')) crunch(a, 0.7);
+      return;
+    case 'execBurst':
+    case 'execLand':
+      if (!OFF.has('crunch')) crunch(a, 1);
       return;
     default:
       return;

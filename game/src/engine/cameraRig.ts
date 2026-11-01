@@ -49,6 +49,11 @@ export class CameraRig {
     this.kickPitch = Math.max(-0.2, this.kickPitch - (deg * Math.PI) / 180);
   }
 
+  /** Update 0.3.2 — an execution's lunge: the view narrows by `deg` at once, then eases back out. */
+  lunge(deg: number) {
+    this.fovExtra -= deg;
+  }
+
   /** The feet jumped `dy` in one tick on the ground (a step up or down): hide the jump, then ease it out. */
   step(dy: number) {
     this.stepOffset = Math.max(-0.6, Math.min(0.6, this.stepOffset - dy));

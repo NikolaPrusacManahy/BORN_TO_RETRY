@@ -165,7 +165,7 @@ export class Run extends RunBase {
     const frozen = this.combat.hitStop.tick(real) || this.hold || this.told || this.chestShot.locked;
     if (this.chestShot.locked) riseChests(this.treasure, real * LAB.v.timeScale);
     if (locked && !p.dead) this.played += real;
-    const scale = LAB.v.timeScale * this.death.timeScale * this.show.timeScale;
+    const scale = LAB.v.timeScale * this.death.timeScale * this.show.timeScale * this.combatScene.timeScale;
     const gameDt = frozen ? 0 : real * scale;
     const steps = frozen ? 0 : this.tick(gameDt, input);
     // (Update 0.2.16 — a chest dealt Fate Cards: the world holds still, the page's deal screen shows them.)
@@ -196,7 +196,7 @@ export class Run extends RunBase {
     tv.update(this.combat, this.camera.position, gameDt);
     this.arms.chest.update(tv.reach.k, tv.reach.left, tv.reach.right, this.camera, this.arms.camera);
     this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt, this.clock.alpha);
-    this.combatScene.speed(Math.hypot(p.vel.x, p.vel.z), real);
+    this.combatScene.realFrame(Math.hypot(p.vel.x, p.vel.z), real);
     followHeld(this.combat, this.look, this.arms, this.camera, real);
     const free = locked && !p.dead && !this.show.locked && !shot.cinematic && !chestShot && !execHeld(this.combat.exec);
     const lobby = this.level.lobby;

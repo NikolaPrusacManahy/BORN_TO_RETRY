@@ -3,6 +3,8 @@
 // pool under the body; an execution's blows spray and its end bursts with pools all round. Drops fly, fall and splat on
 // the floor; the splats lie a while, then shrink away (a cap on how many: the oldest go first). Under water, a cloud.
 // Made in code: small wet boxes for the drops, a splat drawn on a canvas. The Options' Blood setting: on, less, off.
+// Update 0.3.2 (the designer: executions "brutal") — an execution's blows spray half again as much, and a thrown body
+// bursts where it lands, with pools.
 // Which enemy a hit landed on: the one whose body the hit's point is on (the events carry only the point).
 import * as THREE from 'three';
 import type { CombatEvent, CombatState } from '../sim/combat/state';
@@ -122,15 +124,15 @@ export class BloodFx {
       const e = ev.at(i);
       const n = drops(e.kind, e.value, amount);
       if (n === 0) continue;
-      const foe = e.kind === 'execBurst' ? state.enemies[e.value] : enemyAt(state, e.x, e.z);
+      const foe = e.kind === 'execBurst' || e.kind === 'execLand' ? state.enemies[e.value] : enemyAt(state, e.x, e.z);
       if (!foe) continue;
       const look = bloodOf(foe.kind);
       const under = e.y < state.tide;
       dir.set(e.x - eye.x, 0, e.z - eye.z).normalize();
-      this.spray(e.x, e.y, e.z, look, n, foe.perch > 0 ? foe.perch : 0, under, e.kind === 'kill' || e.kind === 'execBurst');
+      this.spray(e.x, e.y, e.z, look, n, foe.perch > 0 ? foe.perch : 0, under, e.kind === 'kill' || e.kind === 'execBurst' || e.kind === 'execLand');
       if (!amount.pools || under || look.mode !== 'drip') continue;
       if (e.kind === 'kill') this.splat(foe.pos.x, foe.perch > 0 ? foe.perch : 0, foe.pos.z, POOL * Math.max(0.6, radiusOf(foe)), amount.life, look.splat, true);
-      if (e.kind === 'execBurst') for (let k = 0; k < 3; k++) this.splat(foe.pos.x + (Math.random() - 0.5) * 3, 0, foe.pos.z + (Math.random() - 0.5) * 3, POOL * (0.7 + Math.random() * 0.6), amount.life, look.splat, true);
+      if (e.kind === 'execBurst' || e.kind === 'execLand') for (let k = 0; k < 3; k++) this.splat(foe.pos.x + (Math.random() - 0.5) * 3, 0, foe.pos.z + (Math.random() - 0.5) * 3, POOL * (0.7 + Math.random() * 0.6), amount.life, look.splat, true);
     }
   }
 
@@ -263,8 +265,9 @@ function drops(kind: CombatEvent, value: number, a: BloodAmount): number {
     case 'kill':
       return a.kill;
     case 'execBlow':
-      return Math.round(a.exec / 3);
+      return Math.round(a.exec / 2);
     case 'execBurst':
+    case 'execLand':
       return a.exec;
     default:
       return 0;

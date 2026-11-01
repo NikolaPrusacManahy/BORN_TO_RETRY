@@ -12,7 +12,7 @@
 // Update 0.2.23 — floor 2's wasps' hives (hivesView.ts), and its tall grass parting round you and the enemies.
 // Update 0.2.26 — blood (bloodFx.ts). Update 0.2.27 — the enemies' shots (shotsView.ts). Update 0.2.28 — your
 // blows' arcs, dust rings and the hammer's rocks (blowsFx.ts). Update 0.3.0 — the halos (halos.ts): each frame starts
-// with none. Update 0.3.1 — speed lines (speedLines.ts).
+// with none. Update 0.3.1 — speed lines (speedLines.ts). Update 0.3.2 — an execution's finish (execFx.ts).
 // Update 0.1.2 — and executions (exec/execScene.ts: the body, its pieces, the frog's tongue).
 // Update 0.1.4 — and the Grimoire's fireballs (fireView.ts). Update 0.1.9 — and the daggers' volley (knivesView.ts).
 // Update 0.1.12 — and the skull over the enemy you can execute (execMarkView.ts).
@@ -48,6 +48,7 @@ import { ShotsView } from './shotsView';
 import { BlowsFx } from './blowsFx';
 import { HALOS } from './halos';
 import { SpeedLines } from './speedLines';
+import { ExecFx } from './execFx';
 import { pushGrass } from './grassShader';
 import { WeaponsView } from './weaponsView';
 import type { Viewmodel } from './viewmodel/viewmodel';
@@ -84,6 +85,7 @@ export class CombatScene {
   private readonly blows: BlowsFx;
   private readonly camera: THREE.Camera;
   private readonly speedLines: SpeedLines;
+  private readonly execFx: ExecFx;
 
   constructor(scene: THREE.Scene, state: CombatState, audio: AudioEngine, rig: CameraRig, arms: Viewmodel) {
     this.targets = new TargetsView(scene, state);
@@ -104,6 +106,7 @@ export class CombatScene {
     this.blows = new BlowsFx(scene, rig.camera);
     this.camera = rig.camera;
     this.speedLines = new SpeedLines(scene, rig.camera);
+    this.execFx = new ExecFx(scene, rig);
     scene.add(HALOS.mesh);
     this.coins = new CoinsView(scene);
     scene.add(this.waves.group);
@@ -127,6 +130,7 @@ export class CombatScene {
     this.feedback.apply(state, listener);
     this.blood.apply(state, listener);
     this.blows.apply(state);
+    this.execFx.apply(state);
     this.demonFx.update(state, gameDt);
     this.gun.update(state, gameDt);
     state.events.clear();
@@ -180,9 +184,16 @@ export class CombatScene {
     this.exec.clear();
   }
 
-  /** Update 0.3.1 — how fast you're going across the floor (m/s), for the speed lines; `real`: real time. */
-  speed(speed: number, real: number) {
+  /** Update 0.3.1 — the parts timed in real time: the speed lines (`speed`: how fast you're going across the floor,
+   *  m/s) and (Update 0.3.2) an execution's slow motion and flash. */
+  realFrame(speed: number, real: number) {
     this.speedLines.update(speed, real);
+    this.execFx.update(real);
+  }
+
+  /** Update 0.3.2 — the world's speed (an execution's finish slows it). */
+  get timeScale() {
+    return this.execFx.timeScale;
   }
 
   dispose() {
@@ -203,6 +214,7 @@ export class CombatScene {
     this.blows.dispose();
     HALOS.mesh.removeFromParent();
     this.speedLines.dispose();
+    this.execFx.dispose();
     this.demonFx.dispose();
     this.waves.dispose();
     this.coins.dispose();

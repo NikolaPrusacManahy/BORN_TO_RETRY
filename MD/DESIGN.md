@@ -147,6 +147,11 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   dash 40 m/s for 0.14 s; the slide 22 m/s, lasting while held (1.5 s at most); the view widens 14° in a dash, up to 16°
   at speed; speed lines. **(placeholder numbers, F1)**
 
+### Brutal executions (Update 0.3.2; spec `MD_UPDATES/U032_BRUTAL_EXECUTIONS.md`)
+- The finishing blow (the body let go, or bursting in your hands): the world at a quarter speed for half a second, the
+  camera lunging in 14°, a red flash and a shake; a bone crunch under every blow; more blood, a thrown body bursting
+  where it lands. **(placeholder numbers, F1 → Execution)**
+
 ### Fate Cards (Update 0.2.16, the designer; spec `MD_UPDATES/U0216_FATE_CARDS.md`; Update 0.2.15's Scars became 14 of them)
 - **When:** a boss's chest (not the run's last) and a challenge room's always **deal three Fate Cards**; a chest opened
   with a key deals them **one time in four instead of its loot** (the designer: "25% is fine"); a gold chest never. The

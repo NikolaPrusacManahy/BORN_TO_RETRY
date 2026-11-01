@@ -9,7 +9,7 @@ import { LAYERS, layerOf, OFF } from '../src/audio/soundLayers';
 
 section('Sound layers — punches and kills');
 {
-  check('every layer a punch and a kill play, each once', LAYERS.length === 9 && new Set(LAYERS.map((l) => l.id)).size === LAYERS.length);
+  check('every layer a punch, a kill and an execution play, each once', LAYERS.length === 10 && new Set(LAYERS.map((l) => l.id)).size === LAYERS.length);
   check('a punch’s swing, its hits and a kill are their own layers', layerOf('jabL') === 'jab' && layerOf('jabR') === 'jab' && layerOf('hitJab') === 'hitJab' && layerOf('kill') === 'kill' && layerOf('hitSlash') === null);
   const played: string[] = [];
   const fake = { ctx: null, sfx: null, noise: null, clips: { play: (s: string) => (played.push(s), true) } } as unknown as AudioEngine;
