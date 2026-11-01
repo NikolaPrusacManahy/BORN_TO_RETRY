@@ -156,15 +156,45 @@ export function dig(state: Pick<CombatState, 'enemies' | 'events'>, i: number) {
 /** Update 0.2.7 — the Skull Wraith (the designer: "teleports away for the 1st 2 hits … teleport anywhere on the map -
  *  avoid structures so they can't get stuck"): its first Skull Wraith teleports hits it's gone from, to anywhere over
  *  open floor in the room (a free cell of the fliers' grid, nothing tall there), well away from where it was. */
+/** Update 0.2.24 — how far from a crystal's middle a Skull Wraith appears (m). */
+const CRYSTAL_NEAR = 1.7;
+
 export function skullBlinks(state: CombatState, i: number): boolean {
   const e = state.enemies[i];
   const v = FOES3B.v;
   if (e.stage >= Math.round(v.skullBlinks) || e.phase === 'held' || e.frozen > 0) return false;
   const g = state.nav.air;
+  // (Update 0.2.24 — in a room with crystals, beside one of them.)
+  if (state.crystals.length > 0) return crystalBlink(state, i);
   for (let tries = 0; tries < 40; tries++) {
     const x = hasCells(g) ? g.minX + state.rng() * g.cols * g.cell : e.pos.x + (state.rng() * 2 - 1) * 15;
     const z = hasCells(g) ? g.minZ + state.rng() * g.rows * g.cell : e.pos.z + (state.rng() * 2 - 1) * 15;
     if ((hasCells(g) && !freeAt(g, x, z)) || Math.hypot(x - e.pos.x, z - e.pos.z) < v.skullBlinkAway) continue;
+    state.events.push('ninjaVanish', i, e.pos.x, e.pos.y + 1, e.pos.z);
+    e.pos.set(x, e.pos.y, z);
+    e.prev.copy(e.pos);
+    e.vel.set(0, 0, 0);
+    e.stage++;
+    setPhase(e, 'chase');
+    state.events.push('ninjaAppear', i, e.pos.x, e.pos.y + 1, e.pos.z);
+    return true;
+  }
+  return false;
+}
+
+/** Update 0.2.24 — a Skull Wraith blinks to a crystal (floor 3's Crystal Shrine): beside one far enough from where it
+ *  was, on open floor. */
+function crystalBlink(state: CombatState, i: number): boolean {
+  const e = state.enemies[i];
+  const v = FOES3B.v;
+  const g = state.nav.air;
+  const list = state.crystals.filter((c) => Math.hypot(c.x - e.pos.x, c.z - e.pos.z) >= v.skullBlinkAway);
+  for (let tries = 0; tries < 24 && list.length > 0; tries++) {
+    const c = list[Math.floor(state.rng() * list.length)];
+    const a = state.rng() * Math.PI * 2;
+    const x = c.x + Math.sin(a) * CRYSTAL_NEAR;
+    const z = c.z + Math.cos(a) * CRYSTAL_NEAR;
+    if (hasCells(g) && !freeAt(g, x, z)) continue;
     state.events.push('ninjaVanish', i, e.pos.x, e.pos.y + 1, e.pos.z);
     e.pos.set(x, e.pos.y, z);
     e.prev.copy(e.pos);

@@ -22,9 +22,12 @@ import { lavaOf } from '../src/world/arena';
 import { buildDungeon, LAVA_DEPTH } from '../src/world/dungeon/assemble';
 import { dress } from '../src/world/dungeon/dressing';
 import { cellX, cellZ, planFloor } from '../src/world/dungeon/floorPlan';
-import { LAVA_ROOMS } from '../src/world/dungeon/lavaRooms';
+import { BONE_ROOMS } from '../src/world/dungeon/boneRooms';
+
+/** Update 0.2.24 — the lava lake, the lava bridges and the gauntlet are retired; floor 3's bone bridges has the lava. */
+const LAVA_ROOMS = BONE_ROOMS.filter((t) => t.rows.some((r) => r.includes('L')));
 import { Cell, layOut } from '../src/world/dungeon/rooms';
-import { BRICK, STONE, styleOf } from '../src/world/dungeon/styles';
+import { BONE, BRICK, STONE, styleOf } from '../src/world/dungeon/styles';
 import { AIR, buildNavGrid, freeAt } from '../src/world/navGrid';
 
 /** On foot without a jump pad: not a wall, a column, high cover, a high ledge or lava. */
@@ -76,12 +79,12 @@ section('Lava rooms — their layouts');
   }
 }
 
-// A floor with the lava lake (Update 0.2.23: floor 3; floor 2's pits hold sludge).
+// A floor with lava (Update 0.2.23: floor 3; floor 2's pits hold sludge. Update 0.2.24: the bone bridges).
 let seed = 1;
-while (!planFloor(seed, 3).rooms.some((r) => r.layout.template.id === 'lava lake')) seed++;
+while (!planFloor(seed, 3).rooms.some((r) => r.layout.template.id === 'bone bridges')) seed++;
 const plan = planFloor(seed, 3);
 const level = buildDungeon(plan);
-const lakeIndex = plan.rooms.findIndex((r) => r.layout.template.id === 'lava lake');
+const lakeIndex = plan.rooms.findIndex((r) => r.layout.template.id === 'bone bridges');
 const lake = plan.rooms[lakeIndex];
 const lavaCell = (() => {
   for (let r = 0; r < lake.layout.h; r++) for (let c = 0; c < lake.layout.w; c++) if (lake.layout.cells[r * lake.layout.w + c] === 'lava') return [lake.x0 + c, lake.z0 + r];
@@ -133,7 +136,7 @@ section('Lava rooms — falling in');
 
 section('Floor 3 — its look');
 {
-  check('floor 1 is brick, floor 2 the Venom Garden (its brick overgrown), floor 3 stone', styleOf(1) === BRICK && styleOf(2).id === 'venom' && styleOf(3) === STONE);
+  check('floor 1 is brick, floor 2 the Venom Garden (its brick overgrown), floor 3 the Bone Keep (its stone bleached)', styleOf(1) === BRICK && styleOf(2).id === 'venom' && styleOf(3) === BONE && BONE.wall === STONE.wall);
   const buf = readFileSync(new URL('../public/models/dungeon/kit.glb', import.meta.url));
   const kit = await new GLTFLoader().parseAsync(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer, '');
   const three = planFloor(5, 3);

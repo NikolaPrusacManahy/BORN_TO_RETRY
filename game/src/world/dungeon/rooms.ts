@@ -10,7 +10,7 @@
 // Update 0.0.13 — the fight rooms are twice the size (fightRooms.ts); chests (T) and the shop room.
 // Update 0.0.15 — the boss room replaces the exit room (and its trapdoor): the way down is now a wooden gate in its far
 // wall, onto the dark (floorPlan.ts stamps the gate and the dark beyond it).
-// Update 0.0.20 — L: a lava pit (lavaRooms.ts); a template may wait for a floor (`from`).
+// Update 0.0.20 — L: a lava pit (the lava rooms, retired in Update 0.2.24); a template may wait for a floor (`from`).
 // Update 0.0.21 — U: a perch (a high ledge where a spitter stands: keepRooms.ts); a template may stop at a floor
 // (`until`).
 // Update 0.2.4 — floor 4's desert (desertRooms.ts): Q quicksand (floor you sink in), Y a palm and K a cactus, each in a
@@ -21,22 +21,25 @@
 // Update 0.2.23 — floor 2's Venom Garden (venomRooms.ts): , a bed of earth (flowers, short grass, plants), G a bed of
 // tall grass (it parts round what walks through it), R a tree in a bed of earth, w a web on the floor (it slows you), h
 // a wasps' hive on the wall beside this cell (floor). Its boss room is its own, scorched.
+// Update 0.2.24 — floor 3's Bone Keep (boneRooms.ts): g an open grave (Skeletons climb out), m a bed of glowing
+// mushrooms (Mushnubs come out), o a burrow (White Rabbits pop out), x a crystal cluster (a block; Skull Wraiths blink
+// to them). Its boss room is its own, the Throne Hall. The lava rooms are retired.
 import type { Rng } from '../../core/rng';
 import { FIGHT_ROOMS as FIRST_ROOMS, quarter } from './fightRooms';
-import { LAVA_ROOMS } from './lavaRooms';
 import { KEEP_ROOMS } from './keepRooms';
 import { DESERT_ROOMS } from './desertRooms';
 import { DROWNED_ROOMS } from './drownedRooms';
 import { SUNKEN_CHALLENGE, SUNKEN_ROOMS } from './sunkenRooms';
 import { SCORCHED_ROOM, VENOM_ROOMS } from './venomRooms';
+import { BONE_ROOMS, THRONE_ROOM } from './boneRooms';
 
 /** Every fight room (Update 0.0.20: the lava rooms too, from their floor on; Update 0.0.21: floor 3's). */
-export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...VENOM_ROOMS, ...LAVA_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS, ...SUNKEN_ROOMS, SUNKEN_CHALLENGE];
+export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...VENOM_ROOMS, ...BONE_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS, ...SUNKEN_ROOMS, SUNKEN_CHALLENGE];
 
 /** Update 0.0.21 — the rooms floor `floor` has. */
 export const onFloor = (t: RoomTemplate, floor: number) => (t.from ?? 1) <= floor && floor <= (t.until ?? Infinity);
 
-export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed' | 'bed' | 'grass' | 'tree' | 'web';
+export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed' | 'bed' | 'grass' | 'tree' | 'web' | 'grave' | 'shroom' | 'burrow' | 'crystal';
 export type RoomKind = 'start' | 'fight' | 'boss' | 'shop';
 
 export interface RoomTemplate {
@@ -77,6 +80,10 @@ const CHAR: Record<string, Cell> = {
   R: 'tree',
   w: 'web',
   h: 'floor',
+  g: 'grave',
+  m: 'shroom',
+  o: 'burrow',
+  x: 'crystal',
 };
 
 export const START_ROOM: RoomTemplate = {
@@ -110,8 +117,9 @@ export const BOSS_ROOM: RoomTemplate = {
   ]),
 };
 
-/** Update 0.2.23 — floor `floor`'s boss room: floor 2's is scorched (venomRooms.ts), the rest the one above. */
-export const bossRoomOf = (floor: number): RoomTemplate => (floor === 2 ? SCORCHED_ROOM : BOSS_ROOM);
+/** Update 0.2.23 — floor `floor`'s boss room: floor 2's is scorched (venomRooms.ts), floor 3's the Throne Hall
+ *  (boneRooms.ts, Update 0.2.24), the rest the one above. */
+export const bossRoomOf = (floor: number): RoomTemplate => (floor === 2 ? SCORCHED_ROOM : floor === 3 ? THRONE_ROOM : BOSS_ROOM);
 
 /** Update 0.0.13 — the shop (the designer: a room with five floor tiles, each showing something to buy). */
 export const SHOP_ROOM: RoomTemplate = {

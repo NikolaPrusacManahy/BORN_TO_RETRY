@@ -2,7 +2,18 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.2.23: floor 2, the Venom Garden)
+## Next up (2026-11-01, Update 0.2.24: floor 3, the Bone Keep)
+- **The designer: "finish floor 2 and 3"** (spec `MD_UPDATES/U0224_BONE_KEEP.md`). Floor 3 is the stone keep bleached
+  bone-white under a pale lavender sky: skulls on the walls, stone tombs as low cover, candelabra, open graves, glowing
+  mushroom beds, burrows, violet crystals. **Its enemies come out of their lairs:** Skeletons climb out of graves,
+  Mushnubs out of mushroom beds, Rabbits out of burrows; the Skull Wraith blinks beside crystals. **Eight new rooms**
+  (ossuary, graveyard court, tomb hall, fungal crypt, warren, crystal shrine, warden's court, bone bridges) plus the
+  ramparts and towers; the Bone King's room is **the Throne Hall** (skull pillars). The keep, the bridgeworks and the
+  three lava rooms are retired.
+- Checked by tests (`test-bone.ts`) and Blender previews; **unseen in the game**: which way the skulls face, the
+  crystals' glow, the mushrooms, the graves, the colours in the game's light.
+
+## Before (2026-11-01, Update 0.2.23: floor 2, the Venom Garden)
 - **The designer asked for floors 2 and 3 to match their enemies**; Claude suggested the Venom Garden (floor 2) and the
   Bone Keep (floor 3); the designer: "Yes, floor 2 first" (spec `MD_UPDATES/U0223_VENOM_GARDEN.md`). Floor 2 is floor
   1's brick ruins overgrown in bright sun: earth beds, flowers, trees, bushes as low cover, cobwebs, **green sludge**
@@ -12,7 +23,7 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   trees, ash, scorch marks). Floor 1 keeps its rooms; the lava rooms are floor 3's only. Numbers on F1 → Venom Garden.
 - Checked by tests (`test-venom.ts`) and Blender previews; **unseen in the game**: the parting grass, the hives (where
   they hang, their fall, reaching one with a punch), the web sheets, the sludge's bubbles, the colours in the game's
-  light. **Next: floor 3, the Bone Keep** (its own update).
+  light. Floor 3, the Bone Keep: Update 0.2.24 (above).
 
 ## Before (2026-11-01, Update 0.2.22: builds of Fate Cards; the slam's blast is a card)
 - **From the testers' feedback** (spec `MD_UPDATES/U0222_BUILDS.md`): **the slam's blast is a card, Tremor** (the slam

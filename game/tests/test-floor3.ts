@@ -19,7 +19,7 @@ import { HEIGHT, buildDungeon } from '../src/world/dungeon/assemble';
 import { planFloor } from '../src/world/dungeon/floorPlan';
 import { FIGHT_ROOMS } from '../src/world/dungeon/fightRooms';
 import { KEEP_ROOMS } from '../src/world/dungeon/keepRooms';
-import { LAVA_ROOMS } from '../src/world/dungeon/lavaRooms';
+import { BONE_ROOMS } from '../src/world/dungeon/boneRooms';
 import { layOut } from '../src/world/dungeon/rooms';
 
 const ids = (floor: number) => new Set(Array.from({ length: 40 }, (_, s) => planFloor(s + 1, floor).rooms.filter((r) => r.kind === 'fight').map((r) => r.layout.template.id)).flat());
@@ -27,9 +27,9 @@ const ids = (floor: number) => new Set(Array.from({ length: 40 }, (_, s) => plan
 section('Floor 3 — its own rooms');
 {
   const three = ids(3);
-  const own = new Set([...LAVA_ROOMS, ...KEEP_ROOMS].map((t) => t.id));
+  const own = new Set([...BONE_ROOMS, ...KEEP_ROOMS].map((t) => t.id));
   check('floor 3 has none of the rooms of floors 1 and 2', FIGHT_ROOMS.every((t) => !three.has(t.id)));
-  check('only the lava rooms and its own new ones, all of them in use', [...three].every((id) => own.has(id)) && [...own].every((id) => three.has(id)), [...three].join(', '));
+  check('only its own rooms (Update 0.2.24: the Bone Keep’s), all of them in use', [...three].every((id) => own.has(id)) && [...own].every((id) => three.has(id)), [...three].join(', '));
   check('floors 1 and 2 never have floor 3’s new rooms', KEEP_ROOMS.every((t) => !ids(1).has(t.id) && !ids(2).has(t.id)));
   for (const t of KEEP_ROOMS) {
     const l = layOut(t, createRng(5));
@@ -45,10 +45,10 @@ section('Floor 3 — its own rooms');
 section('Floor 3 — up high (Update 0.2.7: Dragonlings in the Spitters’ place)');
 {
   let seed = 1;
-  while (!planFloor(seed, 3).rooms.some((r) => r.layout.template.id === 'the keep')) seed++;
+  while (!planFloor(seed, 3).rooms.some((r) => r.layout.template.id === 'towers')) seed++;
   const plan = planFloor(seed, 3);
   const level = buildDungeon(plan);
-  const i = plan.rooms.findIndex((r) => r.layout.template.id === 'the keep');
+  const i = plan.rooms.findIndex((r) => r.layout.template.id === 'towers');
   const room = level.rooms[i];
   check(`every wave of a room with perches brings ${PERCHED} Dragonlings for them, no Spitter`, room.waves.every((w) => w.filter((k) => k === 'dragonling').length >= PERCHED && !w.includes('spitter')));
   const run = createDungeonRun(level);

@@ -11,6 +11,9 @@
 # Update 0.2.11 — and floor 6's, the Sunken Grove: drowned trees and seaweed.
 # Update 0.2.23 — and floor 2's, the Venom Garden: bushes, flowers, short grass and plants, birches and trees, a stump
 # and a log, a mossy rock, and part 1's second cobweb.
+# Update 0.2.24 — and floor 3's, the Bone Keep: the Ultimate RPG Pack's crystals, skulls and bone (kit_r_<piece>;
+# `--rpg`), part 2's short candelabrum and candle.
+#       ... --rpg <Ultimate RPG Pack folder>
 import argparse
 import math
 import os
@@ -27,7 +30,7 @@ PART1 = ['Floor_Modular', 'Wall_Modular', 'WallCover_Modular', 'Arch', 'Arch_bar
          'Trapdoor_open', 'Banner_wall', 'Skull', 'Cobweb', 'Vase', 'Bucket', 'Chest', 'Pedestal', 'Woodfire', 'Cobweb2']
 PART2 = ['Column', 'Column_Broken2', 'Rock1', 'Rock2', 'Rock3', 'Bones', 'Bones2', 'Torch_wall', 'Candelabrum_tall', 'Carpet',
          'ModularStoneWall', 'ModularStoneWall_top', 'ModularStoneWall_EntranceTop', 'ModularFloor', 'Entrance', 'Bars', 'WallRocks',
-         'ModularColumn_bottom', 'ModularColumn_middle', 'ModularColumn_top', 'Rock4', 'Rock5']
+         'ModularColumn_bottom', 'ModularColumn_middle', 'ModularColumn_top', 'Rock4', 'Rock5', 'Candelabrum', 'Candle']
 # Update 0.2.4 — floor 4's desert: palms and cacti in their sand beds, desert rocks.
 NATURE = ['PalmTree_1', 'PalmTree_3', 'Cactus_1', 'Cactus_3', 'CactusFlowers_2', 'Rock_2', 'Rock_5',
           # Update 0.2.10 — floor 5's.
@@ -37,6 +40,8 @@ NATURE = ['PalmTree_1', 'PalmTree_3', 'Cactus_1', 'Cactus_3', 'CactusFlowers_2',
           # Update 0.2.23 — floor 2's, the Venom Garden.
           'Bush_1', 'Bush_2', 'BushBerries_1', 'Flowers', 'Grass_Short', 'Plant_1', 'Plant_2', 'Plant_5', 'BirchTree_1',
           'BirchTree_2', 'CommonTree_1', 'CommonTree_2', 'TreeStump', 'WoodLog', 'Rock_Moss_2']
+# Update 0.2.24 — floor 3's: crystal clusters (the Skull Wraiths blink between them), skulls and a bone.
+RPG = ['Crystal1', 'Crystal2', 'Crystal3', 'Crystal4', 'Crystal5', 'Skull', 'Skull2', 'Bone']
 # Faced +x as they come: turned a quarter so they face −y.
 TURN = {'ModularStoneWall', 'ModularStoneWall_top', 'ModularStoneWall_EntranceTop', 'Entrance', 'Bars', 'WallRocks'}
 
@@ -49,6 +54,7 @@ def parse_args():
     p.add_argument('--glb', required=True)
     p.add_argument('--previews', default=None)
     p.add_argument('--nature', default=None)
+    p.add_argument('--rpg', default=None)
     return p.parse_args(argv)
 
 
@@ -58,6 +64,7 @@ def main():
         bpy.data.objects.remove(o, do_unlink=True)
     pieces = []
     packs = [('p1', args.part1, PART1), ('p2', args.part2, PART2)] + ([('n', args.nature, NATURE)] if args.nature else [])
+    packs += [('r', args.rpg, RPG)] if args.rpg else []
     for prefix, folder, names in packs:
         protos = load_pieces(folder, names, {}, bake=True, recenter=names)
         for name, o in protos.items():

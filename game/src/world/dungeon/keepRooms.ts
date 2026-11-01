@@ -4,30 +4,14 @@
 // along, with perches (U: a high ledge where a spitter stands and shoots down; sim/dungeon/roomLoop.ts puts them there).
 // Ways up: steps (p, 1 m, then a jump), jump pads (J), and walls to run and jump from. Floor cells always join every door.
 // Drawn as quarters like the others (fightRooms.ts).
+// Update 0.2.24 — the Bone Keep (boneRooms.ts): the ramparts and the towers stay (the Dragonlings' perches), dressed
+// as the rest of the floor; the keep and the bridgeworks are retired.
 import type { RoomTemplate } from './rooms';
 import { quarter } from './fightRooms';
 
 const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 3, until: 3 });
 
 export const KEEP_ROOMS: readonly RoomTemplate[] = [
-  // A raised square walk round a courtyard, open at the middle of each side; spitters on its corners and sides; steps
-  // and a pad up from outside, a step up from the courtyard.
-  room('the keep', [
-    '...T..........',
-    '.E.......E....',
-    '..............',
-    '..b......b....',
-    '.....PPPPPPPP.',
-    '.....PUPPPUPP.',
-    '.....PP.......',
-    '....pPP...E...',
-    '.....PPp......',
-    '....JPU.......',
-    '.....PP...b...',
-    '.E...PP.......',
-    '.....PP..E....',
-    '..............',
-  ]),
   // Ramparts along the walls (4 m wide, 2.5 m up) with spitters on them; an open middle with columns; steps and pads up
   // at the corners.
   room('ramparts', [
@@ -62,21 +46,5 @@ export const KEEP_ROOMS: readonly RoomTemplate[] = [
     '.....E...pPPP.',
     '..............',
     '..............',
-  ]),
-  // Lava below, two raised bridges across it with spitters on them; steps up at the bridges' ends; walkways down the
-  // sides.
-  room('bridgeworks', [
-    '.....T........',
-    '.E.......E....',
-    '..............',
-    '..b.......b...',
-    '..............',
-    '.E....p.......',
-    '......PPP.....',
-    '....LLPUPLLLLL',
-    '....LLPPPLLLLL',
-    '....LLPPPLLLLL',
-    '....LLPPPLLLLL',
-    '....LLPUPLLLLL',
   ]),
 ];

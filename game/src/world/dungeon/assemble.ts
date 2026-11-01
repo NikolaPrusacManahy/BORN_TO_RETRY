@@ -19,6 +19,7 @@
 import type { Arena, ArenaBox, BoxKind, JumpPad, Spot } from '../arena';
 import { cellsBox, merge } from './cellBoxes';
 import { HiveSpot, hivesOf, websOf } from './garden';
+import { Lairs, lairsOf } from './lairs';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, PlacedRoom, Side } from './floorPlan';
 import { OPPOSITE } from './wayOut';
 import type { Cell, RoomKind } from './rooms';
@@ -28,6 +29,7 @@ import { hasYeti } from '../../sim/dungeon/wavePlan';
 // Update 0.2.4 — floor 4's desert: a palm's trunk and a cactus are narrow blocks in their cells (their sand is floor);
 // quicksand is floor too, listed apart (DungeonLevel.sand) for the slow you feel in it.
 // Update 0.2.23 — floor 2's Venom Garden (garden.ts): a tree's trunk is a willow's block; its webs and its hives.
+// Update 0.2.24 — floor 3's Bone Keep: a crystal cluster is a block; each room's lairs (lairs.ts).
 
 /** Heights of what stands on a cell (m); the floor's top is y = 0. */
 export const HEIGHT: Partial<Record<Cell, number>> = { wall: 6, column: 4.9, low: 1.3, high: 2.85, ledge: 1, highLedge: 2.5, spikes: 0.3, chest: 0.9 };
@@ -112,6 +114,8 @@ export interface DungeonRoom {
   perches: Spot[];
   /** Update 0.1.20 — a challenge room (floorPlan.ts). */
   challenge: boolean;
+  /** Update 0.2.24 — floor 3's graves, mushroom beds, burrows and crystals. */
+  lairs: Lairs;
 }
 
 export interface DungeonLevel {
@@ -136,6 +140,8 @@ const PALM = { side: 0.7, h: 5 };
 const CACTUS = { side: 1.1, h: 2.2 };
 /** Update 0.2.10 — a willow's trunk. Update 0.2.11 — a drowned tree's (floor 6). */
 const WILLOW = { side: 0.8, h: 5 };
+/** Update 0.2.24 — a crystal cluster's block. */
+const CRYSTAL = { side: 1.2, h: 2.4 };
 
 const hasFloor = (c: Cell) => c !== 'void' && c !== 'wall' && c !== 'lava';
 
@@ -199,7 +205,7 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
   for (let row = 0; row < GRID; row++) {
     for (let col = 0; col < GRID; col++) {
       const c = cellAt(plan, col, row);
-      const b = c === 'palm' ? PALM : c === 'cactus' ? CACTUS : c === 'willow' || c === 'snag' || c === 'tree' ? WILLOW : null;
+      const b = c === 'palm' ? PALM : c === 'cactus' ? CACTUS : c === 'crystal' ? CRYSTAL : c === 'willow' || c === 'snag' || c === 'tree' ? WILLOW : null;
       if (b) boxes.push({ x: cellX(col), y: b.h / 2, z: cellZ(row), w: b.side, h: b.h, d: b.side, kind: 'block' });
     }
   }
@@ -246,6 +252,7 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
       perches: r.layout.perches.map(([c, row]) => ({ x: cellX(r.x0 + c), y: HEIGHT.highLedge!, z: cellZ(r.z0 + row) })),
       waves: r.waves,
       challenge: r.challenge,
+      lairs: lairsOf(r),
     };
   });
   const arena: Arena = { name: `Dungeon ${plan.level}`, boxes, pads, playerStart: { ...plan.start }, spawns: [], dummies: [], turrets: [] };

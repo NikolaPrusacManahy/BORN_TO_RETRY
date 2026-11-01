@@ -20,6 +20,7 @@
 // Update 0.2.9 — the walls' and ledges' cores moved to cores.ts, with feet under them and behind a pit's faces: the sky no
 // longer shows along their feet.
 // Update 0.2.23 — floor 2's Venom Garden (gardenDressing.ts): beds, tall grass, trees, webs, cobwebs, the boss room's ash.
+// Update 0.2.24 — and floor 3's Bone Keep (keepDressing.ts), both through ownDressing.ts.
 import { createRng } from '../../core/rng';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, Side } from './floorPlan';
 import { HEIGHT, LAVA_DEPTH } from './assemble';
@@ -28,7 +29,7 @@ import type { Cell } from './rooms';
 import { DungeonStyle, styleOf } from './styles';
 import { dressSand, dressShop, SANDY, SandCell } from './dressExtras';
 import { coresOf, surface } from './cores';
-import { dressBed, dressGarden, dressWeb, Mark } from './gardenDressing';
+import { dressOwnCell, dressOwnRooms, Marks, noMarks } from './ownDressing';
 
 export { CORE_BOTTOM, CORE_INSET } from './cores';
 
@@ -66,9 +67,9 @@ export interface Dressing {
   sand: SandCell[];
   /** Update 0.2.10 — lily pads on the tide (they ride its level: waterView.ts). */
   floats: Placement[];
-  /** Update 0.2.23 — floor 2's webs' sheets and its boss room's scorch marks (engine/gardenView.ts). */
-  webs: Mark[];
-  scorch: Mark[];
+  /** Update 0.2.23 — marks on the floor (floor 2's webs and scorches; Update 0.2.24: floor 3's graves, burrows,
+   *  mushrooms): engine/gardenView.ts. */
+  marks: Marks;
 }
 
 /** Kit pieces (export_dungeon_kit.py names). */
@@ -117,8 +118,7 @@ export function dress(plan: FloorPlan): Dressing {
   const lava: Dressing['lava'] = [];
   const sand: SandCell[] = [];
   const floats: Placement[] = [];
-  const webs: Mark[] = [];
-  const scorch: Mark[] = [];
+  const marks = noMarks();
   const put = (piece: string, x: number, y: number, z: number, rot = 0, sx = 1, sy = 1, sz = 1) => pieces.push({ piece, x, y, z, rot, sx, sy, sz });
   const inRoom = new Int16Array(GRID * GRID).fill(-1);
   for (const r of plan.rooms) for (let row = -1; row <= r.layout.h; row++) for (let col = -1; col <= r.layout.w; col++) inRoom[(r.z0 + row) * GRID + r.x0 + col] = r.index;
@@ -181,14 +181,6 @@ export function dress(plan: FloorPlan): Dressing {
         case 'weed':
           dressSand(c, x, z, rng, put, sand);
           break;
-        case 'bed':
-        case 'grass':
-        case 'tree':
-          dressBed(c, x, z, plan.rooms[inRoom[row * GRID + col]]?.kind === 'boss', rng, put, sand);
-          break;
-        case 'web':
-          dressWeb(x, z, rng, put, webs);
-          break;
         case 'low':
           // (Update 0.2.11 — or the look's own: floor 6's mossy boulders. Update 0.2.23 — floor 2's bushes, in beds.)
           if (K.lowBed) sand.push({ x, z, quick: false });
@@ -227,6 +219,8 @@ export function dress(plan: FloorPlan): Dressing {
           }
           break;
         default:
+          // (Update 0.2.23 — the floors' own cells: ownDressing.ts.)
+          dressOwnCell(c, x, z, plan.rooms[inRoom[row * GRID + col]]?.kind === 'boss', rng, put, sand, marks);
           break;
       }
     }
@@ -259,7 +253,7 @@ export function dress(plan: FloorPlan): Dressing {
     }
   }
   dressShop(plan, put);
-  if (K.id === 'venom') dressGarden(plan, inRoom, nearDoor, rng, put, scorch);
+  dressOwnRooms(K, plan, inRoom, nearDoor, rng, put, marks);
   // The way down: the wall over the wooden gate's doorway (on the room's side), a torch either side of it.
   const out = plan.wayOut;
   const ns = out.side === 'n' || out.side === 's';
@@ -281,7 +275,7 @@ export function dress(plan: FloorPlan): Dressing {
     put(KIT.torch, tx, TORCH_Y, tz, FACING[inward] - Math.PI / 2);
     torches.push({ x: ns ? tx : gx - ox * (CELL / 2 + 0.95), y: TORCH_Y + 1.2, z: ns ? gz - oz * (CELL / 2 + 0.95) : tz });
   }
-  return { pieces, gates, torches, cores: coresOf(plan), lava, style: K, sand, floats, webs, scorch };
+  return { pieces, gates, torches, cores: coresOf(plan), lava, style: K, sand, floats, marks };
 }
 
 /** A column: one piece, or a stack up to the columns' height (a bottom, middles, a top). */

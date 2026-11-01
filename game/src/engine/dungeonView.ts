@@ -20,6 +20,7 @@
 // Update 0.2.23 — floor 2's Venom Garden: its sludge (lavaView.ts, the look's `pit`), its beds of earth and ash
 // (sandView.ts), its webs' sheets and scorch marks (gardenView.ts), its tall grass parting (grassShader.ts), its
 // charred trees (the look's `burnt`). The cores and the slab under the floor moved to dungeonSolid.ts.
+// Update 0.2.24 — floor 3's crystals glow (the look's `glow`); its graves, burrows and mushrooms (gardenView.ts).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { portalOpen, wallsOpen } from '../sim/dungeon/bossRoom';
@@ -127,7 +128,7 @@ export class DungeonView implements ArenaView {
     this.woodGate = new WoodGate(scene, b, `FLOOR ${level.plan.level + 1}`);
     this.lava = new LavaView(this.dressing.lava, look.pit);
     this.sand = new SandView(this.dressing.sand, look.sand, look.quicksand, look.ash);
-    this.garden = new GardenView(this.dressing.webs, this.dressing.scorch);
+    this.garden = new GardenView(this.dressing.marks);
     this.water = new WaterView(level.tide, look.water ?? 0, level.boss.end);
     this.group.add(this.sand.group, this.water.group, this.garden.group);
     this.under = underwaterOf(level, this.dressing.sand);
@@ -211,7 +212,7 @@ export class DungeonView implements ArenaView {
     mat.metalness = 0;
     this.under?.patch(mat, SEAWEED.has(piece));
     if (look.id === 'venom' && TALL_GRASS.has(piece)) grassPatch(mat);
-    if (/fire|candle/i.test(src.name)) {
+    if (/fire|candle/i.test(src.name) || look.glow?.includes(base)) {
       mat.emissive.copy(src.color);
       mat.emissiveIntensity = 2.2;
     }

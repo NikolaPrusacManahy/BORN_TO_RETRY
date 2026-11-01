@@ -78,7 +78,7 @@ section('Floor 4 — the desert: its look, its rooms, its sand');
 {
   const s = styleOf(4);
   // (Update 0.2.10 — floor 5 on is the Drowned Temple: test-floor5.ts.)
-  check('floor 4 is the desert: the stone pieces in sandstone, a warm sky and sun, sand', s.id === 'sand' && !!s.tint && !!s.floorTint && s.sky !== undefined && styleOf(5).id !== 'sand' && styleOf(3).id === 'stone');
+  check('floor 4 is the desert: the stone pieces in sandstone, a warm sky and sun, sand', s.id === 'sand' && !!s.tint && !!s.floorTint && s.sky !== undefined && styleOf(5).id !== 'sand' && styleOf(3).id === 'bone');
   const ids = DESERT_ROOMS.map((r) => r.id);
   check(`${ids.length} rooms of its own (at least 10), each different: ${ids.join(', ')}`, ids.length >= 10 && new Set(ids).size === ids.length && DESERT_ROOMS.every((r) => r.from === 4));
   let bad = '';

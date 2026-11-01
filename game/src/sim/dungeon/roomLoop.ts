@@ -24,6 +24,8 @@
 // reduced to 9") — a challenge room opens with Challenge: on field (10) and keeps that many fighting while it has more
 // to send. An enemy with no free slot (bodies still lying) waits its turn: it's still to come.
 // Update 0.2.23 — floor 2's hives let wasps out while their room fights (hives.ts).
+// Update 0.2.24 — floor 3's Skeletons, Mushnubs and Rabbits come out of their room's lairs (lairs.ts); its Skull Wraiths
+// blink to its crystals.
 import { createTide, Tide } from './tide';
 import { createRng, Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
@@ -46,6 +48,7 @@ import { rewardDone, startReward, takeKeys } from './reward';
 import { CHEST_D, CHEST_W } from '../../world/dungeon/assemble';
 import { Checkpoint, doorSpot } from './checkpoint';
 import { armHives, stepHives } from './hives';
+import { fromLair, lairFor } from './lairs';
 
 /** Update 0.2.0 — 'reward': a challenge room won, shut until its reward is taken. */
 export type RoomState = 'idle' | 'fighting' | 'reward' | 'cleared';
@@ -131,6 +134,7 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
       for (const g of room.gates) run.shut[g] = true;
       enterNav(run, i, combat);
       armHives(combat.hives, i);
+      combat.crystals = room.lairs.crystals;
       ev.push('gatesShut', i, (room.min.x + room.max.x) / 2, 1, (room.min.z + room.max.z) / 2);
       if (room.kind === 'boss') startShow(run.boss, combat, run.level.boss.portal);
     }
@@ -236,6 +240,7 @@ function send(run: DungeonRun, i: number, player: PlayerState, combat: CombatSta
   const perches = room.perches.filter((p) => !combat.enemies.some((e) => isLive(e) && e.perch > 0 && Math.hypot(e.pos.x - p.x, e.pos.z - p.z) < 0.5));
   for (let k = 0; k < kinds.length; k++) {
     const kind = kinds[k];
+    const lair = lairFor(room, kind);
     let slot: number;
     // (Update 0.2.10 — and floor 5's Big Glubs: they hang over their perches.)
     if ((kind === 'spitter' || kind === 'tribal' || kind === 'bigGlub') && perches.length > 0) {
@@ -245,6 +250,8 @@ function send(run: DungeonRun, i: number, player: PlayerState, combat: CombatSta
       // Update 0.2.7 — floor 3's Dragonlings have the Spitters' place (the designer): they come in on the perches and
       // take off from there (fliers: not standing on them).
       slot = spawnAt(combat.enemies, kind, perches, player, rng, combat.events);
+    } else if (lair) {
+      slot = fromLair(combat, kind, lair, player, rng);
     } else {
       // Update 0.2.1 — the spots away from you again before any near you (10 at once can use them all).
       if (pool.length === 0) pool = [...(far.length > 0 ? far : room.spawns)];

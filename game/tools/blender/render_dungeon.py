@@ -343,11 +343,18 @@ def main():
         bpy.context.scene.collection.objects.link(cores)
         # Update 0.0.20 — under the lava when the floor has pits (`slabY`). Update 0.2.9 — only under the floor boxes,
         # as the game lays it (`floors`), when the data has them: elsewhere the sky shows through, as in the game.
+        # (Update 0.2.23 — one mesh: a plane each took Blender most of an hour on a big floor.)
         if 'floors' in data:
+            sv, sf = [], []
             for f in data['floors']:
-                bpy.ops.mesh.primitive_plane_add(size=1, location=to_blender(f['x'], -0.45, f['z']))
-                bpy.context.active_object.scale = (f['w'], f['d'], 1)
-                bpy.context.active_object.data.materials.append(core_mat)
+                k = len(sv)
+                for dx, dz in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
+                    sv.append(to_blender(f['x'] + dx * f['w'] / 2, -0.45, f['z'] + dz * f['d'] / 2))
+                sf.append((k + 3, k + 2, k + 1, k))
+            slab = bpy.data.meshes.new('Slab')
+            slab.from_pydata(sv, [], sf)
+            slab.materials.append(core_mat)
+            bpy.context.scene.collection.objects.link(bpy.data.objects.new('Slab', slab))
         else:
             bpy.ops.mesh.primitive_plane_add(size=1000, location=(0, 0, data.get('slabY', -0.45)))
             bpy.context.active_object.data.materials.append(core_mat)

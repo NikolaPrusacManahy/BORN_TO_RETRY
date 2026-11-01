@@ -16,8 +16,10 @@
 // Update 0.2.23 — floor 2 is the Venom Garden (the designer: "they need to match their enemies"): floor 1's brick ruins
 // overgrown in bright sun, the brick mossy, earth beds (`sand`: the earth's colour) with flowers, tall grass and trees,
 // bushes for low cover (`low`), green sludge in the pits (`pit`), the boss room's dead trees and logs charred (`burnt`).
+// Update 0.2.24 — floor 3 is the Bone Keep: floor 3's stone bleached bone-white under a pale lavender sky; skulls on the
+// walls (`decor`), stone tombs for low cover (`low`: the stone floor slab, stood tall), graves, glowing crystals (`glow`).
 
-export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned' | 'sunken' | 'venom';
+export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned' | 'sunken' | 'venom' | 'bone';
 type Scale = [number, number, number];
 
 export interface DungeonStyle {
@@ -81,6 +83,8 @@ export interface DungeonStyle {
    *  (the boss room's beds). */
   burnt?: Record<string, number>;
   ash?: number;
+  /** Update 0.2.24 — materials (names before any ".001") that glow in their own colour (floor 3's crystals). */
+  glow?: string[];
 }
 
 /** Update 0.2.23 — a pit's look: its dark base, the glow's two colours it drifts between, how bright. */
@@ -220,6 +224,28 @@ export const VENOM: DungeonStyle = {
   burnt: { kit_n_CommonTree_Dead_2: CHAR, kit_n_CommonTree_Dead_3: CHAR, kit_n_BirchTree_Dead_3: CHAR, kit_n_TreeStump: CHAR, kit_n_WoodLog: CHAR },
 };
 
-/** Floor `floor`'s look: floor 1 brick, floor 2 the Venom Garden (Update 0.2.23), floor 3 stone, floor 4 the desert, floor 5 the Drowned Temple, floor 6
+/** Update 0.2.24 — the Bone Keep: floor 3's stone bleached bone-white, under a pale lavender sky. */
+export const BONE: DungeonStyle = {
+  ...STONE,
+  id: 'bone',
+  decor: 'kit_r_Skull2',
+  decorY: 2.3,
+  decorOut: 0.3,
+  litter: ['kit_p1_Skull', 'kit_r_Skull', 'kit_p2_Bones', 'kit_p2_Bones2', 'kit_r_Bone', 'kit_p2_Candle', 'kit_p2_Rock4'],
+  core: [0.13, 0.12, 0.14],
+  tint: { RockLight: 0xe8e1d1, Rock: 0xc3baa7, Steel: 0x77727f, DarkSteel: 0x5c5866, Bones: 0xf1e9d6, Bone: 0xf1e9d6, Beige: 0xf1e9d6, Wood: 0x6f5b4b, DarkWood: 0x4e4036, Grey_Floor: 0xcdc5b3, Purple: 0x9a6cf2, Pink: 0xb27cf4, Cyan: 0x8a8cf6 },
+  floorTint: { RockLight: 0xcdc3ae, Rock: 0xa69b87 },
+  sky: 0xe6def4,
+  skyLight: 0xf8f4ff,
+  ground: 0x8e8398,
+  sun: 0xfff2e0,
+  sand: 0x5d4c40,
+  quicksand: 0x4b3d33,
+  low: 'kit_p2_ModularFloor',
+  lowScale: [0.92, 3.5, 0.92],
+  glow: ['Purple', 'Pink', 'Cyan'],
+};
+
+/** Floor `floor`'s look: floor 1 brick, floor 2 the Venom Garden (Update 0.2.23), floor 3 the Bone Keep (Update 0.2.24), floor 3 stone, floor 4 the desert, floor 5 the Drowned Temple, floor 6
  *  (and on) the Sunken Grove. */
-export const styleOf = (floor: number): DungeonStyle => (floor >= 6 ? SUNKEN : floor === 5 ? DROWNED : floor === 4 ? SAND : floor === 3 ? STONE : floor === 2 ? VENOM : BRICK);
+export const styleOf = (floor: number): DungeonStyle => (floor >= 6 ? SUNKEN : floor === 5 ? DROWNED : floor === 4 ? SAND : floor === 3 ? BONE : floor === 2 ? VENOM : BRICK);

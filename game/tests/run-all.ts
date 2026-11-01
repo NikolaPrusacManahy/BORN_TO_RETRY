@@ -66,6 +66,7 @@ import './test-fixes025';
 import './test-floor3b';
 import './test-lava';
 import './test-floor3';
+import './test-bone';
 import './test-execution';
 import './test-exec-grip';
 import './test-executions';

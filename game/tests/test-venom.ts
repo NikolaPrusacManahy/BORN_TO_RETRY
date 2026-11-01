@@ -40,12 +40,12 @@ function hiveFloor(from = 1): DungeonLevel {
 
 section('Venom Garden — the floor');
 {
-  check('floor 2 is the Venom Garden: mossy brick, earth beds, sludge in its pits, bushes for low cover', styleOf(2) === VENOM && VENOM.pit !== undefined && VENOM.low === 'kit_n_Bush_1' && styleOf(1).id === 'brick' && styleOf(3).id === 'stone');
+  check('floor 2 is the Venom Garden: mossy brick, earth beds, sludge in its pits, bushes for low cover', styleOf(2) === VENOM && VENOM.pit !== undefined && VENOM.low === 'kit_n_Bush_1' && styleOf(1).id === 'brick' && styleOf(4).id === 'sand');
   const on = (f: number) => FIGHT_ROOMS.filter((t) => onFloor(t, f)).map((t) => t.id);
   const venom = VENOM_ROOMS.map((t) => t.id);
   check('nine rooms of its own, and only those (floor 1 and 3 have none of them)', venom.length === 9 && on(2).every((id) => venom.includes(id)) && on(2).length === 9 && !on(1).some((id) => venom.includes(id)) && !on(3).some((id) => venom.includes(id)));
-  check('the lava rooms are floor 3’s now', on(3).includes('lava lake') && !on(2).includes('lava lake') && !on(1).includes('lava lake'));
-  check('its boss room is the Scorched Grove; the others keep theirs', bossRoomOf(2).id === 'scorched grove' && bossRoomOf(1).id === 'boss' && bossRoomOf(3).id === 'boss');
+  check('no lava rooms on floors 1–2', !on(1).includes('lava lake') && !on(2).includes('lava lake') && !on(2).includes('bone bridges'));
+  check('its boss room is the Scorched Grove; the others keep theirs', bossRoomOf(2).id === 'scorched grove' && bossRoomOf(1).id === 'boss' && bossRoomOf(4).id === 'boss');
   const living = new Set([...VENOM_PIECES.plants, ...VENOM_PIECES.tall, ...VENOM_PIECES.trees]);
   const charred = new Set([...VENOM_PIECES.burnt, ...VENOM_PIECES.ash]);
   let bad = '';
@@ -74,7 +74,7 @@ section('Venom Garden — the floor');
       if (p.piece !== VENOM.low) continue;
       if (!look.sand.some((s) => s.x === p.x && s.z === p.z) || look.pieces.some((f) => f.piece === VENOM.floor && f.x === p.x && f.z === p.z)) bad ||= `seed ${seed}: a bush on paving`;
     }
-    for (const s of look.scorch) if (!inBoss(s.x, s.z)) scorchOut++;
+    for (const s of look.marks.scorch) if (!inBoss(s.x, s.z)) scorchOut++;
     if (!look.sand.filter((s) => s.ash).every((s) => inBoss(s.x, s.z))) bad ||= `seed ${seed}: ash out of the boss room`;
     if (!look.sand.some((s) => s.ash)) bad ||= `seed ${seed}: the Scorched Grove has no ash`;
   }

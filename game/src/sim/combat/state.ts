@@ -8,7 +8,7 @@
 import { EventQueue } from '../../core/eventQueue';
 import { Rng, createRng } from '../../core/rng';
 import { Vector3 } from 'three';
-import type { Arena } from '../../world/arena';
+import type { Arena, Spot } from '../../world/arena';
 import { WEAPON_STATS } from '../weapons/catalog';
 import { HeldWeapon, Pickup, Stand, Thrown, createPickups, createStands, createThrown, placePickup } from '../weapons/weapons';
 import { Fireball, createFireballs } from '../weapons/fireballs';
@@ -56,9 +56,11 @@ export interface CombatState {
   quakes: Quake[];
   /** Update 0.0.21 — the Dragon's fire bombs falling. */
   bombs: Bomb[];
-  /** Update 0.2.4 — the Lizards' poison puddles. Update 0.2.23 — floor 2's wasps' hives (sim/dungeon/hives.ts). */
+  /** Update 0.2.4 — the Lizards' poison puddles. Update 0.2.23 — floor 2's wasps' hives (sim/dungeon/hives.ts).
+   *  Update 0.2.24 — the crystals of the room you're fighting in (floor 3's: Skull Wraiths blink to them). */
   puddles: Puddle[];
   hives: Hive[];
+  crystals: Spot[];
   /** Update 0.0.11 — where enemies can walk (built once from the arena, one grid per size), and the way from anywhere
    *  to the player. */
   nav: Record<SizeClass, NavGrid>;
@@ -171,6 +173,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     bombs: createBombs(),
     puddles: createPuddles(),
     hives: [],
+    crystals: [],
     nav,
     flow: { small: createFlow(nav.small), large: createFlow(nav.large), air: createFlow(nav.air) },
     weapon: null,

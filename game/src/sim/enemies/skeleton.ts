@@ -24,7 +24,7 @@ const SKELETON: Brawl = {
 
 /** Its pieces' time (`e.shots`): just fallen, lying, rising. */
 const FALLEN = 0;
-const LYING = 1;
+export const LYING = 1;
 const RISING = 2;
 
 export function updateSkeleton(s: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number) {
