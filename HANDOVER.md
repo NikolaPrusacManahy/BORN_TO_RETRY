@@ -2,12 +2,17 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.3.2: brutal executions)
+## Next up (2026-11-01, Update 0.3.3: the parry)
+- **The designer: "Yes, parrying"** (spec `MD_UPDATES/U033_PARRY.md`): a fist punch that meets an enemy's shot sends
+  it back the way you look (onto the enemy nearest your aim), 1.8× as fast, 60 damage; it never hurts you and never
+  heals; a freeze, a gold ring and flash, a clang. Checked by tests (`test-parry.ts`); **unseen in the game**.
+- **Next (proposed):** a style rank; launches and wall-splats.
+
+## Before (2026-11-01, Update 0.3.2: brutal executions)
 - **The designer** ("the way execution can feel brutal"; spec `MD_UPDATES/U032_BRUTAL_EXECUTIONS.md`): the finishing
   blow drops the world into slow motion (a quarter speed, half a second), the camera lunges in, a red flash and a shake;
   a bone crunch under every blow; more blood (a thrown body bursts where it lands, with pools). Checked by tests
   (`test-exec-brutal.ts`); **unseen in the game**.
-- **Next (proposed):** parrying shots back; a style rank; launches and wall-splats.
 
 ## Before (2026-11-01, Update 0.3.1: executions held where you are; punches and movement with more rush)
 - **The designer** (spec `MD_UPDATES/U031_EXECUTIONS_AND_RUSH.md`): an execution in the air let your body fall while

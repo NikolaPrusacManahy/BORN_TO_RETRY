@@ -1,7 +1,7 @@
 // Update 0.3.2 (the designer: "the way execution can feel brutal") — an execution's finishing blow: the world drops
 // into slow motion (the body flying, or bursting in your hands), the camera lunges in (the view narrows, then eases
 // out), the screen flashes red and shakes; every blow before it nods the view in a little. The numbers are the
-// Execution tab's (F1).
+// Execution tab's (F1). Update 0.3.3 — a parry: the view nods in, a shake, a quick gold flash.
 import * as THREE from 'three';
 import type { CombatState } from '../sim/combat/state';
 import { EXECUTION } from '../tuning/execution';
@@ -13,15 +13,25 @@ const FLASH_LIFE = 0.35;
 const FLASH = 0.45;
 /** A blow's lunge (degrees of view). */
 const BLOW_LUNGE = 3;
+/** Update 0.3.3 — a parry's lunge (degrees), its flash's colour, strength and life (s, real). */
+const PARRY_LUNGE = 5;
+const PARRY_FLASH = 0xffc040;
+const PARRY_STRENGTH = 0.3;
+const PARRY_LIFE = 0.18;
+const FINISH_FLASH = 0xb00a0a;
 const ahead = new THREE.Vector3();
 
 export class ExecFx {
   private readonly geo = new THREE.PlaneGeometry(1, 1);
-  private readonly mat = new THREE.MeshBasicMaterial({ color: 0xb00a0a, transparent: true, opacity: 0, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
+  private readonly mat = new THREE.MeshBasicMaterial({ color: FINISH_FLASH, transparent: true, opacity: 0, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
   private readonly flash = new THREE.Mesh(this.geo, this.mat);
   /** Real seconds since the finishing blow (Infinity: none lately), and whether this execution has had it. */
   private since = Infinity;
   private finished = false;
+  /** The flash showing: real seconds since it began, how long it lasts, how strong. */
+  private flashT = Infinity;
+  private flashLife = FLASH_LIFE;
+  private flashPeak = FLASH;
 
   constructor(
     scene: THREE.Scene,
@@ -46,7 +56,13 @@ export class ExecFx {
         this.since = 0;
         this.rig.lunge(EXECUTION.v.finalLunge);
         this.rig.shake.add(0.5);
+        this.flashOf(FINISH_FLASH, FLASH, FLASH_LIFE);
       } else if (kind === 'execLand') this.rig.shake.add(0.35);
+      else if (kind === 'parry') {
+        this.rig.lunge(PARRY_LUNGE);
+        this.rig.shake.add(0.3);
+        this.flashOf(PARRY_FLASH, PARRY_STRENGTH, PARRY_LIFE);
+      }
     }
   }
 
@@ -58,17 +74,25 @@ export class ExecFx {
     return k >= 1 ? 1 : v.finalSlow + (1 - v.finalSlow) * k;
   }
 
+  private flashOf(hex: number, peak: number, life: number) {
+    this.mat.color.setHex(hex);
+    this.flashT = 0;
+    this.flashPeak = peak;
+    this.flashLife = life;
+  }
+
   /** `real`: real time (the slow motion is timed in it). */
   update(real: number) {
     this.since += real;
-    const k = this.since / FLASH_LIFE;
+    this.flashT += real;
+    const k = this.flashT / this.flashLife;
     this.flash.visible = k < 1;
     if (!this.flash.visible) return;
     const cam = this.rig.camera;
     this.flash.position.copy(cam.position).addScaledVector(cam.getWorldDirection(ahead), 0.2);
     this.flash.quaternion.copy(cam.quaternion);
     this.flash.scale.setScalar(2);
-    this.mat.opacity = FLASH * (1 - k) * (1 - k);
+    this.mat.opacity = this.flashPeak * (1 - k) * (1 - k);
   }
 
   dispose() {

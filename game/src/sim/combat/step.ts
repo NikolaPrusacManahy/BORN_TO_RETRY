@@ -62,6 +62,7 @@ import { updateBonuses } from '../items/bonuses';
 import { attackRate } from '../items/items';
 import { emptyHand, giveWeapon, selectSlot, settleHand } from '../weapons/slots';
 import type { CombatState } from './state';
+import { stepParried } from './parry';
 import { execHeld, execTarget, stepExecution, tryExecute } from './execution';
 import { stepFlood } from '../enemies/drownedKingMoves';
 import { updateTurret } from './turret';
@@ -242,6 +243,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   for (const d of state.dummies) updateDummy(d, events, dt);
   for (const t of state.turrets) updateTurret(t, player.pos, world, state.orbs, events, dt);
   updateOrbs(state.orbs, player, world, events, dt);
+  // (Update 0.3.3 — shots you punched back.)
+  stepParried(state, world, dt);
   if (player.slamImpact > 0) {
     // (Update 0.2.15 — Pogo: a slam that kills bounces you back up. Update 0.2.22 — its blast: Tremor's.)
     if (tremors(state)) pogo(state, player, slamImpact(state, player.pos, player.slamImpact));

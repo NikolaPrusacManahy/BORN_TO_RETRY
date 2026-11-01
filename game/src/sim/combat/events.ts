@@ -26,11 +26,12 @@ export type CombatEvent =
   | 'hitPierce'
   | 'hitThrown'
   | 'kill'
-  // The targets.
+  // The targets. Update 0.3.3 — a shot punched back (value: its slot; parry.ts).
   | 'telegraph'
   | 'orbFire'
   | 'orbPop'
   | 'orbHitPlayer'
+  | 'parry'
   | 'respawn'
   // M2 — enemies (value = which enemy): one arriving, each kind's warning and attack.
   | 'enemySpawn'

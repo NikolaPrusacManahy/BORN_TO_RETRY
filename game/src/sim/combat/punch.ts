@@ -6,6 +6,7 @@
 // Update 0.2.15 — Iron Knuckles (a Fate Card since Update 0.2.16): a jab on an enemy winding up makes it start over;
 // Cold Snap (a Fate Card): a charged punch freezes what it hits (sim/cards/cardMoves.ts). Update 0.2.18 — wave 2's: jabs
 // bleed (Jagged Knuckles); a charged punch's lightning and blast (Thunderclap, Powder Keg: cardPowers.ts).
+// Update 0.3.3 — a fist punch that meets an enemy's shot sends it back (parry.ts) instead of hitting.
 import { Vector3 } from 'three';
 import { chill, stall } from '../cards/cardMoves';
 import { heavyPowers, jabPowers } from '../cards/cardPowers';
@@ -18,6 +19,7 @@ import type { CollisionWorld } from '../collisionWorld';
 import type { PlayerState } from '../player/state';
 import type { Punch, PunchKind } from './fists';
 import type { CombatEvent, CombatState } from './state';
+import { parry } from './parry';
 import { emptyTargetHit, landHit, nearestTarget } from './strike';
 
 const end = new Vector3();
@@ -43,6 +45,8 @@ const HIT_EVENT: Record<PunchKind, CombatEvent> = { jab: 'hitJab', finisher: 'hi
 /** Resolves a thrown punch or swing: hit or whiff. Pushes events and hit-stop requests. Returns how far from the eye
  *  it landed (m), or −1 for a whiff. */
 export function resolvePunch(punch: Punch, state: CombatState, eye: Vector3, dir: Vector3, world: CollisionWorld): number {
+  const caught = parry(state, punch, eye, dir);
+  if (caught >= 0) return caught;
   const reach = Math.min(punch.reach, world.rayDistance(eye, dir, punch.reach) + punch.radius);
   end.copy(eye).addScaledVector(dir, reach);
   if (!nearestTarget(state, eye, end, punch.radius, hit)) {

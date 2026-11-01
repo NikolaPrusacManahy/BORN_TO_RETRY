@@ -21,6 +21,10 @@ export const FISTS = group('fists', 'Fists', {
   chargeTime: knob(1, 0.3, 3, 0.05, 'Charge time', 'Hold right click this long to throw the charged punch; letting go sooner cancels it.'),
   chargeDamage: knob(60, 1, 200, 1, 'Charged punch damage', 'Damage.'),
   chargeKnock: knob(26, 0, 60, 0.5, 'Charged punch knockback', 'm/s.'),
+  // Update 0.3.3 — the parry (sim/combat/parry.ts).
+  parryDamage: knob(60, 1, 300, 5, 'Parry damage', 'What a shot you punched back does to the enemy it hits.'),
+  parrySpeed: knob(1.8, 1, 4, 0.1, 'Parry speed', 'A shot punched back flies this many times as fast as it came.'),
+  parryMinSpeed: knob(26, 5, 60, 1, 'Parry speed at least', 'And never slower than this (m/s).'),
 });
 
 export const FEEDBACK = group('feedback', 'Hit feel', {
@@ -28,6 +32,7 @@ export const FEEDBACK = group('feedback', 'Hit feel', {
   stopFinisher: knob(70, 0, 200, 5, 'Hit-stop: finisher (ms)', 'Freeze on the third jab.'),
   stopHeavy: knob(120, 0, 300, 5, 'Hit-stop: charged (ms)', 'Freeze on a charged punch, scaled by charge.'),
   stopKill: knob(90, 0, 300, 5, 'Hit-stop: kill (ms)', 'Freeze when a target breaks. The longest freeze wins; they never add.'),
+  stopParry: knob(110, 0, 300, 5, 'Hit-stop: parry (ms)', 'Freeze when you punch a shot back (Update 0.3.3).'),
   shakeJab: knob(0.12, 0, 1, 0.01, 'Shake: jab', 'Trauma added.'),
   shakeFinisher: knob(0.26, 0, 1, 0.01, 'Shake: finisher', 'Trauma added.'),
   shakeHeavy: knob(0.5, 0, 1, 0.01, 'Shake: charged', 'Trauma at full charge.'),

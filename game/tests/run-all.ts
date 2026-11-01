@@ -76,6 +76,7 @@ import './test-exec-air';
 import './test-rush';
 import './test-sound-layers';
 import './test-exec-brutal';
+import './test-parry';
 import './test-exec-grip';
 import './test-executions';
 import './test-death';

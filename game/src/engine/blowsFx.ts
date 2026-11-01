@@ -1,7 +1,8 @@
 // Update 0.2.28 — your blows seen (the graphics update's third part): a swing leaves an arc in front of you (silver for
 // a sword, gold for the gold ones, a broad dark sweep for a hammer, thin and quick for daggers), each the other way to
 // the last, sweeping on as it fades; where a punch lands, a ring of dust bursts out facing you (wider for a heavy, a
-// finisher, a slam's blow); a hammer's smash throws rocks and dust up off the floor. Made in code. Out of
+// finisher, a slam's blow); a hammer's smash throws rocks and dust up off the floor. Update 0.3.3 — a parry rings gold
+// where the shot was caught. Made in code. Out of
 // combatFeedback.ts, which had reached its size (it still shakes, kicks and sparks).
 import * as THREE from 'three';
 import type { CombatState } from '../sim/combat/state';
@@ -18,6 +19,9 @@ const ARC_OUT = 1.1;
 const RING_LIFE = 0.2;
 const RING = 0.8;
 const GRAVITY = 16;
+/** A dust ring's colour; a parry's ring's (Update 0.3.3). */
+const DUST = 0xe8dcc4;
+const PARRY_RING = 0xffc040;
 
 /** Each weapon's arc: its colour, radius (m), width (share of the radius) and how much of a circle it spans (rad). */
 interface ArcLook {
@@ -98,7 +102,7 @@ export class BlowsFx {
       this.arcs.push({ mesh, mat, t: ARC_LIFE, way: 1, roll: 0 });
     }
     for (let i = 0; i < RINGS; i++) {
-      const mat = new THREE.MeshBasicMaterial({ color: 0xe8dcc4, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false });
+      const mat = new THREE.MeshBasicMaterial({ color: DUST, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false });
       const mesh = new THREE.Mesh(this.ringGeo, mat);
       mesh.visible = false;
       scene.add(mesh);
@@ -129,6 +133,7 @@ export class BlowsFx {
         const look = ARC_OF[WEAPON_KINDS[e.value]];
         if (look) this.swing(look);
       } else if (e.kind === 'smash') this.smash(at.set(e.x, e.y, e.z));
+      else if (e.kind === 'parry') this.ring(at.set(e.x, e.y, e.z), 2.2, PARRY_RING);
       else if (RING_OF[e.kind]) this.ring(at.set(e.x, e.y, e.z), RING_OF[e.kind]! * (e.kind === 'hitHeavy' ? 0.6 + 0.4 * Math.min(1, e.value) : 1));
     }
   }
@@ -146,9 +151,10 @@ export class BlowsFx {
     a.mesh.visible = true;
   }
 
-  private ring(p: THREE.Vector3, size: number) {
+  private ring(p: THREE.Vector3, size: number, hex = DUST) {
     const r = this.rings[this.nextRing];
     this.nextRing = (this.nextRing + 1) % RINGS;
+    r.mat.color.setHex(hex);
     r.t = 0;
     r.size = RING * size;
     r.mesh.position.copy(p);

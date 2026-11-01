@@ -139,8 +139,8 @@ export class ShotsView {
           flame[2].scale.setScalar(1.3 + 0.18 * Math.sin(this.time * 23 + i * 2));
           flame[1].rotation.set(spin, spin * 0.7, 0);
           flame[2].rotation.set(-spin * 0.6, 0, spin * 0.8);
-          // (Update 0.3.0 — its glow.)
-          HALOS.add(o.pos.x, o.pos.y, o.pos.z, k * 9, style === 'fire' ? 0xff8a30 : 0x4a8cff, 0.6);
+          // (Update 0.3.0 — its glow. Update 0.3.3 — gold once punched back.)
+          HALOS.add(o.pos.x, o.pos.y, o.pos.z, k * (o.parried ? 12 : 9), o.parried ? 0xffc040 : style === 'fire' ? 0xff8a30 : 0x4a8cff, o.parried ? 0.8 : 0.6);
           break;
         }
         case 'acid':
@@ -168,6 +168,8 @@ export class ShotsView {
           g.quaternion.copy(q);
           g.scale.setScalar(1);
       }
+      // (Update 0.3.3 — a shot punched back glows gold, whatever it is.)
+      if (o.parried && style !== 'fire' && style !== 'blueFire') HALOS.add(o.pos.x, o.pos.y, o.pos.z, 2.4, 0xffc040, 0.7);
       // Its trail.
       const t = TRAILS[style];
       was.emit += t.rate * effectsShare(0.4) * dt;

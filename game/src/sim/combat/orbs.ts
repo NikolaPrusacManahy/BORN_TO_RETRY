@@ -1,6 +1,7 @@
 // M1 step 6 — orbs: slow glowing shots from the turret. They hit you (unless you're dashing), pop on walls and
 // fizzle after a while. (The parry that sent them back was removed at the designer's request; it returns later.)
 // Update 0.2.4 — a shot's look: the Tribal's spear and the Cactoros' spines fly as orbs do.
+// Update 0.3.3 — the parry is back (parry.ts): a shot punched back is its business, not these.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { TARGETS } from '../../tuning/combat';
@@ -28,6 +29,7 @@ export function fireOrb(orbs: Orb[], from: Vector3, direction: Vector3, speed: n
   o.damage = damage;
   o.by = by;
   o.look = look;
+  o.parried = false;
   o.life = ORB_LIFE;
   return true;
 }
@@ -41,7 +43,7 @@ export function updateOrbs(orbs: Orb[], player: PlayerState, world: CollisionWor
   const r = TARGETS.v.orbRadius;
   const height = player.sliding ? BODY.crouchHeight : BODY.height;
   for (const o of orbs) {
-    if (!o.alive) continue;
+    if (!o.alive || o.parried) continue;
     o.life -= dt;
     if (o.life <= 0) {
       pop(o, o.pos, events);
