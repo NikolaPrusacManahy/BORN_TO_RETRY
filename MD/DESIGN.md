@@ -34,7 +34,7 @@ A first-person action roguelike. You start every run with your bare hands, tear 
 | Shift | Dash |
 | C | Slide. Pressed in the air, the slide starts when you land. |
 | Left click | Attack: the held weapon, or a jab combo when barehanded |
-| Right click | Parry when barehanded (held: the block; Update 0.3.5), the weapon's alt attack otherwise (the Pistol: a strike with it) |
+| Right click | Parry when barehanded (a press; Update 0.3.5, 0.3.6), the weapon's alt attack otherwise (the Pistol: a strike with it) |
 | F | Ground slam, in the air from a real height (Update 0.0.12, the designer). (The quick punch it used to be was cut in Update 0.0.10.) |
 | Q | Throw the held weapon |
 | R | Reload the Pistol (Update 0.2.4) |
@@ -162,6 +162,12 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   back, the fists punching forward a hand's width. Held on, it doesn't parry; **0.4 s** from a press to the next.
   Punches no longer parry. Hair Trigger (the window twice as long), Cold Snap, Thunderclap, Powder Keg (where a parried
   shot hits) and Giant Killer (no wait) moved onto it from the charged punch. **(placeholder numbers, F1 → Fists)**
+- **Update 0.3.6 (the designer: "do the quick animation and then continue gameplay, animation stays 0.5 sec on screen,
+  no left hand"; "make the punch animation when a parry has been performed … 4 sec cooldown"; spec
+  `MD_UPDATES/U036_QUICK_PARRY.md`):** no block held: a press opens the 0.2 s window (no jabs meanwhile), then the fists
+  go on. The right fist snaps up before the face for half a second; the left stays in the guard. A parry that lands: the
+  right fist punches the shot (half a second on screen with the freeze). **4 s** after a parry that lands; **0.5 s**
+  after a press that caught nothing.
 
 ### The style rank (Update 0.3.4, the designer: "a nice visual for now"; spec `MD_UPDATES/U034_STYLE_RANK.md`)
 - D DIRTY, C CRUEL, B BRUTAL, A ATROCIOUS, S SAVAGE, SS SLAUGHTERHOUSE, SSS UNKILLABLE, from what you do (blows, kills,

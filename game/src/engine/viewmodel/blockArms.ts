@@ -1,68 +1,90 @@
 // Update 0.3.5 (the designer: "now right click is parry, make a nice arm block animation to show that the arm is ready
-// to parry, but it still has to time the hit with the projectile properly") — barehanded, right click held raises the
-// fists into a block: both up before the face, apart (the crosshair clear between them), backs of the hands to the
-// enemy, knuckles up, elbows down and in. Pressed, the fists punch forward a hand's width for the parry's moment (its
-// window), then settle back into the block while it's held; let go, they drop back to the guard. In the arms model's
+// to parry, but it still has to time the hit with the projectile properly") — the parry's arm. In the arms model's
 // space (guard.ts), from the point between the shoulders, scaled by arm reach as the guard is.
+// Update 0.3.6 (the designer: "do the quick animation and then continue gameplay, animation stays 0.5 sec on screen, no
+// left hand"; and "make the punch animation when a parry has been performed, like they punched the attack") — no block
+// held any more: a press snaps the right fist up before the face (back of the hand out, knuckles up, elbow down and in),
+// holds it through the parry's window and lets it down: half a second in all. The left hand stays in the guard. A parry
+// that lands: the right fist punches the shot instead (seen at its impact, held through the parry's freeze, then back
+// to the guard); the raise lets go of the arm while it's out.
 import * as THREE from 'three';
+import { ARMS } from '../../tuning/arms';
+import type { ArmsAnim } from './armsAnim';
 import type { ArmPose, ArmsRig } from './armsRig';
-import { REF_REACH, Side } from './guard';
+import { REF_REACH } from './guard';
 
-interface BlockArm {
-  fist: THREE.Vector3;
-  knuckles: THREE.Vector3;
-  back: THREE.Vector3;
-  pole: THREE.Vector3;
-}
-
-export const BLOCK: Record<Side, BlockArm> = {
-  L: { fist: new THREE.Vector3(0.15, 0.13, 0.3), knuckles: new THREE.Vector3(-0.2, 1, 0.35).normalize(), back: new THREE.Vector3(0.15, 0.25, 1).normalize(), pole: new THREE.Vector3(0.6, -1, -0.1) },
-  R: { fist: new THREE.Vector3(-0.15, 0.12, 0.29), knuckles: new THREE.Vector3(0.2, 1, 0.35).normalize(), back: new THREE.Vector3(-0.15, 0.25, 1).normalize(), pole: new THREE.Vector3(-0.6, -1, -0.1) },
+/** The right fist raised (where, knuckles, back of the hand) and where its elbow points. */
+export const BLOCK = {
+  fist: new THREE.Vector3(-0.15, 0.12, 0.29),
+  knuckles: new THREE.Vector3(0.2, 1, 0.35).normalize(),
+  back: new THREE.Vector3(-0.15, 0.25, 1).normalize(),
+  pole: new THREE.Vector3(-0.6, -1, -0.1),
 };
 
-/** How fast the block comes up and goes down (1/s), and how far forward and up a parry's moment pushes the fists (m). */
-const UP = 22;
-const DOWN = 12;
-const PUSH = new THREE.Vector3(0, 0.025, 0.1);
+/** The raise's times (s from the press): up by UP, held till HOLD, down by LENGTH (the designer's half second). */
+const UP = 0.06;
+const HOLD = 0.22;
+export const LENGTH = 0.5;
 
+const smooth = (x: number) => x * x * (3 - 2 * x);
 const target = { fist: new THREE.Vector3(), knuckles: new THREE.Vector3(), back: new THREE.Vector3() };
 
 export class BlockArms {
-  /** How far up the block is (0: the guard, 1: the block). */
-  weight = 0;
-  private held = false;
-  /** The parry's moment: 1 as it opens, falling to 0 as it closes. */
-  private swat = 0;
+  /** Seconds since the press (−1: none). */
+  private t = -1;
 
-  /** This frame: right click held (barehanded), and how much of the parry's window is left (0–1). */
-  set(held: boolean, swat: number) {
-    this.held = held;
-    this.swat = swat;
+  /** `anim`: the fists' punches (a parry's punch is one). */
+  constructor(private readonly anim: ArmsAnim) {}
+
+  /** Right click pressed (barehanded): the fist snaps up. */
+  raise() {
+    this.t = 0;
+  }
+
+  /** A parry landed: the right fist punches the shot, from its impact (and the raise is over). */
+  parried() {
+    this.t = -1;
+    this.anim.punch('R', 'parry', ARMS.v.punchOut);
   }
 
   update(dt: number) {
-    const want = this.held || this.swat > 0 ? 1 : 0;
-    this.weight += (want - this.weight) * Math.min(1, (want > this.weight ? UP : DOWN) * dt);
+    if (this.t < 0) return;
+    this.t += dt;
+    if (this.t > LENGTH) this.t = -1;
   }
 
-  /** The block's pose for `side`, mixed into `pose` by the block's weight times `k` (0 where something else has the arm). */
-  mix(rig: ArmsRig, side: Side, pose: ArmPose, k: number) {
-    const w = this.weight * k;
+  /** How far up the fist is (0: the guard, 1: raised). */
+  get weight(): number {
+    const t = this.t;
+    if (t < 0) return 0;
+    if (t < UP) return smooth(t / UP);
+    if (t < HOLD) return 1;
+    return 1 - smooth(Math.min(1, (t - HOLD) / (LENGTH - HOLD)));
+  }
+
+  /** How much of the raise the arm keeps: none while the fist is out in a punch. */
+  private keep() {
+    return 1 - Math.max(0, Math.min(1, this.anim.extension('R')));
+  }
+
+  /** The raise mixed into the right arm's `pose` by its weight times `k` (0 where something else has the arm). */
+  mix(rig: ArmsRig, pose: ArmPose, k: number) {
+    const w = this.weight * k * this.keep();
     if (w <= 0.001) return;
-    const b = BLOCK[side];
-    target.fist.copy(b.fist).multiplyScalar(rig.reach(side) / REF_REACH).add(rig.between);
-    // (A parry's moment: forward and a little up, quick out and eased back.)
-    const s = this.swat * this.swat;
-    target.fist.addScaledVector(PUSH, s);
-    target.knuckles.copy(b.knuckles);
-    target.back.copy(b.back);
+    target.fist.copy(BLOCK.fist).multiplyScalar(rig.reach('R') / REF_REACH).add(rig.between);
+    target.knuckles.copy(BLOCK.knuckles);
+    target.back.copy(BLOCK.back);
     pose.fist.lerp(target.fist, w);
     pose.knuckles.lerp(target.knuckles, w).normalize();
     pose.back.lerp(target.back, w).normalize();
   }
 
-  /** Where `side`'s elbow points: `base` turned towards the block's by its weight times `k`. */
-  pole(side: Side, base: THREE.Vector3, k: number): THREE.Vector3 {
-    return base.lerp(BLOCK[side].pole, this.weight * k);
+  /** Where the right elbow points: `base` turned towards the raise's by its weight times `k`. */
+  pole(base: THREE.Vector3, k: number): THREE.Vector3 {
+    return base.lerp(BLOCK.pole, this.weight * k * this.keep());
+  }
+
+  reset() {
+    this.t = -1;
   }
 }

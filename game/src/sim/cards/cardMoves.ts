@@ -166,14 +166,15 @@ export function chargeRate(state: CombatState): number {
   return (state.weapon !== null ? handsRate(state) : 1) * heavy;
 }
 
-/** Update 0.3.5 — the parry's window and wait: Hair Trigger's window as much longer as it made the charge quicker;
- *  Giant Killer's no wait while it's on. */
+/** Update 0.3.5 — the parry's window and waits: Hair Trigger's window as much longer as it made the charge quicker;
+ *  Giant Killer's no wait while it's on (Update 0.3.6: after a press, or after a parry). */
 export function parryTimes(state: CombatState): ParryTimes {
   TIMES.window = FISTS.v.parryWindow * (holds(state, 'hairTrigger') ? 1 / Math.max(0.05, CARDS.v.hairTrigger) : 1);
+  TIMES.retry = state.giant > 0 ? 0 : FISTS.v.parryRetry;
   TIMES.cooldown = state.giant > 0 ? 0 : FISTS.v.parryCooldown;
   return TIMES;
 }
-const TIMES: ParryTimes = { window: 0, cooldown: 0 };
+const TIMES: ParryTimes = { window: 0, retry: 0, cooldown: 0 };
 
 /** Iron Knuckles: enemy `i`, just punched, starts its windup over (not a boss). */
 export function stall(state: CombatState, i: number) {

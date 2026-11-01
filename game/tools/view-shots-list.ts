@@ -59,23 +59,26 @@ export const FILMS: Shot[] = [...film('forehand', 0.03, 12), ...film('backhand',
 
 export const SHOTS: Shot[] = [
   { name: 'fists', run: (vm, _s, p) => play(vm, p, 0.5) },
-  // Update 0.3.5 — barehanded, right click held: the block; and a parry's moment, the fists pushed out.
-  {
-    name: 'block',
-    run: (vm, _s, p) => {
-      vm.block.set(true, 0);
+  // Update 0.3.5 — barehanded, right click: the parry. Update 0.3.6 — the right fist snaps up (and on its way down); a
+  // parry landed: it punches the shot (at its impact; on its way back).
+  ...[0.1, 0.36].map((t) => ({
+    name: `parry-raise-${Math.round(t * 1000)}ms`,
+    run: (vm: Viewmodel, _s: THREE.Object3D, p: PlayerState) => {
       play(vm, p, 0.5);
+      vm.block.raise();
+      play(vm, p, t);
     },
-  },
-  {
-    name: 'block-parry',
-    run: (vm, _s, p) => {
-      vm.block.set(true, 0);
+  })),
+  ...[0, 0.2].map((t) => ({
+    name: `parry-punch-${Math.round(t * 1000)}ms`,
+    run: (vm: Viewmodel, _s: THREE.Object3D, p: PlayerState) => {
       play(vm, p, 0.5);
-      vm.block.set(true, 1);
-      play(vm, p, 0.02);
+      vm.block.raise();
+      play(vm, p, 0.1);
+      vm.block.parried();
+      play(vm, p, t + 0.001);
     },
-  },
+  })),
   { name: 'palm-key', run: palm('key', false) },
   { name: 'palm-white', run: palm('whiteKey', false) },
   { name: 'palm-gold-armed', run: palm('goldKey', true) },

@@ -3,7 +3,7 @@
 // Update 0.3.5 (the designer: "now right click is parry … it still has to time the hit with the projectile properly") —
 // barehanded, right click's press opens the parry's window: a shot reaching your fists while it's open goes back. Held
 // on, it's only the block: pressed too soon, the shot gets through. Punches no longer parry. Cold Snap goes off where a
-// parried shot hits.
+// parried shot hits. Update 0.3.6 (the designer: "4 sec cooldown") — a parry that lands, 4 s till the next.
 import { Vector3 } from 'three';
 import { check, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
@@ -57,7 +57,7 @@ section('Parry — right click, timed');
   const hp = p.hp;
   shoot(c, 12);
   const seen = run(c, p, 1.5, () => true);
-  check('pressed too soon and held on: the block doesn’t parry, the shot gets through', !c.orbs.some((o) => o.parried) && !seen.includes('parry') && p.hp < hp);
+  check('pressed too soon and held on: holding doesn’t parry, the shot gets through', !c.orbs.some((o) => o.parried) && !seen.includes('parry') && p.hp < hp);
 }
 {
   // Pressed too soon, let go and pressed again before the cooldown.
@@ -66,7 +66,20 @@ section('Parry — right click, timed');
   shoot(c, 8);
   const again = FISTS.v.parryWindow + 0.05;
   run(c, p, 1.2, (t) => t < 0.05 || t >= again);
-  check('mashing it doesn’t help: a press inside the cooldown opens nothing', FISTS.v.parryCooldown > again && !c.orbs.some((o) => o.parried));
+  check('mashing it doesn’t help: a press inside the retry opens nothing', FISTS.v.parryRetry > again && !c.orbs.some((o) => o.parried));
+}
+{
+  // A parry that lands: the long wait.
+  const c = createCombat(OPEN_ARENA);
+  const p = createPlayer(0, 0, 0, 0);
+  shoot(c, 3);
+  run(c, p, 0.3, () => true);
+  check(`a parry that lands: ${FISTS.v.parryCooldown} s till the next`, c.orbs.some((o) => o.parried) && c.fists.parryWindow === 0 && Math.abs(c.fists.parryCooldown - (FISTS.v.parryCooldown - 0.3)) < 0.05, `${c.fists.parryCooldown.toFixed(2)} s left`);
+  const soon = run(c, p, FISTS.v.parryCooldown - 0.5, (t) => t >= 0.1);
+  check('a press meanwhile opens nothing', !soon.includes('guard') && c.fists.parryWindow === 0);
+  run(c, p, 0.6, () => false);
+  run(c, p, DT, () => true);
+  check('after it, a press opens the window again', c.fists.parryWindow > 0);
 }
 {
   // Punches no longer parry.

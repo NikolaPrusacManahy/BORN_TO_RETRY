@@ -27,7 +27,9 @@ export const FISTS = group('fists', 'Fists', {
   parryMinSpeed: knob(26, 5, 60, 1, 'Parry speed at least', 'And never slower than this (m/s).'),
   // Update 0.3.5 — barehanded, right click is the parry (no charged punch).
   parryWindow: knob(0.2, 0.05, 0.6, 0.01, 'Parry window', 'Seconds after you press right click (barehanded) that a shot reaching you is sent back.'),
-  parryCooldown: knob(0.4, 0, 2, 0.05, 'Parry cooldown', 'Seconds from a press before the next press opens the window again.'),
+  // Update 0.3.6 (the designer: "4 sec cooldown") — after a parry lands; a press that caught nothing waits Parry retry.
+  parryCooldown: knob(4, 0, 10, 0.1, 'Parry cooldown', 'Seconds after a parry lands before a press opens the window again.'),
+  parryRetry: knob(0.5, 0, 2, 0.05, 'Parry retry', 'Seconds from a press that caught nothing before the next press opens the window again (the parry’s move lasts 0.5 s).'),
 });
 
 export const FEEDBACK = group('feedback', 'Hit feel', {

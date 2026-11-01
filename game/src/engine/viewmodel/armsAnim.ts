@@ -3,7 +3,8 @@
 import { ARMS } from '../../tuning/arms';
 import type { Side } from './guard';
 
-export type PunchStyle = 'jab' | 'heavy';
+// Update 0.3.6 — 'parry': a parry that landed, held out longer (half a second on screen with its freeze).
+export type PunchStyle = 'jab' | 'heavy' | 'parry';
 
 interface ArmTimeline {
   /** Seconds since the punch was thrown (−1: idle). */
@@ -15,6 +16,7 @@ interface ArmTimeline {
 const STYLE: Record<PunchStyle, [number, number, number]> = {
   jab: [1, 1, 1],
   heavy: [1.25, 2.5, 1.4],
+  parry: [1, 5, 1.6],
 };
 
 const easeOutCubic = (x: number) => 1 - (1 - x) ** 3;
@@ -43,9 +45,10 @@ export class ArmsAnim {
     R: { t: -1, style: 'jab' },
   };
 
-  punch(side: Side, style: PunchStyle) {
+  /** Update 0.3.6 — `from`: seconds already in (a parry's punch starts at its impact). */
+  punch(side: Side, style: PunchStyle, from = 0) {
     const a = this.arms[side];
-    a.t = 0;
+    a.t = from;
     a.style = style;
   }
 

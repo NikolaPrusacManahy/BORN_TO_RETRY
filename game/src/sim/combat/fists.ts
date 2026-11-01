@@ -6,6 +6,10 @@
 // hit with the projectile properly") — barehanded, right click held is the block (no charged punch); its press opens the
 // parry's window (Parry window, s), and another press only once Parry cooldown has passed. Holding on doesn't parry:
 // the press has to be timed. A weapon's right click charges as before.
+// Update 0.3.6 (the designer: "when I want to parry, it is going to be like 0.2 sec before I go back to gameplay … do the
+// quick animation and then continue gameplay") — no block held: a press opens the window (no jabs while it's open) and
+// that's all; held on, the fists go on as ever. A press then waits Parry retry; a parry that lands, Parry cooldown ("4
+// sec cooldown"; sim/combat/step.ts).
 import type { EventQueue } from '../../core/eventQueue';
 import { FISTS } from '../../tuning/combat';
 import type { CombatEvent } from './state';
@@ -23,17 +27,18 @@ export interface FistState {
   chargeReady: boolean;
   /** Update 0.2.21 — a click while the fists are clasped for a slam: it lands as you do (sim/combat/step.ts). */
   slamClick: boolean;
-  /** Update 0.3.5 — barehanded, right click held (the block up); the parry's window left (s), and the wait till the
-   *  next (s). */
-  guarding: boolean;
+  /** Update 0.3.5 — barehanded, right click held last tick (Update 0.3.6: only to tell a press); the parry's window
+   *  left (s), and the wait till the next (s). */
+  parryHeld: boolean;
   parryWindow: number;
   parryCooldown: number;
 }
 
 /** Update 0.3.5 — how long a press of the parry stays open and the wait after it (s: Hair Trigger and Giant Killer,
- *  Fate Cards, change them). */
+ *  Fate Cards, change them). Update 0.3.6 — `retry`: after a press; `cooldown`: after a parry that lands. */
 export interface ParryTimes {
   window: number;
+  retry: number;
   cooldown: number;
 }
 
@@ -70,7 +75,7 @@ export interface Punch {
 }
 
 export function createFists(): FistState {
-  return { combo: 0, comboTimer: 0, jabCooldown: 0, charging: false, charge: 0, chargeReady: false, slamClick: false, guarding: false, parryWindow: 0, parryCooldown: 0 };
+  return { combo: 0, comboTimer: 0, jabCooldown: 0, charging: false, charge: 0, chargeReady: false, slamClick: false, parryHeld: false, parryWindow: 0, parryCooldown: 0 };
 }
 
 export function emptyCombatIntent(): CombatIntent {
@@ -96,7 +101,7 @@ function set(out: Punch, kind: PunchKind, damage: number, knock: number, charge 
  *  weapon (no jabs; a full charge lets go a 'pierce', which the caller turns into the weapon's). Update 0.2.15 —
  *  `chargeRate`: how fast the charge fills (Hair Trigger's ×2). Update 0.3.5 — `parry`: the parry's window and wait
  *  (barehanded, right click is the parry, not a charged punch). */
-export function updateFists(f: FistState, intent: CombatIntent, events: EventQueue<CombatEvent>, dt: number, out: Punch, armed = false, rate = 1, chargeRate = 1, parry: ParryTimes = { window: FISTS.v.parryWindow, cooldown: FISTS.v.parryCooldown }): boolean {
+export function updateFists(f: FistState, intent: CombatIntent, events: EventQueue<CombatEvent>, dt: number, out: Punch, armed = false, rate = 1, chargeRate = 1, parry: ParryTimes = { window: FISTS.v.parryWindow, retry: FISTS.v.parryRetry, cooldown: FISTS.v.parryCooldown }): boolean {
   const v = FISTS.v;
   f.jabCooldown = Math.max(0, f.jabCooldown - dt);
   f.comboTimer = Math.max(0, f.comboTimer - dt);
@@ -104,22 +109,19 @@ export function updateFists(f: FistState, intent: CombatIntent, events: EventQue
   f.parryCooldown = Math.max(0, f.parryCooldown - dt);
   if (!armed) {
     f.charging = f.chargeReady = false;
-    // Held: the block. Pressed (and ready): the parry's window opens.
-    if (intent.heavyHeld) {
-      if (!f.guarding && f.parryCooldown <= 0) {
-        f.parryWindow = parry.window;
-        f.parryCooldown = parry.cooldown;
-        events.push('guard');
-      }
-      f.guarding = true;
-      return false; // no jabs behind the block
+    // Pressed (and ready): the parry's window opens.
+    if (intent.heavyHeld && !f.parryHeld && f.parryCooldown <= 0) {
+      f.parryWindow = parry.window;
+      f.parryCooldown = parry.retry;
+      events.push('guard');
     }
-  }
-  f.guarding = false;
+    f.parryHeld = intent.heavyHeld;
+    if (f.parryWindow > 0) return false; // no jabs while it's open
+  } else f.parryHeld = false;
 
   // Update 0.0.3 (the designer): right click is never a light punch. Hold it for the full charge time; letting go
-  // sooner cancels.
-  if (intent.heavyHeld) {
+  // sooner cancels. (A weapon's since Update 0.3.5.)
+  if (armed && intent.heavyHeld) {
     if (!f.charging) {
       f.charging = true;
       f.charge = 0;

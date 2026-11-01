@@ -55,23 +55,26 @@ section('Fists — right click is the parry');
 {
   // Update 0.3.5 (the designer: "no more heavy punches from fists, now right click is parry … it still has to time the
   // hit with the projectile properly").
+  // Update 0.3.6 (the designer: "do the quick animation and then continue gameplay") — a press, not a stance.
   const count = (kind: string) => kinds().filter((k) => k === kind).length;
   const f = createFists();
   events.clear();
-  const held = run(f, ticks(FISTS.v.chargeTime + 0.5), () => ({ heavyHeld: true, attackHeld: true }));
-  check('barehanded, right click held throws nothing, not even jabs: the block', held.length === 0 && f.guarding && count('chargeStart') === 0 && count('chargeReady') === 0);
-  check('letting go throws no charged punch either', run(f, 1).length === 0 && !f.guarding && count('heavy') === 0);
+  const early = run(f, ticks(FISTS.v.parryWindow) - 1, () => ({ heavyHeld: true, attackHeld: true }));
+  check(`barehanded, a press opens the parry's window (${FISTS.v.parryWindow} s): no jabs while it's open`, early.length === 0 && count('guard') === 1 && f.parryWindow > 0);
+  const later = run(f, ticks(0.5), () => ({ heavyHeld: true, attackHeld: true }));
+  check('then the fists go on, right click still held: no charge, no block', later.length > 0 && later[0].kind === 'jab' && count('chargeStart') === 0 && count('guard') === 1);
+  check('letting go throws no charged punch', run(f, 1).length === 0 && count('heavy') === 0 && count('chargeReady') === 0);
   const g = createFists();
   events.clear();
   run(g, 1, () => ({ heavyHeld: true }));
-  check(`its press opens the parry's window (${FISTS.v.parryWindow} s)`, near(g.parryWindow, FISTS.v.parryWindow, 1e-9) && count('guard') === 1);
+  check('its window, open from the press', near(g.parryWindow, FISTS.v.parryWindow, 1e-9) && count('guard') === 1);
   run(g, ticks(FISTS.v.parryWindow) + 1, () => ({ heavyHeld: true }));
-  check('held on, it shuts on time: holding is the block, not the parry', g.parryWindow === 0 && g.guarding && count('guard') === 1);
+  check('held on, it shuts on time: holding isn’t parrying', g.parryWindow === 0 && count('guard') === 1);
   run(g, 1);
   run(g, 1, () => ({ heavyHeld: true }));
-  check(`pressed again before its cooldown (${FISTS.v.parryCooldown} s) is up: no window`, g.parryWindow === 0 && count('guard') === 1);
+  check(`pressed again before its retry (${FISTS.v.parryRetry} s) is up: no window`, g.parryWindow === 0 && count('guard') === 1);
   run(g, 1);
-  run(g, ticks(FISTS.v.parryCooldown));
+  run(g, ticks(FISTS.v.parryRetry));
   run(g, 1, () => ({ heavyHeld: true }));
   check('after it, a press opens it again', g.parryWindow > 0 && count('guard') === 2);
   // A weapon's right click charges as before (the fists' charge time, Update 0.0.3).

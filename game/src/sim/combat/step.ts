@@ -202,13 +202,19 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     CLICK.attackPressed = true;
   }
   // (Update 0.3.5 — barehanded, right click is the parry: Hair Trigger's longer window, Giant Killer's no wait.)
-  let swung = axe || volley || gun || clasped ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate, chargeRate(state), parryTimes(state));
-  // (With the fists not in play — a weapon's own right click, the slam's clasp — no block, and the window shuts.)
-  if (axe || volley || gun || clasped) state.fists.guarding = false;
+  const times = parryTimes(state);
+  let swung = axe || volley || gun || clasped ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate, chargeRate(state), times);
+  // (With the fists not in play — a weapon's own right click, the slam's clasp — the window shuts; a click held meanwhile
+  // isn't a press after.)
+  if (axe || volley || gun || clasped) state.fists.parryHeld = intent.heavyHeld;
   if (axe || volley || gun || clasped) state.fists.parryWindow = 0;
   if (state.fists.parryWindow > 0) {
     aim(player, intent.yaw, intent.pitch, eye, dir);
-    if (parry(state, eye, dir) >= 0) state.fists.parryWindow = 0;
+    // (Update 0.3.6 — one that lands: the long wait, Parry cooldown.)
+    if (parry(state, eye, dir) >= 0) {
+      state.fists.parryWindow = 0;
+      state.fists.parryCooldown = times.cooldown;
+    }
   }
   // (Update 0.2.16 — All In, a Fate Card: your fists hit twice as hard.)
   if (swung) punch.damage *= fistFactor(state);
