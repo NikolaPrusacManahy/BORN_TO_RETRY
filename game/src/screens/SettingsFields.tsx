@@ -1,6 +1,6 @@
 // Update 0.0.4 — the settings sliders, shared by the pause menu and the main menu (moved out of PauseMenu.tsx).
-// Update 0.1.17 — and Music (the menus' track).
-import { FOV_MAX, FOV_MIN, SENS_MAX, SENS_MIN, Settings } from '../state/settings';
+// Update 0.1.17 — and Music (the menus' track). Update 0.2.21 — and UI size (the HUD's).
+import { FOV_MAX, FOV_MIN, SENS_MAX, SENS_MIN, Settings, UI_SIZE_MAX, UI_SIZE_MIN } from '../state/settings';
 
 interface SliderProps {
   label: string;
@@ -33,6 +33,7 @@ export function SettingsFields({ settings, onChange }: { settings: Settings; onC
       <Slider label="Volume" value={settings.volume} min={0} max={1} step={0.05} show={percent} onChange={(v) => set({ volume: v })} />
       <Slider label="Effects" value={settings.sfxVolume} min={0} max={1} step={0.05} show={percent} onChange={(v) => set({ sfxVolume: v })} />
       <Slider label="Music" value={settings.musicVolume} min={0} max={1} step={0.05} show={percent} onChange={(v) => set({ musicVolume: v })} />
+      <Slider label="UI size" value={settings.uiSize} min={UI_SIZE_MIN} max={UI_SIZE_MAX} step={0.05} show={percent} onChange={(v) => set({ uiSize: v })} />
       <label className="rb-toggle">
         <span>Invert mouse Y</span>
         <input type="checkbox" checked={settings.invertY} onChange={(e) => set({ invertY: e.target.checked })} />

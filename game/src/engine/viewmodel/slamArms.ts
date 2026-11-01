@@ -5,6 +5,8 @@
 // Update 0.1.8 — the slime's and the spider's execution smashes are this one too (the designer: "use the same ground
 // slam … for the slime and spider executions"): their hands' 'slamUp' and 'slamDown' (exec/handMoves.ts) are `slamClasp`,
 // the smash brought down onto the body (here it's the floor, at the bottom of your view: the spider's would miss it).
+// Update 0.2.21 — a tester: the hands stuck up. A slam that ends without landing (a dash, a wall jump, a pad, the water)
+// sent no landing, so the fists stayed raised: now they follow the slam (`follow`) and go back to the guard.
 // The designer: "why are the fists turned this way? just let them be normal … JUST STRAIGHT … anatomically wrong": each
 // fist carries on its forearm's line (they were bent at the wrist, knuckles straight up or down, palms together), the
 // back of the hand towards you.
@@ -39,13 +41,16 @@ export class SlamArms {
   /** Seconds into the drop (−1: not dropping), and since landing (−1: not landed). */
   private drop = -1;
   private landed = -1;
+  /** Seconds since a slam ended without landing (−1: none), and how far up the fists were then. */
+  private released = -1;
+  private from = 0;
   private readonly raised = { L: pose(), R: pose() };
   private readonly smashed = { L: pose(), R: pose() };
 
   /** The slam begins: the fists come up. */
   start() {
     this.drop = 0;
-    this.landed = -1;
+    this.landed = this.released = -1;
   }
 
   /** It hits the ground: the fists come down. */
@@ -55,8 +60,25 @@ export class SlamArms {
     this.landed = 0;
   }
 
+  /** The fists are up for a slam still dropping. */
+  get dropping(): boolean {
+    return this.drop >= 0;
+  }
+
+  /** Each frame, whether you're still slamming: a slam over with no landing lets the fists go back. */
+  follow(slamming: boolean) {
+    if (this.drop < 0 || slamming) return;
+    this.from = this.weight;
+    this.drop = -1;
+    this.released = 0;
+  }
+
   update(dt: number) {
     if (this.drop >= 0) this.drop += dt;
+    if (this.released >= 0) {
+      this.released += dt;
+      if (this.released > ARMS.v.slamBack) this.released = -1;
+    }
     if (this.landed >= 0) {
       this.landed += dt;
       const a = ARMS.v;
@@ -69,6 +91,7 @@ export class SlamArms {
     const a = ARMS.v;
     if (this.drop >= 0) return ease(this.drop / a.slamRaise);
     if (this.landed >= 0) return 1 - ease((this.landed - a.slamDown - a.slamHold) / a.slamBack);
+    if (this.released >= 0) return this.from * (1 - ease(this.released / a.slamBack));
     return 0;
   }
 
@@ -86,7 +109,7 @@ export class SlamArms {
   }
 
   reset() {
-    this.drop = this.landed = -1;
+    this.drop = this.landed = this.released = -1;
   }
 }
 

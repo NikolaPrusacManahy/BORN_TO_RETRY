@@ -1,7 +1,15 @@
 /* M1 — the HUD: a small crosshair and the dash pips at the bottom centre. */
+/* Update 0.2.21 — the HUD at its size (ui/uiScale.ts `--rb-hud`: the same share of the screen as at 1080p, times the
+   UI size setting): laid out that much smaller or bigger and scaled up or down to fill the window. Inside it, sizes are
+   as at 1080p (no vw, no --rb-ui). */
 .rb-hud {
   position: absolute;
-  inset: 0;
+  left: 0;
+  top: 0;
+  width: calc(100% / var(--rb-hud, 1));
+  height: calc(100% / var(--rb-hud, 1));
+  transform: scale(var(--rb-hud, 1));
+  transform-origin: 0 0;
   z-index: 10;
   pointer-events: none;
 }

@@ -72,6 +72,8 @@ export async function execRig(kind: EnemyKind, arena: Arena = OPEN_ARENA) {
     view.update(c, 1, dt);
     exec.update(c, (i) => view.rootOf(i), dt);
     followHeld(c, look, vm, cam, dt);
+    // (Update 0.2.21 — the fists follow the slam: a slam started here drops till it's landed.)
+    p.slamming = vm.slam.dropping;
     vm.update(dt, dt, 0, 0, p, -1);
     scene.updateMatrixWorld(true);
   };

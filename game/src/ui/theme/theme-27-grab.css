@@ -24,7 +24,7 @@
 
 .rb-qte-hit {
   font-family: 'Anton', var(--rb-font);
-  font-size: clamp(40px, 6vw, 72px);
+  font-size: 72px; /* (Update 0.2.21 — was clamp(40px, 6vw, 72px): the HUD's size scales it.) */
   line-height: 1;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -100,7 +100,7 @@
 }
 
 .rb-qte-time {
-  width: min(360px, 60vw);
+  width: 360px;
   height: 6px;
   border-radius: 3px;
   background: rgba(0, 0, 0, 0.45);
@@ -129,7 +129,7 @@
   top: 40%;
   transform: translateX(-50%) skewX(-8deg);
   font-family: 'Anton', var(--rb-font);
-  font-size: clamp(44px, 7vw, 88px);
+  font-size: 88px;
   line-height: 1;
   letter-spacing: 0.04em;
   text-transform: uppercase;

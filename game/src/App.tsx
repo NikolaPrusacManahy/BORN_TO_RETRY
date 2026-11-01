@@ -43,6 +43,7 @@ import { useMusic } from './screens/useMusic';
 import { DebugOverlay } from './screens/DebugOverlay';
 import { CreditIntro } from './screens/CreditIntro';
 import { Settings, loadSave, writeSave } from './state/settings';
+import { setUiSize } from './ui/uiScale';
 import { devKeyAction, devToolsEnabled } from './state/devTools';
 
 /** Update 0.2.9 — 'lobby': walking round the lobby; 'lobbyPaused': its pause menu; 'confirm': its gate's questions. */
@@ -217,6 +218,7 @@ export default function App() {
 
   const changeSettings = (settings: Settings) => {
     const next = { ...save, settings };
+    setUiSize(settings.uiSize);
     setSave(next);
     writeSave(next);
   };

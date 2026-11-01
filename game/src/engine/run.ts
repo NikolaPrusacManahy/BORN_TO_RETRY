@@ -30,7 +30,7 @@ import type { Input } from '../input/input';
 import { stepCombat } from '../sim/combat/step';
 import { AIM_HEIGHT } from '../sim/combat/turret';
 import { stepRooms } from '../sim/dungeon/roomLoop';
-import { stepTreasure } from '../sim/dungeon/treasure';
+import { riseChests, stepTreasure } from '../sim/dungeon/treasure';
 import { lavaStep } from '../sim/dungeon/lava';
 import { execHeld } from '../sim/combat/execution';
 import { followHeld } from './execView';
@@ -161,7 +161,9 @@ export class Run extends RunBase {
       this.cb.onInventory();
     }
 
-    const frozen = this.combat.hitStop.tick(real) || this.hold || this.told;
+    // (Update 0.2.21 — a chest's shot holds the world still: only the chest comes up.)
+    const frozen = this.combat.hitStop.tick(real) || this.hold || this.told || this.chestShot.locked;
+    if (this.chestShot.locked) riseChests(this.treasure, real * LAB.v.timeScale);
     if (locked && !p.dead) this.played += real;
     const scale = LAB.v.timeScale * this.death.timeScale * this.show.timeScale;
     const gameDt = frozen ? 0 : real * scale;
@@ -186,7 +188,7 @@ export class Run extends RunBase {
     this.rig.update(real * scale, this.clock.alpha, this.prev, p, this.look, settings.fov, aspect);
     // The boss room's show may take the view.
     const shot = this.show.update(real, this.camera, this.look, this.combat);
-    const chestShot = !shot.cinematic && this.chestShot.update(real, this.treasure, this.camera);
+    const chestShot = !shot.cinematic && this.chestShot.update(real, this.treasure, this.camera, p.grounded && !p.dead);
     if (chestShot) this.show.hud.cine = true;
     this.chest.set(p.pos.x, p.pos.y + AIM_HEIGHT, p.pos.z);
     // The shop and chests read this frame's events before the combat scene clears them; the hands follow a lid.

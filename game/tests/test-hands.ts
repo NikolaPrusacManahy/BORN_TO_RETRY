@@ -41,8 +41,12 @@ async function arms(kind?: WeaponKind, run?: (vm: Viewmodel, play: (s: number, c
   }
   const p = createPlayer(0, 0, 0, 0);
   p.grounded = true;
+  // (Update 0.2.21 — the fists follow the slam: a slam started here drops till it's landed.)
   const play = (s: number, c = -1) => {
-    for (let t = 0; t < s - 1e-9; t += STEP) vm.update(STEP, STEP, 0, 0, p, c);
+    for (let t = 0; t < s - 1e-9; t += STEP) {
+      p.slamming = vm.slam.dropping;
+      vm.update(STEP, STEP, 0, 0, p, c);
+    }
   };
   play(1.2);
   run?.(vm, play);

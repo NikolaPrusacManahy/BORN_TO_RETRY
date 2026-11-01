@@ -82,6 +82,8 @@ const IDLE = emptyCombatIntent();
 const NO_HEAVY = emptyCombatIntent();
 /** The presses with right click held (a smash held till the ground). */
 const HOLD_HEAVY = emptyCombatIntent();
+/** The presses with a click (one made in a slam, let go as you land). */
+const CLICK = emptyCombatIntent();
 
 /** `spawns`: where the lab's grunts may come from (none: no waves). */
 export function stepCombat(state: CombatState, player: PlayerState, intent: CombatIntent, world: CollisionWorld, dt: number, spawns: readonly Spot[] = []) {
@@ -188,8 +190,17 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     aim(player, intent.yaw, intent.pitch, eye, dir);
     updateGun(state, w, intent, eye, dir, world, dt, rate);
   } else dropGun(state.gun);
+  // Update 0.2.21 — barehanded, a slam clasps the fists (a tester: the hands stuck up after a click in one): as it drops
+  // they do nothing (a charge held, a cooldown paused); a click then is kept and punches as you land.
+  const clasped = w === null && player.slamming;
+  if (clasped && intent.attackPressed) state.fists.slamClick = true;
+  if (!clasped && state.fists.slamClick) {
+    state.fists.slamClick = false;
+    fistIntent = Object.assign(CLICK, fistIntent);
+    CLICK.attackPressed = true;
+  }
   // (Update 0.2.15 — Hair Trigger: the fists' charge fills quicker, for a dash.)
-  let swung = axe || volley || gun ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate, chargeRate(state, player));
+  let swung = axe || volley || gun || clasped ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate, chargeRate(state, player));
   if (swung && punch.kind === 'heavy') payCharge(state, player);
   // (Update 0.2.16 — All In, a Fate Card: your fists hit twice as hard.)
   if (swung) punch.damage *= fistFactor(state);

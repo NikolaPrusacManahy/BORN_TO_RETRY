@@ -16,6 +16,8 @@ export interface FistState {
   charge: number;
   /** The charge is full: letting go now throws the punch. */
   chargeReady: boolean;
+  /** Update 0.2.21 — a click while the fists are clasped for a slam: it lands as you do (sim/combat/step.ts). */
+  slamClick: boolean;
 }
 
 export interface CombatIntent {
@@ -51,7 +53,7 @@ export interface Punch {
 }
 
 export function createFists(): FistState {
-  return { combo: 0, comboTimer: 0, jabCooldown: 0, charging: false, charge: 0, chargeReady: false };
+  return { combo: 0, comboTimer: 0, jabCooldown: 0, charging: false, charge: 0, chargeReady: false, slamClick: false };
 }
 
 export function emptyCombatIntent(): CombatIntent {

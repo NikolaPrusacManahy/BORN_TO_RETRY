@@ -8,7 +8,8 @@
   align-items: center;
   gap: 10px;
   transform: translateX(-50%) skewX(-10deg);
-  zoom: var(--rb-ui);
+  /* (Update 0.2.21 — was the panels' zoom, 2 at 1080p; the HUD's own size scales it now.) */
+  zoom: 2;
   pointer-events: none;
 }
 

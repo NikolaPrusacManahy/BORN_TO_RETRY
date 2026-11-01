@@ -6,8 +6,9 @@ import { trackUiScale } from './ui/uiScale';
 import { loadTuning } from './tuning/store';
 import { setDevKeysReserved } from './input/bindings';
 import { devToolsEnabled } from './state/devTools';
+import { loadSave } from './state/settings';
 
-trackUiScale();
+trackUiScale(loadSave().settings.uiSize);
 // M1 step 9 — F1–F4 and ` are only off limits for bindings while the dev tools use them.
 setDevKeysReserved(devToolsEnabled(import.meta.env.DEV));
 // Values tuned in the F1 panel survive a refresh.

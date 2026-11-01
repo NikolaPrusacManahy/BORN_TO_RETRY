@@ -190,6 +190,7 @@ export class Viewmodel {
     this.anim.update(gameDt);
     this.swordAnim.update(gameDt, realDt);
     this.off.anim.update(gameDt, realDt);
+    this.slam.follow(p.slamming);
     this.slam.update(gameDt);
     this.motion.update(gameDt, realDt, mouseDx, mouseDy, p, this.pivot, this.holder);
     this.gun.update(gameDt);

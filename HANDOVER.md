@@ -2,7 +2,16 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.2.20: the shop's Fate Card; half the gold in chests)
+## Next up (2026-11-01, Update 0.2.21: the testers' fixes)
+- **From the testers' feedback** (spec `MD_UPDATES/U0221_TESTER_FIXES.md`; the slam spam and the Fate Cards' builds are
+  0.2.22): **the slam's hands** no longer stick up (a slam ended by a dash, a wall jump, a pad or the water let them go
+  back; barehanded, a click in a slam punches as you land); **the chest's shot** waits until you're on the ground (4 s
+  at most) and holds the world still while it runs (a tester fell into lava during it); **the HUD** is the same share of
+  the screen at any size (as at 1080p), with a **UI size** setting (Options, 70–140%).
+- Checked by tests (`test-slam-hands.ts`, `test-chest-pan.ts`, `test-hud-scale.ts`); **unseen in the game**: the HUD at
+  other window sizes (anything cut off at a corner?), the Options panel with its new slider, the shot waiting for you.
+
+## Before (2026-11-01, Update 0.2.20: the shop's Fate Card; half the gold in chests)
 - **The shop's Fate Card** (the designer: "the shop has only one fate card. floating near, cost 100"; spec
   `MD_UPDATES/U0220_SHOP_CARD_CHEST_GOLD.md`): one Fate Card floats one cell past the candelabrum at the end of the shop's
   row of tiles, turning and lit in its rarity's colour, a price tag over it (100; red when you can't pay). The floor's own

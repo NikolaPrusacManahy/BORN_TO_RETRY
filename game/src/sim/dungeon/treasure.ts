@@ -171,17 +171,23 @@ export function raiseChest(t: Treasure, i: number, state: CombatState) {
   state.events.push('chestRise', i, c.spot.x, 0, c.spot.z);
 }
 
+/** Update 0.2.21 — the chests coming up out of the floor, `dt` on (also while the chest's shot holds the world still:
+ *  engine/run.ts). */
+export function riseChests(t: Treasure, dt: number) {
+  for (const c of t.chests) {
+    if (c.state !== 'rising') continue;
+    c.t += dt;
+    if (c.t >= ITEMS.v.chestRise) c.state = 'shut';
+  }
+}
+
 /** One tick: chests opening, picking a key in front of one, and E at a chest or a shop tile. `fighting(room)`: that room
  *  is mid-fight. Returns true if E was used here (so it doesn't also pick up a weapon). */
 export function stepTreasure(t: Treasure, player: PlayerState, state: CombatState, interact: boolean, switchKey: boolean, fighting: (room: number) => boolean, dt: number): boolean {
   const T = ITEMS.v.chestTime;
+  riseChests(t, dt);
   for (let i = 0; i < t.chests.length; i++) {
     const c = t.chests[i];
-    if (c.state === 'rising') {
-      c.t += dt;
-      if (c.t >= ITEMS.v.chestRise) c.state = 'shut';
-      continue;
-    }
     if (c.state !== 'opening') continue;
     c.t += dt;
     if (!c.given && c.t >= T * LOOT_AT) giveLoot(c, i, state);

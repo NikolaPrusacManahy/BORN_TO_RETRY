@@ -17,6 +17,8 @@ export interface Settings {
   sfxVolume: number;
   /** Music 0 – 1. */
   musicVolume: number;
+  /** Update 0.2.21 — the in-play HUD's size, times its fit to the screen (ui/uiScale.ts), UI_SIZE_MIN – UI_SIZE_MAX. */
+  uiSize: number;
   bindings: Bindings;
 }
 
@@ -36,8 +38,10 @@ export const FOV_MIN = 80;
 export const FOV_MAX = 130;
 export const SENS_MIN = 0.1;
 export const SENS_MAX = 5;
+export const UI_SIZE_MIN = 0.7;
+export const UI_SIZE_MAX = 1.4;
 
-export const DEFAULT_SETTINGS: Settings = { sensitivity: 1, invertY: false, fov: 100, volume: 0.8, sfxVolume: 1, musicVolume: 0.7, bindings: DEFAULT_BINDINGS };
+export const DEFAULT_SETTINGS: Settings = { sensitivity: 1, invertY: false, fov: 100, volume: 0.8, sfxVolume: 1, musicVolume: 0.7, uiSize: 1, bindings: DEFAULT_BINDINGS };
 
 export function defaultSave(): SaveData {
   return { version: 1, settings: { ...DEFAULT_SETTINGS, bindings: { ...DEFAULT_BINDINGS } }, difficulty: DEFAULT_DIFFICULTY, character: DEFAULT_CHARACTER, cards: true };
@@ -67,6 +71,7 @@ export function hydrateSave(raw: unknown): SaveData {
       volume: clamp(s.volume, 0, 1, DEFAULT_SETTINGS.volume),
       sfxVolume: clamp(s.sfxVolume, 0, 1, DEFAULT_SETTINGS.sfxVolume),
       musicVolume: clamp(s.musicVolume, 0, 1, DEFAULT_SETTINGS.musicVolume),
+      uiSize: clamp(s.uiSize, UI_SIZE_MIN, UI_SIZE_MAX, DEFAULT_SETTINGS.uiSize),
       bindings: hydrateBindings(s.bindings),
     },
   };
