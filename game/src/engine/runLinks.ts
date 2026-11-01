@@ -34,8 +34,9 @@ export interface RunCallbacks {
   onRespawn(): void;
   /** Update 0.1.14 — dead in the dungeon and it's black: show the death screen (the run waits for Retry). */
   onDeathScreen(info: DeathInfo): void;
-  /** Update 0.2.9 — in the lobby, a difficulty or a character was chosen (to save). */
-  onLobbyPick(difficulty: Difficulty, character: CharacterId): void;
+  /** Update 0.2.9 — in the lobby, a difficulty or a character was chosen (to save). Update 0.2.17 — or Fate Cards
+   *  turned on or off (`cards`). */
+  onLobbyPick(difficulty: Difficulty, character: CharacterId, cards: boolean): void;
   /** Update 0.2.9 — in the lobby, you went through the main gate (walked in, or E at it). */
   onLobbyGate(): void;
   /** Update 0.2.16 — a chest dealt Fate Cards (the world holds still): show them; `Game.pickCard`, then `endDeal`. */

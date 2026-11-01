@@ -137,7 +137,7 @@ export default function App() {
     if (!g || phaseRef.current !== 'menu') return;
     go('intro');
     void g.lock();
-    g.startIntro({ difficulty: save.difficulty, character: save.character });
+    g.startIntro({ difficulty: save.difficulty, character: save.character, cards: save.cards });
   }, [getGame, go, save.difficulty, save.character]);
 
   /** Update 0.0.19 — the main menu's Lab: straight into the Lab. */

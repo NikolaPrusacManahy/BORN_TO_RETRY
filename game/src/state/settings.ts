@@ -23,9 +23,11 @@ export interface Settings {
 export interface SaveData {
   version: 1;
   settings: Settings;
-  /** Update 0.2.9 — chosen in the lobby (a character only if they're playable). */
+  /** Update 0.2.9 — chosen in the lobby (a character only if they're playable). Update 0.2.17 — and whether runs deal
+   *  Fate Cards (the lobby's stand). */
   difficulty: Difficulty;
   character: CharacterId;
+  cards: boolean;
 }
 
 /** Named after the working title; kept when the game became Born To Retry so saved settings carry over. */
@@ -38,7 +40,7 @@ export const SENS_MAX = 5;
 export const DEFAULT_SETTINGS: Settings = { sensitivity: 1, invertY: false, fov: 100, volume: 0.8, sfxVolume: 1, musicVolume: 0.7, bindings: DEFAULT_BINDINGS };
 
 export function defaultSave(): SaveData {
-  return { version: 1, settings: { ...DEFAULT_SETTINGS, bindings: { ...DEFAULT_BINDINGS } }, difficulty: DEFAULT_DIFFICULTY, character: DEFAULT_CHARACTER };
+  return { version: 1, settings: { ...DEFAULT_SETTINGS, bindings: { ...DEFAULT_BINDINGS } }, difficulty: DEFAULT_DIFFICULTY, character: DEFAULT_CHARACTER, cards: true };
 }
 
 /** Update 0.2.9 — the character a new save has (the first playable one). */
@@ -52,11 +54,12 @@ export function hydrateSave(raw: unknown): SaveData {
   const base = defaultSave();
   if (!raw || typeof raw !== 'object') return base;
   const s: Partial<Settings> = (raw as { settings?: Partial<Settings> }).settings ?? {};
-  const { difficulty, character } = raw as Partial<Record<'difficulty' | 'character', unknown>>;
+  const { difficulty, character, cards } = raw as Partial<Record<'difficulty' | 'character' | 'cards', unknown>>;
   return {
     version: 1,
     difficulty: isDifficulty(difficulty) ? difficulty : DEFAULT_DIFFICULTY,
     character: playable(character) ? character : DEFAULT_CHARACTER,
+    cards: typeof cards === 'boolean' ? cards : true,
     settings: {
       sensitivity: clamp(s.sensitivity, SENS_MIN, SENS_MAX, DEFAULT_SETTINGS.sensitivity),
       invertY: typeof s.invertY === 'boolean' ? s.invertY : DEFAULT_SETTINGS.invertY,

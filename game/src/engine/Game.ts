@@ -38,12 +38,14 @@ export type { MenuView };
 export interface LobbyChoice {
   difficulty: Difficulty;
   character: CharacterId;
+  /** Update 0.2.17 — runs deal Fate Cards. */
+  cards: boolean;
 }
 
 export class Game extends GameBase {
   private readonly menus: MenuScenes;
   /** Update 0.2.9 — what you chose in the lobby last (the run's difficulty: GameBase.runDifficulty). */
-  private choice: LobbyChoice = { difficulty: 'real', character: 'adventurer' };
+  private choice: LobbyChoice = { difficulty: 'real', character: 'adventurer', cards: true };
   private readonly resizeObs: ResizeObserver;
   private raf = 0;
   private last = performance.now();
@@ -108,7 +110,7 @@ export class Game extends GameBase {
   private enterLobby() {
     this.inLab = false;
     this.mode = 'play';
-    this.newRun(lobbyLevel(createLobby(this.choice.difficulty, this.choice.character)));
+    this.newRun(lobbyLevel(createLobby(this.choice.difficulty, this.choice.character, this.choice.cards)));
     this.input.clear();
   }
 
@@ -132,10 +134,12 @@ export class Game extends GameBase {
     if (this.inLobby) this.run?.openGate();
   }
 
-  /** Into a new dungeon run as `character` (only playable ones) on `difficulty`. Call once the screen is black. */
-  startRun(character: CharacterId, difficulty: Difficulty) {
+  /** Into a new dungeon run as `character` (only playable ones) on `difficulty`, with Fate Cards or not (`cards`). Call
+   *  once the screen is black. */
+  startRun(character: CharacterId, difficulty: Difficulty, cards = true) {
     if (!ROSTER.find((c) => c.id === character)?.available) return;
     this.runDifficulty = difficulty;
+    this.runCards = cards;
     this.mode = 'play';
     this.newRun(this.inLab ? labLevel() : this.levels.fresh());
     this.run?.holdFloorTitle(LOADER_HIDES);

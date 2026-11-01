@@ -14,8 +14,9 @@ import type { InfoKind } from './itemInfo';
 import { anyKey } from './items';
 
 /** What E does here: take it, buy it, open the chest, execute; 'locked': a chest and no key; null: nothing. Update
- *  0.2.9 — the lobby's (sim/lobby/lobby.ts): choose it, it's already chosen, go through the gate, a locked character. */
-export type FocusAct = 'pick' | 'buy' | 'open' | 'locked' | 'execute' | 'choose' | 'chosen' | 'enter' | 'unavailable' | null;
+ *  0.2.9 — the lobby's (sim/lobby/lobby.ts): choose it, it's already chosen, go through the gate, a locked character.
+ *  Update 0.2.17 — and turn Fate Cards on or off. */
+export type FocusAct = 'pick' | 'buy' | 'open' | 'locked' | 'execute' | 'choose' | 'chosen' | 'enter' | 'unavailable' | 'turnOn' | 'turnOff' | null;
 
 export interface Focus {
   /** The item it's about (its card), or null (a chest, an execution, nothing). */

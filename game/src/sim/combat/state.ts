@@ -120,6 +120,8 @@ export interface CombatState {
   /** Update 0.2.12 — ARE YOU EVEN HUMAN? (the designer: "just fists and nothing else"): nothing is dropped or found (no
    *  swords, coins, keys, bonuses, chests, rewards); executions still heal (the designer: "executions always heals"). */
   bare: boolean;
+  /** Update 0.2.17 — Fate Cards are on this run (the lobby's stand): chests deal them. */
+  fate: boolean;
   /** Update 0.2.15 — the Scars'. Update 0.2.16 — the Fate Cards' (sim/cards/): you're off the ground this tick (Air
    *  Butcher); the enemies your dash or slide has bumped, and which of them it is (Shoulder Charge, Bowling); a deal up
    *  (null: none; the world holds still while it is); the fight's clock (s); seconds of Bloodrush, Killing Spree and
@@ -201,6 +203,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     keyDrops: 0,
     betterKeys: false,
     bare: false,
+    fate: true,
     inAir: false,
     bumped: [],
     bumpMove: 0,

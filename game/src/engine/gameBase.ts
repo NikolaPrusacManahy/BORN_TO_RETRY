@@ -47,6 +47,8 @@ export abstract class GameBase {
   /** Update 0.2.9 — the difficulty the run was started on (Update 0.2.12: the run plays by it; the Lab's is the real
    *  one). */
   runDifficulty: Difficulty = 'real';
+  /** Update 0.2.17 — the run deals Fate Cards (the lobby's stand; the Lab's always do). */
+  runCards = true;
   protected readonly levels: Levels = {
     fresh: () => (this.inLab ? labLevel() : dungeonLevel(newSeed(), 1)),
     next: (l: Level) => (this.inLab && l.bossRoom ? labLevel() : dungeonLevel(l.seed, l.floor + 1)),
@@ -152,7 +154,7 @@ export abstract class GameBase {
 
   protected newRun(level: Level) {
     this.run?.dispose();
-    this.run = new Run(level, this.audio, this.renderer, this.hud, this.cb, this.levels, this.inLab ? 'real' : this.runDifficulty);
+    this.run = new Run(level, this.audio, this.renderer, this.hud, this.cb, this.levels, this.inLab ? 'real' : this.runDifficulty, this.inLab || this.runCards);
     this.run.waves = !this.inLab || this.labWaves;
     if (this.inLab) this.run.labCommand({ kind: 'meter', on: this.labMeter });
   }

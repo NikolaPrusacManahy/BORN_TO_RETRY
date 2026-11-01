@@ -234,8 +234,9 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
  *  coins and heart; any other deals them instead of its loot (its glow, the best card's rarity). */
 function giveLoot(c: Chest, i: number, state: CombatState) {
   c.given = true;
-  const lucky = !c.cards && !c.boss && !c.spot.gold && state.rng() < CARDS.v.dealChance;
-  if ((c.cards || lucky) && startDeal(state, i, c.key, c.cards) && !c.boss) c.loot = { rarity: dealRarity(state.deal!.cards), item: null, coins: 0 };
+  // (Update 0.2.17 — not when Fate Cards are off: the lobby's stand.)
+  const lucky = state.fate && !c.cards && !c.boss && !c.spot.gold && state.rng() < CARDS.v.dealChance;
+  if (state.fate && (c.cards || lucky) && startDeal(state, i) && !c.boss) c.loot = { rarity: dealRarity(state.deal!.cards), item: null, coins: 0 };
   const loot = c.loot!;
   state.events.push('chestRarity', RARITIES.indexOf(loot.rarity), c.spot.x, 0.8, c.spot.z);
   // (No item flies to you: it waits.)

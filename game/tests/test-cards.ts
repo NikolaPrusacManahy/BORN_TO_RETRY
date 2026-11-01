@@ -2,8 +2,8 @@
 // are lucky, you might not get a normal drop but you get sets of card you pick", "25% is fine", "We need rarity too,
 // grey, green, blue, purple, Red … same as drops"): the 30 of wave 1 and their rarities; a boss's chest (not the run's
 // last) and a challenge room's always deal, a keyed chest one time in four instead of its item, a gold chest never;
-// the rarities rolled as a chest's, the key counting, a big fight's deal with a rare at least; only cards you don't
-// carry; taking one; carried down; what TAB shows; the Lab. What each does: test-card-moves.ts, test-card-moves2.ts.
+// each card's rarity its own roll by the chests' odds (Update 0.2.17, the designer: "a chance for each card"); only
+// cards you don't carry; taking one; carried down; what TAB shows; the Lab. What each does: test-card-moves.ts, test-card-moves2.ts.
 import { check, section } from './harness';
 import { DT, ticks } from './fakes/flatWorld';
 import { OPEN_ARENA } from './fakes/enemyWorld';
@@ -82,7 +82,7 @@ section('Fate Cards — a boss’s chest deals');
 {
   const { c, chest } = openBossChest(1);
   const cards = c.deal?.cards ?? [];
-  check(`opened: it deals ${CARDS.v.dealt}, all different, one rare or better at least`, cards.length === CARDS.v.dealt && new Set(cards).size === cards.length && cards.some((k) => rank(k) >= 2), cards.join(' '));
+  check(`opened: it deals ${CARDS.v.dealt}, all different`, cards.length === CARDS.v.dealt && new Set(cards).size === cards.length, cards.join(' '));
   check('its coins and heart still come (no key)', chest.state === 'open' && c.drops.some((d) => d.alive && d.manual && d.kind === 'heart') && !c.drops.some((d) => d.alive && d.kind === 'key'));
   const p = createPlayer(0, 0, 0, 0);
   const kind = cards[1];
@@ -102,16 +102,22 @@ section('Fate Cards — a challenge room’s chest deals instead of its item');
   const chests = run.treasure.chests;
   const i = level.rooms.findIndex((r) => r.challenge);
   check('a challenge room’s chest and the boss’s always deal; a fight room’s doesn’t always', chests[level.rooms[i].chest].cards && chests.filter((ch) => ch.boss).every((ch) => ch.cards) && chests.some((ch) => !ch.cards));
-  // Its keys are white or gold: rare or better; a gold key's, epic or mythic.
-  let white = true;
-  let gold = true;
-  for (let seed = 1; seed <= 40; seed++) {
+  // Update 0.2.17 — each card its own roll by the chests' odds: no key, no big fight changes them.
+  const counts = RARITIES.map(() => 0);
+  let high = 0;
+  let allHigh = 0;
+  for (let seed = 1; seed <= 600; seed++) {
     const c = createCombat(OPEN_ARENA);
     c.rng = createRng(seed);
-    white &&= drawDeal(c, 'whiteKey', true).every((k) => rank(k) >= 2);
-    gold &&= drawDeal(c, 'goldKey', true).every((k) => rank(k) >= 3);
+    const deal = drawDeal(c);
+    for (const k of deal) counts[rank(k)]++;
+    if (deal.some((k) => rank(k) >= 3)) high++;
+    if (deal.every((k) => rank(k) >= 3)) allHigh++;
   }
-  check('a white key’s deal is rare or better, a gold key’s epic or mythic (as a chest’s loot)', white && gold);
+  const n = counts.reduce((a, b) => a + b, 0);
+  const share = (i: number) => counts[i] / n;
+  check('each card’s rarity is its own roll at the chests’ odds (45 / 30 / 15 / 8 / 2)', Math.abs(share(0) - 0.45) < 0.06 && Math.abs(share(1) - 0.3) < 0.06 && Math.abs(share(2) - 0.15) < 0.05 && share(4) > 0 && share(4) < 0.05, counts.join(' '));
+  check('an epic in a deal doesn’t make the rest epic', high > 30 && allHigh / high < 0.1, `${allHigh} of ${high}`);
 }
 
 section('Fate Cards — a keyed chest, by luck');
@@ -155,6 +161,39 @@ section('Fate Cards — a keyed chest, by luck');
     fallback &&= c.deal === null && !!chest.loot && (chest.loot.item !== null || chest.loot.coins > 0);
   }
   check('nothing left to deal: its loot instead', fallback);
+}
+
+section('Fate Cards — off (the lobby’s stand)');
+{
+  // Update 0.2.17 — the designer: "asking if the player wants the Cards in their run".
+  const level = buildDungeon(planFloor(4242, 1));
+  const run = createDungeonRun(level);
+  const c = createCombat(level.arena, false);
+  c.fate = false;
+  const b = level.boss;
+  const chest = run.treasure.chests[level.rooms[b.room].chest];
+  const p = createPlayer(chest.spot.x + chest.spot.fx * 1.2, 0, chest.spot.z + chest.spot.fz * 1.2, 0);
+  p.grounded = true;
+  chest.state = 'shut';
+  stepTreasure(run.treasure, p, c, true, false, () => false, DT);
+  for (let k = 0; k < ticks(ITEMS.v.chestTime + DT); k++) stepTreasure(run.treasure, p, c, false, false, () => false, DT);
+  check('off: a boss’s chest gives its coins and heart, no deal', c.deal === null && (chest.state as string) === 'open' && c.drops.some((d) => d.alive && d.manual && d.kind === 'heart'));
+  let never = true;
+  for (let seed = 1; seed <= 60; seed++) {
+    const r = createCombat(OPEN_ARENA);
+    r.fate = false;
+    r.rng = createRng(seed);
+    r.items.keys = 1;
+    const q = createPlayer(0, 0, 1.2, 0);
+    q.grounded = true;
+    const t = emptyTreasure();
+    const ch: Chest = { spot: { room: -1, x: 0, z: 0, rot: 0, fx: 0, fz: 1, rises: false, boss: false, gate: -1, gold: false }, state: 'shut', t: 0, rolls: [r.rng(), r.rng(), r.rng()], key: null, loot: null, given: false, boss: null, cards: true };
+    t.chests.push(ch);
+    stepTreasure(t, q, r, true, false, () => false, DT);
+    for (let k = 0; k < ticks(ITEMS.v.chestTime + DT); k++) stepTreasure(t, q, r, false, false, () => false, DT);
+    never &&= r.deal === null && !!ch.loot && (ch.loot.item !== null || ch.loot.coins > 0);
+  }
+  check('off: no chest ever deals (a challenge room’s gives its item)', never);
 }
 
 section('Fate Cards — carried, shown, the Lab');

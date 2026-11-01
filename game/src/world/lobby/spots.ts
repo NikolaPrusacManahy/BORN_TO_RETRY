@@ -26,6 +26,12 @@ export const FIGURES: readonly { x: number; z: number }[] = [-9, -4.5, 0, 4.5].m
 export const ALTARS: readonly { x: number; z: number }[] = [4, -2, -8].map((z) => ({ x: -12.6, z }));
 export const ALTAR_H = 1.16;
 
+/** Update 0.2.17 — the Fate Cards' stand (the designer: "just after the Are you human difficulty, put a new stand... a
+ *  bit different, asking if the player wants the Cards in their run"): along the west wall past the last altar (short
+ *  of the dark column), a small table with a big card floating over it; where the card floats (m). */
+export const CARD_STAND = { x: -12.6, z: -11.2 } as const;
+export const CARD_FLOAT = 1.75;
+
 /** Update 0.2.9 (the designer: "closed roof") — the roof's timber beams across the hall (their z), and the chandeliers
  *  hanging from some of them (their rings' middles): three down the carpet, one over each feast table. */
 export const BEAMS: readonly number[] = [-18, -14, -10, -6, -2, 2, 6, 10, 14, 18];

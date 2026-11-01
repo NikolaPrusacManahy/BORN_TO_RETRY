@@ -20,7 +20,7 @@ export interface RunStart {
   starting: boolean;
   /** The loader is up (until the black has cleared). */
   loading: boolean;
-  playSelected(id: CharacterId, difficulty: Difficulty): void;
+  playSelected(id: CharacterId, difficulty: Difficulty, cards: boolean): void;
   startLab(): void;
   /** The Game is in the run (its onRunStart). */
   onRunStart(locked: boolean): void;
@@ -54,12 +54,12 @@ export function useRunStart(getGame: () => Game | null, setBlack: (secs: number 
   );
 
   const playSelected = useCallback(
-    (id: CharacterId, difficulty: Difficulty) =>
+    (id: CharacterId, difficulty: Difficulty, cards: boolean) =>
       begin((g) => {
         loadFrom.current = performance.now();
         setLoading(true);
         // Built once the loader is on screen (it keeps turning while the level is built).
-        requestAnimationFrame(() => later(0, () => g.startRun(id, difficulty)));
+        requestAnimationFrame(() => later(0, () => g.startRun(id, difficulty, cards)));
       }),
     [begin, later],
   );

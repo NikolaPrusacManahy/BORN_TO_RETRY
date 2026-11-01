@@ -22,7 +22,7 @@ import { CREDITS } from '../src/world/lobby/credits';
 import { FURNITURE } from '../src/world/lobby/furniture';
 import { LOBBY_HALL } from '../src/world/lobby/hall';
 import { dressHall } from '../src/world/lobby/hallDressing';
-import { ALTARS, DAIS, FIGURES, GATE, GATE_BACK, HALL, LOBBY_START } from '../src/world/lobby/spots';
+import { ALTARS, CARD_STAND, DAIS, FIGURES, GATE, GATE_BACK, HALL, LOBBY_START } from '../src/world/lobby/spots';
 
 section('Lobby — the roster and the difficulties');
 {
@@ -48,6 +48,8 @@ section('Lobby — the save keeps your choices');
   check('a saved difficulty is kept', hydrateSave({ difficulty: 'human' }).difficulty === 'human' && hydrateSave({ difficulty: 'weakling' }).difficulty === 'weakling');
   check('junk is the default', hydrateSave({ difficulty: 'easy', character: 7 }).difficulty === 'real' && hydrateSave({ character: 7 }).character === 'adventurer');
   check('a locked character in a save is Joseph', hydrateSave({ character: 'king' }).character === 'adventurer');
+  // (Update 0.2.17 — and Fate Cards on or off: on to start.)
+  check('Fate Cards: on in a new save, off kept, junk on', defaultSave().cards && !hydrateSave({ cards: false }).cards && hydrateSave({ cards: 'no' }).cards);
 }
 
 section('Lobby — the hall');
@@ -150,6 +152,20 @@ section('Lobby — the stations');
   stepLobby(l, at(DAIS.x0 - 0.6, FIGURES[0].z), false);
   lobbyFocus(l, f);
   check('at Joseph: Joseph, Chosen', f.label === 'Joseph' && f.act === 'chosen');
+  // Update 0.2.17 — the Fate Cards' stand, past the last altar.
+  stepLobby(l, at(CARD_STAND.x + 2, CARD_STAND.z), false);
+  lobbyFocus(l, f);
+  check('at the Fate Cards’ stand: FATE CARDS: ON, [E] to turn off', f.label === 'FATE CARDS: ON' && f.act === 'turnOff');
+  check('E there turns them off (saved, as a choice)', stepLobby(l, at(CARD_STAND.x + 2, CARD_STAND.z), true) && !l.cards && l.events.join() === 'pick');
+  lobbyFocus(l, f);
+  l.events.length = 0;
+  check('then: FATE CARDS: OFF, [E] to turn on', f.label === 'FATE CARDS: OFF' && f.act === 'turnOn');
+  stepLobby(l, at(CARD_STAND.x + 2, CARD_STAND.z), true);
+  check('E again: on', l.cards && l.events.join() === 'pick' && !createLobby('real', 'adventurer', false).cards);
+  l.events.length = 0;
+  const stand = FURNITURE.find((p) => p.piece === 'lobby_p1_Table_Small');
+  const human = ALTARS[2];
+  check('it stands past ARE YOU EVEN HUMAN?’s altar, on its own, a table (not an altar), solid', !!stand?.solid && stand.x === CARD_STAND.x && CARD_STAND.z < human.z - 2 && FURNITURE.filter((p) => p !== stand && p.solid && Math.hypot(p.x - stand.x, p.z - stand.z) < 2.2).length === 0);
   stepLobby(l, at(0, GATE.barsZ + 2.5), false);
   lobbyFocus(l, f);
   check('at the gate: [E] to enter', f.act === 'enter' && f.label === '');

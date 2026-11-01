@@ -2,7 +2,8 @@
 // or E at it), it asks your difficulty's questions in turn (GATE_ASKS: the lobby held, the mouse freed); the last
 // answer that goes on opens the gate and starts the run in that click (useRunStart.ts: it locks the mouse); an answer
 // that turns back, or Esc, puts you a few steps back from the gate and locks the mouse again (if the browser won't, the
-// pause menu). No questions (WEAKLING EXPERIENCE): straight through. A difficulty or character chosen is saved.
+// pause menu). No questions (WEAKLING EXPERIENCE): straight through. A difficulty or character chosen is saved (Update
+// 0.2.17 — and Fate Cards on or off).
 import { useCallback, useRef, useState } from 'react';
 import type { Game } from '../engine/Game';
 import type { CharacterId } from '../sim/characters';
@@ -17,7 +18,7 @@ export interface LobbyGate {
   ask: GateAsk | null;
   /** The Game's: the gate was reached; a choice was made. */
   onGate(): void;
-  onPick(difficulty: Difficulty, character: CharacterId): void;
+  onPick(difficulty: Difficulty, character: CharacterId, cards: boolean): void;
   yes(): void;
   no(): void;
 }
@@ -40,7 +41,7 @@ export function useLobbyGate(getGame: () => Game | null, run: RunStart, save: Sa
     g.holdLobby(false);
     g.openGate();
     go('lobby');
-    run.playSelected(saveRef.current.character, saveRef.current.difficulty);
+    run.playSelected(saveRef.current.character, saveRef.current.difficulty, saveRef.current.cards);
   }, [getGame, go, run.playSelected]);
 
   const onGate = useCallback(() => {
@@ -73,9 +74,9 @@ export function useLobbyGate(getGame: () => Game | null, run: RunStart, save: Sa
   }, [getGame, go]);
 
   const onPick = useCallback(
-    (difficulty: Difficulty, character: CharacterId) =>
+    (difficulty: Difficulty, character: CharacterId, cards: boolean) =>
       setSave((s) => {
-        const next = { ...s, difficulty, character };
+        const next = { ...s, difficulty, character, cards };
         writeSave(next);
         return next;
       }),

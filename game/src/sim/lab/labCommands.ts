@@ -80,7 +80,7 @@ export function runLab(cmd: LabCommand, state: CombatState, player: PlayerState,
       return 1;
     }
     case 'deal':
-      return startDeal(state, -1, null, false) ? 1 : 0;
+      return startDeal(state, -1) ? 1 : 0;
     case 'card':
       takeCard(state, player, cmd.card);
       return 1;

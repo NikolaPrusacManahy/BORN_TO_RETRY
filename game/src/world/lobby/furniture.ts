@@ -3,7 +3,7 @@
 // are the dungeon kit's (kit_…, public/models/dungeon/kit.glb) and the lobby's own (lobby_…, public/models/menu/
 // lobby.glb: tools/blender/build_lobby_kit.py). Some of the packs' small things come huge (a book 1.2 m across): they're
 // scaled to life here. Pure data.
-import { ALTAR_H, ALTARS } from './spots';
+import { ALTAR_H, ALTARS, CARD_STAND } from './spots';
 
 export interface Prop {
   piece: string;
@@ -46,6 +46,11 @@ ALTARS.forEach((a, i) => {
   putS('lobby_p1_Pedestal2', a.x, 0, a.z, EAST, [0.62, 0.5, 0.62], [1.1, ALTAR_H, 1.1]);
   put(SIGNS[i], a.x, ALTAR_H, a.z, EAST, SIGN_SCALE[i]);
 });
+
+// Update 0.2.17 — the Fate Cards' stand, past the last altar: a small table, a candle at each end (its card floats over
+// it: engine/lobby/fateStand.ts).
+put('lobby_p1_Table_Small', CARD_STAND.x, 0, CARD_STAND.z, 0, 1, [1.3, 0.85, 1.98]);
+for (const dz of [-0.72, 0.72]) put('lobby_p2_Candle', CARD_STAND.x + 0.2, 0.85, CARD_STAND.z + dz, 0, 0.35);
 
 // Dark columns up to the roof's beams, framing the two side areas.
 for (const x of [-12, 12]) for (const z of [-14, 10]) putS('kit_p1_Column', x, 0, z, 0, [1.3, 2.415, 1.3], [1.7, 9.8, 1.7]);

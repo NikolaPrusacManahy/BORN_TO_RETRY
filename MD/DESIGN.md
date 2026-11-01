@@ -123,8 +123,11 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 - **When:** a boss's chest (not the run's last) and a challenge room's always **deal three Fate Cards**; a chest opened
   with a key deals them **one time in four instead of its loot** (the designer: "25% is fine"); a gold chest never. The
   boss's chest still gives its coins and heart (no key since 0.2.15).
-- **Rarity** (the designer: "grey, green, blue, purple, Red … same as drops"): each card rolled as a chest's loot is, the
-  key counting; a big fight's deal has one rare or better. Each card once a run, lost when you die. No card heals.
+- **Rarity** (the designer: "grey, green, blue, purple, Red … same as drops"): **each card its own roll at the chests'
+  odds** (Update 0.2.17, the designer: "a chance for each card"): no key and no big fight changes them. Each card once a
+  run, lost when you die. No card heals.
+- **On or off** (Update 0.2.17, the designer): a stand in the lobby past ARE YOU EVEN HUMAN?'s altar (a small table, a big
+  card floating over it); off, no chest deals. Saved.
 - **The deal:** the world holds still and blurs; a deck deals them one by one, face up, low on the screen; hover lifts one
   to read; a click takes it: it shrinks and flies to the card pile by your coins. You must take one.
 - **TAB:** what you carry (cards, weapons, rings, keys, bonuses, health, armour, dashes, coins); the world holds still.

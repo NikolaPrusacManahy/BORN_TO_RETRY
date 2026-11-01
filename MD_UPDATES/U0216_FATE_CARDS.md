@@ -12,6 +12,9 @@ long list of effects and try to find something that can be useful or very good e
 the names are very similar if not same soo.. let's not do that". The 0.2.15 Scars (floor offer) are gone: they're 14
 of the cards.
 
+**Update 0.2.17**: each card rolls its own rarity (no key, no guaranteed rare), and a lobby stand turns them on or off
+(`U0217_CARD_ODDS_STAND.md`).
+
 ## When you get cards
 - **A boss's chest** (not the run's last) **and a challenge room's** always deal. The boss's still gives its coins and its
   heart (no key, since 0.2.15); the challenge room's deals **instead of its item**, and its gates open once you've taken

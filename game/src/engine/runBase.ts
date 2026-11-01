@@ -101,6 +101,8 @@ export abstract class RunBase {
     protected readonly cb: RunCallbacks,
     protected readonly levels: Levels,
     readonly difficulty: Difficulty = 'real',
+    /** Update 0.2.17 — chests deal Fate Cards (the lobby's stand). */
+    readonly cards = true,
   ) {
     // Loading the same models again (each floor) comes from memory.
     THREE.Cache.enabled = true;
@@ -145,6 +147,7 @@ export abstract class RunBase {
     this.combat = createCombat(level.arena, !level.dungeon && !level.lobby);
     this.combat.rng = createRng(level.fightSeed);
     this.combat.bare = this.difficulty === 'human';
+    this.combat.fate = this.cards;
     this.combatScene = new CombatScene(this.scene, this.combat, this.audio, this.rig, this.arms);
     this.restartHere();
     if (keep && old) {

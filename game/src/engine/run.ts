@@ -234,7 +234,7 @@ export class Run extends RunBase {
   private lobbyNews(l: Lobby) {
     for (const e of l.events) {
       playLobby(this.audio, e);
-      if (e === 'pick') this.cb.onLobbyPick(l.difficulty, l.character);
+      if (e === 'pick') this.cb.onLobbyPick(l.difficulty, l.character, l.cards);
       else if (e === 'gate') this.cb.onLobbyGate();
     }
     l.events.length = 0;

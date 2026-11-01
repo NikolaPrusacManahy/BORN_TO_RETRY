@@ -2,7 +2,16 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-10-31, Update 0.2.16: Fate Cards, wave 1)
+## Next up (2026-11-01, Update 0.2.17: each card its own chance; the Fate Cards' stand)
+- **Each card in a deal rolls its own rarity** at the chests' odds (the designer: "a chance for each card... not having
+  all 3 card in epic when we get epic once... the challenge room just gives a card guaranteed, not an Epic card"): the
+  key doesn't count any more, nor a big fight's guaranteed rare. **A stand in the lobby** past ARE YOU EVEN HUMAN?'s
+  altar (the designer: "a bit different, asking if the player wants the Cards in their run"): a small table, a big Fate
+  Card floating over it (turning and lit when on; back to the room, grey when off); E turns them on or off; saved; off,
+  no chest deals. Spec `MD_UPDATES/U0217_CARD_ODDS_STAND.md`. Tests in `test-cards.ts`, `test-lobby.ts`; unseen in the
+  game: the stand's look (the card's size and height over the table, its glow).
+
+## Before (2026-10-31, Update 0.2.16: Fate Cards, wave 1)
 - **Fate Cards** (the designer: "instead of scars scattered on the floor … you get sets of card you pick", "Fate cards",
   "25% is fine", rarities "same as drops", ideas from Risk of Rain 2 with our own names; spec
   `MD_UPDATES/U0216_FATE_CARDS.md`). A boss's chest (not the run's last) and a challenge room's always deal three; a keyed

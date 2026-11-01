@@ -16,6 +16,7 @@ import { boxInstances, instancePieces, kitMaterial } from '../kitPieces';
 import type { LevelView } from '../level';
 import { BoardsView } from './boardsView';
 import { LobbyLights } from './lobbyLights';
+import { FateStand } from './fateStand';
 
 export const LOBBY_KIT_URL = '/models/menu/lobby.glb';
 /** What shows through any gap (nothing should): the dark of the stone. */
@@ -48,6 +49,8 @@ export class LobbyView implements LevelView {
   private readonly mats: THREE.Material[] = [];
   private readonly geos: THREE.BufferGeometry[] = [];
   private readonly figures: THREE.Object3D[] = [];
+  /** Update 0.2.17 — the Fate Cards' stand's card. */
+  private readonly stand: FateStand;
   private bars: THREE.Object3D | null = null;
   private lift = 0;
   private time = 0;
@@ -68,6 +71,8 @@ export class LobbyView implements LevelView {
     scene.fog = null;
     this.lights = new LobbyLights(this.group, this.dressing);
     this.boards = new BoardsView(this.dressing.boards);
+    this.stand = new FateStand(lobby.cards);
+    this.group.add(this.stand.group);
     this.choice();
     this.lights.place(this.altar);
     this.group.add(this.boards.group);
@@ -169,11 +174,13 @@ export class LobbyView implements LevelView {
     }
   }
 
-  /** Each frame: the light, the boards, the characters breathing, the portcullis rising as you go through. */
+  /** Each frame: the light, the boards, the characters breathing, the portcullis rising as you go through, the Fate
+   *  Cards' card. */
   frame(dt: number, at: THREE.Vector3) {
     this.time += dt;
     this.choice();
     this.lights.update(this.time, dt, at, this.altar, this.figure);
+    this.stand.update(this.time, dt, this.lobby.cards);
     for (let i = 0; i < this.figures.length; i++) if (this.figures[i]) this.figures[i].scale.y = 1 + Math.sin(this.time * 1.7 + i * 1.3) * 0.006;
     if (this.lobby.opening) this.lift = Math.min(BARS_LIFT, this.lift + BARS_RATE * dt);
     if (this.bars) this.bars.position.y = this.dressing.bars.y + this.lift;
@@ -182,6 +189,7 @@ export class LobbyView implements LevelView {
   dispose() {
     this.scene.remove(this.group);
     this.boards.dispose();
+    this.stand.dispose();
     for (const m of this.mats) m.dispose();
     for (const g of this.geos) g.dispose();
     this.scene.background = null;
