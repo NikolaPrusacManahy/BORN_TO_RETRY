@@ -169,6 +169,16 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   right fist punches the shot (half a second on screen with the freeze). **4 s** after a parry that lands; **0.5 s**
   after a press that caught nothing.
 
+### Launches and wall-splats (Update 0.3.7, the designer: "Punched enemies launching into the air and splatting against walls"; spec `MD_UPDATES/U037_LAUNCH_AND_SPLAT.md`)
+- A killing punch (or a parried shot that kills) flings the body up and about 6 m away (bodies fly and slide with the
+  blow that killed them). Not a boss's, not a large enemy's, not one on a ledge; a flier's body is flung, not thrown up.
+  **A live enemy is never thrown up** (the designer: "no 3rd punch of a combo launches … it is like a stun I do not
+  want").
+- A body, or an enemy knocked hard, meeting a wall at 4.5 m/s or faster splats and stops: 30 damage if alive (and a
+  stagger; no dodging it), its
+  blood bursting and staining the wall, a pool, a crunch, a shake; "WALL SPLAT" on the style rank. **(placeholder
+  numbers, F1 → Launch & splat)**
+
 ### The style rank (Update 0.3.4, the designer: "a nice visual for now"; spec `MD_UPDATES/U034_STYLE_RANK.md`)
 - D DIRTY, C CRUEL, B BRUTAL, A ATROCIOUS, S SAVAGE, SS SLAUGHTERHOUSE, SSS UNKILLABLE, from what you do (blows, kills,
   parries, executions; the same move again adds less; air kills ×1.5, multikills); it drains, faster the higher; a hurt

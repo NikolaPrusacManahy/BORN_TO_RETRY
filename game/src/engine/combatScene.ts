@@ -45,6 +45,7 @@ import { CoinsView } from './coinsView';
 import { TargetsView } from './targetsView';
 import { HivesView } from './hivesView';
 import { BloodFx } from './bloodFx';
+import { WallSplatFx } from './wallSplatFx';
 import { ShotsView } from './shotsView';
 import { BlowsFx } from './blowsFx';
 import { HALOS } from './halos';
@@ -81,6 +82,8 @@ export class CombatScene {
   readonly raptor: RaptorFx;
   private readonly hives: HivesView;
   private readonly blood: BloodFx;
+  /** Update 0.3.7 — the blood bodies leave on the walls they're thrown into. */
+  private readonly wallSplats: WallSplatFx;
   private readonly shots: ShotsView;
   private readonly blows: BlowsFx;
   private readonly camera: THREE.Camera;
@@ -103,6 +106,7 @@ export class CombatScene {
     this.raptor = new RaptorFx(scene);
     this.hives = new HivesView(scene, state);
     this.blood = new BloodFx(scene);
+    this.wallSplats = new WallSplatFx(scene);
     this.shots = new ShotsView(scene, state, this.blood);
     this.blows = new BlowsFx(scene, rig.camera);
     this.camera = rig.camera;
@@ -129,6 +133,7 @@ export class CombatScene {
     HALOS.begin(this.camera);
     this.feedback.apply(state, listener);
     this.blood.apply(state, listener);
+    this.wallSplats.apply(state);
     this.blows.apply(state);
     this.execFx.apply(state);
     this.demonFx.update(state, gameDt);
@@ -137,6 +142,7 @@ export class CombatScene {
     this.targets.update(state, playerChest, gameDt);
     this.hives.update(state, gameDt);
     this.blood.update(gameDt);
+    this.wallSplats.update(gameDt);
     this.shots.update(state, gameDt);
     this.blows.update(gameDt);
     pushGrass(state.enemies, playerChest);
@@ -213,6 +219,7 @@ export class CombatScene {
     this.raptor.dispose();
     this.hives.dispose();
     this.blood.dispose();
+    this.wallSplats.dispose();
     this.shots.dispose();
     this.blows.dispose();
     HALOS.mesh.removeFromParent();

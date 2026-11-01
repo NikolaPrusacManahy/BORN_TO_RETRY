@@ -4,7 +4,8 @@
 // the floor; the splats lie a while, then shrink away (a cap on how many: the oldest go first). Under water, a cloud.
 // Made in code: small wet boxes for the drops, a splat drawn on a canvas. The Options' Blood setting: on, less, off.
 // Update 0.3.2 (the designer: executions "brutal") — an execution's blows spray half again as much, and a thrown body
-// bursts where it lands, with pools.
+// bursts where it lands, with pools. Update 0.3.7 — a body thrown into a wall bursts there too, with a pool (its blood
+// on the wall: wallSplatFx.ts).
 // Which enemy a hit landed on: the one whose body the hit's point is on (the events carry only the point).
 import * as THREE from 'three';
 import type { CombatEvent, CombatState } from '../sim/combat/state';
@@ -31,6 +32,8 @@ let level: BloodLevel = 'on';
 export const setBloodLevel = (b: BloodLevel) => {
   level = b;
 };
+/** Update 0.3.7 — how much blood the setting gives now (none: off). */
+export const bloodNow = () => bloodAmount(level);
 
 interface Drop {
   alive: boolean;
@@ -63,7 +66,7 @@ const color = new THREE.Color();
 const HIDDEN = new THREE.Matrix4().makeScale(0, 0, 0);
 
 /** A splat from above: a blob of overlapping drops and a few flung out round it (white: tinted per splat). */
-function splatTexture(): THREE.Texture {
+export function splatTexture(): THREE.Texture {
   if (typeof document === 'undefined') return new THREE.Texture();
   const c = document.createElement('canvas');
   c.width = c.height = 128;
@@ -129,9 +132,9 @@ export class BloodFx {
       const look = bloodOf(foe.kind);
       const under = e.y < state.tide;
       dir.set(e.x - eye.x, 0, e.z - eye.z).normalize();
-      this.spray(e.x, e.y, e.z, look, n, foe.perch > 0 ? foe.perch : 0, under, e.kind === 'kill' || e.kind === 'execBurst' || e.kind === 'execLand');
+      this.spray(e.x, e.y, e.z, look, n, foe.perch > 0 ? foe.perch : 0, under, e.kind === 'kill' || e.kind === 'execBurst' || e.kind === 'execLand' || e.kind === 'wallSplat');
       if (!amount.pools || under || look.mode !== 'drip') continue;
-      if (e.kind === 'kill') this.splat(foe.pos.x, foe.perch > 0 ? foe.perch : 0, foe.pos.z, POOL * Math.max(0.6, radiusOf(foe)), amount.life, look.splat, true);
+      if (e.kind === 'kill' || e.kind === 'wallSplat') this.splat(foe.pos.x, foe.perch > 0 ? foe.perch : 0, foe.pos.z, POOL * Math.max(0.6, radiusOf(foe)), amount.life, look.splat, true);
       if (e.kind === 'execBurst' || e.kind === 'execLand') for (let k = 0; k < 3; k++) this.splat(foe.pos.x + (Math.random() - 0.5) * 3, 0, foe.pos.z + (Math.random() - 0.5) * 3, POOL * (0.7 + Math.random() * 0.6), amount.life, look.splat, true);
     }
   }
@@ -263,6 +266,7 @@ function drops(kind: CombatEvent, value: number, a: BloodAmount): number {
     case 'cardZap':
       return Math.round(a.hit(10) / 2);
     case 'kill':
+    case 'wallSplat':
       return a.kill;
     case 'execBlow':
       return Math.round(a.exec / 2);

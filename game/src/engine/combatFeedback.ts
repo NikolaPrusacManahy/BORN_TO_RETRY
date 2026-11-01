@@ -129,6 +129,12 @@ export class CombatFeedback {
         case 'knifeStick':
           this.f.sparks.spawn(at, back, 5, 0.7);
           break;
+        // Update 0.3.7 — a body thrown into a wall: a heavy thud, felt more the closer it is.
+        case 'wallSplat': {
+          const k = this.nearHere(18);
+          this.hit(1.6 * k, fb.shakeHeavy * (0.3 + 0.7 * k), fb.kickJab * k, 'heavy');
+          break;
+        }
         case 'hitSlash':
           this.hit(1.3, fb.shakeJab * 1.4, fb.kickJab * 1.2, 'hit');
           break;

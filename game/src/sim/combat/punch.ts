@@ -8,12 +8,15 @@
 // bleed (Jagged Knuckles); a charged punch's lightning and blast (Thunderclap, Powder Keg: cardPowers.ts).
 // Update 0.3.3 — a fist punch that meets an enemy's shot sends it back (parry.ts) instead of hitting. Update 0.3.5 —
 // no more: the parry is right click's; and no charged punch (its Cold Snap, Thunderclap and Powder Keg: the parry's).
+// Update 0.3.7 (the designer: "Punched enemies launching into the air") — a killing punch flings the body
+// (sim/enemies/flight.ts). (A finisher threw a light enemy up too: taken out, the designer: "like a stun I do not want".)
 import { Vector3 } from 'three';
 import { stall } from '../cards/cardMoves';
 import { jabPowers } from '../cards/cardPowers';
 import { BONUS } from '../../tuning/bonus';
 import { FEEDBACK } from '../../tuning/combat';
 import { isLive } from '../enemies/enemy';
+import { launch } from '../enemies/flight';
 import { ENEMY_STATS } from '../enemies/kinds';
 import { CAMERA } from '../../tuning/camera';
 import type { CollisionWorld } from '../collisionWorld';
@@ -53,10 +56,11 @@ export function resolvePunch(punch: Punch, state: CombatState, eye: Vector3, dir
   }
   const flat = Math.hypot(dir.x, dir.z) || 1;
   const charged = punch.kind === 'heavy' || punch.kind === 'pierce';
-  landHit(state, hit, punch.damage, punch.knock, dir.x / flat, dir.z / flat, HIT_EVENT[punch.kind], charged ? punch.charge : punch.damage);
+  const killed = landHit(state, hit, punch.damage, punch.knock, dir.x / flat, dir.z / flat, HIT_EVENT[punch.kind], charged ? punch.charge : punch.damage);
   if (hit.kind === 'enemy' && (punch.kind === 'jab' || punch.kind === 'finisher')) {
     stall(state, hit.index);
     jabPowers(state, hit.index);
+    if (killed) launch(state.enemies[hit.index], dir.x / flat, dir.z / flat);
   }
   // Update 0.0.17 — the snowflake bonus: a melee hit freezes what it hits (never a boss).
   if (state.bonuses.snowflake > 0 && hit.kind === 'enemy') {

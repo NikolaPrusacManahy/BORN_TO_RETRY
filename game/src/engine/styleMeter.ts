@@ -55,6 +55,7 @@ const WORTH: Partial<Record<CombatEvent, [number, string]>> = {
   cardZap: [4, ''],
   kill: [45, 'KILL'],
   parry: [70, 'PARRY'],
+  wallSplat: [40, 'WALL SPLAT'],
   execBurst: [140, 'EXECUTION'],
   execLand: [140, 'EXECUTION'],
 };

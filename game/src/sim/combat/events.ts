@@ -34,6 +34,8 @@ export type CombatEvent =
   | 'orbHitPlayer'
   | 'parry'
   | 'guard'
+  // Update 0.3.7 — a body thrown into a wall (value: how fast, m/s; at the wall: combat/splat.ts).
+  | 'wallSplat'
   | 'respawn'
   // M2 — enemies (value = which enemy): one arriving, each kind's warning and attack.
   | 'enemySpawn'

@@ -2,13 +2,20 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.3.6: the parry, a quick move)
+## Next up (2026-11-01, Update 0.3.7: launches and wall-splats)
+- **The designer: "Punched enemies launching into the air and splatting against walls"** (spec
+  `MD_UPDATES/U037_LAUNCH_AND_SPLAT.md`): a killing punch flings the body up and about 6 m away; a live enemy is never
+  thrown up (the designer took the finisher's launch out: "like a stun I do not want"). A body (or an enemy knocked
+  hard) meeting a wall at 4.5 m/s or faster splats: 30 damage if alive, its blood burst and stained on the wall, a
+  crunch, a shake, "WALL SPLAT". Bosses' and large enemies' bodies stay put. Checked by tests (`test-launch.ts`);
+  **unseen in the game**.
+
+## Before (2026-11-01, Update 0.3.6: the parry, a quick move)
 - **The designer** (spec `MD_UPDATES/U036_QUICK_PARRY.md`): "do the quick animation and then continue gameplay,
   animation stays 0.5 sec on screen, no left hand"; "make the punch animation when a parry has been performed … 4 sec
   cooldown". No held block: a press opens the 0.2 s window (no jabs meanwhile), the right fist snaps up for half a
   second, the left stays in the guard; a parry that lands, the right fist punches the shot; 4 s after one that lands,
   0.5 s after a miss. Checked by tests and renders; **unseen in the game**.
-- **Next:** punched enemies launched into the air and splatting against walls (the designer: "next this").
 
 ## Before (2026-11-01, Update 0.3.5: right click is the parry)
 - **The designer: "no more heavy punches from fists, now right click is parry"** (spec

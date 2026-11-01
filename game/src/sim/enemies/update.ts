@@ -14,7 +14,8 @@
 import type { CollisionWorld } from '../collisionWorld';
 import type { PlayerState } from '../player/state';
 import { updateFlow } from './chase';
-import { beginTick, Enemy, EnemyWorld, isLive } from './enemy';
+import { Enemy, EnemyWorld, isLive } from './enemy';
+import { beginTick } from './tick';
 import { separateEnemies } from './bodies';
 import { dealTokens, wait, waits } from './tokens';
 import { fanOut, spreadSlots } from './spread';

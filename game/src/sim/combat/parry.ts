@@ -6,10 +6,12 @@
 // right click's (barehanded): while the window its press opened lasts, the first shot to come within a fist's reach is
 // sent back (punches no longer parry). Cold Snap, Thunderclap and Powder Keg (Fate Cards; they were the charged punch's)
 // go off where a parried shot hits.
+// Update 0.3.7 — a parried shot that kills flings the body, as a killing punch does (flight.ts).
 import { Vector3 } from 'three';
 import { FEEDBACK, FISTS, TARGETS } from '../../tuning/combat';
 import type { CollisionWorld } from '../collisionWorld';
 import { isLive } from '../enemies/enemy';
+import { launch } from '../enemies/flight';
 import { ENEMY_STATS } from '../enemies/kinds';
 import { chill } from '../cards/cardMoves';
 import { heavyPowers } from '../cards/cardPowers';
@@ -85,11 +87,12 @@ export function stepParried(state: CombatState, world: CollisionWorld, dt: numbe
     if (nearestTarget(state, o.pos, next, r, hit)) {
       o.alive = false;
       const flat = Math.hypot(o.vel.x, o.vel.z) || 1;
-      landHit(state, hit, o.damage, KNOCK, o.vel.x / flat, o.vel.z / flat, 'hitThrown', o.damage);
+      const killed = landHit(state, hit, o.damage, KNOCK, o.vel.x / flat, o.vel.z / flat, 'hitThrown', o.damage);
       // (Update 0.3.5 — Cold Snap's freeze, Thunderclap's lightning, Powder Keg's blast.)
       if (hit.kind === 'enemy') {
         chill(state, hit.index);
         heavyPowers(state, hit.index, hit.point);
+        if (killed) launch(state.enemies[hit.index], o.vel.x / flat, o.vel.z / flat);
       }
       continue;
     }

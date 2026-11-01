@@ -41,6 +41,11 @@ export function impactLayer(a: AudioEngine, kind: CombatEvent, value: number) {
     case 'parry':
       if (!OFF.has('parry')) clang(a);
       return;
+    // (Update 0.3.7 — a body thrown into a wall: a crunch over a deep thump.)
+    case 'wallSplat':
+      hit(0.7, 0.2);
+      if (!OFF.has('crunch')) crunch(a, 0.85);
+      return;
     // (Update 0.3.5 — right click's block coming up.)
     case 'guard':
       guardUp(a);

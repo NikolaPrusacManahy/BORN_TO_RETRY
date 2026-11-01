@@ -18,6 +18,7 @@
 // Update 0.2.3 — the Bone King (boneKing.ts): brought down the first time it falls to pieces and rebuilds (its second
 // life), nothing hurting it meanwhile; it holds you in its hand ('grab') and charges its final blast ('blast').
 // Update 0.2.4 — under the sand ('burrow': the Cactoros), out of reach of every hit.
+// Update 0.3.7 — the start of its tick moved to tick.ts; its knock flies (flight.ts): it can hit a wall (`splat`).
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
@@ -85,6 +86,9 @@ export interface Enemy {
   deeds: number;
   /** Update 0.2.4 — a Flying Tribal's ward on it: blows it shrugs off (maskTribal.ts, evade.ts). */
   ward: number;
+  /** Update 0.3.7 — it hit a wall this tick this fast (m/s; 0: not), and where (flight.ts, combat/splat.ts). */
+  splat: number;
+  wall: Vector3;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -110,12 +114,8 @@ export interface EnemyWorld {
 }
 
 export const ENEMY_POOL = 16;
-/** Knockback slide dies away at this rate (1/s). */
-const SLIDE_FRICTION = 7;
 /** A floor-bound body this far up (m) is in the air (a leap): walls don't push it. */
 const OFF_GROUND = 0.3;
-/** A falling body's gravity (m/s²). */
-const FALL = 25;
 
 export function createEnemies(): Enemy[] {
   return Array.from({ length: ENEMY_POOL }, () => ({
@@ -148,6 +148,8 @@ export function createEnemies(): Enemy[] {
     blink: 0,
     deeds: 0,
     ward: 0,
+    splat: 0,
+    wall: new Vector3(),
   }));
 }
 
@@ -181,6 +183,7 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.perch = 0;
   e.token = false;
   e.tokenFor = e.rest = 0;
+  e.splat = 0;
   e.fan = NaN;
   e.blink = 0;
   e.deeds = 0;
@@ -224,46 +227,6 @@ export function walk(e: Enemy, dx: number, dz: number, dist: number, nav: NavGri
   e.pos.x += dx * dist;
   e.pos.z += dz * dist;
   pushOutOfWalls(nav, e.pos, radiusOf(e));
-}
-
-/** The start of every enemy's tick: timers, its body's time, out of walls, the knockback slide. Returns false if it
- *  has nothing more to do this tick (a body lying there, or a free slot). */
-export function beginTick(e: Enemy, nav: NavGrid, dt: number): boolean {
-  if (!e.alive) return false;
-  e.prev.copy(e.pos);
-  // Frozen: nothing moves on (not even its time, so an attack waits), until the ice wears off.
-  if (e.frozen > 0 && e.phase !== 'dead') {
-    e.frozen = Math.max(0, e.frozen - dt);
-    e.flash = Math.max(0, e.flash - dt);
-    return false;
-  }
-  e.t += dt;
-  e.flash = Math.max(0, e.flash - dt);
-  e.cooldown = Math.max(0, e.cooldown - dt);
-  if (e.phase === 'dead') {
-    // A body in the air falls (a boss's is placed by its death show).
-    if (e.pos.y > e.perch && !ENEMY_STATS[e.kind]().boss) {
-      e.vel.y -= FALL * dt;
-      e.pos.y = Math.max(e.perch, e.pos.y + e.vel.y * dt);
-    }
-    if (e.t >= ENEMY_STATS[e.kind]().deathTime) e.alive = false;
-    return false;
-  }
-  // A walker in the air with no leap to carry it (knocked out of one) falls.
-  if (!flies(e.kind) && e.phase !== 'leap' && e.phase !== 'sky' && e.phase !== 'held' && e.pos.y > e.perch) {
-    e.vel.y -= FALL * dt;
-    e.pos.y = Math.max(e.perch, e.pos.y + e.vel.y * dt);
-    if (e.pos.y === e.perch) e.vel.y = 0;
-  }
-  // Perched: hits don't slide it off its ledge.
-  if (e.perch > 0) e.vel.set(0, 0, 0);
-  if (grounded(e)) pushOutOfWalls(nav, e.pos, radiusOf(e));
-  const slide = Math.hypot(e.vel.x, e.vel.z);
-  if (slide > 0.01) {
-    walk(e, e.vel.x / slide, e.vel.z / slide, slide * dt, nav);
-    e.vel.multiplyScalar(Math.exp(-SLIDE_FRICTION * dt));
-  }
-  return true;
 }
 
 /** Can it hit the player from here: within `level` m of its height and no wall in between? */
