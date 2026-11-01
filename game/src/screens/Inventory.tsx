@@ -3,7 +3,7 @@
 // small, the one you hover (the first, to start) shown whole beside them (the designer found a card grown in place cut
 // off and over its neighbours: "little visual discomfort"), then your weapons and their uses, your rings, keys, the
 // kill bonuses on, your health, armour, dashes and coins. The Inventory key (TAB) closes it and plays on; Esc closes
-// it to the pause menu.
+// it to the pause menu. Update 0.2.22 — your builds: how many of each, and the bonus three light.
 import { useEffect, useState } from 'react';
 import type { CarriedView, InventoryView } from '../engine/fateView';
 import { FateCard } from './FateCard';
@@ -114,6 +114,20 @@ export function Inventory({ view, closeKey, onClose }: Props) {
                 <div key={i} className={`rb-inv-row${w.inHand ? ' is-hand' : ''}`}>
                   <b>{w.name}</b>
                   <span className="rb-inv-n">{w.uses} uses</span>
+                </div>
+              ))}
+            </section>
+          )}
+          {view.builds.length > 0 && (
+            <section className="rb-inv-list">
+              <h3>Builds</h3>
+              {view.builds.map((b) => (
+                <div key={b.name} className={`rb-inv-row rb-inv-build${b.lit ? ' is-lit' : ''}`}>
+                  <b>{b.name}</b>
+                  <span className="rb-inv-n">
+                    {Math.min(b.n, b.of)}/{b.of}
+                  </span>
+                  <span className="rb-inv-does">{b.does}</span>
                 </div>
               ))}
             </section>

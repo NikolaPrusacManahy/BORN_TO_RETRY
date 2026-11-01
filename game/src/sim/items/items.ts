@@ -41,12 +41,14 @@ export interface Inventory {
   tealRings: number;
   /** Update 0.2.16 — the Fate Cards you carry (sim/cards/cards.ts; Update 0.2.15's Scars). */
   cards: Set<CardKind>;
+  /** Update 0.2.22 — those of them dealt again: II (sim/cards/builds.ts). */
+  twice: Set<CardKind>;
   /** The key you'd use at a chest. */
   keyPick: KeyKind;
 }
 
 export function createInventory(): Inventory {
-  return { keys: 0, whiteKeys: 0, goldKeys: 0, redRings: 0, blueRings: 0, greenRings: 0, tealRings: 0, cards: new Set(), keyPick: 'key' };
+  return { keys: 0, whiteKeys: 0, goldKeys: 0, redRings: 0, blueRings: 0, greenRings: 0, tealRings: 0, cards: new Set(), twice: new Set(), keyPick: 'key' };
 }
 
 const KEY_FIELD: Record<KeyKind, 'keys' | 'whiteKeys' | 'goldKeys'> = { key: 'keys', whiteKey: 'whiteKeys', goldKey: 'goldKeys' };

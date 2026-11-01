@@ -35,8 +35,8 @@ import { emptyFocus } from '../sim/items/focus';
 import { HudFeed } from './overlayFeed';
 import { Viewmodel } from './viewmodel/viewmodel';
 import { cancelCharges } from '../sim/weapons/kiCharge';
-import { pickCard } from '../sim/cards/deal';
-import { InventoryView, inventoryView } from './fateView';
+import { pickCard, rerollDeal } from '../sim/cards/deal';
+import { DealView, dealView, InventoryView, inventoryView } from './fateView';
 import type { Difficulty } from '../sim/lobby/difficulty';
 import { abandonAll } from '../sim/dungeon/checkpoint';
 import { maxHpOf } from '../sim/player/health';
@@ -240,6 +240,11 @@ export abstract class RunBase {
   /** Update 0.2.16 — the deal's card `i` is taken (the deal screen still shows it flying to your coins). */
   pickCard(i: number) {
     pickCard(this.combat, this.player, i);
+  }
+
+  /** Update 0.2.22 — the deal is dealt again, paid for: what it shows now (null: you couldn't pay). */
+  rerollDeal(): DealView | null {
+    return rerollDeal(this.combat) ? dealView(this.combat) : null;
   }
 
   /** Update 0.2.16 — the deal screen is done: play on. */

@@ -9,7 +9,7 @@ import { AudioEngine } from '../audio/audio';
 import type { Settings } from '../state/settings';
 import type { LabCommand } from '../sim/lab/labCommands';
 import { DebugInfo, HudStore, createDebugInfo } from './hudStore';
-import type { InventoryView } from './fateView';
+import type { DealView, InventoryView } from './fateView';
 import { bossRoomLevel, dungeonLevel, labLevel, Level, newSeed } from './level';
 import { Run } from './run';
 import type { Levels, RunCallbacks } from './runLinks';
@@ -137,6 +137,10 @@ export abstract class GameBase {
 
   endDeal() {
     this.run?.endDeal();
+  }
+
+  rerollDeal(): DealView | null {
+    return this.run?.rerollDeal() ?? null;
   }
 
   inventory(): InventoryView | null {

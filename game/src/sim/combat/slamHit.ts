@@ -2,12 +2,14 @@
 // at once). Everything near where you land, roughly level with you and not behind a wall, takes a hit: full damage
 // near the centre, half at the edge, thrown outwards. The further you fell past the slam height, the harder and wider.
 // Update 0.2.15 — Crater (a Fate Card since Update 0.2.16) widens it faster with height, to twice as wide; it reports
-// its kills (Pogo); Cold Snap (a Fate Card) freezes what it hits.
+// its kills (Pogo); Cold Snap (a Fate Card) freezes what it hits. Update 0.2.22 — only with Tremor (a Fate Card:
+// cards/buildPowers.ts `tremors`); Aftershock blasts again, Scorched Earth burns what it hits; Crater II widens more.
 import { Vector3 } from 'three';
 import { FEEDBACK } from '../../tuning/combat';
 import { SLAM } from '../../tuning/movement';
 import { CARDS } from '../../tuning/cards';
-import { holds } from '../cards/cards';
+import { boost, holds } from '../cards/cards';
+import { aftershock, scorch } from '../cards/buildPowers';
 import { chill } from '../cards/cardMoves';
 import { wallBetween } from '../../world/navGrid';
 import { isLive, radiusOf } from '../enemies/enemy';
@@ -38,7 +40,7 @@ export function powerFor(drop: number, crater = 1) {
 
 /** Returns how many it killed. */
 export function slamImpact(state: CombatState, at: Vector3, drop: number): number {
-  const { damage, radius } = powerFor(drop, holds(state, 'crater') ? CARDS.v.craterGrowth : 1);
+  const { damage, radius } = powerFor(drop, holds(state, 'crater') ? 1 + (CARDS.v.craterGrowth - 1) * boost(state, 'crater') : 1);
   kills = 0;
   state.events.push('slamImpact', radius, at.x, at.y, at.z);
   let any = false;
@@ -53,6 +55,7 @@ export function slamImpact(state: CombatState, at: Vector3, drop: number): numbe
     if (isLive(e)) any = blast(state, at, 'enemy', i, e.pos, radiusOf(e), ENEMY_STATS[e.kind]().height, damage, radius) || any;
   }
   if (any) state.hitStop.request(FEEDBACK.v.stopHeavy);
+  aftershock(state, at, damage, radius);
   return kills;
 }
 
@@ -70,6 +73,9 @@ function blast(state: CombatState, at: Vector3, kind: TargetKind, index: number,
   hit.s = 0;
   hit.point.set(pos.x, pos.y + height * 0.5, pos.z);
   if (landHit(state, hit as TargetHit, hurt, SLAM.v.knock, dist > 1e-3 ? dx / len : 0, dist > 1e-3 ? dz / len : -1, 'hitSlam', hurt) && kind === 'enemy') kills++;
-  else if (kind === 'enemy') chill(state, index);
+  else if (kind === 'enemy') {
+    chill(state, index);
+    scorch(state, index);
+  }
   return true;
 }

@@ -2,7 +2,18 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.2.21: the testers' fixes)
+## Next up (2026-11-01, Update 0.2.22: builds of Fate Cards; the slam's blast is a card)
+- **From the testers' feedback** (spec `MD_UPDATES/U0222_BUILDS.md`): **the slam's blast is a card, Tremor** (the slam
+  itself stays everyone's; without Tremor it hurts nothing; Crater, Pogo and the new Aftershock and Scorched Earth come
+  only with it; Fate Cards off or ARE YOU EVEN HUMAN?: the blast as before). **Builds:** each Fate Card is of a build by
+  its move (Fists, Kills, Throws, Movement, Slam, Executions); a deal leans to the builds you carry; **three of a build
+  light its bonus** (shown on TAB). **II:** 13 cards can be dealt again, stronger. **Pair cards** (epic): Scorched
+  Earth, Static Step, Shrapnel, Last Rites. **A paid reroll** in the deal (25, then 50, 75…). 46 Fate Cards; numbers on
+  F1 → Builds; the Lab's F8 → Fate Cards has a Builds column (a card taken twice is II).
+- Checked by tests (`test-builds.ts`); **unseen in the game**: the reroll button's place over the cards, the II face's
+  gold edge, TAB's Builds list, whether a slam without Tremor feels dead (its landing still shakes), the balance.
+
+## Before (2026-11-01, Update 0.2.21: the testers' fixes)
 - **From the testers' feedback** (spec `MD_UPDATES/U0221_TESTER_FIXES.md`; the slam spam and the Fate Cards' builds are
   0.2.22): **the slam's hands** no longer stick up (a slam ended by a dash, a wall jump, a pad or the water let them go
   back; barehanded, a click in a slam punches as you land); **the chest's shot** waits until you're on the ground (4 s

@@ -4,9 +4,10 @@
 // the Player HUD"). The world blurred behind; a deck at the bottom deals the cards one by one, each flipping face up
 // into a row low on the screen, the lower half (what it does) below the edge. Hovering one lifts it so it reads
 // whole; a click takes it: it lifts out, shrinks and flies to your coins (the card pile there), and the others drop
-// away. You must take one. The world holds still meanwhile (the run).
+// away. You must take one. The world holds still meanwhile (the run). Update 0.2.22 — a reroll over the row, for coins
+// (dimmed when you can't pay): the deal is dealt again (a new screen: screens/useFate.tsx).
 import { CSSProperties, useEffect, useRef, useState } from 'react';
-import type { CardView } from '../engine/fateView';
+import type { DealView } from '../engine/fateView';
 import { FateBack, FateCard } from './FateCard';
 
 /** When the first card leaves the deck (s), then each next; how long one takes to land; the chosen card's flight. */
@@ -16,14 +17,19 @@ const LAND = 0.55;
 const FLY_MS = 750;
 
 interface Props {
-  cards: CardView[];
+  deal: DealView;
+  /** Dealt again (a reroll): the screen's already up. */
+  again: boolean;
   /** A card was clicked (take it now: the mouse is locked again from this click). */
   onPick(i: number): void;
+  /** Reroll was clicked (pay and deal again, if you can). */
+  onReroll(): void;
   /** Its flight is over: play on. */
   onDone(): void;
 }
 
-export function FateDeal({ cards, onPick, onDone }: Props) {
+export function FateDeal({ deal, again, onPick, onReroll, onDone }: Props) {
+  const cards = deal.cards;
   const [picked, setPicked] = useState(-1);
   const [dealt, setDealt] = useState(false);
   const [fly, setFly] = useState({ x: 0, y: 0 });
@@ -51,11 +57,14 @@ export function FateDeal({ cards, onPick, onDone }: Props) {
   };
 
   return (
-    <div className={`rb-fate${dealt ? '' : ' is-dealing'}${picked >= 0 ? ' is-done' : ''}`}>
+    <div className={`rb-fate${dealt ? '' : ' is-dealing'}${picked >= 0 ? ' is-done' : ''}${again ? ' is-again' : ''}`}>
       <div className="rb-fate-deck">
         <FateBack />
         <FateBack />
       </div>
+      <button type="button" className="rb-fate-reroll" disabled={!dealt || picked >= 0 || deal.money < deal.reroll} onClick={onReroll}>
+        Reroll <b>{deal.reroll}</b>
+      </button>
       <div className="rb-fate-row">
         {cards.map((c, i) => (
           <div

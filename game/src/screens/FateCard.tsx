@@ -4,6 +4,7 @@
 // Update 0.2.19 (the designer: "change the cards design so they look a bit different from the Fate cards") — a Death
 // Card's: black, a cracked bone frame, a sickly green glow, a skull behind its mark, "Death"; a Traitor Card's: split
 // gold and purple, "Traitor", its gift in gold, its price in red. All share the one back: the deal's flip is the reveal.
+// Update 0.2.22 — a card as II: a gold edge inside its frame.
 import type { CardView } from '../engine/fateView';
 import { markOf, SKULL } from '../ui/cardMarks';
 
@@ -22,7 +23,7 @@ export function FateCard({ card }: { card: CardView }) {
   const fate = card.family === 'fate';
   const label = fate ? RARITY_NAME[card.rarity] : card.family === 'death' ? 'Death' : 'Traitor';
   return (
-    <div className={`rb-card ${fate ? `is-${card.rarity}` : `is-${card.family}`}`}>
+    <div className={`rb-card ${fate ? `is-${card.rarity}` : `is-${card.family}`}${card.ii ? ' is-ii' : ''}`}>
       <div className="rb-card-top">
         <span>{label}</span>
         <span>{card.move}</span>

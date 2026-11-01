@@ -76,6 +76,7 @@ import './test-challenge';
 import './test-prompts';
 import './test-rewards';
 import './test-chest-pan';
+import './test-builds';
 import './test-gold-chests';
 import './test-floor3-executions';
 import './test-bone-king';

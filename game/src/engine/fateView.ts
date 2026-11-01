@@ -2,7 +2,11 @@
 // run: a deal's cards; and, on TAB (the designer: "Press TAB to display what does the player has currently equiped,
 // like a invetory where they can inspect what they have on them"), everything you carry: your Fate Cards, weapons,
 // rings, keys, the kill bonuses on, your health, armour, dashes and coins. Plain data, made when asked.
+// Update 0.2.22 — a card as II; a deal's reroll price; your builds on TAB.
+import { BONUS_TEXT, BUILD_LIST, BUILD_NAME, countOf, lit } from '../sim/cards/builds';
 import { CARD, CardFamily, CardKind, cardsIn, familyOf } from '../sim/cards/cards';
+import { rerollCost } from '../sim/cards/deal';
+import { BUILDS } from '../tuning/builds';
 import type { CombatState } from '../sim/combat/state';
 import type { Rarity } from '../sim/dungeon/loot';
 import { BONUS_KINDS } from '../sim/items/bonuses';
@@ -22,6 +26,24 @@ export interface CardView {
   does: string;
   family: CardFamily;
   cost: string | null;
+  /** Update 0.2.22 — II: dealt again, stronger (its name and what it does say so). */
+  ii: boolean;
+}
+
+/** Update 0.2.22 — a deal: its cards, what a reroll costs, your coins. */
+export interface DealView {
+  cards: CardView[];
+  reroll: number;
+  money: number;
+}
+
+/** Update 0.2.22 — a build you carry a card of: how many of how many light its bonus, and the bonus. */
+export interface BuildView {
+  name: string;
+  n: number;
+  of: number;
+  lit: boolean;
+  does: string;
 }
 
 /** Something carried, with how many (keys, rings) or the seconds it has left (a kill bonus). */
@@ -44,9 +66,16 @@ export interface InventoryView {
   shield: number;
   dashes: number;
   money: number;
+  builds: BuildView[];
 }
 
-export const cardView = (kind: CardKind): CardView => ({ kind, name: CARD[kind].name, rarity: CARD[kind].rarity, move: CARD[kind].move, does: CARD[kind].does(), family: familyOf(kind), cost: CARD[kind].cost?.() ?? null });
+export function cardView(kind: CardKind, ii = false): CardView {
+  const f = CARD[kind];
+  return { kind, name: ii ? `${f.name} II` : f.name, rarity: f.rarity, move: f.move, does: f.does(ii ? f.up : 1), family: familyOf(kind), cost: f.cost?.() ?? null, ii };
+}
+
+/** Update 0.2.22 — the deal up (a card in it you carry already: dealt as II). */
+export const dealView = (state: CombatState): DealView => ({ cards: (state.deal?.cards ?? []).map((k) => cardView(k, state.items.cards.has(k))), reroll: rerollCost(state), money: state.money });
 
 /** Carried `kind` × `n` (none: not listed). */
 function carried(kind: ItemKind, n: number, out: CarriedView[]) {
@@ -73,7 +102,7 @@ export function inventoryView(state: CombatState, p: PlayerState): InventoryView
     bonuses.push({ name: info.name, does: info.does, n: Math.ceil(state.bonuses[k]), rarity: null });
   }
   return {
-    cards: cardsIn(it.cards).map((k) => cardView(k)),
+    cards: cardsIn(it.cards).map((k) => cardView(k, it.twice.has(k))),
     weapons: state.bag.flatMap((w, i) => (i > 0 && w ? [{ name: WEAPON_NAME[w.kind], uses: w.uses, inHand: state.slot === i }] : [])),
     rings,
     keys,
@@ -83,5 +112,6 @@ export function inventoryView(state: CombatState, p: PlayerState): InventoryView
     shield: Math.ceil(p.shield),
     dashes: dashMaxOf(p),
     money: state.money,
+    builds: BUILD_LIST.filter((b) => countOf(it.cards, b) > 0).map((b) => ({ name: BUILD_NAME[b], n: countOf(it.cards, b), of: Math.round(BUILDS.v.set), lit: lit(it.cards, b), does: BONUS_TEXT[b]() })),
   };
 }

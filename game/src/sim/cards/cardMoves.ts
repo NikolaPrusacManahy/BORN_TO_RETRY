@@ -18,7 +18,9 @@ import { ENEMY_STATS, MINI_BOSSES } from '../enemies/kinds';
 import { BODY } from '../player/body';
 import type { PlayerState } from '../player/state';
 import { THROWN_GRAVITY, THROWN_LIFE, THROWN_RADIUS, Thrown } from '../weapons/weapons';
-import { holds } from './cards';
+import { BUILDS } from '../../tuning/builds';
+import { lit } from './builds';
+import { boost, holds } from './cards';
 import { killPowers } from './cardPowers';
 
 /** A dash or slide touches an enemy this much beyond your two bodies (m): before you're pushed out of it. */
@@ -90,7 +92,8 @@ export function meterStep(state: CombatState): { steps: number; worth: number } 
   let base = holds(state, 'reapersRhythm') ? v.reaperKills : EXECUTION.v.killsToFill;
   if (holds(state, 'fasting')) base = Math.min(base, v.fastingKills);
   if (holds(state, 'executionersDeal')) base = Math.min(base, v.executionerKills);
-  const steps = Math.max(1, Math.round(base + (holds(state, 'bluntedRage') ? v.blunted : 0)));
+  // (Update 0.2.22 — the Executions build's bonus: fewer.)
+  const steps = Math.max(1, Math.round(base + (holds(state, 'bluntedRage') ? v.blunted : 0) - (lit(state.items.cards, 'executions') ? BUILDS.v.executions : 0)));
   const worth = state.inAir && holds(state, 'airButcher') ? Math.round(CARDS.v.airButcher) : 1;
   return { steps, worth };
 }
@@ -105,7 +108,7 @@ export function meterAfter(state: CombatState): number {
 /** Mercy Kill: a hit of `damage` on enemy `e` that would leave it under the line finishes it (not a boss). */
 export function mercy(state: CombatState, e: Enemy, damage: number): number {
   if (!holds(state, 'mercyKill') || ENEMY_STATS[e.kind]().boss) return damage;
-  return e.hp - damage < ENEMY_STATS[e.kind]().hp * CARDS.v.mercyKill ? Math.max(damage, e.hp) : damage;
+  return e.hp - damage < ENEMY_STATS[e.kind]().hp * CARDS.v.mercyKill * boost(state, 'mercyKill') ? Math.max(damage, e.hp) : damage;
 }
 
 /** Cold Snap: enemy `i`, hit by a charged punch or a slam, freezes (not a boss). */
@@ -116,8 +119,8 @@ export function chill(state: CombatState, i: number) {
   state.events.push('freeze', i, e.pos.x, e.pos.y + ENEMY_STATS[e.kind]().height * 0.5, e.pos.z);
 }
 
-/** All In: your fists' hits, times this. */
-export const fistFactor = (state: CombatState) => (state.weapon === null && holds(state, 'allIn') ? 2 : 1);
+/** All In: your fists' hits, times this. Update 0.2.22 — and the Fists build's bonus. */
+export const fistFactor = (state: CombatState) => (state.weapon !== null ? 1 : (holds(state, 'allIn') ? 2 : 1) * (lit(state.items.cards, 'fists') ? 1 + BUILDS.v.fists : 1));
 
 /** Shoulder Charge and Bowling: each enemy your dash (or slide) runs into is thrown back along your way and away from
  *  you, and staggered (not a boss or a mini boss), once a dash or slide. */

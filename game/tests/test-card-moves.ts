@@ -116,6 +116,8 @@ section('Fate Cards — Crater and Pogo');
   check('an enemy past the ring’s reach is hit only with Crater', slam('crater') > 0 && slam(null) === 0);
   const pogo = (card: boolean, hp: number) => {
     const c = createCombat(OPEN_ARENA);
+    // (Update 0.2.22 — Pogo comes with Tremor: the slam's blast.)
+    c.items.cards.add('tremor');
     if (card) c.items.cards.add('pogo');
     const s = spawnEnemy(c.enemies, 'grunt', new Vector3(0, 0, -1), 0);
     c.enemies[s].hp = hp;

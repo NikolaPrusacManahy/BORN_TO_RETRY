@@ -59,7 +59,7 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - **Wall run:** in the air beside a wall, holding forward and heading along it (not into it), you run on it for **1 s at most** (Update 0.0.4; first 2 s). Rising fast (a pad launch, the start of a jump) never grabs a wall. The view tilts **clockwise with the wall on your left, anticlockwise on your right**. Jump to push off towards the other side; the next wall catches you into a new run, so runs chain. A wall can't be run twice without landing. (Update 0.0.3, the designer.)
 - **Wall jump:** up to 3 in a row before touching the ground, when you're against a wall but not running on it. **(placeholder)** Jumps off a wall run don't count.
 - **Swimming (Update 0.2.11, floor 6 only: the designer, "full under water … the pain of being slower than them"):** you swim at 6.5 m/s (you run at 12); forward is where you look, up and down too; jump rises, the slide key dives; you speed up slowly and glide to a stop; doing nothing you sink slowly to the floor; jump on the floor pushes off it. The dash key **kicks** (14 m/s, bleeding back to swim speed, untouchable 0.3 s), its charges coming back 1.75 × slower. No wall runs, wall jumps or slides; the slam still dives. Your eyes never leave the water (its top is just over the walls). **(placeholders)**
-- **Ground slam (F, Update 0.0.12, the designer):** only from a real height (**2.8 m** or more above the ground, Update 0.1.7, the designer: higher, was 1.8: beyond a plain jump, so off a ledge, a pad, a wall jump or a slam's bounce), you slam straight down. As it drops both fists come up clasped side by side; as it lands they come down into the floor, with a hard shake and a jolt (Update 0.1.7; Update 0.1.8, the designer: wrists straight, the backs of the hands towards you). The landing is a blast: every enemy within **4 m** (wider and harder the further you fell, up to **7 m** and **90**) takes up to **35** damage (half at the edge) and is thrown outwards, with a shockwave, dust and a boom. Jumping right after landing bounces you higher. **(placeholder numbers)** **Update 0.2.21 (a tester's hands stuck up):** the fists follow the slam (a slam ended by a dash, a wall jump, a pad or the water lets them go back); barehanded, a click as you drop punches as you land.
+- **Ground slam (F, Update 0.0.12, the designer):** only from a real height (**2.8 m** or more above the ground, Update 0.1.7, the designer: higher, was 1.8: beyond a plain jump, so off a ledge, a pad, a wall jump or a slam's bounce), you slam straight down. As it drops both fists come up clasped side by side; as it lands they come down into the floor, with a hard shake and a jolt (Update 0.1.7; Update 0.1.8, the designer: wrists straight, the backs of the hands towards you). The landing is a blast: every enemy within **4 m** (wider and harder the further you fell, up to **7 m** and **90**) takes up to **35** damage (half at the edge) and is thrown outwards, with a shockwave, dust and a boom. Jumping right after landing bounces you higher. **(placeholder numbers)** **Update 0.2.21 (a tester's hands stuck up):** the fists follow the slam (a slam ended by a dash, a wall jump, a pad or the water lets them go back); barehanded, a click as you drop punches as you land. **Update 0.2.22 (a tester: "this can be a Build around ground smash instead of having it at the start"):** the blast is a Fate Card's, **Tremor**: without it the slam drops and lands but hurts nothing (with the Fate Cards off or on ARE YOU EVEN HUMAN?, the blast as before); Fate Cards below.
 
 ### Health
 - 100 HP. **(placeholder)** No regeneration. Shown bottom left: the number and a bar.
@@ -131,7 +131,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 - **The deal:** the world holds still and blurs; a deck deals them one by one, face up, low on the screen; hover lifts one
   to read; a click takes it: it shrinks and flies to the card pile by your coins. You must take one.
 - **TAB:** what you carry (cards, weapons, rings, keys, bonuses, health, armour, dashes, coins); the world holds still.
-- **40 Fate Cards:** wave 1's 30 and (Update 0.2.18, the designer: "just build wave 2") wave 2's 10, with effects of their
+- **40 Fate Cards (46 since Update 0.2.22, below):** wave 1's 30 and (Update 0.2.18, the designer: "just build wave 2") wave 2's 10, with effects of their
   own: bleed, burn, lightning, blasts, homing knives, rings of fire and ice, a split throw (specs `U0216_FATE_CARDS.md`,
   `U0218_FATE_CARDS_WAVE2.md`; ideas from Risk of Rain 2's items, our names and effects). **(placeholder numbers)**
 - **Death Cards and Traitor Cards (Update 0.2.19, the designer: "it also end up in the same 3 cards pull, it is all
@@ -145,6 +145,16 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   `U0220_SHOP_CARD_CHEST_GOLD.md`):** one Fate Card floats past the end of the shop's row of tiles, turning, lit in its
   rarity's colour, its price over it: **100** (Haggler and Taxman count; Fasting: not sold). Its rarity rolled like a
   deal's; never one you carry; the floor's own. E buys it. None with Fate Cards off or on ARE YOU EVEN HUMAN?.
+- **Builds (Update 0.2.22, testers: "build variety around Fate cards"; spec `U0222_BUILDS.md`):** each Fate Card is of a
+  build by its move: **Fists, Kills, Throws, Movement, Slam, Executions** (body, coins, bonuses and luck: none). A deal
+  leans to your builds (each card of a build makes its cards likelier). **Three of a build light its bonus:** fists 25%
+  harder; the cards' hits 50% harder; throws 50% harder; a dash charge more; slam from 1.6 m; the meter 2 kills fewer.
+  **Tremor** (the slam's blast) opens the Slam build: Crater, Pogo, **Aftershock** (a second blast) and **Scorched Earth**
+  come only with it. **II:** 13 cards can be dealt again, stronger (never a third time; never the shop's). **Pair cards**
+  (epic, dealt with a card of both builds): Scorched Earth (Slam + Kills), **Static Step** (Movement + Fists: a dash's
+  lightning), **Shrapnel** (Throws + Kills: a killing throw bursts), **Last Rites** (Executions + Fists: an execution
+  makes those near bleed). **46 Fate Cards.** The deal has a **Reroll** (25 coins, then 50, 75… in that deal).
+  **(placeholder numbers, F1 → Builds)**
 
 ---
 

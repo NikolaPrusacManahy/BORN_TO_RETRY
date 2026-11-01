@@ -38,7 +38,11 @@ function openBossChest(floor: number, last = false, carry: CardKind[] = []) {
   const level = buildDungeon(planFloor(4242, floor));
   const run = createDungeonRun(level, last);
   const c = createCombat(level.arena, false);
-  for (const k of carry) c.items.cards.add(k);
+  // (Update 0.2.22 — each as II, where it can be: none of them dealt again.)
+  for (const k of carry) {
+    c.items.cards.add(k);
+    c.items.twice.add(k);
+  }
   const b = level.boss;
   const room = level.rooms[b.room];
   const chest = run.treasure.chests[room.chest];
@@ -81,9 +85,9 @@ section('Fate Cards — the cards');
 {
   const fate = CARD_KINDS.filter((k) => familyOf(k) === 'fate');
   const by = RARITIES.map((r) => fate.filter((k) => CARD[k].rarity === r).length);
-  check('waves 1 and 2: 40 Fate Cards, every rarity among them', fate.length === 40 && by.every((n) => n >= 3), by.join(' '));
-  check('16 Death Cards, 10 Traitor Cards (66 in all)', CARD_KINDS.filter((k) => familyOf(k) === 'death').length === 16 && CARD_KINDS.filter((k) => familyOf(k) === 'traitor').length === 10 && CARD_KINDS.length === 66);
-  check('each with its own name, the move it changes and what it does', new Set(CARD_KINDS.map((k) => CARD[k].name)).size === 66 && CARD_KINDS.every((k) => CARD[k].move.length > 0 && CARD[k].does().length > 10));
+  check('waves 1 and 2 and the builds’ (0.2.22): 46 Fate Cards, every rarity among them', fate.length === 46 && by.every((n) => n >= 3), by.join(' '));
+  check('16 Death Cards, 10 Traitor Cards (72 in all)', CARD_KINDS.filter((k) => familyOf(k) === 'death').length === 16 && CARD_KINDS.filter((k) => familyOf(k) === 'traitor').length === 10 && CARD_KINDS.length === 72);
+  check('each with its own name, the move it changes and what it does', new Set(CARD_KINDS.map((k) => CARD[k].name)).size === 72 && CARD_KINDS.every((k) => CARD[k].move.length > 0 && CARD[k].does().length > 10));
   check('a Traitor Card says its price; no other does', CARD_KINDS.every((k) => (familyOf(k) === 'traitor') === (CARD[k].cost?.().length ?? 0) > 5));
 }
 
@@ -100,8 +104,8 @@ section('Fate Cards — a boss’s chest deals');
   check('the run’s last boss deals none (the run ends there)', openBossChest(5, true).c.deal === null);
   const most = [...all()].filter((k) => k !== 'pogo' && k !== 'slingshot' && familyOf(k) === 'fate');
   const two = openBossChest(2, false, most).c.deal?.cards ?? [];
-  check('only cards you don’t carry', two.length === 2 && two.includes('pogo') && two.includes('slingshot'));
-  check('carrying every one, no deal', openBossChest(3, false, [...all()]).c.deal === null);
+  check('only cards you don’t carry (or as II)', two.length === 2 && two.includes('pogo') && two.includes('slingshot'));
+  check('carrying every one (as II where it can be), no deal', openBossChest(3, false, [...all()]).c.deal === null);
 }
 
 section('Fate Cards — a challenge room’s chest deals instead of its item');
@@ -157,6 +161,7 @@ section('Fate Cards — a keyed chest, by luck');
       const r = createCombat(OPEN_ARENA);
       r.rng = createRng(seed);
       r.items.cards = all();
+      r.items.twice = all();
       r.items.keys = 1;
       const p = createPlayer(0, 0, 1.2, 0);
       p.grounded = true;

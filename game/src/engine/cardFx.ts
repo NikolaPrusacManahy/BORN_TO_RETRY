@@ -6,7 +6,7 @@
 // rebuild); nothing made per frame. The rings, shakes and sparks are cardFeedback.ts's.
 import * as THREE from 'three';
 import type { CombatState } from '../sim/combat/state';
-import { BOLT_LIFE } from '../sim/cards/cardPowers';
+import { BOLT_LIFE } from '../sim/cards/cardHits';
 import { ENEMY_STATS } from '../sim/enemies/kinds';
 import { CARDS } from '../tuning/cards';
 import { FIRE, FlameStyle, Flames } from './fx/flames';

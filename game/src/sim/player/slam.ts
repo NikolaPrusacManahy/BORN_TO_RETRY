@@ -5,6 +5,8 @@
 // (sim/combat/slamHit.ts), harder the further you fell.
 import { Vector3 } from 'three';
 import { SLAM } from '../../tuning/movement';
+import { BUILDS } from '../../tuning/builds';
+import { lit } from '../cards/builds';
 import type { CollisionWorld } from '../collisionWorld';
 import type { PlayerState } from './state';
 
@@ -19,9 +21,12 @@ export function heightAboveGround(p: PlayerState, world: CollisionWorld): number
   return world.rayDistance(from, DOWN, LOOK_DOWN) - 0.05;
 }
 
+/** Update 0.2.22 — how high up you can slam from (the Slam build's bonus: lower, a jump is enough). */
+export const slamFloor = (p: PlayerState) => (lit(p.cards, 'slam') ? Math.min(SLAM.v.minHeight, BUILDS.v.slamHeight) : SLAM.v.minHeight);
+
 export function tryStartSlam(p: PlayerState, pressed: boolean, world: CollisionWorld): boolean {
   if (!pressed || p.grounded || p.slamming || p.dashTime > 0) return false;
-  if (heightAboveGround(p, world) < SLAM.v.minHeight) return false;
+  if (heightAboveGround(p, world) < slamFloor(p)) return false;
   p.slamming = true;
   p.slamFrom = p.pos.y;
   p.vel.set(0, -SLAM.v.speed, 0);

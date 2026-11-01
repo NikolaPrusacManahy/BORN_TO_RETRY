@@ -67,6 +67,7 @@ import { stepFlood } from '../enemies/drownedKingMoves';
 import { updateTurret } from './turret';
 import { bumpEnemies, chargeRate, fistFactor, frenzyFactor, payCharge, pogo, tickCards } from '../cards/cardMoves';
 import { splinter, tickPowers } from '../cards/cardPowers';
+import { staticStep, tremors } from '../cards/buildPowers';
 import { holds } from '../cards/cards';
 import { CARDS } from '../../tuning/cards';
 
@@ -242,8 +243,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   for (const t of state.turrets) updateTurret(t, player.pos, world, state.orbs, events, dt);
   updateOrbs(state.orbs, player, world, events, dt);
   if (player.slamImpact > 0) {
-    // (Update 0.2.15 — Pogo: a slam that kills bounces you back up.)
-    pogo(state, player, slamImpact(state, player.pos, player.slamImpact));
+    // (Update 0.2.15 — Pogo: a slam that kills bounces you back up. Update 0.2.22 — its blast: Tremor's.)
+    if (tremors(state)) pogo(state, player, slamImpact(state, player.pos, player.slamImpact));
     player.slamImpact = 0;
   }
   // (Update 0.2.10 — an Urchin's thorns: your blows on it with its spikes out hurt you.)
@@ -253,6 +254,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   }
   // (Update 0.2.15 — Shoulder Charge and Bowling.)
   bumpEnemies(state, player);
+  staticStep(state, player);
   updateEnemies(state.enemies, player, state, world, dt);
   if (state.storm > 0) state.storm = state.enemies.some((e) => e.kind === 'dino' && isLive(e)) ? Math.max(0, state.storm - dt) : 0;
   stepFlood(state, dt);

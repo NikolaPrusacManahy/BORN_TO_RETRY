@@ -8,7 +8,7 @@ import type { Cause } from '../sim/player/state';
 import type { CharacterId } from '../sim/characters';
 import type { Difficulty } from '../sim/lobby/difficulty';
 import type { Level } from './level';
-import type { CardView } from './fateView';
+import type { DealView } from './fateView';
 
 /** Update 0.2.2 — the run's last floor: taking its way down ends the run. Update 0.2.12 — the alpha's (the designer:
  *  "allow room 1 to 5 only, don't include 6 yet"): floor 5's way down wins it (the game's is 7). */
@@ -40,7 +40,7 @@ export interface RunCallbacks {
   /** Update 0.2.9 — in the lobby, you went through the main gate (walked in, or E at it). */
   onLobbyGate(): void;
   /** Update 0.2.16 — a chest dealt Fate Cards (the world holds still): show them; `Game.pickCard`, then `endDeal`. */
-  onDeal(cards: CardView[]): void;
+  onDeal(deal: DealView): void;
   /** Update 0.2.16 — TAB: show what you carry (`Game.inventory`). */
   onInventory(): void;
 }

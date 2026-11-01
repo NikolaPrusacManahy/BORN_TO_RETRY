@@ -14,6 +14,9 @@ import type { PlayerState } from '../player/state';
 import { drop, landed, stick, updateReturning } from './recall';
 import { ricochet } from '../cards/cardMoves';
 import { breakPowers } from '../cards/cardPowers';
+import { shrapnel } from '../cards/buildPowers';
+import { lit } from '../cards/builds';
+import { BUILDS } from '../../tuning/builds';
 import { THROWN_GRAVITY, THROWN_RADIUS } from './weapons';
 
 
@@ -35,8 +38,9 @@ export function updateThrown(state: CombatState, world: CollisionWorld, player: 
     next.copy(t.pos).addScaledVector(t.vel, dt);
     if (nearestTarget(state, t.pos, next, THROWN_RADIUS, hit)) {
       const flat = Math.hypot(t.vel.x, t.vel.z) || 1;
-      const damage = t.returns ? v.axeThrowDamage * (1 + (v.axeChargeDamage - 1) * t.power) : v.throwDamage;
-      landHit(state, hit, damage, v.throwKnock, t.vel.x / flat, t.vel.z / flat, 'hitThrown', damage);
+      // (Update 0.2.22 — the Throws build's bonus; Shrapnel: a killing throw bursts.)
+      const damage = (t.returns ? v.axeThrowDamage * (1 + (v.axeChargeDamage - 1) * t.power) : v.throwDamage) * (lit(state.items.cards, 'throws') ? 1 + BUILDS.v.throws : 1);
+      if (landHit(state, hit, damage, v.throwKnock, t.vel.x / flat, t.vel.z / flat, 'hitThrown', Math.round(damage)) && hit.kind === 'enemy') shrapnel(state, hit.point);
       state.hitStop.request(FEEDBACK.v.stopHeavy);
       if (t.returns && landed(t, t.pos.lerp(next, hit.s))) continue;
       if (t.returns) state.events.push('weaponBroken');

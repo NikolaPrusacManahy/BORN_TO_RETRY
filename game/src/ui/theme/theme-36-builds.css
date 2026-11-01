@@ -1,0 +1,61 @@
+/* theme-36 — Update 0.2.22: builds of Fate Cards. The deal's reroll (screens/FateDeal.tsx), over the row of cards; a
+   card dealt again as II (screens/FateCard.tsx): a gold edge inside its frame; your builds on TAB
+   (screens/Inventory.tsx): a lit one in gold. */
+
+/* Dealt again: the screen's already up (no fading in). */
+.rb-fate.is-again:not(.is-done) {
+  animation: none;
+}
+
+.rb-fate-reroll {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--card-h) * 1.06 + 22px * var(--rb-ui));
+  transform: translateX(-50%);
+  padding: calc(8px * var(--rb-ui)) calc(22px * var(--rb-ui));
+  border: calc(2px * var(--rb-ui)) solid #ffd23a;
+  border-radius: calc(8px * var(--rb-ui));
+  background: rgba(20, 8, 10, 0.75);
+  font-family: 'Anton', var(--rb-font);
+  font-size: calc(18px * var(--rb-ui));
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.3s, background 0.15s;
+}
+
+.rb-fate-reroll b {
+  margin-left: calc(6px * var(--rb-ui));
+  color: #ffd23a;
+}
+
+.rb-fate-reroll:hover:not(:disabled) {
+  background: rgba(70, 40, 10, 0.85);
+}
+
+.rb-fate-reroll:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.rb-fate.is-done .rb-fate-reroll {
+  opacity: 0;
+}
+
+.rb-card.is-ii::after {
+  content: '';
+  position: absolute;
+  inset: calc(4px * var(--s));
+  border: calc(2px * var(--s)) solid #ffd23a;
+  border-radius: calc(9px * var(--s));
+  pointer-events: none;
+}
+
+.rb-inv-build.is-lit {
+  --rarity: #ffd23a;
+}
+
+.rb-inv-build:not(.is-lit) .rb-inv-does {
+  opacity: 0.45;
+}

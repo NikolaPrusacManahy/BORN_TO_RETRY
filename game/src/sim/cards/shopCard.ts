@@ -59,7 +59,8 @@ export function stockShop(t: Treasure, state: CombatState) {
   c.kind = null;
   if (!state.fate || state.bare) return;
   const rng = createRng(Math.floor(c.roll * 0x7fffffff));
-  c.kind = fateOf(state, rollRarity(state, RARITIES, rng), [], rng);
+  // (Update 0.2.22 — never a II.)
+  c.kind = fateOf(state, rollRarity(state, RARITIES, rng), [], rng, false);
 }
 
 /** What the card costs you (Haggler: less; Taxman: more). */

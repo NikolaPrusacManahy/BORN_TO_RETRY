@@ -31,7 +31,7 @@ import { Bonuses, createBonuses } from '../items/bonuses';
 import { createBag } from '../weapons/slots';
 import { createInventory, Inventory } from '../items/items';
 import type { Deal } from '../cards/deal';
-import { clearPowers, createPowers, Powers } from '../cards/cardPowers';
+import { clearPowers, createPowers, Powers } from '../cards/cardHits';
 import { GRID_RADIUS, SizeClass } from '../enemies/kinds';
 import { AIR, buildNavGrid, NavGrid } from '../../world/navGrid';
 import { Waves, createWaves } from '../enemies/waves';

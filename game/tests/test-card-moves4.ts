@@ -148,10 +148,10 @@ section('Death and Traitor Cards — dealt among the Fate Cards');
 
   // (The designer, of making a Death Card come with your pick: "nope, just random and allow them to pick whatever they want".)
   const { c, p } = both();
-  c.deal = { cards: ['pogo', 'brittleBones', 'slingshot'], chest: -1 };
+  c.deal = { cards: ['pogo', 'brittleBones', 'slingshot'], chest: -1, rerolls: 0 };
   check('you take whichever you like: a Fate Card leaves the Death Card behind', pickCard(c, p, 0) === 'pogo' && !c.items.cards.has('brittleBones') && c.deal === null);
   const doom = both();
-  doom.c.deal = { cards: ['pogo', 'brittleBones', 'slingshot'], chest: -1 };
+  doom.c.deal = { cards: ['pogo', 'brittleBones', 'slingshot'], chest: -1, rerolls: 0 };
   check('or the Death Card alone, if you want it', pickCard(doom.c, doom.p, 1) === 'brittleBones' && doom.c.items.cards.size === 1);
 
   let four = true;

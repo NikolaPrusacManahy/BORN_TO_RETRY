@@ -6,12 +6,14 @@ import type { Vector3 } from 'three';
 import { CARDS } from '../../tuning/cards';
 import { DASH } from '../../tuning/movement';
 import { bears } from '../cards/cards';
+import { lit } from '../cards/builds';
+import { BUILDS } from '../../tuning/builds';
 import { applyGravity } from './air';
 import type { PlayerState } from './state';
 import { endSlide } from './slide';
 
-/** Update 0.2.16 — your dash charges (Restless: more). */
-export const dashMaxOf = (p: PlayerState) => DASH.v.charges + (bears(p, 'restless') ? Math.round(CARDS.v.restless) : 0);
+/** Update 0.2.16 — your dash charges (Restless: more). Update 0.2.22 — the Movement build's bonus: more. */
+export const dashMaxOf = (p: PlayerState) => DASH.v.charges + (bears(p, 'restless') ? Math.round(CARDS.v.restless) : 0) + (lit(p.cards, 'movement') ? Math.round(BUILDS.v.movement) : 0);
 
 export function refillDash(p: PlayerState, dt: number) {
   const max = dashMaxOf(p);

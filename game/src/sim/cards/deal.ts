@@ -13,17 +13,23 @@
 // to pick whatever they want"). Gambler (a Traitor Card) deals one more, one of them always a Death Card. Fortune's
 // Favour keeps the better of two rarities, Black Cat (a Death Card) the worse; Fragile Fortune (a Traitor Card) rolls one
 // higher.
+// Update 0.2.22 — builds (builds.ts): a deal leans to the builds you carry; a card you carry that can grow may come
+// again, as II; Tremor's cards and the pair cards only once they can be dealt. A paid reroll deals again (25 coins, then
+// 50, 75... in the one deal).
+import { BUILDS } from '../../tuning/builds';
 import { CARDS } from '../../tuning/cards';
 import { ITEMS } from '../../tuning/items';
 import type { CombatState } from '../combat/state';
 import { RARITIES, Rarity } from '../dungeon/loot';
 import type { PlayerState } from '../player/state';
+import { dealable, weightOf } from './builds';
 import { CARD, CARD_KINDS, CardFamily, CardKind, familyOf, holds, takeCard } from './cards';
 
-/** The cards on offer, and the chest they came out of (−1: the Lab's). */
+/** The cards on offer, and the chest they came out of (−1: the Lab's). Update 0.2.22 — rerolls paid for in it. */
 export interface Deal {
   cards: CardKind[];
   chest: number;
+  rerolls: number;
 }
 
 /** A rarity among `tiers` by the chest odds (a mythic's 2%…), the luck cards counting (`rng`: the fight's, or Update
@@ -43,16 +49,32 @@ export function rollRarity(state: CombatState, tiers: readonly Rarity[], rng = s
   return RARITIES[r];
 }
 
-/** A Fate Card of `rarity` you don't carry and not in `taken` (if there's none of it left, of the nearest rarity that has
- *  one); null: none at all. */
-export function fateOf(state: CombatState, rarity: Rarity, taken: readonly CardKind[], rng = state.rng): CardKind | null {
+const pool: CardKind[] = [];
+const weights: number[] = [];
+
+/** A Fate Card of `rarity` that can be dealt you and not in `taken` (if there's none of it, of the nearest rarity that
+ *  has one); null: none at all. Update 0.2.22 — by weight: leaning to your builds, one you carry again as II (`twice`:
+ *  may be; not the shop's). */
+export function fateOf(state: CombatState, rarity: Rarity, taken: readonly CardKind[], rng = state.rng, twice = true): CardKind | null {
   const at = RARITIES.indexOf(rarity);
   for (let d = 0; d < RARITIES.length; d++) {
     for (const i of d === 0 ? [at] : [at - d, at + d]) {
       const r = RARITIES[i];
       if (!r) continue;
-      const pool = CARD_KINDS.filter((k) => familyOf(k) === 'fate' && CARD[k].rarity === r && !holds(state, k) && !taken.includes(k));
-      if (pool.length > 0) return pool[Math.floor(rng() * pool.length)];
+      pool.length = weights.length = 0;
+      let total = 0;
+      for (const k of CARD_KINDS) {
+        if (familyOf(k) !== 'fate' || CARD[k].rarity !== r || taken.includes(k)) continue;
+        const as = dealable(state, k);
+        if (!as || (as === 'twice' && !twice)) continue;
+        pool.push(k);
+        weights.push(weightOf(state, k, as));
+        total += weights[weights.length - 1];
+      }
+      if (pool.length === 0) continue;
+      let x = rng() * total;
+      for (let j = 0; j < pool.length; j++) if ((x -= weights[j]) < 0) return pool[j];
+      return pool[pool.length - 1];
     }
   }
   return null;
@@ -90,7 +112,28 @@ export function drawDeal(state: CombatState): CardKind[] {
 export function startDeal(state: CombatState, chest: number): boolean {
   const cards = drawDeal(state);
   if (cards.length === 0) return false;
-  state.deal = { cards, chest };
+  state.deal = { cards, chest, rerolls: 0 };
+  state.events.push('dealStart', cards.length);
+  return true;
+}
+
+/** Update 0.2.22 — what rerolling the deal up costs (each more in it costs the first again on top). */
+export const rerollCost = (state: CombatState) => Math.round(BUILDS.v.reroll * (1 + (state.deal?.rerolls ?? 0)));
+
+/** Update 0.2.22 — you pay to have the deal dealt again. Returns false if you can't pay (or nothing's left to deal). */
+export function rerollDeal(state: CombatState): boolean {
+  const deal = state.deal;
+  const cost = rerollCost(state);
+  if (!deal || state.money < cost) {
+    state.events.push('buyFail', -1, 0, 0, 0);
+    return false;
+  }
+  const cards = drawDeal(state);
+  if (cards.length === 0) return false;
+  state.money -= cost;
+  deal.cards = cards;
+  deal.rerolls++;
+  state.events.push('buy', -1, 0, 0, 0);
   state.events.push('dealStart', cards.length);
   return true;
 }

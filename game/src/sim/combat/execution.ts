@@ -12,7 +12,8 @@
 // Cards since Update 0.2.16; and Reaper's Rhythm (the meter left half full).
 import { Vector3 } from 'three';
 import { CARDS } from '../../tuning/cards';
-import { holds } from '../cards/cards';
+import { boost, holds } from '../cards/cards';
+import { lastRites } from '../cards/buildPowers';
 import { meterAfter } from '../cards/cardMoves';
 import { dashMaxOf } from '../player/dash';
 import { EXECUTION } from '../../tuning/execution';
@@ -264,7 +265,8 @@ function finish(state: CombatState, ex: Execution, at: Vector3, kind: 'execLand'
     player.dashCharges = dashMaxOf(player);
     player.invuln = Math.max(player.invuln, CARDS.v.adrenaline);
   }
-  const reach = holds(state, 'bloodbath') ? CARDS.v.bloodbath : v.splashRadius;
+  const reach = holds(state, 'bloodbath') ? CARDS.v.bloodbath * boost(state, 'bloodbath') : v.splashRadius;
+  lastRites(state, at, ex.target);
   // (Bloodbath's wider blast shows as a ring on the floor: value, its reach.)
   if (reach > v.splashRadius) state.events.push('cardBlast', reach, at.x, 0, at.z);
   for (let i = 0; i < state.enemies.length; i++) {

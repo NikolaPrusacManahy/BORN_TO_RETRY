@@ -36,7 +36,7 @@ import { execHeld } from '../sim/combat/execution';
 import { followHeld } from './execView';
 import { hpBonusOf, moveFactor } from '../sim/items/items';
 import { pushPlayerOut } from '../sim/enemies/bodies';
-import { cardView } from './fateView';
+import { dealView } from './fateView';
 import { BODY } from '../sim/player/body';
 import { checkHazards } from '../sim/player/hazards';
 import { killPlayer, updateHealth } from '../sim/player/health';
@@ -171,7 +171,7 @@ export class Run extends RunBase {
     // (Update 0.2.16 — a chest dealt Fate Cards: the world holds still, the page's deal screen shows them.)
     if (this.combat.deal && !this.dealing) {
       this.dealing = this.hold = true;
-      this.cb.onDeal(this.combat.deal.cards.map(cardView));
+      this.cb.onDeal(dealView(this.combat));
     }
     stats.push(real * 1000, steps, this.clock.dropped);
 
