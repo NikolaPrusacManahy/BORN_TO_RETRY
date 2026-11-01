@@ -2,7 +2,19 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.2.22: builds of Fate Cards; the slam's blast is a card)
+## Next up (2026-11-01, Update 0.2.23: floor 2, the Venom Garden)
+- **The designer asked for floors 2 and 3 to match their enemies**; Claude suggested the Venom Garden (floor 2) and the
+  Bone Keep (floor 3); the designer: "Yes, floor 2 first" (spec `MD_UPDATES/U0223_VENOM_GARDEN.md`). Floor 2 is floor
+  1's brick ruins overgrown in bright sun: earth beds, flowers, trees, bushes as low cover, cobwebs, **green sludge**
+  in its pits (it poisons too). **Nine rooms of its own**, each round an enemy: **webs** (slow you: dash out), **tall
+  grass** that parts (snakes), **wasps' hives** on the walls (wasps come out while the room fights; punch them down),
+  sludge ponds with banks (frogs), stout pillars (Blue Demon). The Dragon's room is **the Scorched Grove** (charred
+  trees, ash, scorch marks). Floor 1 keeps its rooms; the lava rooms are floor 3's only. Numbers on F1 → Venom Garden.
+- Checked by tests (`test-venom.ts`) and Blender previews; **unseen in the game**: the parting grass, the hives (where
+  they hang, their fall, reaching one with a punch), the web sheets, the sludge's bubbles, the colours in the game's
+  light. **Next: floor 3, the Bone Keep** (its own update).
+
+## Before (2026-11-01, Update 0.2.22: builds of Fate Cards; the slam's blast is a card)
 - **From the testers' feedback** (spec `MD_UPDATES/U0222_BUILDS.md`): **the slam's blast is a card, Tremor** (the slam
   itself stays everyone's; without Tremor it hurts nothing; Crater, Pogo and the new Aftershock and Scorched Earth come
   only with it; Fate Cards off or ARE YOU EVEN HUMAN?: the blast as before). **Builds:** each Fate Card is of a build by

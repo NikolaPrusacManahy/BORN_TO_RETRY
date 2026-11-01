@@ -1,5 +1,6 @@
 // Update 0.1.4 — the combat events (moved out of state.ts, which re-exports them, to keep it short). What each one's
 // value and x, y, z mean is next to it.
+import type { Floor2Event } from './events2';
 import type { DrownedEvent } from './events5';
 import type { FishEvent } from './events6';
 import type { CardEvent } from './eventsCards';
@@ -243,19 +244,6 @@ export type CombatEvent =
   | 'orcRiposte'
   | 'orcLeap'
   | 'orcSlam'
-  // Update 0.0.18 — the Dragon: a warning (value = its move), the beam starting, a fireball, the wing and the tail
-  // swinging, its scream (rising in its show, and raging), an enemy burnt away by the beam (value = its slot).
-  | 'dragonWindup'
-  | 'dragonBreath'
-  | 'dragonFireball'
-  | 'dragonWing'
-  | 'dragonTail'
-  | 'dragonScream'
-  | 'burnt'
-  // Update 0.0.21 — the Dragon throwing a fire bomb from the sky, a bomb bursting (value = its radius), its flame burst.
-  | 'dragonBomb'
-  | 'bombBlast'
-  | 'dragonBurst'
   // Update 0.1.1 — an execution: the grab (value = the enemy's slot), each slam (value = which), the throw, the landing.
   | 'execGrab'
   | 'execSlam'
@@ -308,6 +296,8 @@ export type CombatEvent =
   | 'execReady'
   | 'standRespawn'
   // Update 0.2.10 — floor 5's (events5.ts); Update 0.2.11 — floor 6's (events6.ts); Update 0.2.16 — the Fate Cards'.
+  // Update 0.2.23 — floor 2's (events2.ts: the Dragon's, moved there, and the Venom Garden's).
+  | Floor2Event
   | DrownedEvent
   | FishEvent
   | CardEvent;

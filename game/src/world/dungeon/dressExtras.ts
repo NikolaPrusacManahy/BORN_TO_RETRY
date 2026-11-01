@@ -5,6 +5,8 @@
 // Update 0.2.10 — floor 5's willows, each in a bed of mud (the style's `sand` colour).
 // Update 0.2.11 — floor 6's drowned trees (dead willows, dead trees, dead birches) and its seaweed, each in a bed of
 // silt (the style's `sand` colour): seaweed grows only out of silt, never out of paving.
+// Update 0.2.23 — floor 2's beds of earth, tall grass and trees are sand cells too (gardenDressing.ts); the boss room's
+// are ash.
 import type { Rng } from '../../core/rng';
 import { CELL, cellX, cellZ, FloorPlan } from './floorPlan';
 import type { Cell } from './rooms';
@@ -16,10 +18,12 @@ export interface SandCell {
   x: number;
   z: number;
   quick: boolean;
+  /** Update 0.2.23 — ash (the Scorched Grove's beds). */
+  ash?: boolean;
 }
 
 /** The cells that are sand, not paving. */
-export const SANDY: ReadonlySet<Cell> = new Set<Cell>(['sand', 'palm', 'cactus', 'willow', 'snag', 'weed']);
+export const SANDY: ReadonlySet<Cell> = new Set<Cell>(['sand', 'palm', 'cactus', 'willow', 'snag', 'weed', 'bed', 'grass', 'tree']);
 
 /** The desert's pieces (export_dungeon_kit.py's Nature pack ones), and their sizes in the game (the pack's palms are
  *  4–4.5 m, its cacti 1–2 m: scaled up to the rooms). */

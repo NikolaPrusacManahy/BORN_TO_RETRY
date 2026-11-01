@@ -1,6 +1,7 @@
 // Update 0.2.4 — floor 4's loose sand on the floor (dressExtras.ts lists it): the beds palms and cacti stand in, and
 // quicksand, darker and slowly heaving (so it reads as something to keep out of). Instanced flat tiles; no paving under
 // them. Also (out of dungeonView.ts, which had reached its size) the jump pads.
+// Update 0.2.23 — floor 2's beds of earth (the look's `sand`), and ash (its `ash`: the Scorched Grove's).
 import * as THREE from 'three';
 import type { SandCell } from '../world/dungeon/dressExtras';
 import type { JumpPad } from '../world/arena';
@@ -18,12 +19,12 @@ export class SandView {
   private readonly mats: THREE.Material[] = [];
   private time = 0;
 
-  constructor(cells: readonly SandCell[], sand = 0xe6c27e, quicksand = 0xb98a4c) {
+  constructor(cells: readonly SandCell[], sand = 0xe6c27e, quicksand = 0xb98a4c, ash = 0x3b3631) {
     const m = new THREE.Matrix4();
-    for (const quick of [false, true]) {
-      const list = cells.filter((c) => c.quick === quick);
+    for (const [quick, burnt] of [[false, false], [true, false], [false, true]]) {
+      const list = cells.filter((c) => c.quick === quick && !!c.ash === burnt);
       if (list.length === 0) continue;
-      const mat = new THREE.MeshStandardMaterial({ color: quick ? quicksand : sand, roughness: 1 });
+      const mat = new THREE.MeshStandardMaterial({ color: quick ? quicksand : burnt ? ash : sand, roughness: 1 });
       this.mats.push(mat);
       if (quick) {
         this.quickMat = mat;

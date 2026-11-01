@@ -41,6 +41,7 @@ import type { Difficulty } from '../sim/lobby/difficulty';
 import { abandonAll } from '../sim/dungeon/checkpoint';
 import { maxHpOf } from '../sim/player/health';
 import { hpBonusOf } from '../sim/items/items';
+import { createHives } from '../sim/dungeon/hives';
 
 /** Update 0.2.8 (the designer: display "FLOOR 1" when they start playing) — a new run starts under the loader (at
  *  least its LOAD_MIN, 1 s) and its black clearing (0.5 s): its floor's name waits that long. */
@@ -145,6 +146,7 @@ export abstract class RunBase {
     this.lava = lavaOf(level.arena);
     // (Update 0.2.9 — the lobby has no enemies: no walk grids.)
     this.combat = createCombat(level.arena, !level.dungeon && !level.lobby);
+    this.combat.hives = createHives(level.dungeon?.level.hives ?? []);
     this.combat.rng = createRng(level.fightSeed);
     this.combat.bare = this.difficulty === 'human';
     this.combat.fate = this.cards;

@@ -11,6 +11,7 @@
 # roof: `roof` pieces and boxes marked `noShadow` cast none (the game's roof doesn't), chandelier `rings`; `interior`
 # with --day: no sun or sky, a warm fill from all round, a key light from above and point `lights` (watts).
 # Update 0.2.10 — floor 5's tide at high water (`water`: its level and the rooms it floods), see-through green.
+# Update 0.2.23 — floor 2's: ash beds (`ash` cells), the boss room's charred pieces (the look's `burnt`).
 import argparse
 import json
 import math
@@ -209,7 +210,16 @@ def recolour(style, protos):
     if not tint and not floor_tint:
         return
     fl = protos.get(style.get('floor'))
+    burnt = style.get('burnt') or {}
+    for name, h in burnt.items():
+        o = protos.get(name)
+        for i, m in enumerate(o.data.materials if o else []):
+            mm = m.copy()
+            mm.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = (*srgb(h), 1)
+            o.data.materials[i] = mm
     for o in protos.values():
+        if o.name in burnt:
+            continue
         for i, m in enumerate(o.data.materials):
             if m is None or not m.use_nodes or 'Principled BSDF' not in m.node_tree.nodes:
                 continue
@@ -223,18 +233,28 @@ def recolour(style, protos):
 
 
 def sand_cells(cells, style):
-    """Update 0.2.4 — loose sand: a flat tile per cell (quicksand darker)."""
-    for quick in (False, True):
-        mat = bpy.data.materials.new('Quicksand' if quick else 'Sand')
+    """Update 0.2.4 — loose sand: a flat tile per cell (quicksand darker). Update 0.2.23 — each kind one mesh (a floor of
+    beds has thousands of cells: one object each took Blender most of an hour)."""
+    for quick, ash in ((False, False), (True, False), (False, True)):
+        mat = bpy.data.materials.new('Quicksand' if quick else 'Ash' if ash else 'Sand')
         mat.use_nodes = True
-        col = srgb(style.get('quicksand' if quick else 'sand', 0xb98a4c if quick else 0xe6c27e))
+        col = srgb(style.get('ash', 0x3b3631) if ash else style.get('quicksand' if quick else 'sand', 0xb98a4c if quick else 0xe6c27e))
         mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = (*col, 1)
         mat.diffuse_color = (*col, 1)
+        verts, faces = [], []
         for c in cells:
-            if c['quick'] != quick:
+            if c['quick'] != quick or bool(c.get('ash')) != ash:
                 continue
-            bpy.ops.mesh.primitive_plane_add(size=2, location=to_blender(c['x'], 0.015, c['z']))
-            bpy.context.active_object.data.materials.append(mat)
+            k = len(verts)
+            for dx, dz in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
+                verts.append(to_blender(c['x'] + dx, 0.015, c['z'] + dz))
+            faces.append((k + 3, k + 2, k + 1, k))
+        if not faces:
+            continue
+        mesh = bpy.data.meshes.new(mat.name)
+        mesh.from_pydata(verts, [], faces)
+        mesh.materials.append(mat)
+        bpy.context.scene.collection.objects.link(bpy.data.objects.new(mat.name, mesh))
 
 
 def daylight(scene):

@@ -9,6 +9,8 @@
 #       ... --nature <Ultimate Nature Pack folder>
 # Update 0.2.10 — and floor 5's, the Drowned Temple: weeping willows, lily pads, mossy rocks, a mossy stump and log.
 # Update 0.2.11 — and floor 6's, the Sunken Grove: drowned trees and seaweed.
+# Update 0.2.23 — and floor 2's, the Venom Garden: bushes, flowers, short grass and plants, birches and trees, a stump
+# and a log, a mossy rock, and part 1's second cobweb.
 import argparse
 import math
 import os
@@ -22,7 +24,7 @@ from scene_kit import export_glb, load_pieces, setup_previews, shoot  # noqa: E4
 
 # Part 1: brick dungeon walls and floors, doors, props. Part 2: rock columns, torches, rubble.
 PART1 = ['Floor_Modular', 'Wall_Modular', 'WallCover_Modular', 'Arch', 'Arch_bars', 'Column', 'Crate', 'Barrel', 'Barrel2', 'Trap_spikes',
-         'Trapdoor_open', 'Banner_wall', 'Skull', 'Cobweb', 'Vase', 'Bucket', 'Chest', 'Pedestal', 'Woodfire']
+         'Trapdoor_open', 'Banner_wall', 'Skull', 'Cobweb', 'Vase', 'Bucket', 'Chest', 'Pedestal', 'Woodfire', 'Cobweb2']
 PART2 = ['Column', 'Column_Broken2', 'Rock1', 'Rock2', 'Rock3', 'Bones', 'Bones2', 'Torch_wall', 'Candelabrum_tall', 'Carpet',
          'ModularStoneWall', 'ModularStoneWall_top', 'ModularStoneWall_EntranceTop', 'ModularFloor', 'Entrance', 'Bars', 'WallRocks',
          'ModularColumn_bottom', 'ModularColumn_middle', 'ModularColumn_top', 'Rock4', 'Rock5']
@@ -31,7 +33,10 @@ NATURE = ['PalmTree_1', 'PalmTree_3', 'Cactus_1', 'Cactus_3', 'CactusFlowers_2',
           # Update 0.2.10 — floor 5's.
           'Willow_1', 'Willow_3', 'Willow_Dead_2', 'Lilypad', 'Rock_Moss_1', 'Rock_Moss_4', 'Rock_Moss_6', 'TreeStump_Moss', 'WoodLog_Moss',
           # Update 0.2.11 — floor 6's: drowned trees, seaweed (the grass and a plant, stretched tall).
-          'Willow_Dead_4', 'CommonTree_Dead_2', 'CommonTree_Dead_3', 'BirchTree_Dead_3', 'Grass', 'Grass_2', 'Plant_3']
+          'Willow_Dead_4', 'CommonTree_Dead_2', 'CommonTree_Dead_3', 'BirchTree_Dead_3', 'Grass', 'Grass_2', 'Plant_3',
+          # Update 0.2.23 — floor 2's, the Venom Garden.
+          'Bush_1', 'Bush_2', 'BushBerries_1', 'Flowers', 'Grass_Short', 'Plant_1', 'Plant_2', 'Plant_5', 'BirchTree_1',
+          'BirchTree_2', 'CommonTree_1', 'CommonTree_2', 'TreeStump', 'WoodLog', 'Rock_Moss_2']
 # Faced +x as they come: turned a quarter so they face −y.
 TURN = {'ModularStoneWall', 'ModularStoneWall_top', 'ModularStoneWall_EntranceTop', 'Entrance', 'Bars', 'WallRocks'}
 

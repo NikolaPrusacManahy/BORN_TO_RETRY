@@ -1,0 +1,190 @@
+// Update 0.2.23 — floor 2's own rooms, the Venom Garden (the designer: "they need to match their enemies"; the theme and
+// the rooms are Claude's): brick ruins overgrown, each room built round one of the floor's enemies. Frogs lash from the
+// banks of sludge ponds; wasps come out of hives on the walls (h: punch them down); spiders nest among webs (w: they
+// slow you, dash out); snakes hunt in tall grass (G); Blue Demons charge between stout pillars. Earth beds (,) with
+// flowers and trees (R) everywhere, never on paving. Sludge (L) is the floor's lava (it poisons too). Drawn as quarters
+// like the others (fightRooms.ts). Floor 2's only.
+import type { RoomTemplate } from './rooms';
+import { quarter } from './fightRooms';
+
+const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 2, until: 2 });
+
+export const VENOM_ROOMS: readonly RoomTemplate[] = [
+  // Four pools of sludge in the middle between two stone causeways, earth banks round them for the frogs.
+  room('toad pond', [
+    '...T..........',
+    '.E.......E....',
+    '..............',
+    '..R.....b.....',
+    '..........,,,.',
+    '.E......,,,,,.',
+    '.......,,LLLL.',
+    '..b...,,LLLLL.',
+    '......,LLLLLL.',
+    '....E.,LLLLLL.',
+    '..,,,,,LLLLLL.',
+    '..,R,,,LLLLLL.',
+    '..,,,,,LLLLLL.',
+    '..,,,,........',
+  ]),
+  // Eight hives on the walls, wasps coming out of them all fight long; columns to fight round, trees in the middle.
+  room('hive hall', [
+    '......h..T....',
+    '.E.......E....',
+    '..............',
+    '...C.....C....',
+    '..............',
+    '.E....b.......',
+    'h.......,,,...',
+    '.......,R,,...',
+    '...C...,,,..C.',
+    '..............',
+    '.....E....,,,.',
+    '..b.......,R,.',
+    '.E........,,,.',
+    '..............',
+  ]),
+  // The spiders' nest: patches of web across the floor (a dash takes you out), short walls, a web in the middle.
+  room('web cellar', [
+    '...T..........',
+    '.E.......E....',
+    '..ww..........',
+    '.wwww...#.....',
+    '..ww....#..ww.',
+    '.E......#.wwww',
+    '..........ww..',
+    '...C..........',
+    '.......ww...C.',
+    '..#...wwww....',
+    '..#....ww.....',
+    '..#.........ww',
+    '.E..E......www',
+    '..........ww..',
+  ]),
+  // Beds of tall grass the snakes hunt in (it parts round them), stone paths between.
+  room('snake grass', [
+    '...T..........',
+    '.E.......E....',
+    '..............',
+    '..GGGG...GGGG.',
+    '..GGGG...GGGG.',
+    '..GGRG...GRGG.',
+    '..GGGG...GGGG.',
+    '.E............',
+    '.......E......',
+    '..GGGG...GGGGG',
+    '..GGGG...GGGGG',
+    '..GRGG...GGGGG',
+    '..GGGG...GGGGG',
+    '..............',
+  ]),
+  // A walk of columns round a garden gone wild: flower beds, trees, tall grass in its heart; a hive on each wall.
+  room('overgrown cloister', [
+    '...T..h.......',
+    '.E.......E....',
+    '..............',
+    '..C...C...C...',
+    '..............',
+    '..C..,,,,,,,..',
+    '.....,R,,,R,..',
+    '..C..,,,GG,,..',
+    '.....,,GGGG,..',
+    '..C..,,GGGG,..',
+    '.E...,R,GG,R..',
+    '..C..,,,,,,,..',
+    '..........E...',
+    '.....E........',
+  ]),
+  // A moat of sludge round an island (4 m across: jump it, or take a causeway), banks on both sides.
+  room('sludge channels', [
+    '...T..........',
+    '.E.......E....',
+    '..............',
+    '..b...........',
+    '.......,,,,...',
+    '.E....LLLLLL..',
+    '......LLLLLL..',
+    '..,,..LL......',
+    '..,R..LL..E...',
+    '..,,..LL......',
+    '......LL..b...',
+    '.E....LL......',
+    '..............',
+    '..............',
+  ]),
+  // A channel of sludge across the middle (16 m), walls standing in it to wall-run over; webs on the long way round.
+  room('rot bridges', [
+    '.....T........',
+    '.E.......E....',
+    '..............',
+    '...b......b...',
+    '..,,......,,..',
+    '.E,R...E..,R..',
+    '..............',
+    '.....#....#...',
+    '....L#LLLL#LLL',
+    '.ww.L#LLLL#LLL',
+    '....L#LLLL#LLL',
+    '....L#LLLL#LLL',
+  ]),
+  // Two lanes of sludge between long walls (36 m): run from wall to wall down a lane, or walk round past the hives.
+  room('sludge gauntlet', [
+    '....T.......',
+    '.E......E...',
+    '............',
+    '..b.....b...',
+    '............',
+    '.E....E.....',
+    '.......h....',
+    '...#########',
+    '...LLLLLLLLL',
+    '...LLLLLLLLL',
+    '...LLLLLLLLL',
+    '...#########',
+    '............',
+    '.E.....b....',
+    '..,,........',
+    '..ER........',
+  ]),
+  // Stout brick pillars (4 m square) to bait the Blue Demons' charge into, trees round the middle.
+  room('pillar hall', [
+    '...T..........',
+    '.E.......E....',
+    '..............',
+    '..##....##....',
+    '..##....##....',
+    '..............',
+    '.E....,,......',
+    '......,R....E.',
+    '..##....##....',
+    '..##....##....',
+    '..............',
+    '.....b.....,,.',
+    '.E.........,R.',
+    '..............',
+  ]),
+];
+
+/** The Scorched Grove: floor 2's boss room (the Dragon's), as rooms.ts's BOSS_ROOM but burnt: charred trees in beds of
+ *  ash where its broken columns stood, more ash about (dressing.ts). */
+export const SCORCHED_ROOM: RoomTemplate = {
+  id: 'scorched grove',
+  kind: 'boss',
+  rows: quarter([
+    '...............',
+    '...............',
+    '.........E.....',
+    '...J...........',
+    '..,,...........',
+    '..,R,.......,,.',
+    '..,,........R,.',
+    '.............,.',
+    '........C......',
+    '..E............',
+    '...............',
+    '......,,.......',
+    '.....,R,.......',
+    '......,,.......',
+    '...............',
+  ]),
+};

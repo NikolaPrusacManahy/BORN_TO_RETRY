@@ -35,8 +35,10 @@ section('Lava rooms — their layouts');
   const floors = (floor: number) => new Set(Array.from({ length: 40 }, (_, s) => planFloor(s + 1, floor).rooms.map((r) => r.layout.template.id)).flat());
   const one = floors(1);
   const two = floors(2);
+  const three = floors(3);
   check('they never come on floor 1', LAVA_ROOMS.every((t) => !one.has(t.id)));
-  check('they come from floor 2 on', LAVA_ROOMS.every((t) => two.has(t.id)));
+  // (Update 0.2.23 — floor 2 has its own, with sludge: test-venom.ts.)
+  check('they come on floor 3, not floor 2 (its rooms have sludge)', LAVA_ROOMS.every((t) => three.has(t.id) && !two.has(t.id)));
   for (const t of LAVA_ROOMS) {
     const l = layOut(t, createRng(3));
     const at = (c: number, r: number) => (c < 0 || r < 0 || c >= l.w || r >= l.h ? 'void' : l.cells[r * l.w + c]);
@@ -74,10 +76,10 @@ section('Lava rooms — their layouts');
   }
 }
 
-// A floor 2 with the lava lake.
+// A floor with the lava lake (Update 0.2.23: floor 3; floor 2's pits hold sludge).
 let seed = 1;
-while (!planFloor(seed, 2).rooms.some((r) => r.layout.template.id === 'lava lake')) seed++;
-const plan = planFloor(seed, 2);
+while (!planFloor(seed, 3).rooms.some((r) => r.layout.template.id === 'lava lake')) seed++;
+const plan = planFloor(seed, 3);
 const level = buildDungeon(plan);
 const lakeIndex = plan.rooms.findIndex((r) => r.layout.template.id === 'lava lake');
 const lake = plan.rooms[lakeIndex];
@@ -98,7 +100,7 @@ section('Lava rooms — the pits');
   const air = buildNavGrid(room.arena, GRID_RADIUS.air, 0, 0.5, AIR);
   check('walkers go round it; fliers cross it', !freeAt(foot, x, z) && freeAt(air, x, z));
   const look = dress(plan);
-  check('it has no floor tile, and faces line the pit down to the lava', !look.pieces.some((p) => p.piece === BRICK.floor && Math.abs(p.x - x) < 0.01 && Math.abs(p.z - z) < 0.01) && look.pieces.some((p) => p.y === -LAVA_DEPTH) && look.lava.length > 0);
+  check('it has no floor tile, and faces line the pit down to the lava', !look.pieces.some((p) => p.piece === STONE.floor && Math.abs(p.x - x) < 0.01 && Math.abs(p.z - z) < 0.01) && look.pieces.some((p) => p.y === -LAVA_DEPTH) && look.lava.length > 0);
 }
 
 section('Lava rooms — falling in');
@@ -131,7 +133,7 @@ section('Lava rooms — falling in');
 
 section('Floor 3 — its look');
 {
-  check('floors 1 and 2 are brick, floor 3 stone', styleOf(1) === BRICK && styleOf(2) === BRICK && styleOf(3) === STONE);
+  check('floor 1 is brick, floor 2 the Venom Garden (its brick overgrown), floor 3 stone', styleOf(1) === BRICK && styleOf(2).id === 'venom' && styleOf(3) === STONE);
   const buf = readFileSync(new URL('../public/models/dungeon/kit.glb', import.meta.url));
   const kit = await new GLTFLoader().parseAsync(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer, '');
   const three = planFloor(5, 3);

@@ -109,7 +109,7 @@ export function updateReturning(state: CombatState, t: Thrown, world: CollisionW
   next.copy(t.pos).addScaledVector(dir, step);
   if (nearestTarget(state, t.pos, next, RADIUS, hit)) {
     // Each thing once on the way back (dummies counted after the enemies).
-    const id = hit.kind === 'enemy' ? hit.index : hit.kind === 'dummy' ? 1000 + hit.index : 2000 + hit.index;
+    const id = hit.kind === 'enemy' ? hit.index : hit.kind === 'dummy' ? 1000 + hit.index : hit.kind === 'turret' ? 2000 + hit.index : 3000 + hit.index;
     let seen = false;
     for (let i = 0; i < t.struckN; i++) if (t.struck[i] === id) seen = true;
     if (!seen && t.struckN < t.struck.length) {

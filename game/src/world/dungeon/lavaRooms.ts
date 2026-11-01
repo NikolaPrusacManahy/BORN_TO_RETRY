@@ -2,10 +2,11 @@
 // middle", and "make proper use of wall run in some of the rooms"), from floor 2 on. Drawn as quarters like the others
 // (fightRooms.ts), L being lava. A walkway round every pit joins every door, so a fight never needs a jump; the walls
 // standing in the lava are for wall runs across it (a wall run carries about 13 m, a running jump about 9).
+// Update 0.2.23 — floor 3 only (floor 2 has its own, with sludge: venomRooms.ts).
 import type { RoomTemplate } from './rooms';
 import { quarter } from './fightRooms';
 
-const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 2, until: 3 });
+const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 3, until: 3 });
 
 export const LAVA_ROOMS: readonly RoomTemplate[] = [
   // A lake round an island in the middle (16 m across), a bridge to it from either side (the enemies walk it; no

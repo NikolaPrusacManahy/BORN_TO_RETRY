@@ -17,6 +17,8 @@
 // Update 0.2.10 — floor 5's willows (a trunk's block, as a palm's), and the rooms its tide floods (`tide`: every fight
 // room's inside, on a floor whose look is water).
 import type { Arena, ArenaBox, BoxKind, JumpPad, Spot } from '../arena';
+import { cellsBox, merge } from './cellBoxes';
+import { HiveSpot, hivesOf, websOf } from './garden';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, PlacedRoom, Side } from './floorPlan';
 import { OPPOSITE } from './wayOut';
 import type { Cell, RoomKind } from './rooms';
@@ -25,6 +27,7 @@ import { styleOf } from './styles';
 import { hasYeti } from '../../sim/dungeon/wavePlan';
 // Update 0.2.4 — floor 4's desert: a palm's trunk and a cactus are narrow blocks in their cells (their sand is floor);
 // quicksand is floor too, listed apart (DungeonLevel.sand) for the slow you feel in it.
+// Update 0.2.23 — floor 2's Venom Garden (garden.ts): a tree's trunk is a willow's block; its webs and its hives.
 
 /** Heights of what stands on a cell (m); the floor's top is y = 0. */
 export const HEIGHT: Partial<Record<Cell, number>> = { wall: 6, column: 4.9, low: 1.3, high: 2.85, ledge: 1, highLedge: 2.5, spikes: 0.3, chest: 0.9 };
@@ -123,6 +126,9 @@ export interface DungeonLevel {
   sand: ArenaBox[];
   /** Update 0.2.10 — the rooms the tide floods (their insides; none on a dry floor). */
   tide: ArenaBox[];
+  /** Update 0.2.23 — floor 2's webs (flat areas on the floor) and wasps' hives. */
+  webs: ArenaBox[];
+  hives: HiveSpot[];
 }
 
 /** Update 0.2.4 — a palm's trunk and a cactus: their blocks' sides and heights (m). */
@@ -132,32 +138,6 @@ const CACTUS = { side: 1.1, h: 2.2 };
 const WILLOW = { side: 0.8, h: 5 };
 
 const hasFloor = (c: Cell) => c !== 'void' && c !== 'wall' && c !== 'lava';
-
-/** Cells matching `match` merged into rectangles (greedy, row by row), each made into a box by `box`. */
-function merge(plan: FloorPlan, match: (c: Cell) => boolean, box: (col: number, row: number, w: number, h: number, c: Cell) => ArenaBox, out: ArenaBox[]) {
-  const done = new Uint8Array(GRID * GRID);
-  for (let row = 0; row < GRID; row++) {
-    for (let col = 0; col < GRID; col++) {
-      const c = cellAt(plan, col, row);
-      if (done[row * GRID + col] || !match(c)) continue;
-      let w = 1;
-      while (col + w < GRID && !done[row * GRID + col + w] && cellAt(plan, col + w, row) === c) w++;
-      let h = 1;
-      const rowFits = (r: number) => {
-        for (let k = 0; k < w; k++) if (done[r * GRID + col + k] || cellAt(plan, col + k, r) !== c) return false;
-        return true;
-      };
-      while (row + h < GRID && rowFits(row + h)) h++;
-      for (let r = row; r < row + h; r++) for (let k = col; k < col + w; k++) done[r * GRID + k] = 1;
-      out.push(box(col, row, w, h, c));
-    }
-  }
-}
-
-/** A box over cells (col, row)…(col + w − 1, row + h − 1) from y0 to y1. */
-function cellsBox(col: number, row: number, w: number, h: number, y0: number, y1: number, kind: BoxKind): ArenaBox {
-  return { x: cellX(col) + ((w - 1) * CELL) / 2, y: (y0 + y1) / 2, z: cellZ(row) + ((h - 1) * CELL) / 2, w: w * CELL, h: y1 - y0, d: h * CELL, kind };
-}
 
 /** The gate across a room's doorway on `side`. */
 function gateBox(r: PlacedRoom, side: Side): ArenaBox {
@@ -219,7 +199,7 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
   for (let row = 0; row < GRID; row++) {
     for (let col = 0; col < GRID; col++) {
       const c = cellAt(plan, col, row);
-      const b = c === 'palm' ? PALM : c === 'cactus' ? CACTUS : c === 'willow' || c === 'snag' ? WILLOW : null;
+      const b = c === 'palm' ? PALM : c === 'cactus' ? CACTUS : c === 'willow' || c === 'snag' || c === 'tree' ? WILLOW : null;
       if (b) boxes.push({ x: cellX(col), y: b.h / 2, z: cellZ(row), w: b.side, h: b.h, d: b.side, kind: 'block' });
     }
   }
@@ -288,5 +268,5 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
     dark: { min: { x: cellX(out.x0) - CELL / 2, z: cellZ(out.z0) - CELL / 2 }, max: { x: cellX(out.x1) + CELL / 2, z: cellZ(out.z1) + CELL / 2 } },
   };
   const tide = styleOf(plan.level).water === undefined ? [] : rooms.filter((r) => r.kind === 'fight').map((r): ArenaBox => ({ x: (r.min.x + r.max.x) / 2, y: 0, z: (r.min.z + r.max.z) / 2, w: r.max.x - r.min.x, h: 0, d: r.max.z - r.min.z, kind: 'accent' }));
-  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests, boss, sand, tide };
+  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests, boss, sand, tide, webs: websOf(plan), hives: hivesOf(plan) };
 }

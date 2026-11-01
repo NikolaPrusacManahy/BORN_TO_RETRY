@@ -18,6 +18,9 @@
 // Update 0.2.10 — floor 5's Drowned Temple (drownedRooms.ts): W a willow in a bed of mud (and no pits).
 // Update 0.2.11 — floor 6's Sunken Grove (sunkenRooms.ts): D a drowned tree in a bed of silt, ~ seaweed in a bed of
 // silt (floor).
+// Update 0.2.23 — floor 2's Venom Garden (venomRooms.ts): , a bed of earth (flowers, short grass, plants), G a bed of
+// tall grass (it parts round what walks through it), R a tree in a bed of earth, w a web on the floor (it slows you), h
+// a wasps' hive on the wall beside this cell (floor). Its boss room is its own, scorched.
 import type { Rng } from '../../core/rng';
 import { FIGHT_ROOMS as FIRST_ROOMS, quarter } from './fightRooms';
 import { LAVA_ROOMS } from './lavaRooms';
@@ -25,14 +28,15 @@ import { KEEP_ROOMS } from './keepRooms';
 import { DESERT_ROOMS } from './desertRooms';
 import { DROWNED_ROOMS } from './drownedRooms';
 import { SUNKEN_CHALLENGE, SUNKEN_ROOMS } from './sunkenRooms';
+import { SCORCHED_ROOM, VENOM_ROOMS } from './venomRooms';
 
 /** Every fight room (Update 0.0.20: the lava rooms too, from their floor on; Update 0.0.21: floor 3's). */
-export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...LAVA_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS, ...SUNKEN_ROOMS, SUNKEN_CHALLENGE];
+export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...VENOM_ROOMS, ...LAVA_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS, ...SUNKEN_ROOMS, SUNKEN_CHALLENGE];
 
 /** Update 0.0.21 — the rooms floor `floor` has. */
 export const onFloor = (t: RoomTemplate, floor: number) => (t.from ?? 1) <= floor && floor <= (t.until ?? Infinity);
 
-export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed';
+export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed' | 'bed' | 'grass' | 'tree' | 'web';
 export type RoomKind = 'start' | 'fight' | 'boss' | 'shop';
 
 export interface RoomTemplate {
@@ -68,6 +72,11 @@ const CHAR: Record<string, Cell> = {
   W: 'willow',
   D: 'snag',
   '~': 'weed',
+  ',': 'bed',
+  G: 'grass',
+  R: 'tree',
+  w: 'web',
+  h: 'floor',
 };
 
 export const START_ROOM: RoomTemplate = {
@@ -100,6 +109,9 @@ export const BOSS_ROOM: RoomTemplate = {
     '...............',
   ]),
 };
+
+/** Update 0.2.23 — floor `floor`'s boss room: floor 2's is scorched (venomRooms.ts), the rest the one above. */
+export const bossRoomOf = (floor: number): RoomTemplate => (floor === 2 ? SCORCHED_ROOM : BOSS_ROOM);
 
 /** Update 0.0.13 — the shop (the designer: a room with five floor tiles, each showing something to buy). */
 export const SHOP_ROOM: RoomTemplate = {
@@ -134,6 +146,8 @@ export interface RoomLayout {
   tiles: [number, number][];
   /** Update 0.0.21 — perches (on high ledges): where spitters stand. */
   perches: [number, number][];
+  /** Update 0.2.23 — cells beside a wall with a wasps' hive on it. */
+  hives: [number, number][];
 }
 
 /** The template's characters, turned and mirrored: what's at (col, row) of the varied room. */
@@ -159,6 +173,7 @@ export function layOut(t: RoomTemplate, rng: Rng): RoomLayout {
   const chestSpots: [number, number][] = [];
   const tiles: [number, number][] = [];
   const perches: [number, number][] = [];
+  const hives: [number, number][] = [];
   for (let row = 0; row < h; row++) {
     for (let col = 0; col < w; col++) {
       const ch = sourceChar(t, col, row, turn, flipX, flipZ);
@@ -166,8 +181,9 @@ export function layOut(t: RoomTemplate, rng: Rng): RoomLayout {
       if (ch === 'T') chestSpots.push([col, row]);
       if (ch === 'S') tiles.push([col, row]);
       if (ch === 'U') perches.push([col, row]);
+      if (ch === 'h') hives.push([col, row]);
       cells.push(ch === '?' ? (rng() < 0.5 ? 'low' : 'floor') : CHAR[ch] ?? 'floor');
     }
   }
-  return { template: t, w, h, cells, spawns, chestSpots, tiles, perches };
+  return { template: t, w, h, cells, spawns, chestSpots, tiles, perches, hives };
 }

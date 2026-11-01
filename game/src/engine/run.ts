@@ -55,7 +55,7 @@ import { RunBase } from './runBase';
 import { endsRun } from './runLinks';
 import { skullOf } from '../sim/combat/grab';
 import { jawsOf } from '../sim/combat/pin';
-import { sandSlow } from '../sim/dungeon/quicksand';
+import { sandSlow, webSlow } from '../sim/dungeon/quicksand';
 import { floodSlow, stepTide, tideSlow } from '../sim/dungeon/tide';
 import { Lobby, lobbyFocus, stepLobby } from '../sim/lobby/lobby';
 import { styleOf } from '../world/dungeon/styles';
@@ -91,11 +91,11 @@ export class Run extends RunBase {
       // (Update 0.2.10 — once the boss room's show starts, its water is the Drowned King's: the tide waits.)
       const bossOn = !!d && d.boss.beat !== 'waiting';
       // (Update 0.1.9 — and the weapon in your hand: the Dual Daggers' +15%.)
-      // (Update 0.2.4 — and quicksand.)
+      // (Update 0.2.4 — and quicksand. Update 0.2.23 — and webs.)
       // (Update 0.2.10 — and wading at high water, or in the Drowned King's. Update 0.2.11 — under water you swim.)
       p.swimTop = d ? (styleOf(this.level.floor).under ?? 0) : 0;
       const wade = d && p.swimTop === 0 ? (bossOn ? floodSlow(p, this.combat.flood) : tideSlow(p, d.tide, d.level.tide)) : 1;
-      p.speedMul = moveFactor(this.combat) * (d ? sandSlow(p, d.level.sand) * wade : 1);
+      p.speedMul = moveFactor(this.combat) * (d ? sandSlow(p, d.level.sand) * webSlow(p, d.level.webs) * wade : 1);
       p.hpBonus = hpBonusOf(this.combat.items);
       p.cards = this.combat.items.cards;
       const ci = this.combatIntent;

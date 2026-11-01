@@ -36,13 +36,14 @@ import { FOES6B } from './foes6b';
 import { WHALE } from './whale';
 import { UNDERWATER } from './underwater';
 import { ROOMS } from './rooms';
+import { GARDEN } from './garden';
 import { EXECUTION } from './execution';
 import { CROWD } from './crowd';
 import { SOUND } from './sound';
 import { GUN } from './gun';
 
 /** Panel order. */
-export const GROUPS: TuningGroup[] = [MOVE, DASH, SLIDE, WALL, WALLRUN, SLAM, SWIM, FISTS, WEAPONS, GUN, FEEDBACK, HEALTH, ENEMIES, FOES, FOES2, FOES3, FOES3B, FOES4, FOES5, FOES5B, FOES6, FOES6B, CROWD, BOSS, DRAGON, BONE_KING, DINO, DROWNED, WHALE, ROOMS, TIDE, UNDERWATER, EXECUTION, CINEMA, SOUND, MONEY, ITEMS, BONUS, CARDS, BUILDS, ARMS, CAMERA, LIGHT, LOBBY_LIGHT, SHAKE, TARGETS, LAB];
+export const GROUPS: TuningGroup[] = [MOVE, DASH, SLIDE, WALL, WALLRUN, SLAM, SWIM, FISTS, WEAPONS, GUN, FEEDBACK, HEALTH, ENEMIES, FOES, FOES2, FOES3, FOES3B, FOES4, FOES5, FOES5B, FOES6, FOES6B, CROWD, BOSS, DRAGON, BONE_KING, DINO, DROWNED, WHALE, ROOMS, GARDEN, TIDE, UNDERWATER, EXECUTION, CINEMA, SOUND, MONEY, ITEMS, BONUS, CARDS, BUILDS, ARMS, CAMERA, LIGHT, LOBBY_LIGHT, SHAKE, TARGETS, LAB];
 
 /** Named after the working title; kept when the game became Born To Retry so tuned values carry over. */
 export const TUNING_KEY = 'ruinbreaker-tuning';

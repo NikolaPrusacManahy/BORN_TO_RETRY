@@ -10,8 +10,9 @@ export function quarter(rows: string[]): string[] {
   return [...half, ...[...half].reverse()];
 }
 
-// Update 0.0.21 (the designer: floor 3 has only its own rooms) — floors 1 and 2 only.
-const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), until: 2 });
+// Update 0.0.21 (the designer: floor 3 has only its own rooms) — floors 1 and 2 only. Update 0.2.23 — floor 1 only
+// (floor 2 has its own: venomRooms.ts).
+const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), until: 1 });
 
 export const FIGHT_ROOMS: readonly RoomTemplate[] = [
   // Rows of columns to dodge between, two long walls across the far ends, crates round the middle.

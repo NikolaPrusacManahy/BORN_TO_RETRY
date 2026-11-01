@@ -13,8 +13,11 @@
 // moss, rotten surface, trees"): floor 3's stone rotted and furred with algae, the water's top just over the walls
 // (`under`: you swim), drowned trees in beds of silt (`sand`: the silt's colour), seaweed, mossy boulders for low cover
 // (`low`), no torches; the haze a bright blue-green.
+// Update 0.2.23 — floor 2 is the Venom Garden (the designer: "they need to match their enemies"): floor 1's brick ruins
+// overgrown in bright sun, the brick mossy, earth beds (`sand`: the earth's colour) with flowers, tall grass and trees,
+// bushes for low cover (`low`), green sludge in the pits (`pit`), the boss room's dead trees and logs charred (`burnt`).
 
-export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned' | 'sunken';
+export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned' | 'sunken' | 'venom';
 type Scale = [number, number, number];
 
 export interface DungeonStyle {
@@ -66,9 +69,26 @@ export interface DungeonStyle {
   /** Update 0.2.11 — fully under water: the water's top over the floor (m; you swim, sim/player/swim.ts), and no
    *  torches. */
   under?: number;
-  /** Update 0.2.11 — low cover's piece and its size (crates when not given). */
+  /** Update 0.2.11 — low cover's piece and its size (crates when not given). Update 0.2.23 — it grows out of a bed of
+   *  earth (floor 2's bushes: no paving under them). */
   low?: string;
   lowScale?: Scale;
+  lowBed?: boolean;
+  /** Update 0.2.23 — what fills the pits when it isn't lava (engine/lavaView.ts): its colours (sRGB hex) and its glow;
+   *  it bubbles. */
+  pit?: PitLook;
+  /** Update 0.2.23 — pieces recoloured whole, every material of them (the boss room's charred trees); ash's colour
+   *  (the boss room's beds). */
+  burnt?: Record<string, number>;
+  ash?: number;
+}
+
+/** Update 0.2.23 — a pit's look: its dark base, the glow's two colours it drifts between, how bright. */
+export interface PitLook {
+  base: number;
+  deep: number;
+  hot: number;
+  glow: number;
 }
 
 export const BRICK: DungeonStyle = {
@@ -177,6 +197,29 @@ export const SUNKEN: DungeonStyle = {
   lowScale: [2.1, 1.8, 1.75],
 };
 
-/** Floor `floor`'s look: floors 1 and 2 brick, floor 3 stone, floor 4 the desert, floor 5 the Drowned Temple, floor 6
+/** Update 0.2.23 — the Venom Garden: floor 1's brick, mossy and overgrown, in bright sun; earth beds, green sludge. */
+const CHAR = 0x2e2925;
+export const VENOM: DungeonStyle = {
+  ...BRICK,
+  id: 'venom',
+  litter: ['kit_n_Rock_Moss_1', 'kit_n_Rock_Moss_2', 'kit_n_WoodLog_Moss', 'kit_p1_Skull', 'kit_p2_Bones', 'kit_p2_Bones2', 'kit_n_Rock_Moss_6'],
+  core: [0.06, 0.065, 0.04],
+  tint: { Wall_Dark: 0x6f6d4c, Wall_Medium: 0x666647, Wall_Highlights: 0x8d8c66, Grey_Floor: 0x76785a, DarkGrey_Floor: 0x55573f, Green: 0x6a9a3c, DarkGreen: 0x467a2e, Rock: 0x9a9a84, Bone: 0xe2dcc0, Bones: 0xe2dcc0 },
+  floorTint: { Grey_Floor: 0x8b8c69 },
+  sky: 0xe8f0c8,
+  skyLight: 0xfbffe8,
+  ground: 0x6d7a40,
+  sun: 0xfff3cc,
+  sand: 0x5c4a32,
+  quicksand: 0x4a3b28,
+  pit: { base: 0x173a07, deep: 0x3d8a12, hot: 0x9ee024, glow: 0.9 },
+  low: 'kit_n_Bush_1',
+  lowScale: [1.5, 1.1, 1.2],
+  lowBed: true,
+  ash: 0x3b3631,
+  burnt: { kit_n_CommonTree_Dead_2: CHAR, kit_n_CommonTree_Dead_3: CHAR, kit_n_BirchTree_Dead_3: CHAR, kit_n_TreeStump: CHAR, kit_n_WoodLog: CHAR },
+};
+
+/** Floor `floor`'s look: floor 1 brick, floor 2 the Venom Garden (Update 0.2.23), floor 3 stone, floor 4 the desert, floor 5 the Drowned Temple, floor 6
  *  (and on) the Sunken Grove. */
-export const styleOf = (floor: number): DungeonStyle => (floor >= 6 ? SUNKEN : floor === 5 ? DROWNED : floor === 4 ? SAND : floor === 3 ? STONE : BRICK);
+export const styleOf = (floor: number): DungeonStyle => (floor >= 6 ? SUNKEN : floor === 5 ? DROWNED : floor === 4 ? SAND : floor === 3 ? STONE : floor === 2 ? VENOM : BRICK);

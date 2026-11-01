@@ -19,6 +19,7 @@
 // dressExtras.ts's; sand cells get no paving.
 // Update 0.2.9 — the walls' and ledges' cores moved to cores.ts, with feet under them and behind a pit's faces: the sky no
 // longer shows along their feet.
+// Update 0.2.23 — floor 2's Venom Garden (gardenDressing.ts): beds, tall grass, trees, webs, cobwebs, the boss room's ash.
 import { createRng } from '../../core/rng';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, Side } from './floorPlan';
 import { HEIGHT, LAVA_DEPTH } from './assemble';
@@ -27,6 +28,7 @@ import type { Cell } from './rooms';
 import { DungeonStyle, styleOf } from './styles';
 import { dressSand, dressShop, SANDY, SandCell } from './dressExtras';
 import { coresOf, surface } from './cores';
+import { dressBed, dressGarden, dressWeb, Mark } from './gardenDressing';
 
 export { CORE_BOTTOM, CORE_INSET } from './cores';
 
@@ -64,6 +66,9 @@ export interface Dressing {
   sand: SandCell[];
   /** Update 0.2.10 — lily pads on the tide (they ride its level: waterView.ts). */
   floats: Placement[];
+  /** Update 0.2.23 — floor 2's webs' sheets and its boss room's scorch marks (engine/gardenView.ts). */
+  webs: Mark[];
+  scorch: Mark[];
 }
 
 /** Kit pieces (export_dungeon_kit.py names). */
@@ -81,9 +86,6 @@ export const KIT = {
   banner: 'kit_p1_Banner_wall',
 } as const;
 
-/** The arch is stretched so its opening is the 4 m doorway (it's 2.3 m wide, 3.1 m tall as it comes). */
-export const ARCH_SCALE: [number, number, number] = [1.75, 1.2, 1];
-export const BARS_SCALE: [number, number, number] = [1.69, 1.12, 1];
 /** Update 0.0.20 — a column stack's middle pieces are this much shorter than their height (they overlap a little). */
 const STACK_OVERLAP = 0.01;
 const WALL_PIECE = 2;
@@ -115,6 +117,8 @@ export function dress(plan: FloorPlan): Dressing {
   const lava: Dressing['lava'] = [];
   const sand: SandCell[] = [];
   const floats: Placement[] = [];
+  const webs: Mark[] = [];
+  const scorch: Mark[] = [];
   const put = (piece: string, x: number, y: number, z: number, rot = 0, sx = 1, sy = 1, sz = 1) => pieces.push({ piece, x, y, z, rot, sx, sy, sz });
   const inRoom = new Int16Array(GRID * GRID).fill(-1);
   for (const r of plan.rooms) for (let row = -1; row <= r.layout.h; row++) for (let col = -1; col <= r.layout.w; col++) inRoom[(r.z0 + row) * GRID + r.x0 + col] = r.index;
@@ -128,7 +132,7 @@ export function dress(plan: FloorPlan): Dressing {
       const c = cellAt(plan, col, row);
       const x = cellX(col);
       const z = cellZ(row);
-      if (surface(c) && c !== 'lava' && !SANDY.has(c)) put(K.floor, x, K.floorY, z);
+      if (surface(c) && c !== 'lava' && !SANDY.has(c) && !(c === 'low' && K.lowBed)) put(K.floor, x, K.floorY, z);
       // A pit's sides: a face down to the lava on every side of this cell that looks onto it (walls get theirs below).
       if (surface(c) && c !== 'lava') {
         for (const [dc, dr, side] of DIRS) {
@@ -139,7 +143,7 @@ export function dress(plan: FloorPlan): Dressing {
       switch (c) {
         case 'lava':
           lava.push({ x, z });
-          if ((col * 3 + row * 5) % 11 === 0) torches.push({ x, y: -0.4, z });
+          if (!K.pit && (col * 3 + row * 5) % 11 === 0) torches.push({ x, y: -0.4, z });
           break;
         case 'wall':
           for (const [dc, dr, side] of DIRS) {
@@ -177,8 +181,17 @@ export function dress(plan: FloorPlan): Dressing {
         case 'weed':
           dressSand(c, x, z, rng, put, sand);
           break;
+        case 'bed':
+        case 'grass':
+        case 'tree':
+          dressBed(c, x, z, plan.rooms[inRoom[row * GRID + col]]?.kind === 'boss', rng, put, sand);
+          break;
+        case 'web':
+          dressWeb(x, z, rng, put, webs);
+          break;
         case 'low':
-          // (Update 0.2.11 — or the look's own: floor 6's mossy boulders.)
+          // (Update 0.2.11 — or the look's own: floor 6's mossy boulders. Update 0.2.23 — floor 2's bushes, in beds.)
+          if (K.lowBed) sand.push({ x, z, quick: false });
           if (K.low) put(K.low, x, 0, z, rng() * Math.PI * 2, ...(K.lowScale ?? [1, 1, 1]));
           else put(KIT.crate, x, 0, z, Math.floor(rng() * 4) * (Math.PI / 2), 1.38, 1, 1.38);
           break;
@@ -246,6 +259,7 @@ export function dress(plan: FloorPlan): Dressing {
     }
   }
   dressShop(plan, put);
+  if (K.id === 'venom') dressGarden(plan, inRoom, nearDoor, rng, put, scorch);
   // The way down: the wall over the wooden gate's doorway (on the room's side), a torch either side of it.
   const out = plan.wayOut;
   const ns = out.side === 'n' || out.side === 's';
@@ -267,7 +281,7 @@ export function dress(plan: FloorPlan): Dressing {
     put(KIT.torch, tx, TORCH_Y, tz, FACING[inward] - Math.PI / 2);
     torches.push({ x: ns ? tx : gx - ox * (CELL / 2 + 0.95), y: TORCH_Y + 1.2, z: ns ? gz - oz * (CELL / 2 + 0.95) : tz });
   }
-  return { pieces, gates, torches, cores: coresOf(plan), lava, style: K, sand, floats };
+  return { pieces, gates, torches, cores: coresOf(plan), lava, style: K, sand, floats, webs, scorch };
 }
 
 /** A column: one piece, or a stack up to the columns' height (a bottom, middles, a top). */

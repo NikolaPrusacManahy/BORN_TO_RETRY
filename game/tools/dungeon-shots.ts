@@ -5,6 +5,7 @@
 // Update 0.2.4 — the floor's sand (quicksand, and the beds palms and cacti stand in); the look's colours ride in `style`.
 // Update 0.2.9 — the slab under the floor only where the game has it (under the floor boxes: `floors`), so a gap at a
 // wall's foot shows the sky as it does in the game; and close looks along wall feet (`foot-…`).
+// Update 0.2.23 — floor 2's Venom Garden: its sludge's colour (the look's `pit`), looks into each of its rooms.
 // Update 0.2.10 — floor 5's water: the tide at high water over its rooms (`water`), its lily pads on it; and looks into
 // its rooms.
 //   npx tsx tools/dungeon-shots.ts <out folder> [seed] [floor]
@@ -18,6 +19,7 @@ import { CELL, cellAt, cellX, cellZ, GRID } from '../src/world/dungeon/floorPlan
 import { dress } from '../src/world/dungeon/dressing';
 import { planFloor } from '../src/world/dungeon/floorPlan';
 import { DESERT_ROOMS } from '../src/world/dungeon/desertRooms';
+import { VENOM_ROOMS } from '../src/world/dungeon/venomRooms';
 
 const out = process.argv[2];
 if (!out) throw new Error('usage: npx tsx tools/dungeon-shots.ts <out folder> [seed] [floor]');
@@ -54,7 +56,7 @@ const cams = [
 for (const r of level.rooms) {
   const id = level.plan.rooms[r.index].layout.template.id;
   // (Update 0.0.21 — and floor 3's two-level rooms. Update 0.2.4 — and floor 4's desert rooms.)
-  if (!id.startsWith('lava') && !['gauntlet', 'the keep', 'ramparts', 'towers', 'bridgeworks'].includes(id) && !DESERT_ROOMS.some((t) => t.id === id)) continue;
+  if (!id.startsWith('lava') && !['gauntlet', 'the keep', 'ramparts', 'towers', 'bridgeworks'].includes(id) && !DESERT_ROOMS.some((t) => t.id === id) && !VENOM_ROOMS.some((t) => t.id === id)) continue;
   const m = { x: (r.min.x + r.max.x) / 2, z: (r.min.z + r.max.z) / 2 };
   cams.push({ name: `${id.replace(/ /g, '-')}-high`, at: [r.min.x + 3, 14, r.min.z + 3], to: [m.x, -1, m.z] });
   cams.push({ name: `${id.replace(/ /g, '-')}-eye`, at: [r.min.x + 5, 1.6, m.z + 1], to: [m.x, 0, m.z] });
@@ -78,7 +80,8 @@ for (const r of level.rooms) {
 }
 const floors = level.arena.boxes.filter((b) => b.kind === 'floor').map((b) => ({ x: b.x, z: b.z, w: b.w, d: b.d }));
 const wet = d.style.water !== undefined;
-const lava = d.lava.map((c) => ({ m: new Matrix4().compose(new Vector3(c.x, -LAVA_DEPTH + 0.01, c.z), new Quaternion(), new Vector3(CELL, 0.02, CELL)).elements, color: [1, 0.32, 0.04] }));
+const pit = d.style.pit ? [(d.style.pit.deep >> 16) / 255, ((d.style.pit.deep >> 8) & 255) / 255, (d.style.pit.deep & 255) / 255] : [1, 0.32, 0.04];
+const lava = d.lava.map((c) => ({ m: new Matrix4().compose(new Vector3(c.x, -LAVA_DEPTH + 0.01, c.z), new Quaternion(), new Vector3(CELL, 0.02, CELL)).elements, color: pit }));
 const high = TIDE.v.depth;
 const water = wet ? { level: high, rooms: level.tide.map((b) => ({ x: b.x, z: b.z, w: b.w, d: b.d })) } : null;
 const pieces = [...d.pieces, ...(wet ? d.floats.map((f) => ({ ...f, y: high + 0.015 })) : [])];

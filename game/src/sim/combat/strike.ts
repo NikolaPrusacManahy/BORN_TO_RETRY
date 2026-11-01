@@ -5,6 +5,7 @@
 // Update 0.0.17 — a kill's coins (halves count as one more half the time; more with gold ingots on), and maybe a kill
 // bonus (not from a boss).
 // Update 0.1.19 — the Ninja may teleport away from a hit about to land (ninja.ts): it misses.
+// Update 0.2.23 — floor 2's wasps' hives are targets too (sim/dungeon/hives.ts): a ball on its wall.
 import { Vector3 } from 'three';
 import { ENEMIES } from '../../tuning/enemies';
 import { FEEDBACK } from '../../tuning/combat';
@@ -26,8 +27,9 @@ import { segmentDistance } from './geometry';
 import type { CombatEvent, CombatState } from './state';
 import { TARGET_SHAPES, dummyAxis, turretAxis } from './targets';
 import { hitTurret } from './turretDamage';
+import { HIVE_RADIUS, hitHive } from '../dungeon/hives';
 
-export type TargetKind = 'dummy' | 'turret' | 'enemy';
+export type TargetKind = 'dummy' | 'turret' | 'enemy' | 'hive';
 
 export interface TargetHit {
   kind: TargetKind;
@@ -73,6 +75,12 @@ export function nearestTarget(state: CombatState, from: Vector3, to: Vector3, ra
     enemyAxis(e, a, b);
     consider('enemy', i, radiusOf(e));
   });
+  state.hives.forEach((h, i) => {
+    if (h.broken) return;
+    a.copy(h.pos);
+    b.copy(h.pos);
+    consider('hive', i, HIVE_RADIUS);
+  });
   return out.index >= 0;
 }
 
@@ -85,6 +93,8 @@ export function hitTarget(state: CombatState, t: TargetHit, damage: number, knoc
       return hitTurret(state.turrets[t.index], damage);
     case 'enemy':
       return hitEnemy(state.enemies[t.index], damage, knock, dirX, dirZ, steady);
+    case 'hive':
+      return hitHive(state, t.index, damage);
   }
 }
 

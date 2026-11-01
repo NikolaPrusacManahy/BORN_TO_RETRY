@@ -38,6 +38,7 @@ import { Waves, createWaves } from '../enemies/waves';
 import { FistState, createFists } from './fists';
 import { HitStop } from './hitStop';
 import { Dummy, Orb, Turret, createDummy, createOrbs, createTurret } from './targets';
+import { Hive, resetHives } from '../dungeon/hives';
 
 /** The lab's RNG seed: the same seed, the same drops and waves. */
 export const LAB_SEED = 1;
@@ -55,8 +56,9 @@ export interface CombatState {
   quakes: Quake[];
   /** Update 0.0.21 — the Dragon's fire bombs falling. */
   bombs: Bomb[];
-  /** Update 0.2.4 — the Lizards' poison puddles. */
+  /** Update 0.2.4 — the Lizards' poison puddles. Update 0.2.23 — floor 2's wasps' hives (sim/dungeon/hives.ts). */
   puddles: Puddle[];
+  hives: Hive[];
   /** Update 0.0.11 — where enemies can walk (built once from the arena, one grid per size), and the way from anywhere
    *  to the player. */
   nav: Record<SizeClass, NavGrid>;
@@ -168,6 +170,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     quakes: createQuakes(),
     bombs: createBombs(),
     puddles: createPuddles(),
+    hives: [],
     nav,
     flow: { small: createFlow(nav.small), large: createFlow(nav.large), air: createFlow(nav.air) },
     weapon: null,
@@ -237,6 +240,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   clearQuakes(state.quakes);
   clearBombs(state.bombs);
   clearPuddles(state.puddles);
+  resetHives(state.hives);
   state.flow.small.target = state.flow.large.target = state.flow.air.target = -1;
   state.weapon = null;
   state.bag = createBag();
@@ -251,8 +255,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.volley = createVolley();
   state.gun = createGun();
   for (const k of state.knives) k.alive = false;
-  state.recallHeld = false;
-  state.smashHeld = false;
+  state.recallHeld = state.smashHeld = false;
   state.stands = createStands(arena.stands);
   state.rng = createRng(LAB_SEED);
   state.money = 0;
@@ -264,9 +267,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.grab = createGrab();
   state.pin = createPin();
   state.storm = 0;
-  state.tide = 0;
-  state.thorns = 0;
-  state.flood = 0;
+  state.tide = state.thorns = state.flood = 0;
   state.execAway = Infinity;
   state.kills = 0;
   for (const d of state.drops) d.alive = false;

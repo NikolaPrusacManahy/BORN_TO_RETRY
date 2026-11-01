@@ -2,12 +2,16 @@
 // back at the start of the floor; falling in with 50 or less, you die). A pit is a lava box under the floor's level
 // (assemble.ts). Landing in it burns you and takes you back to where the floor starts; the fight of the room you were
 // in stops (its enemies, shots and quakes gone, its gates open) and starts again when you walk back in. Pure.
+// Update 0.2.23 — floor 2's pits hold sludge (world/dungeon/styles.ts `pit`): it burns the same, and poisons you too.
 import type { ArenaBox, Spot } from '../../world/arena';
 import { HEALTH } from '../../tuning/health';
 import { LAB } from '../../tuning/lab';
 import { clearQuakes } from '../combat/quakes';
 import type { CombatState } from '../combat/state';
-import { killPlayer } from '../player/health';
+import { killPlayer, poisonPlayer } from '../player/health';
+import { styleOf } from '../../world/dungeon/styles';
+import { FOES2 } from '../../tuning/foes2';
+import { GARDEN } from '../../tuning/garden';
 import type { PlayerState } from '../player/state';
 import type { DungeonRun } from './roomLoop';
 
@@ -36,6 +40,7 @@ export function lavaStep(p: PlayerState, lava: readonly ArenaBox[], start: Spot,
     p.events.push('hurt', burn);
   }
   p.events.push('lavaBurn');
+  if (run && styleOf(run.level.plan.level).pit) poisonPlayer(p, FOES2.v.poisonDps, GARDEN.v.sludgePoison, 'lava');
   p.pos.set(start.x, start.y, start.z);
   p.vel.set(0, 0, 0);
   p.grounded = false;

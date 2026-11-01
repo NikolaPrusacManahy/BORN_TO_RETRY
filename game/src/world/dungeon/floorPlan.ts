@@ -22,7 +22,7 @@
 import { createRng, Rng } from '../../core/rng';
 import type { EnemyKind } from '../../sim/enemies/kinds';
 import { hasYeti, perchWaves, percherOf, planWaves } from '../../sim/dungeon/wavePlan';
-import { BOSS_ROOM, Cell, FIGHT_ROOMS, layOut, onFloor, RoomKind, RoomLayout, SHOP_ROOM, START_ROOM } from './rooms';
+import { bossRoomOf, Cell, FIGHT_ROOMS, layOut, onFloor, RoomKind, RoomLayout, SHOP_ROOM, START_ROOM } from './rooms';
 import { NO_WAY_OUT, stampWayOut, WayOut } from './wayOut';
 import { ROOMS } from '../../tuning/rooms';
 
@@ -149,7 +149,7 @@ export function planFloor(seed: number, level: number): FloorPlan {
   const add = (kind: RoomKind, slot: [number, number], depth: number, own = rng, challenge = false) => {
     // (A challenge room: one not on the floor yet, with a place for its chest.)
     const fresh = challenge ? (arena ?? fights.find((f) => f.rows.some((row) => row.includes('T')) && !rooms.some((r) => r.layout.template === f))) : undefined;
-    const t = kind === 'start' ? START_ROOM : kind === 'boss' ? BOSS_ROOM : kind === 'shop' ? SHOP_ROOM : (fresh ?? fights[rooms.filter((r) => r.kind === 'fight').length % fights.length]);
+    const t = kind === 'start' ? START_ROOM : kind === 'boss' ? bossRoomOf(level) : kind === 'shop' ? SHOP_ROOM : (fresh ?? fights[rooms.filter((r) => r.kind === 'fight').length % fights.length]);
     rooms.push({ index: rooms.length, kind, layout: layOut(t, own), slot, x0: 0, z0: 0, doors: [], depth, chest: null, waves: [], challenge });
     taken.add(key(slot));
     return rooms.length - 1;

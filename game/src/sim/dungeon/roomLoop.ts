@@ -23,6 +23,7 @@
 // Update 0.2.1 (the designer: "put 10 enemies at the same time, and it adds a new one from the counter when it gets
 // reduced to 9") — a challenge room opens with Challenge: on field (10) and keeps that many fighting while it has more
 // to send. An enemy with no free slot (bodies still lying) waits its turn: it's still to come.
+// Update 0.2.23 — floor 2's hives let wasps out while their room fights (hives.ts).
 import { createTide, Tide } from './tide';
 import { createRng, Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
@@ -44,6 +45,7 @@ import { createTreasure, raiseChest, Treasure } from './treasure';
 import { rewardDone, startReward, takeKeys } from './reward';
 import { CHEST_D, CHEST_W } from '../../world/dungeon/assemble';
 import { Checkpoint, doorSpot } from './checkpoint';
+import { armHives, stepHives } from './hives';
 
 /** Update 0.2.0 — 'reward': a challenge room won, shut until its reward is taken. */
 export type RoomState = 'idle' | 'fighting' | 'reward' | 'cleared';
@@ -128,6 +130,7 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
       rr.delay = FIRST_WAVE;
       for (const g of room.gates) run.shut[g] = true;
       enterNav(run, i, combat);
+      armHives(combat.hives, i);
       ev.push('gatesShut', i, (room.min.x + room.max.x) / 2, 1, (room.min.z + room.max.z) / 2);
       if (room.kind === 'boss') startShow(run.boss, combat, run.level.boss.portal);
     }
@@ -151,6 +154,7 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
       ev.push('gatesOpen', i, (room.min.x + room.max.x) / 2, 1, (room.min.z + room.max.z) / 2);
     }
     if (rr.state !== 'fighting') continue;
+    stepHives(combat, i, player, dt);
     let live = 0;
     for (const e of combat.enemies) if (isLive(e)) live++;
     rr.delay -= dt;

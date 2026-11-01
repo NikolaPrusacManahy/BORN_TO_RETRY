@@ -17,6 +17,9 @@
 // colour, its walls in the boss room's sliding blocks. Update 0.1.20 — the words over the doorways (roomSignsView.ts).
 // Update 0.2.10 — floor 5's water: the tide over its rooms and the lily pads on it (waterView.ts), its pools.
 // Update 0.2.11 — floor 6 under water (underwater.ts): the surface overhead, its haze, caustics on everything.
+// Update 0.2.23 — floor 2's Venom Garden: its sludge (lavaView.ts, the look's `pit`), its beds of earth and ash
+// (sandView.ts), its webs' sheets and scorch marks (gardenView.ts), its tall grass parting (grassShader.ts), its
+// charred trees (the look's `burnt`). The cores and the slab under the floor moved to dungeonSolid.ts.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { portalOpen, wallsOpen } from '../sim/dungeon/bossRoom';
@@ -37,6 +40,10 @@ import { lightNearest } from './torchLights';
 import { Underwater, underwaterOf } from './underwater';
 import { UNDERWATER } from '../tuning/underwater';
 import { SEAWEED } from '../world/dungeon/dressExtras';
+import { TALL_GRASS } from '../world/dungeon/gardenDressing';
+import { solidOf } from './dungeonSolid';
+import { GardenView } from './gardenView';
+import { grassPatch } from './grassShader';
 
 export const KIT_URL = '/models/dungeon/kit.glb';
 /** The sky (the background and the haze), and the sky light's colours above and from the ground. */
@@ -48,12 +55,8 @@ const GROUND_LIGHT = 0x7d6a55;
 const SUN = 0xfff0d6;
 const SUN_DIR = new THREE.Vector3(-0.45, 1, 0.35).normalize();
 const SHADOW_REACH = 40;
-/** The under-floor slab's colour (the floor's, darker) and how far under the floor it is (m). (The cores' colour is the
- *  floor's look's: Update 0.0.20.) */
-const UNDER = new THREE.Color().setRGB(0.045, 0.043, 0.062);
 /** Update 0.0.15 — the boss room's sliding walls: dark masses seen from above (their faces are brick). */
 const SHELL = new THREE.Color().setRGB(0.06, 0.048, 0.04);
-const UNDER_Y = -0.45;
 /** Torch lights that follow you, and how often they move to the nearest torches (s). */
 const LIGHTS = 8;
 const RELIGHT = 0.25;
@@ -83,6 +86,7 @@ export class DungeonView implements ArenaView {
   private readonly sand: SandView;
   private readonly water: WaterView;
   private readonly under: Underwater | null;
+  private readonly garden: GardenView;
   private relight = 0;
 
   constructor(
@@ -114,17 +118,18 @@ export class DungeonView implements ArenaView {
       this.group.add(l);
     }
     this.group.add(padsOf(this.level.arena.pads, this.mats, this.geos));
-    const box = this.solid();
+    const box = solidOf(this.group, this.dressing, level, this.mats, this.geos);
     const b = level.boss;
     const shellMat = new THREE.MeshStandardMaterial({ color: SHELL, roughness: 1 });
     this.mats.push(shellMat);
     this.shell = new Shell(b.start, b.end, shellMat, box);
     this.portal = new Portal(b.portal);
     this.woodGate = new WoodGate(scene, b, `FLOOR ${level.plan.level + 1}`);
-    this.lava = new LavaView(this.dressing.lava);
-    this.sand = new SandView(this.dressing.sand, look.sand, look.quicksand);
+    this.lava = new LavaView(this.dressing.lava, look.pit);
+    this.sand = new SandView(this.dressing.sand, look.sand, look.quicksand, look.ash);
+    this.garden = new GardenView(this.dressing.webs, this.dressing.scorch);
     this.water = new WaterView(level.tide, look.water ?? 0, level.boss.end);
-    this.group.add(this.sand.group, this.water.group);
+    this.group.add(this.sand.group, this.water.group, this.garden.group);
     this.under = underwaterOf(level, this.dressing.sand);
     if (this.under) this.group.add(this.under.group);
     this.group.add(this.shell.group, this.portal.group, this.lava.group, roomSigns(level.plan, this.mats, this.geos));
@@ -195,50 +200,23 @@ export class DungeonView implements ArenaView {
   }
 
   /** The kit's flat colours, a little rough; fire glows. Update 0.2.4 — recoloured as the look says (`piece`: the floor
-   *  tile has its own). */
+   *  tile has its own). Update 0.2.23 — or a piece recoloured whole (`burnt`); floor 2's tall grass parts. */
   private material(src: THREE.MeshStandardMaterial, piece = ''): THREE.Material {
     const mat = src.clone();
     const look = this.dressing.style;
     const base = src.name.split('.')[0];
-    const tint = (piece === look.floor ? look.floorTint?.[base] : undefined) ?? look.tint?.[base];
+    const tint = look.burnt?.[piece] ?? (piece === look.floor ? look.floorTint?.[base] : undefined) ?? look.tint?.[base];
     if (tint !== undefined) mat.color.setHex(tint);
     mat.roughness = 0.9;
     mat.metalness = 0;
     this.under?.patch(mat, SEAWEED.has(piece));
+    if (look.id === 'venom' && TALL_GRASS.has(piece)) grassPatch(mat);
     if (/fire|candle/i.test(src.name)) {
       mat.emissive.copy(src.color);
       mat.emissiveIntensity = 2.2;
     }
     this.mats.push(mat);
     return mat;
-  }
-
-  /** The walls' and ledges' cores, and the slab under the whole floor. Returns the unit box (the boss room's sliding
-   *  walls are made of it too). */
-  private solid(): THREE.BufferGeometry {
-    const cores = this.dressing.cores;
-    const box = new THREE.BoxGeometry(1, 1, 1);
-    const coreMat = new THREE.MeshStandardMaterial({ color: new THREE.Color().setRGB(...this.dressing.style.core), roughness: 1 });
-    const inst = new THREE.InstancedMesh(box, coreMat, cores.length);
-    cores.forEach((b, i) => {
-      pos.set(b.x, b.y, b.z);
-      scale.set(b.w, b.h, b.d);
-      inst.setMatrixAt(i, m.compose(pos, q.identity(), scale));
-    });
-    inst.computeBoundingSphere();
-    inst.receiveShadow = true;
-    // Under every floor box (not the pits: their lava shows).
-    const floors = this.level.arena.boxes.filter((b) => b.kind === 'floor');
-    const plane = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
-    const underMat = new THREE.MeshStandardMaterial({ color: UNDER, roughness: 1 });
-    const under = new THREE.InstancedMesh(plane, underMat, floors.length);
-    floors.forEach((b, i) => under.setMatrixAt(i, m.compose(pos.set(b.x, 0, b.z), q.identity(), scale.set(b.w, 1, b.d))));
-    under.computeBoundingSphere();
-    under.position.y = UNDER_Y;
-    this.group.add(inst, under);
-    this.mats.push(coreMat, underMat);
-    this.geos.push(box, plane);
-    return box;
   }
 
   /** `run`: its gates (shut or open) and the boss room's show; `at`: the camera, for the sun's shadows and the torch
@@ -289,6 +267,7 @@ export class DungeonView implements ArenaView {
     this.woodGate.dispose();
     this.lava.dispose();
     this.sand.dispose();
+    this.garden.dispose();
     this.water.dispose();
     this.under?.dispose();
     for (const mat of this.mats) mat.dispose();
