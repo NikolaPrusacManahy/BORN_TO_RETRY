@@ -10,6 +10,10 @@
 // be executed (it starts standing in front of you).
 // Update 0.2.15 — Bloodbath (its blast reaches further) and Adrenaline (your dashes back, untouchable a while), Fate
 // Cards since Update 0.2.16; and Reaper's Rhythm (the meter left half full).
+// Update 0.3.1 (the designer: "when in the air, player's body falls down and hands remain up"; "when a flying enemy is
+// up, we fall down and player execute the enemy off screen") — while you hold it you stay where you grabbed it, in the
+// air too (no falling, no slide, dash or wall run): the moves are laid out from there, so the view is on them. Let go,
+// you're free and fall as before.
 import { Vector3 } from 'three';
 import { CARDS } from '../../tuning/cards';
 import { boost, holds } from '../cards/cards';
@@ -132,6 +136,8 @@ export function tryExecute(state: CombatState, player: PlayerState, yaw: number,
   setPhase(e, 'held');
   e.vel.set(0, 0, 0);
   player.vel.set(0, 0, 0);
+  player.sliding = player.wallRunning = false;
+  player.dashTime = 0;
   player.invuln = Math.max(player.invuln, heldFor(e.kind) + 0.2);
   pose(ex, 0);
   state.events.push('execGrab', i, ex.grip.x, ex.grip.y, ex.grip.z);
@@ -172,6 +178,11 @@ export function stepExecution(state: CombatState, dt: number, player: PlayerStat
   const height = heightOf(ex.kind);
   const e = state.enemies[ex.target];
   const was = ex.t;
+  // (Update 0.3.1 — held where you grabbed it.)
+  if (!ex.thrown) {
+    player.pos.copy(ex.origin);
+    player.vel.set(0, 0, 0);
+  }
   ex.t += dt * Math.max(0.1, v.speed);
   // The slams, as they come.
   for (const k of move.keys) {

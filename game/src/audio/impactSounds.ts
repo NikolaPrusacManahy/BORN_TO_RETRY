@@ -1,0 +1,35 @@
+// Update 0.3.1 (the designer: "the impact feel … the way throwing punches feel … like Doom or Ultrakill") — under every
+// blow that lands, a deep thump you feel more than hear, whatever the blow's own sound (a recorded clip or the synth's);
+// a kill's deeper and longer, with a crack. (Its rush of air under a dash: taken out, the designer: "remove the rush of
+// air".) Each layer can be turned off in the Lab's Sounds (soundLayers.ts).
+import type { CombatEvent } from '../sim/combat/state';
+import type { AudioEngine } from './audio';
+import { crack, OFF, thump } from './soundLayers';
+
+/** A blow's thump (nothing for the rest). */
+export function impactLayer(a: AudioEngine, kind: CombatEvent, value: number) {
+  const hit = (gain: number, dur: number) => !OFF.has('thump') && thump(a, gain, dur);
+  switch (kind) {
+    case 'hitJab':
+      hit(0.32, 0.08);
+      return;
+    case 'hitFinisher':
+      hit(0.48, 0.11);
+      return;
+    case 'hitHeavy':
+      hit(0.55 + 0.3 * Math.min(1, value), 0.16);
+      return;
+    case 'hitSlam':
+    case 'hitSlash':
+    case 'hitPierce':
+    case 'hitThrown':
+      hit(0.42, 0.12);
+      return;
+    case 'kill':
+      if (!OFF.has('killThump')) thump(a, 0.7, 0.24);
+      if (!OFF.has('killCrack')) crack(a);
+      return;
+    default:
+      return;
+  }
+}

@@ -1,4 +1,5 @@
 // M1 — camera feel. Field of view itself is a player setting; these are the kicks and tilts on top.
+// Update 0.3.1 — the view widens more in a dash and at speed (the designer: "intense and fast").
 import { group, knob } from './schema';
 
 export const CAMERA = group('camera', 'Camera', {
@@ -9,9 +10,9 @@ export const CAMERA = group('camera', 'Camera', {
   kneelEyeHeight: knob(1.0, 0.5, 1.5, 0.01, 'Kneel eye height', 'Metres above the feet, kneeling at a chest.'),
   kneelPitch: knob(-28, -60, 0, 1, 'Kneel look', 'Degrees the view looks down at a chest while you open it.'),
   kneelTurn: knob(10, 2, 30, 1, 'Kneel turn', 'How fast the view turns to the chest.'),
-  dashFovKick: knob(8, 0, 30, 0.5, 'Dash FOV kick', 'Degrees added during a dash.'),
-  speedFov: knob(0.25, 0, 1.5, 0.05, 'Speed FOV', 'Degrees added per m/s above run speed.'),
-  speedFovMax: knob(10, 0, 30, 0.5, 'Speed FOV cap', 'Degrees.'),
+  dashFovKick: knob(14, 0, 30, 0.5, 'Dash FOV kick', 'Degrees added during a dash.'),
+  speedFov: knob(0.4, 0, 1.5, 0.05, 'Speed FOV', 'Degrees added per m/s above run speed.'),
+  speedFovMax: knob(16, 0, 30, 0.5, 'Speed FOV cap', 'Degrees.'),
   fovRate: knob(12, 2, 40, 1, 'FOV ease', 'How fast the FOV follows its target.'),
   landDip: knob(0.012, 0, 0.05, 0.001, 'Landing dip', 'Metres the view drops per m/s of landing speed.'),
   landDipMax: knob(0.3, 0, 1, 0.01, 'Landing dip cap', 'Metres.'),

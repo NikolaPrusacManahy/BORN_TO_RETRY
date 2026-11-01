@@ -2,14 +2,23 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.3.0: the air and the glow; settings in pages; no torch lights)
+## Next up (2026-11-01, Update 0.3.1: executions held where you are; punches and movement with more rush)
+- **The designer** (spec `MD_UPDATES/U031_EXECUTIONS_AND_RUSH.md`): an execution in the air let your body fall while
+  the hands stayed up (and a flier was executed off screen): now you **stay where you grabbed it** till you let go.
+  **Punches:** a freeze on every hit, harder shakes and kicks, more knockback, a deep thump under each blow. **Movement:**
+  the dash 40 m/s for 0.14 s, the slide 22 m/s lasting while held, a wider view at speed, **speed lines**. The Lab's
+  Sounds (F8) lists a punch's and a kill's sound layers (play each, turn each off); the designer found the finisher's
+  hit bad: it plays the jab's now, louder and lower.
+- Checked by tests (`test-exec-air.ts`, `test-rush.ts`); **unseen in the game**.
+- **Next (proposed):** brutal executions (slow motion, the camera lunging in), parrying shots back, a style rank,
+  launches and wall-splats.
+
+## Before (2026-11-01, Update 0.3.0: the air and the glow; settings in pages; no torch lights)
 - **The designer** (spec `MD_UPDATES/U030_AIR_AND_SETTINGS.md`): the graphics update's last part (each floor's motes,
   embers off lava, a glow round what shines as cheap halos, a red heartbeat at the screen's edge at low health); the
   settings in pages (General, Graphics, Audio, Controls; Glow and Effects in Graphics); and, the designer seeing 122–130
   fps where it was 144, **no torch lights** (8 point lights every surface paid for) and no glow on torches.
 - Checked by tests (`test-air.ts`); **unseen in the game**: the frame rate now, the halos, the motes, the pages' look.
-- **Next (the designer):** the gameplay feel, "like Doom or Ultrakill": punches' impact, brutal executions, fast
-  adrenaline dashes and slides. To be talked through first.
 
 ## Before (2026-11-01, Update 0.2.28: your blows and the deaths, the graphics update's third part)
 - **The designer: "Yes, part 3"** (spec `MD_UPDATES/U0228_BLOWS.md`): a swing's arc across your view (silver, gold, a

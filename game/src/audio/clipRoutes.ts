@@ -6,6 +6,8 @@
 // more it was charged; the Ki charge higher with each step; one bite for the Snake's and the Spider's; one whoosh for
 // either fist's punch, a heavy one louder the more it was charged; an execution's blows by their kind (a smash: the
 // ground slam's clip and thud). False: no clip, the caller plays its own.
+// Update 0.3.1 (the designer, in the Lab's Sounds: "punch finisher is bad") — a finisher's hit plays the jab's, louder
+// and lower (its own clip is no longer played).
 import type { CombatEvent } from '../sim/combat/state';
 import { kiFull } from '../sim/weapons/kiCharge';
 import { BLOWS } from '../sim/combat/execMoves';
@@ -19,6 +21,9 @@ const FAR: ReadonlySet<CombatEvent> = new Set<CombatEvent>(['gruntWindup', 'grun
 const BOSS: ReadonlySet<CombatEvent> = new Set<CombatEvent>(['dragonScream', 'demonSlam', 'demonCrash', 'dragonBreath', 'dragonFireball', 'demonVolley']);
 const FIRE_SHOTS: ReadonlySet<CombatEvent> = new Set<CombatEvent>(['dragonFireball', 'blueFireball', 'demonVolley']);
 const HAMMERS: ReadonlySet<string> = new Set(['hammer', 'goldHammer']);
+/** Update 0.3.1 — a finisher's hit: the jab's, this much louder and lower. */
+export const FINISHER_LOUDER = 1.2;
+export const FINISHER_LOWER = 0.88;
 /** An execution's blows by kind (a smash is the ground slam's). */
 const BLOW_CLIPS: Partial<Record<(typeof BLOWS)[number], ClipSound>> = { punch: 'blowPunch', chop: 'blowChop', tear: 'blowTear', crush: 'blowCrush' };
 
@@ -47,6 +52,8 @@ export function playClip(a: AudioEngine, kind: CombatEvent, value: number, far: 
       return a.clips.play('jab');
     case 'heavy':
       return a.clips.play('heavy', 0.7 + 0.5 * Math.min(1, value));
+    case 'hitFinisher':
+      return a.clips.play('hitJab', FINISHER_LOUDER, FINISHER_LOWER);
     case 'execBlow': {
       if (BLOWS[value] !== 'smash') return a.clips.play(BLOW_CLIPS[BLOWS[value]] ?? 'blowPunch');
       if (!a.clips.play('slamImpact')) return false;

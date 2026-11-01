@@ -41,7 +41,8 @@ section('Slide');
     run(p, w, 1, () => ({ slideHeld: true }));
     lasted++;
   }
-  check('the slide length is 0.5 s', SLIDE.knobs.maxTime.def === 0.5);
+  // (Update 0.3.1 — the designer: slides "intense and fast": 1.5 s, was 0.5.)
+  check('the slide length is 1.5 s', SLIDE.knobs.maxTime.def === 1.5);
   check('a slide lasts its length at most, even held', !p.sliding && near(lasted * (1 / 120), SLIDE.v.maxTime, 0.02), `${(lasted / 120).toFixed(2)} s`);
   run(p, w, ticks(0.5), () => ({ slideHeld: true }));
   check('holding on doesn\'t start another slide', !p.sliding);

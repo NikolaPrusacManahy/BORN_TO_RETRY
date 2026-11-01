@@ -141,6 +141,12 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   screen's edge beats red. **Options in pages:** General, Graphics (display, field of view, Glow, Effects high/low,
   Blood), Audio, Controls; each page can restore its defaults.
 
+### The rush (Update 0.3.1, the designer: "like Doom or Ultrakill"; spec `MD_UPDATES/U031_EXECUTIONS_AND_RUSH.md`)
+- Executions hold you where you grabbed the enemy (in the air too) till you let go. A freeze on every hit (jab 25 ms,
+  finisher 70, charged up to 120, kill 90), harder shakes and kicks, more knockback, a deep thump under every blow. The
+  dash 40 m/s for 0.14 s; the slide 22 m/s, lasting while held (1.5 s at most); the view widens 14° in a dash, up to 16°
+  at speed; speed lines. **(placeholder numbers, F1)**
+
 ### Fate Cards (Update 0.2.16, the designer; spec `MD_UPDATES/U0216_FATE_CARDS.md`; Update 0.2.15's Scars became 14 of them)
 - **When:** a boss's chest (not the run's last) and a challenge room's always **deal three Fate Cards**; a chest opened
   with a key deals them **one time in four instead of its loot** (the designer: "25% is fine"); a gold chest never. The

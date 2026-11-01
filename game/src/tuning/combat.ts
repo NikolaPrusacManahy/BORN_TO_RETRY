@@ -1,5 +1,7 @@
 // M1 step 6 — fists, hit feedback and the Feel Lab's targets. Damage in points, times in seconds unless the label
 // says ms, knockback in m/s.
+// Update 0.3.1 (the designer: "upgrade the gameplay feeling … the impact feel … like Doom or Ultrakill") — a freeze on
+// every hit (a jab's too), harder shakes and camera kicks, more knockback off a finisher and a charged punch.
 import { group, knob } from './schema';
 
 export const FISTS = group('fists', 'Fists', {
@@ -10,7 +12,7 @@ export const FISTS = group('fists', 'Fists', {
   jabInterval: knob(0.18, 0.05, 0.6, 0.01, 'Jab interval', 'Seconds between jabs.'),
   comboWindow: knob(0.4, 0.1, 1.5, 0.05, 'Combo window', 'Jab again within this to continue the combo.'),
   finisherDamage: knob(10, 1, 60, 1, 'Finisher damage', 'The third jab.'),
-  finisherKnock: knob(8, 0, 30, 0.5, 'Finisher knockback', 'm/s.'),
+  finisherKnock: knob(11, 0, 30, 0.5, 'Finisher knockback', 'm/s.'),
   // Update 0.0.17 (the designer: it felt uncomfortable to get this close): melee reach +30% (was 2.2).
   reach: knob(2.9, 1, 5, 0.1, 'Reach', 'How far a punch hits (m).'),
   radius: knob(0.6, 0.1, 1.5, 0.05, 'Punch width', 'Radius of the punch sweep (m).'),
@@ -18,20 +20,20 @@ export const FISTS = group('fists', 'Fists', {
   // (no light right-click punches).
   chargeTime: knob(1, 0.3, 3, 0.05, 'Charge time', 'Hold right click this long to throw the charged punch; letting go sooner cancels it.'),
   chargeDamage: knob(60, 1, 200, 1, 'Charged punch damage', 'Damage.'),
-  chargeKnock: knob(20, 0, 60, 0.5, 'Charged punch knockback', 'm/s.'),
+  chargeKnock: knob(26, 0, 60, 0.5, 'Charged punch knockback', 'm/s.'),
 });
 
 export const FEEDBACK = group('feedback', 'Hit feel', {
-  stopJab: knob(0, 0, 200, 5, 'Hit-stop: jab (ms)', 'Freeze on a jab hit.'),
-  stopFinisher: knob(40, 0, 200, 5, 'Hit-stop: finisher (ms)', 'Freeze on the third jab.'),
-  stopHeavy: knob(70, 0, 300, 5, 'Hit-stop: charged (ms)', 'Freeze on a charged punch, scaled by charge.'),
-  stopKill: knob(50, 0, 300, 5, 'Hit-stop: kill (ms)', 'Freeze when a target breaks. The longest freeze wins; they never add.'),
-  shakeJab: knob(0.08, 0, 1, 0.01, 'Shake: jab', 'Trauma added.'),
-  shakeFinisher: knob(0.18, 0, 1, 0.01, 'Shake: finisher', 'Trauma added.'),
-  shakeHeavy: knob(0.35, 0, 1, 0.01, 'Shake: charged', 'Trauma at full charge.'),
-  shakeKill: knob(0.25, 0, 1, 0.01, 'Shake: kill', 'Trauma added.'),
-  kickJab: knob(0.6, 0, 5, 0.1, 'Camera kick: jab (°)', 'The view nods on a hit.'),
-  kickHeavy: knob(1.8, 0, 8, 0.1, 'Camera kick: charged (°)', 'At full charge.'),
+  stopJab: knob(25, 0, 200, 5, 'Hit-stop: jab (ms)', 'Freeze on a jab hit.'),
+  stopFinisher: knob(70, 0, 200, 5, 'Hit-stop: finisher (ms)', 'Freeze on the third jab.'),
+  stopHeavy: knob(120, 0, 300, 5, 'Hit-stop: charged (ms)', 'Freeze on a charged punch, scaled by charge.'),
+  stopKill: knob(90, 0, 300, 5, 'Hit-stop: kill (ms)', 'Freeze when a target breaks. The longest freeze wins; they never add.'),
+  shakeJab: knob(0.12, 0, 1, 0.01, 'Shake: jab', 'Trauma added.'),
+  shakeFinisher: knob(0.26, 0, 1, 0.01, 'Shake: finisher', 'Trauma added.'),
+  shakeHeavy: knob(0.5, 0, 1, 0.01, 'Shake: charged', 'Trauma at full charge.'),
+  shakeKill: knob(0.35, 0, 1, 0.01, 'Shake: kill', 'Trauma added.'),
+  kickJab: knob(1.1, 0, 5, 0.1, 'Camera kick: jab (°)', 'The view nods on a hit.'),
+  kickHeavy: knob(3, 0, 8, 0.1, 'Camera kick: charged (°)', 'At full charge.'),
   sparks: knob(10, 0, 40, 1, 'Sparks', 'Sparks per hit.'),
 });
 

@@ -1,4 +1,7 @@
 // M1 — movement feel. Distances in metres, speeds in m/s, times in seconds.
+// Update 0.3.1 (the designer: "the dashes and sliding to be intense and fast and very adrenaline like") — the dash
+// faster and snappier (40 m/s for 0.14 s: about as far), more speed kept out of it; the slide faster (22 m/s) and
+// lasting while you hold it (1.5 s at most).
 import { group, knob } from './schema';
 
 export const MOVE = group('movement', 'Movement', {
@@ -15,22 +18,22 @@ export const MOVE = group('movement', 'Movement', {
 });
 
 export const DASH = group('dash', 'Dash', {
-  speed: knob(30, 10, 80, 1, 'Dash speed', 'm/s.'),
-  duration: knob(0.18, 0.05, 0.5, 0.01, 'Dash length', 'Seconds.'),
+  speed: knob(40, 10, 80, 1, 'Dash speed', 'm/s.'),
+  duration: knob(0.14, 0.05, 0.5, 0.01, 'Dash length', 'Seconds.'),
   charges: knob(3, 1, 6, 1, 'Charges', 'Dashes before you run dry.'),
   refillTime: knob(1.2, 0.2, 5, 0.1, 'Refill time', 'Seconds to refill one charge.'),
-  exitSpeed: knob(14, 0, 40, 0.5, 'Exit speed', 'Speed left when a dash ends (m/s).'),
+  exitSpeed: knob(17, 0, 40, 0.5, 'Exit speed', 'Speed left when a dash ends (m/s).'),
   jumpKeep: knob(0.75, 0, 1, 0.05, 'Dash-jump keep', 'Share of dash speed kept when you jump out of a dash.'),
   gravity: knob(0, 0, 1, 0.05, 'Gravity while dashing', 'Share of gravity during a dash (0 = dead flat).'),
 });
 
 export const SLIDE = group('slide', 'Slide', {
-  speedFloor: knob(16, 6, 40, 0.5, 'Slide speed', 'A slide is never slower than this (m/s).'),
+  speedFloor: knob(22, 6, 40, 0.5, 'Slide speed', 'A slide is never slower than this (m/s).'),
   friction: knob(0, 0, 30, 0.5, 'Slide friction', 'Speed lost per second while sliding (never below run speed).'),
   steer: knob(1.2, 0, 6, 0.1, 'Slide steering', 'How fast you can bend a slide (rad/s).'),
   jumpKeep: knob(1, 0, 1.5, 0.05, 'Slide-jump keep', 'Share of slide speed kept when you jump out of a slide.'),
   // Update 0.0.3 (the designer): a slide ends after 0.5 s (1 s was too long); press again to slide again.
-  maxTime: knob(0.5, 0.2, 3, 0.05, 'Slide length', 'Seconds a slide lasts at most (longer only while there is no room to stand).'),
+  maxTime: knob(1.5, 0.2, 3, 0.05, 'Slide length', 'Seconds a slide lasts at most (longer only while there is no room to stand).'),
   rampTime: knob(0.12, 0, 0.5, 0.01, 'Slide ease-in', 'Seconds to reach slide speed, so landing into a slide is smooth.'),
 });
 

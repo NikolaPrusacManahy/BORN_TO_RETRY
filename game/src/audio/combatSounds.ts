@@ -35,6 +35,8 @@ import { playGun } from './gunSounds';
 import { playFoes3b } from './foes3bSounds';
 import { noise, tone } from './synth';
 import { playClip } from './clipRoutes';
+import { impactLayer } from './impactSounds';
+import { layerOf, OFF } from './soundLayers';
 
 /** Sounds from far targets are quieter (m at which they're half as loud). */
 const HALF_DISTANCE = 12;
@@ -56,6 +58,10 @@ export class CombatSounds {
     const a = this.a;
     const far = HALF_DISTANCE / (HALF_DISTANCE + dist);
     if (kind === 'slash') this.swung = WEAPON_KINDS[value] ?? '';
+    // (Update 0.3.1 — a thump under every blow that lands; a punch's or a kill's own sound turned off in the Lab: none.)
+    impactLayer(a, kind, value);
+    const layer = layerOf(kind);
+    if (layer && OFF.has(layer)) return;
     if (playClip(a, kind, value, far, this.swung)) return;
     switch (kind) {
       case 'jabL':

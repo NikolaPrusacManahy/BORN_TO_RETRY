@@ -196,6 +196,7 @@ export class Run extends RunBase {
     tv.update(this.combat, this.camera.position, gameDt);
     this.arms.chest.update(tv.reach.k, tv.reach.left, tv.reach.right, this.camera, this.arms.camera);
     this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt, this.clock.alpha);
+    this.combatScene.speed(Math.hypot(p.vel.x, p.vel.z), real);
     followHeld(this.combat, this.look, this.arms, this.camera, real);
     const free = locked && !p.dead && !this.show.locked && !shot.cinematic && !chestShot && !execHeld(this.combat.exec);
     const lobby = this.level.lobby;
