@@ -135,25 +135,17 @@ section('Fate Cards — Crater and Pogo');
 
 section('Fate Cards — Hair Trigger and Iron Knuckles');
 {
-  const charge = (card: boolean, dashes: number, hold: number) => {
+  // (Update 0.3.5 — the parry's window: the charged punch it quickened is gone.)
+  const opened = (card: boolean) => {
     const c = createCombat(OPEN_ARENA);
     if (card) c.items.cards.add('hairTrigger');
     const p = createPlayer(0, 0, 0, 0);
-    p.grounded = true;
-    p.dashCharges = dashes;
     const intent = emptyCombatIntent();
     intent.heavyHeld = true;
-    const world = new FlatWorld();
-    for (let k = 0; k < ticks(hold); k++) stepCombat(c, p, intent, world, DT);
-    c.events.clear();
-    intent.heavyHeld = false;
-    stepCombat(c, p, intent, world, DT);
-    return { thrown: kinds(c).includes('heavy'), dashes: p.dashCharges };
+    stepCombat(c, p, intent, new FlatWorld(), DT);
+    return c.fists.parryWindow;
   };
-  const half = FISTS.v.chargeTime * CARDS.v.hairTrigger + 0.05;
-  const quick = charge(true, 3, half);
-  check(`Hair Trigger: the charged punch is ready in ${half.toFixed(2)} s, for a dash`, quick.thrown && quick.dashes === 2);
-  check('with no dash to pay, or without it, the full charge as before', !charge(true, 0.5, half).thrown && !charge(false, 3, half).thrown && charge(false, 3, FISTS.v.chargeTime + 0.05).dashes === 3);
+  check(`Hair Trigger: the parry stays open ${(1 / CARDS.v.hairTrigger).toFixed(1)}× as long`, near(opened(true), FISTS.v.parryWindow / CARDS.v.hairTrigger, 1e-9) && near(opened(false), FISTS.v.parryWindow, 1e-9));
   // (Any hit already staggers the rest: a mini boss is what a jab can't stagger.)
   const jab = (card: boolean, kind: 'brute' | 'demon' = 'brute') => {
     const c = createCombat(OPEN_ARENA);

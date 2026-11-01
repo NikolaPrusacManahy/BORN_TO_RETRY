@@ -1,6 +1,6 @@
 // Update 0.2.15 — what the Scars did in a fight. Update 0.2.16 — the Fate Cards' (cards.ts), where it isn't a number
 // changed in place: Shoulder Charge and Bowling (a dash or a slide into an enemy throws it back and staggers it: no
-// damage), Pogo (a killing slam bounces you back up), Hair Trigger (a charged punch twice as quick, for a dash), Iron
+// damage), Pogo (a killing slam bounces you back up), Hair Trigger (the parry open twice as long; 0.3.5), Iron
 // Knuckles (a punch on an enemy winding up makes it start over: a mini boss's, as any hit already staggers the rest),
 // Ricochet (a thrown weapon turns to the next enemy); and what kills set off (Bloodrush, Killing Spree, Giant Killer),
 // what a hit is worth (Mercy Kill, the meter's Air Butcher and Reaper's Rhythm), Cold Snap's freeze, Blood Money's
@@ -12,6 +12,7 @@ import { EXECUTION } from '../../tuning/execution';
 import { MOVE } from '../../tuning/movement';
 import { wallBetween } from '../../world/navGrid';
 import { burstCoins } from '../combat/coins';
+import type { ParryTimes } from '../combat/fists';
 import type { CombatState } from '../combat/state';
 import { Enemy, isLive, radiusOf, setPhase } from '../enemies/enemy';
 import { ENEMY_STATS, MINI_BOSSES } from '../enemies/kinds';
@@ -29,8 +30,6 @@ const TOUCH = 0.35;
 const NONE = 0;
 const DASH_MOVE = 1;
 const SLIDE_MOVE = 2;
-/** Giant Killer's charged punch: this many times as quick (as good as instant). */
-const INSTANT = 50;
 /** Killing Spree remembers this many kills' times. */
 const SPREE_MEMORY = 8;
 
@@ -111,7 +110,7 @@ export function mercy(state: CombatState, e: Enemy, damage: number): number {
   return e.hp - damage < ENEMY_STATS[e.kind]().hp * CARDS.v.mercyKill * boost(state, 'mercyKill') ? Math.max(damage, e.hp) : damage;
 }
 
-/** Cold Snap: enemy `i`, hit by a charged punch or a slam, freezes (not a boss). */
+/** Cold Snap: enemy `i`, hit by a parried shot (Update 0.3.5; a charged punch before) or a slam, freezes (not a boss). */
 export function chill(state: CombatState, i: number) {
   const e = state.enemies[i];
   if (!holds(state, 'coldSnap') || !isLive(e) || ENEMY_STATS[e.kind]().boss) return;
@@ -160,20 +159,21 @@ export function pogo(state: CombatState, player: PlayerState, kills: number) {
   state.events.push('cardPogo', kills, player.pos.x, player.pos.y, player.pos.z);
 }
 
-/** How fast the charge (right click held) fills, ×1 as tuned: Hair Trigger's fists twice as quick while you have a
- *  dash to pay, Giant Killer's at once, Quick Hands' weapon charges quicker. */
-export function chargeRate(state: CombatState, player: PlayerState): number {
-  // (Update 0.2.19 — Heavy Hands, a Death Card: slower.)
+/** How fast a weapon's charge (right click held) fills, ×1 as tuned: Quick Hands' quicker. (Update 0.2.19 — Heavy
+ *  Hands, a Death Card: slower.) Update 0.3.5 — the fists have no charge any more (right click is the parry). */
+export function chargeRate(state: CombatState): number {
   const heavy = holds(state, 'heavyHands') ? 1 / (1 + CARDS.v.heavyHands) : 1;
-  if (state.weapon !== null) return handsRate(state) * heavy;
-  if (state.giant > 0) return INSTANT;
-  return (holds(state, 'hairTrigger') && player.dashCharges >= 1 ? 1 / Math.max(0.05, CARDS.v.hairTrigger) : 1) * heavy;
+  return (state.weapon !== null ? handsRate(state) : 1) * heavy;
 }
 
-/** Hair Trigger: a charged punch let go pays its dash (not while Giant Killer's on). */
-export function payCharge(state: CombatState, player: PlayerState) {
-  if (holds(state, 'hairTrigger') && state.giant <= 0 && player.dashCharges >= 1) player.dashCharges -= 1;
+/** Update 0.3.5 — the parry's window and wait: Hair Trigger's window as much longer as it made the charge quicker;
+ *  Giant Killer's no wait while it's on. */
+export function parryTimes(state: CombatState): ParryTimes {
+  TIMES.window = FISTS.v.parryWindow * (holds(state, 'hairTrigger') ? 1 / Math.max(0.05, CARDS.v.hairTrigger) : 1);
+  TIMES.cooldown = state.giant > 0 ? 0 : FISTS.v.parryCooldown;
+  return TIMES;
 }
+const TIMES: ParryTimes = { window: 0, cooldown: 0 };
 
 /** Iron Knuckles: enemy `i`, just punched, starts its windup over (not a boss). */
 export function stall(state: CombatState, i: number) {

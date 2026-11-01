@@ -209,7 +209,7 @@ section('Death Cards — your fight');
   const rotten = worn('rottenGrip');
   const sound = worn();
   check('Rotten Grip: weapons wear out twice as fast', sound > 0 && rotten === sound * 2, `${rotten} vs ${sound}`);
-  check(`Heavy Hands: charges take ${Math.round(v.heavyHands * 100)}% longer`, near(chargeRate(fight('heavyHands'), body()), 1 / (1 + v.heavyHands), 1e-9) && chargeRate(fight(), body()) === 1);
+  check(`Heavy Hands: charges take ${Math.round(v.heavyHands * 100)}% longer`, near(chargeRate(fight('heavyHands')), 1 / (1 + v.heavyHands), 1e-9) && chargeRate(fight()) === 1);
   const cramped = jabs('cramp');
   const free = jabs();
   check('Cramp: your attacks are slower', cramped < free, `${cramped} vs ${free} jabs a second`);

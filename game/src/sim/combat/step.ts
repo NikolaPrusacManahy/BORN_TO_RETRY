@@ -62,11 +62,11 @@ import { updateBonuses } from '../items/bonuses';
 import { attackRate } from '../items/items';
 import { emptyHand, giveWeapon, selectSlot, settleHand } from '../weapons/slots';
 import type { CombatState } from './state';
-import { stepParried } from './parry';
+import { parry, stepParried } from './parry';
 import { execHeld, execTarget, stepExecution, tryExecute } from './execution';
 import { stepFlood } from '../enemies/drownedKingMoves';
 import { updateTurret } from './turret';
-import { bumpEnemies, chargeRate, fistFactor, frenzyFactor, payCharge, pogo, tickCards } from '../cards/cardMoves';
+import { bumpEnemies, chargeRate, fistFactor, frenzyFactor, parryTimes, pogo, tickCards } from '../cards/cardMoves';
 import { splinter, tickPowers } from '../cards/cardPowers';
 import { staticStep, tremors } from '../cards/buildPowers';
 import { holds } from '../cards/cards';
@@ -201,9 +201,15 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     fistIntent = Object.assign(CLICK, fistIntent);
     CLICK.attackPressed = true;
   }
-  // (Update 0.2.15 — Hair Trigger: the fists' charge fills quicker, for a dash.)
-  let swung = axe || volley || gun || clasped ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate, chargeRate(state, player));
-  if (swung && punch.kind === 'heavy') payCharge(state, player);
+  // (Update 0.3.5 — barehanded, right click is the parry: Hair Trigger's longer window, Giant Killer's no wait.)
+  let swung = axe || volley || gun || clasped ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate, chargeRate(state), parryTimes(state));
+  // (With the fists not in play — a weapon's own right click, the slam's clasp — no block, and the window shuts.)
+  if (axe || volley || gun || clasped) state.fists.guarding = false;
+  if (axe || volley || gun || clasped) state.fists.parryWindow = 0;
+  if (state.fists.parryWindow > 0) {
+    aim(player, intent.yaw, intent.pitch, eye, dir);
+    if (parry(state, eye, dir) >= 0) state.fists.parryWindow = 0;
+  }
   // (Update 0.2.16 — All In, a Fate Card: your fists hit twice as hard.)
   if (swung) punch.damage *= fistFactor(state);
   if (axe && w) {

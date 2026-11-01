@@ -2,7 +2,14 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.3.4: the style rank; the speed lines taken out)
+## Next up (2026-11-01, Update 0.3.5: right click is the parry)
+- **The designer: "no more heavy punches from fists, now right click is parry"** (spec
+  `MD_UPDATES/U035_PARRY_ON_RIGHT_CLICK.md`): barehanded, right click held raises a block (both fists up before the
+  face); its press opens a 0.2 s parry window (0.4 s before the next), so it must be timed; holding doesn't parry.
+  Punches no longer parry; no charged punch (weapons still charge). Hair Trigger, Cold Snap, Thunderclap, Powder Keg and
+  Giant Killer now act on the parry. Checked by tests and renders of the pose; **unseen in the game**.
+
+## Before (2026-11-01, Update 0.3.4: the style rank; the speed lines taken out)
 - **The designer** (spec `MD_UPDATES/U034_STYLE_RANK.md`): a style rank, D to SSS, "a nice visual for now, no
   bonuses", aggressive (a huge slanted letter, a draining bar, a feed slamming in; trembling and splitting from S up);
   variety climbs it, it drains, hurts knock it down. The speed lines are gone ("too much space on the screen").

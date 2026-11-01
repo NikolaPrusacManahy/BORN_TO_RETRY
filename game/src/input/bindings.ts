@@ -8,6 +8,7 @@
 // Update 0.0.16 — Switch key (the wheel): the key you'll use at a chest.
 // Update 0.0.17 — Weapon 1–5 (the number keys): the weapon slots (1 is your fists).
 // Update 0.2.4 — Reload (R): the Pistol's magazine.
+// Update 0.3.5 — right click barehanded is the parry (no charged punch): 'heavy' shown as Parry.
 
 export type Action = 'forward' | 'back' | 'left' | 'right' | 'jump' | 'dash' | 'slide' | 'slam' | 'attack' | 'heavy' | 'throw' | 'reload' | 'interact' | 'switchKey' | 'inventory' | 'slot1' | 'slot2' | 'slot3' | 'slot4' | 'slot5';
 /** Update 0.0.17 — the weapon slot actions, in slot order. */
@@ -25,7 +26,7 @@ export const ACTIONS: { id: Action; label: string }[] = [
   { id: 'slide', label: 'Slide' },
   { id: 'slam', label: 'Slam' },
   { id: 'attack', label: 'Attack' },
-  { id: 'heavy', label: 'Heavy' },
+  { id: 'heavy', label: 'Parry' },
   { id: 'throw', label: 'Throw' },
   { id: 'reload', label: 'Reload' },
   { id: 'interact', label: 'Interact' },

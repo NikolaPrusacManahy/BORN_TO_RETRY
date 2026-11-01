@@ -1,5 +1,6 @@
 // M1 step 6 — the fists: jab combo and its timing, holding to keep punching, charged punch scaling, and hit-stop.
-// (Update 0.0.10 — the quick punch is gone: the designer.)
+// (Update 0.0.10 — the quick punch is gone: the designer.) Update 0.3.5 — barehanded, right click is the parry (no
+// charged punch: a weapon's right click still charges).
 import { check, near, section } from './harness';
 import { DT, ticks } from './fakes/flatWorld';
 import { EventQueue } from '../src/core/eventQueue';
@@ -50,26 +51,37 @@ section('Fists — jab combo');
   check('waiting past the combo window restarts the combo', after.length === 1 && after[0].kind === 'jab' && g.combo === 1);
 }
 
-section('Fists — charged punch');
+section('Fists — right click is the parry');
 {
-  // Update 0.0.3 (the designer): right click is never a light punch; hold 1 s or it cancels.
-  check('the charge time is 1 s', FISTS.knobs.chargeTime.def === 1);
+  // Update 0.3.5 (the designer: "no more heavy punches from fists, now right click is parry … it still has to time the
+  // hit with the projectile properly").
+  const count = (kind: string) => kinds().filter((k) => k === kind).length;
   const f = createFists();
   events.clear();
-  const tap = run(f, ticks(0.3) + 1, (i) => ({ heavyHeld: i < ticks(0.3) }));
-  check('letting go of right click early throws nothing', tap.length === 0 && kinds().includes('chargeCancel'));
+  const held = run(f, ticks(FISTS.v.chargeTime + 0.5), () => ({ heavyHeld: true, attackHeld: true }));
+  check('barehanded, right click held throws nothing, not even jabs: the block', held.length === 0 && f.guarding && count('chargeStart') === 0 && count('chargeReady') === 0);
+  check('letting go throws no charged punch either', run(f, 1).length === 0 && !f.guarding && count('heavy') === 0);
   const g = createFists();
-  const short = ticks(FISTS.v.chargeTime - 0.05);
-  check('even just short of the charge time cancels', run(g, short + 1, (i) => ({ heavyHeld: i < short })).length === 0);
-  const h = createFists();
-  const hold = ticks(FISTS.v.chargeTime) + 2;
   events.clear();
-  const full = run(h, hold + 1, (i) => ({ heavyHeld: i < hold }));
-  check('holding the full time readies the punch', kinds().includes('chargeReady'));
-  check('letting go then throws it', full.length === 1 && full[0].kind === 'heavy' && full[0].damage === FISTS.v.chargeDamage && full[0].knock === FISTS.v.chargeKnock && full[0].charge === 1);
-  const k = createFists();
-  const none = run(k, ticks(0.3), () => ({ heavyHeld: true, attackHeld: true }));
-  check('no jabs while charging', none.length === 0);
+  run(g, 1, () => ({ heavyHeld: true }));
+  check(`its press opens the parry's window (${FISTS.v.parryWindow} s)`, near(g.parryWindow, FISTS.v.parryWindow, 1e-9) && count('guard') === 1);
+  run(g, ticks(FISTS.v.parryWindow) + 1, () => ({ heavyHeld: true }));
+  check('held on, it shuts on time: holding is the block, not the parry', g.parryWindow === 0 && g.guarding && count('guard') === 1);
+  run(g, 1);
+  run(g, 1, () => ({ heavyHeld: true }));
+  check(`pressed again before its cooldown (${FISTS.v.parryCooldown} s) is up: no window`, g.parryWindow === 0 && count('guard') === 1);
+  run(g, 1);
+  run(g, ticks(FISTS.v.parryCooldown));
+  run(g, 1, () => ({ heavyHeld: true }));
+  check('after it, a press opens it again', g.parryWindow > 0 && count('guard') === 2);
+  // A weapon's right click charges as before (the fists' charge time, Update 0.0.3).
+  check('the charge time is 1 s', FISTS.knobs.chargeTime.def === 1);
+  const h = createFists();
+  events.clear();
+  const hold = ticks(FISTS.v.chargeTime) + 2;
+  let blow: Punch | null = null;
+  for (let i = 0; i <= hold; i++) if (updateFists(h, { ...emptyCombatIntent(), heavyHeld: i < hold }, events, DT, punch, true)) blow = { ...punch };
+  check('with a weapon, right click held charges its blow (a pierce), no parry', blow?.kind === 'pierce' && blow.damage === FISTS.v.chargeDamage && h.parryWindow === 0 && count('guard') === 0 && count('chargeReady') === 1);
 }
 
 section('Hit-stop');

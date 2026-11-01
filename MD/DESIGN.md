@@ -34,7 +34,7 @@ A first-person action roguelike. You start every run with your bare hands, tear 
 | Shift | Dash |
 | C | Slide. Pressed in the air, the slide starts when you land. |
 | Left click | Attack: the held weapon, or a jab combo when barehanded |
-| Right click | Heavy: charged punch when barehanded, the weapon's alt attack otherwise (the Pistol: a strike with it) |
+| Right click | Parry when barehanded (held: the block; Update 0.3.5), the weapon's alt attack otherwise (the Pistol: a strike with it) |
 | F | Ground slam, in the air from a real height (Update 0.0.12, the designer). (The quick punch it used to be was cut in Update 0.0.10.) |
 | Q | Throw the held weapon |
 | R | Reload the Pistol (Update 0.2.4) |
@@ -75,8 +75,8 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 
 ### Fists (always available, never break)
 - **Jab combo** (left click, barehanded): fast alternating punches; the third hit knocks back. **7, 7, then 10** (Update 0.2.4, the designer: "make it 6 hits default damage to the grunts, so it stays the same across all enemies, cause I have been testing it like this for the last 30 hours": a Grunt's 40 in 6 hits; were 10 and 14, 4 hits).
-- **Charged punch** (hold right click): hold **1 s** until it's ready (a cue sounds), then let go to throw it. Letting go sooner cancels it; right click is never a light punch. (Update 0.0.3, the designer.)
-- **Parry (on hold):** taken out for now at the designer's request (Update 0.0.3); it returns later. When it does, punching an enemy projectile just before it hits sends it back at double damage and heals you a little, and parrying a melee attack staggers the attacker.
+- **Charged punch** (hold right click): hold **1 s** until it's ready (a cue sounds), then let go to throw it. Letting go sooner cancels it; right click is never a light punch. (Update 0.0.3, the designer.) **Gone since Update 0.3.5** (the designer: "no more heavy punches from fists, now right click is parry"): barehanded, right click is the parry; a weapon's charge still takes the 1 s.
+- **Parry (on hold):** taken out for now at the designer's request (Update 0.0.3); it returns later (it did: Update 0.3.3, on right click since 0.3.5; see The parry below). When it does, punching an enemy projectile just before it hits sends it back at double damage and heals you a little, and parrying a melee attack staggers the attacker.
 - Fist upgrades from the shop last for the rest of the run.
 
 ---
@@ -156,6 +156,12 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 - A fist punch (jab, finisher, charged) that meets an enemy's shot sends it back the way you look, onto the enemy
   nearest your aim (within 20°), 1.8× as fast and doing 60; it hits enemies, never you; it never heals. A freeze, a gold
   ring and flash, a clang. Fists only. **(placeholder numbers, F1 → Fists, Hit feel)**
+- **Update 0.3.5 (the designer: "now right click is parry … it still has to time the hit with the projectile
+  properly"; spec `MD_UPDATES/U035_PARRY_ON_RIGHT_CLICK.md`):** barehanded, **right click held is the block** (both fists
+  up before the face, no jabs); **its press opens the parry for 0.2 s**: a shot within a fist's reach meanwhile goes
+  back, the fists punching forward a hand's width. Held on, it doesn't parry; **0.4 s** from a press to the next.
+  Punches no longer parry. Hair Trigger (the window twice as long), Cold Snap, Thunderclap, Powder Keg (where a parried
+  shot hits) and Giant Killer (no wait) moved onto it from the charged punch. **(placeholder numbers, F1 → Fists)**
 
 ### The style rank (Update 0.3.4, the designer: "a nice visual for now"; spec `MD_UPDATES/U034_STYLE_RANK.md`)
 - D DIRTY, C CRUEL, B BRUTAL, A ATROCIOUS, S SAVAGE, SS SLAUGHTERHOUSE, SSS UNKILLABLE, from what you do (blows, kills,
@@ -276,7 +282,7 @@ Rule: every attack is telegraphed (a flash and a sound) before it can hit, and e
 | Skeleton | **(Update 0.1.19, the designer: floor 3; "they revive as they rebuilt from pieces to body".)** 35 HP, 1.9 m. A warned swing (14). Brought down it falls to pieces, lies 2.5 s and rebuilds whole (1.6 s), once; hit its bones while they lie there and it stays down. **(placeholder numbers)** |
 | Mushnub | **(Update 0.1.19, the designer: floor 3.)** 30 HP, 1.1 m. A warned bite (10). **(placeholder numbers)** |
 | Ninja | **(Update 0.1.19, the designer: floor 3's mini boss; "can teleport away as an evasion trick when player trying to hit them, like 20% chance".)** 150 HP, 2.6 m, a warned sword slash (22). One hit in five it teleports away and the hit misses: it reappears 5–7 m on, along the blow; then not again for 1.5 s. Only a hit of 40+ staggers it. A mini boss like the Spider. **(placeholder numbers)** |
-| Shieldbearer | Blocks attacks from the front; a charged punch breaks the shield. |
+| Shieldbearer | Blocks attacks from the front; a charged blow (a weapon's; the charged punch is gone since 0.3.5) or a parried shot breaks the shield. |
 | Elites | Glowing versions with more health and one extra trick. Always drop a weapon. |
 
 Models come from Quaternius's Bestiary/Dungeon Monsters and Ultimate Monsters packs.

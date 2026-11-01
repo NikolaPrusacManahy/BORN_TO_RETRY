@@ -59,6 +59,23 @@ export const FILMS: Shot[] = [...film('forehand', 0.03, 12), ...film('backhand',
 
 export const SHOTS: Shot[] = [
   { name: 'fists', run: (vm, _s, p) => play(vm, p, 0.5) },
+  // Update 0.3.5 — barehanded, right click held: the block; and a parry's moment, the fists pushed out.
+  {
+    name: 'block',
+    run: (vm, _s, p) => {
+      vm.block.set(true, 0);
+      play(vm, p, 0.5);
+    },
+  },
+  {
+    name: 'block-parry',
+    run: (vm, _s, p) => {
+      vm.block.set(true, 0);
+      play(vm, p, 0.5);
+      vm.block.set(true, 1);
+      play(vm, p, 0.02);
+    },
+  },
   { name: 'palm-key', run: palm('key', false) },
   { name: 'palm-white', run: palm('whiteKey', false) },
   { name: 'palm-gold-armed', run: palm('goldKey', true) },

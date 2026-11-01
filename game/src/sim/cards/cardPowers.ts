@@ -86,7 +86,8 @@ export function jabPowers(state: CombatState, i: number) {
   if (holds(state, 'jaggedKnuckles') && isLive(state.enemies[i])) afflict(state, i, 'bleed', CARDS.v.bleedDps * boost(state, 'jaggedKnuckles'), CARDS.v.bleedFor);
 }
 
-/** A charged punch landed on enemy `i` at `at`: Thunderclap's lightning, Powder Keg's blast. */
+/** A parried shot (Update 0.3.5; a charged punch before) landed on enemy `i` at `at`: Thunderclap's lightning, Powder
+ *  Keg's blast. */
 export function heavyPowers(state: CombatState, i: number, at: Vector3) {
   const v = CARDS.v;
   if (holds(state, 'thunderclap')) for (const j of nearest(state, at.x, at.z, v.thunderRange, Math.round(v.zapTargets * boost(state, 'thunderclap')), i)) zap(state, at, j);

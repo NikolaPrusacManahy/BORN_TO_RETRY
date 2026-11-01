@@ -14,6 +14,7 @@
 // Update 0.1.9 — the Dual Daggers: one in each hand; the left plays its own moves and holds the second (offHand.ts).
 // The sway, bob and dips moved to armsMotion.ts.
 // Update 0.2.4 — the Pistol: the right arm follows the gun's pose (gunArms.ts), the left out of view.
+// Update 0.3.5 — barehanded, right click raises the fists into a block (blockArms.ts): the parry.
 import * as THREE from 'three';
 import { ARMS } from '../../tuning/arms';
 import { WEAPONS } from '../../tuning/weapons';
@@ -26,6 +27,7 @@ import { swordArm } from './swordArm';
 import { fistArm } from './fistArm';
 import { leftGrip } from './twoHand';
 import { SlamArms } from './slamArms';
+import { BlockArms } from './blockArms';
 import { movesOf } from './weaponMoves';
 import { ChestReach } from './chestReach';
 import { BookArms } from './bookArms';
@@ -58,6 +60,7 @@ export class Viewmodel {
   readonly book = new BookArms(this.scene);
   /** Update 0.1.7 — the ground slam's clasped fists. */
   readonly slam = new SlamArms();
+  readonly block = new BlockArms();
   /** Update 0.1.9 — the left hand's own weapon (the Dual Daggers' second). */
   readonly off = new OffHand();
   readonly gun = new GunArms(this.scene);
@@ -192,6 +195,7 @@ export class Viewmodel {
     this.off.anim.update(gameDt, realDt);
     this.slam.follow(p.slamming);
     this.slam.update(gameDt);
+    this.block.update(gameDt);
     this.motion.update(gameDt, realDt, mouseDx, mouseDy, p, this.pivot, this.holder);
     this.gun.update(gameDt);
     this.armedVis = Math.max(0, Math.min(1, this.armedVis + ((this.weapon ? 1 : -1) * gameDt) / v.armedSwap));
@@ -222,9 +226,11 @@ export class Viewmodel {
     // (Update 0.1.7 — barehanded, a slam's clasped fists.)
     const clasp = this.slam.weight * (1 - armed) * (1 - reach);
     if (clasp > 0) mixArm(left, this.slam.pose(rig, 'L', this.slamPose.L), clasp, left);
+    const blocking = (1 - armed) * (1 - palm) * (1 - reach) * (1 - clasp);
+    this.block.mix(rig, 'L', left, blocking);
     if (palm > 0) mixArm(left, this.palm.pose(rig), palm, left);
     if (reach > 0) this.chest.pull(rig, 'L', left, reach, this.grip, this.holder, this.camera);
-    rig.apply('L', left, v.wristBend + (1 - v.wristBend) * Math.max(palm, book, hands, pair, clasp, this.grip.bend('L')), this.off.pole(pair, this.elbowL));
+    rig.apply('L', left, v.wristBend + (1 - v.wristBend) * Math.max(palm, book, hands, pair, clasp, this.grip.bend('L')), this.block.pole('L', this.off.pole(pair, this.elbowL), blocking));
     // (Update 0.1.6 — a fist, or the fingers round a two-handed haft, its own handle or something an execution holds:
     // handPose.ts.)
     const moves = this.swordAnim.moves;
@@ -244,7 +250,8 @@ export class Viewmodel {
     } else {
       if (clasp > 0) mixArm(right, this.slam.pose(rig, 'R', this.slamPose.R), clasp, right);
       if (reach > 0) this.chest.pull(rig, 'R', right, reach, this.grip, this.holder, this.camera);
-      rig.apply('R', right, v.wristBend + (1 - v.wristBend) * Math.max(clasp, this.grip.bend('R')));
+      this.block.mix(rig, 'R', right, blocking);
+      rig.apply('R', right, v.wristBend + (1 - v.wristBend) * Math.max(clasp, this.grip.bend('R')), this.block.pole('R', this.elbow.copy(GUARD.R.pole), blocking));
     }
     rig.openHand('R', Math.max(book * this.book.open('R'), this.grip.open('R'), held ? Math.max(RELEASE * this.swordAnim.letGo, turnOpen(moves, this.flip)) : 0), held ? wrapOf(moves, this.flip) : gun > 0 ? GUN_GRIP : ROPE, held ? armed : gun || this.grip.rope('R'), held ? this.swordPose.tilt : gun > 0 ? this.gun.tilt : undefined);
     if (this.weapon) {

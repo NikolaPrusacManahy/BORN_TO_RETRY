@@ -78,12 +78,13 @@ section('Combat — punches');
   const w = new FlatWorld();
   const p = createPlayer(0, 0, 0, 0);
   const s = createCombat(arena());
-  tick(s, p, w, { heavyHeld: true });
-  for (let i = 0; i < ticks(FISTS.v.chargeTime) + 1; i++) tick(s, p, w, { heavyHeld: true });
+  // Update 0.3.5 (the designer: "no more heavy punches from fists, now right click is parry").
+  for (let i = 0; i < ticks(FISTS.v.chargeTime) + 2; i++) tick(s, p, w, { heavyHeld: true });
   s.events.clear();
   tick(s, p, w);
-  check('a full charged punch hits for full damage', kinds(s).includes('hitHeavy') && s.dummies[0].hp === TARGETS.v.dummyHp - FISTS.v.chargeDamage);
-  check('and freezes for the charged hit-stop', near(s.hitStop.remaining, FEEDBACK.v.stopHeavy / 1000, 1e-9));
+  check('right click held and let go: no charged punch, the dummy untouched', !kinds(s).includes('hitHeavy') && !kinds(s).includes('heavy') && s.dummies[0].hp === TARGETS.v.dummyHp);
+  tick(s, p, w, { attackPressed: true });
+  check('a jab knocks it', s.dummies[0].hp === TARGETS.v.dummyHp - FISTS.v.jabDamage);
   for (let i = 0; i < ticks(3); i++) tick(s, p, w);
   check('the dummy springs back home', s.dummies[0].offset.length() < 0.01 && Math.abs(s.dummies[0].tilt.x) < 0.01);
 }
@@ -129,14 +130,19 @@ section('Combat — turret and orbs');
 }
 {
   // The parry was removed (the designer's call): a punch at an incoming orb did nothing to it. Update 0.3.3 — the
-  // designer: "Yes, parrying": it's back (parry.ts; test-parry.ts).
+  // designer: "Yes, parrying": it's back (parry.ts; test-parry.ts). Update 0.3.5 — right click's, not a punch's.
   const w = new FlatWorld();
   const p = createPlayer(0, 0, 0, 0);
   const s = createCombat(arena(5, -30));
   fireOrb(s.orbs, new Vector3(0, 1.4, -1.2), new Vector3(0, 0, 1), TARGETS.v.orbSpeed, TARGETS.v.orbDamage);
   tick(s, p, w, { attackPressed: true });
-  const o = s.orbs.find((x) => x.alive)!;
-  check('a punch turns an incoming orb around (the parry is back)', !!o && o.parried && o.vel.z < 0);
+  const o = s.orbs.find((x) => x.alive && x.parried);
+  check('a punch no longer turns an incoming orb around', !o);
+  const t = createCombat(arena(5, -30));
+  fireOrb(t.orbs, new Vector3(0, 1.4, -1.2), new Vector3(0, 0, 1), TARGETS.v.orbSpeed, TARGETS.v.orbDamage);
+  tick(t, p, w, { heavyHeld: true });
+  const back = t.orbs.find((x) => x.alive)!;
+  check('right click (barehanded) does', !!back && back.parried && back.vel.z < 0);
 }
 {
   // A wall between the turret and you blocks its sight: no warning, no shot.

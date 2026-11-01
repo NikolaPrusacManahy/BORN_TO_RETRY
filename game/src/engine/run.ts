@@ -211,6 +211,8 @@ export class Run extends RunBase {
     const f = this.combat.fists;
     const choosing = this.treasure.choosing >= 0 ? this.combat.items.keyPick : null;
     this.arms.palm.update(choosing, this.keyLook, real);
+    // (Update 0.3.5 — barehanded, right click's block: held, and its parry's window.)
+    this.arms.block.set(f.guarding && !this.combat.weapon, Math.min(1, f.parryWindow / FISTS.v.parryWindow));
     this.arms.update(gameDt, real, mouseDx, mouseDy, p, f.charging ? f.charge / FISTS.v.chargeTime : -1);
 
     renderer.render(this.scene, this.camera);

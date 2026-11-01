@@ -1,14 +1,18 @@
 // Update 0.3.3 — the parry (the designer: "Yes, parrying", from the gameplay-feel list: "like Doom or Ultra kill"; an
-// early one was taken out in M1 at the designer's request, "it returns later"): a punch (a jab, a finisher, a charged
-// one) that meets an enemy's shot sends it back the way you look (onto the nearest enemy close to your aim), faster
-// and far deadlier. A parried shot hits enemies, never you, and pops on a wall. A freeze, and the 'parry' event (a
-// ring, a clang). It never heals. Pure.
+// early one was taken out in M1 at the designer's request, "it returns later"): an enemy's shot met sends it back the
+// way you look (onto the nearest enemy close to your aim), faster and far deadlier. A parried shot hits enemies, never
+// you, and pops on a wall. A freeze, and the 'parry' event (a ring, a clang). It never heals. Pure.
+// Update 0.3.5 (the designer: "now right click is parry … it still has to time the hit with the projectile") — it's
+// right click's (barehanded): while the window its press opened lasts, the first shot to come within a fist's reach is
+// sent back (punches no longer parry). Cold Snap, Thunderclap and Powder Keg (Fate Cards; they were the charged punch's)
+// go off where a parried shot hits.
 import { Vector3 } from 'three';
 import { FEEDBACK, FISTS, TARGETS } from '../../tuning/combat';
 import type { CollisionWorld } from '../collisionWorld';
 import { isLive } from '../enemies/enemy';
 import { ENEMY_STATS } from '../enemies/kinds';
-import type { Punch } from './fists';
+import { chill } from '../cards/cardMoves';
+import { heavyPowers } from '../cards/cardPowers';
 import { segmentDistance } from './geometry';
 import type { CombatState } from './state';
 import { emptyTargetHit, landHit, nearestTarget } from './strike';
@@ -28,12 +32,11 @@ const next = new Vector3();
 const way = new Vector3();
 const hit = emptyTargetHit();
 
-/** A fist punch from `eye` along `dir` (length 1): the first enemy shot it meets is sent back. Returns how far from the
- *  eye it was caught (m), or −1: none. */
-export function parry(state: CombatState, punch: Punch, eye: Vector3, dir: Vector3): number {
-  if (punch.kind !== 'jab' && punch.kind !== 'finisher' && punch.kind !== 'heavy') return -1;
-  end.copy(eye).addScaledVector(dir, punch.reach);
-  const reach = punch.radius + TARGETS.v.orbRadius + SLACK;
+/** The parry's window is open, you looking from `eye` along `dir` (length 1): the first enemy shot within a fist's reach
+ *  is sent back. Returns how far from the eye it was caught (m), or −1: none. */
+export function parry(state: CombatState, eye: Vector3, dir: Vector3): number {
+  end.copy(eye).addScaledVector(dir, FISTS.v.reach);
+  const reach = FISTS.v.radius + TARGETS.v.orbRadius + SLACK;
   let best = -1;
   let bestS = Infinity;
   state.orbs.forEach((o, i) => {
@@ -83,6 +86,11 @@ export function stepParried(state: CombatState, world: CollisionWorld, dt: numbe
       o.alive = false;
       const flat = Math.hypot(o.vel.x, o.vel.z) || 1;
       landHit(state, hit, o.damage, KNOCK, o.vel.x / flat, o.vel.z / flat, 'hitThrown', o.damage);
+      // (Update 0.3.5 — Cold Snap's freeze, Thunderclap's lightning, Powder Keg's blast.)
+      if (hit.kind === 'enemy') {
+        chill(state, hit.index);
+        heavyPowers(state, hit.index, hit.point);
+      }
       continue;
     }
     const step = o.vel.length() * dt;

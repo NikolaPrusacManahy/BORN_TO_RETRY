@@ -1,6 +1,11 @@
-// M1 step 6 — what the fists do this tick: the jab combo (hold to keep punching) and the charged punch on release.
+// M1 step 6 — what the fists do this tick: the jab combo (hold to keep punching) and the charged punch on release (a
+// weapon's since Update 0.3.5).
 // M2 — holding a weapon (`armed`), left click is the weapon's (weapons/swing.ts) and the charge lets go a pierce.
 // Update 0.0.10 — the quick punch (F) is gone (the designer).
+// Update 0.3.5 (the designer: "no more heavy punches from fists, now right click is parry … it still has to time the
+// hit with the projectile properly") — barehanded, right click held is the block (no charged punch); its press opens the
+// parry's window (Parry window, s), and another press only once Parry cooldown has passed. Holding on doesn't parry:
+// the press has to be timed. A weapon's right click charges as before.
 import type { EventQueue } from '../../core/eventQueue';
 import { FISTS } from '../../tuning/combat';
 import type { CombatEvent } from './state';
@@ -18,6 +23,18 @@ export interface FistState {
   chargeReady: boolean;
   /** Update 0.2.21 — a click while the fists are clasped for a slam: it lands as you do (sim/combat/step.ts). */
   slamClick: boolean;
+  /** Update 0.3.5 — barehanded, right click held (the block up); the parry's window left (s), and the wait till the
+   *  next (s). */
+  guarding: boolean;
+  parryWindow: number;
+  parryCooldown: number;
+}
+
+/** Update 0.3.5 — how long a press of the parry stays open and the wait after it (s: Hair Trigger and Giant Killer,
+ *  Fate Cards, change them). */
+export interface ParryTimes {
+  window: number;
+  cooldown: number;
 }
 
 export interface CombatIntent {
@@ -53,7 +70,7 @@ export interface Punch {
 }
 
 export function createFists(): FistState {
-  return { combo: 0, comboTimer: 0, jabCooldown: 0, charging: false, charge: 0, chargeReady: false, slamClick: false };
+  return { combo: 0, comboTimer: 0, jabCooldown: 0, charging: false, charge: 0, chargeReady: false, slamClick: false, guarding: false, parryWindow: 0, parryCooldown: 0 };
 }
 
 export function emptyCombatIntent(): CombatIntent {
@@ -77,11 +94,28 @@ function set(out: Punch, kind: PunchKind, damage: number, knock: number, charge 
 
 /** Advances the fists. Writes a punch into `out` and returns true when one is thrown this tick. `armed`: holding a
  *  weapon (no jabs; a full charge lets go a 'pierce', which the caller turns into the weapon's). Update 0.2.15 —
- *  `chargeRate`: how fast the charge fills (Hair Trigger's ×2). */
-export function updateFists(f: FistState, intent: CombatIntent, events: EventQueue<CombatEvent>, dt: number, out: Punch, armed = false, rate = 1, chargeRate = 1): boolean {
+ *  `chargeRate`: how fast the charge fills (Hair Trigger's ×2). Update 0.3.5 — `parry`: the parry's window and wait
+ *  (barehanded, right click is the parry, not a charged punch). */
+export function updateFists(f: FistState, intent: CombatIntent, events: EventQueue<CombatEvent>, dt: number, out: Punch, armed = false, rate = 1, chargeRate = 1, parry: ParryTimes = { window: FISTS.v.parryWindow, cooldown: FISTS.v.parryCooldown }): boolean {
   const v = FISTS.v;
   f.jabCooldown = Math.max(0, f.jabCooldown - dt);
   f.comboTimer = Math.max(0, f.comboTimer - dt);
+  f.parryWindow = Math.max(0, f.parryWindow - dt);
+  f.parryCooldown = Math.max(0, f.parryCooldown - dt);
+  if (!armed) {
+    f.charging = f.chargeReady = false;
+    // Held: the block. Pressed (and ready): the parry's window opens.
+    if (intent.heavyHeld) {
+      if (!f.guarding && f.parryCooldown <= 0) {
+        f.parryWindow = parry.window;
+        f.parryCooldown = parry.cooldown;
+        events.push('guard');
+      }
+      f.guarding = true;
+      return false; // no jabs behind the block
+    }
+  }
+  f.guarding = false;
 
   // Update 0.0.3 (the designer): right click is never a light punch. Hold it for the full charge time; letting go
   // sooner cancels.
@@ -107,8 +141,8 @@ export function updateFists(f: FistState, intent: CombatIntent, events: EventQue
       return false;
     }
     f.chargeReady = false;
-    events.push(armed ? 'pierce' : 'heavy', 1);
-    return set(out, armed ? 'pierce' : 'heavy', v.chargeDamage, v.chargeKnock, 1);
+    events.push('pierce', 1);
+    return set(out, 'pierce', v.chargeDamage, v.chargeKnock, 1);
   }
 
   if (!armed && (intent.attackPressed || intent.attackHeld) && f.jabCooldown <= 0) {

@@ -18,13 +18,16 @@ export const FISTS = group('fists', 'Fists', {
   radius: knob(0.6, 0.1, 1.5, 0.05, 'Punch width', 'Radius of the punch sweep (m).'),
   // Update 0.0.3 (the designer): hold at least 1 s (first 1.5 s, then shortened); letting go sooner cancels
   // (no light right-click punches).
-  chargeTime: knob(1, 0.3, 3, 0.05, 'Charge time', 'Hold right click this long to throw the charged punch; letting go sooner cancels it.'),
+  chargeTime: knob(1, 0.3, 3, 0.05, 'Charge time', 'With a weapon: hold right click this long for its charged blow; letting go sooner cancels it.'),
   chargeDamage: knob(60, 1, 200, 1, 'Charged punch damage', 'Damage.'),
   chargeKnock: knob(26, 0, 60, 0.5, 'Charged punch knockback', 'm/s.'),
   // Update 0.3.3 — the parry (sim/combat/parry.ts).
   parryDamage: knob(60, 1, 300, 5, 'Parry damage', 'What a shot you punched back does to the enemy it hits.'),
   parrySpeed: knob(1.8, 1, 4, 0.1, 'Parry speed', 'A shot punched back flies this many times as fast as it came.'),
   parryMinSpeed: knob(26, 5, 60, 1, 'Parry speed at least', 'And never slower than this (m/s).'),
+  // Update 0.3.5 — barehanded, right click is the parry (no charged punch).
+  parryWindow: knob(0.2, 0.05, 0.6, 0.01, 'Parry window', 'Seconds after you press right click (barehanded) that a shot reaching you is sent back.'),
+  parryCooldown: knob(0.4, 0, 2, 0.05, 'Parry cooldown', 'Seconds from a press before the next press opens the window again.'),
 });
 
 export const FEEDBACK = group('feedback', 'Hit feel', {
