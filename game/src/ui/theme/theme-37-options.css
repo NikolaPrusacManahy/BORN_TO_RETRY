@@ -19,3 +19,33 @@
 .rb-choice button.is-on {
   color: var(--rb-accent);
 }
+
+/* Update 0.3.0 — the options in pages (General, Graphics, Audio, Controls): each page the same height, so the panel
+   doesn't jump as you go from one to another; Restore defaults at its foot, on the right. */
+.rb-options-page {
+  min-height: 236px;
+  padding-top: 16px;
+}
+
+.rb-options-page .rb-slider,
+.rb-options-page .rb-toggle {
+  grid-template-columns: 160px 1fr 56px;
+  min-height: 34px;
+  padding: 2px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rb-line) 45%, transparent);
+}
+
+.rb-options-page .rb-toggle {
+  grid-template-columns: 160px auto;
+}
+
+.rb-options-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.rb-options-foot .rb-btn {
+  font-size: 12px;
+  padding: 6px 14px;
+}

@@ -8,10 +8,14 @@ import { setDevKeysReserved } from './input/bindings';
 import { devToolsEnabled } from './state/devTools';
 import { loadSave } from './state/settings';
 import { setBloodLevel } from './engine/bloodFx';
+import { setEffectsLow } from './engine/effectsLevel';
+import { setGlowOn } from './engine/halos';
 
 trackUiScale(loadSave().settings.uiSize);
-// Update 0.2.26 — the Options' Blood setting.
+// Update 0.2.26 — the Options' Blood setting. Update 0.3.0 — and Effects.
 setBloodLevel(loadSave().settings.blood);
+setEffectsLow(loadSave().settings.effects === 'low');
+setGlowOn(loadSave().settings.glow);
 // M1 step 9 — F1–F4 and ` are only off limits for bindings while the dev tools use them.
 setDevKeysReserved(devToolsEnabled(import.meta.env.DEV));
 // Values tuned in the F1 panel survive a refresh.

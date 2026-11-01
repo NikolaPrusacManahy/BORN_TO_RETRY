@@ -11,7 +11,8 @@
 // Update 0.2.11 — floor 6's bubble columns, shadows, lanes, rings and jets (fishFx.ts).
 // Update 0.2.23 — floor 2's wasps' hives (hivesView.ts), and its tall grass parting round you and the enemies.
 // Update 0.2.26 — blood (bloodFx.ts). Update 0.2.27 — the enemies' shots (shotsView.ts). Update 0.2.28 — your
-// blows' arcs, dust rings and the hammer's rocks (blowsFx.ts).
+// blows' arcs, dust rings and the hammer's rocks (blowsFx.ts). Update 0.3.0 — the halos (halos.ts): each frame starts
+// with none.
 // Update 0.1.2 — and executions (exec/execScene.ts: the body, its pieces, the frog's tongue).
 // Update 0.1.4 — and the Grimoire's fireballs (fireView.ts). Update 0.1.9 — and the daggers' volley (knivesView.ts).
 // Update 0.1.12 — and the skull over the enemy you can execute (execMarkView.ts).
@@ -45,6 +46,7 @@ import { HivesView } from './hivesView';
 import { BloodFx } from './bloodFx';
 import { ShotsView } from './shotsView';
 import { BlowsFx } from './blowsFx';
+import { HALOS } from './halos';
 import { pushGrass } from './grassShader';
 import { WeaponsView } from './weaponsView';
 import type { Viewmodel } from './viewmodel/viewmodel';
@@ -79,6 +81,7 @@ export class CombatScene {
   private readonly blood: BloodFx;
   private readonly shots: ShotsView;
   private readonly blows: BlowsFx;
+  private readonly camera: THREE.Camera;
 
   constructor(scene: THREE.Scene, state: CombatState, audio: AudioEngine, rig: CameraRig, arms: Viewmodel) {
     this.targets = new TargetsView(scene, state);
@@ -97,6 +100,8 @@ export class CombatScene {
     this.blood = new BloodFx(scene);
     this.shots = new ShotsView(scene, state, this.blood);
     this.blows = new BlowsFx(scene, rig.camera);
+    this.camera = rig.camera;
+    scene.add(HALOS.mesh);
     this.coins = new CoinsView(scene);
     scene.add(this.waves.group);
     this.weapons = new WeaponsView(scene, state, arms, rig.camera);
@@ -115,6 +120,7 @@ export class CombatScene {
   /** Reads this frame's combat events (then clears them) and animates. `gameDt` stops during hit-stop; `alpha`: how
    *  far between the last two sim ticks this frame is (moving enemies are placed between them). */
   update(state: CombatState, listener: THREE.Vector3, playerChest: THREE.Vector3, gameDt: number, alpha: number) {
+    HALOS.begin(this.camera);
     this.feedback.apply(state, listener);
     this.blood.apply(state, listener);
     this.blows.apply(state);
@@ -187,6 +193,7 @@ export class CombatScene {
     this.blood.dispose();
     this.shots.dispose();
     this.blows.dispose();
+    HALOS.mesh.removeFromParent();
     this.demonFx.dispose();
     this.waves.dispose();
     this.coins.dispose();

@@ -62,6 +62,7 @@ import './test-venom';
 import './test-blood';
 import './test-shots';
 import './test-blows';
+import './test-air';
 import './test-dragon';
 import './test-lab';
 import './test-pistol';

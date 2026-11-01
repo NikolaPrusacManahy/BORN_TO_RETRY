@@ -8,6 +8,8 @@ import * as THREE from 'three';
 import type { CombatState } from '../sim/combat/state';
 import { TARGETS } from '../tuning/combat';
 import type { BloodFx } from './bloodFx';
+import { effectsShare } from './effectsLevel';
+import { HALOS } from './halos';
 import { fireScale, ShotKit, ShotMeshes, ShotStyle, shotStyle, TRAILS } from './shotLooks';
 
 const SPECKS = 700;
@@ -71,6 +73,8 @@ export class ShotsView {
   private readonly flashMeshes: THREE.Mesh[] = [];
   private nextSpeck = 0;
   private nextFlash = 0;
+  /** Update 0.3.0 — specks or flashes out (none: nothing to step). */
+  private busy = false;
   private time = 0;
 
   constructor(
@@ -135,12 +139,15 @@ export class ShotsView {
           flame[2].scale.setScalar(1.3 + 0.18 * Math.sin(this.time * 23 + i * 2));
           flame[1].rotation.set(spin, spin * 0.7, 0);
           flame[2].rotation.set(-spin * 0.6, 0, spin * 0.8);
+          // (Update 0.3.0 — its glow.)
+          HALOS.add(o.pos.x, o.pos.y, o.pos.z, k * 9, style === 'fire' ? 0xff8a30 : 0x4a8cff, 0.6);
           break;
         }
         case 'acid':
           // A glob that wobbles.
           g.quaternion.identity();
           g.scale.set(r * (1 + 0.16 * Math.sin(this.time * 17 + i)), r * (1 + 0.16 * Math.sin(this.time * 17 + i + 2.1)), r * (1 + 0.16 * Math.sin(this.time * 17 + i + 4.2)));
+          HALOS.add(o.pos.x, o.pos.y, o.pos.z, r * 5, 0x7bd42a, 0.3);
           break;
         case 'water':
           // Drawn out along its flight.
@@ -163,7 +170,7 @@ export class ShotsView {
       }
       // Its trail.
       const t = TRAILS[style];
-      was.emit += t.rate * dt;
+      was.emit += t.rate * effectsShare(0.4) * dt;
       while (was.emit >= 1) {
         was.emit--;
         this.speck(o.pos, t.color, t.falls, 0.6, style === 'fire' || style === 'blueFire' ? 1.2 : 0);
@@ -183,6 +190,7 @@ export class ShotsView {
       f.t = 0;
       f.pos.copy(at);
       f.size = FLASH * (style === 'fire' || style === 'blueFire' ? 1 : 0.7);
+      this.busy = true;
       this.flashMats[i].color.setHex(t.flash);
     }
     if (style === 'acid' && at.y < 3.5) this.blood.stain(at.x, at.z, ACID_STAIN, ACID_SIZE, ACID_LIFE);
@@ -199,12 +207,14 @@ export class ShotsView {
     s.vel.set((Math.random() - 0.5) * 2, Math.random() - 0.3, (Math.random() - 0.5) * 2).multiplyScalar(speed);
     s.vel.y += rise;
     s.falls = falls;
+    this.busy = true;
     s.size = SPECK * (0.6 + 0.8 * Math.random());
     this.speckMesh.setColorAt(i, color.setHex(hex));
     if (this.speckMesh.instanceColor) this.speckMesh.instanceColor.needsUpdate = true;
   }
 
   private step(dt: number) {
+    if (!this.busy) return;
     this.specks.forEach((s, i) => {
       if (s.t >= s.life) {
         this.speckMesh.setMatrixAt(i, HIDDEN);
@@ -226,7 +236,9 @@ export class ShotsView {
       mesh.position.copy(f.pos);
       mesh.scale.setScalar(f.size * (0.3 + 0.7 * Math.sqrt(k)));
       this.flashMats[i].opacity = 0.85 * (1 - k);
+      HALOS.add(f.pos.x, f.pos.y, f.pos.z, f.size * 4, this.flashMats[i].color.getHex(), 0.8 * (1 - k));
     });
+    this.busy = this.specks.some((s) => s.t < s.life) || this.flashes.some((f) => f.t < FLASH_LIFE);
   }
 
   /** Specks and flashes in the air (for tests). */

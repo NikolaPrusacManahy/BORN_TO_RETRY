@@ -23,7 +23,8 @@ section('HUD scale — the setting');
   check('an old save without it: 100%', hydrateSave({ settings: { fov: 90 } }).settings.uiSize === 1);
   check(`kept within ${UI_SIZE_MIN * 100}% – ${UI_SIZE_MAX * 100}%`, hydrateSave({ settings: { uiSize: 9 } }).settings.uiSize === UI_SIZE_MAX && hydrateSave({ settings: { uiSize: 0.1 } }).settings.uiSize === UI_SIZE_MIN);
   const fields = readFileSync('src/screens/SettingsFields.tsx', 'utf8');
-  check('a UI size slider in the settings', fields.includes('label="UI size"'));
+  // (Update 0.3.0 — on the General page, as Interface size.)
+  check('a UI size slider in the settings', fields.includes('label="Interface size"') && fields.includes('uiSize'));
 }
 
 section('HUD scale — the HUD is drawn at it');

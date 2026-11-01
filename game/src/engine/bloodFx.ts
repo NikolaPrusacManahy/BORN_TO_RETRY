@@ -95,6 +95,8 @@ export class BloodFx {
   private readonly splatMesh = new THREE.InstancedMesh(this.splatGeo, this.splatMat, SPLATS);
   private nextDrop = 0;
   private nextSplat = 0;
+  /** Update 0.3.0 — drops or splats out (none: nothing to do a frame). */
+  private busy = false;
 
   constructor(private readonly scene: THREE.Scene) {
     this.splatTex.colorSpace = THREE.SRGBColorSpace;
@@ -140,6 +142,7 @@ export class BloodFx {
       const d = this.drops[idx];
       this.nextDrop = (idx + 1) % DROPS;
       d.alive = true;
+      this.busy = true;
       d.pos.set(x, y, z);
       const a = Math.random() * Math.PI * 2;
       const speed = 2 + Math.random() * (all ? 6 : 5);
@@ -162,12 +165,14 @@ export class BloodFx {
     const i = this.nextSplat;
     this.nextSplat = (this.nextSplat + 1) % SPLATS;
     const s = this.splats[i];
+    this.busy = true;
     Object.assign(s, { x, y: y + SPLAT_Y + i * 0.00004, z, rot: Math.random() * Math.PI * 2, size, t: pool ? -SPREAD : 0, life });
     this.splatMesh.setColorAt(i, color.setHex(hex));
     if (this.splatMesh.instanceColor) this.splatMesh.instanceColor.needsUpdate = true;
   }
 
   update(dt: number) {
+    if (!this.busy) return;
     const life = bloodAmount(level)?.life ?? 0;
     this.drops.forEach((d, i) => {
       if (!d.alive) return;
@@ -212,6 +217,7 @@ export class BloodFx {
       this.splatMesh.setMatrixAt(i, size > 0 ? m.compose(pos.set(s.x, s.y, s.z), q.setFromAxisAngle(UP, s.rot), scale.set(size, 1, size)) : HIDDEN);
     });
     this.splatMesh.instanceMatrix.needsUpdate = true;
+    this.busy = this.drops.some((d) => d.alive) || this.splats.some((s) => s.life > 0);
   }
 
   /** Update 0.2.27 — a stain on the floor that isn't blood (a shot of acid's): it lies `life` s, Blood setting or not. */

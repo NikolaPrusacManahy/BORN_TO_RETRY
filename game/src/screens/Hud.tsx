@@ -6,6 +6,7 @@
 // minimap top right.
 // Update 0.0.13 — the shield: a blue bar just above the health bar (a hit on it flashes the edge blue); keys and rings
 // you carry beside your coins.
+// Update 0.3.0 — at low health the screen's edge stays red, beating like a heart (theme-38-effects.css).
 // Update 0.0.15 — the boss room's show (BossHud.tsx); while it has the view, the rest fades out.
 // Update 0.2.3 — the Bone King's grab QTE (GrabQte.tsx). Update 0.2.8 — the Velociraptor's: sand in your eyes, your
 // dash taken by its screech, its pin's dash cue (PinQte.tsx).
@@ -76,6 +77,7 @@ export function Hud({ store }: { store: HudStore }) {
       <div className="rb-hud-cross" />
       {s.hits > 0 && <div key={`m${s.hits}`} className={`rb-hud-marker is-${s.marker}`} />}
       {s.hurts > 0 && <div key={`h${s.hurts}`} className="rb-hud-hurt" />}
+      {s.hp > 0 && s.hp <= s.maxHp * LOW_HEALTH && <div className="rb-hud-low" />}
       {s.shields > 0 && <div key={`s${s.shields}`} className="rb-hud-shieldhit" />}
       {s.poisoned && <div className="rb-hud-poison" />}
       {s.blind > 0 && <div className="rb-hud-sand" style={{ '--blind': s.blind } as CSSProperties} />}

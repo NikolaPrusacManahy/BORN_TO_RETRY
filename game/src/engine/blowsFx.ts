@@ -83,6 +83,8 @@ export class BlowsFx {
   private nextRing = 0;
   private nextRock = 0;
   private way = 1;
+  /** Update 0.3.0 — rocks out (none: nothing to step). */
+  private rocking = false;
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -168,6 +170,7 @@ export class BlowsFx {
       r.t = 0;
       r.life = 1.2 + Math.random() * 0.8;
     }
+    this.rocking = true;
     for (let k = 0; k < 3; k++) this.ring(at.set(p.x, Math.max(0.1, p.y) + 0.1 * k, p.z), 2.6 + k);
   }
 
@@ -201,6 +204,7 @@ export class BlowsFx {
       r.mesh.scale.setScalar(r.size * (0.25 + 0.75 * Math.sqrt(k)));
       r.mat.opacity = 0.7 * (1 - k);
     }
+    if (!this.rocking) return;
     this.rocks.forEach((r, i) => {
       if (r.t >= r.life) {
         this.rockMesh.setMatrixAt(i, HIDDEN);
@@ -219,6 +223,7 @@ export class BlowsFx {
       this.rockMesh.setMatrixAt(i, m.compose(r.pos, q.setFromEuler(r.spin), scale.setScalar(r.size * k)));
     });
     this.rockMesh.instanceMatrix.needsUpdate = true;
+    this.rocking = this.rocks.some((r) => r.t < r.life);
   }
 
   /** Arcs, rings and rocks showing (for tests). */

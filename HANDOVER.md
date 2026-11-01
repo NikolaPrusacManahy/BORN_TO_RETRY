@@ -2,13 +2,20 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.2.28: your blows and the deaths, the graphics update's third part)
+## Next up (2026-11-01, Update 0.3.0: the air and the glow; settings in pages; no torch lights)
+- **The designer** (spec `MD_UPDATES/U030_AIR_AND_SETTINGS.md`): the graphics update's last part (each floor's motes,
+  embers off lava, a glow round what shines as cheap halos, a red heartbeat at the screen's edge at low health); the
+  settings in pages (General, Graphics, Audio, Controls; Glow and Effects in Graphics); and, the designer seeing 122–130
+  fps where it was 144, **no torch lights** (8 point lights every surface paid for) and no glow on torches.
+- Checked by tests (`test-air.ts`); **unseen in the game**: the frame rate now, the halos, the motes, the pages' look.
+- **Next (the designer):** the gameplay feel, "like Doom or Ultrakill": punches' impact, brutal executions, fast
+  adrenaline dashes and slides. To be talked through first.
+
+## Before (2026-11-01, Update 0.2.28: your blows and the deaths, the graphics update's third part)
 - **The designer: "Yes, part 3"** (spec `MD_UPDATES/U0228_BLOWS.md`): a swing's arc across your view (silver, gold, a
   hammer's broad sweep, the daggers' thin one), a ring of dust where a punch lands, rocks and dust off a hammer's smash,
   a hit squashing an enemy a moment, the dead sinking into the floor before they go. Checked by tests
   (`test-blows.ts`); **unseen in the game**.
-- **Next (the plan's part 4):** each floor's motes, embers over lava, the glow (bloom: the designer's call), a red
-  edge when you're hurt, an effects setting.
 
 ## Before (2026-11-01, Update 0.2.27: the enemies' shots, the graphics update's second part)
 - **The designer: "Yes, the shots"** (spec `MD_UPDATES/U0227_SHOTS.md`): fireballs with a white-hot core in

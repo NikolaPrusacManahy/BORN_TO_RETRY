@@ -21,6 +21,8 @@
 // (sandView.ts), its webs' sheets and scorch marks (gardenView.ts), its tall grass parting (grassShader.ts), its
 // charred trees (the look's `burnt`). The cores and the slab under the floor moved to dungeonSolid.ts.
 // Update 0.2.24 — floor 3's crystals glow (the look's `glow`); its graves, burrows and mushrooms (gardenView.ts).
+// Update 0.3.0 (the designer: "remove the glow on fire torches, it lags": 122–130 fps, 144 before) — no torch lights:
+// every lit surface paid for each of the 8; the torches' flames still burn. Each floor's motes (motesView.ts).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { portalOpen, wallsOpen } from '../sim/dungeon/bossRoom';
@@ -37,7 +39,6 @@ import { LavaView } from './lavaView';
 import { padsOf, SandView } from './sandView';
 import { roomSigns } from './roomSignsView';
 import { WaterView } from './waterView';
-import { lightNearest } from './torchLights';
 import { Underwater, underwaterOf } from './underwater';
 import { UNDERWATER } from '../tuning/underwater';
 import { SEAWEED } from '../world/dungeon/dressExtras';
@@ -45,6 +46,8 @@ import { TALL_GRASS } from '../world/dungeon/gardenDressing';
 import { solidOf } from './dungeonSolid';
 import { GardenView } from './gardenView';
 import { grassPatch } from './grassShader';
+import { MotesView } from './motesView';
+import { DungeonGlows } from './dungeonGlows';
 
 export const KIT_URL = '/models/dungeon/kit.glb';
 /** The sky (the background and the haze), and the sky light's colours above and from the ground. */
@@ -58,9 +61,6 @@ const SUN_DIR = new THREE.Vector3(-0.45, 1, 0.35).normalize();
 const SHADOW_REACH = 40;
 /** Update 0.0.15 — the boss room's sliding walls: dark masses seen from above (their faces are brick). */
 const SHELL = new THREE.Color().setRGB(0.06, 0.048, 0.04);
-/** Torch lights that follow you, and how often they move to the nearest torches (s). */
-const LIGHTS = 8;
-const RELIGHT = 0.25;
 
 const m = new THREE.Matrix4();
 const q = new THREE.Quaternion();
@@ -74,7 +74,6 @@ export class DungeonView implements ArenaView {
   private readonly dressing: Dressing;
   private readonly bars: THREE.Object3D[] = [];
   private readonly barsY: number[] = [];
-  private readonly lights: THREE.PointLight[] = [];
   private readonly mats: THREE.Material[] = [];
   private readonly geos: THREE.BufferGeometry[] = [];
   private readonly sky: THREE.HemisphereLight;
@@ -88,7 +87,8 @@ export class DungeonView implements ArenaView {
   private readonly water: WaterView;
   private readonly under: Underwater | null;
   private readonly garden: GardenView;
-  private relight = 0;
+  private readonly motes: MotesView;
+  private readonly glows: DungeonGlows;
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -113,11 +113,6 @@ export class DungeonView implements ArenaView {
     this.sun.shadow.bias = -0.0005;
     this.sun.shadow.normalBias = 0.03;
     this.group.add(this.sky, this.sun, this.sun.target);
-    for (let i = 0; i < LIGHTS; i++) {
-      const l = new THREE.PointLight(0xff9a48, LIGHT.v.torches, 16, 1.6);
-      this.lights.push(l);
-      this.group.add(l);
-    }
     this.group.add(padsOf(this.level.arena.pads, this.mats, this.geos));
     const box = solidOf(this.group, this.dressing, level, this.mats, this.geos);
     const b = level.boss;
@@ -129,8 +124,10 @@ export class DungeonView implements ArenaView {
     this.lava = new LavaView(this.dressing.lava, look.pit);
     this.sand = new SandView(this.dressing.sand, look.sand, look.quicksand, look.ash);
     this.garden = new GardenView(this.dressing.marks);
+    this.motes = new MotesView(look.id);
+    this.glows = new DungeonGlows(this.dressing, level);
     this.water = new WaterView(level.tide, look.water ?? 0, level.boss.end);
-    this.group.add(this.sand.group, this.water.group, this.garden.group);
+    this.group.add(this.sand.group, this.water.group, this.garden.group, this.motes.group);
     this.under = underwaterOf(level, this.dressing.sand);
     if (this.under) this.group.add(this.under.group);
     this.group.add(this.shell.group, this.portal.group, this.lava.group, roomSigns(level.plan, this.mats, this.geos));
@@ -230,6 +227,8 @@ export class DungeonView implements ArenaView {
     this.shell.set(wallsOpen(b));
     this.portal.update(dt, portalOpen(b));
     this.lava.update(dt);
+    this.motes.update(dt, at);
+    this.glows.update(dt);
     this.sand.update(dt);
     this.water.update(run.tide.level, this.under ? 0 : flood, dt);
     this.woodGate.update(b.beat === 'open' ? Math.min(1, b.t / CINEMA.v.gateSwing) : 0);
@@ -243,10 +242,6 @@ export class DungeonView implements ArenaView {
       this.bars[i].position.y = this.barsY[i];
       this.bars[i].visible = Math.abs(this.barsY[i] - style.barsHidden) > 0.01;
     }
-    this.relight -= dt;
-    if (this.relight > 0) return;
-    this.relight = RELIGHT;
-    lightNearest(this.lights, this.dressing.torches, at);
   }
 
   /** The light knobs as they are now, and the sun's shadows kept round you. */
@@ -257,7 +252,6 @@ export class DungeonView implements ArenaView {
     this.sun.castShadow = v.shadows >= 1;
     this.haze.near = this.under ? UNDERWATER.v.hazeNear : v.hazeNear;
     this.haze.far = this.under ? UNDERWATER.v.hazeFar : v.hazeFar;
-    for (const l of this.lights) l.intensity = v.torches;
     this.sun.target.position.set(at.x, 0, at.z);
     this.sun.position.set(at.x + SUN_DIR.x * 100, SUN_DIR.y * 100, at.z + SUN_DIR.z * 100);
   }
@@ -269,6 +263,7 @@ export class DungeonView implements ArenaView {
     this.lava.dispose();
     this.sand.dispose();
     this.garden.dispose();
+    this.motes.dispose();
     this.water.dispose();
     this.under?.dispose();
     for (const mat of this.mats) mat.dispose();
