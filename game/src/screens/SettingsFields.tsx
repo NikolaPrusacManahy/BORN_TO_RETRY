@@ -1,6 +1,6 @@
 // Update 0.0.4 — the settings sliders, shared by the pause menu and the main menu (moved out of PauseMenu.tsx).
-// Update 0.1.17 — and Music (the menus' track). Update 0.2.21 — and UI size (the HUD's).
-import { FOV_MAX, FOV_MIN, SENS_MAX, SENS_MIN, Settings, UI_SIZE_MAX, UI_SIZE_MIN } from '../state/settings';
+// Update 0.1.17 — and Music (the menus' track). Update 0.2.21 — and UI size (the HUD's). Update 0.2.26 — and Blood.
+import { BLOOD_LEVELS, FOV_MAX, FOV_MIN, SENS_MAX, SENS_MIN, Settings, UI_SIZE_MAX, UI_SIZE_MIN } from '../state/settings';
 
 interface SliderProps {
   label: string;
@@ -34,6 +34,16 @@ export function SettingsFields({ settings, onChange }: { settings: Settings; onC
       <Slider label="Effects" value={settings.sfxVolume} min={0} max={1} step={0.05} show={percent} onChange={(v) => set({ sfxVolume: v })} />
       <Slider label="Music" value={settings.musicVolume} min={0} max={1} step={0.05} show={percent} onChange={(v) => set({ musicVolume: v })} />
       <Slider label="UI size" value={settings.uiSize} min={UI_SIZE_MIN} max={UI_SIZE_MAX} step={0.05} show={percent} onChange={(v) => set({ uiSize: v })} />
+      <div className="rb-toggle">
+        <span>Blood</span>
+        <div className="rb-choice">
+          {BLOOD_LEVELS.map((b) => (
+            <button key={b} type="button" className={settings.blood === b ? 'is-on' : ''} onClick={() => set({ blood: b })}>
+              {b === 'on' ? 'On' : b === 'less' ? 'Less' : 'Off'}
+            </button>
+          ))}
+        </div>
+      </div>
       <label className="rb-toggle">
         <span>Invert mouse Y</span>
         <input type="checkbox" checked={settings.invertY} onChange={(e) => set({ invertY: e.target.checked })} />

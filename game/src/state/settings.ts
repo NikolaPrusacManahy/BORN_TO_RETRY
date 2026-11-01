@@ -1,6 +1,7 @@
 // Settings saved in localStorage (pattern from Last Ward). Every saved field needs a default here, or old
 // saves lose it on load.
 // Update 0.2.9 — and what you chose in the lobby: your difficulty and character.
+// Update 0.2.26 — Blood: on, less or off (engine/bloodFx.ts).
 import { Bindings, DEFAULT_BINDINGS, hydrateBindings } from '../input/bindings';
 import { CharacterId, ROSTER } from '../sim/characters';
 import { DEFAULT_DIFFICULTY, Difficulty, isDifficulty } from '../sim/lobby/difficulty';
@@ -19,8 +20,13 @@ export interface Settings {
   musicVolume: number;
   /** Update 0.2.21 — the in-play HUD's size, times its fit to the screen (ui/uiScale.ts), UI_SIZE_MIN – UI_SIZE_MAX. */
   uiSize: number;
+  /** Update 0.2.26 — how much enemies bleed. */
+  blood: BloodLevel;
   bindings: Bindings;
 }
+
+export type BloodLevel = 'on' | 'less' | 'off';
+export const BLOOD_LEVELS: readonly BloodLevel[] = ['on', 'less', 'off'];
 
 export interface SaveData {
   version: 1;
@@ -41,7 +47,7 @@ export const SENS_MAX = 5;
 export const UI_SIZE_MIN = 0.7;
 export const UI_SIZE_MAX = 1.4;
 
-export const DEFAULT_SETTINGS: Settings = { sensitivity: 1, invertY: false, fov: 100, volume: 0.8, sfxVolume: 1, musicVolume: 0.7, uiSize: 1, bindings: DEFAULT_BINDINGS };
+export const DEFAULT_SETTINGS: Settings = { sensitivity: 1, invertY: false, fov: 100, volume: 0.8, sfxVolume: 1, musicVolume: 0.7, uiSize: 1, blood: 'on', bindings: DEFAULT_BINDINGS };
 
 export function defaultSave(): SaveData {
   return { version: 1, settings: { ...DEFAULT_SETTINGS, bindings: { ...DEFAULT_BINDINGS } }, difficulty: DEFAULT_DIFFICULTY, character: DEFAULT_CHARACTER, cards: true };
@@ -72,6 +78,7 @@ export function hydrateSave(raw: unknown): SaveData {
       sfxVolume: clamp(s.sfxVolume, 0, 1, DEFAULT_SETTINGS.sfxVolume),
       musicVolume: clamp(s.musicVolume, 0, 1, DEFAULT_SETTINGS.musicVolume),
       uiSize: clamp(s.uiSize, UI_SIZE_MIN, UI_SIZE_MAX, DEFAULT_SETTINGS.uiSize),
+      blood: BLOOD_LEVELS.includes(s.blood as BloodLevel) ? (s.blood as BloodLevel) : DEFAULT_SETTINGS.blood,
       bindings: hydrateBindings(s.bindings),
     },
   };

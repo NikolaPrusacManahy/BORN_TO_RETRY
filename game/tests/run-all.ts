@@ -59,6 +59,7 @@ import './test-boss-room';
 import './test-boss-show';
 import './test-floor2';
 import './test-venom';
+import './test-blood';
 import './test-dragon';
 import './test-lab';
 import './test-pistol';

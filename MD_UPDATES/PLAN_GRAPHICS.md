@@ -1,7 +1,7 @@
-# Plan — the graphics update (proposed, 2026-11-01)
+# Plan — the graphics update (proposed, 2026-11-01; part 1 built: Update 0.2.26)
 
 The designer: "let's plan a new visual update for enemies, like blood splashes, better uses of assets instead of having
-balls as projectiles, just an overall graphics update for the game". Proposed by Claude; nothing built yet.
+balls as projectiles, just an overall graphics update for the game". Proposed by Claude; part 1 (blood) built in 0.2.26.
 
 ## Where it stands
 - **Shots:** the Spitter, the Blue Demon, the Demon's volley, the Dragon and the Dragonling all fire the same glowing
@@ -26,6 +26,6 @@ balls as projectiles, just an overall graphics update for the game". Proposed by
    cards), a red edge when you're hurt. An Options setting for effects: high / low.
 
 ## Decisions for the designer
-- Blood: red and plentiful, or stylised and light? (Steam's content questions ask about it.)
+- Blood: red and plentiful, or stylised and light? **The designer: "Red, plentiful" (built in 0.2.26).**
 - The order (Claude's pick: blood and hits first, the most felt in play).
 - The glow (bloom) costs some frame rate on weaker PCs: in, with the effects setting?

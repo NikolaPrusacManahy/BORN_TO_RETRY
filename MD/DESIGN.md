@@ -119,6 +119,12 @@ From the shop (70 coins each) and chests (Ultimate RPG Pack models):
 
 What you carry (keys, rings, the shield) goes down to the next floor with you and is lost when you die.
 
+### Blood (Update 0.2.26, the designer: "blood splashes", "Red, plentiful"; spec `MD_UPDATES/U0226_BLOOD.md`)
+- Every hit on an enemy sprays its blood away from you (more the harder the hit); drops splat on the floor; a kill bursts
+  and leaves a pool; an execution's end bursts with pools. Splats lie 40 s (260 at most). Each enemy its own: red,
+  green ichor, bone chips, spores, a pale mist, amber sap, dark ink; a cloud under water. **Options → Blood: On / Less /
+  Off.**
+
 ### Fate Cards (Update 0.2.16, the designer; spec `MD_UPDATES/U0216_FATE_CARDS.md`; Update 0.2.15's Scars became 14 of them)
 - **When:** a boss's chest (not the run's last) and a challenge room's always **deal three Fate Cards**; a chest opened
   with a key deals them **one time in four instead of its loot** (the designer: "25% is fine"); a gold chest never. The

@@ -2,14 +2,21 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.2.25: floor 3's crowded rooms; chests give loot and cards)
+## Next up (2026-11-01, Update 0.2.26: blood, the graphics update's first part)
+- **The designer chose "Red, plentiful"** for the graphics update's blood (plan `MD_UPDATES/PLAN_GRAPHICS.md`; spec
+  `MD_UPDATES/U0226_BLOOD.md`): every hit sprays the enemy's blood (red, green ichor, bone chips, spores, sap, ink),
+  drops splat on the floor, a kill bursts and leaves a pool, an execution more; clouds under water. Options → Blood:
+  On / Less / Off. Checked by tests (`test-blood.ts`); **unseen in the game**.
+- **Next (the plan's parts 2–4):** the enemies' shots (fireballs, acid, water, real carrots and spears, trails and
+  impacts), your blows' trails and the dead sinking away, each floor's motes and the glow (bloom: the designer's call).
+
+## Before (2026-11-01, Update 0.2.25: floor 3's crowded rooms; chests give loot and cards)
 - **The designer, after playing floor 3:** enemies got stuck in the tomb hall and rooms like it. Its tombs and the
   ossuary's alcoves made 2 m lanes a Big Mushnub (over 2 m wide) wedged in: the tomb hall now has half the tombs, 4 m
   apart at least; the ossuary's graves ring a pit of fire. `test-bone.ts` keeps floor 3's lanes 4 m wide or more;
   `tools/nav-probe.ts` sends a floor's enemies across each room (spec `MD_UPDATES/U0225_ROOMS_AND_CHESTS.md`).
 - **Chests (the designer):** every chest gives its loot; Fate Cards come as a bonus (a keyed chest 25%), never instead;
   a challenge room's gives its loot and a deal, always.
-- **Next (the designer: "let's plan a new visual update for enemies"):** the graphics update, planned with the designer.
 
 ## Before (2026-11-01, Update 0.2.24: floor 3, the Bone Keep)
 - **The designer: "finish floor 2 and 3"** (spec `MD_UPDATES/U0224_BONE_KEEP.md`). Floor 3 is the stone keep bleached

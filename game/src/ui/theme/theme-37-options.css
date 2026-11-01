@@ -1,0 +1,21 @@
+/* Update 0.2.26 — a choice of a few in the settings (Blood: On, Less, Off): small buttons side by side, the one chosen
+   lit. */
+.rb-choice {
+  display: flex;
+  gap: 6px;
+}
+
+.rb-choice button {
+  font: inherit;
+  font-size: 13px;
+  padding: 4px 12px;
+  color: var(--rb-dim);
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.rb-choice button.is-on {
+  color: var(--rb-accent);
+}
