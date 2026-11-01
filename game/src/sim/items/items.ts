@@ -20,7 +20,7 @@ import { HASTE } from '../weapons/catalog';
 import { giveWeapon } from '../weapons/slots';
 import { holding } from '../weapons/weapons';
 import { hasteFactor } from './bonuses';
-import { CardKind, newUses } from '../cards/cards';
+import { CardKind, holds, newUses } from '../cards/cards';
 import { CARDS } from '../../tuning/cards';
 
 export type ItemKind = 'heart' | 'plate' | 'goldSword' | 'redRing' | 'blueRing' | 'key' | 'whiteKey' | 'goldKey' | 'goldPlate' | 'greenRing' | 'tealRing' | 'grimoire' | 'goldAxe' | 'hammer' | 'daggers' | 'goldHammer' | 'goldDaggers' | 'greatHeart' | 'pistol';
@@ -130,8 +130,12 @@ export const speedFactor = (inv: Inventory) => 1 + ITEMS.v.blueRing * inv.blueRi
 export const attackRate = (inv: Inventory) => 1 + ITEMS.v.greenRing * inv.greenRings;
 export const hpBonusOf = (inv: Inventory) => ITEMS.v.redRingHp * inv.redRings + ITEMS.v.tealRingHp * inv.tealRings;
 /** Update 0.1.9 — your run speed, times this: the blue rings, the blue potion and the weapon in your hand. Update
- *  0.2.16 — and Bloodrush (a Fate Card). */
-export const moveFactor = (state: CombatState) => speedFactor(state.items) * hasteFactor(state.bonuses) * (1 + (state.weapon ? HASTE[state.weapon.kind]() : 0)) * (state.rush > 0 ? 1 + CARDS.v.bloodrush : 1);
+ *  0.2.16 — and Bloodrush (a Fate Card). Update 0.2.19 — Leaden Feet, Iron Skin (slower), Runaway (faster). */
+export const moveFactor = (state: CombatState) => {
+  const v = CARDS.v;
+  const cards = (state.rush > 0 ? 1 + v.bloodrush : 1) * (holds(state, 'leadenFeet') ? 1 - v.leaden : 1) * (holds(state, 'ironSkin') ? 1 - v.ironSlow : 1) * (holds(state, 'runaway') ? 1 + v.runaway : 1);
+  return speedFactor(state.items) * hasteFactor(state.bonuses) * (1 + (state.weapon ? HASTE[state.weapon.kind]() : 0)) * cards;
+};
 
 /** Would taking it do anything? A heart at full health or armour with a full shield wouldn't. */
 export function useful(kind: ItemKind, p: PlayerState): boolean {

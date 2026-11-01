@@ -45,7 +45,8 @@ export function takeBonus(state: CombatState, kind: BonusKind, at: Vector3) {
 export function rollBonus(state: CombatState, rng: Rng): BonusKind | null {
   if (state.bonusDrops <= 0) return null;
   const v = BONUS.v;
-  let r = rng();
+  // (Update 0.2.19 — Ill Omen, a Death Card: half as often.)
+  let r = rng() * (holds(state, 'illOmen') ? 2 : 1);
   for (const [kind, odds] of [['snowflake', v.snowflakeOdds], ['goldIngots', v.goldOdds], ['bluePotion', v.potionOdds]] as const) {
     if ((r -= odds) < 0) {
       state.bonusDrops--;
@@ -57,7 +58,8 @@ export function rollBonus(state: CombatState, rng: Rng): BonusKind | null {
 
 /** Coins from a kill: `base` (a half counts as one more half the time), more with gold ingots on (seeded). */
 export function coinsFor(base: number, state: CombatState, rng: Rng): number {
-  const n = base * (state.bonuses.goldIngots > 0 ? 1 + BONUS.v.goldBoost : 1);
+  // (Update 0.2.19 — Empty Purse: fewer; Miser's Oath: twice as many.)
+  const n = base * (state.bonuses.goldIngots > 0 ? 1 + BONUS.v.goldBoost : 1) * (holds(state, 'emptyPurse') ? 1 - CARDS.v.emptyPurse : 1) * (holds(state, 'misersOath') ? 2 : 1);
   const whole = Math.floor(n);
   return whole + (rng() < n - whole ? 1 : 0);
 }

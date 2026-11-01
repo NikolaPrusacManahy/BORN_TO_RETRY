@@ -54,18 +54,20 @@ function rarityOf(tiers: readonly Rarity[], roll: number): Rarity {
   return tiers[tiers.length - 1];
 }
 
-/** The loot a chest with `rolls` gives when opened with `key`. Update 0.2.16 — `lucky` (Fortune's Favour, a Fate Card):
- *  its rarity is rolled twice (the second from the first) and the better kept. */
-export function rollLoot(key: KeyKind, rolls: LootRolls, lucky = false): Loot {
+/** The loot a chest with `rolls` gives when opened with `key`. Update 0.2.16 — `luck.better` (Fortune's Favour, a Fate
+ *  Card): its rarity is rolled twice (the second from the first) and the better kept. Update 0.2.19 — `worse` (Black
+ *  Cat), `up` (Fragile Fortune). */
+export function rollLoot(key: KeyKind, rolls: LootRolls, luck: { better?: boolean; worse?: boolean; up?: boolean } = {}): Loot {
   const tiers = KEY_TIERS[key];
-  let rarity = rarityOf(tiers, rolls[0]);
-  if (lucky) {
-    const again = rarityOf(tiers, (rolls[0] * 7919 + rolls[2]) % 1);
-    if (RARITIES.indexOf(again) > RARITIES.indexOf(rarity)) rarity = again;
-  }
-  let i = RARITIES.indexOf(rarity);
+  let r = RARITIES.indexOf(rarityOf(tiers, rolls[0]));
+  // (Update 0.2.19 — Black Cat, a Death Card: the worse of the two; Fragile Fortune, a Traitor Card: one higher.)
+  const again = RARITIES.indexOf(rarityOf(tiers, (rolls[0] * 7919 + rolls[2]) % 1));
+  if (luck.better) r = Math.max(r, again);
+  if (luck.worse) r = Math.min(r, again);
+  if (luck.up) r = Math.min(RARITIES.indexOf(tiers[tiers.length - 1]), r + 1);
+  let i = r;
   while (i > 0 && TIER[RARITIES[i]].length === 0) i--;
-  rarity = RARITIES[i];
+  const rarity = RARITIES[i];
   const pool = TIER[rarity];
   const pick = pool[Math.min(pool.length - 1, Math.floor(rolls[1] * pool.length))];
   if (pick !== 'coins') return { rarity, item: pick, coins: 0 };

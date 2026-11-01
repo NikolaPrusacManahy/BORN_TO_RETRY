@@ -9,6 +9,8 @@
 // Update 0.2.8 — the Velociraptor's sand in your eyes and its screech's dash lock wear off here too.
 // Update 0.2.16 — Fate Cards: Hard Head (every 10th hit does nothing), Born Again (the first death burns the card
 // instead), All In (your max health halved); the hits you take are counted (Blood Money's coins: sim/cards/cardMoves.ts).
+// Update 0.2.19 — Death and Traitor Cards: Brittle Bones, Blood Pact (more damage taken), Iron Skin (less), Festering (a
+// hit festers), Glass Heart, Fragile Fortune, Bottled Lightning (less max health).
 import { CARDS } from '../../tuning/cards';
 import { HEALTH } from '../../tuning/health';
 import { bears } from '../cards/cards';
@@ -59,6 +61,9 @@ export function damagePlayer(p: PlayerState, amount: number, by: Cause | null = 
     return false;
   }
   p.hits++;
+  amount *= takenFactor(p);
+  // (Festering: it festers, a while.)
+  if (bears(p, 'festering')) poisonPlayer(p, CARDS.v.festerDps, CARDS.v.festerFor, by);
   const blocked = Math.min(p.shield, amount);
   if (blocked > 0) {
     p.shield -= blocked;
@@ -75,7 +80,18 @@ export function damagePlayer(p: PlayerState, amount: number, by: Cause | null = 
 }
 
 /** Update 0.0.17 — your max health now. Update 0.2.16 — All In (a Fate Card) halves it. */
-export const maxHpOf = (p: PlayerState) => (HEALTH.v.maxHp + p.hpBonus) * (bears(p, 'allIn') ? 0.5 : 1);
+export const maxHpOf = (p: PlayerState) => {
+  const v = CARDS.v;
+  // (Update 0.2.19 — Glass Heart, Fragile Fortune, Bottled Lightning: less.)
+  const less = (bears(p, 'glassHeart') ? v.glassHeart : 0) + (bears(p, 'fragileFortune') ? v.fragileHp : 0) + (bears(p, 'bottledLightning') ? v.bottledHp : 0);
+  return Math.max(10, (HEALTH.v.maxHp + p.hpBonus - less) * (bears(p, 'allIn') ? 0.5 : 1));
+};
+
+/** Update 0.2.19 — damage you take, times this (Brittle Bones, Blood Pact: more; Iron Skin: less). */
+export const takenFactor = (p: PlayerState) => {
+  const v = CARDS.v;
+  return (bears(p, 'brittleBones') ? 1 + v.brittle : 1) * (bears(p, 'bloodPact') ? 1 + v.bloodPact : 1) * (bears(p, 'ironSkin') ? 1 - v.ironSkin : 1);
+};
 
 /** Heals up to the max. Returns how much was healed. */
 export function healPlayer(p: PlayerState, amount: number): number {

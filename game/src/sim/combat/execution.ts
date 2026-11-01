@@ -258,7 +258,8 @@ function finish(state: CombatState, ex: Execution, at: Vector3, kind: 'execLand'
   landHit(state, hit, 1e6, 0, F.x, F.z, 'hitHeavy', 1);
   state.execution = meterAfter(state);
   // (Update 0.2.12 — the designer: "executions always heals", on ARE YOU EVEN HUMAN? too.)
-  if (!player.dead) healPlayer(player, MINI_BOSSES.includes(e.kind) ? v.healBig : v.heal);
+  // (Update 0.2.19 — not with Executioner's Deal, a Traitor Card.)
+  if (!player.dead && !holds(state, 'executionersDeal')) healPlayer(player, MINI_BOSSES.includes(e.kind) ? v.healBig : v.heal);
   if (holds(state, 'adrenaline') && !player.dead) {
     player.dashCharges = dashMaxOf(player);
     player.invuln = Math.max(player.invuln, CARDS.v.adrenaline);

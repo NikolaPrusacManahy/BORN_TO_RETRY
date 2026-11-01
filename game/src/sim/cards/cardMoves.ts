@@ -51,6 +51,9 @@ export function tickCards(state: CombatState, player: PlayerState, dt: number) {
     state.money += burstCoins(state.coins, player.pos, n, state.rng);
     state.events.push('cardCoins', n, player.pos.x, player.pos.y + 1, player.pos.z);
   }
+  // (Update 0.2.19 — Shaken, a Death Card: a hit empties the meter; Miser's Oath, a Traitor Card: a hit costs coins.)
+  if (hits > 0 && holds(state, 'shaken')) state.execution = 0;
+  if (hits > 0 && holds(state, 'misersOath')) state.money = Math.max(0, state.money - Math.round(CARDS.v.misersCost) * hits);
 }
 
 /** A kill of yours (enemy `e`): Bloodrush, Killing Spree, Giant Killer (and wave 2's: cardPowers.ts). */
@@ -81,7 +84,13 @@ export const handsRate = (state: CombatState) => (holds(state, 'quickHands') ? 1
 
 /** What one kill is worth on the execution meter, and how many fill it (Air Butcher, Reaper's Rhythm). */
 export function meterStep(state: CombatState): { steps: number; worth: number } {
-  const steps = Math.max(1, Math.round(holds(state, 'reapersRhythm') ? CARDS.v.reaperKills : EXECUTION.v.killsToFill));
+  // (Update 0.2.19 — Fasting and Executioner's Deal, Traitor Cards: fewer, the fewest counting; Blunted Rage, a Death
+  // Card: more.)
+  const v = CARDS.v;
+  let base = holds(state, 'reapersRhythm') ? v.reaperKills : EXECUTION.v.killsToFill;
+  if (holds(state, 'fasting')) base = Math.min(base, v.fastingKills);
+  if (holds(state, 'executionersDeal')) base = Math.min(base, v.executionerKills);
+  const steps = Math.max(1, Math.round(base + (holds(state, 'bluntedRage') ? v.blunted : 0)));
   const worth = state.inAir && holds(state, 'airButcher') ? Math.round(CARDS.v.airButcher) : 1;
   return { steps, worth };
 }
@@ -151,9 +160,11 @@ export function pogo(state: CombatState, player: PlayerState, kills: number) {
 /** How fast the charge (right click held) fills, ×1 as tuned: Hair Trigger's fists twice as quick while you have a
  *  dash to pay, Giant Killer's at once, Quick Hands' weapon charges quicker. */
 export function chargeRate(state: CombatState, player: PlayerState): number {
-  if (state.weapon !== null) return handsRate(state);
+  // (Update 0.2.19 — Heavy Hands, a Death Card: slower.)
+  const heavy = holds(state, 'heavyHands') ? 1 / (1 + CARDS.v.heavyHands) : 1;
+  if (state.weapon !== null) return handsRate(state) * heavy;
   if (state.giant > 0) return INSTANT;
-  return holds(state, 'hairTrigger') && player.dashCharges >= 1 ? 1 / Math.max(0.05, CARDS.v.hairTrigger) : 1;
+  return (holds(state, 'hairTrigger') && player.dashCharges >= 1 ? 1 / Math.max(0.05, CARDS.v.hairTrigger) : 1) * heavy;
 }
 
 /** Hair Trigger: a charged punch let go pays its dash (not while Giant Killer's on). */

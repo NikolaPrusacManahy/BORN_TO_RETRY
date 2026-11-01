@@ -131,9 +131,16 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 - **The deal:** the world holds still and blurs; a deck deals them one by one, face up, low on the screen; hover lifts one
   to read; a click takes it: it shrinks and flies to the card pile by your coins. You must take one.
 - **TAB:** what you carry (cards, weapons, rings, keys, bonuses, health, armour, dashes, coins); the world holds still.
-- **40 cards:** wave 1's 30 and (Update 0.2.18, the designer: "just build wave 2") wave 2's 10, with effects of their
+- **40 Fate Cards:** wave 1's 30 and (Update 0.2.18, the designer: "just build wave 2") wave 2's 10, with effects of their
   own: bleed, burn, lightning, blasts, homing knives, rings of fire and ice, a split throw (specs `U0216_FATE_CARDS.md`,
   `U0218_FATE_CARDS_WAVE2.md`; ideas from Risk of Rain 2's items, our names and effects). **(placeholder numbers)**
+- **Death Cards and Traitor Cards (Update 0.2.19, the designer: "it also end up in the same 3 cards pull, it is all
+  rng"; spec `U0219_DEATH_TRAITOR_CARDS.md`):** each card dealt rolls its family first: **a Death Card 15%, a Traitor
+  Card 12%**, else a Fate Card. **16 Death Cards** only hurt the run (more damage taken, slower, fewer uses, dearer shop,
+  fewer coins, a slower meter, worse luck…); a Death Card is **bound**: it comes with whatever you take, and dealt only
+  Death Cards you take them all. **10 Traitor Cards** give something and cost something (both on the card, the price in
+  red). Their own faces: Death black, bone and sickly green with a skull; Traitor split gold and purple. Max health never
+  under 10. **(placeholder numbers)**
 
 ---
 

@@ -11,7 +11,7 @@
 // column a kind. Below, always: Clear, Heal, Back; Waves, God, Meter, and Stay (every pick keeps the panel open).
 import { useState } from 'react';
 import { LabSounds } from './LabSounds';
-import { isMini, LAB_CARDS, LAB_FLOORS, LAB_ITEMS, LabBoss, labName } from './labLists';
+import { isMini, LAB_CARDS, LAB_DARK, LAB_FLOORS, LAB_ITEMS, LabBoss, labName } from './labLists';
 import type { LabCommand } from '../sim/lab/labCommands';
 
 interface Props {
@@ -31,11 +31,12 @@ interface Props {
   onGod(): void;
 }
 
-type Tab = 'enemies' | 'items' | 'cards' | 'sounds';
+type Tab = 'enemies' | 'items' | 'cards' | 'dark' | 'sounds';
 const TABS: [Tab, string][] = [
   ['enemies', 'Enemies'],
   ['items', 'Items'],
   ['cards', 'Fate Cards'],
+  ['dark', 'Traitor · Death'],
   ['sounds', 'Sounds'],
 ];
 const COUNTS = [1, 3, 5];
@@ -136,6 +137,22 @@ export function LabPanel({ away, waves, meter, god, onCommand, onBossRoom, onFlo
           {tab === 'cards' && (
             <div className="rb-lab-cols is-items">
               {LAB_CARDS.map(([head, picks]) => (
+                <section key={head} className="rb-lab-col">
+                  <h3 className="rb-lab-head">{head}</h3>
+                  <div className="rb-lab-list">
+                    {picks.map(([label, cmd]) => (
+                      <button key={label} className="rb-lab-btn" onClick={run(cmd)}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
+          {tab === 'dark' && (
+            <div className="rb-lab-cols is-items">
+              {LAB_DARK.map(([head, picks]) => (
                 <section key={head} className="rb-lab-col">
                   <h3 className="rb-lab-head">{head}</h3>
                   <div className="rb-lab-list">

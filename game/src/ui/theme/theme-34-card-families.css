@@ -1,0 +1,78 @@
+/* theme-34 — Update 0.2.19: Death Cards and Traitor Cards (the designer: "change the cards design so they look a bit
+   different from the Fate cards"). Their faces over a Fate Card's (theme-33): Death black, bone and sickly green with a
+   skull; Traitor split gold and purple, its price in red. */
+
+/* Update 0.2.19 — a Death Card: black, a cracked bone frame (a broken inner line), a sickly green glow round it, a skull
+   behind its mark, its name in bone. */
+.rb-card.is-death {
+  --rarity: #d9d2bf;
+  background: radial-gradient(circle at 50% 35%, #1a1f1a 0%, #070807 60%, #000 100%);
+  border-style: solid;
+  box-shadow: 0 0 calc(24px * var(--s)) rgba(120, 255, 150, 0.28), inset 0 0 calc(30px * var(--s)) rgba(0, 0, 0, 0.9), 0 calc(10px * var(--s)) calc(26px * var(--s)) rgba(0, 0, 0, 0.7);
+}
+
+.rb-card.is-death::before {
+  border: 1px dashed rgba(217, 210, 191, 0.45);
+}
+
+.rb-card.is-death .rb-card-top span:first-child {
+  color: #8affa6;
+}
+
+.rb-card.is-death .rb-card-art {
+  position: relative;
+  background: radial-gradient(circle, rgba(120, 255, 150, 0.22) 0%, transparent 70%);
+}
+
+.rb-card-skull {
+  position: absolute;
+  inset: 4%;
+  fill: none;
+  stroke: rgba(138, 255, 166, 0.22);
+  stroke-width: 2;
+}
+
+.rb-card.is-death .rb-card-mark {
+  stroke: #d9d2bf;
+  filter: drop-shadow(0 0 6px rgba(120, 255, 150, 0.7));
+}
+
+.rb-card.is-death .rb-card-name {
+  color: #d9d2bf;
+  letter-spacing: 0.06em;
+}
+
+.rb-card.is-death .rb-card-does {
+  color: #b8c4b6;
+}
+
+/* Update 0.2.19 — a Traitor Card: split gold and purple across, its gift in gold, its price in red under a line. */
+.rb-card.is-traitor {
+  --rarity: #e8b931;
+  border-color: #e8b931 #9b4dff #9b4dff #e8b931;
+  background: linear-gradient(135deg, #2b2208 0%, #1a1405 48%, #1d0c2e 52%, #12071f 100%);
+  box-shadow: 0 0 calc(22px * var(--s)) rgba(232, 185, 49, 0.3), 0 0 calc(22px * var(--s)) rgba(155, 77, 255, 0.3), 0 calc(10px * var(--s)) calc(26px * var(--s)) rgba(0, 0, 0, 0.6);
+}
+
+.rb-card.is-traitor .rb-card-art {
+  background: radial-gradient(circle, rgba(232, 185, 49, 0.25) 0%, rgba(155, 77, 255, 0.15) 45%, transparent 70%);
+}
+
+.rb-card.is-traitor .rb-card-mark {
+  stroke: #e8b931;
+  filter: drop-shadow(0 0 6px #9b4dff);
+}
+
+.rb-card.is-traitor .rb-card-does {
+  color: #ffd76a;
+}
+
+.rb-card-cost {
+  margin-top: calc(8px * var(--s));
+  padding-top: calc(7px * var(--s));
+  border-top: 1px solid rgba(155, 77, 255, 0.5);
+  font-size: calc(13px * var(--s));
+  font-weight: 600;
+  line-height: 1.3;
+  color: #ff5a5a;
+}

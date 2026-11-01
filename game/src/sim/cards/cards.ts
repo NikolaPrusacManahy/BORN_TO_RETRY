@@ -5,7 +5,10 @@
 // of them. Which there are (wave 1: 30; Update 0.2.18, wave 2 — the designer: "just build wave 2" — 10 more, the ones
 // with effects of their own: bleed, burn, lightning, blasts, spirit knives, rings, a split throw), their rarity (a
 // chest's: common to mythic), what each changes and does (its face), the ones you carry (each once; lost when you die),
-// taking one. A deal is deal.ts; what each does is where its move is (cardMoves.ts, cardPowers.ts and in place). Pure.
+// taking one. Update 0.2.19 — two more families in the same deals (the designer): Death Cards, 16 curses ("annoying cards
+// … can make the run a bit painful"), and Traitor Cards, 10 with a gift and a price ("a good part and a counter part
+// costs"). A deal is deal.ts; what each does is where its move is (cardMoves.ts, cardPowers.ts, cardCurses.ts and in
+// place). Pure.
 import { CARDS } from '../../tuning/cards';
 import type { CombatState } from '../combat/state';
 import type { Rarity } from '../dungeon/loot';
@@ -57,19 +60,57 @@ export type CardKind =
   | 'bornAgain'
   | 'allIn'
   | 'chainReaction'
-  | 'splinter';
+  | 'splinter'
+  // Update 0.2.19 — Death Cards.
+  | 'brittleBones'
+  | 'leadenFeet'
+  | 'shortBreath'
+  | 'rust'
+  | 'rottenGrip'
+  | 'taxman'
+  | 'emptyPurse'
+  | 'illOmen'
+  | 'heavyHands'
+  | 'anchor'
+  | 'glassHeart'
+  | 'bluntedRage'
+  | 'festering'
+  | 'cramp'
+  | 'blackCat'
+  | 'shaken'
+  // Update 0.2.19 — Traitor Cards.
+  | 'bloodPact'
+  | 'fragileFortune'
+  | 'runaway'
+  | 'fasting'
+  | 'ironSkin'
+  | 'bottledLightning'
+  | 'misersOath'
+  | 'berserker'
+  | 'gambler'
+  | 'executionersDeal';
+
+/** Update 0.2.19 — a Fate Card (good), a Traitor Card (a gift and a price), a Death Card (a curse). */
+export type CardFamily = 'fate' | 'traitor' | 'death';
 
 interface CardFace {
+  /** A Fate Card's (a Traitor's or a Death Card's is 'common', unused: they have none). */
   rarity: Rarity;
   /** What it changes (shown on its face). */
   move: string;
   name: string;
+  /** What it does (a Traitor Card's: its gift). */
   does: () => string;
+  /** Update 0.2.19 — a Traitor or a Death Card (none: a Fate Card); a Traitor Card's price. */
+  family?: CardFamily;
+  cost?: () => string;
 }
 
 const pct = (share: number) => `${Math.round(share * 100)}%`;
 const times = (n: number) => (n === 2 ? 'twice' : `${n} times`);
 const v = () => CARDS.v;
+const death = (move: string, name: string, does: () => string): CardFace => ({ family: 'death', rarity: 'common', move, name, does });
+const traitor = (move: string, name: string, does: () => string, cost: () => string): CardFace => ({ family: 'traitor', rarity: 'common', move, name, does, cost });
 
 export const CARD: Record<CardKind, CardFace> = {
   slingshot: { rarity: 'common', move: 'Slide', name: 'Slingshot', does: () => `A jump out of a slide carries ${pct(v().slingshot - 1)} more speed.` },
@@ -113,7 +154,38 @@ export const CARD: Record<CardKind, CardFace> = {
   allIn: { rarity: 'mythic', move: 'Fists', name: 'All In', does: () => 'Your fists hit twice as hard; your max health is halved.' },
   chainReaction: { rarity: 'mythic', move: 'Kills', name: 'Chain Reaction', does: () => `Every enemy you kill explodes (${v().chainDamage} within ${v().chainRadius} m), and its blast can set off the next.` },
   splinter: { rarity: 'mythic', move: 'Weapons', name: 'Splinter', does: () => 'Every weapon you throw splits into three.' },
+  // Update 0.2.19 — Death Cards: curses.
+  brittleBones: death('Body', 'Brittle Bones', () => `You take ${pct(v().brittle)} more damage.`),
+  leadenFeet: death('Body', 'Leaden Feet', () => `You run ${pct(v().leaden)} slower.`),
+  shortBreath: death('Dash', 'Short Breath', () => `Your dashes refill ${pct(v().shortBreath)} slower.`),
+  rust: death('Weapons', 'Rust', () => `New weapons have ${pct(v().rust)} fewer uses.`),
+  rottenGrip: death('Weapons', 'Rotten Grip', () => 'Your weapons wear out twice as fast.'),
+  taxman: death('Coins', 'Taxman', () => `The shop costs ${pct(v().taxman)} more.`),
+  emptyPurse: death('Coins', 'Empty Purse', () => `Kills give ${pct(v().emptyPurse)} fewer coins.`),
+  illOmen: death('Bonuses', 'Ill Omen', () => 'Kill bonuses drop half as often.'),
+  heavyHands: death('Fists', 'Heavy Hands', () => `Charged attacks take ${pct(v().heavyHands)} longer to charge.`),
+  anchor: death('Jump', 'Anchor', () => `You jump ${pct(v().anchor)} lower.`),
+  glassHeart: death('Body', 'Glass Heart', () => `${v().glassHeart} less max health.`),
+  bluntedRage: death('Executions', 'Blunted Rage', () => `The execution meter needs ${Math.round(v().blunted)} more kills.`),
+  festering: death('Body', 'Festering', () => `Every hit on you festers: ${v().festerDps} a second for ${v().festerFor} s.`),
+  cramp: death('Fists', 'Cramp', () => `Your attacks are ${pct(v().cramp)} slower.`),
+  blackCat: death('Luck', 'Black Cat', () => 'Every chest and deal rolls its rarity twice and keeps the worse.'),
+  shaken: death('Executions', 'Shaken', () => 'A hit on you empties your execution meter.'),
+  // Update 0.2.19 — Traitor Cards: a gift, and its price.
+  bloodPact: traitor('Body', 'Blood Pact', () => `Your hits deal ${pct(v().bloodPact)} more.`, () => `You take ${pct(v().bloodPact)} more.`),
+  fragileFortune: traitor('Luck', 'Fragile Fortune', () => 'Every chest and deal rolls one rarity higher.', () => `${v().fragileHp} less max health.`),
+  runaway: traitor('Body', 'Runaway', () => `You run ${pct(v().runaway)} faster.`, () => 'You can’t slide.'),
+  fasting: traitor('Executions', 'Fasting', () => `The execution meter fills in ${Math.round(v().fastingKills)} kills.`, () => 'The shop won’t sell to you.'),
+  ironSkin: traitor('Body', 'Iron Skin', () => `Hits on you are ${pct(v().ironSkin)} weaker.`, () => `You run ${pct(v().ironSlow)} slower.`),
+  bottledLightning: traitor('Dash', 'Bottled Lightning', () => 'Your dashes refill twice as fast.', () => `${v().bottledHp} less max health.`),
+  misersOath: traitor('Coins', 'Miser’s Oath', () => 'Kills give twice the coins.', () => `Every hit you take costs ${Math.round(v().misersCost)} coins.`),
+  berserker: traitor('Fists', 'Berserker', () => `Your attacks are ${pct(v().berserk)} quicker.`, () => `Your dashes refill ${pct(v().shortBreath)} slower.`),
+  gambler: traitor('Luck', 'Gambler', () => 'Deals show one card more.', () => 'One of them is always a Death Card.'),
+  executionersDeal: traitor('Executions', 'Executioner’s Deal', () => `The execution meter fills in ${Math.round(v().executionerKills)} kills.`, () => 'Executions don’t heal you.'),
 };
+
+/** Update 0.2.19 — the family a card is of. */
+export const familyOf = (k: CardKind): CardFamily => CARD[k].family ?? 'fate';
 
 export const CARD_KINDS = Object.keys(CARD) as readonly CardKind[];
 
@@ -131,8 +203,9 @@ export function takeCard(state: CombatState, player: PlayerState, kind: CardKind
   state.events.push('cardTaken', CARD_KINDS.indexOf(kind), player.pos.x, player.pos.y + 1, player.pos.z);
 }
 
-/** Collector: the uses a new `kind` you get comes with (drops, chests, the shop). */
+/** Collector: the uses a new `kind` you get comes with (drops, chests, the shop). Update 0.2.19 — Rust (a Death Card):
+ *  fewer. */
 export function newUses(state: CombatState, kind: WeaponKind): number {
-  const uses = WEAPON_STATS[kind]().uses;
-  return holds(state, 'collector') ? Math.round(uses * (1 + CARDS.v.collector)) : uses;
+  const uses = WEAPON_STATS[kind]().uses * (holds(state, 'collector') ? 1 + CARDS.v.collector : 1) * (holds(state, 'rust') ? 1 - CARDS.v.rust : 1);
+  return Math.max(1, Math.round(uses));
 }

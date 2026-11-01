@@ -32,6 +32,7 @@ import './test-cards';
 import './test-card-moves';
 import './test-card-moves2';
 import './test-card-moves3';
+import './test-card-moves4';
 import './test-alpha';
 import './test-credit';
 import './test-grunt';

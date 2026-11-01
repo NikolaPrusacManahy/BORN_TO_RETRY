@@ -174,7 +174,7 @@ section('Fate Cards — mythic: Fortune’s Favour, Reaper’s Rhythm, Born Agai
   let never = true;
   for (let i = 0; i < 200; i++) {
     const rolls = [i / 200, 0.5, ((i * 37) % 200) / 200] as const;
-    never &&= RARITIES.indexOf(rollLoot('key', rolls, true).rarity) >= RARITIES.indexOf(rollLoot('key', rolls).rarity);
+    never &&= RARITIES.indexOf(rollLoot('key', rolls, { better: true }).rarity) >= RARITIES.indexOf(rollLoot('key', rolls).rarity);
   }
   check('and a chest never comes out worse for it', never);
   const reaper = fight('reapersRhythm');

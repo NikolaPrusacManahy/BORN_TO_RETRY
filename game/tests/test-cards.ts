@@ -4,6 +4,8 @@
 // last) and a challenge room's always deal, a keyed chest one time in four instead of its item, a gold chest never;
 // each card's rarity its own roll by the chests' odds (Update 0.2.17, the designer: "a chance for each card"); only
 // cards you don't carry; taking one; carried down; what TAB shows; the Lab. What each does: test-card-moves.ts, test-card-moves2.ts.
+// Update 0.2.19 — the Death and Traitor Cards dealt among them (test-card-moves4.ts): here they're switched off (their
+// odds 0) so the Fate Cards' own odds read clean.
 import { check, section } from './harness';
 import { DT, ticks } from './fakes/flatWorld';
 import { OPEN_ARENA } from './fakes/enemyWorld';
@@ -12,7 +14,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { inventoryView } from '../src/engine/fateView';
 import { Inventory } from '../src/screens/Inventory';
-import { CARD, CARD_KINDS, CardKind } from '../src/sim/cards/cards';
+import { CARD, CARD_KINDS, CardKind, familyOf } from '../src/sim/cards/cards';
 import { drawDeal, pickCard } from '../src/sim/cards/deal';
 import { carryOver, createCombat } from '../src/sim/combat/state';
 import { RARITIES } from '../src/sim/dungeon/loot';
@@ -24,6 +26,7 @@ import { holding } from '../src/sim/weapons/weapons';
 import { CARDS } from '../src/tuning/cards';
 import { CINEMA } from '../src/tuning/cinema';
 import { ITEMS } from '../src/tuning/items';
+import { setKnob } from '../src/tuning/schema';
 import { buildDungeon } from '../src/world/dungeon/assemble';
 import { planFloor } from '../src/world/dungeon/floorPlan';
 
@@ -71,11 +74,17 @@ function openChest(seed: number, key: 'key' | 'whiteKey' | 'goldKey' | null, gol
   return { c, p, chest };
 }
 
+setKnob(CARDS, 'deathChance', 0);
+setKnob(CARDS, 'traitorChance', 0);
+
 section('Fate Cards — the cards');
 {
-  const by = RARITIES.map((r) => CARD_KINDS.filter((k) => CARD[k].rarity === r).length);
-  check('waves 1 and 2: 40 cards, every rarity among them', CARD_KINDS.length === 40 && by.every((n) => n >= 3), by.join(' '));
-  check('each with its own name, the move it changes and what it does', new Set(CARD_KINDS.map((k) => CARD[k].name)).size === 40 && CARD_KINDS.every((k) => CARD[k].move.length > 0 && CARD[k].does().length > 10));
+  const fate = CARD_KINDS.filter((k) => familyOf(k) === 'fate');
+  const by = RARITIES.map((r) => fate.filter((k) => CARD[k].rarity === r).length);
+  check('waves 1 and 2: 40 Fate Cards, every rarity among them', fate.length === 40 && by.every((n) => n >= 3), by.join(' '));
+  check('16 Death Cards, 10 Traitor Cards (66 in all)', CARD_KINDS.filter((k) => familyOf(k) === 'death').length === 16 && CARD_KINDS.filter((k) => familyOf(k) === 'traitor').length === 10 && CARD_KINDS.length === 66);
+  check('each with its own name, the move it changes and what it does', new Set(CARD_KINDS.map((k) => CARD[k].name)).size === 66 && CARD_KINDS.every((k) => CARD[k].move.length > 0 && CARD[k].does().length > 10));
+  check('a Traitor Card says its price; no other does', CARD_KINDS.every((k) => (familyOf(k) === 'traitor') === (CARD[k].cost?.().length ?? 0) > 5));
 }
 
 section('Fate Cards — a boss’s chest deals');
@@ -87,9 +96,9 @@ section('Fate Cards — a boss’s chest deals');
   const p = createPlayer(0, 0, 0, 0);
   const kind = cards[1];
   const taken = pickCard(c, p, 1);
-  check('taking one: it’s yours for the run, the deal’s over', taken === kind && c.items.cards.has(kind) && p.cards === c.items.cards && c.deal === null);
+  check('taking one: it’s yours for the run, the deal’s over', taken.join() === kind && c.items.cards.has(kind) && p.cards === c.items.cards && c.deal === null);
   check('the run’s last boss deals none (the run ends there)', openBossChest(5, true).c.deal === null);
-  const most = [...all()].filter((k) => k !== 'pogo' && k !== 'slingshot');
+  const most = [...all()].filter((k) => k !== 'pogo' && k !== 'slingshot' && familyOf(k) === 'fate');
   const two = openBossChest(2, false, most).c.deal?.cards ?? [];
   check('only cards you don’t carry', two.length === 2 && two.includes('pogo') && two.includes('slingshot'));
   check('carrying every one, no deal', openBossChest(3, false, [...all()]).c.deal === null);
@@ -223,3 +232,6 @@ section('Fate Cards — carried, shown, the Lab');
   runLab({ kind: 'card', card: 'updraft' }, lab, q, 0, emptyTreasure());
   check('the Lab: Deal 3 deals; a card given is yours', dealt === CARDS.v.dealt && lab.items.cards.has('updraft'));
 }
+
+setKnob(CARDS, 'deathChance', CARDS.knobs.deathChance.def);
+setKnob(CARDS, 'traitorChance', CARDS.knobs.traitorChance.def);

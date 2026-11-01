@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react';
 import type { CarriedView, InventoryView } from '../engine/fateView';
 import { FateCard } from './FateCard';
+import type { CardFamily } from '../sim/cards/cards';
 
 interface Props {
   view: InventoryView;
@@ -32,6 +33,13 @@ function List({ head, rows, unit }: { head: string; rows: CarriedView[]; unit?: 
   );
 }
 
+/** Update 0.2.19 — the families, in their order, and their heads. */
+const FAMILIES: readonly [CardFamily, string][] = [
+  ['fate', 'Fate Cards'],
+  ['traitor', 'Traitor Cards'],
+  ['death', 'Death Cards'],
+];
+
 export function Inventory({ view, closeKey, onClose }: Props) {
   const [look, setLook] = useState(0);
   const shown = view.cards[Math.min(look, view.cards.length - 1)];
@@ -53,17 +61,28 @@ export function Inventory({ view, closeKey, onClose }: Props) {
     <div className="rb-inv">
       <div className="rb-inv-panel">
         <section className="rb-inv-cards">
-          <h3>Fate Cards</h3>
-          {view.cards.length === 0 ? (
-            <p className="rb-inv-none">None yet</p>
-          ) : (
-            <div className="rb-inv-grid">
-              {view.cards.map((c, i) => (
-                <div key={c.kind} className={`rb-inv-card${c === shown ? ' is-shown' : ''}`} onMouseEnter={() => setLook(i)}>
-                  <FateCard card={c} />
+          {view.cards.length === 0 && (
+            <>
+              <h3>Fate Cards</h3>
+              <p className="rb-inv-none">None yet</p>
+            </>
+          )}
+          {/* (Update 0.2.19 — a group a family: Fate, Traitor, Death.) */}
+          {FAMILIES.map(([family, head]) =>
+            view.cards.some((c) => c.family === family) ? (
+              <div key={family} className="rb-inv-family">
+                <h3>{head}</h3>
+                <div className="rb-inv-grid">
+                  {view.cards.map((c, i) =>
+                    c.family === family ? (
+                      <div key={c.kind} className={`rb-inv-card${c === shown ? ' is-shown' : ''}`} onMouseEnter={() => setLook(i)}>
+                        <FateCard card={c} />
+                      </div>
+                    ) : null,
+                  )}
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : null,
           )}
         </section>
         <div className="rb-inv-look">{shown && <FateCard card={shown} />}</div>

@@ -16,7 +16,9 @@ export const dashMaxOf = (p: PlayerState) => DASH.v.charges + (bears(p, 'restles
 export function refillDash(p: PlayerState, dt: number) {
   const max = dashMaxOf(p);
   if (p.dashCharges > max) p.dashCharges = max;
-  const rate = bears(p, 'restless') ? 1 + CARDS.v.restlessRefill : 1;
+  // (Update 0.2.19 — Short Breath and Berserker: slower; Bottled Lightning: twice as fast.)
+  const v = CARDS.v;
+  const rate = (bears(p, 'restless') ? 1 + v.restlessRefill : 1) * (bears(p, 'shortBreath') ? 1 - v.shortBreath : 1) * (bears(p, 'berserker') ? 1 - v.shortBreath : 1) * (bears(p, 'bottledLightning') ? 2 : 1);
   if (p.dashTime <= 0 && p.dashCharges < max) p.dashCharges = Math.min(max, p.dashCharges + (dt * rate) / DASH.v.refillTime);
 }
 

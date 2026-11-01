@@ -47,8 +47,9 @@ export function tryGroundJump(p: PlayerState): boolean {
   return true;
 }
 
-/** Update 0.2.16 — Light Bones (a Fate Card): your jumps' height, times this. */
-const lift = (p: PlayerState) => (bears(p, 'lightBones') ? 1 + CARDS.v.lightBones : 1);
+/** Update 0.2.16 — Light Bones (a Fate Card): your jumps' height, times this. Update 0.2.19 — Anchor (a Death Card):
+ *  lower. */
+const lift = (p: PlayerState) => (bears(p, 'lightBones') ? 1 + CARDS.v.lightBones : 1) * (bears(p, 'anchor') ? 1 - CARDS.v.anchor : 1);
 
 /** Update 0.2.16 — Updraft (a Fate Card): a jump banked in the air jumps again, once until you land. Returns true if it
  *  did. */

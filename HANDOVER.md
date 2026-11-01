@@ -2,7 +2,17 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.2.18: Fate Cards, wave 2)
+## Next up (2026-11-01, Update 0.2.19: Death Cards and Traitor Cards)
+- **Death Cards and Traitor Cards** (the designer: "same drops, it also end up in the same 3 cards pull, it is all
+  rng", 15+ "annoying cards", 10 Traitor Cards with "a good part and a counter part costs", a different look; spec
+  `MD_UPDATES/U0219_DEATH_TRAITOR_CARDS.md`). Each card dealt rolls its family: Death 15%, Traitor 12%, else Fate. A
+  Death Card is **bound**: it comes with whatever you take (Claude's call; F1 → Fate Cards → Death bound 0 turns it off).
+  16 Death Cards (damage taken, speed, dashes, weapons, coins, the meter, luck…), 10 Traitor Cards (a gift and a price
+  on the card in red). New faces (black, bone and green with a skull; gold and purple). TAB groups them. Lab: F8 →
+  Traitor · Death. Checked by tests (`test-card-moves4.ts`); **unseen in the game**: the new faces, a bound card in a
+  deal (dimmed, flying with your pick), how hard the Death Cards bite (placeholder numbers), and whether 15% / 12% feels right.
+
+## Before (2026-11-01, Update 0.2.18: Fate Cards, wave 2)
 - **Wave 2** (the designer: "just build wave 2"; spec `MD_UPDATES/U0218_FATE_CARDS_WAVE2.md`): 10 cards with effects of
   their own, named anew: Jagged Knuckles (bleed), Thunderclap and Storm Heart (lightning), Death Throes, Powder Keg and
   Chain Reaction (blasts; a chain ripples out a blast at a time), Pyre and Fire and Ice (burns, a frost ring), Spirit

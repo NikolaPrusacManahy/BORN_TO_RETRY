@@ -204,7 +204,7 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
       return true;
     }
     c.key = free ? null : useKey(inv);
-    c.loot = c.boss ? { rarity: 'mythic', item: null, coins: coinsFor(bossCoins(c.boss), state, state.rng) } : c.spot.gold ? goldLoot(c.rolls) : rollLoot(c.key!, c.rolls, holds(state, 'fortune'));
+    c.loot = c.boss ? { rarity: 'mythic', item: null, coins: coinsFor(bossCoins(c.boss), state, state.rng) } : c.spot.gold ? goldLoot(c.rolls) : rollLoot(c.key!, c.rolls, { better: holds(state, 'fortune'), worse: holds(state, 'blackCat'), up: holds(state, 'fragileFortune') });
     c.state = 'opening';
     c.t = 0;
     t.choosing = -1;
@@ -217,7 +217,8 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
   if (oi < 0) return false;
   const o = t.offers[oi];
   const price = offerPrice(o, state);
-  if (state.money < price || !useful(o.kind, player)) {
+  // (Update 0.2.19 — Fasting, a Traitor Card: the shop won't sell to you.)
+  if (state.money < price || !useful(o.kind, player) || holds(state, 'fasting')) {
     state.events.push('buyFail', oi, o.x, 1, o.z);
     return true;
   }
@@ -254,4 +255,4 @@ function giveLoot(c: Chest, i: number, state: CombatState) {
 }
 
 /** Update 0.2.16 — what offer `o` costs you (Haggler, a Fate Card: less). */
-export const offerPrice = (o: Offer, state: CombatState) => (holds(state, 'haggler') ? Math.round(o.price * (1 - CARDS.v.haggler)) : o.price);
+export const offerPrice = (o: Offer, state: CombatState) => Math.round(o.price * (holds(state, 'haggler') ? 1 - CARDS.v.haggler : 1) * (holds(state, 'taxman') ? 1 + CARDS.v.taxman : 1));

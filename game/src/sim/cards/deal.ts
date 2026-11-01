@@ -7,12 +7,18 @@
 // rarity is rolled on its own by the chests' odds (45 / 30 / 15 / 8 / 2); the key a chest was opened with doesn't count,
 // nor does a big fight (it guarantees a deal, not a rarity). Only cards you don't carry, none twice. While a deal is up
 // the world holds still and you must take one (the engine shows it). Seeded (the run's RNG). Pure.
+// Update 0.2.19 — Death Cards and Traitor Cards in the same deals (the designer: "it also end up in the same 3 cards
+// pull, it is all rng"): each card dealt is first rolled a Death Card (15%), a Traitor Card (12%) or a Fate Card. A Death
+// Card dealt is bound: it comes with you whatever you take (Death bound, F1: 0 makes it one to choose like the rest);
+// dealt nothing but Death Cards, you take them all. Gambler (a Traitor Card) deals one more, one of them always a Death
+// Card. Fortune's Favour keeps the better of two rarities, Black Cat (a Death Card) the worse; Fragile Fortune (a Traitor
+// Card) rolls one higher.
 import { CARDS } from '../../tuning/cards';
 import { ITEMS } from '../../tuning/items';
 import type { CombatState } from '../combat/state';
 import { RARITIES, Rarity } from '../dungeon/loot';
 import type { PlayerState } from '../player/state';
-import { CARD, CARD_KINDS, CardKind, holds, takeCard } from './cards';
+import { CARD, CARD_KINDS, CardFamily, CardKind, familyOf, holds, takeCard } from './cards';
 
 /** The cards on offer, and the chest they came out of (−1: the Lab's). */
 export interface Deal {
@@ -20,7 +26,7 @@ export interface Deal {
   chest: number;
 }
 
-/** A rarity among `tiers` by the chest odds (a mythic's 2%…). Fortune's Favour rolls twice and keeps the better. */
+/** A rarity among `tiers` by the chest odds (a mythic's 2%…), the luck cards counting. */
 export function rollRarity(state: CombatState, tiers: readonly Rarity[]): Rarity {
   const once = () => {
     let total = 0;
@@ -29,36 +35,58 @@ export function rollRarity(state: CombatState, tiers: readonly Rarity[]): Rarity
     for (const r of tiers) if ((x -= ITEMS.v[r]) < 0) return r;
     return tiers[tiers.length - 1];
   };
-  const a = once();
-  if (!holds(state, 'fortune')) return a;
-  const b = once();
-  return RARITIES.indexOf(b) > RARITIES.indexOf(a) ? b : a;
+  let r = RARITIES.indexOf(once());
+  if (holds(state, 'fortune')) r = Math.max(r, RARITIES.indexOf(once()));
+  if (holds(state, 'blackCat')) r = Math.min(r, RARITIES.indexOf(once()));
+  if (holds(state, 'fragileFortune')) r = Math.min(RARITIES.indexOf(tiers[tiers.length - 1]), r + 1);
+  return RARITIES[r];
 }
 
-/** A card of `rarity` you don't carry and not in `taken` (if there's none of it left, of the nearest rarity that has
+/** A Fate Card of `rarity` you don't carry and not in `taken` (if there's none of it left, of the nearest rarity that has
  *  one); null: none at all. */
-function cardOf(state: CombatState, rarity: Rarity, taken: readonly CardKind[]): CardKind | null {
+function fateOf(state: CombatState, rarity: Rarity, taken: readonly CardKind[]): CardKind | null {
   const at = RARITIES.indexOf(rarity);
   for (let d = 0; d < RARITIES.length; d++) {
     for (const i of d === 0 ? [at] : [at - d, at + d]) {
       const r = RARITIES[i];
       if (!r) continue;
-      const pool = CARD_KINDS.filter((k) => CARD[k].rarity === r && !holds(state, k) && !taken.includes(k));
+      const pool = CARD_KINDS.filter((k) => familyOf(k) === 'fate' && CARD[k].rarity === r && !holds(state, k) && !taken.includes(k));
       if (pool.length > 0) return pool[Math.floor(state.rng() * pool.length)];
     }
   }
   return null;
 }
 
-/** The cards a deal shows, each its own roll. */
+/** A Death or Traitor Card you don't carry and not in `taken` (null: none left of it: a Fate Card instead). */
+function ofFamily(state: CombatState, family: CardFamily, taken: readonly CardKind[]): CardKind | null {
+  const pool = CARD_KINDS.filter((k) => familyOf(k) === family && !holds(state, k) && !taken.includes(k));
+  return pool.length > 0 ? pool[Math.floor(state.rng() * pool.length)] : null;
+}
+
+/** One card dealt: its family rolled, then the card. */
+function dealOne(state: CombatState, taken: readonly CardKind[], forceDeath = false): CardKind | null {
+  const v = CARDS.v;
+  const r = state.rng();
+  const family: CardFamily = forceDeath || r < v.deathChance ? 'death' : r < v.deathChance + v.traitorChance ? 'traitor' : 'fate';
+  return (family !== 'fate' ? ofFamily(state, family, taken) : null) ?? fateOf(state, rollRarity(state, RARITIES), taken);
+}
+
+/** The cards a deal shows, each its own roll (Gambler: one more, one of them a Death Card). */
 export function drawDeal(state: CombatState): CardKind[] {
   const out: CardKind[] = [];
-  for (let i = 0; i < Math.round(CARDS.v.dealt); i++) {
-    const k = cardOf(state, rollRarity(state, RARITIES), out);
+  const gambler = holds(state, 'gambler');
+  const n = Math.round(CARDS.v.dealt) + (gambler ? 1 : 0);
+  // (Gambler's Death Card goes somewhere among them, by the dice.)
+  const doom = gambler ? Math.floor(state.rng() * n) : -1;
+  for (let i = 0; i < n; i++) {
+    const k = dealOne(state, out, i === doom);
     if (k) out.push(k);
   }
   return out;
 }
+
+/** Is card `i` of the deal bound (a Death Card that comes with you whatever you take)? */
+export const bound = (deal: Deal, i: number) => CARDS.v.deathBound >= 1 && familyOf(deal.cards[i]) === 'death';
 
 /** Deals out of chest `chest` (−1: the Lab). Returns false if there was nothing left to deal. */
 export function startDeal(state: CombatState, chest: number): boolean {
@@ -69,14 +97,18 @@ export function startDeal(state: CombatState, chest: number): boolean {
   return true;
 }
 
-/** The best rarity among a deal's cards (a chest's glow as it opens). */
-export const dealRarity = (cards: readonly CardKind[]): Rarity => RARITIES[Math.max(0, ...cards.map((k) => RARITIES.indexOf(CARD[k].rarity)))];
+/** The best rarity among a deal's Fate Cards (a chest's glow as it opens; none: common). */
+export const dealRarity = (cards: readonly CardKind[]): Rarity => RARITIES[Math.max(0, ...cards.filter((k) => familyOf(k) === 'fate').map((k) => RARITIES.indexOf(CARD[k].rarity)))];
 
-/** You take card `i` of the deal: it's yours, the deal's over. Returns the card (null: no such card). */
-export function pickCard(state: CombatState, player: PlayerState, i: number): CardKind | null {
-  const kind = state.deal?.cards[i];
-  if (!kind) return null;
-  takeCard(state, player, kind);
+/** You take card `i` of the deal, and every bound card with it: they're yours, the deal's over. A bound card can't be
+ *  taken alone while there's another to take. Returns what you took (empty: nothing: no such card, or a bound one). */
+export function pickCard(state: CombatState, player: PlayerState, i: number): CardKind[] {
+  const deal = state.deal;
+  if (!deal || !deal.cards[i]) return [];
+  const free = deal.cards.some((_, j) => !bound(deal, j));
+  if (free && bound(deal, i)) return [];
+  const took = deal.cards.filter((_, j) => j === i || bound(deal, j));
+  for (const k of took) takeCard(state, player, k);
   state.deal = null;
-  return kind;
+  return took;
 }

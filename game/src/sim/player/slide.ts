@@ -6,6 +6,7 @@ import type { Vector3 } from 'three';
 import { MOVE, SLIDE } from '../../tuning/movement';
 import type { CollisionWorld } from '../collisionWorld';
 import type { PlayerState } from './state';
+import { bears } from '../cards/cards';
 
 /** A press arms the next slide; letting go disarms it. */
 export function armSlide(p: PlayerState, pressed: boolean, held: boolean) {
@@ -14,7 +15,8 @@ export function armSlide(p: PlayerState, pressed: boolean, held: boolean) {
 }
 
 export function canStartSlide(p: PlayerState, held: boolean): boolean {
-  return held && p.slideArmed && p.grounded && !p.sliding && p.dashTime <= 0 && !p.wallRunning;
+  // (Update 0.2.19 — Runaway, a Traitor Card: no sliding.)
+  return held && p.slideArmed && p.grounded && !p.sliding && p.dashTime <= 0 && !p.wallRunning && !bears(p, 'runaway');
 }
 
 export function startSlide(p: PlayerState, wish: Vector3) {

@@ -2,7 +2,8 @@
    (the chests': grey, green, blue, purple, red), its rarity and move along the top, its mark on a glow, its name, what
    it does; its back. The deal screen (screens/FateDeal.tsx): the world blurred, a deck at the bottom dealing the cards
    one by one, face up, into a row half below the edge; hover lifts one to read; the one taken lifts, shrinks and flies
-   to the card pile by your coins, the rest drop away. The inventory (screens/Inventory.tsx, TAB). */
+   to the card pile by your coins, the rest drop away. Update 0.2.19 — the Death and Traitor Cards' faces: theme-34;
+   the inventory (screens/Inventory.tsx, TAB): theme-35. */
 .rb-card,
 .rb-card-back {
   /* Its scale (the UI's; smaller in the inventory). */
@@ -208,6 +209,16 @@
   animation: rb-fate-take 0.75s cubic-bezier(0.5, 0, 0.6, 1) both;
 }
 
+/* Update 0.2.19 — a bound Death Card: it comes with what you take, so it can't be taken alone: no hand over it, a
+   little dimmer. */
+.rb-fate-slot.is-bound {
+  cursor: not-allowed;
+}
+
+.rb-fate-slot.is-bound:not(:hover) .rb-card {
+  filter: saturate(0.6) brightness(0.85);
+}
+
 /* The others drop away. */
 .rb-fate-slot.is-gone {
   transform: translateY(120%);
@@ -271,148 +282,4 @@
   to {
     opacity: 0;
   }
-}
-
-/* ——— The inventory (TAB) ——— */
-.rb-inv {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: grid;
-  place-items: center;
-  background: rgba(12, 4, 7, 0.4);
-  backdrop-filter: blur(9px) brightness(0.55);
-  animation: rb-fate-in 0.2s ease-out both;
-  font-family: var(--rb-font);
-  color: var(--rb-text);
-}
-
-.rb-inv-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) calc(230px * var(--rb-ui)) calc(300px * var(--rb-ui));
-  align-items: start;
-  gap: calc(32px * var(--rb-ui));
-  width: min(92vw, calc(1180px * var(--rb-ui)));
-  max-height: 86vh;
-}
-
-.rb-inv h3 {
-  margin: 0 0 calc(10px * var(--rb-ui));
-  font-size: calc(13px * var(--rb-ui));
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: #ff4a5a;
-}
-
-.rb-inv-cards {
-  min-height: 0;
-  max-height: 86vh;
-  overflow-y: auto;
-  padding: calc(6px * var(--rb-ui));
-}
-
-.rb-inv-none {
-  margin: 0;
-  opacity: 0.6;
-}
-
-.rb-inv-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, calc(150px * var(--rb-ui)));
-  gap: calc(14px * var(--rb-ui));
-}
-
-/* A small card: hovered, it lifts a little and is shown whole beside them. */
-.rb-inv-card {
-  width: calc(150px * var(--rb-ui));
-  height: calc(215px * var(--rb-ui));
-  transition: transform 0.18s ease-out, opacity 0.18s;
-  opacity: 0.8;
-  cursor: default;
-}
-
-.rb-inv-card .rb-card {
-  --s: calc(var(--rb-ui) * 0.66);
-}
-
-.rb-inv-card:hover,
-.rb-inv-card.is-shown {
-  transform: translateY(calc(-4px * var(--rb-ui)));
-  opacity: 1;
-}
-
-/* The card you're looking at, whole: the deal's size. */
-.rb-inv-look {
-  width: calc(230px * var(--rb-ui));
-  height: calc(330px * var(--rb-ui));
-  margin-top: calc(28px * var(--rb-ui));
-}
-
-.rb-inv-side {
-  display: flex;
-  flex-direction: column;
-  gap: calc(18px * var(--rb-ui));
-  overflow-y: auto;
-}
-
-.rb-inv-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: calc(8px * var(--rb-ui)) calc(14px * var(--rb-ui));
-}
-
-.rb-inv-stats b {
-  font-family: 'Anton', var(--rb-font);
-  font-size: calc(26px * var(--rb-ui));
-  margin-right: 6px;
-}
-
-.rb-inv-stats span {
-  font-size: calc(13px * var(--rb-ui));
-  opacity: 0.75;
-}
-
-.rb-inv-row {
-  --rarity: #e4dde6;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  column-gap: 10px;
-  padding: calc(5px * var(--rb-ui)) 0 calc(5px * var(--rb-ui)) calc(10px * var(--rb-ui));
-  border-left: 3px solid var(--rarity);
-  margin-bottom: calc(6px * var(--rb-ui));
-}
-
-.rb-inv-row.is-uncommon {
-  --rarity: #3dff6a;
-}
-
-.rb-inv-row.is-rare {
-  --rarity: #5c9dff;
-}
-
-.rb-inv-row.is-epic {
-  --rarity: #c27aff;
-}
-
-.rb-inv-row.is-mythic {
-  --rarity: #ff3a3a;
-}
-
-.rb-inv-row.is-hand {
-  --rarity: #ffd23a;
-}
-
-.rb-inv-row b {
-  color: var(--rarity);
-}
-
-.rb-inv-n {
-  font-size: calc(13px * var(--rb-ui));
-  opacity: 0.8;
-}
-
-.rb-inv-does {
-  grid-column: 1 / -1;
-  font-size: calc(13px * var(--rb-ui));
-  opacity: 0.75;
 }

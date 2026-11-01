@@ -3,7 +3,7 @@
 // a run from its start; the items by kind. The floors' columns follow their rosters, so a new enemy shows up by itself.
 // Update 0.2.16 — the Fate Cards (their own tab): a deal, or any card given you, a column a rarity.
 import { rosterOf } from '../sim/dungeon/wavePlan';
-import { CARD, CARD_KINDS } from '../sim/cards/cards';
+import { CARD, CARD_KINDS, familyOf } from '../sim/cards/cards';
 import { RARITIES } from '../sim/dungeon/loot';
 import { bossOf, EnemyKind, MINI_BOSSES } from '../sim/enemies/kinds';
 import type { DropKind } from '../sim/items/drops';
@@ -114,5 +114,13 @@ export const LAB_ITEMS: readonly [string, Pick[]][] = [
  *  0.2.18 — wave 2 filled the epic and mythic ones apart). */
 export const LAB_CARDS: readonly [string, Pick[]][] = [
   ['Deal', [['Deal 3', { kind: 'deal' }]]],
-  ...RARITIES.map((r): [string, Pick[]] => [r[0].toUpperCase() + r.slice(1), CARD_KINDS.filter((k) => CARD[k].rarity === r).map((k): Pick => [CARD[k].name, { kind: 'card', card: k }])]),
+  ...RARITIES.map((r): [string, Pick[]] => [r[0].toUpperCase() + r.slice(1), CARD_KINDS.filter((k) => familyOf(k) === 'fate' && CARD[k].rarity === r).map((k): Pick => [CARD[k].name, { kind: 'card', card: k }])]),
+];
+
+/** Update 0.2.19 — the Traitor and Death Cards' tab: each card given you (the Death Cards two columns: 10 a column). */
+const given = (family: 'traitor' | 'death') => CARD_KINDS.filter((k) => familyOf(k) === family).map((k): Pick => [CARD[k].name, { kind: 'card', card: k }]);
+export const LAB_DARK: readonly [string, Pick[]][] = [
+  ['Traitor', given('traitor')],
+  ['Death', given('death').slice(0, 8)],
+  ['More Death', given('death').slice(8)],
 ];

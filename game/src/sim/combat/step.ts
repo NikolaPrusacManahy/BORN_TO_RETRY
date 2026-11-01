@@ -67,6 +67,8 @@ import { stepFlood } from '../enemies/drownedKingMoves';
 import { updateTurret } from './turret';
 import { bumpEnemies, chargeRate, fistFactor, frenzyFactor, payCharge, pogo, tickCards } from '../cards/cardMoves';
 import { splinter, tickPowers } from '../cards/cardPowers';
+import { holds } from '../cards/cards';
+import { CARDS } from '../../tuning/cards';
 
 /** Update 0.1.12 — seconds with no enemy you could execute before a new one stings again. */
 const EXEC_QUIET = 0.75;
@@ -151,7 +153,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   const w = state.weapon;
   const busy = w !== null && w.throwing >= 0;
   // (Update 0.2.16 — and Killing Spree, a Fate Card.)
-  const rate = attackRate(state.items) * frenzyFactor(state);
+  // (Update 0.2.19 — Cramp: slower; Berserker: quicker.)
+  const rate = attackRate(state.items) * frenzyFactor(state) * (holds(state, 'cramp') ? 1 - CARDS.v.cramp : 1) * (holds(state, 'berserker') ? 1 + CARDS.v.berserk : 1);
   const casts = w !== null && CASTS[w.kind];
   const axe = w !== null && RETURNS[w.kind] && !busy && w.uses > 0;
   // Fists out with the axe out there: right click calls it back (and, caught, charges nothing till it's let go).
@@ -218,7 +221,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     const smash = w !== null && punch.kind === 'pierce' && SMASHES[w.kind];
     if (smash) startWave(state, player, dir, world);
     if ((landed >= 0 || smash) && w && (punch.kind === 'slash' || punch.kind === 'pierce')) {
-      w.uses = Math.max(0, w.uses - usesFor(w, punch.kind));
+      // (Update 0.2.19 — Rotten Grip, a Death Card: twice the wear.)
+      w.uses = Math.max(0, w.uses - usesFor(w, punch.kind) * (holds(state, 'rottenGrip') ? 2 : 1));
       if (w.uses === 0) events.push('weaponBroken');
     }
   }
