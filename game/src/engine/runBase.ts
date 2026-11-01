@@ -34,6 +34,8 @@ import { emptyFocus } from '../sim/items/focus';
 import { HudFeed } from './overlayFeed';
 import { Viewmodel } from './viewmodel/viewmodel';
 import { cancelCharges } from '../sim/weapons/kiCharge';
+import { pickCard } from '../sim/cards/deal';
+import { InventoryView, inventoryView } from './fateView';
 import type { Difficulty } from '../sim/lobby/difficulty';
 import { abandonAll } from '../sim/dungeon/checkpoint';
 import { maxHpOf } from '../sim/player/health';
@@ -67,10 +69,6 @@ export abstract class RunBase {
   protected level!: Level;
   protected view!: LevelView;
   protected combat!: CombatState;
-  /** Update 0.2.15 — the Scars this run carries. */
-  get scars(): number {
-    return this.combat?.items.scars ?? 0;
-  }
   protected combatScene!: CombatScene;
   protected hazards: ArenaBox[] = [];
   /** Update 0.0.20 — lava: falling in sends you back to the level's start. */
@@ -84,6 +82,8 @@ export abstract class RunBase {
   /** Update 0.0.19 — the Lab's waves come (the Feel Lab's knobs); the world holds still (the Lab's panel is open). */
   waves = true;
   hold = false;
+  /** Update 0.2.16 — a deal of Fate Cards is up (the world holds still till you've taken one and the screen's done). */
+  protected dealing = false;
   protected show = new BossShow(null);
   /** Update 0.1.14 — seconds played since this start (the death screen), and the death screen is up. */
   protected played = 0;
@@ -229,6 +229,22 @@ export abstract class RunBase {
   /** Update 0.0.19 — the Lab's panel asked for something (in front of where you look). */
   labCommand(cmd: LabCommand) {
     runLab(cmd, this.combat, this.player, this.look.yaw, this.treasure);
+  }
+
+  /** Update 0.2.16 — the deal's card `i` is taken (the deal screen still shows it flying to your coins). */
+  pickCard(i: number) {
+    pickCard(this.combat, this.player, i);
+  }
+
+  /** Update 0.2.16 — the deal screen is done: play on. */
+  endDeal() {
+    this.dealing = false;
+    this.hold = false;
+  }
+
+  /** Update 0.2.16 — what you carry (TAB). */
+  inventory(): InventoryView {
+    return inventoryView(this.combat, this.player);
   }
 
   /** The mouse was freed: a charge in progress is cancelled rather than thrown (Update 0.1.4: and the Grimoire's). */

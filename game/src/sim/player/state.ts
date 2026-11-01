@@ -4,6 +4,7 @@ import { EventQueue } from '../../core/eventQueue';
 import { HEALTH } from '../../tuning/health';
 import { DASH, WALL } from '../../tuning/movement';
 import type { EnemyKind } from '../enemies/kinds';
+import type { CardKind } from '../cards/cards';
 
 export type MoveEvent =
   // Update 0.0.20 — fell into lava (sent back to the floor's start).
@@ -33,7 +34,12 @@ export type MoveEvent =
   | 'shieldBreak'
   // Update 0.2.11 — swimming: a kick, pushing off the floor.
   | 'swimKick'
-  | 'swimPush';
+  | 'swimPush'
+  // Update 0.2.16 — Fate Cards: a jump in the air (Updraft), a hit shrugged off (Hard Head), saved from death (Born
+  // Again).
+  | 'airJump'
+  | 'shrug'
+  | 'bornAgain';
 
 /** Update 0.1.14 — what hurt you (the death screen names what killed you): an enemy's kind, or the world. */
 export type Cause = EnemyKind | 'turret' | 'spikes' | 'lava' | 'fall';
@@ -97,8 +103,14 @@ export interface PlayerState {
   speedMul: number;
   /** Update 0.0.17 — max health on top of the base (the red rings). */
   hpBonus: number;
-  /** Update 0.2.15 — the Scars you carry (sim/scars/scars.ts: one bit each; the run's, copied here each tick). */
-  scars: number;
+  /** Update 0.2.16 — the Fate Cards you carry (sim/cards/cards.ts: the run's, the same set, given here each tick);
+   *  seconds your dashes are free (Giant Killer); hits you've taken (Blood Money counts them); hits since Hard Head
+   *  last shrugged one off; jumps left in the air (Updraft). */
+  cards: Set<CardKind>;
+  freeDash: number;
+  hits: number;
+  shrug: number;
+  airJumps: number;
   /** Update 0.0.18 — poisoned: seconds left, and damage a second meanwhile. */
   poison: number;
   poisonDps: number;
@@ -161,7 +173,11 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     shield: 0,
     speedMul: 1,
     hpBonus: 0,
-    scars: 0,
+    cards: new Set(),
+    freeDash: 0,
+    hits: 0,
+    shrug: 0,
+    airJumps: 0,
     poison: 0,
     poisonDps: 0,
     blind: 0,
@@ -187,7 +203,7 @@ export function resetPlayer(p: PlayerState, x: number, y: number, z: number, yaw
   p.grounded = false;
   p.coyote = p.jumpBuffer = p.dashTime = p.slamBounce = p.slamImpact = p.invuln = p.slideTime = p.wallRunTime = p.wallRunCooldown = p.hurtTime = 0;
   p.hp = HEALTH.v.maxHp;
-  p.shield = p.kneel = p.hpBonus = p.poison = p.poisonDps = p.blind = p.dashLock = p.ink = 0;
+  p.shield = p.kneel = p.hpBonus = p.poison = p.poisonDps = p.blind = p.dashLock = p.ink = p.freeDash = p.shrug = p.airJumps = 0;
   p.dead = false;
   p.hurtBy = p.poisonBy = null;
   p.dashCharges = DASH.v.charges;

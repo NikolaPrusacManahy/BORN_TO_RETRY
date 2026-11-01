@@ -9,6 +9,7 @@ import { AudioEngine } from '../audio/audio';
 import type { Settings } from '../state/settings';
 import type { LabCommand } from '../sim/lab/labCommands';
 import { DebugInfo, HudStore, createDebugInfo } from './hudStore';
+import type { InventoryView } from './fateView';
 import { bossRoomLevel, dungeonLevel, labLevel, Level, newSeed } from './level';
 import { Run } from './run';
 import type { Levels, RunCallbacks } from './runLinks';
@@ -126,6 +127,24 @@ export abstract class GameBase {
     if (this.inLab) this.run?.labCommand({ kind: 'meter', on });
   }
 
+  /** Update 0.2.16 — Fate Cards: the deal's card `i` taken; the deal screen done; what you carry (TAB) and the world
+   *  held still while it shows. */
+  pickCard(i: number) {
+    this.run?.pickCard(i);
+  }
+
+  endDeal() {
+    this.run?.endDeal();
+  }
+
+  inventory(): InventoryView | null {
+    return this.run?.inventory() ?? null;
+  }
+
+  holdInventory(on: boolean) {
+    if (this.run) this.run.hold = on;
+  }
+
   /** Update 0.0.19 — the world holds still (the Lab's panel is open). */
   setLabHold(on: boolean) {
     if (this.run) this.run.hold = on;
@@ -136,11 +155,6 @@ export abstract class GameBase {
     this.run = new Run(level, this.audio, this.renderer, this.hud, this.cb, this.levels, this.inLab ? 'real' : this.runDifficulty);
     this.run.waves = !this.inLab || this.labWaves;
     if (this.inLab) this.run.labCommand({ kind: 'meter', on: this.labMeter });
-  }
-
-  /** Update 0.2.15 — the Scars the run carries (the pause menu lists them). */
-  scars(): number {
-    return this.run?.scars ?? 0;
   }
 
   /** Back to the start, full health; the targets back in place and whole (F3, Restart). */

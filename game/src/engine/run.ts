@@ -36,6 +36,7 @@ import { execHeld } from '../sim/combat/execution';
 import { followHeld } from './execView';
 import { hpBonusOf, moveFactor } from '../sim/items/items';
 import { pushPlayerOut } from '../sim/enemies/bodies';
+import { cardView } from './fateView';
 import { BODY } from '../sim/player/body';
 import { checkHazards } from '../sim/player/hazards';
 import { killPlayer, updateHealth } from '../sim/player/health';
@@ -96,7 +97,7 @@ export class Run extends RunBase {
       const wade = d && p.swimTop === 0 ? (bossOn ? floodSlow(p, this.combat.flood) : tideSlow(p, d.tide, d.level.tide)) : 1;
       p.speedMul = moveFactor(this.combat) * (d ? sandSlow(p, d.level.sand) * wade : 1);
       p.hpBonus = hpBonusOf(this.combat.items);
-      p.scars = this.combat.items.scars;
+      p.cards = this.combat.items.cards;
       const ci = this.combatIntent;
       if (stepTreasure(this.treasure, p, this.combat, ci.interactPressed, ci.switchKeyPressed, this.fighting, stepDt)) ci.interactPressed = false;
       const lobby = this.level.lobby;
@@ -154,12 +155,22 @@ export class Run extends RunBase {
       this.look.turnTo(Math.atan2(-dx, -dz), Math.atan2(this.skull.y - p.pos.y - CAMERA.v.eyeHeight, Math.hypot(dx, dz)), GRAB_TURN, real);
     }
     input.clearMouse();
+    // (Update 0.2.16 — TAB: what you carry; the page shows it and holds the world.)
+    if (locked && !p.dead && !this.hold && !still && input.actionPressed('inventory')) {
+      input.clearPressed();
+      this.cb.onInventory();
+    }
 
     const frozen = this.combat.hitStop.tick(real) || this.hold || this.told;
     if (locked && !p.dead) this.played += real;
     const scale = LAB.v.timeScale * this.death.timeScale * this.show.timeScale;
     const gameDt = frozen ? 0 : real * scale;
     const steps = frozen ? 0 : this.tick(gameDt, input);
+    // (Update 0.2.16 — a chest dealt Fate Cards: the world holds still, the page's deal screen shows them.)
+    if (this.combat.deal && !this.dealing) {
+      this.dealing = this.hold = true;
+      this.cb.onDeal(this.combat.deal.cards.map(cardView));
+    }
     stats.push(real * 1000, steps, this.clock.dropped);
 
     applyMoveEvents(p.events, this.rig, this.sounds, this.arms, this.hits);

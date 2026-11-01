@@ -2,7 +2,7 @@
 // value and x, y, z mean is next to it.
 import type { DrownedEvent } from './events5';
 import type { FishEvent } from './events6';
-import type { ScarEvent } from './eventsScars';
+import type { CardEvent } from './eventsCards';
 
 export type CombatEvent =
   | 'none'
@@ -307,7 +307,7 @@ export type CombatEvent =
   // Update 0.1.12 — an enemy you can execute comes into reach after a while with none (value: its slot): a sting.
   | 'execReady'
   | 'standRespawn'
-  // Update 0.2.10 — floor 5's (events5.ts); Update 0.2.11 — floor 6's (events6.ts); Update 0.2.15 — the Scars'.
+  // Update 0.2.10 — floor 5's (events5.ts); Update 0.2.11 — floor 6's (events6.ts); Update 0.2.16 — the Fate Cards'.
   | DrownedEvent
   | FishEvent
-  | ScarEvent;
+  | CardEvent;

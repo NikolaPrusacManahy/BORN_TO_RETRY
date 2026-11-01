@@ -1,4 +1,5 @@
-// Update 0.2.15 — what each Scar does (sim/scars/; the offer is test-scars.ts): Shoulder Charge and Bowling shove and
+// Update 0.2.15 — what each Scar does. Update 0.2.16 — Fate Cards since (sim/cards/; the deal is test-cards.ts, the
+// wave's new cards test-card-moves2.ts): Shoulder Charge and Bowling shove and
 // stagger (no damage; not a boss or mini boss), Second Wind, Slingshot, Crater, Pogo, Hair Trigger, Iron Knuckles,
 // Collector, Ricochet, Bloodbath, Adrenaline, Air Butcher, Hoarder. Each against the same move without it.
 import { Vector3 } from 'three';
@@ -17,8 +18,8 @@ import { emptyIntent } from '../src/sim/player/intent';
 import { tryGroundJump } from '../src/sim/player/jump';
 import { createPlayer, PlayerState } from '../src/sim/player/state';
 import { tryStartWallRun } from '../src/sim/player/wallRun';
-import { bumpEnemies } from '../src/sim/scars/scarMoves';
-import { ScarKind, SCAR_KINDS } from '../src/sim/scars/scars';
+import { bumpEnemies } from '../src/sim/cards/cardMoves';
+import type { CardKind } from '../src/sim/cards/cards';
 import { WEAPON_STATS } from '../src/sim/weapons/catalog';
 import { updateThrown } from '../src/sim/weapons/thrown';
 import { holding, throwWeapon } from '../src/sim/weapons/weapons';
@@ -26,20 +27,19 @@ import { BONUS } from '../src/tuning/bonus';
 import { FISTS } from '../src/tuning/combat';
 import { EXECUTION } from '../src/tuning/execution';
 import { DASH, SLAM, SLIDE } from '../src/tuning/movement';
-import { SCARS } from '../src/tuning/scars';
+import { CARDS } from '../src/tuning/cards';
 
-const bit = (k: ScarKind) => 1 << SCAR_KINDS.indexOf(k);
 const kinds = (c: CombatState) => {
   const out: string[] = [];
   for (let e = 0; e < c.events.length; e++) out.push(c.events.at(e).kind);
   return out;
 };
 
-section('Scars — Shoulder Charge and Bowling');
+section('Fate Cards — Shoulder Charge and Bowling');
 {
-  const bump = (scar: ScarKind | null, how: 'dash' | 'slide', kind: 'grunt' | 'brute' | 'demon' = 'grunt') => {
+  const bump = (card: CardKind | null, how: 'dash' | 'slide', kind: 'grunt' | 'brute' | 'demon' = 'grunt') => {
     const c = createCombat(OPEN_ARENA);
-    if (scar) c.items.scars = bit(scar);
+    if (card) c.items.cards.add(card);
     const p = createPlayer(0, 0, 0, 0);
     p.grounded = true;
     const s = spawnEnemy(c.enemies, kind, new Vector3(0, 0, kind === 'grunt' ? -1 : -1.6), 0);
@@ -53,9 +53,9 @@ section('Scars — Shoulder Charge and Bowling');
       p.slideDir.set(0, 0, -1);
     }
     bumpEnemies(c, p);
-    const first = kinds(c).filter((k) => k === 'scarBump').length;
+    const first = kinds(c).filter((k) => k === 'cardBump').length;
     bumpEnemies(c, p);
-    const again = kinds(c).filter((k) => k === 'scarBump').length;
+    const again = kinds(c).filter((k) => k === 'cardBump').length;
     return { flinch: e.phase === 'flinch', thrown: -e.vel.z, hurt: hp - e.hp, first, again };
   };
   const charge = bump('shoulderCharge', 'dash');
@@ -69,15 +69,15 @@ section('Scars — Shoulder Charge and Bowling');
   check('a mini boss or a boss is shoved but not staggered', !mini.flinch && mini.first === 1 && !boss.flinch);
 }
 
-section('Scars — Second Wind and Slingshot');
+section('Fate Cards — Second Wind and Slingshot');
 {
-  const run = (scar: boolean) => {
+  const run = (card: boolean) => {
     const world = new FlatWorld();
     world.walls = [{ x: 0.5, normalX: -1 }];
     const p = createPlayer(0.1, 2, 0, 0);
     p.vel.set(0, 0, -10);
     p.dashCharges = 0.5;
-    if (scar) p.scars = bit('secondWind');
+    if (card) p.cards.add('secondWind');
     const ok = tryStartWallRun(p, { ...emptyIntent(0), moveZ: 1 }, new Vector3(0, 0, -1), world);
     return { ok, dash: p.dashCharges };
   };
@@ -85,57 +85,57 @@ section('Scars — Second Wind and Slingshot');
   const full = createPlayer(0.1, 2, 0, 0);
   full.dashCharges = DASH.v.charges;
   check('never more than your charges', Math.min(DASH.v.charges, full.dashCharges + 1) === DASH.v.charges);
-  const jump = (scar: boolean) => {
+  const jump = (card: boolean) => {
     const p = createPlayer(0, 0, 0, 0);
     p.grounded = true;
     p.sliding = true;
     p.slideCur = 12;
     p.slideDir.set(0, 0, -1);
     p.jumpBuffer = 0.1;
-    if (scar) p.scars = bit('slingshot');
+    if (card) p.cards.add('slingshot');
     tryGroundJump(p);
     return -p.vel.z;
   };
-  check(`Slingshot: a jump out of a slide carries ${SCARS.v.slingshot}× the speed`, near(jump(true), 12 * SLIDE.v.jumpKeep * SCARS.v.slingshot, 1e-9) && near(jump(false), 12 * SLIDE.v.jumpKeep, 1e-9), `${jump(true).toFixed(1)} vs ${jump(false).toFixed(1)} m/s`);
+  check(`Slingshot: a jump out of a slide carries ${CARDS.v.slingshot}× the speed`, near(jump(true), 12 * SLIDE.v.jumpKeep * CARDS.v.slingshot, 1e-9) && near(jump(false), 12 * SLIDE.v.jumpKeep, 1e-9), `${jump(true).toFixed(1)} vs ${jump(false).toFixed(1)} m/s`);
 }
 
-section('Scars — Crater and Pogo');
+section('Fate Cards — Crater and Pogo');
 {
   const drop = SLAM.v.minHeight + 6;
   const plain = powerFor(drop).radius;
-  const wide = powerFor(drop, SCARS.v.craterGrowth).radius;
-  check('Crater: the higher you slam from, the wider its ring (to twice as wide)', wide > plain && wide <= SLAM.v.maxRadius * SCARS.v.craterGrowth && powerFor(SLAM.v.minHeight, 2).radius === powerFor(SLAM.v.minHeight).radius, `${plain.toFixed(1)} → ${wide.toFixed(1)} m`);
-  const slam = (scars: number) => {
+  const wide = powerFor(drop, CARDS.v.craterGrowth).radius;
+  check('Crater: the higher you slam from, the wider its ring (to twice as wide)', wide > plain && wide <= SLAM.v.maxRadius * CARDS.v.craterGrowth && powerFor(SLAM.v.minHeight, 2).radius === powerFor(SLAM.v.minHeight).radius, `${plain.toFixed(1)} → ${wide.toFixed(1)} m`);
+  const slam = (card: CardKind | null) => {
     const c = createCombat(OPEN_ARENA);
-    c.items.scars = scars;
+    if (card) c.items.cards.add(card);
     const s = spawnEnemy(c.enemies, 'grunt', new Vector3(0, 0, -(plain + wide) / 2), 0);
     const hp = c.enemies[s].hp;
     slamImpact(c, new Vector3(0, 0, 0), drop);
     return hp - c.enemies[s].hp;
   };
-  check('an enemy past the ring’s reach is hit only with Crater', slam(bit('crater')) > 0 && slam(0) === 0);
-  const pogo = (scar: boolean, hp: number) => {
+  check('an enemy past the ring’s reach is hit only with Crater', slam('crater') > 0 && slam(null) === 0);
+  const pogo = (card: boolean, hp: number) => {
     const c = createCombat(OPEN_ARENA);
-    if (scar) c.items.scars = bit('pogo');
+    if (card) c.items.cards.add('pogo');
     const s = spawnEnemy(c.enemies, 'grunt', new Vector3(0, 0, -1), 0);
     c.enemies[s].hp = hp;
     const p = createPlayer(0, 0, 0, 0);
     p.grounded = true;
     p.slamImpact = SLAM.v.minHeight + 1;
     stepCombat(c, p, emptyCombatIntent(), new FlatWorld(), DT);
-    return { up: p.vel.y, grounded: p.grounded, seen: kinds(c).includes('scarPogo') };
+    return { up: p.vel.y, grounded: p.grounded, seen: kinds(c).includes('cardPogo') };
   };
   const up = Math.sqrt(2 * 30 * 0) || 0;
   const bounce = pogo(true, 1);
-  check(`Pogo: a slam that kills bounces you back up (${SCARS.v.pogoHeight} m)`, bounce.up > 5 && !bounce.grounded && bounce.seen, `${bounce.up.toFixed(1)} m/s`);
+  check(`Pogo: a slam that kills bounces you back up (${CARDS.v.pogoHeight} m)`, bounce.up > 5 && !bounce.grounded && bounce.seen, `${bounce.up.toFixed(1)} m/s`);
   check('no kill, or no Pogo: no bounce', pogo(true, 9999).up === up && pogo(false, 1).up === up);
 }
 
-section('Scars — Hair Trigger and Iron Knuckles');
+section('Fate Cards — Hair Trigger and Iron Knuckles');
 {
-  const charge = (scar: boolean, dashes: number, hold: number) => {
+  const charge = (card: boolean, dashes: number, hold: number) => {
     const c = createCombat(OPEN_ARENA);
-    if (scar) c.items.scars = bit('hairTrigger');
+    if (card) c.items.cards.add('hairTrigger');
     const p = createPlayer(0, 0, 0, 0);
     p.grounded = true;
     p.dashCharges = dashes;
@@ -148,14 +148,14 @@ section('Scars — Hair Trigger and Iron Knuckles');
     stepCombat(c, p, intent, world, DT);
     return { thrown: kinds(c).includes('heavy'), dashes: p.dashCharges };
   };
-  const half = FISTS.v.chargeTime * SCARS.v.hairTrigger + 0.05;
+  const half = FISTS.v.chargeTime * CARDS.v.hairTrigger + 0.05;
   const quick = charge(true, 3, half);
   check(`Hair Trigger: the charged punch is ready in ${half.toFixed(2)} s, for a dash`, quick.thrown && quick.dashes === 2);
   check('with no dash to pay, or without it, the full charge as before', !charge(true, 0.5, half).thrown && !charge(false, 3, half).thrown && charge(false, 3, FISTS.v.chargeTime + 0.05).dashes === 3);
   // (Any hit already staggers the rest: a mini boss is what a jab can't stagger.)
-  const jab = (scar: boolean, kind: 'brute' | 'demon' = 'brute') => {
+  const jab = (card: boolean, kind: 'brute' | 'demon' = 'brute') => {
     const c = createCombat(OPEN_ARENA);
-    if (scar) c.items.scars = bit('ironKnuckles');
+    if (card) c.items.cards.add('ironKnuckles');
     const s = spawnEnemy(c.enemies, kind, new Vector3(0, 0, kind === 'demon' ? -2.2 : -1.6), 0);
     const e = c.enemies[s];
     e.hp = 9999;
@@ -167,7 +167,7 @@ section('Scars — Hair Trigger and Iron Knuckles');
     const intent = emptyCombatIntent();
     intent.attackPressed = true;
     stepCombat(c, p, intent, new FlatWorld(), DT);
-    return { t: e.t, phase: e.phase, seen: kinds(c).includes('scarStall'), hit: kinds(c).includes('hitJab') };
+    return { t: e.t, phase: e.phase, seen: kinds(c).includes('cardStall'), hit: kinds(c).includes('hitJab') };
   };
   const stalled = jab(true);
   check('Iron Knuckles: a jab on a mini boss winding up makes it start over', stalled.hit && stalled.phase === 'windup' && stalled.t < 0.05 && stalled.seen, `${stalled.phase} t ${stalled.t.toFixed(2)}`);
@@ -175,19 +175,19 @@ section('Scars — Hair Trigger and Iron Knuckles');
   check('a boss is never stalled', !jab(true, 'demon').seen);
 }
 
-section('Scars — Collector and Ricochet');
+section('Fate Cards — Collector and Ricochet');
 {
-  const take = (scar: boolean) => {
+  const take = (card: boolean) => {
     const c = createCombat(OPEN_ARENA);
-    if (scar) c.items.scars = bit('collector');
+    if (card) c.items.cards.add('collector');
     takeItem('goldSword', createPlayer(0, 0, 0, 0), c);
     return c.weapon?.uses ?? -1;
   };
   const base = WEAPON_STATS.goldSword().uses;
-  check(`Collector: a new weapon has ${Math.round(SCARS.v.collector * 100)}% more uses`, take(true) === Math.round(base * (1 + SCARS.v.collector)) && take(false) === base, `${take(true)} vs ${take(false)}`);
-  const toss = (scar: boolean) => {
+  check(`Collector: a new weapon has ${Math.round(CARDS.v.collector * 100)}% more uses`, take(true) === Math.round(base * (1 + CARDS.v.collector)) && take(false) === base, `${take(true)} vs ${take(false)}`);
+  const toss = (card: boolean) => {
     const c = createCombat(OPEN_ARENA);
-    if (scar) c.items.scars = bit('ricochet');
+    if (card) c.items.cards.add('ricochet');
     const a = spawnEnemy(c.enemies, 'grunt', new Vector3(0, 0, -3), 0);
     const b = spawnEnemy(c.enemies, 'grunt', new Vector3(4, 0, -6), 0);
     for (const s of [a, b]) c.enemies[s].hp = 9999;
@@ -200,7 +200,7 @@ section('Scars — Collector and Ricochet');
       seen.push(...kinds(c));
       c.events.clear();
     }
-    return { a: c.enemies[a].hp < 9999, b: c.enemies[b].hp < 9999, turned: seen.includes('scarRicochet'), done: !c.thrown.some((t) => t.alive) };
+    return { a: c.enemies[a].hp < 9999, b: c.enemies[b].hp < 9999, turned: seen.includes('cardRicochet'), done: !c.thrown.some((t) => t.alive) };
   };
   const bounced = toss(true);
   check('Ricochet: a thrown weapon that hits an enemy flies on to the next and hits it too', bounced.a && bounced.b && bounced.turned && bounced.done, JSON.stringify(bounced));
@@ -208,11 +208,11 @@ section('Scars — Collector and Ricochet');
   check('without it, it breaks on the first', plain.a && !plain.b && !plain.turned);
 }
 
-section('Scars — Bloodbath and Adrenaline');
+section('Fate Cards — Bloodbath and Adrenaline');
 {
-  const execute = (scars: number) => {
+  const execute = (card: CardKind | null) => {
     const c = createCombat(OPEN_ARENA);
-    c.items.scars = scars;
+    if (card) c.items.cards.add(card);
     c.execution = 1;
     const p = createPlayer(0, 0, 0, 0);
     p.grounded = true;
@@ -241,7 +241,7 @@ section('Scars — Bloodbath and Adrenaline');
       stepCombat(c, p, intent, world, DT);
       for (let e = 0; e < c.events.length; e++) {
         const ev = c.events.at(e);
-        if (ev.kind === 'scarBlast') blast = { x: ev.x, z: ev.z, r: ev.value };
+        if (ev.kind === 'cardBlast') blast = { x: ev.x, z: ev.z, r: ev.value };
       }
       if (was && !c.exec.active) {
         dashes = p.dashCharges;
@@ -253,21 +253,21 @@ section('Scars — Bloodbath and Adrenaline');
     const hurt = by.filter((b) => c.enemies[b].hp < 9999).length;
     return { blast, hurt, dashes, untouchable, by: by.map((b) => c.enemies[b]) };
   };
-  const plain = execute(0);
+  const plain = execute(null);
   check(`without Bloodbath its blast reaches ${EXECUTION.v.splashRadius} m: none of them`, plain.blast === null && plain.hurt === 0);
-  const wide = execute(bit('bloodbath'));
+  const wide = execute('bloodbath');
   const reach = wide.blast?.r ?? 0;
   const inReach = wide.by.filter((e) => wide.blast && Math.hypot(e.pos.x - wide.blast.x, e.pos.z - wide.blast.z) <= reach).length;
-  check(`Bloodbath: it reaches ${SCARS.v.bloodbath} m: every one that near is hit, the rest not`, reach === SCARS.v.bloodbath && inReach > 0 && wide.hurt === inReach, `${wide.hurt} hit, ${inReach} in reach`);
-  const rush = execute(bit('adrenaline'));
-  check(`Adrenaline: your dashes back, untouchable ${SCARS.v.adrenaline} s after`, rush.dashes === DASH.v.charges && rush.untouchable >= SCARS.v.adrenaline - 0.05 && plain.dashes === 0, `dashes ${rush.dashes}, ${rush.untouchable.toFixed(2)} s`);
+  check(`Bloodbath: it reaches ${CARDS.v.bloodbath} m: every one that near is hit, the rest not`, reach === CARDS.v.bloodbath && inReach > 0 && wide.hurt === inReach, `${wide.hurt} hit, ${inReach} in reach`);
+  const rush = execute('adrenaline');
+  check(`Adrenaline: your dashes back, untouchable ${CARDS.v.adrenaline} s after`, rush.dashes === DASH.v.charges && rush.untouchable >= CARDS.v.adrenaline - 0.05 && plain.dashes === 0, `dashes ${rush.dashes}, ${rush.untouchable.toFixed(2)} s`);
 }
 
-section('Scars — Air Butcher and Hoarder');
+section('Fate Cards — Air Butcher and Hoarder');
 {
-  const kill = (scar: boolean, air: boolean) => {
+  const kill = (card: boolean, air: boolean) => {
     const c = createCombat(OPEN_ARENA);
-    if (scar) c.items.scars = bit('airButcher');
+    if (card) c.items.cards.add('airButcher');
     c.inAir = air;
     const s = spawnEnemy(c.enemies, 'grunt', new Vector3(0, 0, -2), 0);
     const hit = emptyTargetHit();
@@ -276,16 +276,16 @@ section('Scars — Air Butcher and Hoarder');
     landHit(c, hit, 9999, 0, 0, -1, 'hitJab', 1);
     return Math.round(c.execution * EXECUTION.v.killsToFill);
   };
-  check(`Air Butcher: a kill in the air counts ${SCARS.v.airButcher} on the meter`, kill(true, true) === SCARS.v.airButcher && kill(true, false) === 1 && kill(false, true) === 1);
-  const bonus = (scar: boolean) => {
+  check(`Air Butcher: a kill in the air counts ${CARDS.v.airButcher} on the meter`, kill(true, true) === CARDS.v.airButcher && kill(true, false) === 1 && kill(false, true) === 1);
+  const bonus = (card: boolean) => {
     const c = createCombat(OPEN_ARENA);
-    if (scar) c.items.scars = bit('hoarder');
+    if (card) c.items.cards.add('hoarder');
     takeBonus(c, 'bluePotion', new Vector3());
     return { left: c.bonuses.bluePotion, full: bonusLength('bluePotion', c) };
   };
   const long = bonus(true);
-  check(`Hoarder: kill bonuses last ${SCARS.v.hoarder}× as long (its bar full from there)`, long.left === BONUS.v.potionFor * SCARS.v.hoarder && long.full === long.left && bonus(false).left === BONUS.v.potionFor);
+  check(`Hoarder: kill bonuses last ${CARDS.v.hoarder}× as long (its bar full from there)`, long.left === BONUS.v.potionFor * CARDS.v.hoarder && long.full === long.left && bonus(false).left === BONUS.v.potionFor);
 }
 
 // (A player made here never carries one.)
-check('a new body carries no Scars', (createPlayer(0, 0, 0, 0) as PlayerState).scars === 0);
+check('a new body carries no cards', (createPlayer(0, 0, 0, 0) as PlayerState).cards.size === 0);

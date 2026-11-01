@@ -119,16 +119,17 @@ From the shop (70 coins each) and chests (Ultimate RPG Pack models):
 
 What you carry (keys, rings, the shield) goes down to the next floor with you and is lost when you die.
 
-### Scars (Update 0.2.15, the designer: "Yes, build Scars"; spec `MD_UPDATES/U0215_SCARS.md`)
-- **One choice after each big fight:** a boss's chest (not the run's last) and a challenge room's offer **three Scars**
-  with their loot: they **bounce out and land on the floor** in an arc before the chest (the designer: "it does not get
-  picked up automatically, when opening a chest it bounces out and land on the floor, 3 of them and if you pick one,
-  the other 2 dissapears"); **E takes one, the others fade.** The boss's chest gives no key any more. Each **changes one of your moves
-  for the rest of the run**; you carry each once; lost when you die. **No Scar adds damage or healing.**
-- **The 14:** Shoulder Charge and Second Wind (dash), Bowling and Slingshot (slide), Crater and Pogo (slam), Hair Trigger
-  and Iron Knuckles (fists), Collector and Ricochet (weapons), Bloodbath, Adrenaline and Air Butcher (executions), Hoarder
-  (bonuses). What each does: the spec. **(placeholder numbers)**
-- Shown: its card ("Scar · the move"), the HUD beside your coins (claw marks in their move's colour), the pause menu.
+### Fate Cards (Update 0.2.16, the designer; spec `MD_UPDATES/U0216_FATE_CARDS.md`; Update 0.2.15's Scars became 14 of them)
+- **When:** a boss's chest (not the run's last) and a challenge room's always **deal three Fate Cards**; a chest opened
+  with a key deals them **one time in four instead of its loot** (the designer: "25% is fine"); a gold chest never. The
+  boss's chest still gives its coins and heart (no key since 0.2.15).
+- **Rarity** (the designer: "grey, green, blue, purple, Red … same as drops"): each card rolled as a chest's loot is, the
+  key counting; a big fight's deal has one rare or better. Each card once a run, lost when you die. No card heals.
+- **The deal:** the world holds still and blurs; a deck deals them one by one, face up, low on the screen; hover lifts one
+  to read; a click takes it: it shrinks and flies to the card pile by your coins. You must take one.
+- **TAB:** what you carry (cards, weapons, rings, keys, bonuses, health, armour, dashes, coins); the world holds still.
+- **Wave 1: 30 cards** (the spec lists them; ideas from Risk of Rain 2's items, our names and effects). Wave 2 (new
+  effects: bleed, lightning, flames, homing blades, explosions) to come. **(placeholder numbers)**
 
 ---
 
@@ -282,7 +283,7 @@ One per floor, each with 2 phases. Floor 1's is the Demon, floor 2's the Dragon 
 - **Signs (Update 0.1.20, the designer):** over every doorway into a room, on the corridor's side, a word says what's through it: **ROOM**, **CHALLENGE**, **SHOP** or **BOSS**.
 - **The challenge room (Update 0.1.20, the designer: "a challenging run but rewarding if mastered"):** one on every floor, off the way, so you choose to go in. **6 more enemies** than a room as deep, always **2 mini bosses** (the floor's), always **a chest**; its mini boss drops **a white key or a gold key**, never a normal one (one key a room, as everywhere). Outlined in fire on the minimap. **(placeholder: one key)** **Update 0.2.1 (the designer: "put 10 enemies at the same time, and it adds a new one from the counter when it gets reduced to 9", "harder on purpose"):** it opens with **10 at once** (its first wave if that's bigger) and keeps **10 fighting** while it has more to send: when one dies, the next comes (any other room keeps 5). Its count is as before.
   - **Update 0.2.0 (the designer):** always exactly one, and it's the floor's only fight room that leads nowhere (there's no plain side fight room any more). Its chest isn't there until you've won: then the view goes to where it **rises out of the floor** and comes back to you. **You can't leave until you've taken your reward**: the gates stay shut until the chest is open and its item taken (they open anyway if you have no key at all, or you're no longer in the room). Any of its keys still lying on the floor are yours as you win.
-- **The boss's chest (Update 0.2.0, the designer: "bosses no longer drop the rewards right away"):** as the wooden gate opens, a chest rises out of the floor 3 m in front of it (seen in the gate's shot). It opens without a key, like any chest (you kneel, lift the lid): the boss's coins burst out (Update 0.2.1, the designer: **15**, every boss), and its key and heart wait over it for E. **Update 0.2.15 (the designer: "the chest on a boss won does not give a key anymore, it gives scars"): no key: its heart, and three Scars (below).**
+- **The boss's chest (Update 0.2.0, the designer: "bosses no longer drop the rewards right away"):** as the wooden gate opens, a chest rises out of the floor 3 m in front of it (seen in the gate's shot). It opens without a key, like any chest (you kneel, lift the lid): the boss's coins burst out (Update 0.2.1, the designer: **15**, every boss), and its key and heart wait over it for E. **Update 0.2.15 (the designer: "the chest on a boss won does not give a key anymore, it gives scars"): no key: its heart; Update 0.2.16: and a deal of Fate Cards (below).**
 - **CHEST IN CURRENT ROOM ! (Update 0.2.0, the designer):** just under the minimap, while the room you're in has a chest still to open.
 - **The way down** (Update 0.0.15: the dark beyond the boss room's wooden gate, which opens once the boss is dead; it was a trapdoor in an exit room) fades to black and takes you to the next floor, its name showing as the black clears, with your health, coins and weapon. Dying starts a new run on a new floor plan. (Earlier plan: choose one of two doors showing their rewards; replaced by the explored floor.)
 - **After a boss:** a part-heal (Update 0.0.15: the heart it leaves; Update 0.2.0: in its chest), then the next floor.

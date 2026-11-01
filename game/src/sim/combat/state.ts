@@ -30,6 +30,7 @@ import { createDrops, Drop } from '../items/drops';
 import { Bonuses, createBonuses } from '../items/bonuses';
 import { createBag } from '../weapons/slots';
 import { createInventory, Inventory } from '../items/items';
+import type { Deal } from '../cards/deal';
 import { GRID_RADIUS, SizeClass } from '../enemies/kinds';
 import { AIR, buildNavGrid, NavGrid } from '../../world/navGrid';
 import { Waves, createWaves } from '../enemies/waves';
@@ -119,11 +120,20 @@ export interface CombatState {
   /** Update 0.2.12 — ARE YOU EVEN HUMAN? (the designer: "just fists and nothing else"): nothing is dropped or found (no
    *  swords, coins, keys, bonuses, chests, rewards); executions still heal (the designer: "executions always heals"). */
   bare: boolean;
-  /** Update 0.2.15 — the Scars': you're off the ground this tick (Air Butcher); the enemies your dash or slide has
-   *  bumped, and which of them it is (Shoulder Charge, Bowling: sim/scars/scarMoves.ts). */
+  /** Update 0.2.15 — the Scars'. Update 0.2.16 — the Fate Cards' (sim/cards/): you're off the ground this tick (Air
+   *  Butcher); the enemies your dash or slide has bumped, and which of them it is (Shoulder Charge, Bowling); a deal up
+   *  (null: none; the world holds still while it is); the fight's clock (s); seconds of Bloodrush, Killing Spree and
+   *  Giant Killer left; the last kills' times (Killing Spree); your hits counted so far (Blood Money). */
   inAir: boolean;
   bumped: number[];
   bumpMove: number;
+  deal: Deal | null;
+  clock: number;
+  rush: number;
+  frenzy: number;
+  giant: number;
+  spree: number[];
+  hitsSeen: number;
   hitStop: HitStop;
   events: EventQueue<CombatEvent>;
 }
@@ -194,6 +204,13 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     inAir: false,
     bumped: [],
     bumpMove: 0,
+    deal: null,
+    clock: 0,
+    rush: 0,
+    frenzy: 0,
+    giant: 0,
+    spree: [],
+    hitsSeen: 0,
     hitStop: new HitStop(),
     events: new EventQueue<CombatEvent>(64, 'none'),
   };
@@ -250,6 +267,9 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.betterKeys = false;
   state.bumped.length = 0;
   state.bumpMove = 0;
+  state.deal = null;
+  state.clock = state.rush = state.frenzy = state.giant = state.hitsSeen = 0;
+  state.spree.length = 0;
   stockStands(state);
   state.hitStop.remaining = 0;
   state.events.clear();

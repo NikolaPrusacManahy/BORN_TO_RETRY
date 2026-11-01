@@ -65,7 +65,7 @@ import type { CombatState } from './state';
 import { execHeld, execTarget, stepExecution, tryExecute } from './execution';
 import { stepFlood } from '../enemies/drownedKingMoves';
 import { updateTurret } from './turret';
-import { bumpEnemies, chargeRate, payCharge, pogo } from '../scars/scarMoves';
+import { bumpEnemies, chargeRate, fistFactor, frenzyFactor, payCharge, pogo, tickCards } from '../cards/cardMoves';
 
 /** Update 0.1.12 — seconds with no enemy you could execute before a new one stings again. */
 const EXEC_QUIET = 0.75;
@@ -87,8 +87,9 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   if (player.kneel > 0) intent = IDLE;
   // (Update 0.2.10 — the water drags you only while something drags you: the Drowned King's whirlpool, each tick.)
   player.current.set(0, 0, 0);
-  // (Update 0.2.15 — Air Butcher's kills in the air.)
+  // (Update 0.2.15 — Air Butcher's kills in the air. Update 0.2.16 — the Fate Cards' clocks.)
   state.inAir = !player.grounded;
+  tickCards(state, player, dt);
   settleHand(state);
   tickGrab(state.grab, dt);
   if (state.grab.on) {
@@ -145,7 +146,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   // While a throw winds up, nothing else attacks.
   const w = state.weapon;
   const busy = w !== null && w.throwing >= 0;
-  const rate = attackRate(state.items);
+  // (Update 0.2.16 — and Killing Spree, a Fate Card.)
+  const rate = attackRate(state.items) * frenzyFactor(state);
   const casts = w !== null && CASTS[w.kind];
   const axe = w !== null && RETURNS[w.kind] && !busy && w.uses > 0;
   // Fists out with the axe out there: right click calls it back (and, caught, charges nothing till it's let go).
@@ -182,6 +184,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   // (Update 0.2.15 — Hair Trigger: the fists' charge fills quicker, for a dash.)
   let swung = axe || volley || gun ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate, chargeRate(state, player));
   if (swung && punch.kind === 'heavy') payCharge(state, player);
+  // (Update 0.2.16 — All In, a Fate Card: your fists hit twice as hard.)
+  if (swung) punch.damage *= fistFactor(state);
   if (axe && w) {
     const power = updateAxeCharge(state, intent.heavyHeld && !state.recallHeld, dt);
     if (power >= 0) {

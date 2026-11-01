@@ -12,7 +12,7 @@ import { refillDash, tryStartDash, updateDash } from './dash';
 import { groundMove } from './ground';
 import type { PlayerIntent } from './intent';
 import { updateKneel } from './kneel';
-import { tryGroundJump, updateJumpTimers } from './jump';
+import { tryAirJump, tryGroundJump, updateJumpTimers } from './jump';
 import { checkPads } from './jumpPad';
 import { landSlam, tryStartSlam, updateSlam } from './slam';
 import { armSlide, canStartSlide, endSlide, slideOver, startSlide, updateSlide } from './slide';
@@ -72,7 +72,8 @@ function steer(p: PlayerState, intent: PlayerIntent, world: CollisionWorld, dt: 
   if (!p.grounded && !p.wallRunning) tryStartWallRun(p, intent, wish, world);
   if (p.jumpBuffer > 0 && !tryGroundJump(p)) {
     if (p.wallRunning) wallRunJump(p);
-    else tryWallJump(p, world, wallN);
+    // (Update 0.2.16 — Updraft, a Fate Card: else a jump in the air.)
+    else if (!tryWallJump(p, world, wallN)) tryAirJump(p);
   }
 
   // Velocity.
@@ -124,6 +125,7 @@ function collide(p: PlayerState, intent: PlayerIntent, world: CollisionWorld, dt
     endWallRun(p);
     p.lastWallSet = false; // any wall can be run on again
     p.wallJumpsLeft = WALL.v.count;
+    p.airJumps = 1;
     if (p.slamming) landSlam(p, fallSpeed);
     else p.events.push('land', Math.max(0, fallSpeed));
   }

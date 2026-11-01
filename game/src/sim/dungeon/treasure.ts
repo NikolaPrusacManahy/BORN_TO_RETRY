@@ -14,8 +14,10 @@
 // boss used to leave as it burst: its coins, a key and a heart (the items wait over it for E, side by side).
 // Update 0.2.1 (the designer) — every room's chest rises once its room is won. A gold chest (a room with no mini boss:
 // no key drops there) opens without a key, and gives coins only.
-// Update 0.2.15 — a boss's chest (not the run's last) and a challenge room's offer Scars with their loot
-// (sim/scars/scarOffer.ts).
+// Update 0.2.15 — a boss's chest and a challenge room's offered Scars. Update 0.2.16 — Fate Cards (sim/cards/deal.ts):
+// a boss's chest (not the run's last) and a challenge room's always deal them; a chest opened with a key deals them
+// instead of its item one time in four (the designer: "if you are lucky … 25% is fine"). Fortune's Favour (a card)
+// rolls a chest's rarity twice; Haggler (a card) makes the shop cheaper (`offerPrice`).
 import type { Rng } from '../../core/rng';
 import { ITEMS } from '../../tuning/items';
 import type { ChestSpot, DungeonLevel } from '../../world/dungeon/assemble';
@@ -30,7 +32,9 @@ import { BOSS_LOOT, bossCoins } from './bossRoom';
 import { coinsFor } from '../items/bonuses';
 import type { EnemyKind } from '../enemies/kinds';
 import { Vector3 } from 'three';
-import { offerScars } from '../scars/scarOffer';
+import { CARDS } from '../../tuning/cards';
+import { holds } from '../cards/cards';
+import { dealRarity, startDeal } from '../cards/deal';
 
 export interface Offer {
   kind: ItemKind;
@@ -58,8 +62,8 @@ export interface Chest {
   given: boolean;
   /** Update 0.2.0 — a boss's chest: which boss (no key opens it; its loot is the boss's); null: a key opens it. */
   boss: EnemyKind | null;
-  /** Update 0.2.15 — its loot comes with Scars to choose from. */
-  scars: boolean;
+  /** Update 0.2.16 — it always deals Fate Cards (a boss's, a challenge room's); else a keyed one may, by luck. */
+  cards: boolean;
 }
 
 export interface Treasure {
@@ -98,15 +102,15 @@ function shuffle<T>(list: T[], rng: Rng): T[] {
 }
 
 /** The shop's offers and the chests' rolls for a floor (seeded); `boss`: the floor's (its chest's loot). Update 0.2.15
- *  — `bossScars`: its chest offers Scars (not on the run's last floor). */
-export function createTreasure(level: DungeonLevel, rng: Rng, boss: EnemyKind = 'demon', bossScars = true): Treasure {
+ *  — `bossCards`: its chest deals Fate Cards (not on the run's last floor). */
+export function createTreasure(level: DungeonLevel, rng: Rng, boss: EnemyKind = 'demon', bossCards = true): Treasure {
   const shop = level.rooms.find((r) => r.kind === 'shop');
   const drawn = shuffle([...SHOP_DRAWN], rng).slice(0, SHOP_TILES - SHOP_ALWAYS.length);
   // A key on offer is a normal, white or gold one.
   const kinds = shuffle([...SHOP_ALWAYS, ...drawn.map((k) => (k === 'key' ? keyFor(rng()) : k))], rng);
   const floor = level.plan?.level ?? 1;
   const offers = shop ? shop.tiles.slice(0, SHOP_TILES).map((t, i) => ({ kind: kinds[i], price: priceOf(kinds[i], floor), sold: false, x: t.x, z: t.z })) : [];
-  const chests = level.chests.map((spot): Chest => ({ spot, state: spot.rises ? 'buried' : 'shut', t: 0, rolls: [rng(), rng(), rng()], key: null, loot: null, given: false, boss: spot.boss ? boss : null, scars: spot.boss ? bossScars : !!level.rooms[spot.room]?.challenge }));
+  const chests = level.chests.map((spot): Chest => ({ spot, state: spot.rises ? 'buried' : 'shut', t: 0, rolls: [rng(), rng(), rng()], key: null, loot: null, given: false, boss: spot.boss ? boss : null, cards: spot.boss ? bossCards : !!level.rooms[spot.room]?.challenge }));
   return { shop: shop ? shop.index : -1, offers, chests, choosing: -1 };
 }
 
@@ -200,7 +204,7 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
       return true;
     }
     c.key = free ? null : useKey(inv);
-    c.loot = c.boss ? { rarity: 'mythic', item: null, coins: coinsFor(bossCoins(c.boss), state, state.rng) } : c.spot.gold ? goldLoot(c.rolls) : rollLoot(c.key!, c.rolls);
+    c.loot = c.boss ? { rarity: 'mythic', item: null, coins: coinsFor(bossCoins(c.boss), state, state.rng) } : c.spot.gold ? goldLoot(c.rolls) : rollLoot(c.key!, c.rolls, holds(state, 'fortune'));
     c.state = 'opening';
     c.t = 0;
     t.choosing = -1;
@@ -212,11 +216,12 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
   const oi = offerInReach(t, player);
   if (oi < 0) return false;
   const o = t.offers[oi];
-  if (state.money < o.price || !useful(o.kind, player)) {
+  const price = offerPrice(o, state);
+  if (state.money < price || !useful(o.kind, player)) {
     state.events.push('buyFail', oi, o.x, 1, o.z);
     return true;
   }
-  state.money -= o.price;
+  state.money -= price;
   o.sold = true;
   state.events.push('buy', ITEM_KINDS.indexOf(o.kind), o.x, 1, o.z);
   takeItem(o.kind, player, state);
@@ -225,9 +230,12 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
 
 /** The lid is up: its glow (by rarity), then coins burst out and fly to you (Update 0.1.10 — an epic or mythic chest
  *  gives both), and the item rises out and hovers over the chest till you take it with E (Update 0.1.11 — the designer:
- *  not taken by itself). Update 0.2.15 — and Scars to choose from, before it (`i`: the chest). */
+ *  not taken by itself). Update 0.2.16 — or Fate Cards are dealt (`i`: the chest): a boss's chest deals them with its
+ *  coins and heart; any other deals them instead of its loot (its glow, the best card's rarity). */
 function giveLoot(c: Chest, i: number, state: CombatState) {
   c.given = true;
+  const lucky = !c.cards && !c.boss && !c.spot.gold && state.rng() < CARDS.v.dealChance;
+  if ((c.cards || lucky) && startDeal(state, i, c.key, c.cards) && !c.boss) c.loot = { rarity: dealRarity(state.deal!.cards), item: null, coins: 0 };
   const loot = c.loot!;
   state.events.push('chestRarity', RARITIES.indexOf(loot.rarity), c.spot.x, 0.8, c.spot.z);
   // (No item flies to you: it waits.)
@@ -242,5 +250,7 @@ function giveLoot(c: Chest, i: number, state: CombatState) {
     const s = (k - (items.length - 1) / 2) * LOOT_GAP;
     dropItem(state.drops, kind, at.set(c.spot.x + c.spot.fz * s, LOOT_HEIGHT, c.spot.z - c.spot.fx * s), state.events, true);
   });
-  if (c.scars) offerScars(state, c.spot.x, c.spot.z, c.spot.fx, c.spot.fz, i);
 }
+
+/** Update 0.2.16 — what offer `o` costs you (Haggler, a Fate Card: less). */
+export const offerPrice = (o: Offer, state: CombatState) => (holds(state, 'haggler') ? Math.round(o.price * (1 - CARDS.v.haggler)) : o.price);

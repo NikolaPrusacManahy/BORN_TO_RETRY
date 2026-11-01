@@ -1,0 +1,418 @@
+/* theme-33 — Update 0.2.16: Fate Cards. A card's face (screens/FateCard.tsx): a dark card framed in its rarity's colour
+   (the chests': grey, green, blue, purple, red), its rarity and move along the top, its mark on a glow, its name, what
+   it does; its back. The deal screen (screens/FateDeal.tsx): the world blurred, a deck at the bottom dealing the cards
+   one by one, face up, into a row half below the edge; hover lifts one to read; the one taken lifts, shrinks and flies
+   to the card pile by your coins, the rest drop away. The inventory (screens/Inventory.tsx, TAB). */
+.rb-card,
+.rb-card-back {
+  /* Its scale (the UI's; smaller in the inventory). */
+  --s: var(--rb-ui);
+  --rarity: #9a9a9a;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  border-radius: calc(12px * var(--s));
+  border: calc(3px * var(--s)) solid var(--rarity);
+  background: linear-gradient(170deg, #241216 0%, #150a0d 55%, #0d0608 100%);
+  box-shadow: 0 0 calc(22px * var(--s)) color-mix(in srgb, var(--rarity) 45%, transparent), 0 calc(10px * var(--s)) calc(26px * var(--s)) rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.rb-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(10px * var(--s)) calc(14px * var(--s)) calc(14px * var(--s));
+  font-family: var(--rb-font);
+  color: var(--rb-text);
+  text-align: center;
+}
+
+/* The inner line, a little in from the edge. */
+.rb-card::before {
+  content: '';
+  position: absolute;
+  inset: calc(6px * var(--s));
+  border: 1px solid color-mix(in srgb, var(--rarity) 35%, transparent);
+  border-radius: calc(8px * var(--s));
+  pointer-events: none;
+}
+
+.rb-card.is-uncommon {
+  --rarity: #3dff6a;
+}
+
+.rb-card.is-rare {
+  --rarity: #5c9dff;
+}
+
+.rb-card.is-epic {
+  --rarity: #c27aff;
+}
+
+.rb-card.is-mythic {
+  --rarity: #ff3a3a;
+}
+
+.rb-card-top {
+  align-self: stretch;
+  display: flex;
+  justify-content: space-between;
+  font-size: calc(11px * var(--s));
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--rarity);
+}
+
+.rb-card-top span:last-child {
+  color: #cdbfc4;
+  opacity: 0.75;
+}
+
+.rb-card-art {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: calc(110px * var(--s));
+  height: calc(110px * var(--s));
+  margin: calc(10px * var(--s)) 0 calc(6px * var(--s));
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--rarity) 32%, transparent) 0%, transparent 70%);
+}
+
+.rb-card-mark {
+  width: 72%;
+  height: 72%;
+  fill: none;
+  stroke: var(--rarity);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px var(--rarity));
+}
+
+.rb-card-name {
+  font-family: 'Anton', var(--rb-font);
+  font-size: calc(24px * var(--s));
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.7);
+}
+
+.rb-card-does {
+  margin-top: calc(10px * var(--s));
+  font-size: calc(14px * var(--s));
+  font-weight: 500;
+  line-height: 1.32;
+  color: #e4dde6;
+}
+
+/* The back: crimson, a diamond mark. */
+.rb-card-back {
+  --rarity: #ff2a3a;
+  display: grid;
+  place-items: center;
+  background: repeating-linear-gradient(45deg, #2a0d12 0 8px, #22090e 8px 16px);
+}
+
+.rb-card-back svg {
+  width: 55%;
+  fill: none;
+  stroke: #ff2a3a;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px #ff2a3a);
+}
+
+/* ——— The deal ——— */
+.rb-fate {
+  --card-w: calc(230px * var(--rb-ui));
+  --card-h: calc(330px * var(--rb-ui));
+  --gap: calc(30px * var(--rb-ui));
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(12, 4, 7, 0.35);
+  backdrop-filter: blur(9px) brightness(0.6);
+  animation: rb-fate-in 0.35s ease-out both;
+  cursor: default;
+}
+
+.rb-fate.is-done {
+  animation: rb-fate-out 0.35s ease-in 0.45s both;
+}
+
+.rb-fate-deck {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: var(--card-w);
+  height: var(--card-h);
+  transform: translate(-50%, 78%);
+  transition: transform 0.4s ease-in, opacity 0.4s;
+}
+
+.rb-fate-deck > .rb-card-back {
+  position: absolute;
+  inset: 0;
+}
+
+.rb-fate-deck > .rb-card-back:last-child {
+  transform: translate(calc(-4px * var(--rb-ui)), calc(-5px * var(--rb-ui))) rotate(-2deg);
+}
+
+/* Once they're dealt, the deck sinks away. */
+.rb-fate:not(.is-dealing) .rb-fate-deck {
+  transform: translate(-50%, 120%);
+  opacity: 0;
+}
+
+.rb-fate-row {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  display: flex;
+  gap: var(--gap);
+  transform: translateX(-50%);
+  perspective: 1200px;
+}
+
+/* A card's place: its lower part below the edge; hovered, lifted to read. */
+.rb-fate-slot {
+  width: var(--card-w);
+  height: var(--card-h);
+  transform: translateY(44%);
+  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.3, 1);
+  cursor: pointer;
+}
+
+.rb-fate.is-dealing .rb-fate-slot,
+.rb-fate.is-done .rb-fate-slot {
+  pointer-events: none;
+}
+
+.rb-fate-slot:hover {
+  transform: translateY(-6%);
+}
+
+.rb-fate-slot:hover .rb-card {
+  box-shadow: 0 0 calc(40px * var(--rb-ui)) color-mix(in srgb, var(--rarity) 70%, transparent), 0 calc(14px * var(--rb-ui)) calc(30px * var(--rb-ui)) rgba(0, 0, 0, 0.7);
+}
+
+/* Taken: it lifts out, then shrinks and flies to your coins. */
+.rb-fate-slot.is-picked {
+  animation: rb-fate-take 0.75s cubic-bezier(0.5, 0, 0.6, 1) both;
+}
+
+/* The others drop away. */
+.rb-fate-slot.is-gone {
+  transform: translateY(120%);
+  opacity: 0;
+  transition: transform 0.45s ease-in, opacity 0.45s;
+}
+
+/* Dealt: from the deck (the row's middle, below the edge), face down, flipping face up as it lands. */
+.rb-fate-deal {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation-name: rb-fate-deal;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+.rb-fate-front,
+.rb-fate-rear {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+
+.rb-fate-rear {
+  transform: rotateY(180deg);
+}
+
+@keyframes rb-fate-deal {
+  from {
+    transform: translate(calc(var(--dx) * (var(--card-w) + var(--gap))), 40%) rotate(calc(var(--dx) * 8deg)) rotateY(180deg);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes rb-fate-take {
+  0% {
+    transform: translateY(-6%) scale(1);
+    opacity: 1;
+  }
+  30% {
+    transform: translateY(-22%) scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--fx), calc(var(--fy) - 22%)) scale(0.1);
+    opacity: 0.3;
+  }
+}
+
+@keyframes rb-fate-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rb-fate-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* ——— The inventory (TAB) ——— */
+.rb-inv {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background: rgba(12, 4, 7, 0.4);
+  backdrop-filter: blur(9px) brightness(0.55);
+  animation: rb-fate-in 0.2s ease-out both;
+  font-family: var(--rb-font);
+  color: var(--rb-text);
+}
+
+.rb-inv-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) calc(230px * var(--rb-ui)) calc(300px * var(--rb-ui));
+  align-items: start;
+  gap: calc(32px * var(--rb-ui));
+  width: min(92vw, calc(1180px * var(--rb-ui)));
+  max-height: 86vh;
+}
+
+.rb-inv h3 {
+  margin: 0 0 calc(10px * var(--rb-ui));
+  font-size: calc(13px * var(--rb-ui));
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #ff4a5a;
+}
+
+.rb-inv-cards {
+  min-height: 0;
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: calc(6px * var(--rb-ui));
+}
+
+.rb-inv-none {
+  margin: 0;
+  opacity: 0.6;
+}
+
+.rb-inv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, calc(150px * var(--rb-ui)));
+  gap: calc(14px * var(--rb-ui));
+}
+
+/* A small card: hovered, it lifts a little and is shown whole beside them. */
+.rb-inv-card {
+  width: calc(150px * var(--rb-ui));
+  height: calc(215px * var(--rb-ui));
+  transition: transform 0.18s ease-out, opacity 0.18s;
+  opacity: 0.8;
+  cursor: default;
+}
+
+.rb-inv-card .rb-card {
+  --s: calc(var(--rb-ui) * 0.66);
+}
+
+.rb-inv-card:hover,
+.rb-inv-card.is-shown {
+  transform: translateY(calc(-4px * var(--rb-ui)));
+  opacity: 1;
+}
+
+/* The card you're looking at, whole: the deal's size. */
+.rb-inv-look {
+  width: calc(230px * var(--rb-ui));
+  height: calc(330px * var(--rb-ui));
+  margin-top: calc(28px * var(--rb-ui));
+}
+
+.rb-inv-side {
+  display: flex;
+  flex-direction: column;
+  gap: calc(18px * var(--rb-ui));
+  overflow-y: auto;
+}
+
+.rb-inv-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(8px * var(--rb-ui)) calc(14px * var(--rb-ui));
+}
+
+.rb-inv-stats b {
+  font-family: 'Anton', var(--rb-font);
+  font-size: calc(26px * var(--rb-ui));
+  margin-right: 6px;
+}
+
+.rb-inv-stats span {
+  font-size: calc(13px * var(--rb-ui));
+  opacity: 0.75;
+}
+
+.rb-inv-row {
+  --rarity: #e4dde6;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 10px;
+  padding: calc(5px * var(--rb-ui)) 0 calc(5px * var(--rb-ui)) calc(10px * var(--rb-ui));
+  border-left: 3px solid var(--rarity);
+  margin-bottom: calc(6px * var(--rb-ui));
+}
+
+.rb-inv-row.is-uncommon {
+  --rarity: #3dff6a;
+}
+
+.rb-inv-row.is-rare {
+  --rarity: #5c9dff;
+}
+
+.rb-inv-row.is-epic {
+  --rarity: #c27aff;
+}
+
+.rb-inv-row.is-mythic {
+  --rarity: #ff3a3a;
+}
+
+.rb-inv-row.is-hand {
+  --rarity: #ffd23a;
+}
+
+.rb-inv-row b {
+  color: var(--rarity);
+}
+
+.rb-inv-n {
+  font-size: calc(13px * var(--rb-ui));
+  opacity: 0.8;
+}
+
+.rb-inv-does {
+  grid-column: 1 / -1;
+  font-size: calc(13px * var(--rb-ui));
+  opacity: 0.75;
+}

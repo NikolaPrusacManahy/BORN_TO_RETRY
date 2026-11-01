@@ -2,7 +2,8 @@
 // first target it passes takes a big hit (and a hit-stop); a wall stops it. Either way it breaks.
 // Update 0.1.5 — except a Gold Axe with uses left: it turns end over end, drops where it hits, sticks in a wall, and
 // comes back when called (recall.ts).
-// Update 0.2.15 — Ricochet (a Scar): one that hits an enemy turns on to the next one, once (sim/scars/scarMoves.ts).
+// Update 0.2.15 — Ricochet (a Fate Card since Update 0.2.16): one that hits an enemy turns on to the next one, once
+// (sim/cards/cardMoves.ts).
 import { Vector3 } from 'three';
 import { FEEDBACK } from '../../tuning/combat';
 import { WEAPONS } from '../../tuning/weapons';
@@ -11,11 +12,9 @@ import type { CombatState } from '../combat/state';
 import { emptyTargetHit, landHit, nearestTarget } from '../combat/strike';
 import type { PlayerState } from '../player/state';
 import { drop, landed, stick, updateReturning } from './recall';
-import { ricochet } from '../scars/scarMoves';
-import { THROWN_GRAVITY } from './weapons';
+import { ricochet } from '../cards/cardMoves';
+import { THROWN_GRAVITY, THROWN_RADIUS } from './weapons';
 
-/** How close it must pass a target's capsule to hit it (m). */
-export const THROWN_RADIUS = 0.35;
 
 const next = new Vector3();
 const dir = new Vector3();

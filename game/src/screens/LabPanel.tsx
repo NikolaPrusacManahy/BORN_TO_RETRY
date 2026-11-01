@@ -6,12 +6,12 @@
 // Update 0.0.20 — Floor 1, 2 or 3: a run from that floor's start (Back leaves it too).
 // Update 0.1.17 — Sounds: the recorded clips to listen to and pick from (LabSounds.tsx), in place of the lists.
 // Update 0.2.4 — reworked (the designer: "make this interface a bit more comfier to navigate"): three tabs, Enemies,
-// Items and Sounds, the panel the same size on each and fitting the window. Enemies: a column a floor (labLists.ts),
+// Items, Fate Cards (Update 0.2.16) and Sounds, the panel the same size on each and fitting the window. Enemies: a column a floor (labLists.ts),
 // its Play (a run from its start), its enemies (mini bosses tinted, last) and its boss (here, or its Room). Items: a
 // column a kind. Below, always: Clear, Heal, Back; Waves, God, Meter, and Stay (every pick keeps the panel open).
 import { useState } from 'react';
 import { LabSounds } from './LabSounds';
-import { isMini, LAB_FLOORS, LAB_ITEMS, LabBoss, labName } from './labLists';
+import { isMini, LAB_CARDS, LAB_FLOORS, LAB_ITEMS, LabBoss, labName } from './labLists';
 import type { LabCommand } from '../sim/lab/labCommands';
 
 interface Props {
@@ -31,10 +31,11 @@ interface Props {
   onGod(): void;
 }
 
-type Tab = 'enemies' | 'items' | 'sounds';
+type Tab = 'enemies' | 'items' | 'cards' | 'sounds';
 const TABS: [Tab, string][] = [
   ['enemies', 'Enemies'],
   ['items', 'Items'],
+  ['cards', 'Fate Cards'],
   ['sounds', 'Sounds'],
 ];
 const COUNTS = [1, 3, 5];
@@ -119,6 +120,22 @@ export function LabPanel({ away, waves, meter, god, onCommand, onBossRoom, onFlo
           {tab === 'items' && (
             <div className="rb-lab-cols is-items">
               {LAB_ITEMS.map(([head, picks]) => (
+                <section key={head} className="rb-lab-col">
+                  <h3 className="rb-lab-head">{head}</h3>
+                  <div className="rb-lab-list">
+                    {picks.map(([label, cmd]) => (
+                      <button key={label} className="rb-lab-btn" onClick={run(cmd)}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
+          {tab === 'cards' && (
+            <div className="rb-lab-cols is-items">
+              {LAB_CARDS.map(([head, picks]) => (
                 <section key={head} className="rb-lab-col">
                   <h3 className="rb-lab-head">{head}</h3>
                   <div className="rb-lab-list">

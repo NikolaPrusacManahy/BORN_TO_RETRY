@@ -12,7 +12,8 @@
 // Update 0.0.16 — white and gold keys beside the normal ones; at a chest, the key picker (KeyPicker.tsx).
 // Update 0.0.17 — four rings (red, blue, green, purple); the weapon slots in place of the weapon's name and uses; the
 // kill bonuses that are on (HudSlots.tsx).
-// Update 0.2.15 — the Scars you carry, after the rings: claw marks glowing the colour of the move each changes.
+// Update 0.2.15 — the Scars you carried. Update 0.2.16 — the Fate Cards you carry, after the rings: a little pile and
+// how many.
 import { CSSProperties, useSyncExternalStore } from 'react';
 import type { HudStore } from '../engine/hudStore';
 import { BossHud } from './BossHud';
@@ -21,7 +22,6 @@ import { PinQte } from './PinQte';
 import { KeyIcon, KeyPicker } from './KeyPicker';
 import { Bonuses, WeaponSlots } from './HudSlots';
 import { Minimap } from './Minimap';
-import { SCAR_MOVE, ScarKind, scarsIn } from '../sim/scars/scars';
 
 /** At or below this share of max health the bar pulses. */
 const LOW_HEALTH = 0.25;
@@ -36,12 +36,13 @@ function RingIcon({ gem, band }: { gem?: string; band?: string }) {
   );
 }
 
-/** Update 0.2.15 — a Scar you carry: three claw marks in crimson, glowing the colour of the move it changes. */
-const SCAR_GLOW: Record<string, string> = { Dash: '#4d9dff', Slide: '#ff8a2a', Slam: '#ffb43a', Fists: '#ff3a3a', Weapons: '#c8d4e0', Executions: '#ff1a4a', Bonuses: '#ffd23a' };
-function ScarIcon({ kind }: { kind: ScarKind }) {
+/** Update 0.2.16 — the Fate Cards you carry: a little pile (the deal's card flies to it; TAB shows them). */
+function CardsIcon() {
   return (
-    <svg className="rb-hud-scar" viewBox="0 0 32 32" style={{ '--glow': SCAR_GLOW[SCAR_MOVE[kind]] } as CSSProperties}>
-      <path d="M12 4C10 12 7 20 3 27c3-6 6-13 9-23zM19 5c-2 8-5 16-9 23 4-6 7-14 9-23zM26 6c-2 8-5 16-9 23 4-6 7-14 9-23z" fill="#ff2a3a" stroke="#ff2a3a" strokeWidth="1.6" strokeLinejoin="round" />
+    <svg className="rb-hud-cards" viewBox="0 0 32 32">
+      <rect x="9" y="5" width="15" height="21" rx="2" transform="rotate(12 16 16)" fill="#2a1418" stroke="#ff2a3a" strokeWidth="1.6" />
+      <rect x="7" y="6" width="15" height="21" rx="2" fill="#1a0c0f" stroke="#ff4a5a" strokeWidth="1.8" />
+      <path d="M12 11l5 5-5 5M16 11l5 5-5 5" fill="none" stroke="#ff4a5a" strokeWidth="1.6" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -113,11 +114,9 @@ export function Hud({ store }: { store: HudStore }) {
           <Carried n={s.tealRings}>
             <RingIcon band="#21b9c6" />
           </Carried>
-          {scarsIn(s.scars).map((k) => (
-            <Carried key={k} n={1}>
-              <ScarIcon kind={k} />
-            </Carried>
-          ))}
+          <Carried n={s.cards}>
+            <CardsIcon />
+          </Carried>
         </span>
       </div>
       <div className={`rb-hud-health${s.hp <= s.maxHp * LOW_HEALTH ? ' is-low' : ''}`}>

@@ -7,7 +7,11 @@
 // health (the shield doesn't stop it, nor does a dash); a new dose starts it over.
 // Update 0.1.14 — each hurt says what did it (PlayerState.hurtBy), for the death screen; poison, who poisoned you.
 // Update 0.2.8 — the Velociraptor's sand in your eyes and its screech's dash lock wear off here too.
+// Update 0.2.16 — Fate Cards: Hard Head (every 10th hit does nothing), Born Again (the first death burns the card
+// instead), All In (your max health halved); the hits you take are counted (Blood Money's coins: sim/cards/cardMoves.ts).
+import { CARDS } from '../../tuning/cards';
 import { HEALTH } from '../../tuning/health';
+import { bears } from '../cards/cards';
 import { ITEMS } from '../../tuning/items';
 import { LAB } from '../../tuning/lab';
 import type { Cause, PlayerState } from './state';
@@ -25,7 +29,7 @@ export function updateHealth(p: PlayerState, dt: number) {
   p.hp = Math.max(0, p.hp - p.poisonDps * dt);
   if (p.hp <= 0) {
     p.hurtBy = p.poisonBy;
-    die(p);
+    fall(p);
   }
 }
 
@@ -48,6 +52,13 @@ export function canHurt(p: PlayerState): boolean {
 export function damagePlayer(p: PlayerState, amount: number, by: Cause | null = null): boolean {
   if (!canHurt(p) || amount <= 0) return false;
   p.hurtTime = HEALTH.v.hurtInvuln;
+  // (Hard Head: every so many hits does nothing at all.)
+  if (bears(p, 'hardHead') && ++p.shrug >= Math.round(CARDS.v.hardHead)) {
+    p.shrug = 0;
+    p.events.push('shrug');
+    return false;
+  }
+  p.hits++;
   const blocked = Math.min(p.shield, amount);
   if (blocked > 0) {
     p.shield -= blocked;
@@ -59,12 +70,12 @@ export function damagePlayer(p: PlayerState, amount: number, by: Cause | null = 
   p.hurtBy = by;
   p.hp = Math.max(0, p.hp - rest);
   p.events.push('hurt', rest);
-  if (p.hp <= 0) die(p);
+  if (p.hp <= 0) fall(p);
   return true;
 }
 
-/** Update 0.0.17 — your max health now. */
-export const maxHpOf = (p: PlayerState) => HEALTH.v.maxHp + p.hpBonus;
+/** Update 0.0.17 — your max health now. Update 0.2.16 — All In (a Fate Card) halves it. */
+export const maxHpOf = (p: PlayerState) => (HEALTH.v.maxHp + p.hpBonus) * (bears(p, 'allIn') ? 0.5 : 1);
 
 /** Heals up to the max. Returns how much was healed. */
 export function healPlayer(p: PlayerState, amount: number): number {
@@ -96,4 +107,17 @@ export function killPlayer(p: PlayerState, by: Cause | null = null) {
 function die(p: PlayerState) {
   p.dead = true;
   p.events.push('death');
+}
+
+/** Update 0.2.16 — out of health: dead, unless you carry Born Again (a Fate Card): it burns instead, and you're left on
+ *  1 health, untouchable a while. */
+function fall(p: PlayerState) {
+  if (!bears(p, 'bornAgain')) {
+    die(p);
+    return;
+  }
+  p.cards.delete('bornAgain');
+  p.hp = 1;
+  p.invuln = Math.max(p.invuln, CARDS.v.bornAgain);
+  p.events.push('bornAgain');
 }

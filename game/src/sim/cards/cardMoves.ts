@@ -1,0 +1,209 @@
+// Update 0.2.15 — what the Scars did in a fight. Update 0.2.16 — the Fate Cards' (cards.ts), where it isn't a number
+// changed in place: Shoulder Charge and Bowling (a dash or a slide into an enemy throws it back and staggers it: no
+// damage), Pogo (a killing slam bounces you back up), Hair Trigger (a charged punch twice as quick, for a dash), Iron
+// Knuckles (a punch on an enemy winding up makes it start over: a mini boss's, as any hit already staggers the rest),
+// Ricochet (a thrown weapon turns to the next enemy); and what kills set off (Bloodrush, Killing Spree, Giant Killer),
+// what a hit is worth (Mercy Kill, the meter's Air Butcher and Reaper's Rhythm), Cold Snap's freeze, Blood Money's
+// coins, Quick Hands and All In. A boss is never staggered, stalled, frozen or finished early. Pure.
+import { Vector3 } from 'three';
+import { CARDS } from '../../tuning/cards';
+import { FISTS } from '../../tuning/combat';
+import { EXECUTION } from '../../tuning/execution';
+import { MOVE } from '../../tuning/movement';
+import { wallBetween } from '../../world/navGrid';
+import { burstCoins } from '../combat/coins';
+import type { CombatState } from '../combat/state';
+import { Enemy, isLive, radiusOf, setPhase } from '../enemies/enemy';
+import { ENEMY_STATS, MINI_BOSSES } from '../enemies/kinds';
+import { BODY } from '../player/body';
+import type { PlayerState } from '../player/state';
+import { THROWN_GRAVITY, THROWN_LIFE, THROWN_RADIUS, Thrown } from '../weapons/weapons';
+import { holds } from './cards';
+
+/** A dash or slide touches an enemy this much beyond your two bodies (m): before you're pushed out of it. */
+const TOUCH = 0.35;
+/** Which move bumps now: none, a dash (Shoulder Charge), a slide (Bowling). */
+const NONE = 0;
+const DASH_MOVE = 1;
+const SLIDE_MOVE = 2;
+/** Giant Killer's charged punch: this many times as quick (as good as instant). */
+const INSTANT = 50;
+/** Killing Spree remembers this many kills' times. */
+const SPREE_MEMORY = 8;
+
+const way = new Vector3();
+const aimAt = new Vector3();
+
+/** The cards' clocks, each tick: Bloodrush, Killing Spree, Giant Killer (your dashes free meanwhile), Blood Money. */
+export function tickCards(state: CombatState, player: PlayerState, dt: number) {
+  state.clock += dt;
+  state.rush = Math.max(0, state.rush - dt);
+  state.frenzy = Math.max(0, state.frenzy - dt);
+  state.giant = Math.max(0, state.giant - dt);
+  player.freeDash = state.giant;
+  // Blood Money: coins for each hit taken since the last tick.
+  if (player.hits < state.hitsSeen) state.hitsSeen = player.hits;
+  const hits = player.hits - state.hitsSeen;
+  state.hitsSeen = player.hits;
+  if (hits > 0 && holds(state, 'bloodMoney') && !state.bare) {
+    const n = Math.round(CARDS.v.bloodMoney) * hits;
+    state.money += burstCoins(state.coins, player.pos, n, state.rng);
+    state.events.push('cardCoins', n, player.pos.x, player.pos.y + 1, player.pos.z);
+  }
+}
+
+/** A kill of yours (enemy `e`): Bloodrush, Killing Spree, Giant Killer. */
+export function onKill(state: CombatState, e: Enemy) {
+  const v = CARDS.v;
+  if (holds(state, 'bloodrush')) state.rush = v.bloodrushFor;
+  if (holds(state, 'killingSpree')) {
+    state.spree.push(state.clock);
+    if (state.spree.length > SPREE_MEMORY) state.spree.shift();
+    const n = Math.round(v.spreeKills);
+    if (state.spree.length >= n && state.clock - state.spree[state.spree.length - n] <= v.spreeWithin) {
+      if (state.frenzy <= 0) state.events.push('cardSpree', 0, e.pos.x, e.pos.y, e.pos.z);
+      state.frenzy = v.spreeFor;
+    }
+  }
+  if (holds(state, 'giantKiller') && MINI_BOSSES.includes(e.kind)) {
+    state.giant = v.giantKiller;
+    state.events.push('cardGiant', 0, e.pos.x, e.pos.y, e.pos.z);
+  }
+}
+
+/** Your attacks' speed, times this (Killing Spree). */
+export const frenzyFactor = (state: CombatState) => (state.frenzy > 0 ? 1 + CARDS.v.spreeRate : 1);
+/** How fast reloads go (Quick Hands: 40% quicker is 1 / 0.6 as fast). */
+export const handsRate = (state: CombatState) => (holds(state, 'quickHands') ? 1 / Math.max(0.2, 1 - CARDS.v.quickHands) : 1);
+
+/** What one kill is worth on the execution meter, and how many fill it (Air Butcher, Reaper's Rhythm). */
+export function meterStep(state: CombatState): { steps: number; worth: number } {
+  const steps = Math.max(1, Math.round(holds(state, 'reapersRhythm') ? CARDS.v.reaperKills : EXECUTION.v.killsToFill));
+  const worth = state.inAir && holds(state, 'airButcher') ? Math.round(CARDS.v.airButcher) : 1;
+  return { steps, worth };
+}
+
+/** What the meter is left at after an execution (Reaper's Rhythm: half full). */
+export function meterAfter(state: CombatState): number {
+  if (!holds(state, 'reapersRhythm')) return 0;
+  const steps = meterStep(state).steps;
+  return Math.floor(steps / 2) / steps;
+}
+
+/** Mercy Kill: a hit of `damage` on enemy `e` that would leave it under the line finishes it (not a boss). */
+export function mercy(state: CombatState, e: Enemy, damage: number): number {
+  if (!holds(state, 'mercyKill') || ENEMY_STATS[e.kind]().boss) return damage;
+  return e.hp - damage < ENEMY_STATS[e.kind]().hp * CARDS.v.mercyKill ? Math.max(damage, e.hp) : damage;
+}
+
+/** Cold Snap: enemy `i`, hit by a charged punch or a slam, freezes (not a boss). */
+export function chill(state: CombatState, i: number) {
+  const e = state.enemies[i];
+  if (!holds(state, 'coldSnap') || !isLive(e) || ENEMY_STATS[e.kind]().boss) return;
+  e.frozen = Math.max(e.frozen, CARDS.v.coldSnap);
+  state.events.push('freeze', i, e.pos.x, e.pos.y + ENEMY_STATS[e.kind]().height * 0.5, e.pos.z);
+}
+
+/** All In: your fists' hits, times this. */
+export const fistFactor = (state: CombatState) => (state.weapon === null && holds(state, 'allIn') ? 2 : 1);
+
+/** Shoulder Charge and Bowling: each enemy your dash (or slide) runs into is thrown back along your way and away from
+ *  you, and staggered (not a boss or a mini boss), once a dash or slide. */
+export function bumpEnemies(state: CombatState, player: PlayerState) {
+  const move = player.dashTime > 0 && holds(state, 'shoulderCharge') ? DASH_MOVE : player.sliding && player.grounded && holds(state, 'bowling') ? SLIDE_MOVE : NONE;
+  if (move !== state.bumpMove) state.bumped.length = 0;
+  state.bumpMove = move;
+  if (move === NONE) return;
+  const dir = move === DASH_MOVE ? player.dashDir : player.slideDir;
+  for (let i = 0; i < state.enemies.length; i++) {
+    const e = state.enemies[i];
+    if (!isLive(e) || e.phase === 'held' || e.phase === 'rebuild' || state.bumped.includes(i)) continue;
+    const s = ENEMY_STATS[e.kind]();
+    const dx = e.pos.x - player.pos.x;
+    const dz = e.pos.z - player.pos.z;
+    const d = Math.hypot(dx, dz);
+    if (d > radiusOf(e) + BODY.radius + TOUCH || player.pos.y > e.pos.y + s.height || player.pos.y + BODY.height < e.pos.y) continue;
+    state.bumped.push(i);
+    // Along your way, and out to the side you passed it on.
+    way.set(dir.x + (d > 1e-3 ? dx / d : 0), 0, dir.z + (d > 1e-3 ? dz / d : 0));
+    const len = Math.hypot(way.x, way.z) || 1;
+    const knock = CARDS.v.bumpKnock * FISTS.v.chargeKnock * s.knock;
+    e.vel.x += (way.x / len) * knock;
+    e.vel.z += (way.z / len) * knock;
+    e.flash = 0.12;
+    if (!s.boss && !MINI_BOSSES.includes(e.kind)) setPhase(e, 'flinch');
+    state.events.push('cardBump', i, e.pos.x, e.pos.y + s.height * 0.5, e.pos.z);
+  }
+}
+
+/** Pogo: a slam that killed (`kills`) bounces you back up, high enough to slam again. */
+export function pogo(state: CombatState, player: PlayerState, kills: number) {
+  if (kills <= 0 || !holds(state, 'pogo') || player.dead) return;
+  player.vel.y = Math.sqrt(2 * MOVE.v.gravity * CARDS.v.pogoHeight);
+  player.grounded = false;
+  player.slamBounce = 0;
+  state.events.push('cardPogo', kills, player.pos.x, player.pos.y, player.pos.z);
+}
+
+/** How fast the charge (right click held) fills, ×1 as tuned: Hair Trigger's fists twice as quick while you have a
+ *  dash to pay, Giant Killer's at once, Quick Hands' weapon charges quicker. */
+export function chargeRate(state: CombatState, player: PlayerState): number {
+  if (state.weapon !== null) return handsRate(state);
+  if (state.giant > 0) return INSTANT;
+  return holds(state, 'hairTrigger') && player.dashCharges >= 1 ? 1 / Math.max(0.05, CARDS.v.hairTrigger) : 1;
+}
+
+/** Hair Trigger: a charged punch let go pays its dash (not while Giant Killer's on). */
+export function payCharge(state: CombatState, player: PlayerState) {
+  if (holds(state, 'hairTrigger') && state.giant <= 0 && player.dashCharges >= 1) player.dashCharges -= 1;
+}
+
+/** Iron Knuckles: enemy `i`, just punched, starts its windup over (not a boss). */
+export function stall(state: CombatState, i: number) {
+  const e = state.enemies[i];
+  if (!holds(state, 'ironKnuckles') || !isLive(e) || e.phase !== 'windup' || ENEMY_STATS[e.kind]().boss) return;
+  e.t = 0;
+  state.events.push('cardStall', i, e.pos.x, e.pos.y + ENEMY_STATS[e.kind]().height, e.pos.z);
+}
+
+/** Ricochet: thrown weapon `t`, which has just hit enemy `skip` (at `at`), turns on to the next enemy (once a throw).
+ *  Returns true if it did (it flies on); false: it breaks as before. */
+export function ricochet(state: CombatState, t: Thrown, at: Vector3, skip: number): boolean {
+  if (t.returns || t.bounces > 0 || !holds(state, 'ricochet')) return false;
+  const first = state.enemies[skip];
+  const i = nextTarget(state, first.pos, skip);
+  if (i < 0) return false;
+  const e = state.enemies[i];
+  // From just outside the one it hit (its middle, out past its body: so it can't hit it again), towards the next.
+  const hx = e.pos.x - first.pos.x;
+  const hz = e.pos.z - first.pos.z;
+  const h = Math.hypot(hx, hz) || 1;
+  const out = radiusOf(first) + THROWN_RADIUS + 0.1;
+  t.pos.set(first.pos.x + (hx / h) * out, at.y, first.pos.z + (hz / h) * out);
+  aimAt.set(e.pos.x, e.pos.y + ENEMY_STATS[e.kind]().height * 0.5, e.pos.z).sub(t.pos);
+  const dist = Math.max(aimAt.length(), 1e-3);
+  const speed = Math.max(t.vel.length(), 1);
+  const time = dist / speed;
+  // Straight at it, a little higher for the drop on the way.
+  t.vel.copy(aimAt).multiplyScalar(speed / dist);
+  t.vel.y += 0.5 * THROWN_GRAVITY * time;
+  t.life = Math.max(t.life, Math.min(THROWN_LIFE, time + 0.3));
+  t.bounces++;
+  state.events.push('cardRicochet', i, t.pos.x, t.pos.y, t.pos.z);
+  return true;
+}
+
+/** Ricochet: the live enemy nearest `from` (not `skip`) within reach and not behind a wall, or −1. */
+export function nextTarget(state: CombatState, from: Vector3, skip: number): number {
+  let best = -1;
+  let bestD = CARDS.v.ricochetRange;
+  for (let i = 0; i < state.enemies.length; i++) {
+    const e = state.enemies[i];
+    if (i === skip || !isLive(e) || e.phase === 'held') continue;
+    const d = Math.hypot(e.pos.x - from.x, e.pos.z - from.z);
+    if (d >= bestD || wallBetween(state.nav.small, from.x, from.z, e.pos.x, e.pos.z)) continue;
+    bestD = d;
+    best = i;
+  }
+  return best;
+}

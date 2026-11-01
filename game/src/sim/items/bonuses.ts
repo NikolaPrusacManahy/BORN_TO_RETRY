@@ -6,8 +6,8 @@
 import type { Vector3 } from 'three';
 import type { Rng } from '../../core/rng';
 import { BONUS } from '../../tuning/bonus';
-import { SCARS } from '../../tuning/scars';
-import { scarred } from '../scars/scars';
+import { CARDS } from '../../tuning/cards';
+import { holds } from '../cards/cards';
 import type { CombatState } from '../combat/state';
 
 export type BonusKind = 'snowflake' | 'goldIngots' | 'bluePotion';
@@ -26,8 +26,8 @@ const LENGTH: Record<BonusKind, () => number> = {
   bluePotion: () => BONUS.v.potionFor,
 };
 
-/** Update 0.2.15 — `state`: the run's (Hoarder, a Scar, makes them last longer). */
-export const bonusLength = (kind: BonusKind, state?: CombatState) => LENGTH[kind]() * (state && scarred(state, 'hoarder') ? SCARS.v.hoarder : 1);
+/** Update 0.2.15 — `state`: the run's (Hoarder, a Fate Card, makes them last longer). */
+export const bonusLength = (kind: BonusKind, state?: CombatState) => LENGTH[kind]() * (state && holds(state, 'hoarder') ? CARDS.v.hoarder : 1);
 
 /** Counts the bonuses down. */
 export function updateBonuses(b: Bonuses, dt: number) {

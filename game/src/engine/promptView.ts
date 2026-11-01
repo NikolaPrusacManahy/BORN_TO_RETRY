@@ -7,7 +7,6 @@
 // Update 0.2.9 — and the lobby's stations: a difficulty's or a character's name with "[E] to choose" (or "Chosen"), a
 // locked character's "Locked" (Update 0.2.12 — the designer: "coming soon characters instead of Locked"), the gate's
 // "[E] to enter".
-// Update 0.2.15 — a Scar's card: its name in crimson, "Scar · the move it changes" where a rarity would be.
 import * as THREE from 'three';
 import type { Focus } from '../sim/items/focus';
 import { infoOf } from '../sim/items/itemInfo';
@@ -101,9 +100,9 @@ export class PromptView {
     const info = f.item ? infoOf(f.item, f.uses) : null;
     // (Update 0.2.9 — a lobby station: its name, if it has one, in place of an item's.)
     const name = info?.name ?? f.label ?? '';
-    this.card.className = `rb-prompt is-on${name ? '' : ' is-bare'}${info?.rarity ? ` is-${info.rarity}` : ''}${info?.tag ? ' is-scar' : ''}`;
+    this.card.className = `rb-prompt is-on${name ? '' : ' is-bare'}${info?.rarity ? ` is-${info.rarity}` : ''}`;
     this.name.textContent = name;
-    this.rarity.textContent = info?.tag ?? (info?.rarity ? info.rarity[0].toUpperCase() + info.rarity.slice(1) : '');
+    this.rarity.textContent = info?.rarity ? info.rarity[0].toUpperCase() + info.rarity.slice(1) : '';
     this.does.textContent = info?.does ?? '';
     const note = f.act ? NOTE[f.act] : undefined;
     if (note) this.act.textContent = note;

@@ -1,0 +1,37 @@
+// Update 0.2.15 — the Scars. Update 0.2.16 — Fate Cards (the designer: "scars are turned into "Fate cards""): how often
+// a chest deals them ("25% is fine"), how many, and each card's numbers (all placeholders but the 25%).
+import { group, knob } from './schema';
+
+export const CARDS = group('cards', 'Fate Cards', {
+  dealChance: knob(0.25, 0, 1, 0.05, 'Deal chance', 'Chance a chest you open with a key deals Fate Cards instead of its item (a boss’s and a challenge room’s always do).'),
+  dealt: knob(3, 1, 5, 1, 'Cards dealt', 'How many you choose from.'),
+  bumpKnock: knob(1, 0, 4, 0.1, 'Bump knock', 'Shoulder Charge and Bowling: how hard an enemy is thrown, as a heavy punch’s knock.'),
+  slingshot: knob(1.5, 1, 3, 0.05, 'Slingshot', 'Slingshot: a jump out of a slide carries this much more speed.'),
+  craterGrowth: knob(2, 1, 4, 0.1, 'Crater', 'Crater: the slam’s ring grows this much faster with height, to this much wider.'),
+  pogoHeight: knob(5, 1, 12, 0.5, 'Pogo height', 'Pogo: how high a killing slam bounces you (m).'),
+  hairTrigger: knob(0.5, 0.1, 1, 0.05, 'Hair Trigger', 'Hair Trigger: the charged punch’s charge time, times this.'),
+  collector: knob(0.5, 0, 2, 0.05, 'Collector', 'Collector: extra uses on new weapons (0.5: +50%).'),
+  ricochetRange: knob(12, 2, 30, 1, 'Ricochet range', 'Ricochet: how far (m) a thrown weapon looks for its next enemy.'),
+  bloodbath: knob(6, 2.5, 12, 0.5, 'Bloodbath reach', 'Bloodbath: how far (m) an execution’s blast reaches.'),
+  adrenaline: knob(2, 0, 5, 0.25, 'Adrenaline', 'Adrenaline: seconds you’re untouchable after an execution.'),
+  airButcher: knob(2, 1, 4, 1, 'Air Butcher', 'Air Butcher: what a kill while you’re in the air counts for on the execution meter.'),
+  hoarder: knob(2, 1, 4, 0.25, 'Hoarder', 'Hoarder: kill bonuses last this many times as long.'),
+  hardHead: knob(10, 2, 30, 1, 'Hard Head', 'Hard Head: every this-many-th hit on you does nothing.'),
+  lightBones: knob(0.2, 0, 1, 0.05, 'Light Bones', 'Light Bones: how much higher you jump (0.2: +20%).'),
+  quickHands: knob(0.4, 0, 0.8, 0.05, 'Quick Hands', 'Quick Hands: how much quicker reloads and throws are (0.4: 40%).'),
+  bloodMoney: knob(3, 1, 20, 1, 'Blood Money', 'Blood Money: coins each hit you take drops for you.'),
+  haggler: knob(0.15, 0, 0.5, 0.05, 'Haggler', 'Haggler: how much cheaper the shop is (0.15: 15%).'),
+  bloodrush: knob(0.3, 0, 1, 0.05, 'Bloodrush speed', 'Bloodrush: extra run speed after a kill (0.3: +30%).'),
+  bloodrushFor: knob(2, 0.5, 6, 0.25, 'Bloodrush time', 'Bloodrush: seconds it lasts after each kill.'),
+  spreeKills: knob(3, 2, 6, 1, 'Killing Spree kills', 'Killing Spree: kills it takes, close together.'),
+  spreeWithin: knob(2, 0.5, 5, 0.25, 'Killing Spree window', 'Killing Spree: seconds they must come within.'),
+  spreeRate: knob(0.3, 0, 1, 0.05, 'Killing Spree speed', 'Killing Spree: how much quicker your attacks are (0.3: +30%).'),
+  spreeFor: knob(4, 1, 10, 0.5, 'Killing Spree time', 'Killing Spree: seconds it lasts.'),
+  coldSnap: knob(1, 0.2, 3, 0.1, 'Cold Snap', 'Cold Snap: seconds a charged punch or a slam freezes what it hits.'),
+  mercyKill: knob(0.15, 0, 0.5, 0.01, 'Mercy Kill', 'Mercy Kill: any hit finishes an enemy under this share of its health.'),
+  restless: knob(2, 1, 4, 1, 'Restless charges', 'Restless: extra dash charges.'),
+  restlessRefill: knob(0.3, 0, 1, 0.05, 'Restless refill', 'Restless: how much quicker the dash refills (0.3: 30%).'),
+  giantKiller: knob(5, 1, 15, 0.5, 'Giant Killer', 'Giant Killer: seconds of free dashes and instant charged punches after killing a mini boss.'),
+  reaperKills: knob(5, 2, 10, 1, 'Reaper’s Rhythm', 'Reaper’s Rhythm: kills that fill the execution meter.'),
+  bornAgain: knob(3, 0, 6, 0.25, 'Born Again', 'Born Again: seconds you’re untouchable after it saves you.'),
+});

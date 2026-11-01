@@ -8,11 +8,13 @@
 // wall (it bursts there), or dies where it is. Pure.
 // Update 0.2.2 — a standing body lifted off the floor is drawn there (the Skeleton's); a Skeleton lying in pieces can't
 // be executed (it starts standing in front of you).
-// Update 0.2.15 — two Scars: Bloodbath (its blast reaches further) and Adrenaline (your dashes back, untouchable a while).
+// Update 0.2.15 — Bloodbath (its blast reaches further) and Adrenaline (your dashes back, untouchable a while), Fate
+// Cards since Update 0.2.16; and Reaper's Rhythm (the meter left half full).
 import { Vector3 } from 'three';
-import { DASH } from '../../tuning/movement';
-import { SCARS } from '../../tuning/scars';
-import { scarred } from '../scars/scars';
+import { CARDS } from '../../tuning/cards';
+import { holds } from '../cards/cards';
+import { meterAfter } from '../cards/cardMoves';
+import { dashMaxOf } from '../player/dash';
 import { EXECUTION } from '../../tuning/execution';
 import { wallBetween } from '../../world/navGrid';
 import { isLive, setPhase } from '../enemies/enemy';
@@ -254,16 +256,16 @@ function finish(state: CombatState, ex: Execution, at: Vector3, kind: 'execLand'
   hit.index = ex.target;
   hit.point.copy(e.pos);
   landHit(state, hit, 1e6, 0, F.x, F.z, 'hitHeavy', 1);
-  state.execution = 0;
+  state.execution = meterAfter(state);
   // (Update 0.2.12 — the designer: "executions always heals", on ARE YOU EVEN HUMAN? too.)
   if (!player.dead) healPlayer(player, MINI_BOSSES.includes(e.kind) ? v.healBig : v.heal);
-  if (scarred(state, 'adrenaline') && !player.dead) {
-    player.dashCharges = DASH.v.charges;
-    player.invuln = Math.max(player.invuln, SCARS.v.adrenaline);
+  if (holds(state, 'adrenaline') && !player.dead) {
+    player.dashCharges = dashMaxOf(player);
+    player.invuln = Math.max(player.invuln, CARDS.v.adrenaline);
   }
-  const reach = scarred(state, 'bloodbath') ? SCARS.v.bloodbath : v.splashRadius;
+  const reach = holds(state, 'bloodbath') ? CARDS.v.bloodbath : v.splashRadius;
   // (Bloodbath's wider blast shows as a ring on the floor: value, its reach.)
-  if (reach > v.splashRadius) state.events.push('scarBlast', reach, at.x, 0, at.z);
+  if (reach > v.splashRadius) state.events.push('cardBlast', reach, at.x, 0, at.z);
   for (let i = 0; i < state.enemies.length; i++) {
     const o = state.enemies[i];
     if (i === ex.target || !isLive(o)) continue;

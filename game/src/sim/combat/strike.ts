@@ -12,13 +12,12 @@ import { enemyAxis, hitEnemy, isLive, radiusOf } from '../enemies/enemy';
 import { dropWeapon } from '../weapons/weapons';
 import { dodges } from '../enemies/evade';
 import { ENEMY_STATS, MINI_BOSSES } from '../enemies/kinds';
-import { EXECUTION } from '../../tuning/execution';
 import { burstCoins } from './coins';
 import { betterKeyFor, keyFor } from '../items/items';
 import { dropItem } from '../items/drops';
 import { coinsFor, rollBonus } from '../items/bonuses';
-import { newUses, scarred } from '../scars/scars';
-import { SCARS } from '../../tuning/scars';
+import { newUses } from '../cards/cards';
+import { mercy, meterStep, onKill } from '../cards/cardMoves';
 import { hitDummy } from './dummy';
 import { segmentDistance } from './geometry';
 import type { CombatEvent, CombatState } from './state';
@@ -91,6 +90,8 @@ export function hitTarget(state: CombatState, t: TargetHit, damage: number, knoc
  *  Update 0.0.13 — every hit you land is stronger with each red ring you carry. */
 export function landHit(state: CombatState, t: TargetHit, damage: number, knock: number, dirX: number, dirZ: number, event: CombatEvent, value: number): boolean {
   if (t.kind === 'enemy' && dodges(state, t.index, dirX, dirZ)) return false;
+  // (Update 0.2.16 — Mercy Kill, a Fate Card: a hit leaving it under the line finishes it.)
+  if (t.kind === 'enemy') damage = mercy(state, state.enemies[t.index], damage);
   const killed = hitTarget(state, t, damage, knock, dirX, dirZ);
   const p = t.point;
   state.events.push(event, value, p.x, p.y, p.z);
@@ -102,14 +103,14 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   // Update 0.1.0 — every kill of yours fills the Execution Power meter. Update 0.1.13 — counted in whole kills: ten
   // tenths added up came to 0.9999999999999999, which looked full but couldn't execute (only the Lab's Meter, which sets
   // it to 1, could): the designer found executions "just in the Lab".
-  // (Update 0.2.15 — Air Butcher, a Scar: a kill in the air counts double.)
-  const steps = Math.max(1, Math.round(EXECUTION.v.killsToFill));
-  const worth = state.inAir && scarred(state, 'airButcher') ? Math.round(SCARS.v.airButcher) : 1;
+  // (Update 0.2.16 — Fate Cards: Air Butcher, Reaper's Rhythm; and what a kill sets off.)
+  const { steps, worth } = meterStep(state);
   state.execution = Math.min(1, Math.round(state.execution * steps + worth) / steps);
   const e = state.enemies[t.index];
+  onKill(state, e);
   // (Update 0.2.12 — ARE YOU EVEN HUMAN?: nothing comes of a kill but the meter.)
   if (state.bare) return true;
-  // (Update 0.2.15 — Collector, a Scar: more uses.)
+  // (Update 0.2.15 — Collector, a Fate Card: more uses.)
   if (e.kind === 'grunt' && state.rng() < ENEMIES.v.gruntDrop) dropWeapon(state.pickups, 'sword', e.pos, state.events, newUses(state, 'sword'));
   if (MINI_BOSSES.includes(e.kind) && state.keyDrops > 0) {
     state.keyDrops--;

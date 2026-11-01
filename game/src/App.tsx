@@ -36,6 +36,7 @@ import { DeathScreen } from './screens/DeathScreen';
 import type { DeathInfo } from './engine/runLinks';
 import { TuningPanel } from './screens/TuningPanel';
 import { useLabDock } from './screens/useLabDock';
+import { useFate } from './screens/useFate';
 import { useRunStart } from './screens/useRunStart';
 import { RunLoader } from './screens/RetryArrow';
 import { useMusic } from './screens/useMusic';
@@ -79,6 +80,8 @@ export default function App() {
   }, []);
   /** Update 0.0.19 — the Lab's panel (useLabDock.tsx). */
   const lab = useLabDock(getGame, go);
+  /** Update 0.2.16 — the Fate Cards' screens: a deal, TAB (useFate.tsx). */
+  const fate = useFate(getGame, go, save.settings);
 
   /** Into a run (useRunStart.ts): the black clears, playing or paused. */
   const enterRun = useCallback(
@@ -171,9 +174,9 @@ export default function App() {
         return;
       }
       if (locked) go('playing');
-      else if (!tuningRef.current && !lab.ref.current && ph === 'playing') go('paused');
+      else if (!tuningRef.current && !lab.ref.current && !fate.ref.current && ph === 'playing') go('paused');
     },
-    [go, lab.ref, run.busy],
+    [go, lab.ref, fate.ref, run.busy],
   );
 
   /** Through the gate: the lobby shows under the black (paused if the mouse isn't locked). */
@@ -234,6 +237,8 @@ export default function App() {
       onLockChange={onLockChange}
       onIntroFade={() => setBlack(INTRO.fade)}
       onIntroDone={onIntroDone}
+      onDeal={fate.onDeal}
+      onInventory={fate.onInventory}
       onRunStart={run.onRunStart}
       onDeath={() => setBlack(HEALTH.v.deathFade)}
       onRespawn={() => setBlack(null)}
@@ -254,10 +259,10 @@ export default function App() {
         />
       )}
       {phase === 'confirm' && gate.ask && !tuning && <GateConfirm ask={gate.ask} onYes={gate.yes} onNo={gate.no} />}
+      {fate.view(phase === 'playing' && !tuning)}
       {paused && !tuning && (
         <PauseMenu
           settings={save.settings}
-          scars={getGame()?.scars() ?? 0}
           fullscreen={fullscreen}
           onChange={changeSettings}
           onResume={() => void play()}

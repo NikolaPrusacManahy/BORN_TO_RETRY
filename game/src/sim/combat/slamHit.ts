@@ -1,12 +1,14 @@
 // Update 0.0.12 — your ground slam's blast (the designer: F from a real height, an impact that can hurt several enemies
 // at once). Everything near where you land, roughly level with you and not behind a wall, takes a hit: full damage
 // near the centre, half at the edge, thrown outwards. The further you fell past the slam height, the harder and wider.
-// Update 0.2.15 — Crater (a Scar) widens it faster with height, to twice as wide; it reports its kills (Pogo).
+// Update 0.2.15 — Crater (a Fate Card since Update 0.2.16) widens it faster with height, to twice as wide; it reports
+// its kills (Pogo); Cold Snap (a Fate Card) freezes what it hits.
 import { Vector3 } from 'three';
 import { FEEDBACK } from '../../tuning/combat';
 import { SLAM } from '../../tuning/movement';
-import { SCARS } from '../../tuning/scars';
-import { scarred } from '../scars/scars';
+import { CARDS } from '../../tuning/cards';
+import { holds } from '../cards/cards';
+import { chill } from '../cards/cardMoves';
 import { wallBetween } from '../../world/navGrid';
 import { isLive, radiusOf } from '../enemies/enemy';
 import { ENEMY_STATS } from '../enemies/kinds';
@@ -36,7 +38,7 @@ export function powerFor(drop: number, crater = 1) {
 
 /** Returns how many it killed. */
 export function slamImpact(state: CombatState, at: Vector3, drop: number): number {
-  const { damage, radius } = powerFor(drop, scarred(state, 'crater') ? SCARS.v.craterGrowth : 1);
+  const { damage, radius } = powerFor(drop, holds(state, 'crater') ? CARDS.v.craterGrowth : 1);
   kills = 0;
   state.events.push('slamImpact', radius, at.x, at.y, at.z);
   let any = false;
@@ -68,5 +70,6 @@ function blast(state: CombatState, at: Vector3, kind: TargetKind, index: number,
   hit.s = 0;
   hit.point.set(pos.x, pos.y + height * 0.5, pos.z);
   if (landHit(state, hit as TargetHit, hurt, SLAM.v.knock, dist > 1e-3 ? dx / len : 0, dist > 1e-3 ? dz / len : -1, 'hitSlam', hurt) && kind === 'enemy') kills++;
+  else if (kind === 'enemy') chill(state, index);
   return true;
 }

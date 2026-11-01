@@ -20,7 +20,8 @@ import { HASTE } from '../weapons/catalog';
 import { giveWeapon } from '../weapons/slots';
 import { holding } from '../weapons/weapons';
 import { hasteFactor } from './bonuses';
-import { newUses } from '../scars/scars';
+import { CardKind, newUses } from '../cards/cards';
+import { CARDS } from '../../tuning/cards';
 
 export type ItemKind = 'heart' | 'plate' | 'goldSword' | 'redRing' | 'blueRing' | 'key' | 'whiteKey' | 'goldKey' | 'goldPlate' | 'greenRing' | 'tealRing' | 'grimoire' | 'goldAxe' | 'hammer' | 'daggers' | 'goldHammer' | 'goldDaggers' | 'greatHeart' | 'pistol';
 export const ITEM_KINDS: readonly ItemKind[] = ['heart', 'plate', 'goldSword', 'redRing', 'blueRing', 'key', 'whiteKey', 'goldKey', 'goldPlate', 'greenRing', 'tealRing', 'grimoire', 'goldAxe', 'hammer', 'daggers', 'goldHammer', 'goldDaggers', 'greatHeart', 'pistol'];
@@ -38,14 +39,14 @@ export interface Inventory {
   greenRings: number;
   /** Update 0.2.0 — teal rings (the purple ring is gone). */
   tealRings: number;
-  /** Update 0.2.15 — the Scars (sim/scars/scars.ts: one bit each). */
-  scars: number;
+  /** Update 0.2.16 — the Fate Cards you carry (sim/cards/cards.ts; Update 0.2.15's Scars). */
+  cards: Set<CardKind>;
   /** The key you'd use at a chest. */
   keyPick: KeyKind;
 }
 
 export function createInventory(): Inventory {
-  return { keys: 0, whiteKeys: 0, goldKeys: 0, redRings: 0, blueRings: 0, greenRings: 0, tealRings: 0, scars: 0, keyPick: 'key' };
+  return { keys: 0, whiteKeys: 0, goldKeys: 0, redRings: 0, blueRings: 0, greenRings: 0, tealRings: 0, cards: new Set(), keyPick: 'key' };
 }
 
 const KEY_FIELD: Record<KeyKind, 'keys' | 'whiteKeys' | 'goldKeys'> = { key: 'keys', whiteKey: 'whiteKeys', goldKey: 'goldKeys' };
@@ -128,8 +129,9 @@ export const isKey = (kind: ItemKind): kind is KeyKind => kind === 'key' || kind
 export const speedFactor = (inv: Inventory) => 1 + ITEMS.v.blueRing * inv.blueRings;
 export const attackRate = (inv: Inventory) => 1 + ITEMS.v.greenRing * inv.greenRings;
 export const hpBonusOf = (inv: Inventory) => ITEMS.v.redRingHp * inv.redRings + ITEMS.v.tealRingHp * inv.tealRings;
-/** Update 0.1.9 — your run speed, times this: the blue rings, the blue potion and the weapon in your hand. */
-export const moveFactor = (state: CombatState) => speedFactor(state.items) * hasteFactor(state.bonuses) * (1 + (state.weapon ? HASTE[state.weapon.kind]() : 0));
+/** Update 0.1.9 — your run speed, times this: the blue rings, the blue potion and the weapon in your hand. Update
+ *  0.2.16 — and Bloodrush (a Fate Card). */
+export const moveFactor = (state: CombatState) => speedFactor(state.items) * hasteFactor(state.bonuses) * (1 + (state.weapon ? HASTE[state.weapon.kind]() : 0)) * (state.rush > 0 ? 1 + CARDS.v.bloodrush : 1);
 
 /** Would taking it do anything? A heart at full health or armour with a full shield wouldn't. */
 export function useful(kind: ItemKind, p: PlayerState): boolean {

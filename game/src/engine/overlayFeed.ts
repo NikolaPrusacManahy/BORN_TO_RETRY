@@ -11,11 +11,11 @@ import type { CombatState } from '../sim/combat/state';
 import { PlayerState, flatSpeed, moveMode } from '../sim/player/state';
 import { WEAPON_NAME } from '../sim/weapons/catalog';
 import { LAB } from '../tuning/lab';
-import { DASH } from '../tuning/movement';
 import type { CombatFeedback } from './combatFeedback';
 import type { ShowHud } from './boss/bossShow';
 import type { KeyKind } from '../sim/items/items';
 import { maxHpOf } from '../sim/player/health';
+import { dashMaxOf } from '../sim/player/dash';
 import { BONUS_KINDS, bonusLength } from '../sim/items/bonuses';
 import { WEAPON_KINDS } from '../sim/weapons/catalog';
 
@@ -97,7 +97,7 @@ export class HudFeed {
     const bossHp = show.bossHp < 0 ? -1 : Math.ceil(show.bossHp * 100) / 100;
     const shown = cur.cine === show.cine && cur.card === show.card && cur.bossHp === bossHp && cur.veil === show.veil && cur.floorName === show.floorName && cur.bossTitle === show.bossTitle;
     const keys = cur.keys === it.keys && cur.whiteKeys === it.whiteKeys && cur.goldKeys === it.goldKeys && cur.keyPick === keyPick;
-    const rings = cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.greenRings === it.greenRings && cur.tealRings === it.tealRings && cur.scars === it.scars;
+    const rings = cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.greenRings === it.greenRings && cur.tealRings === it.tealRings && cur.cards === it.cards.size;
     const sig = slotSig(combat);
     const bonus = bonusSig(combat);
     const g = combat.grab;
@@ -114,7 +114,7 @@ export class HudFeed {
     this.timer = HUD_EVERY;
     this.hud.set({
       dashCharges: Math.floor(p.dashCharges * 20) / 20,
-      dashMax: DASH.v.charges,
+      dashMax: dashMaxOf(p),
       mode: moveMode(p),
       hits: fb.hits,
       marker: fb.marker,
@@ -135,7 +135,7 @@ export class HudFeed {
       blueRings: it.blueRings,
       greenRings: it.greenRings,
       tealRings: it.tealRings,
-      scars: it.scars,
+      cards: it.cards.size,
       slots: combat.bag.slice(1).map((w) => (w ? { kind: w.kind, uses: w.uses } : null)),
       slot: combat.slot,
       slotSig: sig,

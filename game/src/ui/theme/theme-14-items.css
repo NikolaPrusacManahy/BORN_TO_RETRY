@@ -54,9 +54,9 @@
   filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.6));
 }
 
-/* Update 0.2.15 — a Scar you carry: its claw marks glow the colour of the move it changes. */
-.rb-hud-item svg.rb-hud-scar {
-  filter: drop-shadow(0 0 4px var(--glow)) drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.6));
+/* Update 0.2.16 — the Fate Cards you carry: their pile glows crimson. */
+.rb-hud-item svg.rb-hud-cards {
+  filter: drop-shadow(0 0 4px #ff2a3a) drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.6));
 }
 
 .rb-hud-item-n {

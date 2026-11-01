@@ -22,6 +22,7 @@ import { heldFor } from '../src/sim/combat/execution';
 import { spawnEnemy } from '../src/sim/enemies/enemy';
 import { EXECUTION } from '../src/tuning/execution';
 import { maxHpOf } from '../src/sim/player/health';
+import { CARD_KINDS } from '../src/sim/cards/cards';
 import { createPlayer } from '../src/sim/player/state';
 import { devKeyAction } from '../src/state/devTools';
 import { FEEL_LAB } from '../src/world/arenas/feelLab';
@@ -31,7 +32,7 @@ import { planFloor } from '../src/world/dungeon/floorPlan';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { LabPanel } from '../src/screens/LabPanel';
-import { isMini, LAB_FLOORS, LAB_ITEMS } from '../src/screens/labLists';
+import { isMini, LAB_CARDS, LAB_FLOORS, LAB_ITEMS } from '../src/screens/labLists';
 import { rosterOf } from '../src/sim/dungeon/wavePlan';
 import { bossOf } from '../src/sim/enemies/kinds';
 import { DROP_KINDS } from '../src/sim/items/drops';
@@ -186,10 +187,14 @@ section('Lab panel — a column a floor, the items by kind');
   const loose = DROP_KINDS.filter((k) => !weapons.includes(k));
   check('every item and bonus once, every weapon, a chest', loose.every((k) => drops.filter((d) => d === k).length === 1) && new Set(weapons).size === 9 && items.some((c) => c.kind === 'chest'));
   check('an item’s column fits (10 at most)', LAB_ITEMS.every(([, picks]) => picks.length <= 10));
+  // (Update 0.2.16 — the Fate Cards' tab: a deal, and every card once, a column a rarity.)
+  const given = LAB_CARDS.flatMap(([, picks]) => picks.flatMap(([, cmd]) => (cmd.kind === 'card' ? [cmd.card] : [])));
+  check('the Fate Cards’ tab: a deal and every card once, each column fitting', LAB_CARDS.some(([, picks]) => picks.some(([, cmd]) => cmd.kind === 'deal')) && CARD_KINDS.every((k) => given.filter((g) => g === k).length === 1) && LAB_CARDS.every(([, picks]) => picks.length <= 10));
   const html = renderToStaticMarkup(
     createElement(LabPanel, { away: true, waves: false, meter: true, god: false, onCommand() {}, onBossRoom() {}, onFloor() {}, onBack() {}, onWaves() {}, onMeter() {}, onGod() {} }),
   );
   const count = (text: string) => html.split(text).length - 1;
-  check('it opens on Enemies: three tabs, six floors to play, six bosses with their rooms', (html.match(/rb-lab-tab[ "]/g) ?? []).length === 3 && count('>Play<') === 6 && count('>Room<') === 6 && html.includes('>Velociraptor<') && html.includes('>Drowned King<') && html.includes('>Old Whale<'));
+  // (Update 0.2.16 — a fourth tab: the Fate Cards.)
+  check('it opens on Enemies: four tabs, six floors to play, six bosses with their rooms', (html.match(/rb-lab-tab[ "]/g) ?? []).length === 4 && count('>Play<') === 6 && count('>Room<') === 6 && html.includes('>Velociraptor<') && html.includes('>Drowned King<') && html.includes('>Old Whale<'));
   check('below: Clear, Heal, Back; Waves, God, Meter, Stay', ['Clear', 'Heal', 'Back', 'Waves', 'God', 'Meter', 'Stay'].every((t) => html.includes(`>${t}<`)));
 }

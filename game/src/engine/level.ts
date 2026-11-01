@@ -53,7 +53,7 @@ export function dungeonLevel(seed: number, floor: number): Level {
   const d = buildDungeon(planFloor(seed, floor));
   const physics = new RapierWorld(d.arena);
   physics.addGates(d.gates);
-  // (Update 0.2.15 — the run's last boss offers no Scars: the run ends there.)
+  // (Update 0.2.15 — the run's last boss deals no Fate Cards: the run ends there.)
   const dungeon = createDungeonRun(d, endsRun(floor));
   prepareNav(dungeon);
   return { arena: d.arena, physics, dungeon, seed, floor, fightSeed: seed * 13 + floor, draw: (scene) => new DungeonView(scene, d) };

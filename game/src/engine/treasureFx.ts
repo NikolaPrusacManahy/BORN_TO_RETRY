@@ -5,10 +5,7 @@
 // Update 0.2.1 (the designer: "an aura around the chests that needs a key, like a gold aura, little bit") — a chest a
 // key opens (not a gold chest, not the boss's) glows soft gold while it's shut: a halo round it and a pool of light on
 // the floor under it, breathing slowly; it comes up with the chest and fades as the lid lifts.
-// Update 0.2.15 — a Scar bounces out of its chest (the designer: "it bounces out and land on the floor"): a high arc,
-// tumbling, then a little bounce where it lands.
 import * as THREE from 'three';
-import { SCAR_FLIGHT } from '../sim/scars/scarOffer';
 import type { Chest } from '../sim/dungeon/treasure';
 import type { Rarity } from '../sim/dungeon/loot';
 import type { Drop, DropKind } from '../sim/items/drops';
@@ -32,22 +29,6 @@ interface Shown {
 
 /** A kill bonus left lying blinks over its last seconds. */
 const BLINK = 4;
-/** Update 0.2.15 — a Scar's flight out of its chest: the share of it that's the arc (the rest a bounce), how high the
- *  arc and the bounce rise (m), how fast it tumbles (rad/s). */
-const ARC = 0.7;
-const ARC_UP = 1.3;
-const BOUNCE_UP = 0.25;
-const TUMBLE = 9;
-
-/** Where a Scar still flying (`d.land` > 0) is drawn, and its tumble. */
-function fly(d: Drop, holder: THREE.Object3D) {
-  const k = 1 - d.land / SCAR_FLIGHT;
-  const a = Math.min(1, k / ARC);
-  const rest = d.pos.y + FLOAT;
-  const y = k < ARC ? d.from.y + (rest - d.from.y) * a + 4 * ARC_UP * a * (1 - a) : rest + 4 * BOUNCE_UP * ((k - ARC) / (1 - ARC)) * (1 - (k - ARC) / (1 - ARC));
-  holder.position.set(d.from.x + (d.pos.x - d.from.x) * a, y, d.from.z + (d.pos.z - d.from.z) * a);
-  holder.rotation.x = (1 - k) * SCAR_FLIGHT * TUMBLE;
-}
 
 /** Items on the floor. */
 export class DropsView {
@@ -75,13 +56,8 @@ export class DropsView {
         if (look) s.holder.add(look.clone());
         s.kind = d.kind;
       }
-      s.holder.rotation.y = this.time * TURN;
-      if (d.land > 0) {
-        fly(d, s.holder);
-        continue;
-      }
-      s.holder.rotation.x = 0;
       s.holder.position.set(d.pos.x, d.pos.y + FLOAT + Math.sin(this.time * 2.4 + i) * 0.08, d.pos.z);
+      s.holder.rotation.y = this.time * TURN;
     }
   }
 }

@@ -18,7 +18,7 @@ import { TIDE } from './tide';
 import { BOSS } from './boss';
 import { CINEMA } from './cinema';
 import { BONUS } from './bonus';
-import { SCARS } from './scars';
+import { CARDS } from './cards';
 import { FOES2 } from './foes2';
 import { FOES3 } from './foes3';
 import { FOES3B } from './foes3b';
@@ -41,7 +41,7 @@ import { SOUND } from './sound';
 import { GUN } from './gun';
 
 /** Panel order. */
-export const GROUPS: TuningGroup[] = [MOVE, DASH, SLIDE, WALL, WALLRUN, SLAM, SWIM, FISTS, WEAPONS, GUN, FEEDBACK, HEALTH, ENEMIES, FOES, FOES2, FOES3, FOES3B, FOES4, FOES5, FOES5B, FOES6, FOES6B, CROWD, BOSS, DRAGON, BONE_KING, DINO, DROWNED, WHALE, ROOMS, TIDE, UNDERWATER, EXECUTION, CINEMA, SOUND, MONEY, ITEMS, BONUS, SCARS, ARMS, CAMERA, LIGHT, LOBBY_LIGHT, SHAKE, TARGETS, LAB];
+export const GROUPS: TuningGroup[] = [MOVE, DASH, SLIDE, WALL, WALLRUN, SLAM, SWIM, FISTS, WEAPONS, GUN, FEEDBACK, HEALTH, ENEMIES, FOES, FOES2, FOES3, FOES3B, FOES4, FOES5, FOES5B, FOES6, FOES6B, CROWD, BOSS, DRAGON, BONE_KING, DINO, DROWNED, WHALE, ROOMS, TIDE, UNDERWATER, EXECUTION, CINEMA, SOUND, MONEY, ITEMS, BONUS, CARDS, ARMS, CAMERA, LIGHT, LOBBY_LIGHT, SHAKE, TARGETS, LAB];
 
 /** Named after the working title; kept when the game became Born To Retry so tuned values carry over. */
 export const TUNING_KEY = 'ruinbreaker-tuning';

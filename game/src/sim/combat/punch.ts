@@ -3,9 +3,10 @@
 // late.
 // M2 — sword swings land the same way (with their own reach and width), and grunts are targets too (strike.ts).
 // Update 0.0.17 — with the snowflake bonus on, a hit freezes the enemy it lands on.
-// Update 0.2.15 — Iron Knuckles (a Scar): a jab on an enemy winding up makes it start over (sim/scars/scarMoves.ts).
+// Update 0.2.15 — Iron Knuckles (a Fate Card since Update 0.2.16): a jab on an enemy winding up makes it start over;
+// Cold Snap (a Fate Card): a charged punch freezes what it hits (sim/cards/cardMoves.ts).
 import { Vector3 } from 'three';
-import { stall } from '../scars/scarMoves';
+import { chill, stall } from '../cards/cardMoves';
 import { BONUS } from '../../tuning/bonus';
 import { FEEDBACK } from '../../tuning/combat';
 import { isLive } from '../enemies/enemy';
@@ -50,6 +51,7 @@ export function resolvePunch(punch: Punch, state: CombatState, eye: Vector3, dir
   const charged = punch.kind === 'heavy' || punch.kind === 'pierce';
   landHit(state, hit, punch.damage, punch.knock, dir.x / flat, dir.z / flat, HIT_EVENT[punch.kind], charged ? punch.charge : punch.damage);
   if (hit.kind === 'enemy' && (punch.kind === 'jab' || punch.kind === 'finisher')) stall(state, hit.index);
+  if (hit.kind === 'enemy' && punch.kind === 'heavy') chill(state, hit.index);
   // Update 0.0.17 — the snowflake bonus: a melee hit freezes what it hits (never a boss).
   if (state.bonuses.snowflake > 0 && hit.kind === 'enemy') {
     const e = state.enemies[hit.index];

@@ -44,20 +44,24 @@ export interface Loot {
 /** A chest's three rolls, each in [0, 1): its rarity, its item, its coins. */
 export type LootRolls = readonly [number, number, number];
 
-/** The loot a chest with `rolls` gives when opened with `key`. */
-export function rollLoot(key: KeyKind, rolls: LootRolls): Loot {
+/** The rarity among `tiers` a roll in [0, 1) gives, by the chest odds. */
+function rarityOf(tiers: readonly Rarity[], roll: number): Rarity {
   const v = ITEMS.v;
-  const tiers = KEY_TIERS[key];
   let total = 0;
   for (const r of tiers) total += v[r];
-  let x = rolls[0] * total;
-  let rarity = tiers[tiers.length - 1];
-  for (const r of tiers) {
-    x -= v[r];
-    if (x < 0) {
-      rarity = r;
-      break;
-    }
+  let x = roll * total;
+  for (const r of tiers) if ((x -= v[r]) < 0) return r;
+  return tiers[tiers.length - 1];
+}
+
+/** The loot a chest with `rolls` gives when opened with `key`. Update 0.2.16 — `lucky` (Fortune's Favour, a Fate Card):
+ *  its rarity is rolled twice (the second from the first) and the better kept. */
+export function rollLoot(key: KeyKind, rolls: LootRolls, lucky = false): Loot {
+  const tiers = KEY_TIERS[key];
+  let rarity = rarityOf(tiers, rolls[0]);
+  if (lucky) {
+    const again = rarityOf(tiers, (rolls[0] * 7919 + rolls[2]) % 1);
+    if (RARITIES.indexOf(again) > RARITIES.indexOf(rarity)) rarity = again;
   }
   let i = RARITIES.indexOf(rarity);
   while (i > 0 && TIER[RARITIES[i]].length === 0) i--;

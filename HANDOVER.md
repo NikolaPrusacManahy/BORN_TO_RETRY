@@ -2,7 +2,18 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-10-31, Update 0.2.15: Scars)
+## Next up (2026-10-31, Update 0.2.16: Fate Cards, wave 1)
+- **Fate Cards** (the designer: "instead of scars scattered on the floor … you get sets of card you pick", "Fate cards",
+  "25% is fine", rarities "same as drops", ideas from Risk of Rain 2 with our own names; spec
+  `MD_UPDATES/U0216_FATE_CARDS.md`). A boss's chest (not the run's last) and a challenge room's always deal three; a keyed
+  chest one time in four instead of its loot. The deal screen (world held and blurred, dealt one by one, hover to read,
+  click: it flies to the pile by your coins) and **TAB**: what you carry. 30 cards (the 14 Scars and 16 new), 5 rarities.
+  Lab: F8 → Fate Cards. Checked by tests (`test-cards.ts`, `test-card-moves.ts`, `test-card-moves2.ts`); **unseen in the
+  game**: the deal's animation and blur, hovering, the flight to the HUD, the mouse locking again after the click, TAB's
+  layout, the card faces, and how each new card feels. **Wave 2** (bleed, lightning, flames, homing blades, explosions)
+  not built. Noticed: the Esc pause menu doesn't hold the world (enemies keep going behind it); TAB and a deal do.
+
+## Before (2026-10-31, Update 0.2.15: Scars)
 - **Scars: one choice after each big fight** (the designer asked "is this even a rouge like?"; Claude proposed in-run
   choices; "Yes, build Scars"; spec `MD_UPDATES/U0215_SCARS.md`). A boss's chest (not the run's last) and a challenge
   room's offer three Scars: they bounce out and land on the floor in an arc before the chest (the designer, after the

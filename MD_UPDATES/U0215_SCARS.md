@@ -1,5 +1,8 @@
 # Update 0.2.15 — Scars: one choice after each big fight
 
+**Replaced by Update 0.2.16 — Fate Cards** (`U0216_FATE_CARDS.md`): the 14 Scars are 14 of the cards, dealt from chests
+on a screen instead of bouncing onto the floor.
+
 Status: built (2026-10-31). The designer asked "is this even a rouge like?"; Claude's answer: yes, but a run changes
 the map more than how you play. Claude proposed in-run choices; the designer: "Yes, propose some", then "Yes, build
 Scars". The open questions were left to Claude's picks: the name **Scars**, offered **after bosses and challenge rooms**

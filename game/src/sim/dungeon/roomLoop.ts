@@ -85,7 +85,7 @@ export const FIRST_WAVE = 0.7;
 const SPAWN_CLEAR = 6;
 export { buyWave, roomCount } from './wavePlan';
 
-/** Update 0.2.15 — `last`: the run's last floor (its boss's chest offers no Scars). */
+/** Update 0.2.15 — `last`: the run's last floor (its boss's chest deals no Fate Cards: Update 0.2.16). */
 export function createDungeonRun(level: DungeonLevel, last = false): DungeonRun {
   return {
     level,

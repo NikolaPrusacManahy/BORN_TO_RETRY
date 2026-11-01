@@ -23,6 +23,7 @@ import { resolvePunch } from '../combat/punch';
 import type { CombatState } from '../combat/state';
 import { emptyTargetHit, landHit, nearestTarget } from '../combat/strike';
 import type { HeldWeapon } from './weapons';
+import { handsRate } from '../cards/cardMoves';
 
 export interface GunState {
   /** Seconds into a reload (−1: none), and whether it began empty (the slide locked back). */
@@ -117,7 +118,8 @@ function startReload(state: CombatState, w: HeldWeapon) {
 
 function stepReload(state: CombatState, w: HeldWeapon, dt: number) {
   const g = state.gun;
-  g.reload += dt;
+  // (Update 0.2.16 — Quick Hands, a Fate Card: quicker.)
+  g.reload += dt * handsRate(state);
   const k = g.reload / reloadTime(g.empty);
   if (g.beats < 1 && k >= MAG_OUT) {
     g.beats = 1;

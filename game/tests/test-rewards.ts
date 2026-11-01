@@ -22,7 +22,7 @@ import { MINI_BOSSES } from '../src/sim/enemies/kinds';
 import { dropItem } from '../src/sim/items/drops';
 import { emptyFocus, focusOf } from '../src/sim/items/focus';
 import { createPlayer } from '../src/sim/player/state';
-import { isScar } from '../src/sim/scars/scars';
+import { pickCard } from '../src/sim/cards/deal';
 import { CINEMA } from '../src/tuning/cinema';
 import { EXECUTION } from '../src/tuning/execution';
 import { ITEMS } from '../src/tuning/items';
@@ -87,18 +87,17 @@ section('Challenge rooms — won, they hold you till the reward is yours');
   check('CHEST IN CURRENT ROOM ! while it rises', chestToOpen(run.treasure, level, p.pos.x, p.pos.z));
   step(ITEMS.v.chestRise + DT);
   check(`up after ${ITEMS.v.chestRise} s, and solid; the gates still shut`, chest.state === 'shut' && run.shut[chest.spot.gate] && room.gates.every((g) => run.shut[g]));
-  // Open it (a white key: always an item).
+  // Open it (a white key). (Update 0.2.16 — a challenge room's chest deals Fate Cards in place of its item.)
   c.items.keyPick = 'whiteKey';
   p.pos.set(chest.spot.x + chest.spot.fx * 1.2, 0, chest.spot.z + chest.spot.fz * 1.2);
   step(DT, true);
   check('E opens it', chest.state === 'opening');
   step(ITEMS.v.chestTime + DT);
   p.kneel = 0;
-  const waiting = c.drops.find((d) => d.alive && d.manual);
-  check('open, its item waits over it: the gates still shut', chest.state === 'open' && !!waiting && room.gates.every((g) => run.shut[g]) && !chestToOpen(run.treasure, level, p.pos.x, p.pos.z));
-  step(DT, true);
+  check('open, it deals Fate Cards: the gates still shut', chest.state === 'open' && !!c.deal && !c.drops.some((d) => d.alive && d.manual) && room.gates.every((g) => run.shut[g]) && !chestToOpen(run.treasure, level, p.pos.x, p.pos.z));
+  pickCard(c, p, 0);
   step();
-  check('taken: the gates open', !waiting!.alive && run.rooms[i].state === 'cleared' && room.gates.every((g) => !run.shut[g]) && seen.includes('gatesOpen'));
+  check('a card taken: the gates open', !c.deal && c.items.cards.size === 1 && run.rooms[i].state === 'cleared' && room.gates.every((g) => !run.shut[g]) && seen.includes('gatesOpen'));
 }
 {
   // Never shut in for nothing: no key to open it with; or not in the room (the lava took you to the floor's start).
@@ -168,8 +167,8 @@ section('The boss’s chest');
   stepTreasure(run.treasure, p, c, true, false, () => false, DT);
   for (let k = 0; k < ticks(ITEMS.v.chestTime + DT); k++) stepTreasure(run.treasure, p, c, false, false, () => false, DT);
   // (Update 0.2.15 — no key any more, the designer: "the chest on a boss won does not give a key anymore, it gives
-  // scars": test-scars.ts.)
-  const items = c.drops.filter((d) => d.alive && d.manual && !isScar(d.kind));
+  // scars"; Update 0.2.16 — it deals Fate Cards: test-cards.ts.)
+  const items = c.drops.filter((d) => d.alive && d.manual);
   const coins = c.money + c.coins.filter((q) => q.alive).length - money;
   check('opened: its coins burst out, and its heart waits over it (no key)', chest.state === 'open' && coins > 0 && items.length === 1 && items[0].kind === 'heart' && near(items[0].pos.x, chest.spot.x, 1e-6) && near(items[0].pos.z, chest.spot.z, 1e-6), `${coins} coins, ${items.map((d) => d.kind)}`);
 }
@@ -209,7 +208,7 @@ section('Executions heal');
 section('The view goes to a rising chest and back');
 {
   const spot: ChestSpot = { room: 0, x: 10, z: 5, rot: 0, fx: 0, fz: 1, rises: true, boss: false, gate: -1, gold: false };
-  const chest = { spot, state: 'rising', t: 0, rolls: [0, 0, 0], key: null, loot: null, given: false, boss: null, scars: false } as Treasure['chests'][number];
+  const chest = { spot, state: 'rising', t: 0, rolls: [0, 0, 0], key: null, loot: null, given: false, boss: null, cards: false } as Treasure['chests'][number];
   const t: Treasure = { shop: -1, offers: [], chests: [chest], choosing: -1 };
   const shot = new ChestShot();
   const cam = new THREE.PerspectiveCamera();

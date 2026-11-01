@@ -50,6 +50,7 @@ export function rewardDone(run: DungeonRun, i: number, player: PlayerState, comb
     case 'shut':
       return !anyKey(combat.items);
     case 'open':
-      return c.given && !combat.drops.some((d) => d.alive && d.manual && Math.hypot(d.pos.x - c.spot.x, d.pos.z - c.spot.z) < NEAR_CHEST);
+      // (Update 0.2.16 — and no Fate Card deal of its still to choose from.)
+      return c.given && !combat.deal && !combat.drops.some((d) => d.alive && d.manual && Math.hypot(d.pos.x - c.spot.x, d.pos.z - c.spot.z) < NEAR_CHEST);
   }
 }

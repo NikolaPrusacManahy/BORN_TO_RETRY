@@ -73,6 +73,8 @@ export const THROWN_POOL = 6;
 export const THROWN_LIFE = 2;
 /** It falls a little (m/s²): a flat arc, not a lob. */
 export const THROWN_GRAVITY = 4;
+/** How close it must pass a target's capsule to hit it (m). (Update 0.2.16 — here from thrown.ts: Ricochet uses it.) */
+export const THROWN_RADIUS = 0.35;
 
 export function createPickups(): Pickup[] {
   return Array.from({ length: PICKUP_POOL }, () => ({ alive: false, kind: 'sword' as WeaponKind, uses: 0, pos: new Vector3(), stand: -1 }));
