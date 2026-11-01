@@ -8,6 +8,7 @@
 // Update 0.0.16 — a key falling to the floor, and more sparks from a chest the rarer what's in it.
 // Update 0.0.17 — a freezing hit bursts sparks of ice.
 // Update 0.0.18 — floor 2's enemies: foeFeedback.ts.
+import { StyleMeter } from './styleMeter';
 import * as THREE from 'three';
 import type { CombatSounds } from '../audio/combatSounds';
 import type { CombatState } from '../sim/combat/state';
@@ -40,6 +41,8 @@ export class CombatFeedback {
   /** HUD counters: each change restarts the marker animation. */
   hits = 0;
   marker: MarkerKind = 'hit';
+  /** Update 0.3.4 — the style rank (styleMeter.ts), scored from the same events. */
+  readonly style = new StyleMeter();
 
   /** Update 0.0.18 — `near` for the event being applied (no closure made per event). */
   private readonly nearHere = (far: number) => this.near(at, this.listener, far);
@@ -70,6 +73,7 @@ export class CombatFeedback {
       at.set(e.x, e.y, e.z);
       back.subVectors(listener, at).normalize();
       this.f.sounds.play(e.kind, e.value, at.distanceTo(listener));
+      this.style.event(e.kind, e.value);
       switch (e.kind) {
         case 'jabL':
         case 'jabR':

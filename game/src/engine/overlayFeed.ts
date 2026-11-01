@@ -67,6 +67,8 @@ const GRAB_FLASH = 1.1;
 export class HudFeed {
   private timer = 0;
   private bonus = -1;
+  /** Update 0.3.4 — the style feed as last pushed. */
+  private styleTop = 0;
   /** Update 0.2.3 — your attack's key (the QTE says to press it), set by the run each frame. Update 0.2.8 — and your
    *  dash's (the Velociraptor's pin). */
   attackKey = '';
@@ -83,6 +85,11 @@ export class HudFeed {
     const left = enemiesLeft(run, combat);
     const chestHere = !!run && chestToOpen(run.treasure, run.level, p.pos.x, p.pos.z);
     const execution = Math.round(combat.execution * 100) / 100;
+    // (Update 0.3.4 — the style rank: its fill in steps of 2%, its feed by its newest line.)
+    const style = fb.style;
+    const styleRank = style.rank;
+    const styleFill = Math.round(style.fill * 50) / 50;
+    const styleTop = style.feed.length > 0 ? style.feed[style.feed.length - 1].id * 100 + style.feed.length : 0;
     const hp = Math.ceil(p.hp);
     const shield = Math.ceil(p.shield);
     const weapon = combat.weapon;
@@ -107,7 +114,8 @@ export class HudFeed {
     const bossMark = show.bossMark;
     const raptor = raptorHud(p, combat, this.raptor);
     const grab = cur.grabHits === grabHits && cur.grabLeft === grabLeft && cur.grabEnd === grabEnd && cur.bossMark === bossMark && cur.attackKey === this.attackKey && sameRaptor(cur, raptor) && cur.dashKey === this.dashKey;
-    if (this.timer > 0 && same && shown && grab && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution && cur.chestHere === chestHere) return;
+    if (this.timer > 0 && same && shown && grab && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution && cur.chestHere === chestHere && cur.styleRank === styleRank && this.styleTop === styleTop) return;
+    this.styleTop = styleTop;
     this.bonus = bonus;
     const bonusLeft: Record<string, number> = {};
     for (const k of BONUS_KINDS) bonusLeft[k] = Math.ceil((combat.bonuses[k] / bonusLength(k, combat)) * BONUS_STEP) / BONUS_STEP;
@@ -154,6 +162,9 @@ export class HudFeed {
       poisoned: p.poison > 0 && !p.dead,
       enemiesLeft: left,
       chestHere,
+      styleRank,
+      styleFill,
+      styleFeed: style.feed.map((l) => ({ id: l.id, text: l.text })),
       execution,
       bossMark,
       grabHits,

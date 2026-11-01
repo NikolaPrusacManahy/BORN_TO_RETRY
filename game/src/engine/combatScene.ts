@@ -12,7 +12,8 @@
 // Update 0.2.23 — floor 2's wasps' hives (hivesView.ts), and its tall grass parting round you and the enemies.
 // Update 0.2.26 — blood (bloodFx.ts). Update 0.2.27 — the enemies' shots (shotsView.ts). Update 0.2.28 — your
 // blows' arcs, dust rings and the hammer's rocks (blowsFx.ts). Update 0.3.0 — the halos (halos.ts): each frame starts
-// with none. Update 0.3.1 — speed lines (speedLines.ts). Update 0.3.2 — an execution's finish (execFx.ts).
+// with none. Update 0.3.1 — speed lines (taken out in Update 0.3.4: the designer, "it takes too much space on the
+// screen"). Update 0.3.2 — an execution's finish (execFx.ts). Update 0.3.4 — the style rank's time and hurts.
 // Update 0.1.2 — and executions (exec/execScene.ts: the body, its pieces, the frog's tongue).
 // Update 0.1.4 — and the Grimoire's fireballs (fireView.ts). Update 0.1.9 — and the daggers' volley (knivesView.ts).
 // Update 0.1.12 — and the skull over the enemy you can execute (execMarkView.ts).
@@ -47,7 +48,6 @@ import { BloodFx } from './bloodFx';
 import { ShotsView } from './shotsView';
 import { BlowsFx } from './blowsFx';
 import { HALOS } from './halos';
-import { SpeedLines } from './speedLines';
 import { ExecFx } from './execFx';
 import { pushGrass } from './grassShader';
 import { WeaponsView } from './weaponsView';
@@ -84,7 +84,8 @@ export class CombatScene {
   private readonly shots: ShotsView;
   private readonly blows: BlowsFx;
   private readonly camera: THREE.Camera;
-  private readonly speedLines: SpeedLines;
+  /** Update 0.3.4 — your hurts so far (each knocks the style rank down). */
+  private hurts = 0;
   private readonly execFx: ExecFx;
 
   constructor(scene: THREE.Scene, state: CombatState, audio: AudioEngine, rig: CameraRig, arms: Viewmodel) {
@@ -105,7 +106,6 @@ export class CombatScene {
     this.shots = new ShotsView(scene, state, this.blood);
     this.blows = new BlowsFx(scene, rig.camera);
     this.camera = rig.camera;
-    this.speedLines = new SpeedLines(scene, rig.camera);
     this.execFx = new ExecFx(scene, rig);
     scene.add(HALOS.mesh);
     this.coins = new CoinsView(scene);
@@ -184,11 +184,14 @@ export class CombatScene {
     this.exec.clear();
   }
 
-  /** Update 0.3.1 — the parts timed in real time: the speed lines (`speed`: how fast you're going across the floor,
-   *  m/s) and (Update 0.3.2) an execution's slow motion and flash. */
-  realFrame(speed: number, real: number) {
-    this.speedLines.update(speed, real);
+  /** The parts timed in real time: (Update 0.3.2) an execution's slow motion and flash; (Update 0.3.4) the style rank
+   *  (`airborne`: you're off the ground; `hurts`: how many times you've been hurt so far). */
+  realFrame(real: number, airborne: boolean, hurts: number) {
     this.execFx.update(real);
+    const style = this.feedback.style;
+    if (hurts > this.hurts) style.hurt();
+    this.hurts = hurts;
+    style.update(real, airborne);
   }
 
   /** Update 0.3.2 — the world's speed (an execution's finish slows it). */
@@ -213,7 +216,6 @@ export class CombatScene {
     this.shots.dispose();
     this.blows.dispose();
     HALOS.mesh.removeFromParent();
-    this.speedLines.dispose();
     this.execFx.dispose();
     this.demonFx.dispose();
     this.waves.dispose();

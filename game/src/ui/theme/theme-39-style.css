@@ -1,0 +1,167 @@
+/* Update 0.3.4 — the style rank (screens/StyleRank.tsx): aggressive, fast. Right of centre, slanted; the letter in
+   Anton, its rank's colour, a hard black shadow and a glow; a new rank slams in white-hot; from S up it trembles and
+   splits red and cyan; the feed's lines slam in from the right. */
+.rb-style {
+  --rank: #8a8580;
+  --fill: 0;
+  position: absolute;
+  right: 56px;
+  top: 30%;
+  width: 300px;
+  transform: skewX(-12deg);
+  pointer-events: none;
+  text-align: right;
+}
+
+.rb-hud.is-cine .rb-style {
+  display: none;
+}
+
+.rb-style-rank {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  animation: rb-style-slam 0.32s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.rb-style-letter {
+  position: relative;
+  font-family: 'Anton', var(--rb-font);
+  font-size: 128px;
+  line-height: 0.9;
+  letter-spacing: -6px;
+  color: var(--rank);
+  text-shadow:
+    6px 6px 0 #000,
+    0 0 22px var(--rank),
+    0 0 46px color-mix(in srgb, var(--rank) 60%, transparent);
+}
+
+.rb-style-word {
+  margin-top: 2px;
+  padding: 3px 14px 3px 22px;
+  font-family: var(--rb-font);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  color: var(--rank);
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.78) 18%);
+  text-shadow: 0 0 10px var(--rank);
+}
+
+.rb-style-bar {
+  display: block;
+  position: relative;
+  margin: 8px 0 0 auto;
+  width: 230px;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+
+.rb-style-bar-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  transform: scaleX(var(--fill));
+  background: var(--rank);
+  box-shadow: 0 0 12px var(--rank);
+  transition: transform 0.12s linear;
+}
+
+.rb-style-feed {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.rb-style-feed li {
+  font-family: var(--rb-font);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #fff;
+  text-shadow:
+    2px 2px 0 #000,
+    0 0 10px var(--rank);
+  animation: rb-style-line 0.2s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+/* From S up: it trembles, and the letter splits red and cyan. */
+.rb-style.is-r4 .rb-style-letter,
+.rb-style.is-r5 .rb-style-letter,
+.rb-style.is-r6 .rb-style-letter {
+  animation: rb-style-tremble 0.09s steps(2) infinite;
+}
+
+.rb-style.is-r4 .rb-style-letter::before,
+.rb-style.is-r5 .rb-style-letter::before,
+.rb-style.is-r6 .rb-style-letter::before,
+.rb-style.is-r4 .rb-style-letter::after,
+.rb-style.is-r5 .rb-style-letter::after,
+.rb-style.is-r6 .rb-style-letter::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  text-shadow: none;
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+
+.rb-style.is-r4 .rb-style-letter::before,
+.rb-style.is-r5 .rb-style-letter::before,
+.rb-style.is-r6 .rb-style-letter::before {
+  color: #ff2030;
+  transform: translate(-4px, 1px);
+}
+
+.rb-style.is-r4 .rb-style-letter::after,
+.rb-style.is-r5 .rb-style-letter::after,
+.rb-style.is-r6 .rb-style-letter::after {
+  color: #20e8ff;
+  transform: translate(4px, -1px);
+}
+
+/* The top rank burns. */
+.rb-style.is-r6 .rb-style-letter {
+  text-shadow:
+    6px 6px 0 #000,
+    0 0 26px #ff2a1a,
+    0 0 60px #ff6a1a;
+}
+
+@keyframes rb-style-slam {
+  0% {
+    transform: scale(2.6) rotate(-10deg);
+    opacity: 0;
+    filter: brightness(4);
+  }
+  60% {
+    opacity: 1;
+    filter: brightness(2);
+  }
+  100% {
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes rb-style-line {
+  from {
+    transform: translateX(60px) scaleX(1.6);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes rb-style-tremble {
+  0% {
+    transform: translate(1px, -1px);
+  }
+  100% {
+    transform: translate(-2px, 1px);
+  }
+}

@@ -2,11 +2,16 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.3.3: the parry)
+## Next up (2026-11-01, Update 0.3.4: the style rank; the speed lines taken out)
+- **The designer** (spec `MD_UPDATES/U034_STYLE_RANK.md`): a style rank, D to SSS, "a nice visual for now, no
+  bonuses", aggressive (a huge slanted letter, a draining bar, a feed slamming in; trembling and splitting from S up);
+  variety climbs it, it drains, hurts knock it down. The speed lines are gone ("too much space on the screen").
+  Checked by tests (`test-style.ts`); **unseen in the game**.
+
+## Before (2026-11-01, Update 0.3.3: the parry)
 - **The designer: "Yes, parrying"** (spec `MD_UPDATES/U033_PARRY.md`): a fist punch that meets an enemy's shot sends
   it back the way you look (onto the enemy nearest your aim), 1.8× as fast, 60 damage; it never hurts you and never
   heals; a freeze, a gold ring and flash, a clang. Checked by tests (`test-parry.ts`); **unseen in the game**.
-- **Next (proposed):** a style rank; launches and wall-splats.
 
 ## Before (2026-11-01, Update 0.3.2: brutal executions)
 - **The designer** ("the way execution can feel brutal"; spec `MD_UPDATES/U032_BRUTAL_EXECUTIONS.md`): the finishing
