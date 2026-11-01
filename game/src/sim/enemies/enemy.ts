@@ -276,8 +276,8 @@ export function inLine(e: Enemy, player: PlayerState, nav: NavGrid, level: numbe
 export const fallsApart = (e: Enemy) => (e.kind === 'skeleton' && e.phase !== 'rebuild' && e.phase !== 'held' && e.stage < Math.round(FOES3.v.skeletonRevives)) || (e.kind === 'boneKing' && e.stage === 0 && e.phase !== 'rebuild');
 
 /** Damages an enemy pushed along (dirX, dirZ) (length 1). A hit at least as hard as its stagger flinches it
- *  (cancelling its attack). Returns true if it died. */
-export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, dirZ: number): boolean {
+ *  (cancelling its attack; Update 0.2.18 — not `steady` damage: a bleed's or a burn's). Returns true if it died. */
+export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, dirZ: number, steady = false): boolean {
   if (!isLive(e)) return false;
   // Update 0.2.3 — the Bone King rebuilding: nothing hurts it.
   if (e.kind === 'boneKing' && e.phase === 'rebuild') return false;
@@ -288,7 +288,7 @@ export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, 
   e.vel.z += dirZ * knock * s.knock;
   if (e.hp > 0) {
     // (Update 0.2.4 — the big Cactoro shut in its thorns stays shut.)
-    if (damage >= s.stagger && e.phase !== 'rebuild' && !(e.kind === 'cactoroBig' && e.phase === 'stun')) setPhase(e, 'flinch');
+    if (!steady && damage >= s.stagger && e.phase !== 'rebuild' && !(e.kind === 'cactoroBig' && e.phase === 'stun')) setPhase(e, 'flinch');
     return false;
   }
   e.hp = 0;

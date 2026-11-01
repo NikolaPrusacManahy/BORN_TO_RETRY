@@ -32,6 +32,7 @@ import { EnemiesView } from './enemiesView';
 import { ExecScene } from './exec/execScene';
 import { FireView } from './fireView';
 import { KnivesView } from './knivesView';
+import { CardFx } from './cardFx';
 import { GunView } from './gunView';
 import { ExecMarkView } from './execMarkView';
 import { Shockwaves } from './fx/shockwave';
@@ -46,6 +47,8 @@ export class CombatScene {
   readonly exec: ExecScene;
   private readonly fire: FireView;
   private readonly knives: KnivesView;
+  /** Update 0.2.18 — wave 2's Fate Cards (fire, frost, blood, lightning, blasts). */
+  private readonly cards: CardFx;
   private readonly gun: GunView;
   private readonly execMark: ExecMarkView;
   private readonly rootOf = (i: number) => this.enemies.rootOf(i);
@@ -83,6 +86,7 @@ export class CombatScene {
     this.weapons = new WeaponsView(scene, state, arms, rig.camera);
     this.fire = new FireView(scene, arms, rig.camera);
     this.knives = new KnivesView(scene, arms, rig.camera);
+    this.cards = new CardFx(scene, rig.camera);
     this.gun = new GunView(scene, arms, rig.camera);
     this.execMark = new ExecMarkView(scene, this.rootOf);
     this.sparks = new Burst(240, new THREE.MeshBasicMaterial({ color: 0xfff0c0 }), { speed: [4, 11], life: [0.12, 0.3], size: 0.05, gravity: 6, bounce: 0.3 });
@@ -116,6 +120,7 @@ export class CombatScene {
     this.weapons.update(state, gameDt);
     this.fire.update(state, gameDt);
     this.knives.update(state, gameDt);
+    this.cards.update(state, gameDt);
     this.sparks.update(gameDt);
     this.chunks.update(gameDt);
   }
@@ -137,6 +142,7 @@ export class CombatScene {
     this.fish.clear();
     this.fire.clear();
     this.knives.clear();
+    this.cards.clear();
     this.gun.clear();
     this.execMark.clear();
     this.exec.clear();
@@ -161,6 +167,7 @@ export class CombatScene {
     this.fire.dispose();
     this.gun.dispose();
     this.knives.dispose();
+    this.cards.dispose();
     this.execMark.dispose();
     for (const b of [this.sparks, this.chunks]) {
       b.mesh.removeFromParent();

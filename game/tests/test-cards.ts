@@ -74,8 +74,8 @@ function openChest(seed: number, key: 'key' | 'whiteKey' | 'goldKey' | null, gol
 section('Fate Cards — the cards');
 {
   const by = RARITIES.map((r) => CARD_KINDS.filter((k) => CARD[k].rarity === r).length);
-  check('wave 1: 30 cards, every rarity among them', CARD_KINDS.length === 30 && by.every((n) => n >= 3), by.join(' '));
-  check('each with its own name, the move it changes and what it does', new Set(CARD_KINDS.map((k) => CARD[k].name)).size === 30 && CARD_KINDS.every((k) => CARD[k].move.length > 0 && CARD[k].does().length > 10));
+  check('waves 1 and 2: 40 cards, every rarity among them', CARD_KINDS.length === 40 && by.every((n) => n >= 3), by.join(' '));
+  check('each with its own name, the move it changes and what it does', new Set(CARD_KINDS.map((k) => CARD[k].name)).size === 40 && CARD_KINDS.every((k) => CARD[k].move.length > 0 && CARD[k].does().length > 10));
 }
 
 section('Fate Cards — a boss’s chest deals');

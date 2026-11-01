@@ -5,7 +5,10 @@
 // eye where you aim at that moment, a use each. Let go before then and it's called off; a stream, once started, runs
 // out (or the pair's uses do). A thrown dagger flies fast on a flat arc and hits the first thing it passes (and is gone),
 // or sticks in a wall a moment. Pure.
+// Update 0.2.18 — and Spirit Knives (a Fate Card: sim/cards/cardPowers.ts): out of a body (hand 2), each turning after
+// its mark.
 import { Vector3 } from 'three';
+import { CARDS } from '../../tuning/cards';
 import { FISTS } from '../../tuning/combat';
 import { WEAPONS } from '../../tuning/weapons';
 import type { CollisionWorld } from '../collisionWorld';
@@ -13,6 +16,8 @@ import { aim } from '../combat/punch';
 import type { CombatState } from '../combat/state';
 import { emptyTargetHit, landHit, nearestTarget } from '../combat/strike';
 import type { PlayerState } from '../player/state';
+import { isLive } from '../enemies/enemy';
+import { ENEMY_STATS } from '../enemies/kinds';
 import type { WeaponKind } from './catalog';
 import { HeldWeapon, THROWN_GRAVITY } from './weapons';
 
@@ -28,6 +33,8 @@ export interface Knife {
    *  are drawn gold). */
   hand: number;
   kind: WeaponKind;
+  /** Update 0.2.18 — a Spirit Knife (a Fate Card's: hand 2) turns after this enemy (its slot; −1: none). */
+  home: number;
 }
 
 export interface Volley {
@@ -51,7 +58,7 @@ const next = new Vector3();
 const hit = emptyTargetHit();
 
 export function createKnives(): Knife[] {
-  return Array.from({ length: KNIFE_POOL }, () => ({ alive: false, stuck: false, pos: new Vector3(), vel: new Vector3(), life: 0, hand: 0, kind: 'daggers' as WeaponKind }));
+  return Array.from({ length: KNIFE_POOL }, () => ({ alive: false, stuck: false, pos: new Vector3(), vel: new Vector3(), life: 0, hand: 0, kind: 'daggers' as WeaponKind, home: -1 }));
 }
 
 export function createVolley(): Volley {
@@ -135,6 +142,7 @@ function throwKnife(state: CombatState, w: HeldWeapon, player: PlayerState, yaw:
   k.life = WEAPONS.v.knifeLife;
   k.hand = hand;
   k.kind = w.kind;
+  k.home = -1;
   w.uses = Math.max(0, w.uses - 1);
   state.events.push('knifeThrow', hand, k.pos.x, k.pos.y, k.pos.z);
   if (w.uses === 0) state.events.push('weaponBroken');
@@ -150,11 +158,13 @@ export function updateKnives(state: CombatState, world: CollisionWorld, dt: numb
       if (k.life <= 0) k.alive = false;
       continue;
     }
-    k.vel.y -= THROWN_GRAVITY * dt;
+    // (Update 0.2.18 — a Spirit Knife, a Fate Card's, turns after its mark and doesn't fall.)
+    if (k.home >= 0) homeIn(state, k, dt);
+    else k.vel.y -= THROWN_GRAVITY * dt;
     next.copy(k.pos).addScaledVector(k.vel, dt);
     if (nearestTarget(state, k.pos, next, v.knifeRadius, hit)) {
       const flat = Math.hypot(k.vel.x, k.vel.z) || 1;
-      landHit(state, hit, v.knifeDamage, v.knifeKnock, k.vel.x / flat, k.vel.z / flat, 'hitKnife', 0);
+      landHit(state, hit, k.hand === 2 ? CARDS.v.spiritDamage : v.knifeDamage, v.knifeKnock, k.vel.x / flat, k.vel.z / flat, 'hitKnife', 0);
       k.alive = false;
       continue;
     }
@@ -174,4 +184,20 @@ export function updateKnives(state: CombatState, world: CollisionWorld, dt: numb
     }
     k.pos.copy(next);
   }
+}
+
+/** Update 0.2.18 — how fast a Spirit Knife turns after its mark (1/s). */
+const HOMING = 9;
+const mark = new Vector3();
+
+/** A Spirit Knife turns after its mark (its middle); once its mark is gone, it flies on straight. */
+function homeIn(state: CombatState, k: Knife, dt: number) {
+  const e = state.enemies[k.home];
+  if (!isLive(e)) {
+    k.home = -1;
+    return;
+  }
+  const speed = k.vel.length();
+  mark.set(e.pos.x, e.pos.y + ENEMY_STATS[e.kind]().height * 0.5, e.pos.z).sub(k.pos).setLength(speed);
+  k.vel.lerp(mark, Math.min(1, HOMING * dt)).setLength(speed);
 }

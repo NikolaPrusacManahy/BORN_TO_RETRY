@@ -13,6 +13,7 @@ import { emptyTargetHit, landHit, nearestTarget } from '../combat/strike';
 import type { PlayerState } from '../player/state';
 import { drop, landed, stick, updateReturning } from './recall';
 import { ricochet } from '../cards/cardMoves';
+import { breakPowers } from '../cards/cardPowers';
 import { THROWN_GRAVITY, THROWN_RADIUS } from './weapons';
 
 
@@ -66,4 +67,6 @@ export function updateThrown(state: CombatState, world: CollisionWorld, player: 
 
 function shatter(state: CombatState, at: Vector3) {
   state.events.push('thrownBreak', 0, at.x, at.y, at.z);
+  // (Update 0.2.18 — Powder Keg, a Fate Card: it blows up where it breaks.)
+  breakPowers(state, at);
 }

@@ -2,7 +2,8 @@
 // picked: a shuffle as a chest deals, a deep cut and a ringing chord as one is taken; a dull shove for Shoulder Charge
 // and Bowling, a spring for Pogo, a knock for Iron Knuckles, a whistle for Ricochet, a boom for Bloodbath, a rising
 // growl as Killing Spree or Giant Killer comes on, a jingle for Blood Money. (The deal's cards make their own: the
-// deal screen.)
+// deal screen.) Update 0.2.18 — wave 2's: a blast's boom, lightning's crack (Storm Heart's rumble first), Pyre's and a
+// fire ring's whoosh, a frost ring's chime, Spirit Knives' rising whistle, Splinter's ring. Bleeds and burns tick quiet.
 import type { CombatEvent } from '../sim/combat/state';
 import type { AudioEngine } from './audio';
 import { noise, tone } from './synth';
@@ -41,6 +42,34 @@ export function playCards(a: AudioEngine, kind: CombatEvent, value: number, far:
     case 'cardGiant':
       tone(a, { from: 70, to: 140, dur: 0.5, gain: 0.25, type: 'sawtooth' });
       tone(a, { from: 140, to: 280, dur: 0.5, gain: 0.08, type: 'triangle' });
+      return true;
+    // Update 0.2.18 — wave 2's.
+    case 'cardBoom':
+      tone(a, { from: 80, to: 30, dur: 0.7, gain: 0.45 * far });
+      noise(a, { dur: 0.6, gain: 0.4 * far, filter: 'lowpass', from: 1400, to: 100 });
+      return true;
+    case 'cardZap':
+      noise(a, { dur: 0.09, gain: 0.18 * far, filter: 'highpass', from: 4000, to: 9000 });
+      tone(a, { from: 2400, to: 600, dur: 0.08, gain: 0.07 * far, type: 'square' });
+      return true;
+    case 'cardStorm':
+      noise(a, { dur: 0.5, gain: 0.15, filter: 'lowpass', from: 600, to: 80 });
+      return true;
+    case 'cardPyre':
+      noise(a, { dur: 0.45, gain: 0.22 * far, filter: 'bandpass', from: 500, to: 1600, q: 1 });
+      return true;
+    case 'cardRing':
+      if (value === 1) noise(a, { dur: 0.5, gain: 0.3 * far, filter: 'bandpass', from: 400, to: 1800, q: 1 });
+      else for (const f of [1760, 2350, 3140]) tone(a, { from: f, to: f * 0.98, dur: 0.6, gain: 0.05 * far, type: 'sine' });
+      return true;
+    case 'cardSpirit':
+      tone(a, { from: 600, to: 1500, dur: 0.35, gain: 0.06 * far, type: 'sine' });
+      return true;
+    case 'cardSplinter':
+      tone(a, { from: 1900, to: 1200, dur: 0.15, gain: 0.08, type: 'triangle' });
+      return true;
+    case 'cardDot':
+    case 'cardBlastHit':
       return true;
     case 'cardCoins':
       for (let k = 0; k < 3; k++) tone(a, { from: 1500 + 200 * k, to: 1700 + 200 * k, dur: 0.08, gain: 0.07, type: 'triangle', delay: 0.05 * k });

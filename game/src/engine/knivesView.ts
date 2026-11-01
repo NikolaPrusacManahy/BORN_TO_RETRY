@@ -86,7 +86,8 @@ export class KnivesView {
       const thrown = k.alive && !k.stuck && k.life > this.lastLife[i] + 1e-6;
       this.lastLife[i] = k.alive ? k.life : 0;
       if (!k.alive) continue;
-      if (thrown) this.letGo(i, k.hand);
+      // (Update 0.2.18 — a Spirit Knife, hand 2, leaves a body, not your hand.)
+      if (thrown && k.hand < 2) this.letGo(i, k.hand);
       // Point first along its flight.
       fly.copy(k.vel).normalize();
       quat.setFromUnitVectors(UP, fly);

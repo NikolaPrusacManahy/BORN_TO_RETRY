@@ -15,4 +15,16 @@ export type CardEvent =
   | 'cardBlast'
   | 'cardSpree'
   | 'cardGiant'
-  | 'cardCoins';
+  | 'cardCoins'
+  // Update 0.2.18 — wave 2's: a bleed's or burn's tick (value: 0 bleed, 1 burn); lightning striking (value: its damage);
+  // Storm Heart letting go (value: how many); a blast going off (value: its reach) and what it hits; Pyre's flames at
+  // a kill; Spirit Knives leaving a body; Fire and Ice's ring (value: 1 fire, 0 ice); a throw splitting (Splinter).
+  | 'cardDot'
+  | 'cardZap'
+  | 'cardStorm'
+  | 'cardBoom'
+  | 'cardBlastHit'
+  | 'cardPyre'
+  | 'cardSpirit'
+  | 'cardRing'
+  | 'cardSplinter';

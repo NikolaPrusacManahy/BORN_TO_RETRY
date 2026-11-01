@@ -1,5 +1,6 @@
 // Update 0.2.15 — the Scars. Update 0.2.16 — Fate Cards (the designer: "scars are turned into "Fate cards""): how often
-// a chest deals them ("25% is fine"), how many, and each card's numbers (all placeholders but the 25%).
+// a chest deals them ("25% is fine"), how many, and each card's numbers (all placeholders but the 25%). Update 0.2.18 —
+// wave 2's (the designer: "just build wave 2").
 import { group, knob } from './schema';
 
 export const CARDS = group('cards', 'Fate Cards', {
@@ -34,4 +35,29 @@ export const CARDS = group('cards', 'Fate Cards', {
   giantKiller: knob(5, 1, 15, 0.5, 'Giant Killer', 'Giant Killer: seconds of free dashes and instant charged punches after killing a mini boss.'),
   reaperKills: knob(5, 2, 10, 1, 'Reaper’s Rhythm', 'Reaper’s Rhythm: kills that fill the execution meter.'),
   bornAgain: knob(3, 0, 6, 0.25, 'Born Again', 'Born Again: seconds you’re untouchable after it saves you.'),
+  bleedDps: knob(5, 1, 30, 1, 'Bleed', 'Jagged Knuckles: a bleed’s damage a second.'),
+  bleedFor: knob(3, 0.5, 8, 0.25, 'Bleed time', 'Jagged Knuckles: seconds a bleed lasts (a jab starts it over).'),
+  burnDps: knob(12, 1, 50, 1, 'Burn', 'Pyre, Fire and Ice: a burn’s damage a second.'),
+  burnFor: knob(3, 0.5, 8, 0.25, 'Burn time', 'Pyre, Fire and Ice: seconds a burn lasts.'),
+  zapDamage: knob(20, 1, 100, 1, 'Lightning', 'Thunderclap, Storm Heart: a bolt’s damage.'),
+  zapTargets: knob(3, 1, 6, 1, 'Lightning targets', 'Thunderclap, Storm Heart: how many enemies the lightning strikes.'),
+  thunderRange: knob(8, 2, 20, 0.5, 'Thunderclap reach', 'Thunderclap: how far (m) from the one you punched it arcs.'),
+  stormEvery: knob(3, 0.5, 10, 0.25, 'Storm Heart', 'Storm Heart: seconds between strikes.'),
+  stormRange: knob(10, 2, 30, 0.5, 'Storm Heart reach', 'Storm Heart: how far (m) from you it strikes.'),
+  throesChance: knob(0.25, 0, 1, 0.05, 'Death Throes chance', 'Death Throes: chance a kill bursts.'),
+  throesDamage: knob(30, 1, 150, 1, 'Death Throes', 'Death Throes: its burst’s damage.'),
+  throesRadius: knob(4, 1, 10, 0.25, 'Death Throes reach', 'Death Throes: its burst’s reach (m).'),
+  pyreRadius: knob(3, 1, 8, 0.25, 'Pyre reach', 'Pyre: how far (m) from a kill the flames catch.'),
+  spiritKnives: knob(3, 1, 8, 1, 'Spirit Knives', 'Spirit Knives: knives a kill throws.'),
+  spiritDamage: knob(15, 1, 80, 1, 'Spirit Knife', 'Spirit Knives: each one’s damage.'),
+  spiritRange: knob(14, 3, 30, 1, 'Spirit Knives reach', 'Spirit Knives: how far (m) they look for enemies.'),
+  kegDamage: knob(40, 1, 200, 1, 'Powder Keg', 'Powder Keg: its blast’s damage.'),
+  kegRadius: knob(4, 1, 10, 0.25, 'Powder Keg reach', 'Powder Keg: its blast’s reach (m).'),
+  bandHit: knob(40, 10, 200, 5, 'Fire and Ice hit', 'Fire and Ice: how hard a hit must be.'),
+  bandRadius: knob(4, 1, 10, 0.25, 'Fire and Ice reach', 'Fire and Ice: its ring’s reach (m).'),
+  bandEvery: knob(6, 1, 20, 0.5, 'Fire and Ice wait', 'Fire and Ice: seconds before the next ring.'),
+  bandFreeze: knob(1.5, 0.2, 5, 0.1, 'Fire and Ice freeze', 'Fire and Ice: seconds the ice ring freezes.'),
+  chainDamage: knob(25, 1, 150, 1, 'Chain Reaction', 'Chain Reaction: each blast’s damage.'),
+  chainRadius: knob(3, 1, 8, 0.25, 'Chain Reaction reach', 'Chain Reaction: each blast’s reach (m).'),
+  splinter: knob(12, 2, 40, 1, 'Splinter', 'Splinter: the angle (°) between a throw’s three.'),
 });

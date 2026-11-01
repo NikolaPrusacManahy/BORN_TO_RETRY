@@ -66,6 +66,7 @@ import { execHeld, execTarget, stepExecution, tryExecute } from './execution';
 import { stepFlood } from '../enemies/drownedKingMoves';
 import { updateTurret } from './turret';
 import { bumpEnemies, chargeRate, fistFactor, frenzyFactor, payCharge, pogo, tickCards } from '../cards/cardMoves';
+import { splinter, tickPowers } from '../cards/cardPowers';
 
 /** Update 0.1.12 — seconds with no enemy you could execute before a new one stings again. */
 const EXEC_QUIET = 0.75;
@@ -121,6 +122,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     return;
   }
   stepExecution(state, dt, player);
+  // (Update 0.2.18 — wave 2's bleeds, burns, bolts and blasts: not while an execution holds the world.)
+  tickPowers(state, player, dt);
   if (intent.interactPressed && !throwing && !executing) {
     const got = tryPickup(state.pickups, state.stands, player, events);
     if (got) giveWeapon(state, got, player.pos);
@@ -138,7 +141,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     held.throwing += dt;
     if (held.throwing >= WEAPONS.v.throwWindup) {
       aim(player, intent.yaw, intent.pitch, eye, dir);
-      throwWeapon(held, state.thrown, eye, dir, events);
+      // (Update 0.2.18 — Splinter, a Fate Card: in three.)
+      splinter(state, throwWeapon(held, state.thrown, eye, dir, events));
       emptyHand(state);
     }
   }

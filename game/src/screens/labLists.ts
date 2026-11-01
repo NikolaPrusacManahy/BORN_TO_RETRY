@@ -110,9 +110,9 @@ export const LAB_ITEMS: readonly [string, Pick[]][] = [
   ],
 ];
 
-/** Update 0.2.16 — the Fate Cards' tab: a deal (as a chest's), then each card by its rarity (the last two together). */
+/** Update 0.2.16 — the Fate Cards' tab: a deal (as a chest's), then each card by its rarity, a column each (Update
+ *  0.2.18 — wave 2 filled the epic and mythic ones apart). */
 export const LAB_CARDS: readonly [string, Pick[]][] = [
   ['Deal', [['Deal 3', { kind: 'deal' }]]],
-  ...RARITIES.slice(0, 3).map((r): [string, Pick[]] => [r[0].toUpperCase() + r.slice(1), CARD_KINDS.filter((k) => CARD[k].rarity === r).map((k): Pick => [CARD[k].name, { kind: 'card', card: k }])]),
-  ['Epic · Mythic', CARD_KINDS.filter((k) => CARD[k].rarity === 'epic' || CARD[k].rarity === 'mythic').map((k): Pick => [CARD[k].name, { kind: 'card', card: k }])],
+  ...RARITIES.map((r): [string, Pick[]] => [r[0].toUpperCase() + r.slice(1), CARD_KINDS.filter((k) => CARD[k].rarity === r).map((k): Pick => [CARD[k].name, { kind: 'card', card: k }])]),
 ];

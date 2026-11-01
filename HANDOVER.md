@@ -2,7 +2,15 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.2.17: each card its own chance; the Fate Cards' stand)
+## Next up (2026-11-01, Update 0.2.18: Fate Cards, wave 2)
+- **Wave 2** (the designer: "just build wave 2"; spec `MD_UPDATES/U0218_FATE_CARDS_WAVE2.md`): 10 cards with effects of
+  their own, named anew: Jagged Knuckles (bleed), Thunderclap and Storm Heart (lightning), Death Throes, Powder Keg and
+  Chain Reaction (blasts; a chain ripples out a blast at a time), Pyre and Fire and Ice (burns, a frost ring), Spirit
+  Knives (homing), Splinter (a throw in three). 40 cards in all. Bleeds and burns don't stagger. Checked by tests
+  (`test-card-moves3.ts`); **unseen in the game**: the flames, blood, lightning, blasts and rings, how strong each is (the
+  numbers are placeholders), and the frame rate with many burning enemies or a long chain.
+
+## Before (2026-11-01, Update 0.2.17: each card its own chance; the Fate Cards' stand)
 - **Each card in a deal rolls its own rarity** at the chests' odds (the designer: "a chance for each card... not having
   all 3 card in epic when we get epic once... the challenge room just gives a card guaranteed, not an Epic card"): the
   key doesn't count any more, nor a big fight's guaranteed rare. **A stand in the lobby** past ARE YOU EVEN HUMAN?'s

@@ -31,6 +31,7 @@ import { Bonuses, createBonuses } from '../items/bonuses';
 import { createBag } from '../weapons/slots';
 import { createInventory, Inventory } from '../items/items';
 import type { Deal } from '../cards/deal';
+import { clearPowers, createPowers, Powers } from '../cards/cardPowers';
 import { GRID_RADIUS, SizeClass } from '../enemies/kinds';
 import { AIR, buildNavGrid, NavGrid } from '../../world/navGrid';
 import { Waves, createWaves } from '../enemies/waves';
@@ -136,6 +137,8 @@ export interface CombatState {
   giant: number;
   spree: number[];
   hitsSeen: number;
+  /** Update 0.2.18 — wave 2's: bleeds, burns, bolts, blasts (sim/cards/cardPowers.ts). */
+  powers: Powers;
   hitStop: HitStop;
   events: EventQueue<CombatEvent>;
 }
@@ -214,6 +217,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     giant: 0,
     spree: [],
     hitsSeen: 0,
+    powers: createPowers(),
     hitStop: new HitStop(),
     events: new EventQueue<CombatEvent>(64, 'none'),
   };
@@ -273,6 +277,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.deal = null;
   state.clock = state.rush = state.frenzy = state.giant = state.hitsSeen = 0;
   state.spree.length = 0;
+  clearPowers(state.powers);
   stockStands(state);
   state.hitStop.remaining = 0;
   state.events.clear();

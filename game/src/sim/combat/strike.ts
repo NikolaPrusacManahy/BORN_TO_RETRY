@@ -18,6 +18,7 @@ import { dropItem } from '../items/drops';
 import { coinsFor, rollBonus } from '../items/bonuses';
 import { newUses } from '../cards/cards';
 import { mercy, meterStep, onKill } from '../cards/cardMoves';
+import { bigHit } from '../cards/cardPowers';
 import { hitDummy } from './dummy';
 import { segmentDistance } from './geometry';
 import type { CombatEvent, CombatState } from './state';
@@ -74,25 +75,28 @@ export function nearestTarget(state: CombatState, from: Vector3, to: Vector3, ra
 }
 
 /** Applies a hit pushed along (dirX, dirZ) (length 1). Returns true if it killed or broke the target. */
-export function hitTarget(state: CombatState, t: TargetHit, damage: number, knock: number, dirX: number, dirZ: number): boolean {
+export function hitTarget(state: CombatState, t: TargetHit, damage: number, knock: number, dirX: number, dirZ: number, steady = false): boolean {
   switch (t.kind) {
     case 'dummy':
       return hitDummy(state.dummies[t.index], damage, knock, dirX, dirZ);
     case 'turret':
       return hitTurret(state.turrets[t.index], damage);
     case 'enemy':
-      return hitEnemy(state.enemies[t.index], damage, knock, dirX, dirZ);
+      return hitEnemy(state.enemies[t.index], damage, knock, dirX, dirZ, steady);
   }
 }
 
 /** Lands a hit: applies it, reports it (`event`, with `value`, at the hit point), and on a kill reports that too, asks
  *  for the kill hit-stop, and lets a grunt drop a sword (seeded RNG). Returns true on a kill.
- *  Update 0.0.13 — every hit you land is stronger with each red ring you carry. */
-export function landHit(state: CombatState, t: TargetHit, damage: number, knock: number, dirX: number, dirZ: number, event: CombatEvent, value: number): boolean {
-  if (t.kind === 'enemy' && dodges(state, t.index, dirX, dirZ)) return false;
+ *  Update 0.0.13 — every hit you land is stronger with each red ring you carry. Update 0.2.18 — `steady`: a bleed's or a
+ *  burn's tick (no dodging it, no stagger, no Fire and Ice). */
+export function landHit(state: CombatState, t: TargetHit, damage: number, knock: number, dirX: number, dirZ: number, event: CombatEvent, value: number, steady = false): boolean {
+  if (t.kind === 'enemy' && !steady && dodges(state, t.index, dirX, dirZ)) return false;
   // (Update 0.2.16 — Mercy Kill, a Fate Card: a hit leaving it under the line finishes it.)
   if (t.kind === 'enemy') damage = mercy(state, state.enemies[t.index], damage);
-  const killed = hitTarget(state, t, damage, knock, dirX, dirZ);
+  const killed = hitTarget(state, t, damage, knock, dirX, dirZ, steady);
+  // (Update 0.2.18 — Fire and Ice, a Fate Card: a big hit throws a ring.)
+  if (t.kind === 'enemy' && !steady) bigHit(state, t.point, damage);
   const p = t.point;
   state.events.push(event, value, p.x, p.y, p.z);
   if (!killed) return false;

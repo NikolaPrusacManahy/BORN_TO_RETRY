@@ -131,8 +131,9 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 - **The deal:** the world holds still and blurs; a deck deals them one by one, face up, low on the screen; hover lifts one
   to read; a click takes it: it shrinks and flies to the card pile by your coins. You must take one.
 - **TAB:** what you carry (cards, weapons, rings, keys, bonuses, health, armour, dashes, coins); the world holds still.
-- **Wave 1: 30 cards** (the spec lists them; ideas from Risk of Rain 2's items, our names and effects). Wave 2 (new
-  effects: bleed, lightning, flames, homing blades, explosions) to come. **(placeholder numbers)**
+- **40 cards:** wave 1's 30 and (Update 0.2.18, the designer: "just build wave 2") wave 2's 10, with effects of their
+  own: bleed, burn, lightning, blasts, homing knives, rings of fire and ice, a split throw (specs `U0216_FATE_CARDS.md`,
+  `U0218_FATE_CARDS_WAVE2.md`; ideas from Risk of Rain 2's items, our names and effects). **(placeholder numbers)**
 
 ---
 

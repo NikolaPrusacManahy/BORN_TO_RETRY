@@ -90,7 +90,7 @@ Changed from the list as proposed: **Hard Head** is every 10th hit, not 1 in 10 
 freezes (the snowflake's freeze: enemies have no slow); **Iron Knuckles** is for mini bosses (any hit already staggers the
 rest).
 
-## Wave 2 (not built)
+## Wave 2 (built in Update 0.2.18: `U0218_FATE_CARDS_WAVE2.md`, with new names)
 The cards that need new effects drawn: bleed, lightning, flames on kill, homing blades, explosions (proposed: Serrated,
 Static Fists, Wisp, Cinders, Ceremonial Blades, Behemoth, Twin Bands, Tesla Heart, Volatile Souls, Thousand Blades;
 they get our own names too).

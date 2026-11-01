@@ -68,7 +68,8 @@ export interface Thrown {
 export type ThrownPhase = 'fly' | 'drop' | 'stuck' | 'back';
 
 export const PICKUP_POOL = 16;
-export const THROWN_POOL = 6;
+/** (Update 0.2.18 — 12: Splinter makes three of a throw.) */
+export const THROWN_POOL = 12;
 /** A thrown weapon falls apart after this long if it hits nothing (s). */
 export const THROWN_LIFE = 2;
 /** It falls a little (m/s²): a flat arc, not a lob. */
@@ -159,7 +160,7 @@ export function tryPickup(pickups: Pickup[], stands: Stand[], player: PlayerStat
 
 /** Throws the held weapon from `eye` along `dir` (length 1). `returns`: thrown to come back (the Gold Axe's right
  *  click), charged `power` (0 … 1): faster and harder. */
-export function throwWeapon(held: HeldWeapon, thrown: Thrown[], eye: Vector3, dir: Vector3, events: EventQueue<CombatEvent>, returns = false, power = 0) {
+export function throwWeapon(held: HeldWeapon, thrown: Thrown[], eye: Vector3, dir: Vector3, events: EventQueue<CombatEvent>, returns = false, power = 0): Thrown {
   const t = thrown.find((q) => !q.alive) ?? thrown[0];
   t.alive = true;
   t.kind = held.kind;
@@ -176,4 +177,5 @@ export function throwWeapon(held: HeldWeapon, thrown: Thrown[], eye: Vector3, di
   t.struckN = 0;
   t.bounces = 0;
   events.push('throw', t.returns ? 1 : 0, t.pos.x, t.pos.y, t.pos.z);
+  return t;
 }

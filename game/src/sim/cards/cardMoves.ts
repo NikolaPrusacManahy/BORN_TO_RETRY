@@ -19,6 +19,7 @@ import { BODY } from '../player/body';
 import type { PlayerState } from '../player/state';
 import { THROWN_GRAVITY, THROWN_LIFE, THROWN_RADIUS, Thrown } from '../weapons/weapons';
 import { holds } from './cards';
+import { killPowers } from './cardPowers';
 
 /** A dash or slide touches an enemy this much beyond your two bodies (m): before you're pushed out of it. */
 const TOUCH = 0.35;
@@ -52,7 +53,7 @@ export function tickCards(state: CombatState, player: PlayerState, dt: number) {
   }
 }
 
-/** A kill of yours (enemy `e`): Bloodrush, Killing Spree, Giant Killer. */
+/** A kill of yours (enemy `e`): Bloodrush, Killing Spree, Giant Killer (and wave 2's: cardPowers.ts). */
 export function onKill(state: CombatState, e: Enemy) {
   const v = CARDS.v;
   if (holds(state, 'bloodrush')) state.rush = v.bloodrushFor;
@@ -69,6 +70,8 @@ export function onKill(state: CombatState, e: Enemy) {
     state.giant = v.giantKiller;
     state.events.push('cardGiant', 0, e.pos.x, e.pos.y, e.pos.z);
   }
+  // (Update 0.2.18 — wave 2's: Death Throes, Chain Reaction, Pyre, Spirit Knives.)
+  killPowers(state, e);
 }
 
 /** Your attacks' speed, times this (Killing Spree). */
