@@ -21,11 +21,12 @@
 // jump, glows as its blast charges, and is gone once its bones burst.
 // Update 0.2.4 — a Cactoro under the sand isn't drawn (desertView.ts shows the sand moving over it); the Dino is gone
 // once it bursts. The Lizard, camouflaged, is barely seen (Lizard seen) except while it spits.
+// Update 0.2.28 — a hit squashes a body a moment; the dead sink into the floor before they go (sinkOf).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import type { CombatState } from '../sim/combat/state';
-import { ENEMY_POOL, EnemyPhase } from '../sim/enemies/enemy';
+import { Enemy, ENEMY_POOL, EnemyPhase } from '../sim/enemies/enemy';
 import { ENEMY_KINDS, ENEMY_STATS, EnemyKind, flies } from '../sim/enemies/kinds';
 import { ENEMIES } from '../tuning/enemies';
 import { SWIMS } from '../sim/enemies/kinds6';
@@ -63,6 +64,18 @@ interface Slot {
 
 /** Update 0.2.5 — standing still in its chase this long (s), one on its feet stands rather than runs on the spot. */
 const STILL = 0.12;
+
+/** Update 0.2.28 — how far a hit squashes a body (a share of its height); a dead one on the ground sinks into the
+ *  floor over the last part of its time (its height, by then): not a boss's, a flier's or a fish's. */
+const SQUASH = 0.14;
+const SINK_FROM = 0.45;
+export function sinkOf(e: Enemy): number {
+  if (e.phase !== 'dead' || flies(e.kind) || SWIMS.has(e.kind)) return 0;
+  const s = ENEMY_STATS[e.kind]();
+  if (s.boss) return 0;
+  const k = Math.max(0, Math.min(1, (e.t - s.deathTime * SINK_FROM) / (s.deathTime * (1 - SINK_FROM))));
+  return k * k * s.height;
+}
 
 export class EnemiesView {
   readonly group = new THREE.Group();
@@ -167,11 +180,13 @@ export class EnemiesView {
       const glow = e.phase === 'windup' ? Math.min(1, e.t / windup) : e.phase === 'blast' ? Math.min(1, e.t / BONE_KING.v.blastCharge) : 0;
       const swell = e.kind === 'slime' ? 1 + 0.35 * glow : 1;
       const scale = (ENEMY_STATS[e.kind]().height / b.root.userData.height) * swell;
-      b.root.scale.setScalar(scale);
+      // (Update 0.2.28 — a hit squashes it a moment.)
+      const squash = Math.max(0, Math.min(1, e.flash / 0.12)) * SQUASH;
+      b.root.scale.set(scale * (1 + squash), scale * (1 - squash), scale * (1 + squash));
       // The model faces +z; a facing of 0 faces −z.
       const turn = e.facing + Math.PI + (look.turn ?? 0);
       b.root.position.copy(this.at.copy(e.prev).lerp(e.pos, alpha));
-      b.root.position.y -= b.root.userData.lowest * scale;
+      b.root.position.y -= b.root.userData.lowest * scale + sinkOf(e);
       b.root.rotation.set(0, turn, 0);
       // (Update 0.2.11 — a fish tips, wriggles and dies belly up.)
       fishPose(b.root, e, dt);

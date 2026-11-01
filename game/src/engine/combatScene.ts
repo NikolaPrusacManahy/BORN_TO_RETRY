@@ -10,7 +10,8 @@
 // Update 0.2.10 — floor 5's fins, rings on the water, spikes and lash lines (drownedFx.ts).
 // Update 0.2.11 — floor 6's bubble columns, shadows, lanes, rings and jets (fishFx.ts).
 // Update 0.2.23 — floor 2's wasps' hives (hivesView.ts), and its tall grass parting round you and the enemies.
-// Update 0.2.26 — blood (bloodFx.ts). Update 0.2.27 — the enemies' shots (shotsView.ts).
+// Update 0.2.26 — blood (bloodFx.ts). Update 0.2.27 — the enemies' shots (shotsView.ts). Update 0.2.28 — your
+// blows' arcs, dust rings and the hammer's rocks (blowsFx.ts).
 // Update 0.1.2 — and executions (exec/execScene.ts: the body, its pieces, the frog's tongue).
 // Update 0.1.4 — and the Grimoire's fireballs (fireView.ts). Update 0.1.9 — and the daggers' volley (knivesView.ts).
 // Update 0.1.12 — and the skull over the enemy you can execute (execMarkView.ts).
@@ -43,6 +44,7 @@ import { TargetsView } from './targetsView';
 import { HivesView } from './hivesView';
 import { BloodFx } from './bloodFx';
 import { ShotsView } from './shotsView';
+import { BlowsFx } from './blowsFx';
 import { pushGrass } from './grassShader';
 import { WeaponsView } from './weaponsView';
 import type { Viewmodel } from './viewmodel/viewmodel';
@@ -76,6 +78,7 @@ export class CombatScene {
   private readonly hives: HivesView;
   private readonly blood: BloodFx;
   private readonly shots: ShotsView;
+  private readonly blows: BlowsFx;
 
   constructor(scene: THREE.Scene, state: CombatState, audio: AudioEngine, rig: CameraRig, arms: Viewmodel) {
     this.targets = new TargetsView(scene, state);
@@ -93,6 +96,7 @@ export class CombatScene {
     this.hives = new HivesView(scene, state);
     this.blood = new BloodFx(scene);
     this.shots = new ShotsView(scene, state, this.blood);
+    this.blows = new BlowsFx(scene, rig.camera);
     this.coins = new CoinsView(scene);
     scene.add(this.waves.group);
     this.weapons = new WeaponsView(scene, state, arms, rig.camera);
@@ -113,6 +117,7 @@ export class CombatScene {
   update(state: CombatState, listener: THREE.Vector3, playerChest: THREE.Vector3, gameDt: number, alpha: number) {
     this.feedback.apply(state, listener);
     this.blood.apply(state, listener);
+    this.blows.apply(state);
     this.demonFx.update(state, gameDt);
     this.gun.update(state, gameDt);
     state.events.clear();
@@ -120,6 +125,7 @@ export class CombatScene {
     this.hives.update(state, gameDt);
     this.blood.update(gameDt);
     this.shots.update(state, gameDt);
+    this.blows.update(gameDt);
     pushGrass(state.enemies, playerChest);
     this.enemies.update(state, alpha, gameDt);
     this.exec.update(state, this.rootOf, gameDt);
@@ -180,6 +186,7 @@ export class CombatScene {
     this.hives.dispose();
     this.blood.dispose();
     this.shots.dispose();
+    this.blows.dispose();
     this.demonFx.dispose();
     this.waves.dispose();
     this.coins.dispose();

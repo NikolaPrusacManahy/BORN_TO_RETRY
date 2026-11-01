@@ -130,6 +130,11 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   Spitter's acid (a wobbling glob, dripping; it stains the floor where it lands), the Glubs' water bolts, a Tribal's
   spear, a Cactoro's thorn, a Mask Tribal's feather, a Rabbit's carrot (tumbling). Each bursts its own way where it ends.
 
+### Your blows and the deaths (Update 0.2.28; spec `MD_UPDATES/U0228_BLOWS.md`)
+- A swing leaves an arc across your view (silver, gold, a hammer's broad sweep, the daggers' thin one); a punch landing
+  bursts a ring of dust; a hammer's smash throws rocks and dust; a hit squashes an enemy a moment; the dead sink into
+  the floor before they go (not bosses, fliers or fish).
+
 ### Fate Cards (Update 0.2.16, the designer; spec `MD_UPDATES/U0216_FATE_CARDS.md`; Update 0.2.15's Scars became 14 of them)
 - **When:** a boss's chest (not the run's last) and a challenge room's always **deal three Fate Cards**; a chest opened
   with a key deals them **one time in four instead of its loot** (the designer: "25% is fine"); a gold chest never. The
