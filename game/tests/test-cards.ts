@@ -96,7 +96,7 @@ section('Fate Cards — a boss’s chest deals');
   const p = createPlayer(0, 0, 0, 0);
   const kind = cards[1];
   const taken = pickCard(c, p, 1);
-  check('taking one: it’s yours for the run, the deal’s over', taken.join() === kind && c.items.cards.has(kind) && p.cards === c.items.cards && c.deal === null);
+  check('taking one: it’s yours for the run, the deal’s over', taken === kind && c.items.cards.has(kind) && p.cards === c.items.cards && c.deal === null);
   check('the run’s last boss deals none (the run ends there)', openBossChest(5, true).c.deal === null);
   const most = [...all()].filter((k) => k !== 'pogo' && k !== 'slingshot' && familyOf(k) === 'fate');
   const two = openBossChest(2, false, most).c.deal?.cards ?? [];

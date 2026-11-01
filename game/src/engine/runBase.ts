@@ -14,6 +14,7 @@ import type { MoveResult } from '../sim/collisionWorld';
 import { CombatIntent, emptyCombatIntent } from '../sim/combat/fists';
 import { carryOver, CombatState, createCombat, resetCombat } from '../sim/combat/state';
 import { emptyTreasure, Treasure } from '../sim/dungeon/treasure';
+import { stockShop } from '../sim/cards/shopCard';
 import { LabCommand, runLab } from '../sim/lab/labCommands';
 import type { KeyKind } from '../sim/items/items';
 import { PlayerIntent, emptyIntent } from '../sim/player/intent';
@@ -136,7 +137,6 @@ export abstract class RunBase {
     this.treasure = level.dungeon?.treasure ?? emptyTreasure();
     // (Update 0.2.12 — ARE YOU EVEN HUMAN?: no shop.)
     if (this.difficulty === 'human') this.treasure.offers.length = 0;
-    this.treasureView = new TreasureView(this.scene, this.treasure);
     this.show = new BossShow(level.dungeon);
     // (Back to the Lab from its boss room: no floor's name.) Update 0.2.8 (the designer: display "FLOOR 1" when they start
     // playing): every floor's start shows its name, a new run's and a Retry's too; not the Lab's lone boss room.
@@ -155,6 +155,9 @@ export abstract class RunBase {
       this.player.shield = shield;
       carryOver(old, this.combat);
     }
+    // (Update 0.2.20 — the shop's Fate Card, by what you carry down; then the shop and chests are drawn.)
+    stockShop(this.treasure, this.combat);
+    this.treasureView = new TreasureView(this.scene, this.treasure);
   }
 
   /** Back to the level's start, standing still, full health; the targets back in place and whole. */

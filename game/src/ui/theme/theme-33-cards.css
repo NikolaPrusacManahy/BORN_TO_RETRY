@@ -209,16 +209,6 @@
   animation: rb-fate-take 0.75s cubic-bezier(0.5, 0, 0.6, 1) both;
 }
 
-/* Update 0.2.19 — a bound Death Card: it comes with what you take, so it can't be taken alone: no hand over it, a
-   little dimmer. */
-.rb-fate-slot.is-bound {
-  cursor: not-allowed;
-}
-
-.rb-fate-slot.is-bound:not(:hover) .rb-card {
-  filter: saturate(0.6) brightness(0.85);
-}
-
 /* The others drop away. */
 .rb-fate-slot.is-gone {
   transform: translateY(120%);

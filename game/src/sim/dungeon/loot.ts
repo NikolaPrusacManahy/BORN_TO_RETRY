@@ -74,10 +74,11 @@ export function rollLoot(key: KeyKind, rolls: LootRolls, luck: { better?: boolea
   return { rarity, item: null, coins: coinsOf(rolls) };
 }
 
-/** One of the four amounts, by the coins roll. */
+/** One of the four amounts, by the coins roll (Update 0.2.20 — times Chest gold: the designer, "reduce the amount of
+ *  gold in chest by x2"). */
 function coinsOf(rolls: LootRolls): number {
   const v = ITEMS.v;
-  return [v.coins1, v.coins2, v.coins3, v.coins4][Math.min(3, Math.floor(rolls[2] * 4))];
+  return Math.round([v.coins1, v.coins2, v.coins3, v.coins4][Math.min(3, Math.floor(rolls[2] * 4))] * v.chestGold);
 }
 
 /** Update 0.2.1 — a gold chest's: coins only (a common chest's amount, by its coins roll). */

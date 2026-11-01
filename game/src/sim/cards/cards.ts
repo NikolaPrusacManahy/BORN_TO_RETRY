@@ -7,8 +7,8 @@
 // chest's: common to mythic), what each changes and does (its face), the ones you carry (each once; lost when you die),
 // taking one. Update 0.2.19 — two more families in the same deals (the designer): Death Cards, 16 curses ("annoying cards
 // … can make the run a bit painful"), and Traitor Cards, 10 with a gift and a price ("a good part and a counter part
-// costs"). A deal is deal.ts; what each does is where its move is (cardMoves.ts, cardPowers.ts, cardCurses.ts and in
-// place). Pure.
+// costs"). A deal is deal.ts; what each does is where its move is (cardMoves.ts, cardPowers.ts and in place). Update
+// 0.2.20 — the shop's own Fate Card: shopCard.ts. Pure.
 import { CARDS } from '../../tuning/cards';
 import type { CombatState } from '../combat/state';
 import type { Rarity } from '../dungeon/loot';
@@ -193,6 +193,8 @@ export const CARD_KINDS = Object.keys(CARD) as readonly CardKind[];
 export const holds = (state: CombatState, kind: CardKind) => state.items.cards.has(kind);
 /** Does your body carry `kind` (the run's cards, copied to you each tick)? */
 export const bears = (p: PlayerState, kind: CardKind) => p.cards.has(kind);
+/** Update 0.2.20 — the shop's prices, times this (Haggler: less; Taxman: more). */
+export const shopFactor = (state: CombatState) => (holds(state, 'haggler') ? 1 - CARDS.v.haggler : 1) * (holds(state, 'taxman') ? 1 + CARDS.v.taxman : 1);
 /** The cards in `cards`, in their order (rarest last). */
 export const cardsIn = (cards: ReadonlySet<CardKind>) => CARD_KINDS.filter((k) => cards.has(k));
 

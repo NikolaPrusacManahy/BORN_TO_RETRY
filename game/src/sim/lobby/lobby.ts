@@ -113,6 +113,7 @@ export function lobbyFocus(l: Lobby, out: Focus): Focus {
   out.uses = -1;
   out.act = null;
   out.label = null;
+  out.card = null;
   if (l.near < 0) return out;
   const s = l.stations[l.near];
   out.at.set(s.x, s.y, s.z);

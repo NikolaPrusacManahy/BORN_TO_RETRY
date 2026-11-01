@@ -62,9 +62,10 @@ export const CARDS = group('cards', 'Fate Cards', {
   splinter: knob(12, 2, 40, 1, 'Splinter', 'Splinter: the angle (°) between a throw’s three.'),
   // Update 0.2.19 — Death Cards and Traitor Cards (the designer: "Death Cards … annoying cards … can make the run a bit
   // painful"; "Traitor Cards, it has a good part and a counter part costs").
+  // Update 0.2.20 — the shop's Fate Card (the designer: "cost 100").
+  shopCard: knob(100, 0, 500, 5, 'Shop card', 'The shop’s Fate Card: its price.'),
   deathChance: knob(0.15, 0, 1, 0.01, 'Death chance', 'Chance each card dealt is a Death Card.'),
   traitorChance: knob(0.12, 0, 1, 0.01, 'Traitor chance', 'Chance each card dealt is a Traitor Card.'),
-  deathBound: knob(1, 0, 1, 1, 'Death bound', '1: a Death Card dealt comes with you whatever you take; 0: it’s one to choose like the rest.'),
   brittle: knob(0.25, 0, 1, 0.05, 'Brittle Bones', 'Brittle Bones: extra damage you take.'),
   leaden: knob(0.15, 0, 0.5, 0.05, 'Leaden Feet', 'Leaden Feet: how much slower you run.'),
   shortBreath: knob(0.4, 0, 0.8, 0.05, 'Short Breath', 'Short Breath, Berserker: how much slower dashes refill.'),

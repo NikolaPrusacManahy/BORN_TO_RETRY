@@ -10,9 +10,10 @@ Fate, 10 Traitor, 16 Death.
 ## In the deal (numbers are placeholders: F1 → Fate Cards)
 - **Same chests, same deals:** each card dealt first rolls its family: **a Death Card 15%**, **a Traitor Card 12%**, else
   a Fate Card (its rarity rolled as before). Never one you carry, never twice in a deal. None left of a family: a Fate Card.
-- **A Death Card is bound** (Claude's call, so they bite: knob *Death bound*, 1). It can't be picked alone while another
-  card is there, and it **comes with whatever you take**. Dealt only Death Cards, you take them all. *Death bound* 0 makes
-  it one to choose like the rest (then nobody would ever take one).
+- **You take whichever you like.** (Built first with a Death Card *bound*, coming with whatever you took; the designer,
+  after seeing it: "you are forcing players to take the bad and the counterpart cards.... nope, just random and allow
+  them to pick whatever they want". Gone: the knob, the label, the dimmed card.) A Death Card is a card you'd leave, unless
+  the deal is all bad.
 - Death and Traitor Cards have no rarity; a chest's glow counts only its Fate Cards.
 - Carried for the run, lost when you die, shown on TAB in their own groups (Fate, Traitor, Death).
 
@@ -55,18 +56,17 @@ Fate, 10 Traitor, 16 Death.
 
 ## How they look
 All share the one back (the flip is the reveal). **Death:** black, a bone frame, a dashed inner line, a sickly green
-glow, a skull behind its mark, "Death" (and "Death · Bound" in a deal). **Traitor:** a gold and purple split frame,
-"Traitor", its gift, its price in red below. In a deal a bound card is dimmed and won't take a click while there's a free
-card; once you pick, it flies to the pile with your card.
+glow, a skull behind its mark, "Death". **Traitor:** a gold and purple split frame, "Traitor", its gift, its price in red
+below.
 
 ## The Lab
 F8 → a new tab, **Traitor · Death**: every one of them to give yourself (Traitor; Death in two columns).
 
 ## What was built
-`sim/cards/cards.ts` (families, the 26), `deal.ts` (the family roll, bound cards, Gambler, the luck cards; `pickCard`
-returns what you took), `tuning/cards.ts`; hooks in `health.ts` (damage taken, Festering, max health), `jump.ts`,
+`sim/cards/cards.ts` (families, the 26), `deal.ts` (the family roll, Gambler, the luck cards), `tuning/cards.ts`; hooks in `health.ts` (damage taken, Festering, max health), `jump.ts`,
 `dash.ts`, `slide.ts`, `items.ts` (run speed), `step.ts` (attack speed, Rotten Grip), `treasure.ts` (prices, Fasting,
 chest luck), `loot.ts` (`rollLoot`'s luck), `bonuses.ts` (Ill Omen, coins), `cardMoves.ts` (charge, meter, Shaken,
 Miser's Oath), `execution.ts`, `strike.ts` (Blood Pact). The look: `FateCard.tsx`, `FateDeal.tsx`, `Inventory.tsx`,
-`fateView.ts`, `theme-33-cards.css`. Lab: `labLists.ts`, `LabPanel.tsx`. Tests: `test-card-moves4.ts`; `test-cards.ts`
+`fateView.ts`, `theme-34-card-families.css` (the card styles split in three: faces and the deal in theme-33, the two
+families' faces in theme-34, TAB in theme-35). Lab: `labLists.ts`, `LabPanel.tsx`. Tests: `test-card-moves4.ts`; `test-cards.ts`
 reads the Fate Cards' odds with the other families off.

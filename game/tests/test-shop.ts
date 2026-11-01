@@ -254,7 +254,7 @@ section('Shop and chests — the look');
   check('the lid swings on its hinge, at the back of the chest', lid.position.y > 0.4 && lid.position.z < -0.2, `${lid.position.toArray().map((x) => x.toFixed(2))}`);
 
   // A floor's shop and chest, drawn.
-  const level = { chests: [{ room: 0, x: 0, z: 0, rot: 0, fx: 0, fz: 1 }], rooms: [{ kind: 'shop', index: 0, tiles: [{ x: 4, y: 0, z: 0 }, { x: 6, y: 0, z: 0 }] }] } as unknown as DungeonLevel;
+  const level = { chests: [{ room: 0, x: 0, z: 0, rot: 0, fx: 0, fz: 1 }], rooms: [{ kind: 'shop', index: 0, min: { x: -2, z: -6 }, max: { x: 16, z: 6 }, tiles: [{ x: 4, y: 0, z: 0 }, { x: 6, y: 0, z: 0 }] }] } as unknown as DungeonLevel;
   const t = createTreasure(level, createRng(2));
   const scene = new THREE.Scene();
   const view = new TreasureView(scene, t, false);

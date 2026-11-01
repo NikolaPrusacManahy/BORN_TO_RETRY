@@ -67,7 +67,9 @@ section('Keys — loot by rarity');
   check('everything in the sort turns up', all.every((k) => t.items.has(k)) && t.items.size === all.length, [...t.items].join(', '));
   // (Update 0.2.1 — the designer: no coins with an epic or mythic chest's item any more.)
   check('a chest gives coins or an item, never both (epic and mythic too)', [...t.withItem.common, ...t.withItem.uncommon, ...t.withItem.rare, ...t.withItem.epic, ...t.withItem.mythic].every((c) => c === 0) && t.withItem.epic.size > 0 && t.withItem.mythic.size > 0);
-  check(`coins come as ${ITEMS.v.coins1}, ${ITEMS.v.coins2}, ${ITEMS.v.coins3} or ${ITEMS.v.coins4}`, [...t.coins].sort((a, b) => a - b).join() === [ITEMS.v.coins1, ITEMS.v.coins2, ITEMS.v.coins3, ITEMS.v.coins4].sort((a, b) => a - b).join());
+  // (Update 0.2.20 — times Chest gold: the designer, "reduce the amount of gold in chest by x2".)
+  const amounts = [ITEMS.v.coins1, ITEMS.v.coins2, ITEMS.v.coins3, ITEMS.v.coins4].map((n) => Math.round(n * ITEMS.v.chestGold));
+  check(`coins come as ${amounts.join(', ')}`, [...t.coins].sort((a, b) => a - b).join() === amounts.sort((a, b) => a - b).join());
   const w = tally('whiteKey', 5000);
   check('a white key: never common or uncommon', w.rarity.common === 0 && w.rarity.uncommon === 0 && w.rarity.rare > 0 && w.rarity.epic > 0);
   const g = tally('goldKey', 5000);

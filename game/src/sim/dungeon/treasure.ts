@@ -18,6 +18,8 @@
 // a boss's chest (not the run's last) and a challenge room's always deal them; a chest opened with a key deals them
 // instead of its item one time in four (the designer: "if you are lucky … 25% is fine"). Fortune's Favour (a card)
 // rolls a chest's rarity twice; Haggler (a card) makes the shop cheaper (`offerPrice`).
+// Update 0.2.20 — the shop's Fate Card (sim/cards/shopCard.ts; the designer: "the shop has only one fate card. floating
+// near, cost 100"); the gold in a chest halved (the designer: "reduce the amount of gold in chest by x2": Chest gold).
 import type { Rng } from '../../core/rng';
 import { ITEMS } from '../../tuning/items';
 import type { ChestSpot, DungeonLevel } from '../../world/dungeon/assemble';
@@ -33,8 +35,9 @@ import { coinsFor } from '../items/bonuses';
 import type { EnemyKind } from '../enemies/kinds';
 import { Vector3 } from 'three';
 import { CARDS } from '../../tuning/cards';
-import { holds } from '../cards/cards';
+import { holds, shopFactor } from '../cards/cards';
 import { dealRarity, startDeal } from '../cards/deal';
+import { buyCard, placeCard, ShopCard } from '../cards/shopCard';
 
 export interface Offer {
   kind: ItemKind;
@@ -73,6 +76,8 @@ export interface Treasure {
   chests: Chest[];
   /** Update 0.0.16 — the chest you're picking a key for (in front of it, keys in hand; −1: none). */
   choosing: number;
+  /** Update 0.2.20 — the shop's Fate Card (none: no shop). */
+  card?: ShopCard | null;
 }
 
 /** You kneel this far in front of a chest (m). */
@@ -111,7 +116,9 @@ export function createTreasure(level: DungeonLevel, rng: Rng, boss: EnemyKind = 
   const floor = level.plan?.level ?? 1;
   const offers = shop ? shop.tiles.slice(0, SHOP_TILES).map((t, i) => ({ kind: kinds[i], price: priceOf(kinds[i], floor), sold: false, x: t.x, z: t.z })) : [];
   const chests = level.chests.map((spot): Chest => ({ spot, state: spot.rises ? 'buried' : 'shut', t: 0, rolls: [rng(), rng(), rng()], key: null, loot: null, given: false, boss: spot.boss ? boss : null, cards: spot.boss ? bossCards : !!level.rooms[spot.room]?.challenge }));
-  return { shop: shop ? shop.index : -1, offers, chests, choosing: -1 };
+  // (Update 0.2.20 — the card's roll last: the rest roll as they did.)
+  const card = shop ? placeCard(shop, rng()) : null;
+  return { shop: shop ? shop.index : -1, offers, chests, choosing: -1, card };
 }
 
 /** Update 0.0.19 — no shop and no chests yet (the Lab's: its panel adds chests). */
@@ -204,7 +211,7 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
       return true;
     }
     c.key = free ? null : useKey(inv);
-    c.loot = c.boss ? { rarity: 'mythic', item: null, coins: coinsFor(bossCoins(c.boss), state, state.rng) } : c.spot.gold ? goldLoot(c.rolls) : rollLoot(c.key!, c.rolls, { better: holds(state, 'fortune'), worse: holds(state, 'blackCat'), up: holds(state, 'fragileFortune') });
+    c.loot = c.boss ? { rarity: 'mythic', item: null, coins: coinsFor(bossCoins(c.boss) * ITEMS.v.chestGold, state, state.rng) } : c.spot.gold ? goldLoot(c.rolls) : rollLoot(c.key!, c.rolls, { better: holds(state, 'fortune'), worse: holds(state, 'blackCat'), up: holds(state, 'fragileFortune') });
     c.state = 'opening';
     c.t = 0;
     t.choosing = -1;
@@ -214,7 +221,7 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
   }
   if (!interact) return false;
   const oi = offerInReach(t, player);
-  if (oi < 0) return false;
+  if (oi < 0) return buyCard(t, player, state);
   const o = t.offers[oi];
   const price = offerPrice(o, state);
   // (Update 0.2.19 — Fasting, a Traitor Card: the shop won't sell to you.)
@@ -254,5 +261,5 @@ function giveLoot(c: Chest, i: number, state: CombatState) {
   });
 }
 
-/** Update 0.2.16 — what offer `o` costs you (Haggler, a Fate Card: less). */
-export const offerPrice = (o: Offer, state: CombatState) => Math.round(o.price * (holds(state, 'haggler') ? 1 - CARDS.v.haggler : 1) * (holds(state, 'taxman') ? 1 + CARDS.v.taxman : 1));
+/** Update 0.2.16 — what offer `o` costs you (Haggler, a Fate Card: less; Update 0.2.19 — Taxman, a Death Card: more). */
+export const offerPrice = (o: Offer, state: CombatState) => Math.round(o.price * shopFactor(state));

@@ -2,15 +2,27 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.2.19: Death Cards and Traitor Cards)
+## Next up (2026-11-01, Update 0.2.20: the shop's Fate Card; half the gold in chests)
+- **The shop's Fate Card** (the designer: "the shop has only one fate card. floating near, cost 100"; spec
+  `MD_UPDATES/U0220_SHOP_CARD_CHEST_GOLD.md`): one Fate Card floats one cell past the candelabrum at the end of the shop's
+  row of tiles, turning and lit in its rarity's colour, a price tag over it (100; red when you can't pay). The floor's own
+  card, never one you carry, stocked as you come down; E in reach buys it (its prompt shows its name, rarity and what it
+  does). None with Fate Cards off or on ARE YOU EVEN HUMAN?. Shop tags now show what you'd pay (Haggler, Taxman).
+- **Half the gold in chests** (the designer: "reduce the amount of gold in chest by x2"): one knob, F1 → Items → Chest
+  gold ×0.5, on every chest's coins (keyed, gold, a boss's).
+- **0.2.19's Death Cards aren't forced on you any more** (the designer: "you are forcing players to take the bad and the
+  counterpart cards.... nope, just random and allow them to pick whatever they want"): you take whichever card you like.
+- Checked by tests (`test-shop-card.ts`); **unseen in the game**: the card's look and place in the shop, its face's text
+  (painted on a canvas), its light.
+
+## Before (2026-11-01, Update 0.2.19: Death Cards and Traitor Cards)
 - **Death Cards and Traitor Cards** (the designer: "same drops, it also end up in the same 3 cards pull, it is all
   rng", 15+ "annoying cards", 10 Traitor Cards with "a good part and a counter part costs", a different look; spec
-  `MD_UPDATES/U0219_DEATH_TRAITOR_CARDS.md`). Each card dealt rolls its family: Death 15%, Traitor 12%, else Fate. A
-  Death Card is **bound**: it comes with whatever you take (Claude's call; F1 → Fate Cards → Death bound 0 turns it off).
+  `MD_UPDATES/U0219_DEATH_TRAITOR_CARDS.md`). Each card dealt rolls its family: Death 15%, Traitor 12%, else Fate; you
+  take whichever you like (first built with Death Cards bound to your pick: the designer said no, 0.2.20 above).
   16 Death Cards (damage taken, speed, dashes, weapons, coins, the meter, luck…), 10 Traitor Cards (a gift and a price
   on the card in red). New faces (black, bone and green with a skull; gold and purple). TAB groups them. Lab: F8 →
-  Traitor · Death. Checked by tests (`test-card-moves4.ts`); **unseen in the game**: the new faces, a bound card in a
-  deal (dimmed, flying with your pick), how hard the Death Cards bite (placeholder numbers), and whether 15% / 12% feels right.
+  Traitor · Death. Checked by tests (`test-card-moves4.ts`); **unseen in the game**: the new faces, how hard the Death Cards bite (placeholder numbers), and whether 15% / 12% feels right.
 
 ## Before (2026-11-01, Update 0.2.18: Fate Cards, wave 2)
 - **Wave 2** (the designer: "just build wave 2"; spec `MD_UPDATES/U0218_FATE_CARDS_WAVE2.md`): 10 cards with effects of

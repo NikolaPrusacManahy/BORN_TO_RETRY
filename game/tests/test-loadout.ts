@@ -68,7 +68,8 @@ section('Loadout — less gold');
     const l = rollLoot('key', [0, 0, i / 400]);
     if (!l.item) coins.add(l.coins);
   }
-  check('a chest of coins holds 10, 20, 30 or 40', [...coins].sort((a, b) => a - b).join() === '10,20,30,40');
+  // (Update 0.2.20 — the designer: "reduce the amount of gold in chest by x2".)
+  check('a chest of coins holds 5, 10, 15 or 20 (half what it did)', [...coins].sort((a, b) => a - b).join() === '5,10,15,20' && ITEMS.v.chestGold === 0.5);
 }
 
 section('Loadout — armour and rings');

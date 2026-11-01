@@ -98,7 +98,8 @@ section('Chests — a room’s rises as it’s won');
   check('E opens it without using your key', chest.state === 'opening' && chest.key === null && keysOf(c) === 1);
   step(ITEMS.v.chestTime + DT);
   const coins = c.money + c.coins.filter((q) => q.alive).length - money;
-  const amounts = [ITEMS.v.coins1, ITEMS.v.coins2, ITEMS.v.coins3, ITEMS.v.coins4];
+  // (Update 0.2.20 — the designer: "reduce the amount of gold in chest by x2": times Chest gold.)
+  const amounts = [ITEMS.v.coins1, ITEMS.v.coins2, ITEMS.v.coins3, ITEMS.v.coins4].map((n) => Math.round(n * ITEMS.v.chestGold));
   check('it gives gold only: one of the four amounts, no item', chest.state === 'open' && chest.loot!.item === null && amounts.includes(coins) && !c.drops.some((d) => d.alive && d.manual), `${coins} coins`);
 }
 {
@@ -135,7 +136,8 @@ section('Chests — a boss’s gives 15 coins');
   stepTreasure(run.treasure, p, c, true, false, () => false, DT);
   for (let k = 0; k < ticks(ITEMS.v.chestTime + DT); k++) stepTreasure(run.treasure, p, c, false, false, () => false, DT);
   const coins = c.money + c.coins.filter((q) => q.alive).length - money;
-  check('opened, 15 coins come out', chest.state === 'open' && coins === 15, `${coins}`);
+  // (Update 0.2.20 — halved: 7.5, a half coin one more half the time.)
+  check(`opened, ${15 * ITEMS.v.chestGold} coins come out (Chest gold ×${ITEMS.v.chestGold})`, chest.state === 'open' && Math.abs(coins - 15 * ITEMS.v.chestGold) <= 0.5, `${coins}`);
 }
 
 section('Chests — a keyed chest’s gold aura');

@@ -7,15 +7,18 @@
 // each chest's light by its rarity (treasureFx.ts).
 // Update 0.0.18 — each tag shows its own offer's price (red when you can't pay it).
 // Update 0.2.1 — a chest a key opens in its soft gold aura (treasureFx.ts) while it's shut.
+// Update 0.2.20 — the shop's Fate Card floating past its tiles (shopCardView.ts); a tag shows what you'd pay (Haggler,
+// Taxman).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { CombatState } from '../sim/combat/state';
-import { keyless, Treasure } from '../sim/dungeon/treasure';
+import { keyless, offerPrice, Treasure } from '../sim/dungeon/treasure';
 import { ITEM_KINDS, ItemKind } from '../sim/items/items';
 import { DROP_KINDS, DropKind } from '../sim/items/drops';
 import { ITEMS } from '../tuning/items';
 import { itemLooks } from './keyLooks';
 import { ChestAura, ChestGlows, DropsView } from './treasureFx';
+import { ShopCardView } from './shopCardView';
 
 export const ITEMS_URL = '/models/items/items.glb';
 /** An item turns this high over its tile (m) at this speed (rad/s); its price floats above it. */
@@ -67,6 +70,7 @@ export class TreasureView {
   private protos: Partial<Record<DropKind, THREE.Object3D>> = {};
   private readonly drops = new DropsView(() => this.protos);
   private readonly glows = new ChestGlows();
+  private readonly card: ShopCardView;
   /** Price tags by price, as you can pay them and as you can't. */
   private readonly tags = new Map<number, { cheap: THREE.SpriteMaterial; dear: THREE.SpriteMaterial }>();
   private readonly textures: THREE.Texture[] = [];
@@ -80,7 +84,8 @@ export class TreasureView {
     loadModels = true,
   ) {
     scene.add(this.group);
-    this.group.add(this.drops.group, this.glows.group);
+    this.card = new ShopCardView(treasure.card, (price) => this.tag(price));
+    this.group.add(this.drops.group, this.glows.group, this.card.group);
     this.loaded = loadModels
       ? new GLTFLoader()
           .loadAsync(ITEMS_URL)
@@ -185,9 +190,11 @@ export class TreasureView {
       item.visible = this.prices[i].visible = !o.sold;
       item.position.y = FLOAT + Math.sin(this.time * 2 + i) * 0.06;
       item.rotation.y = this.time * TURN + i;
-      const tag = this.tag(o.price);
-      this.prices[i].material = state.money < o.price ? tag.dear : tag.cheap;
+      const price = offerPrice(o, state);
+      const tag = this.tag(price);
+      this.prices[i].material = state.money < price ? tag.dear : tag.cheap;
     }
+    this.card.update(this.time, state, (price) => this.tag(price));
     this.reach.k = -1;
     this.syncChests();
     for (let i = 0; i < t.chests.length && i < this.chests.length; i++) {
@@ -272,6 +279,7 @@ export class TreasureView {
 
   dispose() {
     this.group.removeFromParent();
+    this.card.dispose();
     this.glows.dispose();
     for (const c of this.chests) c.aura.dispose();
     for (const t of this.tags.values()) {

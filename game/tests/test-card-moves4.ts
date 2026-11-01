@@ -1,6 +1,6 @@
 // Update 0.2.19 — Death Cards and Traitor Cards (the designer: "same drops, it also end up in the same 3 cards pull, it
 // is all rng", "annoying cards … can make the run a bit painful", "it has a good part and a counter part costs"): dealt
-// among the Fate Cards by their own odds; a Death Card bound (it comes with whatever you take); Gambler's extra card;
+// among the Fate Cards by their own odds, yours to take or leave; Gambler's extra card;
 // then what each of the 16 Death Cards and 10 Traitor Cards does, against the same without it.
 import { Vector3 } from 'three';
 import { check, near, section } from './harness';
@@ -28,7 +28,6 @@ import { holding } from '../src/sim/weapons/weapons';
 import { CARDS } from '../src/tuning/cards';
 import { EXECUTION } from '../src/tuning/execution';
 import { HEALTH } from '../src/tuning/health';
-import { setKnob } from '../src/tuning/schema';
 import { WEAPON_STATS } from '../src/sim/weapons/catalog';
 
 const v = CARDS.v;
@@ -147,19 +146,13 @@ section('Death and Traitor Cards — dealt among the Fate Cards');
   check(`each card dealt is a Death Card ${Math.round(v.deathChance * 100)}% of the time, a Traitor Card ${Math.round(v.traitorChance * 100)}%, else a Fate Card`, near(counts.death / n, v.deathChance, 0.03) && near(counts.traitor / n, v.traitorChance, 0.03), JSON.stringify(counts));
   check('16 Death Cards and 10 Traitor Cards in all', CARD_KINDS.filter((k) => familyOf(k) === 'death').length === 16 && CARD_KINDS.filter((k) => familyOf(k) === 'traitor').length === 10);
 
+  // (The designer, of making a Death Card come with your pick: "nope, just random and allow them to pick whatever they want".)
   const { c, p } = both();
   c.deal = { cards: ['pogo', 'brittleBones', 'slingshot'], chest: -1 };
-  check('a Death Card dealt can’t be taken alone', pickCard(c, p, 1).length === 0 && c.deal !== null && c.items.cards.size === 0);
-  const took = pickCard(c, p, 0);
-  check('it comes with the card you take (bound)', took.join() === 'pogo,brittleBones' && c.items.cards.has('brittleBones') && !c.items.cards.has('slingshot') && c.deal === null);
+  check('you take whichever you like: a Fate Card leaves the Death Card behind', pickCard(c, p, 0) === 'pogo' && !c.items.cards.has('brittleBones') && c.deal === null);
   const doom = both();
-  doom.c.deal = { cards: ['rust', 'anchor', 'taxman'], chest: -1 };
-  check('dealt nothing but Death Cards, you take them all', pickCard(doom.c, doom.p, 2).length === 3 && ['rust', 'anchor', 'taxman'].every((k) => doom.c.items.cards.has(k as CardKind)));
-  setKnob(CARDS, 'deathBound', 0);
-  const loose = both();
-  loose.c.deal = { cards: ['pogo', 'brittleBones', 'slingshot'], chest: -1 };
-  check('Death bound off: a Death Card is one to choose like the rest', pickCard(loose.c, loose.p, 1).join() === 'brittleBones' && !loose.c.items.cards.has('pogo'));
-  setKnob(CARDS, 'deathBound', CARDS.knobs.deathBound.def);
+  doom.c.deal = { cards: ['pogo', 'brittleBones', 'slingshot'], chest: -1 };
+  check('or the Death Card alone, if you want it', pickCard(doom.c, doom.p, 1) === 'brittleBones' && doom.c.items.cards.size === 1);
 
   let four = true;
   for (let seed = 1; seed <= 200; seed++) {

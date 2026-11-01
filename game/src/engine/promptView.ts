@@ -9,7 +9,8 @@
 // "[E] to enter".
 import * as THREE from 'three';
 import type { Focus } from '../sim/items/focus';
-import { infoOf } from '../sim/items/itemInfo';
+import { infoOf, ItemInfo } from '../sim/items/itemInfo';
+import { CARD, CardKind } from '../sim/cards/cards';
 
 const ACT: Record<Exclude<Focus['act'], null | 'execute' | 'locked' | 'chosen' | 'unavailable'>, string> = { pick: 'to pick up', buy: 'to buy', open: 'to open', choose: 'to choose', enter: 'to enter', turnOn: 'to turn on', turnOff: 'to turn off' };
 /** Update 0.2.9 — what a card says where E does nothing (a chest without a key; in the lobby, yours already, locked). */
@@ -36,6 +37,9 @@ function keyed(node: HTMLElement, key: string, words: string) {
   k.textContent = `[${key}]`;
   node.replaceChildren(k, ` ${words}`);
 }
+
+/** Update 0.2.20 — a Fate Card's lines, as an item's. */
+const cardInfo = (k: CardKind): ItemInfo => ({ name: CARD[k].name, rarity: CARD[k].rarity, does: CARD[k].does() });
 
 export class PromptView {
   private readonly root: HTMLDivElement | null = null;
@@ -92,12 +96,13 @@ export class PromptView {
   }
 
   private setCard(f: Focus | null, key: string) {
-    const sig = f ? `${f.item}|${f.uses}|${f.act}|${f.label}|${key}` : '';
+    const sig = f ? `${f.item}|${f.uses}|${f.act}|${f.label}|${f.card}|${key}` : '';
     if (sig === this.shown) return;
     this.shown = sig;
     this.card.classList.toggle('is-on', f !== null);
     if (!f) return;
-    const info = f.item ? infoOf(f.item, f.uses) : null;
+    // (Update 0.2.20 — the shop's Fate Card: its name, rarity and what it does.)
+    const info = f.card ? cardInfo(f.card) : f.item ? infoOf(f.item, f.uses) : null;
     // (Update 0.2.9 — a lobby station: its name, if it has one, in place of an item's.)
     const name = info?.name ?? f.label ?? '';
     this.card.className = `rb-prompt is-on${name ? '' : ' is-bare'}${info?.rarity ? ` is-${info.rarity}` : ''}`;

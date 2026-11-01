@@ -67,6 +67,8 @@ export const ITEMS = group('items', 'Shop & chests', {
   coins2: knob(20, 0, 300, 5, 'Chest coins 2', 'Coins in a common or a gold chest: one of the four amounts.'),
   coins3: knob(30, 0, 300, 5, 'Chest coins 3', 'Coins in a common or a gold chest: one of the four amounts.'),
   coins4: knob(40, 0, 300, 5, 'Chest coins 4', 'Coins in a common or a gold chest: one of the four amounts.'),
+  // Update 0.2.20 — the designer: "reduce the amount of gold in chest by x2".
+  chestGold: knob(0.5, 0, 2, 0.05, 'Chest gold', 'Every chest’s coins (a keyed one’s, a gold one’s, a boss’s), times this.'),
   keyOdds: knob(70, 0, 100, 1, 'Key: normal', 'Weight of a normal key (shop, Yeti).'),
   whiteKeyOdds: knob(25, 0, 100, 1, 'Key: white', 'Weight of a white key: no common or uncommon loot.'),
   goldKeyOdds: knob(5, 0, 100, 1, 'Key: gold', 'Weight of a gold key: only epic or mythic loot.'),

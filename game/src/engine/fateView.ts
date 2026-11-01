@@ -13,8 +13,7 @@ import { maxHpOf } from '../sim/player/health';
 import type { PlayerState } from '../sim/player/state';
 import { WEAPON_NAME } from '../sim/weapons/catalog';
 
-/** A card's face. Update 0.2.19 — its family (a Fate, Traitor or Death Card), a Traitor Card's price (else null), and
- *  whether it's bound (a Death Card dealt that comes with you whatever you take). */
+/** A card's face. Update 0.2.19 — its family (a Fate, Traitor or Death Card) and a Traitor Card's price (else null). */
 export interface CardView {
   kind: CardKind;
   name: string;
@@ -23,7 +22,6 @@ export interface CardView {
   does: string;
   family: CardFamily;
   cost: string | null;
-  bound: boolean;
 }
 
 /** Something carried, with how many (keys, rings) or the seconds it has left (a kill bonus). */
@@ -48,7 +46,7 @@ export interface InventoryView {
   money: number;
 }
 
-export const cardView = (kind: CardKind, bound = false): CardView => ({ kind, name: CARD[kind].name, rarity: CARD[kind].rarity, move: CARD[kind].move, does: CARD[kind].does(), family: familyOf(kind), cost: CARD[kind].cost?.() ?? null, bound });
+export const cardView = (kind: CardKind): CardView => ({ kind, name: CARD[kind].name, rarity: CARD[kind].rarity, move: CARD[kind].move, does: CARD[kind].does(), family: familyOf(kind), cost: CARD[kind].cost?.() ?? null });
 
 /** Carried `kind` × `n` (none: not listed). */
 function carried(kind: ItemKind, n: number, out: CarriedView[]) {

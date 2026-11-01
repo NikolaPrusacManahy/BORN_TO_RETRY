@@ -66,6 +66,9 @@ function faceTexture(front: boolean): THREE.Texture {
   return t;
 }
 
+/** Update 0.2.20 — a card's back, painted (the shop's card: shopCardView.ts). */
+export const cardBackTexture = () => faceTexture(false);
+
 export class FateStand {
   readonly group = new THREE.Group();
   private readonly card = new THREE.Group();
