@@ -2,13 +2,18 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.2.26: blood, the graphics update's first part)
+## Next up (2026-11-01, Update 0.2.27: the enemies' shots, the graphics update's second part)
+- **The designer: "Yes, the shots"** (spec `MD_UPDATES/U0227_SHOTS.md`): fireballs with a white-hot core in
+  flickering flame and rising embers (the Blue Demon's blue), the Spitter's wobbling acid that drips and stains the
+  floor, the Glubs' drawn-out water bolts, a real spear, thorn, feather and carrot (tumbling); a burst of each's own
+  where it ends. Checked by tests (`test-shots.ts`); **unseen in the game**.
+- **Next (the plan's parts 3–4):** your blows' trails and the dead sinking away; each floor's motes and the glow.
+
+## Before (2026-11-01, Update 0.2.26: blood, the graphics update's first part)
 - **The designer chose "Red, plentiful"** for the graphics update's blood (plan `MD_UPDATES/PLAN_GRAPHICS.md`; spec
   `MD_UPDATES/U0226_BLOOD.md`): every hit sprays the enemy's blood (red, green ichor, bone chips, spores, sap, ink),
   drops splat on the floor, a kill bursts and leaves a pool, an execution more; clouds under water. Options → Blood:
   On / Less / Off. Checked by tests (`test-blood.ts`); **unseen in the game**.
-- **Next (the plan's parts 2–4):** the enemies' shots (fireballs, acid, water, real carrots and spears, trails and
-  impacts), your blows' trails and the dead sinking away, each floor's motes and the glow (bloom: the designer's call).
 
 ## Before (2026-11-01, Update 0.2.25: floor 3's crowded rooms; chests give loot and cards)
 - **The designer, after playing floor 3:** enemies got stuck in the tomb hall and rooms like it. Its tombs and the

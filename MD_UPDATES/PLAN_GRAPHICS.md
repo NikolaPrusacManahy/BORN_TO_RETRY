@@ -1,7 +1,7 @@
-# Plan — the graphics update (proposed, 2026-11-01; part 1 built: Update 0.2.26)
+# Plan — the graphics update (proposed, 2026-11-01; parts 1 and 2 built: Updates 0.2.26, 0.2.27)
 
 The designer: "let's plan a new visual update for enemies, like blood splashes, better uses of assets instead of having
-balls as projectiles, just an overall graphics update for the game". Proposed by Claude; part 1 (blood) built in 0.2.26.
+balls as projectiles, just an overall graphics update for the game". Proposed by Claude; part 1 (blood) built in 0.2.26, part 2 (the shots) in 0.2.27.
 
 ## Where it stands
 - **Shots:** the Spitter, the Blue Demon, the Demon's volley, the Dragon and the Dragonling all fire the same glowing

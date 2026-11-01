@@ -214,6 +214,11 @@ export class BloodFx {
     this.splatMesh.instanceMatrix.needsUpdate = true;
   }
 
+  /** Update 0.2.27 — a stain on the floor that isn't blood (a shot of acid's): it lies `life` s, Blood setting or not. */
+  stain(x: number, z: number, hex: number, size: number, life: number) {
+    this.splat(x, 0, z, size, life, hex, true);
+  }
+
   /** Drops in the air (or lying, or hanging), splats on the floor, and how many of the drops are clouds (for tests). */
   counts() {
     const live = this.drops.filter((d) => d.alive);

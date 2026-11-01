@@ -2,6 +2,7 @@
 // while warning and turns to face you) and its orange orbs.
 // Update 0.2.4 — a shot that's a Tribal's spear or a Cactoro's spine is drawn as a shaft along its flight. Update 0.2.7
 // — and a White Rabbit's carrot: a fat orange one.
+// Update 0.2.27 — every shot (the turret's too) is shotsView.ts's now, each in its own shape.
 import * as THREE from 'three';
 import type { CombatState } from '../sim/combat/state';
 import { TARGET_SHAPES } from '../sim/combat/targets';
@@ -9,9 +10,6 @@ import { TARGETS } from '../tuning/combat';
 
 const DUMMY_COLOR = 0xb49a76;
 const TURRET_COLOR = 0x4a4652;
-const ORB_COLOR = 0xff7a2a;
-const UP = new THREE.Vector3(0, 1, 0);
-const dir = new THREE.Vector3();
 /** How long a respawning target takes to pop back in (s). */
 const POP_IN = 0.18;
 
@@ -32,11 +30,6 @@ export class TargetsView {
   readonly group = new THREE.Group();
   private readonly dummies: DummyView[] = [];
   private readonly turrets: TurretView[] = [];
-  private readonly orbs: THREE.Mesh[] = [];
-  private readonly shafts: THREE.Mesh[] = [];
-  private readonly orbMat = new THREE.MeshBasicMaterial({ color: ORB_COLOR });
-  /** Update 0.2.10 — floor 5's Glubs' water bolts. */
-  private readonly waterMat = new THREE.MeshBasicMaterial({ color: 0x6fe0ff, transparent: true, opacity: 0.85 });
   private readonly geos: THREE.BufferGeometry[] = [];
   private readonly look = new THREE.Vector3();
 
@@ -86,26 +79,6 @@ export class TargetsView {
       this.turrets.push({ group: g, head: hd, headMat, pop: 1 });
     }
 
-    const orbGeo = this.geo(new THREE.SphereGeometry(1, 16, 12));
-    // A shaft 1 m long along +y, pointed at its top.
-    const shaftGeo = this.geo(new THREE.CylinderGeometry(0, 1, 1, 6).translate(0, 0.5, 0));
-    const spearMat = new THREE.MeshStandardMaterial({ color: 0x8a5a34, roughness: 0.8 });
-    const spineMat = new THREE.MeshStandardMaterial({ color: 0xf0a040, roughness: 0.6 });
-    const carrotMat = new THREE.MeshStandardMaterial({ color: 0xff7418, roughness: 0.7 });
-    for (let i = 0; i < state.orbs.length; i++) {
-      const o = new THREE.Mesh(orbGeo, this.orbMat);
-      o.visible = false;
-      this.orbs.push(o);
-      this.group.add(o);
-      const s = new THREE.Mesh(shaftGeo, spearMat);
-      s.visible = false;
-      s.castShadow = true;
-      s.userData.spine = spineMat;
-      s.userData.spear = spearMat;
-      s.userData.carrot = carrotMat;
-      this.shafts.push(s);
-      this.group.add(s);
-    }
     scene.add(this.group);
   }
 
@@ -153,28 +126,6 @@ export class TargetsView {
       v.headMat.emissive.setHex(t.flash > 0 ? 0xffffff : 0xff2a10);
       v.headMat.emissiveIntensity = t.flash > 0 ? 0.9 : warn * 2.5;
     }
-    const r = TARGETS.v.orbRadius;
-    for (let i = 0; i < state.orbs.length; i++) {
-      const o = state.orbs[i];
-      const m = this.orbs[i];
-      const s = this.shafts[i];
-      m.visible = o.alive && (o.look === 'fire' || o.look === 'water');
-      s.visible = o.alive && o.look !== 'fire' && o.look !== 'water';
-      m.material = o.look === 'water' ? this.waterMat : this.orbMat;
-      if (!o.alive) continue;
-      if (s.visible) {
-        // Its point first, the way it flies.
-        const spear = o.look === 'spear';
-        s.material = s.userData[o.look] as THREE.Material;
-        s.quaternion.setFromUnitVectors(UP, dir.copy(o.vel).normalize());
-        const carrot = o.look === 'carrot';
-        s.scale.set(spear ? 0.06 : carrot ? 0.07 : 0.04, spear ? 1.7 : carrot ? 0.4 : 0.6, spear ? 0.06 : carrot ? 0.07 : 0.04);
-        s.position.copy(o.pos).addScaledVector(dir, -s.scale.y * 0.5);
-        continue;
-      }
-      m.position.copy(o.pos);
-      m.scale.setScalar(r * (1 + 0.12 * Math.sin(o.life * 30)));
-    }
   }
 
   dispose() {
@@ -183,7 +134,5 @@ export class TargetsView {
     this.group.traverse((o) => {
       if (o instanceof THREE.Mesh) (o.material as THREE.Material).dispose();
     });
-    this.waterMat.dispose();
-    this.orbMat.dispose();
   }
 }
