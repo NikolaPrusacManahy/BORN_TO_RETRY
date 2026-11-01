@@ -87,17 +87,23 @@ section('Challenge rooms — won, they hold you till the reward is yours');
   check('CHEST IN CURRENT ROOM ! while it rises', chestToOpen(run.treasure, level, p.pos.x, p.pos.z));
   step(ITEMS.v.chestRise + DT);
   check(`up after ${ITEMS.v.chestRise} s, and solid; the gates still shut`, chest.state === 'shut' && run.shut[chest.spot.gate] && room.gates.every((g) => run.shut[g]));
-  // Open it (a white key). (Update 0.2.16 — a challenge room's chest deals Fate Cards in place of its item.)
+  // Open it (a white key). (Update 0.2.16 — a challenge room's chest deals Fate Cards in place of its item; Update
+  // 0.2.25 — the designer: "in challenge room, you get loot and also cards guaranteed".)
   c.items.keyPick = 'whiteKey';
   p.pos.set(chest.spot.x + chest.spot.fx * 1.2, 0, chest.spot.z + chest.spot.fz * 1.2);
   step(DT, true);
   check('E opens it', chest.state === 'opening');
   step(ITEMS.v.chestTime + DT);
   p.kneel = 0;
-  check('open, it deals Fate Cards: the gates still shut', chest.state === 'open' && !!c.deal && !c.drops.some((d) => d.alive && d.manual) && room.gates.every((g) => run.shut[g]) && !chestToOpen(run.treasure, level, p.pos.x, p.pos.z));
+  const waiting = () => c.drops.some((d) => d.alive && d.manual);
+  check('open, it deals Fate Cards and gives its loot: the gates still shut', chest.state === 'open' && !!c.deal && (waiting() || (chest.loot?.coins ?? 0) > 0) && room.gates.every((g) => run.shut[g]) && !chestToOpen(run.treasure, level, p.pos.x, p.pos.z));
   pickCard(c, p, 0);
   step();
-  check('a card taken: the gates open', !c.deal && c.items.cards.size === 1 && run.rooms[i].state === 'cleared' && room.gates.every((g) => !run.shut[g]) && seen.includes('gatesOpen'));
+  check('a card taken, its item still waiting: still shut', !c.deal && c.items.cards.size === 1 && (!waiting() || (run.rooms[i].state === 'reward' && room.gates.every((g) => run.shut[g]))));
+  // (Its item taken with E.)
+  for (const d of c.drops) if (d.alive && d.manual) d.alive = false;
+  step();
+  check('and its item taken: the gates open', run.rooms[i].state === 'cleared' && room.gates.every((g) => !run.shut[g]) && seen.includes('gatesOpen'));
 }
 {
   // Never shut in for nothing: no key to open it with; or not in the room (the lava took you to the floor's start).

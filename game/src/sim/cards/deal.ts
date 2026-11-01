@@ -1,8 +1,8 @@
 // Update 0.2.16 — a deal of Fate Cards (cards.ts) out of a chest (the designer: "open a chest, blurry background,
 // smoothly present the cards, they are appearing one by one, like a deck card would be"; "if you are lucky, you might
 // not get a normal drop but you get sets of card you pick"; "25% is fine"). A boss's chest (not the run's last) and a
-// challenge room's always deal; a chest opened with a key deals instead of its item one time in four; a gold chest
-// never. Update 0.2.17 (the designer: "I would like to have a chance for each card... not having all 3 card in epic when
+// challenge room's always deal; a chest opened with a key deals instead of its item one time in four (Update 0.2.25: as
+// well as its item, a bonus: sim/dungeon/treasure.ts); a gold chest never. Update 0.2.17 (the designer: "I would like to have a chance for each card... not having all 3 card in epic when
 // we get epic once... the challenge room just gives a card guaranteed, not an Epic card guaranteed"): each card's
 // rarity is rolled on its own by the chests' odds (45 / 30 / 15 / 8 / 2); the key a chest was opened with doesn't count,
 // nor does a big fight (it guarantees a deal, not a rarity). Only cards you don't carry, none twice. While a deal is up

@@ -1,7 +1,8 @@
 // Update 0.2.15 — the Scars. Update 0.2.16 — Fate Cards (the designer: "scars are turned into "Fate cards"", "if you
 // are lucky, you might not get a normal drop but you get sets of card you pick", "25% is fine", "We need rarity too,
 // grey, green, blue, purple, Red … same as drops"): the 30 of wave 1 and their rarities; a boss's chest (not the run's
-// last) and a challenge room's always deal, a keyed chest one time in four instead of its item, a gold chest never;
+// last) and a challenge room's always deal, a keyed chest one time in four instead of its item (Update 0.2.25: as well
+// as its loot), a gold chest never;
 // each card's rarity its own roll by the chests' odds (Update 0.2.17, the designer: "a chance for each card"); only
 // cards you don't carry; taking one; carried down; what TAB shows; the Lab. What each does: test-card-moves.ts, test-card-moves2.ts.
 // Update 0.2.19 — the Death and Traitor Cards dealt among them (test-card-moves4.ts): here they're switched off (their
@@ -108,7 +109,7 @@ section('Fate Cards — a boss’s chest deals');
   check('carrying every one (as II where it can be), no deal', openBossChest(3, false, [...all()]).c.deal === null);
 }
 
-section('Fate Cards — a challenge room’s chest deals instead of its item');
+section('Fate Cards — a challenge room’s chest always deals (Update 0.2.25: with its loot)');
 {
   const level = buildDungeon(planFloor(77, 1));
   const run = createDungeonRun(level);
@@ -141,14 +142,14 @@ section('Fate Cards — a keyed chest, by luck');
   const N = 400;
   for (let seed = 1; seed <= N; seed++) {
     const { c, chest } = openChest(seed, 'key');
-    if (c.deal) {
-      dealt++;
-      // Dealt: no item, no coins.
-      clean &&= !c.drops.some((d) => d.alive && d.manual) && chest.loot?.item === null && chest.loot.coins === 0 && c.money === 0;
-    } else if (chest.loot?.item || (chest.loot?.coins ?? 0) > 0) items++;
+    if (c.deal) dealt++;
+    // (Update 0.2.25 — the designer: "players get the normal loot in there and the card is like a bonus": every one
+    // gives its loot, dealt or not.)
+    if (chest.loot?.item || (chest.loot?.coins ?? 0) > 0) items++;
+    else clean = false;
   }
-  check(`about ${Math.round(CARDS.v.dealChance * 100)}% deal Fate Cards instead of their loot`, Math.abs(dealt / N - CARDS.v.dealChance) < 0.06 && clean, `${dealt} of ${N}`);
-  check('the rest give their loot as before', items === N - dealt);
+  check(`about ${Math.round(CARDS.v.dealChance * 100)}% deal Fate Cards as a bonus`, Math.abs(dealt / N - CARDS.v.dealChance) < 0.06, `${dealt} of ${N}`);
+  check('every one gives its loot, dealt or not', items === N && clean);
   let goldNever = true;
   for (let seed = 1; seed <= 100; seed++) goldNever &&= openChest(seed, null, true).c.deal === null;
   check('a gold chest never deals', goldNever);
@@ -175,6 +176,22 @@ section('Fate Cards — a keyed chest, by luck');
     fallback &&= c.deal === null && !!chest.loot && (chest.loot.item !== null || chest.loot.coins > 0);
   }
   check('nothing left to deal: its loot instead', fallback);
+  // Update 0.2.25 — a challenge room's chest: its loot and a deal, every time.
+  let both = true;
+  for (let seed = 1; seed <= 40; seed++) {
+    const r = createCombat(OPEN_ARENA);
+    r.rng = createRng(seed);
+    r.items.keys = 1;
+    const q = createPlayer(0, 0, 1.2, 0);
+    q.grounded = true;
+    const t = emptyTreasure();
+    const ch: Chest = { spot: { room: -1, x: 0, z: 0, rot: 0, fx: 0, fz: 1, rises: false, boss: false, gate: -1, gold: false }, state: 'shut', t: 0, rolls: [r.rng(), r.rng(), r.rng()], key: null, loot: null, given: false, boss: null, cards: true };
+    t.chests.push(ch);
+    stepTreasure(t, q, r, true, false, () => false, DT);
+    for (let k = 0; k < ticks(ITEMS.v.chestTime + DT); k++) stepTreasure(t, q, r, false, false, () => false, DT);
+    both &&= r.deal !== null && !!ch.loot && (ch.loot.item !== null || ch.loot.coins > 0);
+  }
+  check('a challenge room’s chest: its loot and Fate Cards, guaranteed', both);
 }
 
 section('Fate Cards — off (the lobby’s stand)');

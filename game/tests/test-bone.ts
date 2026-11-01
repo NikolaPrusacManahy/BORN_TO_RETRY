@@ -21,7 +21,7 @@ import { BONE_ROOMS } from '../src/world/dungeon/boneRooms';
 import { KEEP_PIECES } from '../src/world/dungeon/keepDressing';
 import { KEEP_ROOMS } from '../src/world/dungeon/keepRooms';
 import { cellAt, colAt, planFloor, rowAt } from '../src/world/dungeon/floorPlan';
-import { bossRoomOf, FIGHT_ROOMS, onFloor } from '../src/world/dungeon/rooms';
+import { bossRoomOf, FIGHT_ROOMS, layOut, onFloor } from '../src/world/dungeon/rooms';
 import { BONE, STONE, styleOf } from '../src/world/dungeon/styles';
 
 /** A floor 3 with room `id` in it (the first seed from `from`), and that room's index. */
@@ -40,6 +40,16 @@ section('Bone Keep — the floor');
   const on = (f: number) => FIGHT_ROOMS.filter((t) => onFloor(t, f)).map((t) => t.id);
   const own = [...BONE_ROOMS, ...KEEP_ROOMS].map((t) => t.id);
   check('eight rooms of its own, and the ramparts and the towers (no others)', BONE_ROOMS.length === 8 && KEEP_ROOMS.map((t) => t.id).join() === 'ramparts,towers' && on(3).length === 10 && on(3).every((id) => own.includes(id)));
+  // Update 0.2.25 (the designer: enemies "can't navigate through this room or any room with a lot of these blocks or
+  // pillars") — no lane between two blocks narrower than 2 cells (4 m): a Big Mushnub is over 2 m wide.
+  const BLOCK = new Set(['wall', 'column', 'low', 'high', 'crystal', 'ledge', 'highLedge', 'lava']);
+  const pinched = BONE_ROOMS.filter((t) => {
+    const l = layOut(t, createRng(1));
+    const at = (c: number, r: number) => (c < 0 || r < 0 || c >= l.w || r >= l.h ? 'wall' : l.cells[r * l.w + c]);
+    for (let r = 0; r < l.h; r++) for (let c = 0; c < l.w; c++) if (!BLOCK.has(at(c, r)) && ((BLOCK.has(at(c - 1, r)) && BLOCK.has(at(c + 1, r))) || (BLOCK.has(at(c, r - 1)) && BLOCK.has(at(c, r + 1))))) return true;
+    return false;
+  });
+  check('no lane between blocks narrower than 4 m in its rooms', pinched.length === 0, pinched.map((t) => t.id).join(', '));
   check('the keep, the bridgeworks and the lava rooms are retired', !FIGHT_ROOMS.some((t) => ['the keep', 'bridgeworks', 'lava lake', 'lava bridges', 'gauntlet'].includes(t.id)));
   check('its boss room is the Throne Hall', bossRoomOf(3).id === 'throne hall' && bossRoomOf(3).rows.join('').split('C').length - 1 === 24);
   let bad = '';

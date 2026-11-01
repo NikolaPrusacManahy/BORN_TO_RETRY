@@ -20,6 +20,9 @@
 // rolls a chest's rarity twice; Haggler (a card) makes the shop cheaper (`offerPrice`).
 // Update 0.2.20 — the shop's Fate Card (sim/cards/shopCard.ts; the designer: "the shop has only one fate card. floating
 // near, cost 100"); the gold in a chest halved (the designer: "reduce the amount of gold in chest by x2": Chest gold).
+// Update 0.2.25 (the designer: "players get the normal loot in there and the card is like a bonus that can proc"; "in
+// challenge room, you get loot and also cards guaranteed") — a chest always gives its loot; its Fate Cards come as well,
+// never instead (a keyed chest's by luck, a challenge room's always).
 import type { Rng } from '../../core/rng';
 import { ITEMS } from '../../tuning/items';
 import type { ChestSpot, DungeonLevel } from '../../world/dungeon/assemble';
@@ -36,7 +39,7 @@ import type { EnemyKind } from '../enemies/kinds';
 import { Vector3 } from 'three';
 import { CARDS } from '../../tuning/cards';
 import { holds, shopFactor } from '../cards/cards';
-import { dealRarity, startDeal } from '../cards/deal';
+import { startDeal } from '../cards/deal';
 import { buyCard, placeCard, ShopCard } from '../cards/shopCard';
 
 export interface Offer {
@@ -244,13 +247,13 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
 
 /** The lid is up: its glow (by rarity), then coins burst out and fly to you (Update 0.1.10 — an epic or mythic chest
  *  gives both), and the item rises out and hovers over the chest till you take it with E (Update 0.1.11 — the designer:
- *  not taken by itself). Update 0.2.16 — or Fate Cards are dealt (`i`: the chest): a boss's chest deals them with its
- *  coins and heart; any other deals them instead of its loot (its glow, the best card's rarity). */
+ *  not taken by itself). Update 0.2.16 — and Fate Cards may be dealt (`i`: the chest). Update 0.2.25 — always with its
+ *  loot, never instead of it (a boss's chest did so already). */
 function giveLoot(c: Chest, i: number, state: CombatState) {
   c.given = true;
   // (Update 0.2.17 — not when Fate Cards are off: the lobby's stand.)
   const lucky = state.fate && !c.cards && !c.boss && !c.spot.gold && state.rng() < CARDS.v.dealChance;
-  if (state.fate && (c.cards || lucky) && startDeal(state, i) && !c.boss) c.loot = { rarity: dealRarity(state.deal!.cards), item: null, coins: 0 };
+  if (state.fate && (c.cards || lucky)) startDeal(state, i);
   const loot = c.loot!;
   state.events.push('chestRarity', RARITIES.indexOf(loot.rarity), c.spot.x, 0.8, c.spot.z);
   // (No item flies to you: it waits.)

@@ -4,7 +4,7 @@
 import { group, knob } from './schema';
 
 export const CARDS = group('cards', 'Fate Cards', {
-  dealChance: knob(0.25, 0, 1, 0.05, 'Deal chance', 'Chance a chest you open with a key deals Fate Cards instead of its item (a boss’s and a challenge room’s always do).'),
+  dealChance: knob(0.25, 0, 1, 0.05, 'Deal chance', 'Chance a chest you open with a key deals Fate Cards as well as its loot (a boss’s and a challenge room’s always do).'),
   dealt: knob(3, 1, 5, 1, 'Cards dealt', 'How many you choose from.'),
   bumpKnock: knob(1, 0, 4, 0.1, 'Bump knock', 'Shoulder Charge and Bowling: how hard an enemy is thrown, as a heavy punch’s knock.'),
   slingshot: knob(1.5, 1, 3, 0.05, 'Slingshot', 'Slingshot: a jump out of a slide carries this much more speed.'),

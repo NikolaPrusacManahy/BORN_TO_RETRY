@@ -2,7 +2,16 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.2.24: floor 3, the Bone Keep)
+## Next up (2026-11-01, Update 0.2.25: floor 3's crowded rooms; chests give loot and cards)
+- **The designer, after playing floor 3:** enemies got stuck in the tomb hall and rooms like it. Its tombs and the
+  ossuary's alcoves made 2 m lanes a Big Mushnub (over 2 m wide) wedged in: the tomb hall now has half the tombs, 4 m
+  apart at least; the ossuary's graves ring a pit of fire. `test-bone.ts` keeps floor 3's lanes 4 m wide or more;
+  `tools/nav-probe.ts` sends a floor's enemies across each room (spec `MD_UPDATES/U0225_ROOMS_AND_CHESTS.md`).
+- **Chests (the designer):** every chest gives its loot; Fate Cards come as a bonus (a keyed chest 25%), never instead;
+  a challenge room's gives its loot and a deal, always.
+- **Next (the designer: "let's plan a new visual update for enemies"):** the graphics update, planned with the designer.
+
+## Before (2026-11-01, Update 0.2.24: floor 3, the Bone Keep)
 - **The designer: "finish floor 2 and 3"** (spec `MD_UPDATES/U0224_BONE_KEEP.md`). Floor 3 is the stone keep bleached
   bone-white under a pale lavender sky: skulls on the walls, stone tombs as low cover, candelabra, open graves, glowing
   mushroom beds, burrows, violet crystals. **Its enemies come out of their lairs:** Skeletons climb out of graves,

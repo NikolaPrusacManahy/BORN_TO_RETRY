@@ -10,21 +10,22 @@ import { quarter } from './fightRooms';
 const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 3, until: 3 });
 
 export const BONE_ROOMS: readonly RoomTemplate[] = [
-  // Alcoves along the walls, a grave in each; more graves and tombs in the open middle.
+  // A pit of fire in the middle, a causeway across it, walls standing in it to wall-run; graves round it. (Update
+  // 0.2.25 — the designer: enemies couldn't get through its alcoves: no lane narrower than 4 m now.)
   room('ossuary', [
     '...T..........',
     '.E.......E....',
     '..............',
-    '.#g#g#........',
-    '.#.#.#...b....',
-    '..........E...',
-    '.#g#..........',
-    '.#.#....C.....',
-    '.......g.g....',
-    '.E............',
-    '.......g.g....',
-    '...b..........',
-    '.E............',
+    '..g..g..g.....',
+    '..............',
+    '.E........b...',
+    '..g...........',
+    '..............',
+    '..g......LLLLL',
+    '.......E.LL#LL',
+    '..b......LL#LL',
+    '.........LL#LL',
+    '.E.......LLLLL',
     '..............',
   ]),
   // An open court in rows of graves: the dead climb out all round you.
@@ -44,21 +45,22 @@ export const BONE_ROOMS: readonly RoomTemplate[] = [
     '.E........g.g.',
     '..............',
   ]),
-  // Rows of stone tombs between columns; raised galleries at the ends with perches for the Dragonlings.
+  // Stone tombs in rows, a column here and there; raised galleries at the ends with perches for the Dragonlings.
+  // (Update 0.2.25 — the designer: enemies couldn't get through: fewer tombs, 4 m at least between any two.)
   room('tomb hall', [
     '...T..........',
     '.E.......E....',
     '..............',
-    'PPPP..bb..bb..',
-    'PUPP..........',
-    'PPPP..bb..bb..',
+    'PPPP..........',
+    'PUPP..bb...bb.',
+    'PPPP..........',
     'pp............',
-    '......C...C...',
-    '.E............',
-    '......bb..bb..',
+    '......C.......',
+    '.E....bb...bb.',
     '..............',
-    '......bb..bb..',
-    '.E..........E.',
+    '..............',
+    '......bb...C..',
+    '.E...........E',
     '..............',
   ]),
   // Beds of glowing mushrooms the Mushnubs grow out of, columns between them.
