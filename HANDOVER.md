@@ -2,7 +2,19 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-02, Update 0.3.16: floor 6's boss, the Big Shark)
+## Next up (2026-11-02, Update 0.3.17: floor 8 reworked, the Moon: its level)
+- **The plan's update 1** (`MD/FLOOR8_MOON_PLAN.md`; spec `MD_UPDATES/U0317_THE_MOON.md`; the designer: "BIG REWORK of
+  FLOOR 8"): a black space sky of stars with the Earth (the Space Kit's Planet_1), a ringed planet and the sun; bright
+  pale grey moon dust; the moon base, domes, rovers, solar panels, boulders, craters and meteorites; alien plants only in
+  the greenhouse's beds; no torches. Moon gravity 0.625 (decided "Floaty"): jumps 1.6 times as high, bodies fall slower.
+  Meteor showers in three rooms. Nine rooms. The Forge leaves floor 8 (decided): its rooms and tests on floor 10.
+- Checked by tests and Blender renders of the rooms; **unseen in the game** (the sky, the light, the gravity's feel,
+  the meteors).
+- **Next:** 0.3.18, floor 8's enemies: the tiny ships, the aliens, the four mechs (their pilots jump out); then 0.3.19,
+  the boss: **its model isn't on this PC** (`NEW-BOSSES` has the free Bestiary kit: only the Imp and the Puglin; the big
+  monster is in the full pack).
+
+## Before (2026-11-02, Update 0.3.16: floor 6's boss, the Big Shark)
 - **The plan's update 3** (spec `MD_UPDATES/U0316_BIG_SHARK.md`; the designer's show and jaw moves): its arena's walls
   9 m, flooded to 8.4 m in its show (the flood from high over the corner, over its shoulder as it swims, its leap out of
   the water slowed with its name on the right); you swim. Lunge and snap: an arrow, press move left / move right to

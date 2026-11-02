@@ -126,6 +126,8 @@ export interface EnemyWorld {
    *  room's water (m), which it floods and drains. */
   tide: number;
   flood: number;
+  /** Update 0.3.17 — gravity, this share of the usual (floor 8's moon; none: 1): bodies and the knocked fall slower. */
+  gravity?: number;
 }
 
 export const ENEMY_POOL = 16;

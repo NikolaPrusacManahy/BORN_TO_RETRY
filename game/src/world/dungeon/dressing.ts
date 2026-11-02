@@ -166,8 +166,8 @@ export function dress(plan: FloorPlan): Dressing {
             const room = inRoom[(row + dr) * GRID + col + dc];
             // (Not beside the wooden gate: it has its own pair.)
             const byGate = Math.hypot(x - plan.wayOut.doorX, z - plan.wayOut.doorZ) < GATE_TORCHES;
-            // (Update 0.2.11 — none under water; 0.3.16 — nor on the Big Shark's tall walls: its arena floods.)
-            if (room >= 0 && K.under === undefined && rows <= ROWS && (col * 3 + row * 5) % 7 === 0 && !nearDoor(col + dc, row + dr) && !byGate) {
+            // (Update 0.2.11 — none under water; 0.3.16 — nor on the Big Shark's tall walls; 0.3.17 — nor in space.)
+            if (room >= 0 && K.under === undefined && !K.space && rows <= ROWS && (col * 3 + row * 5) % 7 === 0 && !nearDoor(col + dc, row + dr) && !byGate) {
               const tx = x + dc * (CELL / 2 + TORCH_REACH);
               const tz = z + dr * (CELL / 2 + TORCH_REACH);
               put(KIT.torch, tx, TORCH_Y, tz, FACING[side] - Math.PI / 2);
@@ -274,8 +274,8 @@ export function dress(plan: FloorPlan): Dressing {
     const [ax, az, outRows] = [ns ? fx + (k * CELL) / 2 : fx, ns ? fz : fz + (k * CELL) / 2, tall ? (K.bossWalls ?? 3) : 3];
     for (let r = 2; r < outRows; r++) put(K.wall, ax, r * WALL_PIECE, az, FACING[inward], 1, Math.min(1, outRows - r), 1);
     put(K.cap, ax, outRows * WALL_PIECE, az, FACING[inward]);
-    // (Update 0.2.11 — none under water; 0.3.16 — nor in the Big Shark's arena, which floods.)
-    if (K.under !== undefined || tall) continue;
+    // (Update 0.2.11 — none under water; 0.3.16 — nor in the Big Shark's arena; 0.3.17 — nor in space.)
+    if (K.under !== undefined || tall || K.space) continue;
     const tx = ns ? gx + k * 1.6 * CELL : gx - ox * (CELL / 2 + TORCH_REACH);
     const tz = ns ? gz - oz * (CELL / 2 + TORCH_REACH) : gz + k * 1.6 * CELL;
     put(KIT.torch, tx, TORCH_Y, tz, FACING[inward] - Math.PI / 2);

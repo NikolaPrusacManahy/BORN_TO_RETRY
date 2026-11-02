@@ -2,7 +2,8 @@
 // its size): floor 7's sheets of ice (iceView.ts) and icicles (icicleView.ts); floor 8's presses, fire vents and belts
 // (forge/), moving with the machinery's clock (sim/dungeon/machinery.ts). Made in code. Update 0.3.14 — and floor 6's
 // powder kegs (cove/coveView.ts: the Pirate Kit's pieces, once the kit is loaded). Update 0.3.16 — and its boss arena
-// under its water (cove/sharkArena.ts).
+// under its water (cove/sharkArena.ts). Update 0.3.17 — and floor 8's moon (moon/moonView.ts: its sky, craters and
+// meteors).
 import * as THREE from 'three';
 import type { DungeonRun } from '../sim/dungeon/roomLoop';
 import type { DungeonLevel } from '../world/dungeon/assemble';
@@ -13,6 +14,7 @@ import { PressView } from './forge/pressView';
 import { VentView } from './forge/ventView';
 import { CoveView } from './cove/coveView';
 import { SharkArena } from './cove/sharkArena';
+import { MoonView } from './moon/moonView';
 import { styleOf } from '../world/dungeon/styles';
 
 export class DepthsView {
@@ -24,6 +26,7 @@ export class DepthsView {
   private readonly belts: BeltView;
   private readonly cove: CoveView;
   private readonly arena: SharkArena;
+  private readonly moon: MoonView;
   private time = 0;
 
   constructor(level: DungeonLevel) {
@@ -34,12 +37,14 @@ export class DepthsView {
     this.belts = new BeltView(level.forge.belts);
     this.cove = new CoveView(level.cove);
     this.arena = new SharkArena(level.boss.end, level.plan.seed, styleOf(level.plan.level).bossWalls !== undefined);
-    this.group.add(this.ice.group, this.icicles.group, this.presses.group, this.vents.group, this.belts.group, this.cove.group, this.arena.group);
+    this.moon = new MoonView(level);
+    this.group.add(this.ice.group, this.icicles.group, this.presses.group, this.vents.group, this.belts.group, this.cove.group, this.arena.group, this.moon.group);
   }
 
   /** The dungeon kit is loaded (`material`: the floor's own take on a kit material). */
   build(kit: THREE.Object3D, material: (src: THREE.MeshStandardMaterial, piece: string) => THREE.Material) {
     this.cove.build(kit, material);
+    this.moon.build(kit);
   }
 
   /** The view is under the boss arena's water. */
@@ -57,6 +62,7 @@ export class DepthsView {
     if (mach.vents.length) this.vents.update(mach.vents, mach.t);
     this.belts.update(mach.t);
     this.cove.update(run.powder, this.time);
+    this.moon.update(dt, run.meteors, at);
   }
 
   dispose() {
@@ -68,5 +74,6 @@ export class DepthsView {
     this.belts.dispose();
     this.cove.dispose();
     this.arena.dispose();
+    this.moon.dispose();
   }
 }

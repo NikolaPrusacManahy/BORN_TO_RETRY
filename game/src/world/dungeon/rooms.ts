@@ -33,6 +33,9 @@
 // = a boardwalk over it (floor), * a powder keg (it blows up when hit), and rectangles drawn of one letter, each one set
 // piece: Z a beached wreck (its deck a 2.5 m platform), z a small boat up on the sand, M a house, r a rock outcrop, X
 // giant bones (a skull, or an arch of ribs you walk under).
+// Update 0.3.17 — floor 8 reworked, the Moon (moonRooms.ts; the Forge's rooms retired from it): c a crater (floor, its
+// dish drawn), f a greenhouse bed (alien plants in soil), y an alien tree in it (its trunk a block), and set pieces drawn
+// as rectangles of one letter: O a moon base module, d a geodesic dome, u a parked rover, s solar panels, q a boulder.
 import type { Rng } from '../../core/rng';
 import { FIGHT_ROOMS as FIRST_ROOMS, quarter } from './fightRooms';
 import { KEEP_ROOMS } from './keepRooms';
@@ -43,14 +46,15 @@ import { BONE_ROOMS, THRONE_ROOM } from './boneRooms';
 import { FROZEN_ROOMS } from './frozenRooms';
 import { FORGE_ROOMS } from './forgeRooms';
 import { COVE_ROOMS, SHARK_ROOM } from './coveRooms';
+import { MOON_ROOMS } from './moonRooms';
 
 /** Every fight room (Update 0.0.20: the lava rooms too, from their floor on; Update 0.0.21: floor 3's). */
-export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...VENOM_ROOMS, ...BONE_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS, ...COVE_ROOMS, ...FROZEN_ROOMS, ...FORGE_ROOMS];
+export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...VENOM_ROOMS, ...BONE_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS, ...COVE_ROOMS, ...FROZEN_ROOMS, ...FORGE_ROOMS, ...MOON_ROOMS];
 
 /** Update 0.0.21 — the rooms floor `floor` has. */
 export const onFloor = (t: RoomTemplate, floor: number) => (t.from ?? 1) <= floor && floor <= (t.until ?? Infinity);
 
-export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed' | 'bed' | 'grass' | 'tree' | 'web' | 'grave' | 'shroom' | 'burrow' | 'crystal' | 'ice' | 'pine' | 'snow' | 'crusher' | 'vent' | 'belt' | 'bench' | 'boardwalk' | 'keg' | 'wreck' | 'boat' | 'house' | 'outcrop' | 'bones';
+export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed' | 'bed' | 'grass' | 'tree' | 'web' | 'grave' | 'shroom' | 'burrow' | 'crystal' | 'ice' | 'pine' | 'snow' | 'crusher' | 'vent' | 'belt' | 'bench' | 'boardwalk' | 'keg' | 'wreck' | 'boat' | 'house' | 'outcrop' | 'bones' | 'crater' | 'flora' | 'alienTree' | 'module' | 'dome' | 'rover' | 'solar' | 'boulder';
 export type RoomKind = 'start' | 'fight' | 'boss' | 'shop';
 
 export interface RoomTemplate {
@@ -62,6 +66,8 @@ export interface RoomTemplate {
   until?: number;
   /** Update 0.2.11 — only ever its floors' challenge room (never on the way): floor 6's drowned heart. */
   challenge?: boolean;
+  /** Update 0.3.17 — meteors fall in it while it fights (floor 8's: sim/dungeon/meteors.ts). */
+  meteors?: boolean;
 }
 
 const CHAR: Record<string, Cell> = {
@@ -112,6 +118,14 @@ const CHAR: Record<string, Cell> = {
   M: 'house',
   r: 'outcrop',
   X: 'bones',
+  c: 'crater',
+  f: 'flora',
+  y: 'alienTree',
+  O: 'module',
+  d: 'dome',
+  u: 'rover',
+  s: 'solar',
+  q: 'boulder',
 };
 
 /** Update 0.3.13 — a belt's way (dx, dz on the grid: +z is south). */

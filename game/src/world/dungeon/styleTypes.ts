@@ -1,7 +1,7 @@
 // Update 0.3.13 — what a floor's look is (moved out of styles.ts, which had reached its size; no change): its pieces, its
 // colours, its sky and sun, and what it has of its own. Pure data.
 
-export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned' | 'sunken' | 'venom' | 'bone' | 'frozen' | 'forge' | 'cove';
+export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned' | 'sunken' | 'venom' | 'bone' | 'frozen' | 'forge' | 'cove' | 'moon';
 type Scale = [number, number, number];
 
 export interface DungeonStyle {
@@ -76,6 +76,11 @@ export interface DungeonStyle {
   /** Update 0.3.14 — floor 6's cove: sand on every floor cell (no paving), and its own palms and their size. */
   sandFloor?: boolean;
   palms?: { list: readonly string[]; scale: number };
+  /** Update 0.3.17 — floor 8's moon: in space (a black sky of stars with the Earth in it: engine/moon/spaceSky.ts; no
+   *  torches, no air for a flame), the haze's colour apart from the sky's, and moon gravity (tuning/moon.ts). */
+  space?: boolean;
+  haze?: number;
+  lowGravity?: boolean;
 }
 
 /** Update 0.2.23 — a pit's look: its dark base, the glow's two colours it drifts between, how bright. */

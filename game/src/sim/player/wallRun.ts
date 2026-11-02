@@ -71,7 +71,7 @@ export function updateWallRun(p: PlayerState, intent: PlayerIntent, world: Colli
   const speed = Math.max(alongWall(p.vel, n, p.wallRunDir), WALLRUN.v.speed);
   p.vel.x = p.wallRunDir.x * speed - n.x * WALL_STICK;
   p.vel.z = p.wallRunDir.z * speed - n.z * WALL_STICK;
-  p.vel.y = Math.max(p.vel.y - MOVE.v.gravity * WALLRUN.v.gravity * dt, -WALLRUN.v.maxFall);
+  p.vel.y = Math.max(p.vel.y - MOVE.v.gravity * WALLRUN.v.gravity * p.gravity * dt, -WALLRUN.v.maxFall);
   return true;
 }
 

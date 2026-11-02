@@ -65,8 +65,7 @@ export interface CombatState {
   /** Update 0.3.11 — floor 7's ice; Update 0.3.15 — and every pit, floor 6's boardwalks (dungeon/ground.ts). */
   ground: Ground;
   crystals: Spot[];
-  /** Update 0.0.11 — where enemies can walk (built once from the arena, one grid per size), and the way from anywhere
-   *  to the player. */
+  /** Update 0.0.11 — where enemies can walk (from the arena, a grid per size), and the way from anywhere to you. */
   nav: Record<SizeClass, NavGrid>;
   flow: Record<SizeClass, Flow>;
   /** The weapon in your hand (null: barehanded). */
@@ -115,6 +114,8 @@ export interface CombatState {
   tide: number;
   thorns: number;
   flood: number;
+  /** Update 0.3.17 — gravity, this share of the usual (floor 8's moon; none: 1). */
+  gravity?: number;
   /** Update 0.1.12 — seconds since there was last an enemy you could execute (the sting plays only after a while). */
   execAway: number;
   /** Update 0.1.1 — the Lab's Meter: the Execution Power meter kept full. */

@@ -11,8 +11,8 @@ import { ENEMY_STATS, flies } from './kinds';
 const FALL = 25;
 
 /** Returns false if it has nothing more to do this tick (a body lying there, or a free slot). Update 0.3.11 — `slick`:
- *  on ice (its knock slides far). */
-export function beginTick(e: Enemy, nav: NavGrid, dt: number, slick = false): boolean {
+ *  on ice (its knock slides far). Update 0.3.17 — `gravity`: its share of the usual (the moon's). */
+export function beginTick(e: Enemy, nav: NavGrid, dt: number, slick = false, gravity = 1): boolean {
   if (!e.alive) return false;
   e.prev.copy(e.pos);
   // Frozen: nothing moves on (not even its time, so an attack waits), until the ice wears off.
@@ -33,7 +33,7 @@ export function beginTick(e: Enemy, nav: NavGrid, dt: number, slick = false): bo
     }
     // A body in the air falls (a boss's is placed by its death show).
     if (e.pos.y > e.perch && !ENEMY_STATS[e.kind]().boss) {
-      e.vel.y -= FALL * dt;
+      e.vel.y -= FALL * gravity * dt;
       e.pos.y = Math.max(e.perch, e.pos.y + e.vel.y * dt);
     }
     if (e.perch <= 0 && !ENEMY_STATS[e.kind]().boss) fly(e, nav, radiusOf(e), dt, slick);
@@ -42,7 +42,7 @@ export function beginTick(e: Enemy, nav: NavGrid, dt: number, slick = false): bo
   }
   // A walker in the air with no leap to carry it (knocked out of one) falls.
   if (!flies(e.kind) && e.phase !== 'leap' && e.phase !== 'sky' && e.phase !== 'held' && e.pos.y > e.perch) {
-    e.vel.y -= FALL * dt;
+    e.vel.y -= FALL * gravity * dt;
     e.pos.y = Math.max(e.perch, e.pos.y + e.vel.y * dt);
     if (e.pos.y === e.perch) e.vel.y = 0;
   }

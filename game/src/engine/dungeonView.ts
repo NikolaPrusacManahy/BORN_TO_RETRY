@@ -108,7 +108,7 @@ export class DungeonView implements ArenaView {
     scene.add(this.group);
     const look = this.dressing.style;
     scene.background = new THREE.Color(look.sky ?? SKY);
-    this.haze = new THREE.Fog(look.sky ?? SKY, LIGHT.v.hazeNear, LIGHT.v.hazeFar);
+    this.haze = new THREE.Fog(look.haze ?? look.sky ?? SKY, LIGHT.v.hazeNear, LIGHT.v.hazeFar);
     scene.fog = this.haze;
     this.sky = new THREE.HemisphereLight(look.skyLight ?? SKY_LIGHT, look.ground ?? GROUND_LIGHT, LIGHT.v.sky);
     this.sun = new THREE.DirectionalLight(look.sun ?? SUN, LIGHT.v.sun);
@@ -274,7 +274,7 @@ export class DungeonView implements ArenaView {
     // (Update 0.3.16 — and under the Big Shark's arena's water.)
     this.haze.near = this.under || this.depths.sunk ? UNDERWATER.v.hazeNear : v.hazeNear;
     this.haze.far = this.under || this.depths.sunk ? UNDERWATER.v.hazeFar : v.hazeFar;
-    this.haze.color.setHex(this.depths.sunk ? SEA_HAZE : (this.dressing.style.sky ?? SKY));
+    this.haze.color.setHex(this.depths.sunk ? SEA_HAZE : (this.dressing.style.haze ?? this.dressing.style.sky ?? SKY));
     this.sun.target.position.set(at.x, 0, at.z);
     this.sun.position.set(at.x + SUN_DIR.x * 100, SUN_DIR.y * 100, at.z + SUN_DIR.z * 100);
   }

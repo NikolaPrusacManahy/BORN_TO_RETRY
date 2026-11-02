@@ -3,6 +3,7 @@
 // bigger the press); floor 6's powder keg's blast (fire and debris, a hard jolt the nearer); a body sinking into a pit
 // (spray). Update 0.3.15 — and Skull Cove's crew: a powder bomb's blast, a bomb batted back, a skull knocked off, the
 // Tentacle bursting out and grabbing you, slamming you down (sand and a jolt), the sea round it, Mako's sand, Barbarossa's shot striking, his hook catching you.
+// Update 0.3.17 — floor 8's meteor striking (moon dust and rock flung, a hard jolt the nearer).
 import * as THREE from 'three';
 import type { CombatEvent } from '../sim/combat/state';
 import { FEEDBACK } from '../tuning/combat';
@@ -21,6 +22,11 @@ export function depthsFeedback(f: FeedbackParts, kind: CombatEvent, value: numbe
     case 'pressSlam':
       f.sparks.spawn(at, UP, 16, 1);
       f.rig.shake.add(fb.shakeJab * (0.3 + value / 10) * near(9));
+      return true;
+    case 'meteorStrike':
+      f.chunks.spawn(at, UP, 16, 1.5);
+      f.sparks.spawn(at, UP, 30, 1.6);
+      f.rig.shake.add(fb.shakeHeavy * 1.3 * near(18));
       return true;
     case 'kegBlast':
       f.sparks.spawn(at, UP, 60, 2.2);

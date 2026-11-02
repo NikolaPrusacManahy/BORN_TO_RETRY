@@ -201,7 +201,17 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   punch its throat, or it's one shot. Its tail, its teeth stuck in a wall, its frenzy below half. 1800 health. Dead,
   the arena drains. **(placeholder numbers, F1 → Big Shark)**
 
-### Floor 8 — The Forge (Update 0.3.13; spec `MD_UPDATES/U0313_THE_FORGE.md`)
+### Floor 8 — the Moon (Update 0.3.17; the plan `MD/FLOOR8_MOON_PLAN.md`; spec `MD_UPDATES/U0317_THE_MOON.md`)
+- The designer: "BIG REWORK of FLOOR 8": a sci-fi moon floor (the Ultimate Space Kit, `ASSETS/QUATERNIUS/FLOOR-8`).
+- A black space sky of stars with the Earth large in it, a ringed planet, the sun; bright all the same (a hard white
+  sun on pale grey moon dust). Moon base modules, domes, rovers, solar panels, boulders, craters (meteorites in the big
+  ones); alien plants only in the greenhouse's beds. No torches. **Moon gravity** (0.625: jumps 1.6 times as high,
+  knocked enemies fly further). **Meteor showers** in three rooms (warned by a shadow and a glow; 20 to you, thrown; 60
+  to an enemy). Nine rooms of its own; stand-in enemies and boss. Next: the tiny spaceships, the aliens, the four mech
+  mini bosses (their pilots jump out), then the massive alien boss (its model still to come: the full Bestiary pack).
+  **(placeholder numbers, F1 → Moon)**
+
+### The Forge (Update 0.3.13; spec `MD_UPDATES/U0313_THE_FORGE.md`; Update 0.3.17 — out of floor 8, kept on floor 10)
 - The designer: every floor's level first ("I want all designs to be done first"), then the enemies.
 - Floor 3's stone sooty grey under a pale smoky sky, warmed by lava pits again (wider), swords on the walls,
   workbenches with glowing ore, embers rising. **Presses** (crusher cells side by side, one hammer): hang, clank (a shadow spreads), drop, rest

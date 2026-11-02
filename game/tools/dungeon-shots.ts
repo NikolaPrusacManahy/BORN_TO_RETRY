@@ -12,6 +12,7 @@
 // Update 0.3.13 — floor 8's machinery (the presses' frames, hammers some up and some down, their striped plates; the
 // vents' grates, some jetting; the belts), and looks into its rooms.
 // Update 0.3.14 — floor 6's powder kegs (dark red-brown blocks), and looks into its rooms.
+// Update 0.3.17 — and floor 8's moon rooms (its set pieces, craters, beds: the kit's own pieces).
 //   npx tsx tools/dungeon-shots.ts <out folder> [seed] [floor]
 //   blender --background --python tools/blender/render_dungeon.py -- --json <out folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <out folder>
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -25,6 +26,7 @@ import { planFloor } from '../src/world/dungeon/floorPlan';
 import { DESERT_ROOMS } from '../src/world/dungeon/desertRooms';
 import { VENOM_ROOMS } from '../src/world/dungeon/venomRooms';
 import { BONE_ROOMS } from '../src/world/dungeon/boneRooms';
+import { MOON_ROOMS } from '../src/world/dungeon/moonRooms';
 import { FRAME_H, POST, POST_IN } from '../src/world/dungeon/forge';
 import { HAMMER, HAMMER_IN, pressAt } from '../src/sim/dungeon/machinery';
 
@@ -63,7 +65,7 @@ const cams = [
 for (const r of level.rooms) {
   const id = level.plan.rooms[r.index].layout.template.id;
   // (Update 0.0.21 — and floor 3's two-level rooms. Update 0.2.4 — and floor 4's desert rooms.)
-  if (!['ramparts', 'towers'].includes(id) && ![...DESERT_ROOMS, ...VENOM_ROOMS, ...BONE_ROOMS].some((t) => t.id === id)) continue;
+  if (!['ramparts', 'towers'].includes(id) && ![...DESERT_ROOMS, ...VENOM_ROOMS, ...BONE_ROOMS, ...MOON_ROOMS].some((t) => t.id === id)) continue;
   const m = { x: (r.min.x + r.max.x) / 2, z: (r.min.z + r.max.z) / 2 };
   cams.push({ name: `${id.replace(/ /g, '-')}-high`, at: [r.min.x + 3, 14, r.min.z + 3], to: [m.x, -1, m.z] });
   cams.push({ name: `${id.replace(/ /g, '-')}-eye`, at: [r.min.x + 5, 1.6, m.z + 1], to: [m.x, 0, m.z] });

@@ -58,6 +58,7 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   lava: 'Lava',
   fall: 'The fall',
   icicle: 'An icicle',
+  meteor: 'A meteor',
   crusher: 'A press',
   vent: 'A fire vent',
   sea: 'The sea',

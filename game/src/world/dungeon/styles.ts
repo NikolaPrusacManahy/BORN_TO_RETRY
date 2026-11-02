@@ -253,7 +253,33 @@ export const COVE_LOOK: DungeonStyle = {
   lowBed: true,
 };
 
+/** Update 0.3.17 — the Moon: floor 3's stone pale moon grey, moon dust on every floor cell (its beds soil), under a black
+ *  sky of stars with the Earth in it, lit hard and white; no torches; moon gravity. */
+export const MOON_LOOK: DungeonStyle = {
+  ...STONE,
+  id: 'moon',
+  decor: 'kit_p2_WallRocks',
+  decorY: 1,
+  decorOut: 0.1,
+  litter: ['kit_n_Rock_2', 'kit_n_Rock_5', 'kit_p2_Rock1', 'kit_p2_Rock4', 'kit_m_Pickup_Crate', 'kit_m_SolarPanel_Ground', 'kit_p2_Rock2'],
+  core: [0.11, 0.11, 0.12],
+  tint: { RockLight: 0xdcdde0, Rock: 0xa8aaaf, Steel: 0x8f9298, DarkSteel: 0x6c6f75, LightSteel: 0xc9cbd0, Bones: 0xeeeeee, Grey_Floor: 0xc9cacd },
+  floorTint: { RockLight: 0xc6c7ca, Rock: 0x9fa1a5 },
+  sky: 0x020309,
+  haze: 0xc2c4ca,
+  skyLight: 0xffffff,
+  ground: 0xb4b6bb,
+  sun: 0xffffff,
+  sand: 0xc7c8cc,
+  quicksand: 0x5e4a3a,
+  sandFloor: true,
+  low: 'kit_n_Rock_5',
+  lowScale: [2.6, 2.1, 2],
+  space: true,
+  lowGravity: true,
+};
+
 /** Floor `floor`'s look: floor 1 brick, floor 2 the Venom Garden (Update 0.2.23), floor 3 the Bone Keep (Update 0.2.24), floor 4 the desert, floor 5 the Drowned Temple, floor 6
- *  the Sunken Grove (Update 0.3.14 — now Skull Cove), floor 7 Frozen Depths (Update 0.3.11), floor 8 (and on, for now)
- *  The Forge (Update 0.3.13). */
-export const styleOf = (floor: number): DungeonStyle => (floor >= 8 ? FORGE_LOOK : floor === 7 ? FROZEN_LOOK : floor === 6 ? COVE_LOOK : floor === 5 ? DROWNED : floor === 4 ? SAND : floor === 3 ? BONE : floor === 2 ? VENOM : BRICK);
+ *  the Sunken Grove (Update 0.3.14 — now Skull Cove), floor 7 Frozen Depths (Update 0.3.11), floor 8 The Forge (Update
+ *  0.3.13; Update 0.3.17 — the Moon; the Forge's on past it, unbuilt floors). */
+export const styleOf = (floor: number): DungeonStyle => (floor >= 9 ? FORGE_LOOK : floor === 8 ? MOON_LOOK : floor === 7 ? FROZEN_LOOK : floor === 6 ? COVE_LOOK : floor === 5 ? DROWNED : floor === 4 ? SAND : floor === 3 ? BONE : floor === 2 ? VENOM : BRICK);

@@ -32,6 +32,7 @@ import { IcicleSpot, iciclesOf } from './frozen';
 import { bossStart } from './bossWalls';
 import { Forge, forgeOf } from './forge';
 import { Cove, coveOf } from './cove';
+import { Moon, moonOf } from './moon';
 // Update 0.2.4 — floor 4's desert: a palm's trunk and a cactus are narrow blocks in their cells (their sand is floor);
 // quicksand is floor too, listed apart (DungeonLevel.sand) for the slow you feel in it.
 // Update 0.2.23 — floor 2's Venom Garden (garden.ts): a tree's trunk is a willow's block; its webs and its hives.
@@ -39,7 +40,8 @@ import { Cove, coveOf } from './cove';
 // Update 0.3.13 — floor 8's Forge (forge.ts): its presses (their posts solid), fire vents and belts; a workbench is a
 // block. The boss room's start moved to bossWalls.ts.
 // Update 0.3.14 — floor 6's cove (cove.ts): its kegs (blocks) and set pieces (the wreck's deck, boats, houses,
-// outcrops, bones).
+// outcrops, bones). Update 0.3.17 — floor 8's moon (moon.ts): its set pieces, its craters' meteorites; an alien
+// tree's trunk is a willow's block.
 
 /** Heights of what stands on a cell (m); the floor's top is y = 0. */
 export const HEIGHT: Partial<Record<Cell, number>> = { wall: 6, column: 4.9, low: 1.3, high: 2.85, ledge: 1, highLedge: 2.5, spikes: 0.3, chest: 0.9, bench: 0.9 };
@@ -146,6 +148,8 @@ export interface DungeonLevel {
   /** Update 0.3.13 — floor 8's presses, fire vents and belts. Update 0.3.14 — floor 6's kegs and set pieces. */
   forge: Forge;
   cove: Cove;
+  /** Update 0.3.17 — floor 8's moon: its set pieces and craters. */
+  moon: Moon;
 }
 
 /** Update 0.2.4 — a palm's trunk and a cactus: their blocks' sides and heights (m). */
@@ -204,7 +208,7 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
   for (let row = 0; row < GRID; row++) {
     for (let col = 0; col < GRID; col++) {
       const c = cellAt(plan, col, row);
-      const b = c === 'palm' ? PALM : c === 'cactus' ? CACTUS : c === 'crystal' ? CRYSTAL : c === 'willow' || c === 'snag' || c === 'tree' || c === 'pine' ? WILLOW : null;
+      const b = c === 'palm' ? PALM : c === 'cactus' ? CACTUS : c === 'crystal' ? CRYSTAL : c === 'willow' || c === 'snag' || c === 'tree' || c === 'pine' || c === 'alienTree' ? WILLOW : null;
       if (b) boxes.push({ x: cellX(col), y: b.h / 2, z: cellZ(row), w: b.side, h: b.h, d: b.side, kind: 'block' });
     }
   }
@@ -215,6 +219,7 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
   merge(plan, (c) => c === 'ice', (col, row, w, h) => cellsBox(col, row, w, h, -0.1, 0.1, 'accent'), ice);
   const forge = forgeOf(plan, boxes);
   const cove = coveOf(plan, boxes);
+  const moon = moonOf(plan, boxes);
   // Chests: a box the size of the model (one that rises: a gate, below).
   const chests: ChestSpot[] = [];
   for (const r of plan.rooms) {
@@ -279,5 +284,5 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
     dark: { min: { x: cellX(out.x0) - CELL / 2, z: cellZ(out.z0) - CELL / 2 }, max: { x: cellX(out.x1) + CELL / 2, z: cellZ(out.z1) + CELL / 2 } },
   };
   const tide = styleOf(plan.level).water === undefined ? [] : rooms.filter((r) => r.kind === 'fight').map((r): ArenaBox => ({ x: (r.min.x + r.max.x) / 2, y: 0, z: (r.min.z + r.max.z) / 2, w: r.max.x - r.min.x, h: 0, d: r.max.z - r.min.z, kind: 'accent' }));
-  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests, boss, sand, tide, webs: websOf(plan), hives: hivesOf(plan), ice, icicles: iciclesOf(plan, styleOf(plan.level).id === 'frozen'), forge, cove };
+  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests, boss, sand, tide, webs: websOf(plan), hives: hivesOf(plan), ice, icicles: iciclesOf(plan, styleOf(plan.level).id === 'frozen'), forge, cove, moon };
 }

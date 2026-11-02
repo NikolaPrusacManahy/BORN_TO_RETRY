@@ -5,7 +5,7 @@
 // again (wider than floors 1–2's), low cover (b: crates). Floor cells always join every door.
 // Drawn as quarters like the others, mirrored right and down (`mirrored`: a belt's arrow turns with the mirror), or
 // turned round the middle (`pinwheel`: each quarter the last turned a quarter, so belts can run in a ring). Floor 8
-// only.
+// only. Update 0.3.17 — retired from floor 8 (the Moon took it): on floor 10, unbuilt, kept for its echo rooms.
 import type { RoomTemplate } from './rooms';
 
 /** A belt's arrow mirrored left–right, and up–down. */
@@ -40,7 +40,7 @@ export function pinwheel(rows: string[]): string[] {
   return out.map((r) => r.join(''));
 }
 
-const room = (id: string, rows: string[], turned = false): RoomTemplate => ({ id, kind: 'fight', rows: turned ? pinwheel(rows) : mirrored(rows), from: 8, until: 8 });
+const room = (id: string, rows: string[], turned = false): RoomTemplate => ({ id, kind: 'fight', rows: turned ? pinwheel(rows) : mirrored(rows), from: 10, until: 10 });
 
 export const FORGE_ROOMS: readonly RoomTemplate[] = [
   // Presses in rows, slamming one after another; a pool of molten metal in the middle.

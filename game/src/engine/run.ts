@@ -46,6 +46,7 @@ import type { Settings } from '../state/settings';
 import { CAMERA } from '../tuning/camera';
 import { FISTS } from '../tuning/combat';
 import { LAB } from '../tuning/lab';
+import { MOON } from '../tuning/moon';
 import type { DebugInfo } from './hudStore';
 import { readCombatIntent, readPlayerIntent } from './intents';
 import { focusOf } from '../sim/items/focus';
@@ -96,6 +97,8 @@ export class Run extends RunBase {
       // (Update 0.2.4 — and quicksand. Update 0.2.23 — and webs.)
       // (Update 0.2.10 — and wading at high water, or in the Drowned King's. Update 0.2.11 — under water you swim.)
       p.swimTop = d ? (styleOf(this.level.floor).under ?? sharkSea(d.boss, this.combat.flood)) : 0;
+      // (Update 0.3.17 — on the moon, moon gravity.)
+      p.gravity = this.combat.gravity = d && styleOf(this.level.floor).lowGravity ? MOON.v.gravity : 1;
       const wade = d && p.swimTop === 0 ? (bossOn ? floodSlow(p, this.combat.flood) : tideSlow(p, d.tide, d.level.tide)) : 1;
       p.speedMul = moveFactor(this.combat) * (d ? sandSlow(p, d.level.sand) * webSlow(p, d.level.webs) * wade : 1);
       // (Update 0.3.11 — floor 7's ice.)

@@ -23,6 +23,10 @@
 # Update 0.3.13 — and floor 8's, The Forge: part 1's small table (the workbenches) and swords on a wall mount, the RPG
 # pack's gold ingots and ore. Shape keys come off every piece (the ore had some): the game draws the kit instanced, and
 # an instanced piece with morph targets threw on every frame (floor 8 froze).
+# Update 0.3.17 — and floor 8's again, the Moon: the Ultimate Space Kit's pieces (kit_m_<piece>; `--moon`): the moon
+# base, rocks, alien plants, rovers, a crate, the planets for the sky. Like the Pirate Kit's, one 32 px palette
+# (Atlas_Moon.png), one material.
+#       ... --moon <ASSETS/QUATERNIUS/FLOOR-8>
 import argparse
 import math
 import os
@@ -66,6 +70,14 @@ PIRATE = ['Environment_Cliff1', 'Environment_Cliff2', 'Environment_Cliff3', 'Env
           'Prop_Barrel', 'Prop_Bomb', 'Prop_Bottle_1', 'Prop_Bottle_2', 'Prop_Bucket', 'Prop_Bucket_Fishes', 'Prop_Cannon', 'Prop_CannonBall',
           'Prop_Chest_Closed', 'Prop_Chest_Gold', 'Prop_Coins', 'Prop_Fish_Mackerel', 'Prop_Fish_Tuna', 'Prop_GoldBag', 'Prop_Skull',
           'Ship_Large', 'Ship_Small']
+# Update 0.3.17 — floor 8's, the Moon (the Ultimate Space Kit: its environment, vehicles and items folders).
+MOON = ['Base_Large', 'Building_L', 'Connector', 'GeodesicDome', 'House_Cylinder', 'House_Long', 'House_Single', 'House_Open',
+        'House_Door', 'MetalSupport', 'Ramp', 'Stairs', 'Roof_Antenna', 'Roof_Radar', 'Roof_VentL', 'SolarPanel_Ground',
+        'SolarPanel_Structure', 'Rock_1', 'Rock_2', 'Rock_3', 'Rock_4', 'Rock_Large_1', 'Rock_Large_2', 'Rock_Large_3',
+        'Plant_1', 'Plant_2', 'Plant_3', 'Bush_1', 'Bush_2', 'Grass_2', 'Grass_3', 'Tree_Blob_1', 'Tree_Light_1',
+        'Tree_Spiral_1', 'Tree_Swirl_1', 'Tree_Spikes_2'] + [f'Planet_{i}' for i in range(1, 12)]
+MOON_VEHICLES = ['Rover_1', 'Rover_2', 'Rover_Round']
+MOON_ITEMS = ['Pickup_Crate']
 # Faced +x as they come: turned a quarter so they face −y.
 TURN = {'ModularStoneWall', 'ModularStoneWall_top', 'ModularStoneWall_EntranceTop', 'Entrance', 'Bars', 'WallRocks'}
 
@@ -80,14 +92,15 @@ def parse_args():
     p.add_argument('--nature', default=None)
     p.add_argument('--rpg', default=None)
     p.add_argument('--pirate', default=None)
+    p.add_argument('--moon', default=None)
     return p.parse_args(argv)
 
 
-def one_atlas(pieces):
+def one_atlas(pieces, name='Atlas_Pirate'):
     """Update 0.3.14 — the Pirate Kit's pieces each bring their own copy of its palette (Atlas_Pirate.png.001…) and
     material (Atlas.001…): one of each for all of them. Its material is a Diffuse shader, which the glTF export doesn't
     read (the palette was left out): made a Principled one, the palette its base colour, sampled to the nearest pixel
-    (a 32 px palette: its colours don't bleed)."""
+    (a 32 px palette: its colours don't bleed). Update 0.3.17 — a pack at a time (`name`: the Space Kit's Atlas_Moon)."""
     image = None
     mat = None
     for o in pieces:
@@ -97,10 +110,10 @@ def one_atlas(pieces):
                 continue
             if mat is None:
                 mat = m
-                mat.name = 'Atlas_Pirate'
+                mat.name = name
                 image = next((n.image for n in m.node_tree.nodes if n.type == 'TEX_IMAGE' and n.image), None)
                 if image:
-                    image.name = 'Atlas_Pirate.png'
+                    image.name = name + '.png'
                 nodes = mat.node_tree.nodes
                 nodes.clear()
                 out = nodes.new('ShaderNodeOutputMaterial')
@@ -126,6 +139,8 @@ def main():
     packs = [('p1', args.part1, PART1), ('p2', args.part2, PART2)] + ([('n', args.nature, NATURE)] if args.nature else [])
     packs += [('r', args.rpg, RPG)] if args.rpg else []
     packs += [('pf', args.pirate, PIRATE)] if args.pirate else []
+    if args.moon:
+        packs += [('m', os.path.join(args.moon, 'environment'), MOON), ('m', os.path.join(args.moon, 'vehicles'), MOON_VEHICLES), ('m', os.path.join(args.moon, 'items'), MOON_ITEMS)]
     for prefix, folder, names in packs:
         protos = load_pieces(folder, names, {}, bake=True, recenter=names)
         for name, o in protos.items():
@@ -137,7 +152,8 @@ def main():
             o.data.name = o.name
             bpy.context.scene.collection.objects.link(o)
             pieces.append(o)
-    one_atlas(pieces)
+    one_atlas([o for o in pieces if o.name.startswith('kit_pf_')], 'Atlas_Pirate')
+    one_atlas([o for o in pieces if o.name.startswith('kit_m_')], 'Atlas_Moon')
     for o in pieces:
         d = o.dimensions
         print(f'{o.name:28s} {d.x:5.2f} x {d.y:5.2f} x {d.z:5.2f}')

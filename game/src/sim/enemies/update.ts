@@ -176,7 +176,7 @@ export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWor
     // song, its time runs faster: shanty.ts.)
     const edt = e.hype > 0 ? dt * FOES_COVE.v.shantyHype : dt;
     e.hype = Math.max(0, e.hype - dt);
-    if (beginTick(e, w.nav[ENEMY_STATS[e.kind]().size], edt, onIce(e.pos.x, e.pos.y, e.pos.z, w.ground?.ice ?? [])) && e.phase !== 'held') {
+    if (beginTick(e, w.nav[ENEMY_STATS[e.kind]().size], edt, onIce(e.pos.x, e.pos.y, e.pos.z, w.ground?.ice ?? []), w.gravity) && e.phase !== 'held') {
       if (waits(e, player)) wait(e, player, w, edt);
       else UPDATE[e.kind](e, i, player, w, edt, world);
       fanOut(e, player, w, edt);

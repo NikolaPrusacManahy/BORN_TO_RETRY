@@ -2,7 +2,8 @@
 // floor 2's Venom Garden (gardenDressing.ts) and floor 3's Bone Keep (keepDressing.ts), and the marks they leave on the
 // floor (engine/gardenView.ts draws them). Update 0.3.11 — and floor 7's snow (frozen.ts). Update 0.3.13 — and floor
 // 8's workbenches (forge.ts); its presses, vents and belts are paving here (engine/forgeView.ts draws them). Update
-// 0.3.14 — and floor 6's cove (cove.ts: its set pieces, boardwalks, boats and treasure; its kegs are the view's). Pure.
+// 0.3.14 — and floor 6's cove (cove.ts: its set pieces, boardwalks, boats and treasure; its kegs are the view's).
+// Update 0.3.17 — and floor 8's moon (moon.ts: its set pieces, meteorites, greenhouse beds, dishes). Pure.
 import type { Rng } from '../../core/rng';
 import type { FloorPlan } from './floorPlan';
 import type { Put, SandCell } from './dressExtras';
@@ -11,6 +12,7 @@ import { dressCrystal, dressKeep, dressLair } from './keepDressing';
 import { dressFrozen } from './frozen';
 import { dressBench } from './forge';
 import { dressCove } from './cove';
+import { dressFlora, dressMoon } from './moon';
 import type { Cell } from './rooms';
 import type { DungeonStyle } from './styles';
 
@@ -52,6 +54,10 @@ export function dressOwnCell(c: Cell, x: number, z: number, boss: boolean, rng: 
     case 'bench':
       dressBench(x, z, rng, put);
       return true;
+    case 'flora':
+    case 'alienTree':
+      dressFlora(c, x, z, rng, put, sand);
+      return true;
     case 'crusher':
     case 'vent':
     case 'belt':
@@ -62,6 +68,12 @@ export function dressOwnCell(c: Cell, x: number, z: number, boss: boolean, rng: 
     case 'house':
     case 'outcrop':
     case 'bones':
+    case 'crater':
+    case 'module':
+    case 'dome':
+    case 'rover':
+    case 'solar':
+    case 'boulder':
       return true;
     default:
       return false;
@@ -73,4 +85,5 @@ export function dressOwnRooms(K: DungeonStyle, plan: FloorPlan, inRoom: Int16Arr
   if (K.id === 'venom') dressGarden(plan, inRoom, nearDoor, rng, put, marks.scorch);
   if (K.id === 'bone') dressKeep(plan, inRoom, nearDoor, rng, put);
   if (K.id === 'cove') dressCove(plan, rng, put);
+  if (K.id === 'moon') dressMoon(plan, rng, put);
 }

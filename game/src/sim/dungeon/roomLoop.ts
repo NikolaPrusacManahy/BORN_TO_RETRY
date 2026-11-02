@@ -51,6 +51,7 @@ import { armHives, stepHives } from './hives';
 import { createIcicles, Icicle, stepIcicles } from './icicles';
 import { createMachinery, Machinery, stepMachinery } from './machinery';
 import { createPowder, Powder, stepPowder } from './powder';
+import { createMeteors, Meteors, stepMeteors } from './meteors';
 import { sinkInPits } from './lava';
 import { lavaOf, type ArenaBox } from '../../world/arena';
 import { fromLair, lairFor } from './lairs';
@@ -94,6 +95,8 @@ export interface DungeonRun {
   /** Update 0.3.14 — floor 6's powder kegs (powder.ts); every pit's boxes (a body knocked over one sinks). */
   powder: Powder;
   pits: ArenaBox[];
+  /** Update 0.3.17 — floor 8's meteor showers (meteors.ts). */
+  meteors: Meteors;
 }
 
 /** Seconds from the gates shutting to the first wave. */
@@ -121,6 +124,7 @@ export function createDungeonRun(level: DungeonLevel, last = false): DungeonRun 
     machinery: createMachinery(level.forge),
     powder: createPowder(level.cove),
     pits: lavaOf(level.arena),
+    meteors: createMeteors(level),
   };
 }
 
@@ -137,6 +141,7 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
   stepIcicles(run.icicles, player, combat, dt);
   stepMachinery(run.machinery, player, combat, dt);
   stepPowder(run.powder, player, combat, dt);
+  stepMeteors(run.meteors, run.current, run.current >= 0 && run.rooms[run.current].state === 'fighting', player, combat, dt);
   sinkInPits(run.pits, combat);
   for (let i = 0; i < run.rooms.length; i++) {
     const rr = run.rooms[i];

@@ -49,9 +49,14 @@ export function impactLayer(a: AudioEngine, kind: CombatEvent, value: number) {
       iceShatter(a);
       hit(0.35, 0.1);
       return;
-    // (Update 0.3.14 — floor 6's powder kegs; a body into a pit.)
+    // (Update 0.3.14 — floor 6's powder kegs; a body into a pit. Update 0.3.17 — floor 8's meteors: one called down
+    // hissing in, one striking, the keg's boom.)
     case 'kegBlast':
+    case 'meteorStrike':
       kegBoom(a);
+      return;
+    case 'meteorWarn':
+      ventHiss(a);
       return;
     case 'pitSink':
       splash(a);

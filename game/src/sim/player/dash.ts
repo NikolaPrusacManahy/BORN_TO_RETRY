@@ -43,7 +43,7 @@ export function tryStartDash(p: PlayerState, pressed: boolean, wish: Vector3): b
 export function updateDash(p: PlayerState, dt: number) {
   p.vel.x = p.dashDir.x * DASH.v.speed;
   p.vel.z = p.dashDir.z * DASH.v.speed;
-  if (DASH.v.gravity > 0) applyGravity(p.vel, dt, DASH.v.gravity);
+  if (DASH.v.gravity > 0) applyGravity(p.vel, dt, DASH.v.gravity * p.gravity);
   else p.vel.y = 0;
   p.dashTime -= dt;
   if (p.dashTime <= 0) endDash(p);

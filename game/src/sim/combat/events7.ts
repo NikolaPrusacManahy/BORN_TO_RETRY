@@ -13,4 +13,8 @@ export type DepthsEvent =
   // Update 0.3.14 — floor 6's (dungeon/powder.ts): a powder keg blowing up (value: which), wherever it is. A body sinking
   // into a pit (value: which enemy; dungeon/lava.ts).
   | 'kegBlast'
-  | 'pitSink';
+  | 'pitSink'
+  // Update 0.3.17 — floor 8's meteors (dungeon/meteors.ts): one called down (its warning, where it'll strike), one
+  // striking.
+  | 'meteorWarn'
+  | 'meteorStrike';

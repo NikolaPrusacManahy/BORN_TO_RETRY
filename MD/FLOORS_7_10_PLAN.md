@@ -38,6 +38,9 @@ temple (8), under that the ground gives way to an abyss (9), and at the bottom, 
 
 ## Floor 8 — The Forge
 
+**Update 0.3.17 — reworked as the Moon** (the designer: "BIG REWORK of FLOOR 8"; `MD/FLOOR8_MOON_PLAN.md`). The Forge
+below moved to floor 10 (unbuilt), kept for its echo rooms.
+
 - **Look:** dark iron and stone lit by rivers of lava (bright with its glow), chains, anvils, braziers, sparks and
   smoke; the dungeon kit's metal pieces and code-made machinery.
 - **Mechanics:** **crushers** (heavy hammers that slam rows of cells on a beat: their shadow and a clank warn),

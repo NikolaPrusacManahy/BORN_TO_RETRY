@@ -46,7 +46,7 @@ export type MoveEvent =
 /** Update 0.1.14 — what hurt you (the death screen names what killed you): an enemy's kind, or the world. */
 // (Update 0.3.11 — and floor 7's icicles. Update 0.3.13 — floor 8's presses and fire vents. Update 0.3.14 — floor 6's
 // sea and powder kegs.)
-export type Cause = EnemyKind | 'turret' | 'spikes' | 'lava' | 'fall' | 'icicle' | 'crusher' | 'vent' | 'sea' | 'keg';
+export type Cause = EnemyKind | 'turret' | 'spikes' | 'lava' | 'fall' | 'icicle' | 'crusher' | 'vent' | 'sea' | 'keg' | 'meteor';
 
 export interface PlayerState {
   /** Feet position. */
@@ -135,6 +135,9 @@ export interface PlayerState {
    *  none): the Big Shark's jaws, escaped (sim/enemies/bigSharkMoves.ts). */
   strafe: number;
   strafePressed: number;
+  /** Update 0.3.17 — gravity, this share of the usual (floor 8's moon: Moon gravity; set by the run each tick). Your
+   *  jump's speed stays the usual, so it goes higher and hangs longer. */
+  gravity: number;
   /** Update 0.1.14 — what last took your health (null: nothing yet), and who poisoned you. */
   hurtBy: Cause | null;
   poisonBy: Cause | null;
@@ -197,6 +200,7 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     swimTop: 0,
     strafe: 0,
     strafePressed: 0,
+    gravity: 1,
     dashLock: 0,
     hurtBy: null,
     poisonBy: null,

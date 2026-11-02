@@ -105,10 +105,11 @@ section('Floor 6 — the floor');
   const palms = d.pieces.filter((p) => p.piece.startsWith('kit_pf_Environment_PalmTree'));
   check('the Pirate Kit’s palms', palms.length > 0 && palms.every((p) => cellAt(plan, Math.floor(p.x / CELL + GRID / 2), Math.floor(p.z / CELL + GRID / 2)) === 'palm'));
   const glb = readFileSync(new URL('../public/models/dungeon/kit.glb', import.meta.url));
-  const kit = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString('utf8')) as { meshes: { name: string }[]; nodes: { name: string }[]; images?: unknown[] };
+  const kit = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString('utf8')) as { meshes: { name: string }[]; nodes: { name: string }[]; images?: { name: string }[] };
   const names = new Set([...kit.nodes.map((n) => n.name), ...kit.meshes.map((m) => m.name)]);
   const missing = [...new Set(d.pieces.map((p) => p.piece))].filter((p) => !names.has(p));
-  check('every piece floor 6 is dressed with is in the kit (with the Pirate Kit’s one palette)', missing.length === 0 && kit.images?.length === 1, missing.join(', '));
+  // (Update 0.3.17 — one palette a textured pack: the Pirate Kit's, and floor 8's Space Kit's.)
+  check('every piece floor 6 is dressed with is in the kit (with the Pirate Kit’s one palette)', missing.length === 0 && kit.images?.length === 2 && kit.images.some((i) => i.name === 'Atlas_Pirate'), missing.join(', '));
 }
 
 section('Floor 6 — the sea');
