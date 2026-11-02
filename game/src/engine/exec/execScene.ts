@@ -4,7 +4,8 @@
 // execution left it (or gone). The hands come later in the frame (execView.ts `followHeld`), then `afterHands`: an arm
 // reaching for them, pieces cut and carried, the tongue.
 import * as THREE from 'three';
-import { Execution, moveOf } from '../../sim/combat/execution';
+import type { Execution } from '../../sim/combat/execution';
+import { moveFor } from '../../sim/combat/execPin';
 import type { CombatState } from '../../sim/combat/state';
 import { ENEMY_STATS } from '../../sim/enemies/kinds';
 import { EXECUTION } from '../../tuning/execution';
@@ -13,6 +14,7 @@ import { boneOf } from './bones';
 import { fold, reachArm, Grip, holdStill, placeHeld, placeStood } from './body';
 import { Drawn, HandTarget, resetHands } from './hands';
 import { EXEC_LOOKS } from './looks';
+import { lookFor, piecesKey } from './pinLook';
 import { Piece, Pieces } from './pieces';
 
 /** The tongue's thickness (m). */
@@ -69,7 +71,7 @@ export class ExecScene {
     drawn.root = null;
     const e = this.target >= 0 ? state.enemies[this.target] : null;
     const root = this.target >= 0 ? rootOf(this.target) : null;
-    const look = EXEC_LOOKS[ex.kind];
+    const look = lookFor(ex);
     if (root && root === this.root && e && e.alive && (ex.active || e.phase === 'dead')) {
       if (ex.active) this.place(ex, root, e.facing);
       else this.after(root);
@@ -93,7 +95,7 @@ export class ExecScene {
     resetHands();
     this.target = ex.target;
     this.root = root;
-    const cuts = EXEC_LOOKS[ex.kind]?.cuts ?? [];
+    const cuts = lookFor(ex)?.cuts ?? [];
     this.cut = cuts.map(() => false);
     this.dropped = cuts.map(() => false);
     this.held = cuts.map(() => null);
@@ -111,10 +113,11 @@ export class ExecScene {
   }
 
   private place(ex: Execution, root: THREE.Object3D, facing: number) {
-    const move = moveOf(ex.kind);
-    const look = EXEC_LOOKS[ex.kind];
+    const move = moveFor(ex);
+    const look = lookFor(ex);
     const scale = ENEMY_STATS[ex.kind]().height / (root.userData.height as number);
-    const grip = root.userData.grip as Grip | null;
+    // (Update 0.3.8 — a pinned body is held by its head: pinLook.ts.)
+    const grip = (ex.pinned ? root.userData.pinGrip : root.userData.grip) as Grip | null;
     if (move.held && grip) placeHeld(root, ex, scale, grip, root.rotation.y, root.userData.lowest as number);
     else if (!move.held) placeStood(root, ex, facing, root.rotation.y, ENEMY_STATS[ex.kind]().height);
     holdStill(root);
@@ -143,9 +146,9 @@ export class ExecScene {
 
   /** Every piece of it flies apart from its middle; the body's gone. */
   private burstAll(ex: Execution, root: THREE.Object3D) {
-    const look = EXEC_LOOKS[ex.kind];
+    const look = lookFor(ex);
     const specs = look?.pieces ?? [];
-    const all = this.pieces.of(ex.kind, root, specs);
+    const all = this.pieces.of(piecesKey(ex), root, specs);
     v.copy(root.position).addScaledVector(UP, ENEMY_STATS[ex.kind]().height * 0.5);
     F.set(-Math.sin(ex.yaw), 0, -Math.cos(ex.yaw));
     all.forEach((p, i) => {
@@ -168,7 +171,7 @@ export class ExecScene {
   afterHands(state: CombatState, hands: Record<Side, HandTarget>) {
     const ex = state.exec;
     const root = drawn.root;
-    const look = EXEC_LOOKS[ex.kind];
+    const look = lookFor(ex);
     if (!look || !clock.on) return;
     const hand = (side: Side) => w.lerpVectors(hands[side].a.at, hands[side].b.at, hands[side].u);
     if (root && look.reach && !this.cut[0]) {
@@ -182,7 +185,7 @@ export class ExecScene {
     (look.cuts ?? []).forEach((cut, i) => {
       if (!this.cut[i] && root && clock.t >= cut.t) {
         this.cut[i] = true;
-        const all = this.pieces.of(ex.kind, root, look.pieces ?? []);
+        const all = this.pieces.of(piecesKey(ex), root, look.pieces ?? []);
         for (const p of cut.pieces) {
           const piece = all[p];
           this.pieces.take(piece, root);
@@ -205,7 +208,7 @@ export class ExecScene {
     // The frog's tongue: from its mouth to your right hand.
     const tongue = look.tongue;
     const mouth = root && tongue ? boneOf(root, tongue.from) : null;
-    this.tongue.visible = !!mouth && ex.active && clock.t < moveOf(ex.kind).endAt;
+    this.tongue.visible = !!mouth && ex.active && clock.t < moveFor(ex).endAt;
     if (mouth && this.tongue.visible && tongue) {
       mouth.getWorldPosition(v);
       const reach = Math.min(1, clock.t / tongue.out);

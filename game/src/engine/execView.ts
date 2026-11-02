@@ -9,7 +9,7 @@ import type { CombatState } from '../sim/combat/state';
 import type { Look } from './look';
 import type { Viewmodel } from './viewmodel/viewmodel';
 import { clock, drawn, execScene } from './exec/execScene';
-import { HAND_MOVES } from './exec/handMoves';
+import { handsFor } from './exec/pinLook';
 import { handsAt } from './exec/hands';
 
 /** How fast the view turns where the moves look (1/s). */
@@ -22,7 +22,8 @@ export function followHeld(state: CombatState, look: Look, arms: Viewmodel, came
   arms.grip.weight = 0;
   if (!clock.on) return;
   if (held) look.turnTo(ex.lookYaw, ex.lookPitch, TURN, real);
-  if (!handsAt(HAND_MOVES[ex.kind], clock.t, ex, held, drawn, camera, arms.grip.hand)) return;
+  // (Update 0.3.8 — the wall finisher's hands for a pinned body.)
+  if (!handsAt(handsFor(ex), clock.t, ex, held, drawn, camera, arms.grip.hand)) return;
   arms.grip.weight = 1;
   arms.grip.world = camera;
   execScene()?.afterHands(state, arms.grip.hand);

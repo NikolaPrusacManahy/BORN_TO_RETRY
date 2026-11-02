@@ -2,7 +2,14 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.3.7: launches and wall-splats)
+## Next up (2026-11-01, Update 0.3.8: the wall finisher; the Yeti's barrage)
+- **The designer: "Finishers that interact with environment"** (spec `MD_UPDATES/U038_WALL_FINISHER.md`): a Grunt,
+  Skeleton, White Rabbit or Leaper flung dead into a wall is pinned there, flickering, for 3 s, then drops. Meanwhile E
+  executes it for free (the meter not spent): you're brought up to it; a left hook, a right; its head grabbed, slammed to
+  the floor; clasped fists smashed down; it bursts; +5 HP. The Yeti's execution is now the Blue Demon's barrage. Checked
+  by tests (`test-pin.ts`) and renders; **unseen in the game**.
+
+## Before (2026-11-01, Update 0.3.7: launches and wall-splats)
 - **The designer: "Punched enemies launching into the air and splatting against walls"** (spec
   `MD_UPDATES/U037_LAUNCH_AND_SPLAT.md`): a killing punch flings the body up and about 6 m away; a live enemy is never
   thrown up (the designer took the finisher's launch out: "like a stun I do not want"). A body (or an enemy knocked

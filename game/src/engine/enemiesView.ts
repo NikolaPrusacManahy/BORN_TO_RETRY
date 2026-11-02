@@ -22,6 +22,7 @@
 // Update 0.2.4 — a Cactoro under the sand isn't drawn (desertView.ts shows the sand moving over it); the Dino is gone
 // once it bursts. The Lizard, camouflaged, is barely seen (Lizard seen) except while it spits.
 // Update 0.2.28 — a hit squashes a body a moment; the dead sink into the floor before they go (sinkOf).
+// Update 0.3.8 — a body pinned to a wall is struck there and held so, flickering white till it drops or you take it.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -39,7 +40,9 @@ import { FOES4 } from '../tuning/foes4';
 import { posedBounds } from './bodyMeasure';
 import { clipOf, FADE, LOOKS, ONCE, Role, ROLES, roleFor } from './enemyLooks';
 import { TongueView } from './tongueView';
-import { gripOf, stillOf } from './exec/body';
+import { gripFrom, gripOf, stillOf } from './exec/body';
+import { PIN_GRIP } from './exec/pinLook';
+import { PINNABLE } from '../sim/enemies/flight';
 import { moveOf } from '../sim/combat/execution';
 import { submerged } from '../sim/enemies/drownedKingMoves';
 
@@ -69,6 +72,9 @@ const STILL = 0.12;
  *  floor over the last part of its time (its height, by then): not a boss's, a flier's or a fish's. */
 const SQUASH = 0.14;
 const SINK_FROM = 0.45;
+/** Update 0.3.8 — a pinned body: its clip stops this far in (s), and how white it flickers. */
+const PIN_POSE = 0.25;
+const FLICKER = 0.8;
 export function sinkOf(e: Enemy): number {
   if (e.phase !== 'dead' || flies(e.kind) || SWIMS.has(e.kind)) return 0;
   const s = ENEMY_STATS[e.kind]();
@@ -128,6 +134,8 @@ export class EnemiesView {
       root.userData.height = height;
       root.userData.lowest = lowest;
       root.userData.grip = gripOf(kind, model);
+      // (Update 0.3.8 — held by its head in the wall finisher, if it can be pinned.)
+      root.userData.pinGrip = PINNABLE.has(kind) ? gripFrom(PIN_GRIP, model) : null;
       root.userData.still = stillOf(kind, root);
       root.visible = false;
       const mats: THREE.MeshStandardMaterial[] = [];
@@ -198,6 +206,8 @@ export class EnemiesView {
       let want: Role = e.phase === 'held' && !moveOf(e.kind).held ? 'idle' : roleFor(e.phase, attack.time >= attack.getClip().duration - 0.01);
       // Update 0.1.19 — a Skeleton in pieces lies there, then rises as it rebuilds (its clip sped to fit the knob).
       if (e.phase === 'rebuild' && e.t >= (king ? BONE_KING.v.kingDown : FOES3.v.skeletonDown)) want = 'rise';
+      // Update 0.3.8 — pinned to a wall: struck there and held so (its clip stops a moment in).
+      if (e.pinned > 0) want = 'hit';
       // Update 0.2.3 — the Bone King stands as it crouches to jump (its attack is a swing).
       if (king && e.phase === 'windup' && e.move === SMASH) want = 'idle';
       // Update 0.2.5 (the designer: Tribals on a perch "just run on the spot"): one on its feet that hasn't moved a while stands.
@@ -213,10 +223,12 @@ export class EnemiesView {
       b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? BONE_KING.v.kingRise : FOES3.v.skeletonRise);
       b.actions.move.timeScale = e.phase === 'held' ? 3 : dash ? 2 : 1;
       const ice = e.frozen > 0 ? 1 : 0;
-      if (!ice && !b.root.userData.kept) b.mixer.update(dt);
+      if (!ice && !b.root.userData.kept && !(e.pinned > 0 && e.t > PIN_POSE)) b.mixer.update(dt);
       // Update 0.1.1 — you could execute it: a crimson pulse.
       const mark = state.execTarget === i ? 0.5 + 0.5 * Math.sin(e.t * 12) : 0;
-      const flash = e.flash / 0.12 + mark * 0.3;
+      // (Update 0.3.8 — a pinned body flickers till it drops, or till you take it.)
+      const flicker = e.pinned > 0 && !(state.exec.active && state.exec.target === i) && Math.sin(e.t * 38) > 0 ? FLICKER : 0;
+      const flash = e.flash / 0.12 + mark * 0.3 + flicker;
       // Update 0.2.4 — the Lizard's camouflage.
       const seen = e.kind === 'lizard' && !lizardSeen(e) ? FOES4.v.lizardHide : 1;
       for (const m of b.mats) {

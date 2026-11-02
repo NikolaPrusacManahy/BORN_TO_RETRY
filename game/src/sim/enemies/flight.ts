@@ -3,15 +3,36 @@
 // little (Air drag); on the floor it slides to a stop as before. Anything knocked into a wall at Splat speed or faster
 // splats on it and stops there (sim/combat/splat.ts: the damage; the engine: the blood on the wall). Light: not a boss,
 // not large, not on a ledge; a flier's body is flung, never thrown up (it falls). A live enemy is never thrown up (the
-// designer: "no 3rd punch of a combo launches, it is not something I want, it is like a stun"). Pure.
+// designer: "no 3rd punch of a combo launches, it is not something I want, it is like a stun").
+// Update 0.3.8 (the designer: "enemies being pinned to a wall when they die, they are thrown and they flicker for like 3
+// sec and die … only the running type of enemy that have an humanoid looks, like grunts, skeleton, rabbit, Leaper") — a
+// body of those thrown into a wall is pinned there: lifted off the floor, facing out, for Pinned time (it flickers: the
+// view); then it drops (tick.ts). Meanwhile it can be executed for free (combat/execPin.ts). Pure.
 import { pushOutOfWalls, type NavGrid } from '../../world/navGrid';
+import { EXECUTION } from '../../tuning/execution';
 import { LAUNCH } from '../../tuning/launch';
 import type { Enemy } from './enemy';
-import { ENEMY_STATS, flies } from './kinds';
+import { ENEMY_STATS, EnemyKind, flies } from './kinds';
 
 /** Sliding on the floor, a body slows at this rate (1/s); this far over its floor (m), it's in the air. */
 const SLIDE_FRICTION = 7;
 const AIR = 0.05;
+
+/** The humanoid runners, pinned to the wall they're thrown into dead; how far up the wall a pinned body hangs (its feet,
+ *  m: at least, at most). */
+export const PINNABLE: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['grunt', 'skeleton', 'rabbit', 'leaper']);
+const PIN_LOW = 0.2;
+const PIN_HIGH = 0.9;
+
+/** A body that hit a wall (`e.wall`): pinned there, if it's one of those. */
+export function pin(e: Enemy) {
+  if (!PINNABLE.has(e.kind) || e.phase !== 'dead' || e.perch > 0) return;
+  e.pinned = EXECUTION.v.pinTime;
+  e.t = 0;
+  e.vel.set(0, 0, 0);
+  e.pos.y = Math.min(PIN_HIGH, Math.max(PIN_LOW, e.pos.y));
+  e.facing = Math.atan2(-(e.pos.x - e.wall.x), -(e.pos.z - e.wall.z));
+}
 
 /** A killing punch landed on `e` (a body now) along (dx, dz) (length 1): it's flung. */
 export function launch(e: Enemy, dx: number, dz: number) {

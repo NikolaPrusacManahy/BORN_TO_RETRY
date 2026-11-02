@@ -3,6 +3,7 @@
 // Update 0.1.1 — spent on an execution (sim/combat/execution.ts): E near an enemy you can execute (the snake).
 // Update 0.2.0 (the designer: "executions now heal 15 HP, mini bosses give 25").
 // Update 0.3.2 (the designer: "the way execution can feel brutal") — the finishing blow's slow motion and lunge.
+// Update 0.3.8 — the wall finisher: how long a body stays pinned, what its free execution heals.
 import { group, knob } from './schema';
 
 export const EXECUTION = group('execution', 'Execution', {
@@ -22,4 +23,8 @@ export const EXECUTION = group('execution', 'Execution', {
   finalSlow: knob(0.25, 0.05, 1, 0.05, 'Finish: slow motion', 'The world’s speed after the finishing blow (1: none).'),
   finalSlowTime: knob(0.5, 0, 2, 0.05, 'Finish: slow time', 'Real seconds the slow motion lasts before it eases back.'),
   finalLunge: knob(14, 0, 40, 1, 'Finish: lunge', 'Degrees the view narrows on the finishing blow, easing back out.'),
+  // Update 0.3.8 (the designer: "enemies being pinned to a wall when they die … flicker for like 3 sec and die … player
+  // can execute for free, gives 5 HP back for free").
+  pinTime: knob(3, 0.5, 10, 0.25, 'Pinned time', 'Seconds a body thrown dead into a wall hangs there, flickering, before it drops.'),
+  pinHeal: knob(5, 0, 50, 1, 'Wall finisher heal', 'Health the free execution of a pinned body gives back.'),
 });

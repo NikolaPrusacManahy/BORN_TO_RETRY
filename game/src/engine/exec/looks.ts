@@ -48,7 +48,7 @@ const flatAt = (t0: number, dur: number, up: number, across: number) => (t: numb
   const k = ease((t - t0) / dur);
   return [1 + (across - 1) * k, 1 + (up - 1) * k] as const;
 };
-const HUMANOID: (readonly string[])[] = [['Neck'], ['ShoulderL'], ['ShoulderR'], ['UpperLegL', 'FootL'], ['UpperLegR', 'FootR']];
+export const HUMANOID: (readonly string[])[] = [['Neck'], ['ShoulderL'], ['ShoulderR'], ['UpperLegL', 'FootL'], ['UpperLegR', 'FootR']];
 
 export const EXEC_LOOKS: Partial<Record<EnemyKind, ExecLook>> = {
   snake: { grip: { at: 'Tail3', to: 'Head', line: 'Tail2' }, still: ['Tail', 'Tail1', 'Tail2', 'Tail3'] },

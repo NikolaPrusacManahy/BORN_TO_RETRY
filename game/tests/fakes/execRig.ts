@@ -34,8 +34,9 @@ export async function armsModel() {
   return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer, '');
 }
 
-/** `kind` in front of you (its edge 1.4 m off), the meter full, ready to press E. */
-export async function execRig(kind: EnemyKind, arena: Arena = OPEN_ARENA) {
+/** `kind` in front of you (its edge 1.4 m off), the meter full, ready to press E. Update 0.3.8 — `pinned`: its body
+ *  pinned (as to a wall behind it), facing you, the meter empty: E is the wall finisher. */
+export async function execRig(kind: EnemyKind, arena: Arena = OPEN_ARENA, pinned = false) {
   const arms = await armsModel();
   const rig = ArmsRig.fromScene(arms.scene);
   const vm = new Viewmodel(false);
@@ -51,6 +52,15 @@ export async function execRig(kind: EnemyKind, arena: Arena = OPEN_ARENA) {
   p.grounded = true;
   c.execution = 1;
   const s = spawnEnemy(c.enemies, kind, new THREE.Vector3(0, UP[kind] ?? 0, -(1.4 + RADIUS[kind])), 0);
+  if (pinned) {
+    const e = c.enemies[s];
+    e.phase = 'dead';
+    e.hp = 0;
+    e.pinned = 3;
+    e.pos.y = 0.3;
+    e.facing = Math.PI;
+    c.execution = 0;
+  }
   const look = new Look();
   const cam = new THREE.PerspectiveCamera(verticalFov(100, ASPECT), ASPECT, 0.05, 100);
   const world = new FlatWorld();

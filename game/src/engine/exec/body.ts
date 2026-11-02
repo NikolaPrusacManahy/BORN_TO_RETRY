@@ -6,12 +6,15 @@
 // face you, jolts back with each blow, and tumbles if it's sent flying; an arm reaching into your hand; a piece's bones
 // folded away once it's off.
 // Update 0.2.2 — a standing one may shake (the Skeleton in your telekinetic hold: looks.ts `tremble`).
+// Update 0.3.8 — the wall finisher's moves and look for a pinned body (pinLook.ts), its grip from any look.
 import * as THREE from 'three';
-import { Execution, moveOf } from '../../sim/combat/execution';
+import type { Execution } from '../../sim/combat/execution';
+import { moveFor } from '../../sim/combat/execPin';
 import type { EnemyKind } from '../../sim/enemies/kinds';
 import { solveElbow } from '../viewmodel/armsMath';
 import { boneOf } from './bones';
-import { EXEC_LOOKS } from './looks';
+import { EXEC_LOOKS, ExecLook } from './looks';
+import { lookFor } from './pinLook';
 
 /** A kind's grip at rest, in its model: the held bone, its line to the head, and the line the hands hold from there or
  *  the side it shows you. */
@@ -43,8 +46,10 @@ const pole = new THREE.Vector3();
 const elbow = new THREE.Vector3();
 
 /** `kind`'s grip, from its model at rest (null if it isn't held). */
-export function gripOf(kind: EnemyKind, model: THREE.Object3D): Grip | null {
-  const g = EXEC_LOOKS[kind]?.grip;
+export const gripOf = (kind: EnemyKind, model: THREE.Object3D): Grip | null => gripFrom(EXEC_LOOKS[kind]?.grip, model);
+
+/** A look's grip (`g`), from a model at rest (null if none). */
+export function gripFrom(g: ExecLook['grip'], model: THREE.Object3D): Grip | null {
   if (!g) return null;
   model.updateMatrixWorld(true);
   const at = (name: string) => model.getObjectByName(name)?.getWorldPosition(new THREE.Vector3()) ?? null;
@@ -100,7 +105,7 @@ export function placeHeld(root: THREE.Object3D, ex: Execution, scale: number, gr
   root.quaternion.copy(q);
   root.scale.setScalar(scale);
   root.position.copy(ex.grip).sub(v.copy(grip.tail).multiplyScalar(scale).applyQuaternion(q));
-  const k = Math.min(1, ex.t / moveOf(ex.kind).keys[1].t);
+  const k = Math.min(1, ex.t / moveFor(ex).keys[1].t);
   if (k < 1) {
     const s = k * k * (3 - 2 * k);
     root.quaternion.copy(stood.setFromAxisAngle(UP, turn)).slerp(q, s);
@@ -111,7 +116,7 @@ export function placeHeld(root: THREE.Object3D, ex: Execution, scale: number, gr
 /** A standing body (already placed where it stands, `turn` its turn): turned to face you over the first move, jolted
  *  back by each blow, tumbling once it's sent flying (`height`: its size). */
 export function placeStood(root: THREE.Object3D, ex: Execution, facing: number, turn: number, height: number) {
-  const move = moveOf(ex.kind);
+  const move = moveFor(ex);
   const dx = ex.origin.x - root.position.x;
   const dz = ex.origin.z - root.position.z;
   const toYou = Math.atan2(-dx, -dz);
@@ -123,7 +128,7 @@ export function placeStood(root: THREE.Object3D, ex: Execution, facing: number, 
   const back = Math.atan2(dx, dz);
   root.position.x -= Math.sin(back) * JOLT * jolt;
   root.position.z -= Math.cos(back) * JOLT * jolt;
-  const shake = EXEC_LOOKS[ex.kind]?.tremble?.(ex.t) ?? 0;
+  const shake = lookFor(ex)?.tremble?.(ex.t) ?? 0;
   if (shake > 0) {
     root.position.x += Math.sin(ex.t * 71) * shake;
     root.position.y += Math.sin(ex.t * 89 + 1) * shake * 0.5;

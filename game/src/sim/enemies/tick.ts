@@ -24,6 +24,12 @@ export function beginTick(e: Enemy, nav: NavGrid, dt: number): boolean {
   e.flash = Math.max(0, e.flash - dt);
   e.cooldown = Math.max(0, e.cooldown - dt);
   if (e.phase === 'dead') {
+    // (Update 0.3.8 — pinned to a wall: it hangs there, then drops, its death from then.)
+    if (e.pinned > 0) {
+      e.pinned = Math.max(0, e.pinned - dt);
+      if (e.pinned === 0) e.t = 0;
+      return false;
+    }
     // A body in the air falls (a boss's is placed by its death show).
     if (e.pos.y > e.perch && !ENEMY_STATS[e.kind]().boss) {
       e.vel.y -= FALL * dt;

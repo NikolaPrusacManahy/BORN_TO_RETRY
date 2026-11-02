@@ -48,10 +48,10 @@ export interface HandKey {
   R: HandAt;
 }
 
-const G: HandAt = { mode: 'guard' };
+export const G: HandAt = { mode: 'guard' };
 const LINE: HandAt = { mode: 'rope', on: '@grip', to: '@grip' };
 const LINE2: HandAt = { mode: 'rope', on: '@grip', to: '@grip', slide: 0.1 };
-const palms = (on: string, w: number, up = 0.05): Pick<HandKey, 'L' | 'R'> => ({
+export const palms = (on: string, w: number, up = 0.05): Pick<HandKey, 'L' | 'R'> => ({
   L: { mode: 'palm', on, off: [-w, up, 0.05] },
   R: { mode: 'palm', on, off: [w, up, 0.05] },
 });
@@ -66,7 +66,7 @@ const UP: HandAt = { mode: 'slamUp' };
 
 /** The ground slam's smash landing on bone `on` at `at` s: the clasped fists up from `from`, held, down onto it at `at`
  *  (eased in over the slam's own time), held a beat and back to the guard, as the slam's knobs say (read live). */
-function slam(from: number, at: number, on: string): HandKey[] {
+export function slam(from: number, at: number, on: string): HandKey[] {
   const DOWN: HandAt = { mode: 'slamDown', on, off: [0, 0.22, 0.05] };
   return [
     { t: from, L: UP, R: UP },
@@ -276,3 +276,5 @@ HAND_MOVES.blobling = HAND_MOVES.slime;
 HAND_MOVES.maskTribal = HAND_MOVES.wraith;
 // Update 0.2.10 — floor 5's hands, as their moves (execMoves.ts).
 for (const [kind, like] of ALIKE) HAND_MOVES[kind] = HAND_MOVES[like];
+// Update 0.3.8 — the Yeti's is the Blue Demon's barrage (the designer); those that had the Yeti's keep the old one.
+HAND_MOVES.brute = HAND_MOVES.blueDemon;

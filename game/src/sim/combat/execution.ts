@@ -14,6 +14,9 @@
 // up, we fall down and player execute the enemy off screen") — while you hold it you stay where you grabbed it, in the
 // air too (no falling, no slide, dash or wall run): the moves are laid out from there, so the view is on them. Let go,
 // you're free and fall as before.
+// Update 0.3.8 (the designer: "Finishers that interact with environment") — a body pinned to a wall can be executed for
+// free (the meter as it is): the wall finisher (execPin.ts). You're brought up to it, facing it; it heals Wall finisher
+// heal; its kill was counted as it died. The throw's aim and landing moved to execThrow.ts.
 import { Vector3 } from 'three';
 import { CARDS } from '../../tuning/cards';
 import { boost, holds } from '../cards/cards';
@@ -27,8 +30,10 @@ import { EnemyKind, MINI_BOSSES, RADIUS } from '../enemies/kinds';
 import { healPlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
 import type { CombatState } from './state';
-import { BLOWS, EXEC_MOVES, EXECUTABLE, ExecMove, heightOf, moveOf } from './execMoves';
+import { BLOWS, EXEC_MOVES, EXECUTABLE, heightOf, moveOf } from './execMoves';
+import { moveFor, PIN_AHEAD, PIN_HEAD, PIN_LUNGE } from './execPin';
 import { F, frame, pose, R } from './execPose';
+import { findWall, throwTo } from './execThrow';
 import { emptyTargetHit, landHit } from './strike';
 
 export { EXECUTABLE, moveOf, pose };
@@ -64,16 +69,15 @@ export interface Execution {
   from: Vector3;
   land: Vector3;
   flight: number;
+  /** Update 0.3.8 — the wall finisher (a pinned body: execPin.ts), and where you stood before you were brought up to it. */
+  pinned: boolean;
+  walk: Vector3;
 }
 
 export function createExecution(): Execution {
   const v = () => new Vector3();
-  return { active: false, target: -1, kind: 'snake', t: 0, origin: v(), yaw: 0, pitch: 0, aimYaw: 0, wall: Infinity, grip: v(), dir: v().set(0, 1, 0), middle: v(), lookYaw: 0, lookPitch: 0, stand: v(), start: v(), slams: 0, beat: 0, thrown: false, from: v(), land: v(), flight: 0 };
+  return { active: false, target: -1, kind: 'snake', t: 0, origin: v(), yaw: 0, pitch: 0, aimYaw: 0, wall: Infinity, grip: v(), dir: v().set(0, 1, 0), middle: v(), lookYaw: 0, lookPitch: 0, stand: v(), start: v(), slams: 0, beat: 0, thrown: false, from: v(), land: v(), flight: 0, pinned: false, walk: v() };
 }
-
-/** How far (m) to look for a wall to throw at, in how many ways. */
-const WALL_REACH = 16;
-const WALL_WAYS = 16;
 
 const UP = new Vector3(0, 1, 0);
 const a = new Vector3();
@@ -87,17 +91,20 @@ export const lastsFor = (kind: EnemyKind = 'snake') => heldFor(kind) + EXECUTION
 export const execHeld = (ex: Execution) => ex.active && !ex.thrown;
 
 /** The enemy you could execute now (−1: none): the meter full, an executable one in reach (from its edge) and in front
- *  of you. */
+ *  of you. Update 0.3.8 — or a body pinned to a wall, whatever the meter. */
 export function execTarget(state: CombatState, player: PlayerState, yaw: number): number {
-  if (state.execution < 1 || state.exec.active || player.dead) return -1;
+  if (state.exec.active || player.dead) return -1;
   const v = EXECUTION.v;
+  const full = state.execution >= 1;
   let best = -1;
   let bestD = v.reach;
   for (let i = 0; i < state.enemies.length; i++) {
     const e = state.enemies[i];
     const up = e.pos.y - player.pos.y;
+    const pinned = e.alive && e.phase === 'dead' && e.pinned > 0;
     // (Fliers cruise up to 3.6 m: the first move pulls one down into your hands.)
-    if (!isLive(e) || !EXEC_MOVES[e.kind] || e.phase === 'rebuild' || up < -1.5 || up > 4.5) continue;
+    if (!pinned && (!full || !isLive(e) || !EXEC_MOVES[e.kind] || e.phase === 'rebuild')) continue;
+    if (up < -1.5 || up > 4.5) continue;
     const dx = e.pos.x - player.pos.x;
     const dz = e.pos.z - player.pos.z;
     const d = Math.hypot(dx, dz) - RADIUS[e.kind];
@@ -109,63 +116,60 @@ export function execTarget(state: CombatState, player: PlayerState, yaw: number)
   return best;
 }
 
-/** E: if an enemy can be executed, it starts (the meter empties). Returns true if it did. */
+/** E: if an enemy can be executed, it starts (the meter empties; not for a pinned body's). Returns true if it did. */
 export function tryExecute(state: CombatState, player: PlayerState, yaw: number, pitch: number): boolean {
   const i = execTarget(state, player, yaw);
   if (i < 0) return false;
   const ex = state.exec;
   const e = state.enemies[i];
-  const move = moveOf(e.kind);
   ex.active = true;
   ex.target = i;
   ex.kind = e.kind;
+  ex.pinned = e.phase === 'dead';
+  const move = moveFor(ex);
   ex.t = 0;
   ex.slams = 0;
   ex.beat = 0;
   ex.thrown = false;
   ex.origin.copy(player.pos);
+  ex.walk.copy(player.pos);
   ex.yaw = yaw;
+  if (ex.pinned) lineUp(state, ex);
   ex.pitch = pitch;
-  ex.aimYaw = yaw;
+  ex.aimYaw = ex.yaw;
   ex.wall = Infinity;
   if (move.end === 'wall') findWall(state, ex);
   ex.stand.copy(e.pos);
   ex.start.copy(e.pos);
-  if (move.held) ex.start.y += 0.1;
-  state.execution = 0;
-  setPhase(e, 'held');
+  // (A pinned body is held by its head as it hangs.)
+  if (move.held) ex.start.y += ex.pinned ? heightOf(e.kind) * PIN_HEAD : 0.1;
+  if (ex.pinned) e.pinned = HELD_PINNED;
+  else {
+    state.execution = 0;
+    setPhase(e, 'held');
+  }
   e.vel.set(0, 0, 0);
   player.vel.set(0, 0, 0);
   player.sliding = player.wallRunning = false;
   player.dashTime = 0;
-  player.invuln = Math.max(player.invuln, heldFor(e.kind) + 0.2);
+  player.invuln = Math.max(player.invuln, move.endAt / Math.max(0.1, EXECUTION.v.speed) + 0.2);
   pose(ex, 0);
   state.events.push('execGrab', i, ex.grip.x, ex.grip.y, ex.grip.z);
   return true;
 }
 
-/** The nearest wall round you (within reach): the way to throw at it. */
-function findWall(state: CombatState, ex: Execution) {
-  const g = state.nav.small;
-  const x0 = ex.origin.x;
-  const z0 = ex.origin.z;
-  for (let w = 0; w < WALL_WAYS; w++) {
-    const yaw = ex.yaw + (w / WALL_WAYS) * Math.PI * 2;
-    const fx = -Math.sin(yaw);
-    const fz = -Math.cos(yaw);
-    if (!wallBetween(g, x0, z0, x0 + fx * WALL_REACH, z0 + fz * WALL_REACH)) continue;
-    let lo = 0;
-    let hi = WALL_REACH;
-    for (let k = 0; k < 10; k++) {
-      const mid = (lo + hi) / 2;
-      if (wallBetween(g, x0, z0, x0 + fx * mid, z0 + fz * mid)) hi = mid;
-      else lo = mid;
-    }
-    if (lo < ex.wall) {
-      ex.wall = lo;
-      ex.aimYaw = yaw;
-    }
-  }
+/** A pinned body stays pinned this long (s) while it's executed. */
+const HELD_PINNED = 1e3;
+
+/** Update 0.3.8 — the wall finisher: where you'll stand, in front of the pinned body (the way it faces, out from the
+ *  wall), facing it (you're brought there over its first moments: stepExecution). Where that's past a wall, where you
+ *  are. */
+function lineUp(state: CombatState, ex: Execution) {
+  const e = state.enemies[ex.target];
+  const x = e.pos.x - Math.sin(e.facing) * PIN_AHEAD;
+  const z = e.pos.z - Math.cos(e.facing) * PIN_AHEAD;
+  if (!wallBetween(state.nav.small, e.pos.x, e.pos.z, x, z)) ex.origin.set(x, ex.origin.y, z);
+  ex.yaw = Math.atan2(-(e.pos.x - ex.origin.x), -(e.pos.z - ex.origin.z));
 }
 
 /** One tick: the moves go on; each slam into the floor and each blow jolts (a freeze); let go, the body flies; it dies
@@ -174,13 +178,14 @@ export function stepExecution(state: CombatState, dt: number, player: PlayerStat
   const ex = state.exec;
   if (!ex.active) return;
   const v = EXECUTION.v;
-  const move = moveOf(ex.kind);
+  const move = moveFor(ex);
   const height = heightOf(ex.kind);
   const e = state.enemies[ex.target];
   const was = ex.t;
-  // (Update 0.3.1 — held where you grabbed it.)
+  // (Update 0.3.1 — held where you grabbed it. Update 0.3.8 — the wall finisher brings you up to the body first.)
   if (!ex.thrown) {
-    player.pos.copy(ex.origin);
+    const k = ex.pinned ? Math.min(1, ex.t / PIN_LUNGE) : 1;
+    player.pos.lerpVectors(ex.walk, ex.origin, k * k * (3 - 2 * k));
     player.vel.set(0, 0, 0);
   }
   ex.t += dt * Math.max(0.1, v.speed);
@@ -230,29 +235,6 @@ export function stepExecution(state: CombatState, dt: number, player: PlayerStat
   }
 }
 
-/** Where it lands: thrown ahead, short of the first wall; or at the wall it was swung towards. Its flight (s in). */
-function throwTo(state: CombatState, ex: Execution, move: ExecMove) {
-  const v = EXECUTION.v;
-  F.set(-Math.sin(ex.aimYaw), 0, -Math.cos(ex.aimYaw));
-  const x0 = ex.origin.x;
-  const z0 = ex.origin.z;
-  const atWall = move.end === 'wall' && ex.wall < Infinity;
-  let len = atWall ? Math.max(1.5, ex.wall - 0.5) : v.throwDistance * (move.far ?? 1);
-  if (!atWall && wallBetween(state.nav.small, x0, z0, x0 + F.x * len, z0 + F.z * len)) {
-    let lo = 0;
-    let hi = len;
-    for (let k = 0; k < 10; k++) {
-      const mid = (lo + hi) / 2;
-      if (wallBetween(state.nav.small, x0, z0, x0 + F.x * mid, z0 + F.z * mid)) hi = mid;
-      else lo = mid;
-    }
-    len = Math.max(1.5, lo - 0.8);
-  }
-  ex.land.set(x0 + F.x * len, ex.origin.y + (atWall ? 1.1 : heightOf(ex.kind) * 0.3), z0 + F.z * len);
-  const share = atWall ? Math.max(0.35, Math.min(1.3, len / v.throwDistance)) : 1;
-  ex.flight = Math.max(0.05, v.flight * (move.fly ?? 1) * share * Math.max(0.1, v.speed));
-}
-
 /** It dies at `at` (your kill, but it doesn't fill the meter again), and what's beside it is hurt. Update 0.2.0 — it
  *  heals you (more for a mini boss). */
 function finish(state: CombatState, ex: Execution, at: Vector3, kind: 'execLand' | 'execBurst', player: PlayerState) {
@@ -267,11 +249,17 @@ function finish(state: CombatState, ex: Execution, at: Vector3, kind: 'execLand'
   hit.kind = 'enemy';
   hit.index = ex.target;
   hit.point.copy(e.pos);
-  landHit(state, hit, 1e6, 0, F.x, F.z, 'hitHeavy', 1);
-  state.execution = meterAfter(state);
+  // (Update 0.3.8 — a pinned body's kill was counted as it died, and the meter wasn't spent: as it is.)
+  if (ex.pinned) {
+    e.pinned = 0;
+    e.t = 0;
+  } else {
+    landHit(state, hit, 1e6, 0, F.x, F.z, 'hitHeavy', 1);
+    state.execution = meterAfter(state);
+  }
   // (Update 0.2.12 — the designer: "executions always heals", on ARE YOU EVEN HUMAN? too.)
   // (Update 0.2.19 — not with Executioner's Deal, a Traitor Card.)
-  if (!player.dead && !holds(state, 'executionersDeal')) healPlayer(player, MINI_BOSSES.includes(e.kind) ? v.healBig : v.heal);
+  if (!player.dead && !holds(state, 'executionersDeal')) healPlayer(player, ex.pinned ? v.pinHeal : MINI_BOSSES.includes(e.kind) ? v.healBig : v.heal);
   if (holds(state, 'adrenaline') && !player.dead) {
     player.dashCharges = dashMaxOf(player);
     player.invuln = Math.max(player.invuln, CARDS.v.adrenaline);

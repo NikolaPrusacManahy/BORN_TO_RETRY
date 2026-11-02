@@ -3,13 +3,15 @@
 // (the world through the game camera, the arms through theirs, both brought to the arms camera's lens) and from the
 // side (you a post, a floor of metre tiles). Update 0.1.2 — any enemy's, at its keys and blows. Shots are only as true
 // as the code they run; feel still needs playing.
-//   npx tsx tools/exec-shots.ts <out folder> [kinds…]
+//   npx tsx tools/exec-shots.ts <out folder> [kinds…]   (Update 0.3.8 — a kind as grunt:pin: its wall finisher)
 //   blender --background --python tools/blender/render_view.py -- --json <out folder>/shots.json --out <out folder>
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as THREE from 'three';
 import { execRig } from '../tests/fakes/execRig';
 import { moveOf } from '../src/sim/combat/execution';
+import { PINNED } from '../src/sim/combat/execPin';
+import { OPEN_ARENA } from '../tests/fakes/enemyWorld';
 import { EXECUTABLE } from '../src/sim/combat/execMoves';
 import type { EnemyKind } from '../src/sim/enemies/kinds';
 import { ARMS } from '../src/tuning/arms';
@@ -18,7 +20,7 @@ import { DT } from '../tests/fakes/flatWorld';
 const ASPECT = 16 / 9;
 const out = process.argv[2];
 if (!out) throw new Error('usage: npx tsx tools/exec-shots.ts <out folder> [kinds…]');
-const kinds = (process.argv.length > 3 ? process.argv.slice(3) : EXECUTABLE) as EnemyKind[];
+const kinds = process.argv.length > 3 ? process.argv.slice(3) : (EXECUTABLE as string[]);
 mkdirSync(out, { recursive: true });
 
 type Mesh = { color: number[]; pos: number[]; idx: number[] };
@@ -48,8 +50,9 @@ function grab(scene: THREE.Object3D, camera: THREE.PerspectiveCamera, skip: THRE
   });
 }
 
-for (const kind of kinds) {
-  const r = await execRig(kind);
+for (const arg of kinds) {
+  const [kind, pin] = arg.split(':') as [EnemyKind, string?];
+  const r = await execRig(kind, OPEN_ARENA, pin === 'pin');
   // A floor of metre tiles, and you (a post) for the side view.
   const floor = new THREE.Group();
   for (let x = -6; x <= 6; x++)
@@ -66,7 +69,7 @@ for (const kind of kinds) {
   side.position.set(8, 1.8, -3);
   side.lookAt(0, 1.2, -3);
   // Its moments: each key and blow (a few of a barrage), and after.
-  const move = moveOf(kind);
+  const move = pin === 'pin' ? PINNED : moveOf(kind);
   const beats = move.beats.length > 8 ? [move.beats[0], move.beats[15], move.beats[move.beats.length - 1]] : move.beats;
   const at = [...new Set([0.08, ...move.keys.filter((k, i) => !k.glide || i % 5 === 0).map((k) => k.t), ...beats.map((b) => b.t + 0.01), move.endAt + 0.15, move.endAt + 0.45].filter((t) => t > 0).map((t) => +t.toFixed(2)))].sort((a, b) => a - b).slice(0, 14);
   let next = 0;
@@ -75,7 +78,7 @@ for (const kind of kinds) {
     r.step();
     t += DT;
     if (t + 1e-9 < at[next]) continue;
-    const name = `${kind}_${String(next).padStart(2, '0')}_${at[next].toFixed(2)}s`;
+    const name = `${kind}${pin ? '-pin' : ''}_${String(next).padStart(2, '0')}_${at[next].toFixed(2)}s`;
     const pov: Mesh[] = [];
     grab(r.scene, r.cam, you, [0.45, 0.7, 0.5], pov);
     r.vm.scene.updateMatrixWorld(true);

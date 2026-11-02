@@ -38,11 +38,12 @@ const q = new THREE.Quaternion();
 
 export class Pieces {
   readonly group = new THREE.Group();
-  private readonly kinds: Partial<Record<EnemyKind, Piece[]>> = {};
+  /** (Update 0.3.8 — by kind, or by kind and the wall finisher's cuts: exec/pinLook.ts `piecesKey`.) */
+  private readonly kinds: Partial<Record<EnemyKind | string, Piece[]>> = {};
 
   /** `kind`'s pieces (built from `root`, a body of it, the first time): each of `specs` (bones and all below them), and
    *  the rest of it last. */
-  of(kind: EnemyKind, root: THREE.Object3D, specs: readonly (readonly string[])[]): Piece[] {
+  of(kind: EnemyKind | string, root: THREE.Object3D, specs: readonly (readonly string[])[]): Piece[] {
     const have = this.kinds[kind];
     if (have) return have;
     const skinned = skinnedOf(root);

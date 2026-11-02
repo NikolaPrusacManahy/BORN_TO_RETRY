@@ -2,10 +2,12 @@
 // keys eased into and out of (into a slam it speeds up), laid out from where you stood and looked, or turned towards
 // where it's thrown; held, its grip, its line and its middle; standing, where it's pulled; thrown, its arc. Pure.
 // Update 0.2.2 — standing, lifted off the floor as high as its keys' `grip` say (the Skeleton's telekinesis).
+// Update 0.3.8 — the wall finisher's moves for a pinned body (execPin.ts).
 import { Quaternion, Vector3 } from 'three';
 import { EXECUTION } from '../../tuning/execution';
 import type { Execution } from './execution';
-import { BodyKey, heightOf, moveOf } from './execMoves';
+import { BodyKey, heightOf } from './execMoves';
+import { moveFor } from './execPin';
 
 /** The view is this far (s) ahead of the moves, so it's there as they are; it stays on each slam this long. */
 const LOOK_LEAD = 0.06;
@@ -49,7 +51,7 @@ function way(ex: Execution, k: BodyKey, out: Vector3) {
 
 /** Where the body is `t` s into the moves (at speed 1): `grip`, `dir`, `middle`; and where you look. */
 export function pose(ex: Execution, t: number) {
-  const move = moveOf(ex.kind);
+  const move = moveFor(ex);
   const height = heightOf(ex.kind);
   if (t >= move.endAt && ex.thrown) {
     // In flight: an arc from where you let go to where it lands, tumbling end over end.

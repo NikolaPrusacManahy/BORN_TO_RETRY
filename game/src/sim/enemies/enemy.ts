@@ -89,6 +89,8 @@ export interface Enemy {
   /** Update 0.3.7 — it hit a wall this tick this fast (m/s; 0: not), and where (flight.ts, combat/splat.ts). */
   splat: number;
   wall: Vector3;
+  /** Update 0.3.8 — dead, pinned to a wall: seconds it hangs there (0: not; flight.ts). */
+  pinned: number;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -150,6 +152,7 @@ export function createEnemies(): Enemy[] {
     ward: 0,
     splat: 0,
     wall: new Vector3(),
+    pinned: 0,
   }));
 }
 
@@ -183,7 +186,7 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.perch = 0;
   e.token = false;
   e.tokenFor = e.rest = 0;
-  e.splat = 0;
+  e.splat = e.pinned = 0;
   e.fan = NaN;
   e.blink = 0;
   e.deeds = 0;

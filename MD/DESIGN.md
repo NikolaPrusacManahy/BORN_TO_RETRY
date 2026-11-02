@@ -179,6 +179,14 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   blood bursting and staining the wall, a pool, a crunch, a shake; "WALL SPLAT" on the style rank. **(placeholder
   numbers, F1 → Launch & splat)**
 
+### The wall finisher (Update 0.3.8, the designer: "Finishers that interact with environment"; spec `MD_UPDATES/U038_WALL_FINISHER.md`)
+- A Grunt, Skeleton, White Rabbit or Leaper flung dead into a wall (or killed by the splat) is pinned there, lifted,
+  facing out, flickering white, for **3 s**; then it drops and dies as any body does.
+- Meanwhile **E executes it for free** (the meter not spent): you're brought up to it, facing it; a left hook to its
+  head, a right; its head grabbed between your palms, slammed down across the floor and pressed there; the ground
+  slam's clasped fists smashed down on it; it bursts. **+5 HP**; its kill was counted when it died. **(F1 → Execution)**
+- The Yeti's execution is the Blue Demon's barrage (the designer); those that had the Yeti's keep the old one.
+
 ### The style rank (Update 0.3.4, the designer: "a nice visual for now"; spec `MD_UPDATES/U034_STYLE_RANK.md`)
 - D DIRTY, C CRUEL, B BRUTAL, A ATROCIOUS, S SAVAGE, SS SLAUGHTERHOUSE, SSS UNKILLABLE, from what you do (blows, kills,
   parries, executions; the same move again adds less; air kills ×1.5, multikills); it drains, faster the higher; a hurt
