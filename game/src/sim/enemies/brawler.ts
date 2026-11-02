@@ -3,8 +3,9 @@
 // sideways dash dodges); then strikes, landing only if you're still in reach, in front and not behind a wall (you're
 // shoved away and a little up). A hit flinches it (a light one doesn't stagger the Ninja), cancelling a wind-up. Its
 // attack needs its turn (tokens.ts: `armed`, given by the caller). Pure.
+// Update 0.3.10 — its melee blow can be parried (combat/meleeParry.ts).
 import { Vector3 } from 'three';
-import { damagePlayer } from '../player/health';
+import { meleeHit } from '../combat/meleeParry';
 import type { PlayerState } from '../player/state';
 import type { CombatEvent } from '../combat/state';
 import { chaseDir } from './chase';
@@ -79,7 +80,7 @@ function strike(e: Enemy, index: number, player: PlayerState, dist: number, towa
   w.events.push(b.strikeEvent, index, e.pos.x, e.pos.y + s.height * 0.5, e.pos.z);
   const off = Math.abs(Math.atan2(Math.sin(toward - e.facing), Math.cos(toward - e.facing)));
   if (dist > b.reach() || off > (b.arc * Math.PI) / 180 || !inLine(e, player, w.nav.small, s.height * 0.75)) return;
-  if (!damagePlayer(player, b.damage(), e.kind)) return;
+  if (!meleeHit(player, w, e, index, b.damage())) return;
   const len = Math.max(dist, 1e-3);
   player.vel.x += ((player.pos.x - e.pos.x) / len) * b.shove;
   player.vel.z += ((player.pos.z - e.pos.z) / len) * b.shove;

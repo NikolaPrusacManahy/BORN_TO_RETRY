@@ -54,6 +54,8 @@ export class RapierWorld implements CollisionWorld {
   private readonly gateShut: boolean[] = [];
   /** On the ground after the last move (for snapping down). */
   private grounded = false;
+  /** Update 0.3.10 — each of the arena's boxes' collider (a broken pillar's is made again: `reshape`). */
+  private readonly solids = new Map<ArenaBox, RAPIER.Collider>();
   private readonly notPlayer = (c: RAPIER.Collider) => c.handle !== this.player.handle;
 
   constructor(arena: Arena) {
@@ -61,7 +63,7 @@ export class RapierWorld implements CollisionWorld {
     for (const b of arena.boxes) {
       const desc = RAPIER.ColliderDesc.cuboid(b.w / 2, b.h / 2, b.d / 2).setTranslation(b.x, b.y, b.z);
       if (b.quat) desc.setRotation({ x: b.quat[0], y: b.quat[1], z: b.quat[2], w: b.quat[3] });
-      this.world.createCollider(desc);
+      this.solids.set(b, this.world.createCollider(desc));
     }
     // M1 step 6 — dummies and turrets are solid posts (they wobble on screen but don't move here).
     for (const d of arena.dummies) {
@@ -204,6 +206,16 @@ export class RapierWorld implements CollisionWorld {
       this.player,
     );
     return free;
+  }
+
+  /** Update 0.3.10 — `box`'s collider gone, `boxes` made in its place (a pillar broken: its stump, its fallen top:
+   *  sim/combat/pillars.ts); the queries see the change at once. */
+  swap(box: ArenaBox, boxes: readonly ArenaBox[]) {
+    const old = this.solids.get(box);
+    if (old) this.world.removeCollider(old, false);
+    this.solids.delete(box);
+    for (const b of boxes) this.solids.set(b, this.world.createCollider(RAPIER.ColliderDesc.cuboid(b.w / 2, b.h / 2, b.d / 2).setTranslation(b.x, b.y, b.z)));
+    this.world.step();
   }
 
   /** Update 0.0.12 — the dungeon's gates, open to start with. */

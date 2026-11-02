@@ -3,12 +3,14 @@
 // to hover in front of your chest, curls its sting forward for the warning (it buzzes) and stabs: in reach and in front,
 // a little damage and you're poisoned. Dash away during the warning and it stabs the air. Then it climbs away. Down
 // there your fists reach it; a hit flinches it and cancels the sting. A swoop you outrun is given up. Pure.
+// Update 0.3.10 — its melee blow can be parried (combat/meleeParry.ts).
 import { Vector3 } from 'three';
 import { FOES2 } from '../../tuning/foes2';
 import type { CollisionWorld } from '../collisionWorld';
 import { AIM_HEIGHT } from '../combat/turret';
 import { BODY } from '../player/body';
-import { damagePlayer, poisonPlayer } from '../player/health';
+import { poisonPlayer } from '../player/health';
+import { meleeHit } from '../combat/meleeParry';
 import type { PlayerState } from '../player/state';
 import { chaseDir } from './chase';
 import { Enemy, EnemyWorld, setPhase, turn, walk, yawTo } from './enemy';
@@ -107,5 +109,5 @@ function sting(s: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
   const toward = yawTo(s, player.pos.x, player.pos.z);
   const off = Math.abs(Math.atan2(Math.sin(toward - s.facing), Math.cos(toward - s.facing)));
   if (from.distanceTo(chest) > v.waspReach + BODY.radius || off > ARC) return;
-  if (damagePlayer(player, v.waspDamage, s.kind)) poisonPlayer(player, v.poisonDps, v.poisonTime, s.kind);
+  if (meleeHit(player, w, s, index, v.waspDamage)) poisonPlayer(player, v.poisonDps, v.poisonTime, s.kind);
 }

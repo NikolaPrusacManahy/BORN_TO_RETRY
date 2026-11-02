@@ -4,10 +4,11 @@
 // you; then it leaps in an arc to where you stood as the warning ended. Landing on or beside you hurts and throws you;
 // a jump at the right moment clears it. Then it's stuck a moment: your opening. Too close, it backs off to leap
 // again. A hit flinches it, even in the air (it drops). Pure.
+// Update 0.3.10 — its melee blow can be parried (combat/meleeParry.ts).
 import { Vector3 } from 'three';
 import { FOES } from '../../tuning/foes';
 import { freeAt, wallBetween } from '../../world/navGrid';
-import { damagePlayer } from '../player/health';
+import { meleeHit } from '../combat/meleeParry';
 import type { PlayerState } from '../player/state';
 import { chaseDir, freeSpotNear } from './chase';
 import { Enemy, EnemyWorld, setPhase, turn, walk, yawTo } from './enemy';
@@ -105,7 +106,7 @@ function land(l: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
   const dx = player.pos.x - l.pos.x;
   const dz = player.pos.z - l.pos.z;
   const d = Math.hypot(dx, dz);
-  if (d > v.leaperReach || player.pos.y - l.pos.y > LEVEL || !damagePlayer(player, v.leaperDamage, l.kind)) return;
+  if (d > v.leaperReach || player.pos.y - l.pos.y > LEVEL || !meleeHit(player, w, l, index, v.leaperDamage)) return;
   const nx = d > 1e-3 ? dx / d : -Math.sin(l.facing);
   const nz = d > 1e-3 ? dz / d : -Math.cos(l.facing);
   player.vel.x += nx * v.leaperShove;

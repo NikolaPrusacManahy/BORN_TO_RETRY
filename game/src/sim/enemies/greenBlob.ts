@@ -2,9 +2,10 @@
 // rolls at you and, close (Green Blob hop), squashes down (its warning) and hops onto you. Killed, it splits into
 // Bloblings (Green Blob splits): smaller, quicker, the same hop; they don't split again. A kill that leaves you more
 // to kill. Pure.
+// Update 0.3.10 — its melee blow can be parried (combat/meleeParry.ts).
 import { Vector3 } from 'three';
 import { FOES4 } from '../../tuning/foes4';
-import { damagePlayer } from '../player/health';
+import { meleeHit } from '../combat/meleeParry';
 import type { PlayerState } from '../player/state';
 import { chaseDir } from './chase';
 import { Enemy, EnemyWorld, radiusOf, setPhase, spawnEnemy, turn, walk, yawTo } from './enemy';
@@ -80,7 +81,7 @@ function land(e: Enemy, index: number, player: PlayerState, w: EnemyWorld, small
   const dx = player.pos.x - e.pos.x;
   const dz = player.pos.z - e.pos.z;
   const d = Math.hypot(dx, dz);
-  if (d > radiusOf(e) + 1 || player.pos.y - e.pos.y > 1.6 || !damagePlayer(player, small ? v.bloblingDamage : v.blobDamage, e.kind)) return;
+  if (d > radiusOf(e) + 1 || player.pos.y - e.pos.y > 1.6 || !meleeHit(player, w, e, index, small ? v.bloblingDamage : v.blobDamage)) return;
   player.vel.x += (d > 1e-3 ? dx / d : 1) * 5;
   player.vel.z += (d > 1e-3 ? dz / d : 0) * 5;
   player.vel.y = Math.max(player.vel.y, 3);

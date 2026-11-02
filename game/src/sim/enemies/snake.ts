@@ -1,8 +1,10 @@
 // Update 0.0.18 — the Snake (the designer: its bite poisons). It slithers at you round walls and stops in reach; it
 // rears for the warning (it hisses), then strikes: if you're still in reach and in front, it bites (a little damage)
 // and poisons you (damage a second for a while). A hit flinches it and cancels the strike. Pure.
+// Update 0.3.10 — its melee blow can be parried (combat/meleeParry.ts).
 import { FOES2 } from '../../tuning/foes2';
-import { damagePlayer, poisonPlayer } from '../player/health';
+import { poisonPlayer } from '../player/health';
+import { meleeHit } from '../combat/meleeParry';
 import type { PlayerState } from '../player/state';
 import { Enemy, EnemyWorld, inLine, setPhase, turn, yawTo } from './enemy';
 import { closeIn } from './moves';
@@ -41,7 +43,7 @@ export function updateSnake(s: Enemy, index: number, player: PlayerState, w: Ene
       w.events.push('snakeBite', index, s.pos.x, s.pos.y + v.snakeHeight * 0.5, s.pos.z);
       {
         const off = Math.abs(Math.atan2(Math.sin(toward - s.facing), Math.cos(toward - s.facing)));
-        if (dist <= v.snakeReach && off <= ARC && inLine(s, player, w.nav.small, 1.5) && damagePlayer(player, v.snakeDamage, s.kind)) poisonPlayer(player, v.poisonDps, v.poisonTime, s.kind);
+        if (dist <= v.snakeReach && off <= ARC && inLine(s, player, w.nav.small, 1.5) && meleeHit(player, w, s, index, v.snakeDamage)) poisonPlayer(player, v.poisonDps, v.poisonTime, s.kind);
       }
       break;
   }

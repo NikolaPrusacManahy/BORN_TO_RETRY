@@ -2,6 +2,7 @@
 // at); when it may (its turn: tokens.ts) and sees you it rears back (Squidle wind-up: your warning), then dives at your
 // chest: if it reaches you, it hurts a little and sprays ink over your view (Ink). The Spawnling is small, fast and weak:
 // it runs at you, rears, bites; many come. Pure.
+// Update 0.3.10 — its melee blow can be parried (combat/meleeParry.ts).
 import { Vector3 } from 'three';
 import { FOES5 } from '../../tuning/foes5';
 import type { CollisionWorld } from '../collisionWorld';
@@ -9,6 +10,7 @@ import { segmentDistance } from '../combat/geometry';
 import { AIM_HEIGHT } from '../combat/turret';
 import { BODY } from '../player/body';
 import { damagePlayer } from '../player/health';
+import { meleeHit } from '../combat/meleeParry';
 import type { PlayerState } from '../player/state';
 import { Enemy, EnemyWorld, inLine, setPhase, turn, yawTo } from './enemy';
 import { circle, flyCloser, keepHeight, middle, seesInAir } from './fly';
@@ -126,7 +128,7 @@ export function updateSpawnling(e: Enemy, index: number, player: PlayerState, w:
       setPhase(e, 'recover');
       w.events.push('spawnBite', index, e.pos.x, e.pos.y + v.spawnHeight * 0.5, e.pos.z);
       const off = Math.abs(Math.atan2(Math.sin(toward - e.facing), Math.cos(toward - e.facing)));
-      if (dist <= v.spawnReach && off <= ARC && Math.abs(player.pos.y - e.pos.y) < 1.5) damagePlayer(player, v.spawnDamage, e.kind);
+      if (dist <= v.spawnReach && off <= ARC && Math.abs(player.pos.y - e.pos.y) < 1.5) meleeHit(player, w, e, index, v.spawnDamage);
       break;
     }
     case 'recover':

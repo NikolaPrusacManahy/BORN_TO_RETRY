@@ -47,6 +47,8 @@ export interface DungeonStyle {
   /** A column: one piece, or a stack (bottom, middle repeated to the height, top) with each piece's height (m). */
   column: string[];
   columnHeights: number[];
+  /** Update 0.3.10 — half a column's side, for its collision (m; none: the cell's, as the plain column's base is). */
+  columnHalf?: number;
   /** Now and then on a wall: a banner, or a rubble patch; its height and how far out from the wall's face (m). */
   decor: string;
   decorY: number;
@@ -142,6 +144,8 @@ export const STONE: DungeonStyle = {
   barsOpen: 3.5,
   column: ['kit_p2_ModularColumn_bottom', 'kit_p2_ModularColumn_middle', 'kit_p2_ModularColumn_top'],
   columnHeights: [0.62, 0.52, 0.62],
+  // (Update 0.3.10 — the stacked stone is 1.02 m across: a cell's box held you half a metre off it.)
+  columnHalf: 0.55,
   decor: 'kit_p2_WallRocks',
   decorY: 0,
   decorOut: 0.1,

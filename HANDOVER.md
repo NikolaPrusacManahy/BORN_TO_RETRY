@@ -2,7 +2,17 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.3.9: the pillar finisher)
+## Next up (2026-11-02, Update 0.3.10: parrying melee blows; pillar collision)
+- **The designer played 0.3.1–0.3.9: "game feels great"**; sounds later; no more finishers. (Spec
+  `MD_UPDATES/U0310_MELEE_PARRY_PILLARS.md`.)
+- **Melee parry** ("Allow parries melee attacks, not mini bosses"): an ordinary enemy's melee blow landing in the parry
+  window doesn't hurt; your fist punches back for 60, it's staggered, the 4 s wait starts. Mini bosses' and bosses'
+  blows are never parried.
+- **Pillar collision** ("fix collision with pillar"): a broken pillar's stump stops you only as high as the break; its
+  fallen top has collision where it lies (enemies walk round it). The stone columns' collision is as wide as their stone
+  (was a 2 m cell round 1 m of stone); each column its own box. Checked by tests; **unseen in the game**.
+
+## Before (2026-11-01, Update 0.3.9: the pillar finisher)
 - **The designer** (spec `MD_UPDATES/U039_PILLAR_FINISHER.md`): a body pinned to a pillar (any column, every floor) gets
   the pillar finisher: a right jab, a left, a heavy punch that drives it straight through the pillar to the wall beyond,
   where it bursts. The column is cut in two a quarter of the way up (lower than "in half", so its stump doesn't hide the

@@ -2,9 +2,11 @@
 // only its fin shows: drownedFx.ts) to where you stand, and the water rings there for Snapper rise (your warning: step
 // away) before it comes up biting; then it stays up Snapper stays up (now you can hit it) and dives again. At low water
 // it flops after you on the floor, gathers and lunges. Pure.
+// Update 0.3.10 — its melee blow can be parried (combat/meleeParry.ts).
 import { FOES5 } from '../../tuning/foes5';
 import { WADE_MIN } from '../dungeon/tide';
 import { damagePlayer } from '../player/health';
+import { meleeHit } from '../combat/meleeParry';
 import type { PlayerState } from '../player/state';
 import { BURIED } from './cactoro';
 import { Enemy, EnemyWorld, inLine, setPhase, turn, walk, yawTo } from './enemy';
@@ -114,7 +116,7 @@ function bite(e: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
   const v = FOES5.v;
   w.events.push('snapperBite', index, e.pos.x, e.pos.y + v.snapperHeight * 0.5, e.pos.z);
   const d = Math.hypot(player.pos.x - e.pos.x, player.pos.z - e.pos.z);
-  if (d > v.snapperReach || player.pos.y - e.pos.y > 1.6 || !damagePlayer(player, v.snapperBite, e.kind)) return;
+  if (d > v.snapperReach || player.pos.y - e.pos.y > 1.6 || !meleeHit(player, w, e, index, v.snapperBite)) return;
   player.vel.y = Math.max(player.vel.y, TOSS);
   player.grounded = false;
 }

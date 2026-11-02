@@ -4,8 +4,9 @@
 // stands open for Dino open (the moment to hit it: nothing it does saves it then) and springs back out of reach. Any
 // other time, it hops away from most of your blows (evade.ts). Learn its rhythm: let it come, step aside, hit it while
 // it's open. Pure.
+// Update 0.3.10 — its melee blow can be parried (combat/meleeParry.ts).
 import { FOES4 } from '../../tuning/foes4';
-import { damagePlayer } from '../player/health';
+import { meleeHit } from '../combat/meleeParry';
 import type { PlayerState } from '../player/state';
 import { chaseDir } from './chase';
 import { Enemy, EnemyWorld, inLine, radiusOf, setPhase, turn, walk, yawTo } from './enemy';
@@ -104,7 +105,7 @@ function bite(e: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
   const dx = player.pos.x - e.pos.x;
   const dz = player.pos.z - e.pos.z;
   const d = Math.hypot(dx, dz);
-  if (d > radiusOf(e) + JAWS || player.pos.y - e.pos.y > 1.6 || !damagePlayer(player, v.dinoBlobBite, e.kind)) return;
+  if (d > radiusOf(e) + JAWS || player.pos.y - e.pos.y > 1.6 || !meleeHit(player, w, e, index, v.dinoBlobBite)) return;
   player.vel.x += (d > 1e-3 ? dx / d : 1) * 6;
   player.vel.z += (d > 1e-3 ? dz / d : 0) * 6;
   player.vel.y = Math.max(player.vel.y, 3);

@@ -272,6 +272,11 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   bumpEnemies(state, player);
   staticStep(state, player);
   updateEnemies(state.enemies, player, state, world, dt);
+  // (Update 0.3.10 — a melee blow parried: the long wait, as after a shot.)
+  if (state.fists.parried) {
+    state.fists.parried = false;
+    state.fists.parryCooldown = times.cooldown;
+  }
   // (Update 0.3.7 — bodies thrown into walls.)
   wallSplats(state);
   if (state.storm > 0) state.storm = state.enemies.some((e) => e.kind === 'dino' && isLive(e)) ? Math.max(0, state.storm - dt) : 0;

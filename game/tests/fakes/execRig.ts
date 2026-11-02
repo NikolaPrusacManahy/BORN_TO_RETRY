@@ -96,5 +96,5 @@ export async function execRig(kind: EnemyKind, arena: Arena = OPEN_ARENA, pinned
 /** Update 0.3.9 — a pillar (2 m, 4.9 high) behind a body `far` m ahead, and a wall 6 m beyond it. */
 export function pillarArena(far: number): Arena {
   const z = -(far + 1);
-  return { ...OPEN_ARENA, boxes: [boxAt(-1, 0, z - 1, 2, 4.9, 2, 'block'), boxAt(-10, 0, z - 8, 20, 6, 1, 'wall')], pillars: [{ x: 0, z, half: 1, h: 4.9 }] };
+  return { ...OPEN_ARENA, boxes: [boxAt(-1, 0, z - 1, 2, 4.9, 2, 'block'), boxAt(-10, 0, z - 8, 20, 6, 1, 'wall')], pillars: [{ x: 0, z, half: 1, h: 4.9, box: 0 }] };
 }

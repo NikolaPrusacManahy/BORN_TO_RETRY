@@ -24,6 +24,7 @@ import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
 import type { CombatEvent } from '../combat/state';
 import type { Orb } from '../combat/targets';
+import type { FistState } from '../combat/fists';
 import type { Quake } from '../combat/quakes';
 import type { Bomb } from '../combat/bombs';
 import type { Grab } from '../combat/grab';
@@ -96,6 +97,8 @@ export interface Enemy {
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
  *  Update 0.0.15 — the quake rings, and the fight's seeded RNG (the Demon picks its moves with it). */
 export interface EnemyWorld {
+  /** Update 0.3.10 — your fists (the fight's: a melee blow met by your parry is parried, combat/meleeParry.ts). */
+  fists?: FistState;
   nav: Record<SizeClass, NavGrid>;
   flow: Record<SizeClass, Flow>;
   orbs: Orb[];

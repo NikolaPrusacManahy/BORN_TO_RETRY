@@ -169,6 +169,13 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   right fist punches the shot (half a second on screen with the freeze). **4 s** after a parry that lands; **0.5 s**
   after a press that caught nothing.
 
+### Parrying melee blows (Update 0.3.10, the designer: "Allow parries melee attacks, not mini bosses"; spec `MD_UPDATES/U0310_MELEE_PARRY_PILLARS.md`)
+- An ordinary enemy's melee blow landing while the parry window is open: no harm; your fist punches back (the parry's
+  damage, 60; a kill flings the body), it's staggered; the freeze, ring and clang; the 4 s wait. Mini bosses' and
+  bosses' blows, blasts and bursts are never parried.
+- (Pillars, Update 0.3.10: a broken one's stump stops you only as high as the break; its fallen top has collision where
+  it lies. The stone columns' collision is as wide as their stone.)
+
 ### Launches and wall-splats (Update 0.3.7, the designer: "Punched enemies launching into the air and splatting against walls"; spec `MD_UPDATES/U037_LAUNCH_AND_SPLAT.md`)
 - A killing punch (or a parried shot that kills) flings the body up and about 6 m away (bodies fly and slide with the
   blow that killed them). Not a boss's, not a large enemy's, not one on a ledge; a flier's body is flung, not thrown up.

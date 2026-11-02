@@ -116,6 +116,12 @@ function mark(g: NavGrid, f: Footprint, reach: number, hit: (d: number) => boole
   }
 }
 
+/** Update 0.3.10 — a wall that came after the grid was made (a broken pillar's fallen top): pushed out of, walked round. */
+export function addWall(g: NavGrid, f: Footprint) {
+  g.walls.push(f);
+  if (g.cols > 0) mark(g, f, g.radius, (d) => d < g.radius, g.blocked);
+}
+
 /** True when the grid has cells (an arena with a floor). */
 export const hasCells = (g: NavGrid) => g.cols > 0;
 

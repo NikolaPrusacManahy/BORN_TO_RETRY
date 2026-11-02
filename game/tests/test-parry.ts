@@ -4,6 +4,8 @@
 // barehanded, right click's press opens the parry's window: a shot reaching your fists while it's open goes back. Held
 // on, it's only the block: pressed too soon, the shot gets through. Punches no longer parry. Cold Snap goes off where a
 // parried shot hits. Update 0.3.6 (the designer: "4 sec cooldown") — a parry that lands, 4 s till the next.
+// Update 0.3.10 (the designer: "Allow parries melee attacks, not mini bosses") — a melee blow met by the window: no harm,
+// the counter (the parry's damage), it's staggered, the long wait; a mini boss's or a boss's lands as ever.
 import { Vector3 } from 'three';
 import { check, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
@@ -14,9 +16,12 @@ import { parry, stepParried } from '../src/sim/combat/parry';
 import { resolvePunch } from '../src/sim/combat/punch';
 import { createCombat, type CombatState } from '../src/sim/combat/state';
 import { stepCombat } from '../src/sim/combat/step';
-import { spawnEnemy } from '../src/sim/enemies/enemy';
+import { isLive, spawnEnemy } from '../src/sim/enemies/enemy';
 import { createPlayer, type PlayerState } from '../src/sim/player/state';
 import { CARDS } from '../src/tuning/cards';
+import { meleeHit } from '../src/sim/combat/meleeParry';
+import type { EnemyKind } from '../src/sim/enemies/kinds';
+import { ENEMIES } from '../src/tuning/enemies';
 import { FISTS } from '../src/tuning/combat';
 
 const eye = new Vector3(0, 1.62, 0);
@@ -126,4 +131,52 @@ section('Parry — the shot sent back');
   parry(c, eye, ahead);
   for (let k = 0; k < ticks(2) && c.orbs.some((o) => o.alive); k++) stepParried(c, world, DT);
   check(`Cold Snap: a parried shot freezes what it hits (${CARDS.v.coldSnap} s)`, c.enemies[b].frozen > 0 && p.hp === 100);
+}
+
+section('Parry — melee blows');
+{
+  /** `kind` 1.2 m ahead swinging at you with your parry's window open (or not: `open`). */
+  const blow = (kind: EnemyKind, open: boolean) => {
+    const c = createCombat(OPEN_ARENA);
+    const p = createPlayer(0, 0, 0, 0);
+    const i = spawnEnemy(c.enemies, kind, new Vector3(0, 0, -1.2), 0);
+    c.enemies[i].phase = 'windup';
+    c.enemies[i].hp = 999;
+    c.fists.parryWindow = open ? 0.2 : 0;
+    const hurt = meleeHit(p, c, c.enemies[i], i, 10);
+    const kinds = Array.from({ length: c.events.length }, (_, k) => c.events.at(k).kind);
+    return { c, p, e: c.enemies[i], hurt, kinds };
+  };
+  const g = blow('grunt', true);
+  check('a Grunt’s blow met by the window: it doesn’t touch you', !g.hurt && g.p.hp === 100);
+  check(`your fist punches back (${FISTS.v.parryDamage}), it’s staggered; the parry`, g.e.hp === 999 - FISTS.v.parryDamage && g.e.phase === 'flinch' && g.kinds.includes('parry') && g.c.hitStop.remaining > 0);
+  check('the window shuts', g.c.fists.parryWindow === 0 && g.c.fists.parried);
+  const late = blow('grunt', false);
+  check('with the window shut, it lands', late.hurt && late.p.hp < 100 && !late.kinds.includes('parry'));
+  const brute = blow('brute', true);
+  check('a mini boss’s blow is never parried (the Yeti’s)', brute.hurt && brute.e.hp === 999);
+  const demon = blow('demon', true);
+  check('nor a boss’s', demon.hurt);
+  const k = createCombat(OPEN_ARENA);
+  const kp = createPlayer(0, 0, 0, 0);
+  const ki = spawnEnemy(k.enemies, 'grunt', new Vector3(0, 0, -1.2), 0);
+  k.enemies[ki].phase = 'windup';
+  k.enemies[ki].hp = 1;
+  k.fists.parryWindow = 0.2;
+  meleeHit(kp, k, k.enemies[ki], ki, 10);
+  const body = k.enemies[ki];
+  check('a counter that kills flings the body', !isLive(body) && body.vel.z < -5);
+}
+{
+  // In the fight: a Grunt's swing landing just after right click is pressed.
+  const c = createCombat(OPEN_ARENA);
+  const p = createPlayer(0, 0, 0, 0);
+  const i = spawnEnemy(c.enemies, 'grunt', new Vector3(0, 0, -1.3), 0);
+  const e = c.enemies[i];
+  e.phase = 'windup';
+  e.hp = 999;
+  e.facing = Math.PI;
+  e.t = ENEMIES.v.gruntWindup - 0.05;
+  const seen = run(c, p, 0.3, (t) => t < 0.1);
+  check('in the fight: pressed as the swing lands, it’s parried; the long wait starts', p.hp === 100 && seen.includes('parry') && Math.abs(c.fists.parryCooldown - (FISTS.v.parryCooldown - 0.3 + 0.05)) < 0.06, `hp ${p.hp}, wait ${c.fists.parryCooldown.toFixed(2)}`);
 }

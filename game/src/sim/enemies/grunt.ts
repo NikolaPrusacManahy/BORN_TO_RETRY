@@ -5,9 +5,10 @@
 // Update 0.0.11 (the designer: grunts ran into walls forever and got stuck in blocks) — it finds its way round walls
 // (chase.ts), never swings through one or at you up on a block, and whatever moves it ends with it pushed back out
 // of any wall (world/navGrid.ts). Update 0.0.12 — its body and the moves every enemy shares are in enemy.ts.
+// Update 0.3.10 — its melee blow can be parried (combat/meleeParry.ts).
 import { Vector3 } from 'three';
 import { ENEMIES } from '../../tuning/enemies';
-import { damagePlayer } from '../player/health';
+import { meleeHit } from '../combat/meleeParry';
 import type { PlayerState } from '../player/state';
 import { chaseDir } from './chase';
 import { Enemy, EnemyWorld, inLine, setPhase, turn, walk, yawTo } from './enemy';
@@ -71,7 +72,7 @@ function strike(g: Enemy, index: number, player: PlayerState, dist: number, towa
   w.events.push('gruntStrike', index, g.pos.x, g.pos.y + v.gruntHeight * 0.5, g.pos.z);
   const off = Math.abs(Math.atan2(Math.sin(toward - g.facing), Math.cos(toward - g.facing)));
   if (dist > v.gruntReach || off > (v.gruntArc * Math.PI) / 180 || !canReach(g, player, w)) return;
-  if (!damagePlayer(player, v.gruntDamage, g.kind)) return;
+  if (!meleeHit(player, w, g, index, v.gruntDamage)) return;
   // Shoved away from it, and a little up.
   const len = Math.max(dist, 1e-3);
   player.vel.x += ((player.pos.x - g.pos.x) / len) * v.gruntShove;

@@ -5,15 +5,13 @@
 // their instanced meshes and cut where it snaps (each triangle across the cut cut in two along it), the stone flying
 // from the break (combatFeedback.ts). The lower half stays standing with broken stone on top; the upper half flies off the way the body was punched, tipping
 // over, and lies where it lands (along that way, or across it where the wall is too close) and stays there. Made in
-// code from the kit's own pieces.
+// code from the kit's own pieces. Update 0.3.10 — it lands where the rules say it lies (its collision is there).
 import * as THREE from 'three';
 import { Pillar, PILLAR_CUT } from '../sim/combat/pillars';
 
-/** How long the upper half flies (s), how high it rises on the way (m), the floor it leaves between it and the stump
- *  (m); the broken stone's shade (× the stone's). */
+/** How long the upper half flies (s), how high it rises on the way (m); the broken stone's shade (× the stone's). */
 const FALL = 0.75;
 const ARC = 1.1;
-const GAP = 0.25;
 const SHADE = 0.6;
 
 interface Falling {
@@ -137,13 +135,9 @@ export class PillarBreaks {
     top.add(capTop);
     low.add(capLow);
     this.group.add(low, top);
-    // Where it lands: lying the way it fell, or across it where the wall's too close.
-    const dir = new THREE.Vector3(-Math.sin(p.yaw), 0, -Math.cos(p.yaw));
-    const len = p.h - cut;
-    const across = p.room < reach + GAP + len;
-    const lie = across ? new THREE.Vector3(-dir.z, 0, dir.x) : dir.clone();
-    const to = new THREE.Vector3(p.x, reach, p.z).addScaledVector(dir, reach * (across ? 2 : 1) + GAP);
-    if (across) to.addScaledVector(lie, -len / 2);
+    // Where it lands: where the rules have it lie (the way it fell, or across it where the wall's too close).
+    const lie = new THREE.Vector3(-Math.sin(p.lie.yaw), 0, -Math.cos(p.lie.yaw));
+    const to = new THREE.Vector3(p.lie.x, reach, p.lie.z);
     this.falling.push({ pivot: top, from: top.position.clone(), to, turn: new THREE.Quaternion().setFromUnitVectors(UP, lie), t: 0 });
   }
 
