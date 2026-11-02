@@ -166,9 +166,11 @@ section('Music (the designer’s own, ASSETS/BGM)');
   for (const [name, t] of Object.entries(TRACKS)) {
     const b = readFileSync(new URL(t.file, PUBLIC));
     const mp3 = b.toString('ascii', 0, 3) === 'ID3' || (b[0] === 0xff && (b[1] & 0xe0) === 0xe0);
-    if (!mp3 || b.length > 8e6) off ||= `${name}: ${t.file} (${(b.length / 1e6).toFixed(1)} MB)`;
+    // (Update 0.3.19 — the fights' tracks are Ogg: they loop without a gap.)
+    const ogg = b.toString('ascii', 0, 4) === 'OggS';
+    if (!(mp3 || ogg) || b.length > 8e6) off ||= `${name}: ${t.file} (${(b.length / 1e6).toFixed(1)} MB)`;
   }
-  check(`every track is there, an MP3 under 8 MB (${Object.keys(TRACKS).join(', ')})`, off === '', off);
+  check(`every track is there, an MP3 or an Ogg under 8 MB (${Object.keys(TRACKS).join(', ')})`, off === '', off);
   // (Update 0.2.9 — the lobby took the character select's place.)
   // (Update 0.2.13 — not in the lobby: the designer.)
   check('the menus’ track plays on the main menu and as its gate opens, not in the lobby', ['menu', 'intro'].every((p) => menuMusicOn(p, false)) && !menuMusicOn('lobby', false));

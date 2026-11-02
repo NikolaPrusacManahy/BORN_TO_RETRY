@@ -43,8 +43,9 @@ export const CHANDELIERS: readonly { x: number; y: number; z: number }[] = [
   { x: 6.2, y: 5.6, z: 6 },
 ];
 
-/** The credits' boards on the south wall: their middles (x), in the credits' order (left to right as you face them). */
-export const CREDIT_BOARDS: readonly number[] = [2.6, -2.6];
+/** The credits' boards on the south wall: their middles (x), in the credits' order (left to right as you face them).
+ *  (Update 0.3.19 — three: the music's too, between the candelabra.) */
+export const CREDIT_BOARDS: readonly number[] = [5.2, 0, -5.2];
 
 /** Where you stand when you come in, and when you turn back from the gate (feet, facing north). */
 export const LOBBY_START = { x: 0, y: 0, z: 17, yaw: 0 } as const;

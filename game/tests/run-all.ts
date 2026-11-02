@@ -87,6 +87,7 @@ import './test-floor7';
 import './test-floor8';
 import './test-forge';
 import './test-floor8-crew';
+import './test-music';
 import './test-style';
 import './test-exec-grip';
 import './test-executions';

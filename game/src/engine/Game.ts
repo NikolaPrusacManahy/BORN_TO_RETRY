@@ -30,6 +30,7 @@ import { labLevel, lobbyLevel } from './level';
 import { GameBase, GameCallbacks } from './gameBase';
 import { MenuScenes, MenuView } from './menu/menuScenes';
 import { preloadLobby } from './lobby/lobbyView';
+import { setFloorMusic } from '../audio/music';
 
 export type { GameCallbacks, GameMode } from './gameBase';
 export type { MenuView };
@@ -225,6 +226,7 @@ export class Game extends GameBase {
     this.input.dispose();
     this.audio.dispose();
     this.run?.dispose();
+    setFloorMusic(null); // (Update 0.3.19 — no fight music left on after the game.)
     this.menus.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();

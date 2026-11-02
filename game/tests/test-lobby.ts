@@ -75,8 +75,8 @@ section('Lobby — the hall');
   check('the characters stand on the dais', FIGURES.every((f) => f.x > DAIS.x0 + 0.5 && f.x < w - 0.5 && f.z > DAIS.z0 && f.z < DAIS.z1));
   const dressing = dressHall();
   check('a closed roof over the whole hall', dressing.ceiling.length === (2 * w * 2 * d) / 4 && LOBBY_HALL.boxes.some((b) => b.y - b.h / 2 >= HALL.wallH - 0.5 && b.w >= 2 * w && b.d >= 2 * d));
-  // (Update 0.2.12 — two: no fonts or code credited.)
-  check('two boards for the credits, one per difficulty, one over the gate', ['gate', 'difficulty', 'credits'].map((k) => dressing.boards.filter((b) => b.kind === k).length).join() === '1,3,2');
+  // (Update 0.2.12 — two: no fonts or code credited. Update 0.3.19 — three: the music's.)
+  check('three boards for the credits, one per difficulty, one over the gate', ['gate', 'difficulty', 'credits'].map((k) => dressing.boards.filter((b) => b.kind === k).length).join() === '1,3,3');
 }
 
 await initPhysics();
@@ -200,7 +200,8 @@ section('Lobby — the boards and the credits');
   const altars = d.boards.filter((b) => b.kind === 'difficulty').map((b) => boardLines(b, 'weakling', 'Joseph')[0]);
   check('each altar’s board, yours lit', altars.map((l) => `${l.text}:${l.tone}`).join() === 'WEAKLING EXPERIENCE:gold,THE REAL EXPERIENCE:dim,ARE YOU EVEN HUMAN?:dim');
   // (Update 0.2.12 — the designer: no fonts or code credited.)
-  check('credits: models and sound (no fonts or code)', CREDITS.map((c) => c.title).join() === 'MODELS,SOUND');
+  // (Update 0.3.19 — and the fights' music: Polarnyne's pack asks for a credit.)
+  check('credits: models, sound and music (no fonts or code)', CREDITS.map((c) => c.title).join() === 'MODELS,SOUND,MUSIC' && CREDITS[2].lines.includes('Polarnyne'));
   const text = CREDITS.flatMap((c) => c.lines).join(' ');
   check('Quaternius and each of its packs in the game', ['Quaternius', 'Modular Dungeon Pack', 'Ultimate Nature Pack', 'Ultimate RPG Pack', 'Ultimate Monsters'].every((s) => text.includes(s)));
   const manifest = JSON.parse(readFileSync(new URL('../public/sounds/manifest.json', import.meta.url), 'utf8')) as Record<string, unknown>;
