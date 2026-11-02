@@ -45,6 +45,10 @@ const ROSTER: readonly (readonly EnemyKind[])[] = [
   // Update 0.2.11 — floor 6, the Sunken Grove (the designer's fish; "no porting floor 5 monster", but a smaller Drowned
   // King, the percher).
   ['clownfish', 'tuna', 'angelfish', 'dolphin', 'drownedPrince', 'mantaRay', 'shark'],
+  // Update 0.3.11 — floor 7, Frozen Depths: **stand-ins** from the dry floors till its own are designed (the plan for
+  // floors 7–10: its level first, then its enemies): the humanoid runners (pinned, finished), a flier or two, the Yeti
+  // and the Ninja for its mini bosses.
+  ['skeleton', 'rabbit', 'leaper', 'tribal', 'dinoBlob', 'skullWraith', 'dragonling', 'brute', 'ninja'],
 ];
 
 /** The enemies floor `floor` sends. */
@@ -120,7 +124,7 @@ function addMinis(plan: EnemyKind[][], floor: number, rng: Rng) {
 /** Update 0.2.4 — who stands on a floor's perches and throws from above. Update 0.2.7 — floor 3's Spitters went: the
  *  Dragonling has their place (a flier: it comes in their stead in a perch room's waves, from its spawns, not a perch). */
 // Update 0.2.10 — floor 5's Big Glubs (fliers hanging over the perches). Update 0.2.11 — floor 6's Drowned Princes.
-export const percherOf = (floor: number): EnemyKind => (floor >= 6 ? 'drownedPrince' : floor === 5 ? 'bigGlub' : floor === 4 ? 'tribal' : floor === 3 ? 'dragonling' : 'spitter');
+export const percherOf = (floor: number): EnemyKind => (floor >= 7 ? 'tribal' : floor === 6 ? 'drownedPrince' : floor === 5 ? 'bigGlub' : floor === 4 ? 'tribal' : floor === 3 ? 'dragonling' : 'spitter');
 
 /** Update 0.0.21 — spitters to stand on a room's perches, in every wave of a room with them. **(placeholder)** */
 export const PERCHED = 2;

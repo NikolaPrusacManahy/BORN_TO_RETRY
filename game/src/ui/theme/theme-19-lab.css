@@ -57,8 +57,25 @@
   height: 100%;
 }
 
+/* Update 0.3.11 — seven floors: the columns a little closer, their heads a little tighter, so a floor's name and its
+   Play fit side by side (the name never gives way; Play would clip first). */
 .rb-lab-cols.is-floors {
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.rb-lab-cols.is-floors > .rb-lab-col {
+  padding: 8px 4px;
+}
+
+.rb-lab-cols.is-floors .rb-lab-head {
+  flex-shrink: 0;
+  letter-spacing: 0.08em;
+}
+
+.rb-lab-cols.is-floors .rb-lab-btn.is-floor {
+  min-width: 0;
+  padding: 0 8px;
 }
 
 .rb-lab-cols.is-items {
@@ -78,6 +95,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 4px;
   height: 28px;
 }
 

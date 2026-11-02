@@ -14,6 +14,8 @@
 # Update 0.2.24 — and floor 3's, the Bone Keep: the Ultimate RPG Pack's crystals, skulls and bone (kit_r_<piece>;
 # `--rpg`), part 2's short candelabrum and candle.
 #       ... --rpg <Ultimate RPG Pack folder>
+# Update 0.3.11 — and floor 7's, Frozen Depths: the Nature pack's snow set (snowy pines, birches and trees, dead ones,
+# a bush, rocks, a stump and a log).
 import argparse
 import math
 import os
@@ -39,7 +41,10 @@ NATURE = ['PalmTree_1', 'PalmTree_3', 'Cactus_1', 'Cactus_3', 'CactusFlowers_2',
           'Willow_Dead_4', 'CommonTree_Dead_2', 'CommonTree_Dead_3', 'BirchTree_Dead_3', 'Grass', 'Grass_2', 'Plant_3',
           # Update 0.2.23 — floor 2's, the Venom Garden.
           'Bush_1', 'Bush_2', 'BushBerries_1', 'Flowers', 'Grass_Short', 'Plant_1', 'Plant_2', 'Plant_5', 'BirchTree_1',
-          'BirchTree_2', 'CommonTree_1', 'CommonTree_2', 'TreeStump', 'WoodLog', 'Rock_Moss_2']
+          'BirchTree_2', 'CommonTree_1', 'CommonTree_2', 'TreeStump', 'WoodLog', 'Rock_Moss_2',
+          # Update 0.3.11 — floor 7's, Frozen Depths.
+          'PineTree_Snow_1', 'PineTree_Snow_3', 'PineTree_Snow_5', 'BirchTree_Snow_2', 'CommonTree_Snow_1', 'CommonTree_Dead_Snow_2',
+          'BirchTree_Dead_Snow_3', 'Bush_Snow_1', 'Rock_Snow_1', 'Rock_Snow_3', 'Rock_Snow_6', 'TreeStump_Snow', 'WoodLog_Snow']
 # Update 0.2.24 — floor 3's: crystal clusters (the Skull Wraiths blink between them), skulls and a bone.
 RPG = ['Crystal1', 'Crystal2', 'Crystal3', 'Crystal4', 'Crystal5', 'Skull', 'Skull2', 'Bone']
 # Faced +x as they come: turned a quarter so they face −y.

@@ -16,10 +16,11 @@ import { SUNKEN_CHALLENGE, SUNKEN_ROOMS } from '../src/world/dungeon/sunkenRooms
 section('Floor 6 — the Sunken Grove: its look and its rooms');
 {
   const s = styleOf(6);
-  check('floor 6 (and on) is the Sunken Grove: floor 3’s stone recoloured, under water, a blue-green haze, no tide', s.id === 'sunken' && s.under !== undefined && s.water === undefined && !!s.tint && !!s.floorTint && s.sky !== undefined && styleOf(7).id === 'sunken' && styleOf(5).id === 'drowned');
+  // (Update 0.3.11 — floor 6 only: floor 7 is Frozen Depths, test-floor7.ts.)
+  check('floor 6 is the Sunken Grove: floor 3’s stone recoloured, under water, a blue-green haze, no tide', s.id === 'sunken' && s.under !== undefined && s.water === undefined && !!s.tint && !!s.floorTint && s.sky !== undefined && styleOf(7).id === 'frozen' && styleOf(5).id === 'drowned');
   check('no floor before it is under water', [1, 2, 3, 4, 5].every((f) => styleOf(f).under === undefined));
   const ids = SUNKEN_ROOMS.map((r) => r.id);
-  check(`${ids.length} rooms of its own, each different: ${ids.join(', ')}`, ids.length >= 10 && new Set(ids).size === ids.length && SUNKEN_ROOMS.every((r) => r.from === 6 && r.until === undefined));
+  check(`${ids.length} rooms of its own, each different: ${ids.join(', ')}`, ids.length >= 10 && new Set(ids).size === ids.length && SUNKEN_ROOMS.every((r) => r.from === 6 && r.until === 6));
   let bad = '';
   let hearts = 0;
   for (let seed = 1; seed <= 40; seed++) {

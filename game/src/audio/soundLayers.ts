@@ -62,6 +62,10 @@ export function crunch(a: AudioEngine, k: number) {
   for (let i = 0; i < 3; i++) noise(a, { dur: 0.035, gain: (0.22 + 0.12 * k) * (1 - i * 0.2), filter: 'bandpass', from: 2600 - i * 500, to: 900, q: 2.5, delay: i * 0.035 });
 }
 
+/** Update 0.3.11 — floor 7's icicle shaking loose (a thin, high creak), and shattering (a bright crack). */
+export const iceCreak = (a: AudioEngine) => noise(a, { dur: 0.35, gain: 0.12, filter: 'bandpass', from: 2600, to: 3800, q: 6 });
+export const iceShatter = (a: AudioEngine) => noise(a, { dur: 0.22, gain: 0.3, filter: 'highpass', from: 3200, to: 1800, q: 0.7 });
+
 /** Update 0.3.5 — the block coming up: a quick, low whoosh. */
 export const guardUp = (a: AudioEngine) => noise(a, { dur: 0.09, gain: 0.16, filter: 'bandpass', from: 500, to: 1400, q: 1.2 });
 

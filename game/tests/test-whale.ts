@@ -38,7 +38,8 @@ section('Old Whale — the boss of floor 6');
 {
   const s = ENEMY_STATS.whale();
   check(`a boss, ${v.whaleHp} health, never flinches; stunned, hits do more`, s.boss && s.hp === v.whaleHp && s.stagger === Infinity && s.stunned > 1);
-  check('floor 6’s boss (and the floors past it); not a mini boss', bossOf(6) === 'whale' && bossOf(7) === 'whale' && !MINI_BOSSES.includes('whale'));
+  // (Update 0.3.11 — floor 6's only: floor 7 has a stand-in, test-floor7.ts.)
+  check('floor 6’s boss; not a mini boss', bossOf(6) === 'whale' && bossOf(7) !== 'whale' && !MINI_BOSSES.includes('whale'));
   check(`its name, its death’s, ${v.whaleCoins} coins in its chest`, BOSS_NAMES.whale === 'THE OLD WHALE' && CAUSE_NAMES.whale === 'The Old Whale' && bossCoins('whale') === v.whaleCoins);
 }
 

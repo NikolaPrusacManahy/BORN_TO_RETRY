@@ -248,7 +248,8 @@ export const ENEMY_STATS: Record<EnemyKind, () => EnemyStats> = {
 
 /** Update 0.0.18 — each floor's boss. Update 0.2.3 — floor 3's the Bone King. Update 0.2.4 — floor 4's the Dino.
  *  Update 0.2.10 — floor 5's the Drowned King. Update 0.2.11 — floor 6's the Old Whale (and the floors past it). */
-export const bossOf = (floor: number): EnemyKind => (floor <= 1 ? 'demon' : floor === 2 ? 'dragon' : floor === 3 ? 'boneKing' : floor === 4 ? 'dino' : floor === 5 ? 'drownedKing' : 'whale');
+// (Update 0.3.11 — floor 7's: the Velociraptor stands in till the Frost Roc is made.)
+export const bossOf = (floor: number): EnemyKind => (floor <= 1 ? 'demon' : floor === 2 ? 'dragon' : floor === 3 ? 'boneKing' : floor === 4 ? 'dino' : floor === 5 ? 'drownedKing' : floor === 6 ? 'whale' : 'dino');
 
 /** Update 0.0.18 — the mini bosses (the designer): a room with one has a chest, and the first killed drops its key. */
 export const MINI_BOSSES: readonly EnemyKind[] = ['brute', 'spider', 'blueDemon', 'ninja', 'cactoroBig', 'skullOrc', 'bigMushnub', 'deepOne', 'bogBrute', 'mantaRay', 'shark'];

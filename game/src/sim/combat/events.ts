@@ -38,6 +38,9 @@ export type CombatEvent =
   | 'wallSplat'
   // Update 0.3.9 — a pillar broken by the pillar finisher (value: which; at its middle, where it snaps: pillars.ts).
   | 'pillarBreak'
+  // Update 0.3.11 — floor 7's icicles: one shaking (where it hangs), one shattering (where it lands: dungeon/icicles.ts).
+  | 'icicleShake'
+  | 'icicleShatter'
   | 'respawn'
   // M2 — enemies (value = which enemy): one arriving, each kind's warning and attack.
   | 'enemySpawn'

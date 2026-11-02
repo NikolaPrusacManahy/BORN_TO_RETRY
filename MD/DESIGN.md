@@ -169,6 +169,15 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   right fist punches the shot (half a second on screen with the freeze). **4 s** after a parry that lands; **0.5 s**
   after a press that caught nothing.
 
+### Floor 7 — Frozen Depths (Update 0.3.11; the plan for floors 7–10: `MD/FLOORS_7_10_PLAN.md`; spec `MD_UPDATES/U0311_FROZEN_DEPTHS.md`)
+- The run is **10 floors** (players polled: at least 10); for now it ends at floor 6's way down, moving on as each floor
+  is done.
+- Floor 3's stone frosted under a winter sky; snowy trees in beds of snow; snowy rocks for cover; ice-blue crystals;
+  falling snow. **Ice:** your grip on it is 15% of stone's (what you start keeps going); a body knocked across it slides
+  far. **Icicles** along the fight rooms' walls: they shake as you come under them (a creak, a shadow), fall after
+  0.7 s, 20 to whatever's within 1.1 m. Nine rooms of its own. Its enemies and its boss (the Frost Roc) are next; dry-land
+  stand-ins meanwhile. **(placeholder numbers, F1 → Frozen Depths)**
+
 ### Parrying melee blows (Update 0.3.10, the designer: "Allow parries melee attacks, not mini bosses"; spec `MD_UPDATES/U0310_MELEE_PARRY_PILLARS.md`)
 - An ordinary enemy's melee blow landing while the parry window is open: no harm; your fist punches back (the parry's
   damage, 60; a kill flings the body), it's staggered; the freeze, ring and clang; the 4 s wait. Mini bosses' and

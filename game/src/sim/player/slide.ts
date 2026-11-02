@@ -46,7 +46,8 @@ export function updateSlide(p: PlayerState, wish: Vector3, dt: number) {
     p.slideDir.set(x, 0, z);
   }
   p.slideTime += dt;
-  p.slideSpeed = Math.max(MOVE.v.runSpeed * p.speedMul, p.slideSpeed - SLIDE.v.friction * dt);
+  // (Update 0.3.11 — on ice it slows as much less as your grip is.)
+  p.slideSpeed = Math.max(MOVE.v.runSpeed * p.speedMul, p.slideSpeed - SLIDE.v.friction * p.grip * dt);
   const ramp = SLIDE.v.rampTime > 0 ? (SLIDE.v.speedFloor / SLIDE.v.rampTime) * dt : Infinity;
   p.slideCur = Math.min(p.slideSpeed, p.slideCur + ramp);
   p.vel.x = p.slideDir.x * p.slideCur;

@@ -147,6 +147,7 @@ export abstract class RunBase {
     // (Update 0.2.9 — the lobby has no enemies: no walk grids.)
     this.combat = createCombat(level.arena, !level.dungeon && !level.lobby);
     this.combat.hives = createHives(level.dungeon?.level.hives ?? []);
+    this.combat.ice = level.dungeon?.level.ice ?? [];
     this.combat.rng = createRng(level.fightSeed);
     this.combat.bare = this.difficulty === 'human';
     this.combat.fate = this.cards;

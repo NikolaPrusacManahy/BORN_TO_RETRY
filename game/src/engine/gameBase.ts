@@ -109,7 +109,8 @@ export abstract class GameBase {
     if (this.lab) this.newRun(bossRoomLevel(newSeed(), kind === 'demon' ? 1 : kind === 'dragon' ? 2 : kind === 'boneKing' ? 3 : kind === 'dino' ? 4 : kind === 'drownedKing' ? 5 : 6));
   }
 
-  /** Update 0.0.20 — floor `floor` (1–3) from the Lab, from its start. */
+  /** Update 0.0.20 — floor `floor` (1–3) from the Lab, from its start. Update 0.3.11 — up to 7 (past the run's end:
+   *  its way down wins, as the last floor's). */
   labFloor(floor: number) {
     if (this.lab) this.newRun(dungeonLevel(newSeed(), floor));
   }

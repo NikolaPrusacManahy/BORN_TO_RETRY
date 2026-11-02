@@ -8,6 +8,7 @@
 // Update 0.2.23 — floor 2's Venom Garden: its sludge's colour (the look's `pit`), looks into each of its rooms.
 // Update 0.2.10 — floor 5's water: the tide at high water over its rooms (`water`), its lily pads on it; and looks into
 // its rooms.
+// Update 0.3.11 — floor 7's sheets of ice and its icicles (pale slabs and thin pale blocks), and looks into its rooms.
 //   npx tsx tools/dungeon-shots.ts <out folder> [seed] [floor]
 //   blender --background --python tools/blender/render_dungeon.py -- --json <out folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <out folder>
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -87,6 +88,18 @@ const lava = level.arena.boxes.filter((b) => b.kind === 'lava').map((b) => ({ m:
 const high = TIDE.v.depth;
 const water = wet ? { level: high, rooms: level.tide.map((b) => ({ x: b.x, z: b.z, w: b.w, d: b.d })) } : null;
 const pieces = [...d.pieces, ...(wet ? d.floats.map((f) => ({ ...f, y: high + 0.015 })) : [])];
+// (Update 0.3.11 — floor 7's ice and icicles, and looks into its first rooms.)
+const ICE = [0.55, 0.78, 0.9];
+for (const b of level.ice) lava.push({ m: new Matrix4().compose(new Vector3(b.x, 0.012, b.z), new Quaternion(), new Vector3(b.w, 0.01, b.d)).elements, color: ICE });
+for (const ic of level.icicles) lava.push({ m: new Matrix4().compose(new Vector3(ic.x, 5.8, ic.z), new Quaternion(), new Vector3(0.16, 1, 0.16)).elements, color: [0.86, 0.95, 1] });
+if (d.style.id === 'frozen') {
+  for (const r of level.rooms.filter((x) => x.kind === 'fight').slice(0, 5)) {
+    const id = level.plan.rooms[r.index].layout.template.id.replace(/ /g, '-');
+    const m = { x: (r.min.x + r.max.x) / 2, z: (r.min.z + r.max.z) / 2 };
+    cams.push({ name: `${id}-eye`, at: [r.min.x + 4, 1.6, r.min.z + 4], to: [m.x, 0.6, m.z] });
+    cams.push({ name: `${id}-high`, at: [r.min.x + 3, 14, r.min.z + 3], to: [m.x, -1, m.z] });
+  }
+}
 if (wet) {
   // Into the first fight rooms at eye height, standing in the water.
   for (const r of level.rooms.filter((x) => x.kind === 'fight').slice(0, 4)) {

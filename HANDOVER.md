@@ -2,7 +2,19 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-02, Update 0.3.10: parrying melee blows; pillar collision)
+## Next up (2026-11-02, Update 0.3.11: floor 7, Frozen Depths — its level)
+- **Players polled: at least 10 floors.** The plan for floors 7–10 (`MD/FLOORS_7_10_PLAN.md`): 7 Frozen Depths, 8 The
+  Forge, 9 The Rift, 10 The Last Floor (a dark Joseph, The Retrier). The designer: "Go with it".
+- **Floor 6 is in the run** (`LAST_FLOOR` 6); it moves to each new floor as it's done. **Floor 7 plays from the Lab**
+  (F8 → Enemies → Floor 7 → Play).
+- **Floor 7's level** (spec `MD_UPDATES/U0311_FROZEN_DEPTHS.md`): floor 3's stone frosted, snowy trees in snow beds,
+  sheets of ice you slide on (and flung bodies slide far on), icicles along the walls that shake and fall where you
+  stand, nine rooms, falling snow. **Stand-in** enemies (dry-land ones from earlier floors) and boss (the Velociraptor)
+  till floor 7's own are designed. **Next: floor 7's enemies** (proposal from the unused models: Goleling, Bat,
+  Alpaking, Goleling Evolved…) and the Frost Roc. Checked by tests (`test-floor7.ts`) and Blender renders; **unseen in
+  the game**.
+
+## Before (2026-11-02, Update 0.3.10: parrying melee blows; pillar collision)
 - **The designer played 0.3.1–0.3.9: "game feels great"**; sounds later; no more finishers. (Spec
   `MD_UPDATES/U0310_MELEE_PARRY_PILLARS.md`.)
 - **Melee parry** ("Allow parries melee attacks, not mini bosses"): an ordinary enemy's melee blow landing in the parry

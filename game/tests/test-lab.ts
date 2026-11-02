@@ -32,7 +32,7 @@ import { planFloor } from '../src/world/dungeon/floorPlan';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { LabPanel } from '../src/screens/LabPanel';
-import { isMini, LAB_CARDS, LAB_DARK, LAB_FLOORS, LAB_ITEMS } from '../src/screens/labLists';
+import { isMini, LAB_CARDS, LAB_DARK, LAB_FLOOR_NUMBERS, LAB_FLOORS, LAB_ITEMS } from '../src/screens/labLists';
 import { rosterOf } from '../src/sim/dungeon/wavePlan';
 import { bossOf } from '../src/sim/enemies/kinds';
 import { DROP_KINDS } from '../src/sim/items/drops';
@@ -173,12 +173,14 @@ section('Lab — a boss room on demand');
 section('Lab panel — a column a floor, the items by kind');
 {
   const listed = LAB_FLOORS.flatMap((f) => f.enemies);
-  const fielded = [...new Set([1, 2, 3, 4, 5, 6].flatMap((f) => rosterOf(f)))];
-  check('every enemy of floors 1–6 is in the panel once', fielded.every((k) => listed.filter((l) => l === k).length === 1) && listed.length === fielded.length);
+  const fielded = [...new Set(LAB_FLOOR_NUMBERS.flatMap((f) => rosterOf(f)))];
+  check('every enemy of floors 1–7 is in the panel once', fielded.every((k) => listed.filter((l) => l === k).length === 1) && listed.length === fielded.length);
   check('each under the first floor it comes on', LAB_FLOORS.every((f) => f.enemies.every((k) => rosterOf(f.floor).includes(k) && LAB_FLOORS.every((g) => g.floor >= f.floor || !rosterOf(g.floor).includes(k)))));
   check('mini bosses last in their column', LAB_FLOORS.every((f) => f.enemies.findIndex(isMini) < 0 || f.enemies.slice(f.enemies.findIndex(isMini)).every(isMini)));
   // (Update 0.2.11 — floor 6's boss isn't made yet: the Drowned King stands in, listed under floor 5.)
-  check('each floor with its boss (none while it’s the floor before’s)', LAB_FLOORS.every((f) => f.boss === bossOf(f.floor) || (f.boss === null && bossOf(f.floor) === bossOf(f.floor - 1))));
+  check('each floor with its boss (none while it’s a floor before’s)', LAB_FLOORS.every((f) => f.boss === bossOf(f.floor) || (f.boss === null && LAB_FLOORS.some((g) => g.floor < f.floor && bossOf(g.floor) === bossOf(f.floor)))));
+  // (Update 0.3.11 — the designer: "F8 command please": floor 7 to play from the Lab, past the run's end.)
+  check('floor 7 is in the panel, to play (its stand-in boss under floor 4)', LAB_FLOORS.some((f) => f.floor === 7 && f.boss === null) && LAB_FLOORS.filter((f) => f.boss === 'dino').length === 1);
   check('a floor’s column fits (9 enemies at most)', LAB_FLOORS.every((f) => f.enemies.length <= 9), LAB_FLOORS.map((f) => f.enemies.length).join(' '));
   const items = LAB_ITEMS.flatMap(([, picks]) => picks.map(([, cmd]) => cmd));
   const drops = items.flatMap((c) => (c.kind === 'item' ? [c.item] : []));
@@ -195,7 +197,8 @@ section('Lab panel — a column a floor, the items by kind');
     createElement(LabPanel, { away: true, waves: false, meter: true, god: false, onCommand() {}, onBossRoom() {}, onFloor() {}, onBack() {}, onWaves() {}, onMeter() {}, onGod() {} }),
   );
   const count = (text: string) => html.split(text).length - 1;
-  // (Update 0.2.16 — a fourth tab: the Fate Cards. Update 0.2.19 — a fifth: the Traitor and Death Cards.)
-  check('it opens on Enemies: five tabs, six floors to play, six bosses with their rooms', (html.match(/rb-lab-tab[ "]/g) ?? []).length === 5 && count('>Play<') === 6 && count('>Room<') === 6 && html.includes('>Velociraptor<') && html.includes('>Drowned King<') && html.includes('>Old Whale<'));
+  // (Update 0.2.16 — a fourth tab: the Fate Cards. Update 0.2.19 — a fifth: the Traitor and Death Cards. Update 0.3.11
+  // — seven floors to play; floor 7's stand-in boss is floor 4's, listed there.)
+  check('it opens on Enemies: five tabs, seven floors to play, six bosses with their rooms', (html.match(/rb-lab-tab[ "]/g) ?? []).length === 5 && count('>Play<') === 7 && count('>Room<') === 6 && html.includes('>Velociraptor<') && html.includes('>Drowned King<') && html.includes('>Old Whale<'));
   check('below: Clear, Heal, Back; Waves, God, Meter, Stay', ['Clear', 'Heal', 'Back', 'Waves', 'God', 'Meter', 'Stay'].every((t) => html.includes(`>${t}<`)));
 }

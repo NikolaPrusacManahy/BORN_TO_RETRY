@@ -48,6 +48,7 @@ import { rewardDone, startReward, takeKeys } from './reward';
 import { CHEST_D, CHEST_W } from '../../world/dungeon/assemble';
 import { Checkpoint, doorSpot } from './checkpoint';
 import { armHives, stepHives } from './hives';
+import { createIcicles, Icicle, stepIcicles } from './icicles';
 import { fromLair, lairFor } from './lairs';
 
 /** Update 0.2.0 — 'reward': a challenge room won, shut until its reward is taken. */
@@ -82,6 +83,8 @@ export interface DungeonRun {
   /** Update 0.2.12 — where lava (and, on WEAKLING, death) sends you: outside the door of the last fight room you went
    *  into (checkpoint.ts); null: the floor's start. */
   checkpoint: Checkpoint | null;
+  /** Update 0.3.11 — floor 7's icicles (icicles.ts). */
+  icicles: Icicle[];
 }
 
 /** Seconds from the gates shutting to the first wave. */
@@ -105,6 +108,7 @@ export function createDungeonRun(level: DungeonLevel, last = false): DungeonRun 
     boss: createBossRun(bossOf(level.plan.level)),
     tide: createTide(),
     checkpoint: null,
+    icicles: createIcicles(level.icicles),
   };
 }
 
@@ -118,6 +122,7 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
   run.current = roomAt(run, player.pos.x, player.pos.z);
   if (run.current >= 0) run.visited[run.current] = true;
   const ev = combat.events;
+  stepIcicles(run.icicles, player, combat, dt);
   for (let i = 0; i < run.rooms.length; i++) {
     const rr = run.rooms[i];
     const room = run.level.rooms[i];

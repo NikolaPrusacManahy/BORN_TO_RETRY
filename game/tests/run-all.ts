@@ -80,6 +80,7 @@ import './test-parry';
 import './test-launch';
 import './test-pin';
 import './test-pillar';
+import './test-floor7';
 import './test-style';
 import './test-exec-grip';
 import './test-executions';

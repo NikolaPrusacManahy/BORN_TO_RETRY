@@ -11,6 +11,7 @@
 import { pushOutOfWalls, type NavGrid } from '../../world/navGrid';
 import { EXECUTION } from '../../tuning/execution';
 import { LAUNCH } from '../../tuning/launch';
+import { FROZEN_KNOBS } from '../../tuning/frozen';
 import type { Enemy } from './enemy';
 import { ENEMY_STATS, EnemyKind, flies } from './kinds';
 
@@ -50,8 +51,8 @@ export function launch(e: Enemy, dx: number, dz: number) {
 
 /** One tick of `e`'s knock: on along its slide (out of any wall it runs into), slowing fast on the floor (a body in the
  *  air, only a little). A wall met at Splat speed: `e.splat` (how fast) and `e.wall` (where, at mid-body), and it
- *  stops. */
-export function fly(e: Enemy, nav: NavGrid, radius: number, dt: number) {
+ *  stops. Update 0.3.11 — `slick`: on floor 7's ice, it slows only at Ice slide. */
+export function fly(e: Enemy, nav: NavGrid, radius: number, dt: number, slick = false) {
   const speed = Math.hypot(e.vel.x, e.vel.z);
   if (speed <= 0.01) return;
   const dx = e.vel.x / speed;
@@ -70,7 +71,7 @@ export function fly(e: Enemy, nav: NavGrid, radius: number, dt: number) {
     e.vel.x = e.vel.z = 0;
     return;
   }
-  const k = Math.exp(-(e.phase === 'dead' && e.pos.y > e.perch + AIR ? LAUNCH.v.airDrag : SLIDE_FRICTION) * dt);
+  const k = Math.exp(-(e.phase === 'dead' && e.pos.y > e.perch + AIR ? LAUNCH.v.airDrag : slick ? FROZEN_KNOBS.v.iceSlide : SLIDE_FRICTION) * dt);
   e.vel.x *= k;
   e.vel.z *= k;
 }

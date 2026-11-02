@@ -24,7 +24,8 @@ import { planFloor } from '../src/world/dungeon/floorPlan';
 
 section('Alpha — floors 1 to 5, the Pistol, the Grimoire');
 {
-  check('floor 5’s way down ends the run: no floor 6 yet', LAST_FLOOR === 5 && endsRun(5) && !endsRun(4));
+  // (Update 0.3.11 — floor 6 is in.)
+  check('floor 6’s way down ends the run: no floor 7 yet', LAST_FLOOR === 6 && endsRun(6) && !endsRun(5));
   check(`the Pistol: ${GUN.v.pistolRounds} rounds, uncommon (in uncommon chests)`, GUN.v.pistolRounds === 60 && WEAPON_STATS.pistol().uses === 60 && rarityOf('pistol') === 'uncommon');
   const c = createCombat(buildDungeon(planFloor(3, 1)).arena);
   const p = createPlayer(0, 0, 0, 0);

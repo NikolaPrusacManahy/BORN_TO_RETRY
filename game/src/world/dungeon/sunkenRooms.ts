@@ -8,7 +8,8 @@
 import type { RoomTemplate } from './rooms';
 import { quarter } from './fightRooms';
 
-const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 6 });
+// (Update 0.3.11 — floor 6 only: floor 7 has its own, frozenRooms.ts.)
+const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 6, until: 6 });
 
 /** The grove's heart, where its oldest trees drowned: bigger than the other rooms (64 m), for ten fighting at once in
  *  the open water. In each corner a raised cloister walk (1 m), columns along it; four towers (2.5 m, a step up their
@@ -18,6 +19,7 @@ export const SUNKEN_CHALLENGE: RoomTemplate = {
   id: 'the drowned heart',
   kind: 'fight',
   from: 6,
+  until: 6,
   challenge: true,
   rows: quarter([
     '....T...........',

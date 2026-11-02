@@ -55,7 +55,7 @@ import { RunBase } from './runBase';
 import { endsRun } from './runLinks';
 import { skullOf } from '../sim/combat/grab';
 import { jawsOf } from '../sim/combat/pin';
-import { sandSlow, webSlow } from '../sim/dungeon/quicksand';
+import { iceGrip, sandSlow, webSlow } from '../sim/dungeon/quicksand';
 import { floodSlow, stepTide, tideSlow } from '../sim/dungeon/tide';
 import { Lobby, lobbyFocus, stepLobby } from '../sim/lobby/lobby';
 import { styleOf } from '../world/dungeon/styles';
@@ -96,6 +96,8 @@ export class Run extends RunBase {
       p.swimTop = d ? (styleOf(this.level.floor).under ?? 0) : 0;
       const wade = d && p.swimTop === 0 ? (bossOn ? floodSlow(p, this.combat.flood) : tideSlow(p, d.tide, d.level.tide)) : 1;
       p.speedMul = moveFactor(this.combat) * (d ? sandSlow(p, d.level.sand) * webSlow(p, d.level.webs) * wade : 1);
+      // (Update 0.3.11 — floor 7's ice.)
+      p.grip = d ? iceGrip(p, d.level.ice) : 1;
       p.hpBonus = hpBonusOf(this.combat.items);
       p.cards = this.combat.items.cards;
       const ci = this.combatIntent;

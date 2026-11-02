@@ -81,7 +81,7 @@ function steer(p: PlayerState, intent: PlayerIntent, world: CollisionWorld, dt: 
   else if (p.slamming) updateSlam(p);
   else if (!(p.wallRunning && updateWallRun(p, intent, world, dt))) {
     if (p.sliding) updateSlide(p, wish, dt);
-    else if (p.grounded) groundMove(p.vel, wish.x, wish.z, dt, p.speedMul);
+    else if (p.grounded) groundMove(p.vel, wish.x, wish.z, dt, p.speedMul, p.grip);
     else airMove(p.vel, wish.x, wish.z, dt, p.speedMul);
     if (!p.grounded) {
       applyGravity(p.vel, dt);

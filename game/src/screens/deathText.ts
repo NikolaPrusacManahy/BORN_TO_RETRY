@@ -57,6 +57,7 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   spikes: 'Spikes',
   lava: 'Lava',
   fall: 'The fall',
+  icicle: 'An icicle',
 };
 
 export const causeName = (by: Cause | null) => (by ? CAUSE_NAMES[by] : 'Unknown');

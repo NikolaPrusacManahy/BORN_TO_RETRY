@@ -2,6 +2,8 @@
 // column a floor, each with the enemies it brings in (on the first floor each comes, the mini bosses last), its boss and
 // a run from its start; the items by kind. The floors' columns follow their rosters, so a new enemy shows up by itself.
 // Update 0.2.16 — the Fate Cards (their own tab): a deal, or any card given you, a column a rarity.
+// Update 0.3.11 — floor 7 (the designer: "F8 command please"): its Play, to see Frozen Depths past the run's end. Its
+// stand-ins come from the floors before, so its column is empty till its own enemies are made.
 import { rosterOf } from '../sim/dungeon/wavePlan';
 import { BUILD_CARDS } from '../sim/cards/builds';
 import { CARD, CARD_KINDS, CardKind, familyOf } from '../sim/cards/cards';
@@ -72,16 +74,22 @@ export interface LabFloor {
   floor: number;
   /** The enemies it brings in, the mini bosses last. */
   enemies: EnemyKind[];
-  /** Update 0.2.11 — null while the floor's boss is the floor before's (floor 6's isn't made yet). */
+  /** Update 0.2.11 — null while the floor's boss is the floor before's (floor 6's isn't made yet). Update 0.3.11 — or
+   *  any floor's before it (floor 7's stand-in is floor 4's). */
   boss: LabBoss | null;
 }
 
+/** The floors the panel offers (Update 0.3.11 — 7 too). */
+export const LAB_FLOOR_NUMBERS = [1, 2, 3, 4, 5, 6, 7];
+
 export const LAB_FLOORS: readonly LabFloor[] = (() => {
   const seen = new Set<EnemyKind>();
-  return [1, 2, 3, 4, 5, 6].map((floor) => {
+  const bosses = new Set<EnemyKind>();
+  return LAB_FLOOR_NUMBERS.map((floor) => {
     const fresh = rosterOf(floor).filter((k) => !seen.has(k));
     for (const k of fresh) seen.add(k);
-    const boss = floor > 1 && bossOf(floor) === bossOf(floor - 1) ? null : (bossOf(floor) as LabBoss);
+    const boss = bosses.has(bossOf(floor)) ? null : (bossOf(floor) as LabBoss);
+    bosses.add(bossOf(floor));
     return { floor, enemies: [...fresh.filter((k) => !isMini(k)), ...fresh.filter(isMini)], boss };
   });
 })();

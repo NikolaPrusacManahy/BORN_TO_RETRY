@@ -9,6 +9,7 @@
 // Items, Fate Cards (Update 0.2.16) and Sounds, the panel the same size on each and fitting the window. Enemies: a column a floor (labLists.ts),
 // its Play (a run from its start), its enemies (mini bosses tinted, last) and its boss (here, or its Room). Items: a
 // column a kind. Below, always: Clear, Heal, Back; Waves, God, Meter, and Stay (every pick keeps the panel open).
+// Update 0.3.11 — floor 7's column (its Play).
 import { useState } from 'react';
 import { LabSounds } from './LabSounds';
 import { isMini, LAB_CARDS, LAB_DARK, LAB_FLOORS, LAB_ITEMS, LabBoss, labName } from './labLists';

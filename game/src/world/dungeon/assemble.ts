@@ -26,6 +26,8 @@ import type { Cell, RoomKind } from './rooms';
 import type { EnemyKind } from '../../sim/enemies/kinds';
 import { styleOf } from './styles';
 import { hasYeti } from '../../sim/dungeon/wavePlan';
+import { columnBoxes } from './columns';
+import { IcicleSpot, iciclesOf } from './frozen';
 // Update 0.2.4 — floor 4's desert: a palm's trunk and a cactus are narrow blocks in their cells (their sand is floor);
 // quicksand is floor too, listed apart (DungeonLevel.sand) for the slow you feel in it.
 // Update 0.2.23 — floor 2's Venom Garden (garden.ts): a tree's trunk is a willow's block; its webs and its hives.
@@ -133,6 +135,9 @@ export interface DungeonLevel {
   /** Update 0.2.23 — floor 2's webs (flat areas on the floor) and wasps' hives. */
   webs: ArenaBox[];
   hives: HiveSpot[];
+  /** Update 0.3.11 — floor 7's sheets of ice (flat areas on the floor) and its icicles. */
+  ice: ArenaBox[];
+  icicles: IcicleSpot[];
 }
 
 /** Update 0.2.4 — a palm's trunk and a cactus: their blocks' sides and heights (m). */
@@ -196,42 +201,26 @@ function bossStart(end: Rect, entrance: Side): Rect {
   }
 }
 
-/** Update 0.3.10 — half a column's side: its look's stone; the Throne Hall's, with the skulls round it (keepDressing.ts). */
-function columnHalf(plan: FloorPlan, col: number, row: number): number {
-  const look = styleOf(plan.level);
-  const throne = look.id === 'bone' && plan.rooms.some((r) => r.kind === 'boss' && col >= r.x0 && col < r.x0 + r.layout.w && row >= r.z0 && row < r.z0 + r.layout.h);
-  return throne ? SKULL_PILLAR : (look.columnHalf ?? CELL / 2);
-}
-/** Its skulls stand out this far (m) from its middle. */
-const SKULL_PILLAR = 0.85;
-
 export function buildDungeon(plan: FloorPlan): DungeonLevel {
   const boxes: ArenaBox[] = [];
   merge(plan, hasFloor, (col, row, w, h) => cellsBox(col, row, w, h, -LAVA_DEPTH - 1, 0, 'floor'), boxes);
   merge(plan, (c) => c === 'lava', (col, row, w, h) => cellsBox(col, row, w, h, -LAVA_DEPTH - 1, -LAVA_DEPTH, 'lava'), boxes);
   merge(plan, (c) => BOX_KIND[c] !== undefined && c !== 'column', (col, row, w, h, c) => cellsBox(col, row, w, h, 0, HEIGHT[c]!, BOX_KIND[c]!), boxes);
-  // (Update 0.3.9 — every column a pillar the pillar finisher can break. Update 0.3.10 — each its own box, as wide as
-  // its stone, so a broken one's can change alone: sim/combat/pillars.ts.)
-  const pillars: Arena['pillars'] = [];
-  for (let row = 0; row < GRID; row++) {
-    for (let col = 0; col < GRID; col++) {
-      if (cellAt(plan, col, row) !== 'column') continue;
-      const half = columnHalf(plan, col, row);
-      const h = HEIGHT.column!;
-      boxes.push({ x: cellX(col), y: h / 2, z: cellZ(row), w: 2 * half, h, d: 2 * half, kind: 'block' });
-      pillars.push({ x: cellX(col), z: cellZ(row), half, h, box: boxes.length - 1 });
-    }
-  }
+  // (Update 0.3.9 — every column a pillar the pillar finisher can break: columns.ts.)
+  const pillars = columnBoxes(plan, HEIGHT.column!, boxes);
   // Update 0.2.4 — the desert's palms and cacti; its quicksand.
   for (let row = 0; row < GRID; row++) {
     for (let col = 0; col < GRID; col++) {
       const c = cellAt(plan, col, row);
-      const b = c === 'palm' ? PALM : c === 'cactus' ? CACTUS : c === 'crystal' ? CRYSTAL : c === 'willow' || c === 'snag' || c === 'tree' ? WILLOW : null;
+      const b = c === 'palm' ? PALM : c === 'cactus' ? CACTUS : c === 'crystal' ? CRYSTAL : c === 'willow' || c === 'snag' || c === 'tree' || c === 'pine' ? WILLOW : null;
       if (b) boxes.push({ x: cellX(col), y: b.h / 2, z: cellZ(row), w: b.side, h: b.h, d: b.side, kind: 'block' });
     }
   }
   const sand: ArenaBox[] = [];
   merge(plan, (c) => c === 'sand', (col, row, w, h) => cellsBox(col, row, w, h, -0.1, 0.1, 'accent'), sand);
+  // (Update 0.3.11 — floor 7's ice, as quicksand is.)
+  const ice: ArenaBox[] = [];
+  merge(plan, (c) => c === 'ice', (col, row, w, h) => cellsBox(col, row, w, h, -0.1, 0.1, 'accent'), ice);
   // Chests: a box the size of the model (one that rises: a gate, below).
   const chests: ChestSpot[] = [];
   for (const r of plan.rooms) {
@@ -296,5 +285,5 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
     dark: { min: { x: cellX(out.x0) - CELL / 2, z: cellZ(out.z0) - CELL / 2 }, max: { x: cellX(out.x1) + CELL / 2, z: cellZ(out.z1) + CELL / 2 } },
   };
   const tide = styleOf(plan.level).water === undefined ? [] : rooms.filter((r) => r.kind === 'fight').map((r): ArenaBox => ({ x: (r.min.x + r.max.x) / 2, y: 0, z: (r.min.z + r.max.z) / 2, w: r.max.x - r.min.x, h: 0, d: r.max.z - r.min.z, kind: 'accent' }));
-  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests, boss, sand, tide, webs: websOf(plan), hives: hivesOf(plan) };
+  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests, boss, sand, tide, webs: websOf(plan), hives: hivesOf(plan), ice, icicles: iciclesOf(plan, styleOf(plan.level).id === 'frozen') };
 }

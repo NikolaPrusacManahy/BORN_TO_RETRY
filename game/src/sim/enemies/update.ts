@@ -16,6 +16,7 @@ import type { PlayerState } from '../player/state';
 import { updateFlow } from './chase';
 import { Enemy, EnemyWorld, isLive } from './enemy';
 import { beginTick } from './tick';
+import { onIce } from '../dungeon/quicksand';
 import { separateEnemies } from './bodies';
 import { dealTokens, wait, waits } from './tokens';
 import { fanOut, spreadSlots } from './spread';
@@ -148,7 +149,8 @@ export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWor
   for (let i = 0; i < enemies.length; i++) {
     const e = enemies[i];
     // (Update 0.1.1 — one held in an execution is placed by it.)
-    if (beginTick(e, w.nav[ENEMY_STATS[e.kind]().size], dt) && e.phase !== 'held') {
+    // (Update 0.3.11 — on floor 7's ice a knocked body slides far.)
+    if (beginTick(e, w.nav[ENEMY_STATS[e.kind]().size], dt, onIce(e.pos.x, e.pos.y, e.pos.z, w.ice)) && e.phase !== 'held') {
       if (waits(e, player)) wait(e, player, w, dt);
       else UPDATE[e.kind](e, i, player, w, dt, world);
       fanOut(e, player, w, dt);

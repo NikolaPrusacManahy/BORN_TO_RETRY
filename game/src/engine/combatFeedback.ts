@@ -129,6 +129,11 @@ export class CombatFeedback {
         case 'knifeStick':
           this.f.sparks.spawn(at, back, 5, 0.7);
           break;
+        // Update 0.3.11 — an icicle shattering: shards of ice, a jolt if it's near.
+        case 'icicleShatter':
+          this.f.sparks.spawn(at, UP, 26, 1.2);
+          this.f.rig.shake.add(fb.shakeJab * this.nearHere(8));
+          break;
         // Update 0.3.9 — a pillar broken: stone flying from where it snapped, a jolt.
         case 'pillarBreak': {
           const k = this.nearHere(20);

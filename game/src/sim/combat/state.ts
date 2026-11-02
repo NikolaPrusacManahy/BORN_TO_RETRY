@@ -8,7 +8,7 @@
 import { EventQueue } from '../../core/eventQueue';
 import { Rng, createRng } from '../../core/rng';
 import { Vector3 } from 'three';
-import type { Arena, Spot } from '../../world/arena';
+import type { Arena, ArenaBox, Spot } from '../../world/arena';
 import { WEAPON_STATS } from '../weapons/catalog';
 import { HeldWeapon, Pickup, Stand, Thrown, createPickups, createStands, createThrown, placePickup } from '../weapons/weapons';
 import { Fireball, createFireballs } from '../weapons/fireballs';
@@ -61,6 +61,8 @@ export interface CombatState {
    *  Update 0.2.24 — the crystals of the room you're fighting in (floor 3's: Skull Wraiths blink to them). */
   puddles: Puddle[];
   hives: Hive[];
+  /** Update 0.3.11 — floor 7's ice (a body knocked across it slides far: enemies/flight.ts). */
+  ice: ArenaBox[];
   crystals: Spot[];
   /** Update 0.0.11 — where enemies can walk (built once from the arena, one grid per size), and the way from anywhere
    *  to the player. */
@@ -176,6 +178,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     bombs: createBombs(),
     puddles: createPuddles(),
     hives: [],
+    ice: [],
     crystals: [],
     nav,
     flow: { small: createFlow(nav.small), large: createFlow(nav.large), air: createFlow(nav.air) },

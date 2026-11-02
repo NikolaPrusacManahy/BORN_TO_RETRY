@@ -42,7 +42,8 @@ export type MoveEvent =
   | 'bornAgain';
 
 /** Update 0.1.14 — what hurt you (the death screen names what killed you): an enemy's kind, or the world. */
-export type Cause = EnemyKind | 'turret' | 'spikes' | 'lava' | 'fall';
+// (Update 0.3.11 — and floor 7's icicles.)
+export type Cause = EnemyKind | 'turret' | 'spikes' | 'lava' | 'fall' | 'icicle';
 
 export interface PlayerState {
   /** Feet position. */
@@ -101,6 +102,8 @@ export interface PlayerState {
   shield: number;
   /** Update 0.0.13 — run speed times this (the blue rings; Update 0.0.17: and the blue potion). */
   speedMul: number;
+  /** Update 0.3.11 — your grip on what you stand on (1: stone; floor 7's ice less: you slide). */
+  grip: number;
   /** Update 0.0.17 — max health on top of the base (the red rings). */
   hpBonus: number;
   /** Update 0.2.16 — the Fate Cards you carry (sim/cards/cards.ts: the run's, the same set, given here each tick);
@@ -172,6 +175,7 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     dead: false,
     shield: 0,
     speedMul: 1,
+    grip: 1,
     hpBonus: 0,
     cards: new Set(),
     freeDash: 0,

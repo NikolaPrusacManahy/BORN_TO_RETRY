@@ -18,8 +18,11 @@
 // bushes for low cover (`low`), green sludge in the pits (`pit`), the boss room's dead trees and logs charred (`burnt`).
 // Update 0.2.24 — floor 3 is the Bone Keep: floor 3's stone bleached bone-white under a pale lavender sky; skulls on the
 // walls (`decor`), stone tombs for low cover (`low`: the stone floor slab, stood tall), graves, glowing crystals (`glow`).
+// Update 0.3.11 — floor 7 is Frozen Depths (the plan for floors 7–10): floor 3's stone frosted white and ice-blue under a
+// pale winter sky; snowy trees in beds of snow (`sand`: the snow's colour), snowy rocks for low cover, crystals glowing
+// ice-blue, sheets of ice on the floor (engine/iceView.ts).
 
-export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned' | 'sunken' | 'venom' | 'bone';
+export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned' | 'sunken' | 'venom' | 'bone' | 'frozen';
 type Scale = [number, number, number];
 
 export interface DungeonStyle {
@@ -250,6 +253,26 @@ export const BONE: DungeonStyle = {
   glow: ['Purple', 'Pink', 'Cyan'],
 };
 
-/** Floor `floor`'s look: floor 1 brick, floor 2 the Venom Garden (Update 0.2.23), floor 3 the Bone Keep (Update 0.2.24), floor 3 stone, floor 4 the desert, floor 5 the Drowned Temple, floor 6
- *  (and on) the Sunken Grove. */
-export const styleOf = (floor: number): DungeonStyle => (floor >= 6 ? SUNKEN : floor === 5 ? DROWNED : floor === 4 ? SAND : floor === 3 ? BONE : floor === 2 ? VENOM : BRICK);
+/** Update 0.3.11 — Frozen Depths: floor 3's stone frosted white and ice-blue, under a pale winter sky. */
+export const FROZEN_LOOK: DungeonStyle = {
+  ...STONE,
+  id: 'frozen',
+  litter: ['kit_n_Rock_Snow_1', 'kit_n_Rock_Snow_3', 'kit_n_TreeStump_Snow', 'kit_n_WoodLog_Snow', 'kit_p1_Skull', 'kit_p2_Bones'],
+  core: [0.15, 0.18, 0.22],
+  tint: { RockLight: 0xe6eff6, Rock: 0xb3c5d5, Steel: 0x8ea3b6, DarkSteel: 0x6d8397, Bones: 0xf1f3f2, Bone: 0xf1f3f2, Grey_Floor: 0xd9e4ec, Fire: 0xff9a4a, Purple: 0x8fdcff, Pink: 0xc4f0ff, Cyan: 0x6fd6ff },
+  // (The paving a grey-blue, so the snow's white and the ice's blue stand out on it.)
+  floorTint: { RockLight: 0xc4d2de, Rock: 0x9fb2c2 },
+  sky: 0xdde9f3,
+  skyLight: 0xf6fbff,
+  ground: 0x9fb3c5,
+  sun: 0xfdfcff,
+  sand: 0xf2f6fa,
+  quicksand: 0xd9e3eb,
+  low: 'kit_n_Rock_Snow_6',
+  lowScale: [2, 1.6, 1.7],
+  glow: ['Purple', 'Pink', 'Cyan'],
+};
+
+/** Floor `floor`'s look: floor 1 brick, floor 2 the Venom Garden (Update 0.2.23), floor 3 the Bone Keep (Update 0.2.24), floor 4 the desert, floor 5 the Drowned Temple, floor 6
+ *  the Sunken Grove, floor 7 (and on, for now) Frozen Depths (Update 0.3.11). */
+export const styleOf = (floor: number): DungeonStyle => (floor >= 7 ? FROZEN_LOOK : floor === 6 ? SUNKEN : floor === 5 ? DROWNED : floor === 4 ? SAND : floor === 3 ? BONE : floor === 2 ? VENOM : BRICK);

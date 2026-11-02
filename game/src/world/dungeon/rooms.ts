@@ -24,6 +24,8 @@
 // Update 0.2.24 — floor 3's Bone Keep (boneRooms.ts): g an open grave (Skeletons climb out), m a bed of glowing
 // mushrooms (Mushnubs come out), o a burrow (White Rabbits pop out), x a crystal cluster (a block; Skull Wraiths blink
 // to them). Its boss room is its own, the Throne Hall. The lava rooms are retired.
+// Update 0.3.11 — floor 7's Frozen Depths (frozenRooms.ts): I a sheet of ice (floor you slide on), F a snowy tree in a
+// bed of snow, n a bed of snow (floor).
 import type { Rng } from '../../core/rng';
 import { FIGHT_ROOMS as FIRST_ROOMS, quarter } from './fightRooms';
 import { KEEP_ROOMS } from './keepRooms';
@@ -32,14 +34,15 @@ import { DROWNED_ROOMS } from './drownedRooms';
 import { SUNKEN_CHALLENGE, SUNKEN_ROOMS } from './sunkenRooms';
 import { SCORCHED_ROOM, VENOM_ROOMS } from './venomRooms';
 import { BONE_ROOMS, THRONE_ROOM } from './boneRooms';
+import { FROZEN_ROOMS } from './frozenRooms';
 
 /** Every fight room (Update 0.0.20: the lava rooms too, from their floor on; Update 0.0.21: floor 3's). */
-export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...VENOM_ROOMS, ...BONE_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS, ...SUNKEN_ROOMS, SUNKEN_CHALLENGE];
+export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...VENOM_ROOMS, ...BONE_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS, ...SUNKEN_ROOMS, SUNKEN_CHALLENGE, ...FROZEN_ROOMS];
 
 /** Update 0.0.21 — the rooms floor `floor` has. */
 export const onFloor = (t: RoomTemplate, floor: number) => (t.from ?? 1) <= floor && floor <= (t.until ?? Infinity);
 
-export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed' | 'bed' | 'grass' | 'tree' | 'web' | 'grave' | 'shroom' | 'burrow' | 'crystal';
+export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed' | 'bed' | 'grass' | 'tree' | 'web' | 'grave' | 'shroom' | 'burrow' | 'crystal' | 'ice' | 'pine' | 'snow';
 export type RoomKind = 'start' | 'fight' | 'boss' | 'shop';
 
 export interface RoomTemplate {
@@ -84,6 +87,9 @@ const CHAR: Record<string, Cell> = {
   m: 'shroom',
   o: 'burrow',
   x: 'crystal',
+  I: 'ice',
+  F: 'pine',
+  n: 'snow',
 };
 
 export const START_ROOM: RoomTemplate = {
