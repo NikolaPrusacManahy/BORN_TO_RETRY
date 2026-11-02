@@ -3,7 +3,13 @@
 // (assemble.ts). Landing in it burns you and takes you back to where the floor starts; the fight of the room you were
 // in stops (its enemies, shots and quakes gone, its gates open) and starts again when you walk back in. Pure.
 // Update 0.2.23 — floor 2's pits hold sludge (world/dungeon/styles.ts `pit`): it burns the same, and poisons you too.
+// Update 0.3.14 — floor 6's hold the sea (`calm`): it hurts the same and takes you back ("The sea" if it kills you); only
+// sludge poisons (`poisons`). And a body knocked over any pit sinks: a live one dies (your kill), out of sight.
 import type { ArenaBox, Spot } from '../../world/arena';
+import { LAVA_DEPTH } from '../../world/dungeon/assemble';
+import { isLive } from '../enemies/enemy';
+import { ENEMY_STATS, flies } from '../enemies/kinds';
+import { emptyTargetHit, landHit } from '../combat/strike';
 import { HEALTH } from '../../tuning/health';
 import { LAB } from '../../tuning/lab';
 import { clearQuakes } from '../combat/quakes';
@@ -31,16 +37,17 @@ export function inLava(p: PlayerState, lava: readonly ArenaBox[]): boolean {
 export function lavaStep(p: PlayerState, lava: readonly ArenaBox[], start: Spot, run: DungeonRun | null, combat: CombatState): boolean {
   if (p.dead || lava.length === 0 || !inLava(p, lava)) return false;
   const burn = HEALTH.v.lavaDamage;
+  const pit = run ? styleOf(run.level.plan.level).pit : undefined;
   if (LAB.v.god < 1) {
     if (p.hp <= burn) {
-      killPlayer(p, 'lava');
+      killPlayer(p, pit?.calm ? 'sea' : 'lava');
       return false;
     }
     p.hp -= burn;
     p.events.push('hurt', burn);
   }
-  p.events.push('lavaBurn');
-  if (run && styleOf(run.level.plan.level).pit) poisonPlayer(p, FOES2.v.poisonDps, GARDEN.v.sludgePoison, 'lava');
+  p.events.push(pit?.calm ? 'seaFall' : 'lavaBurn');
+  if (pit?.poisons) poisonPlayer(p, FOES2.v.poisonDps, GARDEN.v.sludgePoison, 'lava');
   p.pos.set(start.x, start.y, start.z);
   p.vel.set(0, 0, 0);
   p.grounded = false;
@@ -61,5 +68,29 @@ export function abandonFights(run: DungeonRun, combat: CombatState) {
     for (const o of combat.orbs) o.alive = false;
     clearQuakes(combat.quakes);
     combat.keyDrops = 0;
+  });
+}
+
+/** Above this a body is over a pit, not in it (m). */
+const SINK_HIGH = 0.6;
+const hit = emptyTargetHit();
+
+/** Update 0.3.14 — a body knocked out over a pit (the sea, lava, sludge) sinks: a live one dies (your kill), and down it
+ *  goes, out of sight (its floor far under the pit's top: it falls to it). Not a flier or a boss. */
+export function sinkInPits(pits: readonly ArenaBox[], combat: CombatState) {
+  if (pits.length === 0) return;
+  combat.enemies.forEach((e, i) => {
+    if (!e.alive || e.perch < 0 || e.pos.y > SINK_HIGH || flies(e.kind) || ENEMY_STATS[e.kind]().boss) return;
+    if (!pits.some((b) => Math.abs(e.pos.x - b.x) < b.w / 2 && Math.abs(e.pos.z - b.z) < b.d / 2)) return;
+    if (isLive(e)) {
+      hit.kind = 'enemy';
+      hit.index = i;
+      hit.point.set(e.pos.x, e.pos.y + 0.5, e.pos.z);
+      landHit(combat, hit, 1e6, 0, 0, 0, 'hitSlam', 0, true);
+    }
+    e.perch = -LAVA_DEPTH - 2;
+    e.vel.x *= 0.2;
+    e.vel.z *= 0.2;
+    combat.events.push('pitSink', i, e.pos.x, -LAVA_DEPTH, e.pos.z);
   });
 }

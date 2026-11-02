@@ -50,6 +50,9 @@ import { Checkpoint, doorSpot } from './checkpoint';
 import { armHives, stepHives } from './hives';
 import { createIcicles, Icicle, stepIcicles } from './icicles';
 import { createMachinery, Machinery, stepMachinery } from './machinery';
+import { createPowder, Powder, stepPowder } from './powder';
+import { sinkInPits } from './lava';
+import { lavaOf, type ArenaBox } from '../../world/arena';
 import { fromLair, lairFor } from './lairs';
 
 /** Update 0.2.0 — 'reward': a challenge room won, shut until its reward is taken. */
@@ -88,6 +91,9 @@ export interface DungeonRun {
    *  (machinery.ts). */
   icicles: Icicle[];
   machinery: Machinery;
+  /** Update 0.3.14 — floor 6's powder kegs (powder.ts); every pit's boxes (a body knocked over one sinks). */
+  powder: Powder;
+  pits: ArenaBox[];
 }
 
 /** Seconds from the gates shutting to the first wave. */
@@ -113,6 +119,8 @@ export function createDungeonRun(level: DungeonLevel, last = false): DungeonRun 
     checkpoint: null,
     icicles: createIcicles(level.icicles),
     machinery: createMachinery(level.forge),
+    powder: createPowder(level.cove),
+    pits: lavaOf(level.arena),
   };
 }
 
@@ -128,6 +136,8 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
   const ev = combat.events;
   stepIcicles(run.icicles, player, combat, dt);
   stepMachinery(run.machinery, player, combat, dt);
+  stepPowder(run.powder, player, combat, dt);
+  sinkInPits(run.pits, combat);
   for (let i = 0; i < run.rooms.length; i++) {
     const rr = run.rooms[i];
     const room = run.level.rooms[i];

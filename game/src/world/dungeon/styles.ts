@@ -21,6 +21,10 @@
 // Update 0.3.11 — floor 7 is Frozen Depths (the plan for floors 7–10): floor 3's stone frosted white and ice-blue under a
 // pale winter sky; snowy trees in beds of snow (`sand`: the snow's colour), snowy rocks for low cover, crystals glowing
 // ice-blue, sheets of ice on the floor (engine/iceView.ts).
+// Update 0.3.14 — floor 6 is reworked: Skull Cove, a pirate floor (the designer: "the remaining rooms in floor 6 aren't
+// underwater anymore, it becomes a Pirate themed floor"; MD/FLOOR6_PIRATE_PLAN.md): sand underfoot everywhere, the sea in
+// channels and pools, floor 3's stone walls as weathered sea rock under a bright tropical sky; the Pirate Kit's pieces
+// keep their own palette (cove.ts). The Sunken Grove's look stays for the boss room's water (later).
 // Update 0.3.13 — floor 8 is The Forge (the plan): floor 3's stone sooty and warm under a smoky amber sky, lit by its
 // lava; its iron machinery is the forge's own (forge.ts, engine/forgeView.ts); swords hung on the walls, workbenches
 // with ingots and glowing ore, barrels and buckets about. The look's types moved to styleTypes.ts.
@@ -152,7 +156,7 @@ export const VENOM: DungeonStyle = {
   sun: 0xfff3cc,
   sand: 0x5c4a32,
   quicksand: 0x4a3b28,
-  pit: { base: 0x173a07, deep: 0x3d8a12, hot: 0x9ee024, glow: 0.9 },
+  pit: { base: 0x173a07, deep: 0x3d8a12, hot: 0x9ee024, glow: 0.9, poisons: true },
   low: 'kit_n_Bush_1',
   lowScale: [1.5, 1.1, 1.2],
   lowBed: true,
@@ -224,6 +228,30 @@ export const FORGE_LOOK: DungeonStyle = {
   glow: ['Pink'],
 };
 
+/** Update 0.3.14 — Skull Cove: sand, the sea, weathered sea rock, a bright tropical sky. */
+export const COVE_LOOK: DungeonStyle = {
+  ...STONE,
+  id: 'cove',
+  litter: ['kit_pf_Prop_Bucket', 'kit_pf_Prop_Bottle_1', 'kit_pf_Prop_Bottle_2', 'kit_pf_Prop_Skull', 'kit_pf_Prop_Anchor', 'kit_pf_Environment_Rock_1', 'kit_pf_Prop_Bucket_Fishes', 'kit_pf_Environment_Rock_4'],
+  core: [0.09, 0.08, 0.07],
+  tint: { RockLight: 0xa79c8d, Rock: 0x7c7366, Steel: 0x5f5a54, DarkSteel: 0x48443f, Bones: 0xeee4d0, Wood: 0x8a6440, DarkWood: 0x5e4129, Grey_Floor: 0xb8ab94, Fire: 0xff9a4a },
+  // (The ledges' paving sandy, the sand's own colour the beach's.)
+  floorTint: { RockLight: 0xd9c49a, Rock: 0xbfa77a },
+  sky: 0xbfe4f7,
+  skyLight: 0xffffff,
+  ground: 0xe9d6a6,
+  sun: 0xfff4dc,
+  sand: 0xefd8a0,
+  quicksand: 0xd9c18c,
+  sandFloor: true,
+  palms: { list: ['kit_pf_Environment_PalmTree_1', 'kit_pf_Environment_PalmTree_2', 'kit_pf_Environment_PalmTree_3'], scale: 1.8 },
+  pit: { base: 0x0b3d5c, deep: 0x1c86ad, hot: 0x63d4e6, glow: 0.16, calm: true },
+  low: 'kit_pf_Environment_Rock_2',
+  lowScale: [2.4, 1.3, 2.4],
+  lowBed: true,
+};
+
 /** Floor `floor`'s look: floor 1 brick, floor 2 the Venom Garden (Update 0.2.23), floor 3 the Bone Keep (Update 0.2.24), floor 4 the desert, floor 5 the Drowned Temple, floor 6
- *  the Sunken Grove, floor 7 Frozen Depths (Update 0.3.11), floor 8 (and on, for now) The Forge (Update 0.3.13). */
-export const styleOf = (floor: number): DungeonStyle => (floor >= 8 ? FORGE_LOOK : floor === 7 ? FROZEN_LOOK : floor === 6 ? SUNKEN : floor === 5 ? DROWNED : floor === 4 ? SAND : floor === 3 ? BONE : floor === 2 ? VENOM : BRICK);
+ *  the Sunken Grove (Update 0.3.14 — now Skull Cove), floor 7 Frozen Depths (Update 0.3.11), floor 8 (and on, for now)
+ *  The Forge (Update 0.3.13). */
+export const styleOf = (floor: number): DungeonStyle => (floor >= 8 ? FORGE_LOOK : floor === 7 ? FROZEN_LOOK : floor === 6 ? COVE_LOOK : floor === 5 ? DROWNED : floor === 4 ? SAND : floor === 3 ? BONE : floor === 2 ? VENOM : BRICK);

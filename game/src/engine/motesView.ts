@@ -2,7 +2,8 @@
 // floor its own: dust in the light (floor 1), pollen (the Venom Garden), bone dust and a few violet sparks (the Bone
 // Keep), blown sand (the desert), seeds and spores (the Drowned Temple), bubbles rising (the Sunken Grove). They live
 // in a box round the camera and wrap round it as you move. None on Effects: low. Made in code. Update 0.3.11 — snow
-// falling (Frozen Depths). Update 0.3.13 — embers and ash rising (The Forge).
+// falling (Frozen Depths). Update 0.3.13 — embers and ash rising (The Forge). Update 0.3.14 — sea spray and sand
+// blown across (Skull Cove).
 import * as THREE from 'three';
 import type { StyleId } from '../world/dungeon/styles';
 import { effectsShare } from './effectsLevel';
@@ -30,6 +31,7 @@ const LOOKS: Record<StyleId, MoteLook> = {
   sunken: { colors: [0xe0fbff, 0xbff0ff], size: 0.06, wind: [0.05, 0.7, 0.03], wander: 0.3 },
   frozen: { colors: [0xffffff, 0xf2f8ff, 0xe4f1ff], size: 0.06, wind: [0.35, -1.1, 0.15], wander: 0.35 },
   forge: { colors: [0xffb24a, 0xff7a24, 0xffd890, 0x9a8f88], size: 0.04, wind: [0.2, 0.8, 0.1], wander: 0.5 },
+  cove: { colors: [0xffffff, 0xf4ecd6, 0xe0f4ff], size: 0.035, wind: [0.9, 0.05, 0.4], wander: 0.4 },
 };
 
 const m = new THREE.Matrix4();

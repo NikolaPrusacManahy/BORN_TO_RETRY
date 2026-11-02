@@ -25,8 +25,9 @@ export class DungeonGlows {
 
   constructor(dressing: Dressing, level: DungeonLevel) {
     const pit = dressing.style.pit;
+    // (Update 0.3.14 — not over still water.)
     dressing.lava.forEach((c, i) => {
-      if (i % 3 === 0) this.glows.push({ x: c.x, y: -LAVA_DEPTH + 0.7, z: c.z, size: 4.5, hex: pit ? pit.hot : 0xff7a20, strength: pit ? 0.25 : 0.4, breathes: true });
+      if (i % 3 === 0 && !pit?.calm) this.glows.push({ x: c.x, y: -LAVA_DEPTH + 0.7, z: c.z, size: 4.5, hex: pit ? pit.hot : 0xff7a20, strength: pit ? 0.25 : 0.4, breathes: true });
     });
     for (const r of level.rooms) for (const c of r.lairs.crystals) this.glows.push({ x: c.x, y: 1.3, z: c.z, size: 3.4, hex: 0xa070ff, strength: 0.45, breathes: false });
     dressing.marks.shrooms.forEach((s, i) => {

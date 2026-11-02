@@ -2,11 +2,14 @@
 // quicksand, darker and slowly heaving (so it reads as something to keep out of). Instanced flat tiles; no paving under
 // them. Also (out of dungeonView.ts, which had reached its size) the jump pads.
 // Update 0.2.23 — floor 2's beds of earth (the look's `sand`), and ash (its `ash`: the Scorched Grove's).
+// Update 0.3.14 — each patch a shade of its own (floor 6's cove is sand all over: one flat colour read as a sheet).
 import * as THREE from 'three';
 import type { SandCell } from '../world/dungeon/dressExtras';
 import type { JumpPad } from '../world/arena';
 
 const CELL = 2;
+/** How much a patch's shade may differ (a share of its colour). */
+const SHADE = 0.08;
 /** Quicksand heaves this much (a share of its colour) this fast (rad/s). */
 const HEAVE = 0.12;
 const HEAVE_RATE = 1.6;
@@ -31,7 +34,12 @@ export class SandView {
         this.base.setHex(quicksand);
       }
       const inst = new THREE.InstancedMesh(this.geo, mat, list.length);
-      list.forEach((c, i) => inst.setMatrixAt(i, m.makeTranslation(c.x, quick ? 0.01 : 0.02, c.z)));
+      const shade = new THREE.Color();
+      list.forEach((c, i) => {
+        inst.setMatrixAt(i, m.makeTranslation(c.x, quick ? 0.01 : 0.02, c.z));
+        const k = Math.abs(Math.sin(c.x * 12.9898 + c.z * 78.233) * 43758.5453) % 1;
+        inst.setColorAt(i, shade.setScalar(1 - SHADE * k));
+      });
       inst.receiveShadow = true;
       inst.computeBoundingSphere();
       this.group.add(inst);

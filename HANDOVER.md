@@ -2,7 +2,20 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-02, Update 0.3.13: floor 8, The Forge — its level)
+## Next up (2026-11-02, Update 0.3.14: floor 6 reworked — Skull Cove, its level)
+- **The designer: "time to rework floor 6 entirely"** (`ASSETS/QUATERNIUS/FLOOR-6`, the Pirate Kit): a pirate floor, the
+  boss the Big Shark fought under water, new enemies. The plan: `MD/FLOOR6_PIRATE_PLAN.md` ("Go with it"): 1. the level
+  (this), 2. the enemies (Corsair, Shanty Man, Bomber, Cursed Crewman, Thieving Gull, Cave Bats, Kraken Tentacle; Mako
+  and Captain Barbarossa the mini bosses), 3. the Big Shark under water (the boss room flooded then).
+- **Skull Cove's level** (spec `MD_UPDATES/U0314_SKULL_COVE.md`): sand everywhere, the sea (fall in: hurt and back; a
+  body knocked in sinks), powder kegs that blow up and chain, nine rooms (docks, beach, wreck, town, shipyard, hoard,
+  powder store, bone reef, kraken's pool). **No cannons**: built, then the designer had them out ("far far unmanagable
+  on fast gameplay"). The Pirate Kit's pieces keep
+  their palette (the kit's first texture: the export makes it one image; Node tests parse the kit untextured). The
+  Sunken Grove, its fish and the Old Whale are out (code kept). Stand-in enemies and boss. **Unseen in the game.**
+- **Next: floor 6's enemies** (the plan's update 2).
+
+## Before (2026-11-02, Update 0.3.13: floor 8, The Forge — its level)
 - **The designer: "I want all designs to be done first"**: every floor's level (8, 9, 10's echo rooms) before any
   floor's enemies (don't propose floor 7's yet). Floor 7's level: "fine". Floor 6 waits on test phase 2's testers.
 - **Floor 8's level** (spec `MD_UPDATES/U0313_THE_FORGE.md`): presses that slam on a beat (a shadow and a clank first;

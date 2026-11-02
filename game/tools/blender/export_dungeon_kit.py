@@ -16,6 +16,10 @@
 #       ... --rpg <Ultimate RPG Pack folder>
 # Update 0.3.11 — and floor 7's, Frozen Depths: the Nature pack's snow set (snowy pines, birches and trees, dead ones,
 # a bush, rocks, a stump and a log).
+# Update 0.3.14 — and floor 6's, Skull Cove: the Pirate Kit's pieces (kit_pf_<piece>; `--pirate`), the only textured
+# ones: they share one 32 px palette (Atlas_Pirate.png), packed in each file; loaded, it's one image and one material
+# again (not forty copies in the .glb).
+#       ... --pirate <ASSETS/QUATERNIUS/FLOOR-6>
 # Update 0.3.13 — and floor 8's, The Forge: part 1's small table (the workbenches) and swords on a wall mount, the RPG
 # pack's gold ingots and ore. Shape keys come off every piece (the ore had some): the game draws the kit instanced, and
 # an instanced piece with morph targets threw on every frame (floor 8 froze).
@@ -54,6 +58,14 @@ NATURE = ['PalmTree_1', 'PalmTree_3', 'Cactus_1', 'Cactus_3', 'CactusFlowers_2',
 RPG = ['Crystal1', 'Crystal2', 'Crystal3', 'Crystal4', 'Crystal5', 'Skull', 'Skull2', 'Bone',
        # Update 0.3.13 — floor 8's.
        'Gold_Ingots', 'Mineral']
+# Update 0.3.14 — floor 6's, Skull Cove (the Pirate Kit).
+PIRATE = ['Environment_Cliff1', 'Environment_Cliff2', 'Environment_Cliff3', 'Environment_Cliff4', 'Environment_Dock', 'Environment_Dock_Broken',
+          'Environment_Dock_Pole', 'Environment_House1', 'Environment_House2', 'Environment_House3', 'Environment_LargeBones',
+          'Environment_PalmTree_1', 'Environment_PalmTree_2', 'Environment_PalmTree_3', 'Environment_Rock_1', 'Environment_Rock_2',
+          'Environment_Rock_3', 'Environment_Rock_4', 'Environment_Rock_5', 'Environment_Sawmill', 'Environment_Skulls', 'Prop_Anchor',
+          'Prop_Barrel', 'Prop_Bomb', 'Prop_Bottle_1', 'Prop_Bottle_2', 'Prop_Bucket', 'Prop_Bucket_Fishes', 'Prop_Cannon', 'Prop_CannonBall',
+          'Prop_Chest_Closed', 'Prop_Chest_Gold', 'Prop_Coins', 'Prop_Fish_Mackerel', 'Prop_Fish_Tuna', 'Prop_GoldBag', 'Prop_Skull',
+          'Ship_Large', 'Ship_Small']
 # Faced +x as they come: turned a quarter so they face −y.
 TURN = {'ModularStoneWall', 'ModularStoneWall_top', 'ModularStoneWall_EntranceTop', 'Entrance', 'Bars', 'WallRocks'}
 
@@ -67,7 +79,43 @@ def parse_args():
     p.add_argument('--previews', default=None)
     p.add_argument('--nature', default=None)
     p.add_argument('--rpg', default=None)
+    p.add_argument('--pirate', default=None)
     return p.parse_args(argv)
+
+
+def one_atlas(pieces):
+    """Update 0.3.14 — the Pirate Kit's pieces each bring their own copy of its palette (Atlas_Pirate.png.001…) and
+    material (Atlas.001…): one of each for all of them. Its material is a Diffuse shader, which the glTF export doesn't
+    read (the palette was left out): made a Principled one, the palette its base colour, sampled to the nearest pixel
+    (a 32 px palette: its colours don't bleed)."""
+    image = None
+    mat = None
+    for o in pieces:
+        for slot in o.material_slots:
+            m = slot.material
+            if not m or not m.name.startswith('Atlas') or not m.use_nodes:
+                continue
+            if mat is None:
+                mat = m
+                mat.name = 'Atlas_Pirate'
+                image = next((n.image for n in m.node_tree.nodes if n.type == 'TEX_IMAGE' and n.image), None)
+                if image:
+                    image.name = 'Atlas_Pirate.png'
+                nodes = mat.node_tree.nodes
+                nodes.clear()
+                out = nodes.new('ShaderNodeOutputMaterial')
+                bsdf = nodes.new('ShaderNodeBsdfPrincipled')
+                bsdf.inputs['Roughness'].default_value = 1
+                tex = nodes.new('ShaderNodeTexImage')
+                tex.image = image
+                tex.interpolation = 'Closest'
+                mat.node_tree.links.new(tex.outputs['Color'], bsdf.inputs['Base Color'])
+                mat.node_tree.links.new(bsdf.outputs['BSDF'], out.inputs['Surface'])
+            slot.material = mat
+    for m in [m for m in bpy.data.materials if m.users == 0]:
+        bpy.data.materials.remove(m)
+    for i in [i for i in bpy.data.images if i.users == 0]:
+        bpy.data.images.remove(i)
 
 
 def main():
@@ -77,6 +125,7 @@ def main():
     pieces = []
     packs = [('p1', args.part1, PART1), ('p2', args.part2, PART2)] + ([('n', args.nature, NATURE)] if args.nature else [])
     packs += [('r', args.rpg, RPG)] if args.rpg else []
+    packs += [('pf', args.pirate, PIRATE)] if args.pirate else []
     for prefix, folder, names in packs:
         protos = load_pieces(folder, names, {}, bake=True, recenter=names)
         for name, o in protos.items():
@@ -88,6 +137,7 @@ def main():
             o.data.name = o.name
             bpy.context.scene.collection.objects.link(o)
             pieces.append(o)
+    one_atlas(pieces)
     for o in pieces:
         d = o.dimensions
         print(f'{o.name:28s} {d.x:5.2f} x {d.y:5.2f} x {d.z:5.2f}')

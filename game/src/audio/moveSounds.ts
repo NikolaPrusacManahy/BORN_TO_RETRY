@@ -109,6 +109,11 @@ export class MoveSounds {
         noise(a, { dur: 0.6, gain: 0.5, filter: 'highpass', from: 3000, to: 900 });
         tone(a, { from: 140, to: 40, dur: 0.5, gain: 0.5, type: 'sawtooth' });
         break;
+      // Update 0.3.14 — into floor 6's sea: a heavy splash, then under.
+      case 'seaFall':
+        noise(a, { dur: 0.7, gain: 0.5, filter: 'bandpass', from: 1800, to: 300, q: 0.7 });
+        tone(a, { from: 120, to: 50, dur: 0.4, gain: 0.35 });
+        break;
       case 'death':
         tone(a, { from: 110, to: 22, dur: 0.9, gain: 0.8, type: 'sawtooth' });
         noise(a, { dur: 0.7, gain: 0.4, filter: 'lowpass', from: 900, to: 60 });

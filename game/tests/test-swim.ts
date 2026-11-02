@@ -8,7 +8,7 @@ import { swimCeiling } from '../src/sim/player/swim';
 import { CAMERA } from '../src/tuning/camera';
 import { DASH, MOVE } from '../src/tuning/movement';
 import { SWIM } from '../src/tuning/swim';
-import { styleOf } from '../src/world/dungeon/styles';
+import { SUNKEN } from '../src/world/dungeon/styles';
 
 const v = SWIM.v;
 const TOP = 6.5;
@@ -88,9 +88,10 @@ section('Swimming — never out of the water, no tricks');
   const p = swimmer(3);
   run(p, world, ticks(4), () => ({ jumpHeld: true }));
   check(`your eyes stay ${v.head} m under the water’s top`, near(p.pos.y + CAMERA.v.eyeHeight, TOP - v.head, 1e-6) && p.vel.y <= 0);
-  const top = styleOf(6).under ?? 0;
+  // (Update 0.3.14 — the Sunken Grove's water, floor 6's no more: kept for the boss room's.)
+  const top = SUNKEN.under ?? 0;
   // (The walls are 6 m, their caps 0.43 m over; the view bobs 0.06 m.)
-  check('floor 6: from as high as you can swim, the walls still hide what’s past them', top > 0 && swimCeiling(top) + CAMERA.v.eyeHeight + 0.07 < 6.43, `eyes at ${(swimCeiling(top) + CAMERA.v.eyeHeight).toFixed(2)}`);
+  check('the Sunken Grove’s water: from as high as you can swim, the walls still hide what’s past them', top > 0 && swimCeiling(top) + CAMERA.v.eyeHeight + 0.07 < 6.43, `eyes at ${(swimCeiling(top) + CAMERA.v.eyeHeight).toFixed(2)}`);
   const w = new FlatWorld();
   w.walls.push({ x: 1, normalX: -1 });
   const r = swimmer(2);

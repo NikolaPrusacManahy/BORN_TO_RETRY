@@ -1,6 +1,7 @@
 // Update 0.3.13 — what floors 7 and 8 have of their own, drawn together (moved out of dungeonView.ts, which had reached
 // its size): floor 7's sheets of ice (iceView.ts) and icicles (icicleView.ts); floor 8's presses, fire vents and belts
-// (forge/), moving with the machinery's clock (sim/dungeon/machinery.ts). Made in code.
+// (forge/), moving with the machinery's clock (sim/dungeon/machinery.ts). Made in code. Update 0.3.14 — and floor 6's
+// powder kegs (cove/coveView.ts: the Pirate Kit's pieces, once the kit is loaded).
 import * as THREE from 'three';
 import type { DungeonRun } from '../sim/dungeon/roomLoop';
 import type { DungeonLevel } from '../world/dungeon/assemble';
@@ -9,6 +10,7 @@ import { IcicleView } from './icicleView';
 import { BeltView } from './forge/beltView';
 import { PressView } from './forge/pressView';
 import { VentView } from './forge/ventView';
+import { CoveView } from './cove/coveView';
 
 export class DepthsView {
   readonly group = new THREE.Group();
@@ -17,6 +19,7 @@ export class DepthsView {
   private readonly presses: PressView;
   private readonly vents: VentView;
   private readonly belts: BeltView;
+  private readonly cove: CoveView;
   private time = 0;
 
   constructor(level: DungeonLevel) {
@@ -25,7 +28,13 @@ export class DepthsView {
     this.presses = new PressView(level.forge.presses);
     this.vents = new VentView(level.forge.vents);
     this.belts = new BeltView(level.forge.belts);
-    this.group.add(this.ice.group, this.icicles.group, this.presses.group, this.vents.group, this.belts.group);
+    this.cove = new CoveView(level.cove);
+    this.group.add(this.ice.group, this.icicles.group, this.presses.group, this.vents.group, this.belts.group, this.cove.group);
+  }
+
+  /** The dungeon kit is loaded (`material`: the floor's own take on a kit material). */
+  build(kit: THREE.Object3D, material: (src: THREE.MeshStandardMaterial, piece: string) => THREE.Material) {
+    this.cove.build(kit, material);
   }
 
   update(dt: number, run: DungeonRun) {
@@ -35,6 +44,7 @@ export class DepthsView {
     if (mach.presses.length) this.presses.update(mach.presses, mach.t);
     if (mach.vents.length) this.vents.update(mach.vents, mach.t);
     this.belts.update(mach.t);
+    this.cove.update(run.powder, this.time);
   }
 
   dispose() {
@@ -44,5 +54,6 @@ export class DepthsView {
     this.presses.dispose();
     this.vents.dispose();
     this.belts.dispose();
+    this.cove.dispose();
   }
 }

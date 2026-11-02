@@ -25,7 +25,7 @@
 // every lit surface paid for each of the 8; the torches' flames still burn. Each floor's motes (motesView.ts).
 // Update 0.3.9 — a pillar broken by the pillar finisher: its pieces taken out and split (pillarBreak.ts).
 // Update 0.3.11 — floor 7's sheets of ice (iceView.ts) and icicles (icicleView.ts). Update 0.3.13 — those and floor 8's
-// presses, fire vents and belts drawn together (depthsView.ts).
+// presses, fire vents and belts drawn together (depthsView.ts). Update 0.3.14 — and floor 6's powder kegs.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { portalOpen, wallsOpen } from '../sim/dungeon/bossRoom';
@@ -210,6 +210,7 @@ export class DungeonView implements ArenaView {
       }
     }
     this.shell.build(kit, (src) => this.material(src), style);
+    this.depths.build(kit, (src, piece) => this.material(src, piece));
     this.water.build(kit, this.dressing.floats);
     this.under?.patchAll(this.group);
   }

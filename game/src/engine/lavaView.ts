@@ -4,6 +4,7 @@
 // Update 0.2.23 — a look may fill the pits with something else (styles.ts `pit`: floor 2's green sludge), dimmer, and
 // bubbling: bubbles swell on it here and there and pop.
 // Update 0.3.0 — lava throws embers up, drifting and fading (fewer on Effects: low).
+// Update 0.3.14 — still water (floor 6's sea, the look's `calm`): glossy, a faint glow, no bubbles.
 import * as THREE from 'three';
 import { LAVA_DEPTH } from '../world/dungeon/assemble';
 import { CELL } from '../world/dungeon/floorPlan';
@@ -64,12 +65,14 @@ export class LavaView {
     this.deep = new THREE.Color(k.deep);
     this.hot = new THREE.Color(k.hot);
     this.glow = k.glow;
-    this.mat = new THREE.MeshStandardMaterial({ color: k.base, emissive: k.deep, emissiveIntensity: 2 * k.glow, roughness: 0.6 });
+    this.mat = new THREE.MeshStandardMaterial({ color: k.base, emissive: k.deep, emissiveIntensity: 2 * k.glow, roughness: k.calm ? 0.12 : 0.6, metalness: k.calm ? 0.25 : 0 });
     if (cells.length === 0) return;
     const inst = new THREE.InstancedMesh(this.geo, this.mat, cells.length);
     cells.forEach((c, i) => inst.setMatrixAt(i, m.compose(pos.set(c.x, -LAVA_DEPTH + 0.02, c.z), q, one)));
     inst.computeBoundingSphere();
+    inst.receiveShadow = !!k.calm;
     this.group.add(inst);
+    if (k.calm) return;
     if (!look) {
       // (Update 0.3.0 — embers off the lava.)
       const n = Math.min(EMBERS, Math.ceil(cells.length / EMBER_CELLS));

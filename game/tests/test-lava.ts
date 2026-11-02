@@ -2,9 +2,8 @@
 // in the middle; players lose 50 health and respawn at the starting point of the current floor; falling in with 50 or
 // less, the player loses"; "make proper use of wall run in some of the rooms"; "floor 3 needs a new look: the other
 // type of walls, the other type of gate; they close and open as you enter or win a room").
-import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { parseUntextured } from './fakes/glb';
 import { check, near, section } from './harness';
 import { DT } from './fakes/flatWorld';
 import { createRng } from '../src/core/rng';
@@ -137,8 +136,8 @@ section('Lava rooms — falling in');
 section('Floor 3 — its look');
 {
   check('floor 1 is brick, floor 2 the Venom Garden (its brick overgrown), floor 3 the Bone Keep (its stone bleached)', styleOf(1) === BRICK && styleOf(2).id === 'venom' && styleOf(3) === BONE && BONE.wall === STONE.wall);
-  const buf = readFileSync(new URL('../public/models/dungeon/kit.glb', import.meta.url));
-  const kit = await new GLTFLoader().parseAsync(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer, '');
+  // (Update 0.3.14 — the kit has a texture now, floor 6's palette: taken out to parse it in Node.)
+  const kit = await parseUntextured(new URL('../public/models/dungeon/kit.glb', import.meta.url));
   const three = planFloor(5, 3);
   const look = dress(three);
   const used = [...new Set(look.pieces.map((p) => p.piece)), STONE.bars];

@@ -76,6 +76,13 @@ export function pressSlam(a: AudioEngine) {
 export const ventHiss = (a: AudioEngine) => noise(a, { dur: 0.5, gain: 0.08, filter: 'highpass', from: 4000, to: 2500, q: 0.7 });
 export const ventRoar = (a: AudioEngine) => noise(a, { dur: 1.1, gain: 0.2, filter: 'bandpass', from: 300, to: 700, q: 0.6 });
 
+/** Update 0.3.14 — floor 6: a powder keg going up, a splash. */
+export function kegBoom(a: AudioEngine) {
+  thump(a, 1, 0.6);
+  noise(a, { dur: 0.9, gain: 0.5, filter: 'lowpass', from: 2400, to: 90, q: 0.6 });
+}
+export const splash = (a: AudioEngine) => noise(a, { dur: 0.5, gain: 0.3, filter: 'bandpass', from: 1600, to: 400, q: 0.8 });
+
 /** Update 0.3.5 — the block coming up: a quick, low whoosh. */
 export const guardUp = (a: AudioEngine) => noise(a, { dur: 0.09, gain: 0.16, filter: 'bandpass', from: 500, to: 1400, q: 1.2 });
 

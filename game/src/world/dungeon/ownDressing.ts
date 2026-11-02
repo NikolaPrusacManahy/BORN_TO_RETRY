@@ -1,7 +1,8 @@
 // Update 0.2.24 (out of dressing.ts, which had reached its size) — the cells and the dressing only some floors have:
 // floor 2's Venom Garden (gardenDressing.ts) and floor 3's Bone Keep (keepDressing.ts), and the marks they leave on the
 // floor (engine/gardenView.ts draws them). Update 0.3.11 — and floor 7's snow (frozen.ts). Update 0.3.13 — and floor
-// 8's workbenches (forge.ts); its presses, vents and belts are paving here (engine/forgeView.ts draws them). Pure.
+// 8's workbenches (forge.ts); its presses, vents and belts are paving here (engine/forgeView.ts draws them). Update
+// 0.3.14 — and floor 6's cove (cove.ts: its set pieces, boardwalks, boats and treasure; its kegs are the view's). Pure.
 import type { Rng } from '../../core/rng';
 import type { FloorPlan } from './floorPlan';
 import type { Put, SandCell } from './dressExtras';
@@ -9,6 +10,7 @@ import { dressBed, dressGarden, dressWeb, Mark } from './gardenDressing';
 import { dressCrystal, dressKeep, dressLair } from './keepDressing';
 import { dressFrozen } from './frozen';
 import { dressBench } from './forge';
+import { dressCove } from './cove';
 import type { Cell } from './rooms';
 import type { DungeonStyle } from './styles';
 
@@ -53,6 +55,13 @@ export function dressOwnCell(c: Cell, x: number, z: number, boss: boolean, rng: 
     case 'crusher':
     case 'vent':
     case 'belt':
+    case 'boardwalk':
+    case 'keg':
+    case 'wreck':
+    case 'boat':
+    case 'house':
+    case 'outcrop':
+    case 'bones':
       return true;
     default:
       return false;
@@ -63,4 +72,5 @@ export function dressOwnCell(c: Cell, x: number, z: number, boss: boolean, rng: 
 export function dressOwnRooms(K: DungeonStyle, plan: FloorPlan, inRoom: Int16Array, nearDoor: (col: number, row: number) => boolean, rng: Rng, put: Put, marks: Marks) {
   if (K.id === 'venom') dressGarden(plan, inRoom, nearDoor, rng, put, marks.scorch);
   if (K.id === 'bone') dressKeep(plan, inRoom, nearDoor, rng, put);
+  if (K.id === 'cove') dressCove(plan, rng, put);
 }

@@ -9,6 +9,8 @@ import type { CardKind } from '../cards/cards';
 export type MoveEvent =
   // Update 0.0.20 — fell into lava (sent back to the floor's start).
   | 'lavaBurn'
+  // Update 0.3.14 — into floor 6's sea.
+  | 'seaFall'
   | 'poisoned'
   | 'none'
   | 'jump'
@@ -42,8 +44,9 @@ export type MoveEvent =
   | 'bornAgain';
 
 /** Update 0.1.14 — what hurt you (the death screen names what killed you): an enemy's kind, or the world. */
-// (Update 0.3.11 — and floor 7's icicles. Update 0.3.13 — floor 8's presses and fire vents.)
-export type Cause = EnemyKind | 'turret' | 'spikes' | 'lava' | 'fall' | 'icicle' | 'crusher' | 'vent';
+// (Update 0.3.11 — and floor 7's icicles. Update 0.3.13 — floor 8's presses and fire vents. Update 0.3.14 — floor 6's
+// sea and powder kegs.)
+export type Cause = EnemyKind | 'turret' | 'spikes' | 'lava' | 'fall' | 'icicle' | 'crusher' | 'vent' | 'sea' | 'keg';
 
 export interface PlayerState {
   /** Feet position. */

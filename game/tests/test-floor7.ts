@@ -36,7 +36,7 @@ const rowOf = (z: number) => Math.floor(z / CELL + GRID / 2);
 
 section('Floor 7 — Frozen Depths: its look and rooms');
 {
-  check('floor 7 is Frozen Depths (floor 6 the Sunken Grove)', styleOf(7).id === 'frozen' && styleOf(6).id === 'sunken' && !styleOf(7).under);
+  check('floor 7 is Frozen Depths (floor 6 Skull Cove)', styleOf(7).id === 'frozen' && styleOf(6).id === 'cove' && !styleOf(7).under);
   const seven = FIGHT_ROOMS.filter((t) => onFloor(t, 7));
   check(`its own nine rooms, and only its own`, seven.length === 9 && seven.every((t) => FROZEN_ROOMS.includes(t)) && FROZEN_ROOMS.every((t) => !onFloor(t, 6) && !onFloor(t, 8)), seven.map((t) => t.id).join(', '));
   check('every one has ice in it', FROZEN_ROOMS.every((t) => t.rows.join('').includes('I')));
@@ -131,5 +131,5 @@ section('Floor 7 — stand-ins');
 {
   const roster = rosterOf(7);
   check('its enemies stand in from the dry floors (none of floor 6’s)', roster.length > 0 && roster.every((k) => !(KINDS6 as readonly string[]).includes(k)), roster.join(', '));
-  check('its boss stands in (the Velociraptor): no whale out of water', bossOf(7) === 'dino' && bossOf(6) === 'whale');
+  check('its boss stands in (the Velociraptor)', bossOf(7) === 'dino');
 }

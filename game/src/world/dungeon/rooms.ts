@@ -29,24 +29,28 @@
 // Update 0.3.13 — floor 8's Forge (forgeRooms.ts): H a crusher (its hammer slams the cell on a beat; cells side by side
 // are one press), V a fire vent (a grate that jets fire on a timer), > < v A a belt running east, west, south, north
 // (it carries what stands on it; turned and mirrored with the room), k a workbench (a block); L lava pits again.
+// Update 0.3.14 — floor 6 reworked, Skull Cove (coveRooms.ts; the Sunken Grove's rooms retired): L the sea (deep water),
+// = a boardwalk over it (floor), * a powder keg (it blows up when hit), and rectangles drawn of one letter, each one set
+// piece: Z a beached wreck (its deck a 2.5 m platform), z a small boat up on the sand, M a house, r a rock outcrop, X
+// giant bones (a skull, or an arch of ribs you walk under).
 import type { Rng } from '../../core/rng';
 import { FIGHT_ROOMS as FIRST_ROOMS, quarter } from './fightRooms';
 import { KEEP_ROOMS } from './keepRooms';
 import { DESERT_ROOMS } from './desertRooms';
 import { DROWNED_ROOMS } from './drownedRooms';
-import { SUNKEN_CHALLENGE, SUNKEN_ROOMS } from './sunkenRooms';
 import { SCORCHED_ROOM, VENOM_ROOMS } from './venomRooms';
 import { BONE_ROOMS, THRONE_ROOM } from './boneRooms';
 import { FROZEN_ROOMS } from './frozenRooms';
 import { FORGE_ROOMS } from './forgeRooms';
+import { COVE_ROOMS } from './coveRooms';
 
 /** Every fight room (Update 0.0.20: the lava rooms too, from their floor on; Update 0.0.21: floor 3's). */
-export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...VENOM_ROOMS, ...BONE_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS, ...SUNKEN_ROOMS, SUNKEN_CHALLENGE, ...FROZEN_ROOMS, ...FORGE_ROOMS];
+export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...VENOM_ROOMS, ...BONE_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS, ...COVE_ROOMS, ...FROZEN_ROOMS, ...FORGE_ROOMS];
 
 /** Update 0.0.21 — the rooms floor `floor` has. */
 export const onFloor = (t: RoomTemplate, floor: number) => (t.from ?? 1) <= floor && floor <= (t.until ?? Infinity);
 
-export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed' | 'bed' | 'grass' | 'tree' | 'web' | 'grave' | 'shroom' | 'burrow' | 'crystal' | 'ice' | 'pine' | 'snow' | 'crusher' | 'vent' | 'belt' | 'bench';
+export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed' | 'bed' | 'grass' | 'tree' | 'web' | 'grave' | 'shroom' | 'burrow' | 'crystal' | 'ice' | 'pine' | 'snow' | 'crusher' | 'vent' | 'belt' | 'bench' | 'boardwalk' | 'keg' | 'wreck' | 'boat' | 'house' | 'outcrop' | 'bones';
 export type RoomKind = 'start' | 'fight' | 'boss' | 'shop';
 
 export interface RoomTemplate {
@@ -101,6 +105,13 @@ const CHAR: Record<string, Cell> = {
   v: 'belt',
   A: 'belt',
   k: 'bench',
+  '=': 'boardwalk',
+  '*': 'keg',
+  Z: 'wreck',
+  z: 'boat',
+  M: 'house',
+  r: 'outcrop',
+  X: 'bones',
 };
 
 /** Update 0.3.13 — a belt's way (dx, dz on the grid: +z is south). */

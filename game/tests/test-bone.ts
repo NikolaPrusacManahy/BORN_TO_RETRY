@@ -2,9 +2,8 @@
 // the Throne Hall, graves, mushroom beds and burrows in beds of earth, crystals, and the enemies coming out of their
 // lairs (Skeletons climbing out of graves, Mushnubs out of mushroom beds, Rabbits out of burrows) and the Skull Wraith
 // blinking to the crystals.
-import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { parseUntextured } from './fakes/glb';
 import { check, section } from './harness';
 import { DT, ticks } from './fakes/flatWorld';
 import { createRng } from '../src/core/rng';
@@ -84,8 +83,8 @@ section('Bone Keep — the floor');
   check('24 floors: every grave, mushroom bed and burrow is a bed of earth, no paving; a headstone at each grave', !bad && graves > 0, bad || `${graves} graves`);
   check('crystal clusters; the Throne Hall’s 24 pillars hung with 12 skulls each', crystals > 0 && pillars === 24 * 24 * 12, `${crystals} crystals, ${pillars} skulls`);
   check('graves, mushroom beds and burrows are beds; a crystal is not', ['grave', 'shroom', 'burrow'].every((c) => SANDY.has(c as never)) && !SANDY.has('crystal'));
-  const buf = readFileSync(new URL('../public/models/dungeon/kit.glb', import.meta.url));
-  const kit = await new GLTFLoader().parseAsync(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer, '');
+  // (Update 0.3.14 — the kit has a texture now, floor 6's palette: taken out to parse it in Node.)
+  const kit = await parseUntextured(new URL('../public/models/dungeon/kit.glb', import.meta.url));
   const all = [KEEP_PIECES.headstone, ...KEEP_PIECES.crystals, KEEP_PIECES.skull, KEEP_PIECES.candelabrum, BONE.decor, ...BONE.litter, BONE.low!];
   const missing = all.filter((n) => !kit.scene.getObjectByName(n));
   check('every piece it uses is in the kit', missing.length === 0, missing.join(', '));

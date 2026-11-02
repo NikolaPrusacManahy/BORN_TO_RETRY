@@ -43,8 +43,9 @@ const ROSTER: readonly (readonly EnemyKind[])[] = [
   // Update 0.2.10 — floor 5, the Drowned Temple (Claude's proposal as accepted): none of the floors before it.
   ['snapper', 'urchin', 'jelly', 'glub', 'bigGlub', 'squidle', 'spawnling', 'deepOne', 'bogBrute'],
   // Update 0.2.11 — floor 6, the Sunken Grove (the designer's fish; "no porting floor 5 monster", but a smaller Drowned
-  // King, the percher).
-  ['clownfish', 'tuna', 'angelfish', 'dolphin', 'drownedPrince', 'mantaRay', 'shark'],
+  // King, the percher). Update 0.3.14 — floor 6 reworked, Skull Cove (dry, a pirate floor): its fish retired; **stand-ins**
+  // (floor 7's) till its pirate crew is made (MD/FLOOR6_PIRATE_PLAN.md).
+  ['skeleton', 'rabbit', 'leaper', 'tribal', 'dinoBlob', 'skullWraith', 'dragonling', 'brute', 'ninja'],
   // Update 0.3.11 — floor 7, Frozen Depths: **stand-ins** from the dry floors till its own are designed (the plan for
   // floors 7–10: its level first, then its enemies): the humanoid runners (pinned, finished), a flier or two, the Yeti
   // and the Ninja for its mini bosses.
@@ -124,7 +125,8 @@ function addMinis(plan: EnemyKind[][], floor: number, rng: Rng) {
 /** Update 0.2.4 — who stands on a floor's perches and throws from above. Update 0.2.7 — floor 3's Spitters went: the
  *  Dragonling has their place (a flier: it comes in their stead in a perch room's waves, from its spawns, not a perch). */
 // Update 0.2.10 — floor 5's Big Glubs (fliers hanging over the perches). Update 0.2.11 — floor 6's Drowned Princes.
-export const percherOf = (floor: number): EnemyKind => (floor >= 7 ? 'tribal' : floor === 6 ? 'drownedPrince' : floor === 5 ? 'bigGlub' : floor === 4 ? 'tribal' : floor === 3 ? 'dragonling' : 'spitter');
+// (Update 0.3.14 — floor 6 a stand-in's, as floor 7's.)
+export const percherOf = (floor: number): EnemyKind => (floor >= 6 ? 'tribal' : floor === 5 ? 'bigGlub' : floor === 4 ? 'tribal' : floor === 3 ? 'dragonling' : 'spitter');
 
 /** Update 0.0.21 — spitters to stand on a room's perches, in every wave of a room with them. **(placeholder)** */
 export const PERCHED = 2;

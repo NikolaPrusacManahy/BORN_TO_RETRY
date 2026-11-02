@@ -1,7 +1,7 @@
 // Update 0.3.13 — what a floor's look is (moved out of styles.ts, which had reached its size; no change): its pieces, its
 // colours, its sky and sun, and what it has of its own. Pure data.
 
-export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned' | 'sunken' | 'venom' | 'bone' | 'frozen' | 'forge';
+export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned' | 'sunken' | 'venom' | 'bone' | 'frozen' | 'forge' | 'cove';
 type Scale = [number, number, number];
 
 export interface DungeonStyle {
@@ -71,6 +71,9 @@ export interface DungeonStyle {
   ash?: number;
   /** Update 0.2.24 — materials (names before any ".001") that glow in their own colour (floor 3's crystals). */
   glow?: string[];
+  /** Update 0.3.14 — floor 6's cove: sand on every floor cell (no paving), and its own palms and their size. */
+  sandFloor?: boolean;
+  palms?: { list: readonly string[]; scale: number };
 }
 
 /** Update 0.2.23 — a pit's look: its dark base, the glow's two colours it drifts between, how bright. */
@@ -79,4 +82,8 @@ export interface PitLook {
   deep: number;
   hot: number;
   glow: number;
+  /** Update 0.3.14 — still water (floor 6's sea): no bubbles, no glow round it, glossy; and it doesn't poison (floor 2's
+   *  sludge does: `poisons`). */
+  calm?: boolean;
+  poisons?: boolean;
 }

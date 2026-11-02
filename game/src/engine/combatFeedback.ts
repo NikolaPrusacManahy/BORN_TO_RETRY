@@ -19,6 +19,7 @@ import type { Shockwaves } from './fx/shockwave';
 import { ENEMIES } from '../tuning/enemies';
 import { FOES } from '../tuning/foes';
 import { foes2Feedback } from './foeFeedback';
+import { depthsFeedback } from './depthsFeedback';
 import type { MarkerKind } from './hudStore';
 import type { TargetsView } from './targetsView';
 import { Viewmodel } from './viewmodel/viewmodel';
@@ -128,16 +129,6 @@ export class CombatFeedback {
           break;
         case 'knifeStick':
           this.f.sparks.spawn(at, back, 5, 0.7);
-          break;
-        // Update 0.3.11 — an icicle shattering: shards of ice, a jolt if it's near.
-        case 'icicleShatter':
-          this.f.sparks.spawn(at, UP, 26, 1.2);
-          this.f.rig.shake.add(fb.shakeJab * this.nearHere(8));
-          break;
-        // Update 0.3.13 — a press slamming down: grit off its plate, a jolt if it's near (the bigger, the harder).
-        case 'pressSlam':
-          this.f.sparks.spawn(at, UP, 16, 1);
-          this.f.rig.shake.add(fb.shakeJab * (0.3 + e.value / 10) * this.nearHere(9));
           break;
         // Update 0.3.9 — a pillar broken: stone flying from where it snapped, a jolt.
         case 'pillarBreak': {
@@ -278,7 +269,8 @@ export class CombatFeedback {
           this.f.targets.respawned(state, e.x, e.z);
           break;
         default:
-          foes2Feedback(this.f, e.kind, e.value, at, back, this.nearHere);
+          // (Update 0.3.14 — floors 6–8's world: depthsFeedback.ts.)
+          if (!depthsFeedback(this.f, e.kind, e.value, at, this.nearHere)) foes2Feedback(this.f, e.kind, e.value, at, back, this.nearHere);
           break;
       }
     }

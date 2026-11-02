@@ -60,6 +60,8 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   icicle: 'An icicle',
   crusher: 'A press',
   vent: 'A fire vent',
+  sea: 'The sea',
+  keg: 'A powder keg',
 };
 
 export const causeName = (by: Cause | null) => (by ? CAUSE_NAMES[by] : 'Unknown');

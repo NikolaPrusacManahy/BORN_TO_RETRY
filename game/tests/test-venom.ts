@@ -1,9 +1,8 @@
 // Update 0.2.23 — floor 2's Venom Garden (the designer: floors "need to match their enemies"): its look, its own rooms
 // and scorched boss room, plants only in beds, webs that slow you, sludge that poisons, and the wasps' hives (they let
 // wasps out while their room fights; punched down, they stop).
-import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { parseUntextured } from './fakes/glb';
 import { check, section } from './harness';
 import { DT, ticks } from './fakes/flatWorld';
 import { createRng } from '../src/core/rng';
@@ -81,8 +80,8 @@ section('Venom Garden — the floor');
   check('24 floors: every plant, bush, clump of grass and tree grows out of a bed, never paving; the boss room’s are ash and charred', !bad, bad);
   check('scorch marks only in the boss room; sludge in the pits; tall grass where the snakes hunt', scorchOut === 0 && sludge > 0 && grass > 0, `${scorchOut} ${sludge} ${grass}`);
   check('its charred pieces are recoloured whole', charred.size > 0 && VENOM_PIECES.burnt.every((p) => VENOM.burnt?.[p] !== undefined));
-  const buf = readFileSync(new URL('../public/models/dungeon/kit.glb', import.meta.url));
-  const kit = await new GLTFLoader().parseAsync(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer, '');
+  // (Update 0.3.14 — the kit has a texture now, floor 6's palette: taken out to parse it in Node.)
+  const kit = await parseUntextured(new URL('../public/models/dungeon/kit.glb', import.meta.url));
   const all = [...VENOM_PIECES.plants, ...VENOM_PIECES.tall, ...VENOM_PIECES.trees, ...VENOM_PIECES.burnt, ...VENOM_PIECES.ash, ...VENOM_PIECES.webs, ...VENOM.litter, VENOM.low!];
   const missing = all.filter((n) => !kit.scene.getObjectByName(n));
   check('every piece it uses is in the kit', missing.length === 0, missing.join(', '));

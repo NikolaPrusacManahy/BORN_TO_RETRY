@@ -199,9 +199,11 @@ export class Run extends RunBase {
     const tv = this.treasureView;
     tv.update(this.combat, this.camera.position, gameDt);
     this.arms.chest.update(tv.reach.k, tv.reach.left, tv.reach.right, this.camera, this.arms.camera);
-    // (Update 0.3.9 — a pillar the pillar finisher broke: the floor's view breaks it. Update 0.3.10 — and its collision.)
+    // (Update 0.3.9 — a pillar the pillar finisher broke: the floor's view breaks it. Update 0.3.10 — and its collision.
+    // Update 0.3.14 — a powder keg blown up: its block out of the world.)
     for (let i = 0; i < this.combat.events.length; i++) {
       const e = this.combat.events.at(i);
+      if (e.kind === 'kegBlast' && this.level.dungeon) this.level.physics.swap(this.level.dungeon.level.cove.kegs[e.value].box, []);
       if (e.kind !== 'pillarBreak') continue;
       const pillar = this.combat.pillars[e.value];
       if (pillar.box && pillar.stump && pillar.top) this.level.physics.swap(pillar.box, [pillar.stump, pillar.top]);

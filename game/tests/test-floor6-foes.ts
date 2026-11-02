@@ -8,7 +8,7 @@ import { at, meet, ready, run, TOP, until } from './fakes/fishMeet';
 import { percherOf, rosterOf } from '../src/sim/dungeon/wavePlan';
 import { fishMiddle } from '../src/sim/enemies/fishSwim';
 import { bossOf, ENEMY_STATS, MINI_BOSSES } from '../src/sim/enemies/kinds';
-import { SWIMS } from '../src/sim/enemies/kinds6';
+import { KINDS6, SWIMS } from '../src/sim/enemies/kinds6';
 import { CAUSE_NAMES } from '../src/screens/deathText';
 import { AIM_HEIGHT } from '../src/sim/combat/turret';
 import { maxHpOf } from '../src/sim/player/health';
@@ -19,12 +19,13 @@ import { Vector3 } from 'three';
 const v = FOES6.v;
 const mid = new Vector3();
 
-section('Floor 6 — its own: the designer’s fish');
+// (Update 0.3.14 — floor 6 reworked, Skull Cove: the Sunken Grove's fish are retired from it, their code kept.)
+section('The Sunken Grove’s fish (retired from floor 6)');
 {
-  const roster = rosterOf(6);
+  const roster = KINDS6.filter((k) => k !== 'whale');
   const five = rosterOf(5);
-  check(`seven of its own: ${roster.join(', ')}; none of floor 5’s`, roster.length === 7 && roster.every((k) => !five.includes(k)));
-  check('the Drowned Prince is its percher; the Manta Ray and the Shark its mini bosses; the Old Whale its boss', percherOf(6) === 'drownedPrince' && roster.includes('drownedPrince') && MINI_BOSSES.includes('mantaRay') && MINI_BOSSES.includes('shark') && bossOf(6) === 'whale');
+  check(`seven: ${roster.join(', ')}; none of floor 5’s; none on any floor now`, roster.length === 7 && roster.every((k) => !five.includes(k)) && [1, 2, 3, 4, 5, 6, 7, 8].every((f) => roster.every((k) => !rosterOf(f).includes(k))));
+  check('the Manta Ray and the Shark still mini bosses; no floor’s percher or boss of theirs', percherOf(6) !== 'drownedPrince' && MINI_BOSSES.includes('mantaRay') && MINI_BOSSES.includes('shark') && bossOf(6) !== 'whale');
   const fish = roster.filter((k) => SWIMS.has(k));
   check(`every fish swims faster than you (${SWIM.v.speed} m/s)`, fish.length === 6 && fish.every((k) => ENEMY_STATS[k]().speed > SWIM.v.speed), fish.map((k) => `${k} ${ENEMY_STATS[k]().speed}`).join(', '));
   check('each with its name', roster.every((k) => !!CAUSE_NAMES[k]));

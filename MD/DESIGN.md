@@ -169,6 +169,15 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   right fist punches the shot (half a second on screen with the freeze). **4 s** after a parry that lands; **0.5 s**
   after a press that caught nothing.
 
+### Floor 6 — Skull Cove, reworked (Update 0.3.14; the plan `MD/FLOOR6_PIRATE_PLAN.md`; spec `MD_UPDATES/U0314_SKULL_COVE.md`)
+- The designer reworked floor 6: a pirate floor (the Pirate Kit), its boss the Big Shark fought under water, new
+  enemies. The Sunken Grove (0.2.11), its fish and the Old Whale are out of the game.
+- Sand everywhere; **the sea** in channels and pools (fall in: hurt and back; a body knocked in sinks, as over any
+  pit); **powder kegs** (a punch, a slam, a thrown body or a blast sets them off; up to 30 to you, 150 to enemies;
+  chains); boardwalks, a beached wreck (its deck a platform), small boats on the sand, houses, outcrops, giant bones.
+  **No cannons** (the designer: "far far unmanagable on fast gameplay"). Nine rooms of its own. Stand-in
+  enemies and boss till its own. **(placeholder numbers, F1 → Skull Cove)**
+
 ### Floor 8 — The Forge (Update 0.3.13; spec `MD_UPDATES/U0313_THE_FORGE.md`)
 - The designer: every floor's level first ("I want all designs to be done first"), then the enemies.
 - Floor 3's stone sooty grey under a pale smoky sky, warmed by lava pits again (wider), swords on the walls,

@@ -5,10 +5,9 @@
 // down ends the floor.
 // Update 0.0.15 — the way ends in the boss room (no exit room): its wooden gate in the far wall, the dark beyond it on
 // empty ground, walled round; the gate is one more gate.
-import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { DungeonView } from '../src/engine/dungeonView';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { parseUntextured } from './fakes/glb';
 import { check, section } from './harness';
 import { DT, ticks } from './fakes/flatWorld';
 import { createRng } from '../src/core/rng';
@@ -263,8 +262,8 @@ section('Dungeon — the room loop');
 section('Dungeon — the look');
 {
   // The Modular Dungeon Pack kit (export_dungeon_kit.py): every piece the dressing uses is in it.
-  const buf = readFileSync(new URL('../public/models/dungeon/kit.glb', import.meta.url));
-  const kit = await new GLTFLoader().parseAsync(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer, '');
+  // (Update 0.3.14 — the kit has a texture now, floor 6's palette: taken out to parse it in Node.)
+  const kit = await parseUntextured(new URL('../public/models/dungeon/kit.glb', import.meta.url));
   const level = buildDungeon(planFloor(31337, 2));
   const look = dress(level.plan);
   const used = [...new Set(look.pieces.map((p) => p.piece)), KIT.bars];

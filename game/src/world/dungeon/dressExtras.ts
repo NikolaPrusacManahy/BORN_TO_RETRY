@@ -70,12 +70,13 @@ export function dressShop(plan: FloorPlan, put: Put) {
 }
 
 /** Update 0.2.4 — a sand cell: its sand, and its palm or cactus in the middle (turned and sized a little at random). */
-export function dressSand(c: Cell, x: number, z: number, rng: Rng, put: Put, sand: SandCell[]) {
+// (Update 0.3.14 — `palms`: the look's own and their size, floor 6's: the Pirate Kit's.)
+export function dressSand(c: Cell, x: number, z: number, rng: Rng, put: Put, sand: SandCell[], palms: { list: readonly string[]; scale: number } = { list: DESERT.palms, scale: DESERT.palmScale }) {
   sand.push({ x, z, quick: c === 'sand' });
   const turn = rng() * Math.PI * 2;
   if (c === 'palm') {
-    const s = DESERT.palmScale * (0.85 + 0.3 * rng());
-    put(DESERT.palms[Math.floor(rng() * DESERT.palms.length)], x, 0, z, turn, s, s, s);
+    const s = palms.scale * (0.85 + 0.3 * rng());
+    put(palms.list[Math.floor(rng() * palms.list.length)], x, 0, z, turn, s, s, s);
   } else if (c === 'cactus') {
     const s = DESERT.cactusScale * (0.85 + 0.3 * rng());
     put(DESERT.cacti[Math.floor(rng() * DESERT.cacti.length)], x, 0, z, turn, s, s, s);

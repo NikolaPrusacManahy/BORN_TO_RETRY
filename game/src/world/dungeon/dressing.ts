@@ -132,7 +132,11 @@ export function dress(plan: FloorPlan): Dressing {
       const c = cellAt(plan, col, row);
       const x = cellX(col);
       const z = cellZ(row);
-      if (surface(c) && c !== 'lava' && !SANDY.has(c) && !(c === 'low' && K.lowBed)) put(K.floor, x, K.floorY, z);
+      // (Update 0.3.14 — floor 6's cove: sand everywhere, but on its boardwalks.)
+      if (surface(c) && c !== 'lava' && !SANDY.has(c) && !(c === 'low' && K.lowBed)) {
+        if (!K.sandFloor) put(K.floor, x, K.floorY, z);
+        else if (c !== 'boardwalk') sand.push({ x, z, quick: false });
+      }
       // A pit's sides: a face down to the lava on every side of this cell that looks onto it (walls get theirs below).
       if (surface(c) && c !== 'lava') {
         for (const [dc, dr, side] of DIRS) {
@@ -179,7 +183,7 @@ export function dress(plan: FloorPlan): Dressing {
         case 'willow':
         case 'snag':
         case 'weed':
-          dressSand(c, x, z, rng, put, sand);
+          dressSand(c, x, z, rng, put, sand, K.palms);
           break;
         case 'low':
           // (Update 0.2.11 — or the look's own: floor 6's mossy boulders. Update 0.2.23 — floor 2's bushes, in beds.)
