@@ -63,7 +63,10 @@ Each its own update, each shown before the next:
 1. **The level** (done, 0.3.14): the look, the nine rooms, the sea, powder kegs, the wreck (no cannons). Stand-in enemies
    and boss. (The boss room's flooding moved to 3: its shape is the Big Shark's fight's, and a land stand-in can't fight
    under water.)
-2. **The enemies**: the seven, and the two mini bosses.
+2. **The enemies** (done, 0.3.15, spec `MD_UPDATES/U0315_COVE_CREW.md`): the seven, and the two mini bosses. Changed:
+   the Corsair has a boarding hook that drags you in (her front parry was floor 4's Skull Orc's block); the Shanty
+   Man's song quickens the crew; the bombs burn where they land (no rolling); the Bats come 4 to a swarm; Mako on boards
+   charges, no grab.
 3. **The boss**: the Big Shark, and the boss room flooded (swimming only there).
 
 Needed first: the dungeon kit's export takes the pirate pieces with their atlas texture (and no shape keys).

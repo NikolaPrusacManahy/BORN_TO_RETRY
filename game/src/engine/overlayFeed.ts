@@ -44,7 +44,7 @@ import { enemiesLeft } from '../sim/dungeon/enemyCount';
 import { chestToOpen } from '../sim/dungeon/treasure';
 import type { DungeonRun } from '../sim/dungeon/roomLoop';
 import { CELL, GRID } from '../world/dungeon/floorPlan';
-import { BONE_KING } from '../tuning/boneKing';
+import { grabRules } from '../sim/combat/grab';
 import { createRaptorHud, raptorHud, sameRaptor } from './raptorHud';
 
 /** HUD refresh interval (s); hits, hurts and health changes push at once. */
@@ -108,8 +108,10 @@ export class HudFeed {
     const sig = slotSig(combat);
     const bonus = bonusSig(combat);
     const g = combat.grab;
-    const grabHits = g.on ? g.hits : -1;
-    const grabLeft = g.on ? Math.ceil(Math.max(0, 1 - g.t / BONE_KING.v.grabTime) * 20) / 20 : 0;
+    // (Update 0.3.15 — the Bone King's, or floor 6's Tentacle's: its own count and time; none while it throws you.)
+    const rules = grabRules(combat);
+    const grabHits = g.on && g.fly < 0 ? g.hits : -1;
+    const grabLeft = g.on && g.fly < 0 ? Math.ceil(Math.max(0, 1 - g.t / rules.time) * 20) / 20 : 0;
     const grabEnd = !g.on && g.since < GRAB_FLASH ? g.end : '';
     const bossMark = show.bossMark;
     const raptor = raptorHud(p, combat, this.raptor);
@@ -168,7 +170,7 @@ export class HudFeed {
       execution,
       bossMark,
       grabHits,
-      grabNeed: Math.round(BONE_KING.v.grabHits),
+      grabNeed: rules.hits,
       grabLeft,
       grabEnd,
       attackKey: this.attackKey,

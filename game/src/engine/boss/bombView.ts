@@ -2,7 +2,8 @@
 // a big fireball on its arc, and on the floor where it will land a red ring as wide as its burst, filling in and
 // brightening as it comes, so the last moment reads. Pooled and updated in place.
 // Update 0.2.3 — a skeleton the Bone King throws is drawn by kingView.ts: here only its spot.
-// Update 0.2.4 — a Lizard's poison glob: a green ball.
+// Update 0.2.4 — a Lizard's poison glob: a green ball. Update 0.3.15 — the Bomber's powder bomb: a small black ball, its
+// fuse spitting sparks; its ring fills over its flight and its fuse together (batted back, over its short flight).
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
 import { BOMB_POOL } from '../../sim/combat/bombs';
@@ -16,7 +17,13 @@ interface Shown {
   ball: THREE.Mesh;
   ring: THREE.Mesh;
   fill: THREE.Mesh;
+  spark: THREE.Mesh;
 }
+
+/** A powder bomb's size against a fireball's; its fuse's spark sits this high over it (m), this big (m). */
+const POWDER = 0.4;
+const FUSE = 0.24;
+const SPARK = 0.13;
 
 export class BombView {
   readonly group = new THREE.Group();
@@ -27,6 +34,8 @@ export class BombView {
   private readonly poisonMat = new THREE.MeshStandardMaterial({ color: 0x2a5a10, emissive: 0x6aff30, emissiveIntensity: 1.6 });
   /** Update 0.2.10 — floor 5's Big Glub's bubbles. */
   private readonly bubbleMat = new THREE.MeshStandardMaterial({ color: 0x9ff0ff, emissive: 0x2a9ab8, emissiveIntensity: 0.8, transparent: true, opacity: 0.6, roughness: 0.1 });
+  private readonly powderMat = new THREE.MeshStandardMaterial({ color: 0x161616, roughness: 0.55, metalness: 0.3 });
+  private readonly sparkMat = new THREE.MeshBasicMaterial({ color: 0xffc040, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
   private readonly shown: Shown[] = [];
   private readonly mats: THREE.Material[] = [];
   private time = 0;
@@ -37,9 +46,9 @@ export class BombView {
       const ringMat = additive(0xff2a10);
       const fillMat = additive(0xff6a20);
       this.mats.push(ringMat, fillMat);
-      const s = { ball: new THREE.Mesh(this.ballGeo, this.ballMat), ring: new THREE.Mesh(this.ringGeo, ringMat), fill: new THREE.Mesh(this.discGeo, fillMat) };
-      s.ball.visible = s.ring.visible = s.fill.visible = false;
-      this.group.add(s.ball, s.ring, s.fill);
+      const s = { ball: new THREE.Mesh(this.ballGeo, this.ballMat), ring: new THREE.Mesh(this.ringGeo, ringMat), fill: new THREE.Mesh(this.discGeo, fillMat), spark: new THREE.Mesh(this.ballGeo, this.sparkMat) };
+      s.ball.visible = s.ring.visible = s.fill.visible = s.spark.visible = false;
+      this.group.add(s.ball, s.ring, s.fill, s.spark);
       this.shown.push(s);
     }
   }
@@ -50,13 +59,19 @@ export class BombView {
       const b = state.bombs[i];
       const s = this.shown[i];
       s.ball.visible = s.ring.visible = s.fill.visible = b.alive;
+      s.spark.visible = b.alive && b.look === 'powder';
       if (!b.alive) continue;
       s.ball.visible = b.look !== 'bones' && b.look !== 'geyser';
-      s.ball.material = b.look === 'poison' ? this.poisonMat : b.look === 'bubble' ? this.bubbleMat : this.ballMat;
-      const k = Math.min(1, b.t / b.fall);
+      s.ball.material = b.look === 'poison' ? this.poisonMat : b.look === 'bubble' ? this.bubbleMat : b.look === 'powder' ? this.powderMat : this.ballMat;
+      const powder = b.look === 'powder';
+      const k = Math.min(1, b.t / (b.fall + (powder ? b.fuse : 0)));
       const flicker = 0.85 + 0.15 * Math.sin(this.time * 40 + i);
       s.ball.position.copy(b.pos);
-      s.ball.scale.setScalar(BALL * flicker);
+      s.ball.scale.setScalar(powder ? BALL * POWDER : BALL * flicker);
+      if (powder) {
+        s.spark.position.set(b.pos.x, b.pos.y + FUSE, b.pos.z);
+        s.spark.scale.setScalar(SPARK * (0.6 + 0.8 * Math.abs(Math.sin(this.time * 37 + i * 1.3))));
+      }
       s.ring.position.set(b.to.x, b.to.y + 0.06, b.to.z);
       s.ring.scale.setScalar(b.radius);
       (s.ring.material as THREE.MeshBasicMaterial).opacity = 0.35 + 0.65 * k;
@@ -67,7 +82,7 @@ export class BombView {
   }
 
   clear() {
-    for (const s of this.shown) s.ball.visible = s.ring.visible = s.fill.visible = false;
+    for (const s of this.shown) s.ball.visible = s.ring.visible = s.fill.visible = s.spark.visible = false;
   }
 
   dispose() {
@@ -78,6 +93,8 @@ export class BombView {
     this.ballMat.dispose();
     this.poisonMat.dispose();
     this.bubbleMat.dispose();
+    this.powderMat.dispose();
+    this.sparkMat.dispose();
     for (const m of this.mats) m.dispose();
   }
 }

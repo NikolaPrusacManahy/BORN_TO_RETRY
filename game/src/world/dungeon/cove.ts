@@ -32,6 +32,8 @@ export interface SetPiece {
 
 export interface Cove {
   kegs: KegSpot[];
+  /** Update 0.3.15 — the boardwalks' cells (Mako can't dive into them). */
+  boards: ArenaBox[];
   pieces: SetPiece[];
 }
 
@@ -73,7 +75,7 @@ export const PIRATE = {
 
 const SET: Partial<Record<Cell, PieceKind>> = { wreck: 'wreck', boat: 'boat', house: 'house', outcrop: 'outcrop', bones: 'bones' };
 
-export const noCove = (): Cove => ({ kegs: [], pieces: [] });
+export const noCove = (): Cove => ({ kegs: [], pieces: [], boards: [] });
 
 /** The cove of floor `plan` (empty on a floor without one); every block goes into `boxes`. */
 export function coveOf(plan: FloorPlan, boxes: ArenaBox[]): Cove {
@@ -86,6 +88,7 @@ export function coveOf(plan: FloorPlan, boxes: ArenaBox[]): Cove {
         const c = cells[row * w + col];
         const x = cellX(r.x0 + col);
         const z = cellZ(r.z0 + row);
+        if (c === 'boardwalk') cove.boards.push({ x, y: -0.05, z, w: CELL, h: 0.1, d: CELL, kind: 'accent' });
         if (c === 'keg') {
           const box = block(x, z, KEG_BOX.side, KEG_BOX.side, KEG_BOX.h);
           cove.kegs.push({ x, z, room: r.index, box });

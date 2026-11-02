@@ -30,6 +30,12 @@ import { FOES6 } from '../tuning/foes6';
 import { FOES6B } from '../tuning/foes6b';
 import { mantaWindup } from '../sim/enemies/manta';
 import { whaleWindup } from '../sim/enemies/whale';
+import { FOES_COVE } from '../tuning/foesCove';
+import { FOES_COVE_B } from '../tuning/foesCoveB';
+import { HOOK_TWIRL } from '../sim/enemies/corsair';
+
+/** Update 0.3.15 — the Corsair's: her hook's twirl, her axe dragged in (at once), her axe. */
+const corsairWindup = (move: number) => (move === HOOK_TWIRL ? FOES_COVE.v.hookTwirl : move === 4 ? FOES_COVE.v.hookStrike : FOES_COVE.v.corsairWindup);
 
 export type Role = 'idle' | 'move' | 'attack' | 'hit' | 'death' | 'air' | 'rise';
 export const ROLES: Role[] = ['idle', 'move', 'attack', 'hit', 'death', 'air', 'rise'];
@@ -57,6 +63,8 @@ export interface Look {
 const BLOB = { idle: 'Idle', move: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', air: 'Jump' };
 const FLIER = { idle: 'Flying_Idle', move: 'Fast_Flying', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Fast_Flying' };
 const BIG = { idle: 'Idle', move: 'Walk', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' };
+/** Update 0.3.15 — the Pirate Kit's characters' clips. */
+const PIRATE = { idle: 'Idle', move: 'Run', attack: 'Sword', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' };
 /** Update 0.2.11 — floor 6's fish have one clip, their swim: everything is it (their wind-ups beat it faster; the rest
  *  is turned in code: fishPose.ts). */
 const swimming = (clip: string) => ({ idle: clip, move: clip, attack: clip, hit: clip, death: clip, air: clip });
@@ -137,6 +145,19 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
   shark: { url: '/models/enemies/shark.glb', clips: SWIM, lands: 1, windup: () => FOES6B.v.sharkWindup, glow: [1, 0.2, 0.15] },
   whale: { url: '/models/enemies/whale.glb', clips: SWIM, lands: 2, windup: whaleWindup, glow: [0.4, 0.8, 1] },
   blueDemon: { url: '/models/enemies/bluedemon.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Run' }, lands: 17 / 30, windup: blueWindup, glow: [0.2, 0.55, 1] },
+  // Update 0.3.15 — floor 6 reworked, Skull Cove's crew (export_monster.py: the Pirate Kit's characters, their palette
+  // made Principled; the unused Pigeon and Bat; the Kraken's Tentacle). The pirates share their clips: the Sword swing is
+  // the blow (the Bomber's throw his Punch); dragging you in on her hook the Corsair waves; Mako's charge is a run.
+  corsair: { url: '/models/enemies/anne.glb', clips: { ...PIRATE, air: 'Wave' }, lands: 16 / 30, windup: corsairWindup, glow: [1, 0.55, 0.2] },
+  shanty: { url: '/models/enemies/henry.glb', clips: PIRATE, lands: 15 / 30, windup: () => 0.5, glow: [1, 0.85, 0.3] },
+  bomber: { url: '/models/enemies/sharky.glb', clips: { ...PIRATE, attack: 'Punch' }, lands: 19 / 30, windup: (move) => (move === 1 ? FOES_COVE.v.bomberWindup : 0.55), glow: [1, 0.4, 0.1] },
+  crewman: { url: '/models/enemies/pirate_skeleton.glb', clips: PIRATE, lands: 19 / 30, windup: () => 0.6, glow: [0.6, 1, 0.5] },
+  headless: { url: '/models/enemies/skeleton_headless.glb', clips: PIRATE, lands: 15 / 30, windup: () => 0.45, glow: [0.6, 1, 0.5] },
+  gull: { url: '/models/enemies/gull.glb', clips: { idle: 'Flying_Idle', move: 'Fast_Flying', attack: 'Headbutt', hit: 'HitReact', death: 'Death', air: 'Fast_Flying' }, lands: 9 / 30, windup: () => 0.45, glow: [1, 0.9, 0.3] },
+  bat: { url: '/models/enemies/bat.glb', clips: { idle: 'Bat_Flying', move: 'Bat_Flying', attack: 'Bat_Attack', hit: 'Bat_Hit', death: 'Bat_Death', air: 'Bat_Flying' }, lands: 8 / 30, windup: () => 0.3, glow: [0.8, 0.3, 1] },
+  tentacle: { url: '/models/enemies/tentacle.glb', clips: { idle: 'Tentacle_Idle', move: 'Tentacle_Idle', attack: 'Tentacle_Attack', hit: 'Tentacle_Idle', death: 'Tentacle_Idle', air: 'Tentacle_Attack2' }, lands: 13 / 30, windup: (move) => (move === 1 ? FOES_COVE_B.v.tentacleWindup : 0.45), glow: [1, 0.3, 0.6] },
+  mako: { url: '/models/enemies/mako.glb', clips: { ...PIRATE, air: 'Run' }, lands: 15 / 30, windup: (move) => (move === 1 ? FOES_COVE_B.v.makoRise : FOES_COVE_B.v.makoWindup), glow: [1, 0.2, 0.15] },
+  captain: { url: '/models/enemies/barbarossa.glb', clips: PIRATE, lands: 14 / 30, windup: (move) => (move === 1 ? FOES_COVE_B.v.captainAim : FOES_COVE_B.v.captainWindup), glow: [1, 0.15, 0.1] },
 };
 
 /** The role a phase plays; once its attack is over, a recovering enemy stands. */

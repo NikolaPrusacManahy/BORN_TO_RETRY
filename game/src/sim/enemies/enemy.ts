@@ -24,7 +24,8 @@ import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
 import type { CombatEvent } from '../combat/state';
 import type { Orb } from '../combat/targets';
-import type { ArenaBox } from '../../world/arena';
+import type { Ground } from '../dungeon/ground';
+import type { Coin } from '../combat/coins';
 import type { FistState } from '../combat/fists';
 import type { Quake } from '../combat/quakes';
 import type { Bomb } from '../combat/bombs';
@@ -93,15 +94,21 @@ export interface Enemy {
   wall: Vector3;
   /** Update 0.3.8 — dead, pinned to a wall: seconds it hangs there (0: not; flight.ts). */
   pinned: number;
+  /** Update 0.3.15 — quickened by floor 6's Shanty Man's song: seconds left (0: not; shanty.ts). */
+  hype: number;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
  *  Update 0.0.15 — the quake rings, and the fight's seeded RNG (the Demon picks its moves with it). */
 export interface EnemyWorld {
   /** Update 0.3.10 — your fists (the fight's: a melee blow met by your parry is parried, combat/meleeParry.ts).
-   *  Update 0.3.11 — floor 7's ice (a body knocked across it slides far: flight.ts). */
+   *  Update 0.3.11 — floor 7's ice (a body knocked across it slides far: flight.ts). Update 0.3.15 — the ground's
+   *  ice, pits and boardwalks (dungeon/ground.ts); your money and the coins flying (floor 6's Thieving Gull snatches
+   *  it, and drops it killed). */
   fists?: FistState;
-  ice?: readonly ArenaBox[];
+  ground?: Ground;
+  money?: number;
+  coins?: Coin[];
   nav: Record<SizeClass, NavGrid>;
   flow: Record<SizeClass, Flow>;
   orbs: Orb[];
@@ -159,6 +166,7 @@ export function createEnemies(): Enemy[] {
     splat: 0,
     wall: new Vector3(),
     pinned: 0,
+    hype: 0,
   }));
 }
 
@@ -192,7 +200,7 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.perch = 0;
   e.token = false;
   e.tokenFor = e.rest = 0;
-  e.splat = e.pinned = 0;
+  e.splat = e.pinned = e.hype = 0;
   e.fan = NaN;
   e.blink = 0;
   e.deeds = 0;
@@ -205,8 +213,9 @@ export const isLive = (e: Enemy) => e.alive && e.phase !== 'dead';
 
 export const radiusOf = (e: Enemy) => ENEMY_STATS[e.kind]().radius;
 
-/** Walls push it: always a flier (on its own grid), a walker only on the ground. */
-export const grounded = (e: Enemy) => flies(e.kind) || e.pos.y < OFF_GROUND;
+/** Walls push it: always a flier (on its own grid), a walker only on the ground (Update 0.3.15 — not one rooted in the sea,
+ *  its floor below the ground's: floor 6's Tentacle, which the sea's edge pushed out of the water). */
+export const grounded = (e: Enemy) => flies(e.kind) || (e.pos.y < OFF_GROUND && e.perch >= 0);
 
 /** The bottom and top of its hit capsule's axis. Update 0.2.11 — a fish's lies along it (its tail to its nose). */
 export function enemyAxis(e: Enemy, bottom: Vector3, top: Vector3) {
@@ -264,6 +273,16 @@ export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, 
     return false;
   }
   e.hp = 0;
+  // Update 0.3.15 — floor 6's Cursed Crewman brought down: its skull flies off, and it goes on headless (crewman.ts),
+  // its own health. (Not one held in an execution: that finishes it.)
+  if (e.kind === 'crewman' && e.phase !== 'held') {
+    e.kind = 'headless';
+    e.hp = ENEMY_STATS.headless().hp;
+    e.shots = 1;
+    e.vel.set(0, 0, 0);
+    setPhase(e, 'flinch');
+    return false;
+  }
   // Update 0.1.19 — a Skeleton falls to pieces (and rebuilds: skeleton.ts): not dead yet.
   if (fallsApart(e)) {
     e.vel.set(0, 0, 0);

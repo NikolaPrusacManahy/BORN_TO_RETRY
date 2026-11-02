@@ -175,8 +175,24 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 - Sand everywhere; **the sea** in channels and pools (fall in: hurt and back; a body knocked in sinks, as over any
   pit); **powder kegs** (a punch, a slam, a thrown body or a blast sets them off; up to 30 to you, 150 to enemies;
   chains); boardwalks, a beached wreck (its deck a platform), small boats on the sand, houses, outcrops, giant bones.
-  **No cannons** (the designer: "far far unmanagable on fast gameplay"). Nine rooms of its own. Stand-in
-  enemies and boss till its own. **(placeholder numbers, F1 → Skull Cove)**
+  **No cannons** (the designer: "far far unmanagable on fast gameplay"). Nine rooms of its own. **(placeholder
+  numbers, F1 → Skull Cove)**
+- **Its crew** (Update 0.3.15; spec `MD_UPDATES/U0315_COVE_CREW.md`): the **Corsair** (her hook drags you in, then her
+  axe), the **Shanty Man** (his song quickens the crew round him; he keeps away), the **Bomber** (lit powder bombs that
+  burn where they land: punch one back at him), the **Cursed Crewman** (brought down, it goes on headless and blind,
+  hunting where it heard you), the **Thieving Gull** (snatches your coins: kill it before it's away; in pairs), the
+  **Cave Bats** (a swarm of 4, diving one at a time), the **Kraken Tentacle** (the designer's: lurks in the sea and
+  grabs you by surprise as you come near; click free or be slammed down, on the shore either way, never the sea; your
+  clicks can't finish it: punch it from the shore while it reels). At most 3 Shanty Men a room. The Crewman sheds bone chips and has the Skeleton's execution;
+  no blood lies on the sea.
+- **Never tankier** (the designer, Update 0.3.15: "do not make enemies tankier NEVER"): a floor's enemies have no more
+  health than the floors before's (regulars 12–60, mini bosses up to 340); harder means more AI (the Bomber leads his
+  throws).
+- **Every enemy's run plays at the pace it really goes** (Update 0.3.15, the designer: they "run on the same spot");
+  one barely moving stands. Mini bosses: **Mako** (dives into the sand, its fin cutting to you, erupts under you; on boards
+  it charges) and **Captain Barbarossa** (a red aim line that follows you slower than you run, then his shot; cover
+  stops it). Its boss still stands in till the Big Shark. **(placeholder numbers, F1 → Floor 6 crew; Floor 6 kraken,
+  Mako, Captain)**
 
 ### Floor 8 — The Forge (Update 0.3.13; spec `MD_UPDATES/U0313_THE_FORGE.md`)
 - The designer: every floor's level first ("I want all designs to be done first"), then the enemies.

@@ -265,7 +265,10 @@ EXEC_MOVES.blobling = EXEC_MOVES.slime;
 EXEC_MOVES.maskTribal = EXEC_MOVES.wraith;
 // Update 0.2.10 — floor 5's: the blobs the slime's, the fliers the Wraith's, the mini bosses the Yeti's (the same rigs;
 // their hands and looks follow this too: handMoves.ts, looks.ts). Update 0.2.11 — and floor 6's: the fish the Wraith's (the mini bosses too: one mesh, nothing to burst), the Prince the Orc's.
-export const ALIKE: readonly [EnemyKind, EnemyKind][] = [['snapper', 'slime'], ['urchin', 'slime'], ['jelly', 'slime'], ['spawnling', 'slime'], ['glub', 'wraith'], ['bigGlub', 'wraith'], ['squidle', 'wraith'], ['deepOne', 'brute'], ['bogBrute', 'brute'], ['clownfish', 'wraith'], ['tuna', 'wraith'], ['angelfish', 'wraith'], ['dolphin', 'wraith'], ['drownedPrince', 'grunt'], ['mantaRay', 'wraith'], ['shark', 'wraith']];
+// Update 0.3.15 — Skull Cove's crew: the pirates the Orc's (the same skeleton), the Cursed Crewman (headless or not) the
+// Skeleton's (the designer: "put the default skeleton execution on them"; its pieces its own: looks.ts), the Gull and
+// the Bats the Wraith's, the mini bosses the Yeti's. The Kraken's Tentacle has none (rooted in the sea).
+export const ALIKE: readonly [EnemyKind, EnemyKind][] = [['corsair', 'grunt'], ['shanty', 'grunt'], ['bomber', 'grunt'], ['crewman', 'skeleton'], ['headless', 'skeleton'], ['gull', 'wraith'], ['bat', 'wraith'], ['mako', 'brute'], ['captain', 'brute'], ['snapper', 'slime'], ['urchin', 'slime'], ['jelly', 'slime'], ['spawnling', 'slime'], ['glub', 'wraith'], ['bigGlub', 'wraith'], ['squidle', 'wraith'], ['deepOne', 'brute'], ['bogBrute', 'brute'], ['clownfish', 'wraith'], ['tuna', 'wraith'], ['angelfish', 'wraith'], ['dolphin', 'wraith'], ['drownedPrince', 'grunt'], ['mantaRay', 'wraith'], ['shark', 'wraith']];
 for (const [kind, like] of ALIKE) EXEC_MOVES[kind] = EXEC_MOVES[like];
 EXEC_MOVES.brute = EXEC_MOVES.blueDemon;
 

@@ -5,6 +5,7 @@
 // Update 0.1.14 — the time played since the run's start, and the death screen up (Restart, its Retry, is a new run).
 // Update 0.2.12 — the run plays by its difficulty (the designer): on WEAKLING EXPERIENCE a death sends you back to the
 // checkpoint (`respawn`); on ARE YOU EVEN HUMAN? there's nothing to find (`CombatState.bare`) and no shop.
+import { groundOf } from '../sim/dungeon/ground';
 import * as THREE from 'three';
 import { FixedStep } from '../core/fixedStep';
 import { createRng } from '../core/rng';
@@ -149,7 +150,7 @@ export abstract class RunBase {
     // (Update 0.2.9 — the lobby has no enemies: no walk grids.)
     this.combat = createCombat(level.arena, !level.dungeon && !level.lobby);
     this.combat.hives = createHives(level.dungeon?.level.hives ?? []);
-    this.combat.ice = level.dungeon?.level.ice ?? [];
+    this.combat.ground = groundOf(level.dungeon?.level);
     this.combat.rng = createRng(level.fightSeed);
     this.combat.bare = this.difficulty === 'human';
     this.combat.fate = this.cards;

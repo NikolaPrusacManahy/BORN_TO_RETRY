@@ -4,8 +4,11 @@
 // left and right; a weapon's hand strikes), counted against Grab hits before Grab time runs out. Land them all and you
 // break free: you drop and it reels (stunned). Run out of time and it throws you at the nearest wall, hard. The screen
 // shows the count (engine: the QTE). Pure.
+// Update 0.3.15 — floor 6's Kraken Tentacle holds you the same way, on its own terms (coil.ts): up in its coil, your
+// clicks to break free, then down on the shore along an arc (`fly`, `from`, `to`, `slam`).
 import { Vector3 } from 'three';
 import { BONE_KING } from '../../tuning/boneKing';
+import { FOES_COVE_B } from '../../tuning/foesCoveB';
 import { wallBetween } from '../../world/navGrid';
 import { hitEnemy, setPhase } from '../enemies/enemy';
 import { ENEMY_STATS } from '../enemies/kinds';
@@ -13,6 +16,7 @@ import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
 import type { CombatIntent } from './fists';
 import type { CombatState } from './state';
+import { coilEye, coilHeldAt, stepCoil } from './coil';
 
 export interface Grab {
   /** You're in its hand. */
@@ -24,10 +28,22 @@ export interface Grab {
   /** How the last one ended ('': none yet), and seconds since (the screen's flash). */
   end: '' | 'free' | 'thrown';
   since: number;
+  /** Update 0.3.15 — the Tentacle letting you go: seconds into the arc down (−1: not yet), from where to where, and
+   *  whether it slams you. */
+  fly: number;
+  from: Vector3;
+  to: Vector3;
+  slam: boolean;
 }
 
 export function createGrab(): Grab {
-  return { on: false, slot: -1, t: 0, hits: 0, end: '', since: Infinity };
+  return { on: false, slot: -1, t: 0, hits: 0, end: '', since: Infinity, fly: -1, from: new Vector3(), to: new Vector3(), slam: false };
+}
+
+/** Clicks to break free of whatever holds you, and the seconds you have. */
+export function grabRules(state: Pick<CombatState, 'enemies' | 'grab'>): { hits: number; time: number } {
+  const coil = state.enemies[state.grab.slot]?.kind === 'tentacle';
+  return coil ? { hits: Math.round(FOES_COVE_B.v.tentacleGrabHits), time: FOES_COVE_B.v.tentacleGrabTime } : { hits: Math.round(BONE_KING.v.grabHits), time: BONE_KING.v.grabTime };
 }
 
 /** Where you're held: in front of it, this share of its height up (your feet), this far out from its body (m): its
@@ -49,6 +65,7 @@ type Holder = Pick<CombatState, 'enemies' | 'grab' | 'events'>;
 /** Your feet in its hand (world). */
 export function heldAt(state: Holder, slot: number, out: Vector3): Vector3 {
   const k = state.enemies[slot];
+  if (k.kind === 'tentacle') return coilHeldAt(state, slot, out);
   const s = ENEMY_STATS[k.kind]();
   const out2 = s.radius + HELD_OUT;
   return out.set(k.pos.x - Math.sin(k.facing) * out2, k.pos.y + s.height * HELD_UP, k.pos.z - Math.cos(k.facing) * out2);
@@ -57,6 +74,7 @@ export function heldAt(state: Holder, slot: number, out: Vector3): Vector3 {
 /** Its skull (world): where you look while it holds you, and where your hits land. */
 export function skullOf(state: Holder, slot: number, out: Vector3): Vector3 {
   const k = state.enemies[slot];
+  if (k.kind === 'tentacle') return coilEye(state, slot, out);
   const s = ENEMY_STATS[k.kind]();
   return out.set(k.pos.x - Math.sin(k.facing) * s.radius * 0.6, k.pos.y + s.height * 0.76, k.pos.z - Math.cos(k.facing) * s.radius * 0.6);
 }
@@ -80,6 +98,7 @@ export function stepGrab(state: CombatState, player: PlayerState, intent: Combat
   const g = state.grab;
   const v = BONE_KING.v;
   const k = state.enemies[g.slot];
+  if (k?.kind === 'tentacle') return stepCoil(state, player, intent, dt);
   // It's gone to pieces (or died) under your hits: you drop.
   if (!k.alive || k.phase !== 'grab' || player.dead) {
     release(state, player, 'free');

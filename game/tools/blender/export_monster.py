@@ -7,6 +7,8 @@
 #   blender --background --disable-autoexec --python tools/blender/export_monster.py -- \
 #     --blend "<Ultimate Monsters>/used_monster/blobs/Orc.blend" --glb public/models/enemies/orc.glb --previews <folder>
 # Update 0.2.10 — `--crown <Ultimate RPG Pack>/Crown.blend`: a crown on its head, riding its Head bone (the Drowned King).
+# Update 0.3.14 — the Pirate Kit's characters (floor 6's crew): their materials are Diffuse shaders, which the glTF
+# export doesn't read (their palette was left out): made Principled, the palette their base colour, nearest pixel.
 import argparse
 import math
 import os
@@ -110,9 +112,32 @@ def crown_on(arm, path):
     print(f'crown on its head at {top:.2f} m, {width * 0.8:.2f} m across ({len(cz)} corners)')
 
 
+def principled():
+    """Update 0.3.14 — a Diffuse material with an image (the Pirate Kit's) made a Principled one the export reads."""
+    for m in bpy.data.materials:
+        if not m.use_nodes:
+            continue
+        nodes = m.node_tree.nodes
+        tex = next((n for n in nodes if n.type == 'TEX_IMAGE' and n.image), None)
+        if not tex or not any(n.type == 'BSDF_DIFFUSE' for n in nodes):
+            continue
+        image = tex.image
+        nodes.clear()
+        out = nodes.new('ShaderNodeOutputMaterial')
+        bsdf = nodes.new('ShaderNodeBsdfPrincipled')
+        bsdf.inputs['Roughness'].default_value = 1
+        t = nodes.new('ShaderNodeTexImage')
+        t.image = image
+        t.interpolation = 'Closest'
+        m.node_tree.links.new(t.outputs['Color'], bsdf.inputs['Base Color'])
+        m.node_tree.links.new(bsdf.outputs['BSDF'], out.inputs['Surface'])
+        print(f'material {m.name}: Principled, its palette {image.name}')
+
+
 def main():
     args = parse_args()
     bpy.ops.wm.open_mainfile(filepath=os.path.abspath(args.blend), load_ui=False, use_scripts=False)
+    principled()
     arm = next(o for o in bpy.data.objects if o.type == 'ARMATURE')
     if not arm.animation_data:
         arm.animation_data_create()

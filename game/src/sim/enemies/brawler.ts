@@ -3,7 +3,8 @@
 // sideways dash dodges); then strikes, landing only if you're still in reach, in front and not behind a wall (you're
 // shoved away and a little up). A hit flinches it (a light one doesn't stagger the Ninja), cancelling a wind-up. Its
 // attack needs its turn (tokens.ts: `armed`, given by the caller). Pure.
-// Update 0.3.10 — its melee blow can be parried (combat/meleeParry.ts).
+// Update 0.3.10 — its melee blow can be parried (combat/meleeParry.ts). Update 0.3.15 — a big one (floor 6's Mako,
+// Barbarossa) walks the big bodies' grid: on the small one it ran into gaps too narrow for it.
 import { Vector3 } from 'three';
 import { meleeHit } from '../combat/meleeParry';
 import type { PlayerState } from '../player/state';
@@ -55,14 +56,15 @@ export function brawl(e: Enemy, index: number, player: PlayerState, w: EnemyWorl
         w.events.push(b.windupEvent, index, e.pos.x, e.pos.y + s.height * 0.6, e.pos.z);
         break;
       }
-      const how = chaseDir(w.flow.small, w.nav.small, e.pos, player.pos.x, player.pos.z, way);
+      const size = s.size === 'large' ? 'large' : 'small';
+      const how = chaseDir(w.flow[size], w.nav[size], e.pos, player.pos.x, player.pos.z, way);
       if (how === 'none') {
         e.facing = turn(e.facing, toward, b.turn * dt);
         break;
       }
       const step = how === 'straight' ? Math.min(s.speed * dt, Math.max(0, dist - reach * 0.9)) : s.speed * dt;
       e.facing = turn(e.facing, how === 'straight' ? toward : Math.atan2(-way.x, -way.z), b.turn * dt);
-      walk(e, way.x, way.z, step, w.nav.small);
+      walk(e, way.x, way.z, step, w.nav[size]);
       break;
     }
     case 'windup':

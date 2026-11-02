@@ -7,6 +7,8 @@
 // look), never two within the spacing (attacks don't start together). Without one, a close fighter waits on a ring
 // round you, out of reach, circling; ranged ones and leapers keep their distance and hold their fire. Bosses need
 // none. Pure; dealt once a tick, before the enemies move (update.ts).
+import { FOES_COVE } from '../../tuning/foesCove';
+import { FOES_COVE_B } from '../../tuning/foesCoveB';
 import { CROWD } from '../../tuning/crowd';
 import { ENEMIES } from '../../tuning/enemies';
 import { FOES2 } from '../../tuning/foes2';
@@ -79,10 +81,23 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   mantaRay: 'heavy',
   shark: 'heavy',
   whale: null,
+  // Update 0.3.15 — floor 6's crew: the sword fighters take turns, the Bomber's throw as a spitter's shot, the
+  // mini bosses as heavies; the Shanty Man, the headless (it can't see whose turn it is), the fliers and the Tentacle go
+  // their own ways.
+  corsair: 'melee',
+  shanty: null,
+  bomber: 'ranged',
+  crewman: 'melee',
+  headless: null,
+  gull: null,
+  bat: null,
+  tentacle: null,
+  mako: 'heavy',
+  captain: 'heavy',
 };
 
 /** Kinds whose attack waits for its cooldown: they take a token only once it's ready (a token isn't held idle). */
-const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon', 'dragonling', 'skullWraith', 'glub', 'squidle', 'clownfish', 'tuna', 'angelfish', 'dolphin', 'mantaRay', 'shark']);
+const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon', 'dragonling', 'skullWraith', 'glub', 'squidle', 'clownfish', 'tuna', 'angelfish', 'dolphin', 'mantaRay', 'shark', 'bomber', 'captain']);
 
 /** How far a close fighter's attack reaches (m): waiting, it keeps out of it. */
 const REACH: Partial<Record<EnemyKind, () => number>> = {
@@ -100,10 +115,16 @@ const REACH: Partial<Record<EnemyKind, () => number>> = {
   spawnling: () => FOES5.v.spawnReach,
   deepOne: () => FOES5B.v.clawReach,
   bogBrute: () => 3.2,
+  // Update 0.3.15 — floor 6's.
+  corsair: () => FOES_COVE.v.corsairReach,
+  crewman: () => 2.2,
+  mako: () => FOES_COVE_B.v.makoReach,
+  captain: () => FOES_COVE_B.v.captainReach,
 };
 
-/** The phases an attack holds its token through: the run-in, the wind-up, a leap, a dive, a charge. */
-const KEEPS: ReadonlySet<EnemyPhase> = new Set<EnemyPhase>(['chase', 'windup', 'leap', 'dive', 'charge']);
+/** The phases an attack holds its token through: the run-in, the wind-up, a leap, a dive, a charge (Update 0.3.15 — and
+ *  Mako swimming under the sand to you). */
+const KEEPS: ReadonlySet<EnemyPhase> = new Set<EnemyPhase>(['chase', 'windup', 'leap', 'dive', 'charge', 'burrow']);
 /** Waiting, it turns to you this fast (rad/s). */
 const WAIT_TURN = 8;
 /** The waiting band: closer than its ring by this much it backs off; within the band it circles (m). */

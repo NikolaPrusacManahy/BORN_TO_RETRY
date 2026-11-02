@@ -61,12 +61,19 @@ interface Slot {
   phase: EnemyPhase | null;
   t: number;
   ring: THREE.Mesh;
-  /** Seconds it has stood still in its chase. */
+  /** Seconds it has stood still in its chase; (Update 0.3.15) its pace (m/s, smoothed) from where it was (`at`). */
   still: number;
+  pace: number;
+  at: THREE.Vector3;
 }
 
-/** Update 0.2.5 — standing still in its chase this long (s), one on its feet stands rather than runs on the spot. */
+/** Update 0.2.5 — standing still in its chase this long (s), one on its feet stands rather than runs on the spot.
+ *  Update 0.3.15 (the designer: enemies "run on the same spot") — slower than this share of its speed it stands too;
+ *  its run plays as fast as it goes (between the low and high shares). */
 const STILL = 0.12;
+const CREEP = 0.25;
+const PACE_LOW = 0.5;
+const PACE_HIGH = 1.4;
 
 /** Update 0.2.28 — how far a hit squashes a body (a share of its height); a dead one on the ground sinks into the
  *  floor over the last part of its time (its height, by then): not a boss's, a flier's or a fish's. */
@@ -100,7 +107,7 @@ export class EnemiesView {
       const ring = new THREE.Mesh(this.ringGeo, this.ringMat.clone());
       ring.visible = false;
       this.group.add(ring);
-      this.slots.push({ bodies: {}, kind: null, phase: null, t: 0, ring, still: 0 });
+      this.slots.push({ bodies: {}, kind: null, phase: null, t: 0, ring, still: 0, pace: 0, at: new THREE.Vector3() });
     }
     const loader = new GLTFLoader();
     this.loaded = loadModels
@@ -180,7 +187,8 @@ export class EnemiesView {
       if (!e.alive || !b || !look) continue;
       // A slime that burst is gone (one killed dies as the others do); so is the Bone King once its bones burst.
       // (Update 0.2.10 — and floor 5's under the water: drownedFx.ts shows their fins.)
-      const buried = ((e.kind === 'cactoro' || e.kind === 'cactoroBig') && e.pos.y < -1) || submerged(e);
+      // (Update 0.3.15 — Mako in the sand, a Tentacle sunk under the sea.)
+      const buried = ((e.kind === 'cactoro' || e.kind === 'cactoroBig' || e.kind === 'mako') && e.pos.y < -1) || (e.kind === 'tentacle' && e.pos.y < -5) || submerged(e);
       b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing' || e.kind === 'whale') && e.phase === 'dead' && e.struck) && !buried;
       if (!b.root.visible) continue;
       const windup = look.windup(e.move);
@@ -213,7 +221,11 @@ export class EnemiesView {
       // Update 0.2.5 (the designer: Tribals on a perch "just run on the spot"): one on its feet that hasn't moved a while stands.
       const moved = Math.hypot(e.pos.x - e.prev.x, e.pos.z - e.prev.z) > 1e-4;
       slot.still = moved || e.phase !== 'chase' ? 0 : slot.still + dt;
-      if (want === 'move' && slot.still > STILL && !flies(e.kind)) want = 'idle';
+      const step = Math.min(0.5, Math.hypot(e.pos.x - slot.at.x, e.pos.z - slot.at.z));
+      slot.at.copy(e.pos);
+      if (dt > 0) slot.pace += (step / dt - slot.pace) * Math.min(1, dt * 6);
+      const full = Math.max(0.1, ENEMY_STATS[e.kind]().speed);
+      if (want === 'move' && (slot.still > STILL || slot.pace < full * CREEP) && !flies(e.kind)) want = 'idle';
       // Update 0.2.8 — the Velociraptor runs its charges, its sprint to a wall and its blitz (quicker).
       // (Update 0.2.10 — and the Drowned King its surf.)
       const dash = ((e.kind === 'dino' || e.kind === 'drownedKing') && e.phase === 'charge') || (SWIMS.has(e.kind) && (e.phase === 'charge' || e.phase === 'dive' || e.phase === 'leap'));
@@ -221,7 +233,7 @@ export class EnemiesView {
       if (want !== b.role || (again && ONCE.includes(want))) this.play(b, want);
       attack.timeScale = look.lands / windup;
       b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? BONE_KING.v.kingRise : FOES3.v.skeletonRise);
-      b.actions.move.timeScale = e.phase === 'held' ? 3 : dash ? 2 : 1;
+      b.actions.move.timeScale = e.phase === 'held' ? 3 : dash ? 2 : flies(e.kind) ? 1 : Math.min(PACE_HIGH, Math.max(PACE_LOW, slot.pace / full));
       const ice = e.frozen > 0 ? 1 : 0;
       if (!ice && !b.root.userData.kept && !(e.pinned > 0 && e.t > PIN_POSE)) b.mixer.update(dt);
       // Update 0.1.1 — you could execute it: a crimson pulse.

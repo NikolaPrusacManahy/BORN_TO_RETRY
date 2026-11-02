@@ -23,12 +23,13 @@
 import type { Rng } from '../../core/rng';
 import { ENEMY_KINDS, EnemyKind, MINI_BOSSES } from '../enemies/kinds';
 import { ROOMS } from '../../tuning/rooms';
+import { FOES_COVE } from '../../tuning/foesCove';
 
-export const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3, demon: 99, slime: 1, frog: 2, snake: 1, wasp: 2, spider: 4, blueDemon: 4, dragon: 99, skeleton: 1, mushnub: 1, ninja: 4, boneKing: 99, tribal: 2, cactoro: 2, cactoroBig: 4, hywirl: 2, dino: 99, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 1, maskTribal: 2, skullOrc: 4, dragonling: 2, skullWraith: 3, rabbit: 1, bigMushnub: 4, snapper: 2, urchin: 2, jelly: 2, glub: 2, bigGlub: 3, squidle: 2, spawnling: 1, deepOne: 4, bogBrute: 4, drownedKing: 99, clownfish: 1, tuna: 2, angelfish: 2, dolphin: 2, drownedPrince: 3, mantaRay: 4, shark: 4, whale: 99 };
+export const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3, demon: 99, slime: 1, frog: 2, snake: 1, wasp: 2, spider: 4, blueDemon: 4, dragon: 99, skeleton: 1, mushnub: 1, ninja: 4, boneKing: 99, tribal: 2, cactoro: 2, cactoroBig: 4, hywirl: 2, dino: 99, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 1, maskTribal: 2, skullOrc: 4, dragonling: 2, skullWraith: 3, rabbit: 1, bigMushnub: 4, snapper: 2, urchin: 2, jelly: 2, glub: 2, bigGlub: 3, squidle: 2, spawnling: 1, deepOne: 4, bogBrute: 4, drownedKing: 99, clownfish: 1, tuna: 2, angelfish: 2, dolphin: 2, drownedPrince: 3, mantaRay: 4, shark: 4, whale: 99, corsair: 2, shanty: 2, bomber: 2, crewman: 2, headless: 2, gull: 1, bat: 1, tentacle: 3, mako: 4, captain: 4 };
 /** How often each kind is picked, and the first room (on floor 1) it comes in. **(placeholders)** The Demon is never
  *  bought: it's the boss room's. */
-const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1, demon: 0, slime: 2, frog: 1.5, snake: 2, wasp: 1.5, spider: 0.6, blueDemon: 0.6, dragon: 0, skeleton: 3, mushnub: 3, ninja: 0.6, boneKing: 0, tribal: 2.5, cactoro: 2.5, cactoroBig: 0.6, hywirl: 1.8, dino: 0, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 0, maskTribal: 1.2, skullOrc: 0.6, dragonling: 2, skullWraith: 1, rabbit: 2, bigMushnub: 0.6, snapper: 2.5, urchin: 2, jelly: 1.5, glub: 2, bigGlub: 0.8, squidle: 1.8, spawnling: 3, deepOne: 0.6, bogBrute: 0.6, drownedKing: 0, clownfish: 3, tuna: 2, angelfish: 2, dolphin: 1.8, drownedPrince: 0.8, mantaRay: 0.6, shark: 0.6, whale: 0 };
-const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3, demon: Infinity, slime: 1, frog: 1, snake: 1, wasp: 1, spider: 1, blueDemon: 1, dragon: Infinity, skeleton: 1, mushnub: 1, ninja: 1, boneKing: Infinity, tribal: 1, cactoro: 1, cactoroBig: 1, hywirl: 1, dino: Infinity, dinoBlob: 1, lizard: 1, greenBlob: 1, blobling: Infinity, maskTribal: 1, skullOrc: 1, dragonling: 1, skullWraith: 1, rabbit: 1, bigMushnub: 1, snapper: 1, urchin: 1, jelly: 1, glub: 1, bigGlub: 1, squidle: 1, spawnling: 1, deepOne: 1, bogBrute: 1, drownedKing: Infinity, clownfish: 1, tuna: 1, angelfish: 1, dolphin: 1, drownedPrince: 1, mantaRay: 1, shark: 1, whale: Infinity };
+const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1, demon: 0, slime: 2, frog: 1.5, snake: 2, wasp: 1.5, spider: 0.6, blueDemon: 0.6, dragon: 0, skeleton: 3, mushnub: 3, ninja: 0.6, boneKing: 0, tribal: 2.5, cactoro: 2.5, cactoroBig: 0.6, hywirl: 1.8, dino: 0, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 0, maskTribal: 1.2, skullOrc: 0.6, dragonling: 2, skullWraith: 1, rabbit: 2, bigMushnub: 0.6, snapper: 2.5, urchin: 2, jelly: 1.5, glub: 2, bigGlub: 0.8, squidle: 1.8, spawnling: 3, deepOne: 0.6, bogBrute: 0.6, drownedKing: 0, clownfish: 3, tuna: 2, angelfish: 2, dolphin: 1.8, drownedPrince: 0.8, mantaRay: 0.6, shark: 0.6, whale: 0, corsair: 2.5, shanty: 1, bomber: 1.8, crewman: 2.5, headless: 0, gull: 0.9, bat: 0.5, tentacle: 0.9, mako: 0.6, captain: 0.6 };
+const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3, demon: Infinity, slime: 1, frog: 1, snake: 1, wasp: 1, spider: 1, blueDemon: 1, dragon: Infinity, skeleton: 1, mushnub: 1, ninja: 1, boneKing: Infinity, tribal: 1, cactoro: 1, cactoroBig: 1, hywirl: 1, dino: Infinity, dinoBlob: 1, lizard: 1, greenBlob: 1, blobling: Infinity, maskTribal: 1, skullOrc: 1, dragonling: 1, skullWraith: 1, rabbit: 1, bigMushnub: 1, snapper: 1, urchin: 1, jelly: 1, glub: 1, bigGlub: 1, squidle: 1, spawnling: 1, deepOne: 1, bogBrute: 1, drownedKing: Infinity, clownfish: 1, tuna: 1, angelfish: 1, dolphin: 1, drownedPrince: 1, mantaRay: 1, shark: 1, whale: Infinity, corsair: 1, shanty: 1, bomber: 1, crewman: 1, headless: Infinity, gull: 1, bat: 1, tentacle: 1, mako: 1, captain: 1 };
 /** Each floor's enemies (index: the floor; past the last, the last's). */
 const ROSTER: readonly (readonly EnemyKind[])[] = [
   [],
@@ -43,9 +44,10 @@ const ROSTER: readonly (readonly EnemyKind[])[] = [
   // Update 0.2.10 — floor 5, the Drowned Temple (Claude's proposal as accepted): none of the floors before it.
   ['snapper', 'urchin', 'jelly', 'glub', 'bigGlub', 'squidle', 'spawnling', 'deepOne', 'bogBrute'],
   // Update 0.2.11 — floor 6, the Sunken Grove (the designer's fish; "no porting floor 5 monster", but a smaller Drowned
-  // King, the percher). Update 0.3.14 — floor 6 reworked, Skull Cove (dry, a pirate floor): its fish retired; **stand-ins**
-  // (floor 7's) till its pirate crew is made (MD/FLOOR6_PIRATE_PLAN.md).
-  ['skeleton', 'rabbit', 'leaper', 'tribal', 'dinoBlob', 'skullWraith', 'dragonling', 'brute', 'ninja'],
+  // King, the percher). Update 0.3.14 — floor 6 reworked, Skull Cove (dry, a pirate floor): its fish retired. Update
+  // 0.3.15 — its pirate crew (MD/FLOOR6_PIRATE_PLAN.md): none of the floors before it (the Headless Crewman isn't
+  // bought: a Cursed Crewman's body becomes one); its fliers come in flocks and its Tentacles only by the sea (crewWaves).
+  ['corsair', 'shanty', 'bomber', 'crewman', 'gull', 'bat', 'tentacle', 'mako', 'captain'],
   // Update 0.3.11 — floor 7, Frozen Depths: **stand-ins** from the dry floors till its own are designed (the plan for
   // floors 7–10: its level first, then its enemies): the humanoid runners (pinned, finished), a flier or two, the Yeti
   // and the Ninja for its mini bosses.
@@ -125,8 +127,9 @@ function addMinis(plan: EnemyKind[][], floor: number, rng: Rng) {
 /** Update 0.2.4 — who stands on a floor's perches and throws from above. Update 0.2.7 — floor 3's Spitters went: the
  *  Dragonling has their place (a flier: it comes in their stead in a perch room's waves, from its spawns, not a perch). */
 // Update 0.2.10 — floor 5's Big Glubs (fliers hanging over the perches). Update 0.2.11 — floor 6's Drowned Princes.
-// (Update 0.3.14 — floor 6 a stand-in's, as floor 7's.)
-export const percherOf = (floor: number): EnemyKind => (floor >= 6 ? 'tribal' : floor === 5 ? 'bigGlub' : floor === 4 ? 'tribal' : floor === 3 ? 'dragonling' : 'spitter');
+// (Update 0.3.14 — floor 6 a stand-in's, as floor 7's. Update 0.3.15 — Skull Cove's rooms have no perches; were there
+// one, its Bomber.)
+export const percherOf = (floor: number): EnemyKind => (floor >= 7 ? 'tribal' : floor === 6 ? 'bomber' : floor === 5 ? 'bigGlub' : floor === 4 ? 'tribal' : floor === 3 ? 'dragonling' : 'spitter');
 
 /** Update 0.0.21 — spitters to stand on a room's perches, in every wave of a room with them. **(placeholder)** */
 export const PERCHED = 2;
@@ -147,6 +150,48 @@ export function perchWaves(waves: EnemyKind[][], perches: number, kind: EnemyKin
     w.sort((a, b) => COST[b] - COST[a]);
   }
   return waves;
+}
+
+/** The most Shanty Men a room sends (the designer: "There can only be a maximum amount of 3 Shanty man, not more"). */
+export const SHANTY_MAX = 3;
+
+/** Update 0.3.15 — Skull Cove's waves as its crew comes: Thieving Gulls in pairs, Cave Bats in a swarm (Bat swarm),
+ *  each made up in place of the wave's cheapest; a Kraken Tentacle only in a room with sea (`sea`; else a Cursed
+ *  Crewman); no more than SHANTY_MAX Shanty Men in a room (the rest Corsairs). Other floors' waves are as they were. */
+export function crewWaves(waves: EnemyKind[][], sea: boolean): EnemyKind[][] {
+  let shanties = 0;
+  for (const w of waves) {
+    for (let i = 0; i < w.length; i++) {
+      if (!sea && w[i] === 'tentacle') w[i] = 'crewman';
+      if (w[i] === 'shanty' && ++shanties > SHANTY_MAX) w[i] = 'corsair';
+    }
+    flock(w, 'gull', 2);
+    flock(w, 'bat', Math.round(FOES_COVE.v.batSwarm));
+    w.sort((a, b) => COST[b] - COST[a]);
+  }
+  return waves;
+}
+
+const FLOCKS: readonly EnemyKind[] = ['gull', 'bat', 'tentacle'];
+
+/** A wave's `kind` made up to whole flocks of `size`, the cheapest others giving way; too few others, the odd ones
+ *  become Cursed Crewmen. */
+function flock(w: EnemyKind[], kind: EnemyKind, size: number) {
+  const n = w.filter((k) => k === kind).length;
+  if (n === 0) return;
+  const free = w.filter((k) => !FLOCKS.includes(k) && !isBig(k)).length;
+  const up = Math.ceil(n / size) * size;
+  const keep = up - n <= free ? up : Math.floor(n / size) * size;
+  for (let i = w.length - 1, need = keep - n; i >= 0 && need > 0; i--) {
+    if (FLOCKS.includes(w[i]) || isBig(w[i])) continue;
+    w[i] = kind;
+    need--;
+  }
+  for (let i = w.length - 1, extra = n - keep; i >= 0 && extra > 0; i--) {
+    if (w[i] !== kind) continue;
+    w[i] = 'crewman';
+    extra--;
+  }
 }
 
 /** A mini boss (a big one: the Yeti, the Spider, the Blue Demon) comes in these waves. */

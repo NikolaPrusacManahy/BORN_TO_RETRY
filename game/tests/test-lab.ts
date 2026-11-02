@@ -183,8 +183,9 @@ section('Lab panel — a column a floor, the items by kind');
   check('floor 7 is in the panel, to play (its stand-in boss under floor 4)', LAB_FLOORS.some((f) => f.floor === 7 && f.boss === null) && LAB_FLOORS.filter((f) => f.boss === 'dino').length === 1);
   // (Update 0.3.13 — and floor 8: the floors with nothing of their own yet share New floors.)
   // (The designer: "always put a new floor there", "put page 1 & 2 instead of stacking them together".)
-  // (Update 0.3.14 — and floor 6, reworked: its stand-ins and its boss's are other floors'.)
-  check('floors 6, 7 and 8 only to play (new floors); the rest a column each, three to a page', LAB_NEW.join() === '6,7,8' && LAB_COLUMNS.length === 5 && LAB_PAGES.map((pg) => pg.map((f) => f.floor).join('')).join(' ') === '123 45');
+  // (Update 0.3.14 — and floor 6, reworked: its stand-ins and its boss's are other floors'. Update 0.3.15 — its crew
+  // made: its column back.)
+  check('floors 7 and 8 only to play (new floors); the rest a column each, three to a page (floor 6 its crew)', LAB_NEW.join() === '7,8' && LAB_COLUMNS.length === 6 && LAB_PAGES.map((pg) => pg.map((f) => f.floor).join('')).join(' ') === '123 456');
   check('a floor’s column fits (9 enemies at most)', LAB_FLOORS.every((f) => f.enemies.length <= 9), LAB_FLOORS.map((f) => f.enemies.length).join(' '));
   const items = LAB_ITEMS.flatMap(([, picks]) => picks.map(([, cmd]) => cmd));
   const drops = items.flatMap((c) => (c.kind === 'item' ? [c.item] : []));

@@ -6,6 +6,8 @@
 // Update 0.2.4 — the Lizard's poison glob (`look` 'poison'): it splashes into a puddle (puddles.ts), no blast.
 // Update 0.2.10 — the Drowned King's geysers (`look` 'geyser'): nothing falls, the floor rings where it'll burst up
 // ('geyserBurst'), throwing you high.
+// Update 0.3.15 — floor 6's Bomber's powder bombs (`look` 'powder'): landed, it sits burning its `fuse`, then blows
+// ('powderBlast': enemies and powder kegs in it too, dungeon/powder.ts, where a punch bats one back).
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { damagePlayer } from '../player/health';
@@ -29,7 +31,9 @@ export interface Bomb {
   by: Cause | null;
   /** Update 0.2.3 — a fireball, or a skeleton (the Bone King's). */
   /** (Update 0.2.10 — 'bubble': floor 5's Big Glub's; it pops, 'bubblePop'. 'geyser': the Drowned King's.) */
-  look: 'fire' | 'bones' | 'poison' | 'bubble' | 'geyser';
+  look: 'fire' | 'bones' | 'poison' | 'bubble' | 'geyser' | 'powder';
+  /** Update 0.3.15 — landed, it burns this long before it goes (s). */
+  fuse: number;
 }
 
 export const BOMB_POOL = 12;
@@ -40,11 +44,11 @@ const GEYSER_UP = 11;
 const BLAST_UP = 6;
 
 export function createBombs(): Bomb[] {
-  return Array.from({ length: BOMB_POOL }, () => ({ alive: false, from: new Vector3(), to: new Vector3(), pos: new Vector3(), t: 0, fall: 1, radius: 1, damage: 0, shove: 0, by: null, look: 'fire' as Bomb['look'] }));
+  return Array.from({ length: BOMB_POOL }, () => ({ alive: false, from: new Vector3(), to: new Vector3(), pos: new Vector3(), t: 0, fall: 1, radius: 1, damage: 0, shove: 0, by: null, look: 'fire' as Bomb['look'], fuse: 0 }));
 }
 
 /** Throws one from `from` to land at `to` (on the floor). False if every slot is in use. */
-export function dropBomb(bombs: Bomb[], from: Vector3, to: Vector3, fall: number, radius: number, damage: number, shove: number, by: Cause | null = null, look: Bomb['look'] = 'fire'): boolean {
+export function dropBomb(bombs: Bomb[], from: Vector3, to: Vector3, fall: number, radius: number, damage: number, shove: number, by: Cause | null = null, look: Bomb['look'] = 'fire', fuse = 0): boolean {
   const b = bombs.find((x) => !x.alive);
   if (!b) return false;
   b.alive = true;
@@ -58,6 +62,7 @@ export function dropBomb(bombs: Bomb[], from: Vector3, to: Vector3, fall: number
   b.shove = shove;
   b.by = by;
   b.look = look;
+  b.fuse = fuse;
   return true;
 }
 
@@ -73,13 +78,13 @@ export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQue
     const k = Math.min(1, b.t / b.fall);
     b.pos.lerpVectors(b.from, b.to, k);
     b.pos.y += Math.sin(Math.PI * k) * ARC;
-    if (k < 1) continue;
+    if (k < 1 || b.t < b.fall + b.fuse) continue;
     b.alive = false;
     if (b.look === 'poison') {
       addPuddle(puddles, b.to.x, b.to.y, b.to.z, events);
       continue;
     }
-    events.push(b.look === 'bones' ? 'boneCrash' : b.look === 'bubble' ? 'bubblePop' : b.look === 'geyser' ? 'geyserBurst' : 'bombBlast', b.radius, b.to.x, b.to.y, b.to.z);
+    events.push(b.look === 'bones' ? 'boneCrash' : b.look === 'bubble' ? 'bubblePop' : b.look === 'geyser' ? 'geyserBurst' : b.look === 'powder' ? 'powderBlast' : 'bombBlast', b.radius, b.to.x, b.to.y, b.to.z);
     const dx = player.pos.x - b.to.x;
     const dz = player.pos.z - b.to.z;
     const d = Math.hypot(dx, dz);

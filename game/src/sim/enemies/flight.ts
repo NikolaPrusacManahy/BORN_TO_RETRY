@@ -7,7 +7,8 @@
 // Update 0.3.8 (the designer: "enemies being pinned to a wall when they die, they are thrown and they flicker for like 3
 // sec and die … only the running type of enemy that have an humanoid looks, like grunts, skeleton, rabbit, Leaper") — a
 // body of those thrown into a wall is pinned there: lifted off the floor, facing out, for Pinned time (it flickers: the
-// view); then it drops (tick.ts). Meanwhile it can be executed for free (combat/execPin.ts). Pure.
+// view); then it drops (tick.ts). Meanwhile it can be executed for free (combat/execPin.ts). Update 0.3.15 — and
+// Skull Cove's pirates. Pure.
 import { pushOutOfWalls, type NavGrid } from '../../world/navGrid';
 import { EXECUTION } from '../../tuning/execution';
 import { LAUNCH } from '../../tuning/launch';
@@ -21,7 +22,7 @@ const AIR = 0.05;
 
 /** The humanoid runners, pinned to the wall they're thrown into dead; how far up the wall a pinned body hangs (its feet,
  *  m: at least, at most). */
-export const PINNABLE: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['grunt', 'skeleton', 'rabbit', 'leaper']);
+export const PINNABLE: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['grunt', 'skeleton', 'rabbit', 'leaper', 'corsair', 'shanty', 'bomber', 'crewman', 'headless']);
 const PIN_LOW = 0.2;
 const PIN_HIGH = 0.9;
 

@@ -61,6 +61,17 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   crusher: 'A press',
   vent: 'A fire vent',
   sea: 'The sea',
+  // Update 0.3.15 — floor 6's crew.
+  corsair: 'Corsair',
+  shanty: 'Shanty Man',
+  bomber: 'Bomber',
+  crewman: 'Cursed Crewman',
+  headless: 'Headless Crewman',
+  gull: 'Thieving Gull',
+  bat: 'Cave Bat',
+  tentacle: 'Kraken Tentacle',
+  mako: 'Mako',
+  captain: 'Captain Barbarossa',
   keg: 'A powder keg',
 };
 

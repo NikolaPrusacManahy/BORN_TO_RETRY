@@ -36,6 +36,11 @@ const OF: Partial<Record<EnemyKind, BloodLook>> = {
   bigGlub: ICHOR,
   spawnling: ICHOR,
   skeleton: BONE,
+  // (Update 0.3.15 — floor 6's Cursed Crewman, headless or not, the designer: "The skeletons are bleeding???"; the
+  // Kraken's Tentacle, ink.)
+  crewman: BONE,
+  headless: BONE,
+  tentacle: INK,
   boneKing: BONE,
   skullWraith: BONE,
   mushnub: SPORE,

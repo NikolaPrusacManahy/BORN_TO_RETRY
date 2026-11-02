@@ -128,6 +128,14 @@ EXEC_LOOKS.blobling = EXEC_LOOKS.slime;
 EXEC_LOOKS.maskTribal = EXEC_LOOKS.wraith;
 // Update 0.2.10 — floor 5's, as their moves (execMoves.ts).
 for (const [kind, like] of ALIKE) EXEC_LOOKS[kind] = EXEC_LOOKS[like];
+// Update 0.3.15 — the Cursed Crewman bursts into its bones as the Skeleton does, cut where its own bones divide (the
+// Pirate Kit's skeleton: its torso, its head, each limb in two).
+EXEC_LOOKS.crewman = EXEC_LOOKS.headless = {
+  ...EXEC_LOOKS.skeleton,
+  pieces: [['Torso'], ['Head'], ['UpperLegL'], ['LowerLegL'], ['UpperLegR'], ['LowerLegR'], ['UpperArmL'], ['LowerArmL'], ['UpperArmR'], ['LowerArmR']],
+};
+/** The kinds that burst into their bones (the wall finisher too: pinLook.ts). */
+export const BONY: readonly EnemyKind[] = ['skeleton', 'crewman', 'headless'];
 
 /** The blue demon's barrage, for its jolts: each punch's time. */
 export const BARRAGE_TIMES = Array.from({ length: BARRAGE }, (_, i) => 0.25 + i * BARRAGE_GAP);

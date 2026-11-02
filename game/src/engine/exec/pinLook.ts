@@ -8,7 +8,7 @@
 // back and shaking, then a heavy punch into its chest that carries on out after it as it goes through the pillar.
 import type { Execution } from '../../sim/combat/execution';
 import { G, HandAt, HandKey, HAND_MOVES, palms, slam } from './handMoves';
-import { EXEC_LOOKS, ExecLook, HUMANOID } from './looks';
+import { BONY, EXEC_LOOKS, ExecLook, HUMANOID } from './looks';
 
 /** Held by its head, its body hanging to its hips, its front to you. */
 export const PIN_GRIP = { at: 'Head', to: 'Hips', face: [0, 0, 1] as const };
@@ -59,7 +59,7 @@ export function lookFor(ex: Execution): ExecLook | undefined {
   if (!ex.pinned) return EXEC_LOOKS[ex.kind];
   let look = looks.get(ex.kind);
   if (!look) {
-    look = { grip: PIN_GRIP, pieces: ex.kind === 'skeleton' ? EXEC_LOOKS.skeleton?.pieces : HUMANOID, burst: true };
+    look = { grip: PIN_GRIP, pieces: BONY.includes(ex.kind) ? EXEC_LOOKS[ex.kind]?.pieces : HUMANOID, burst: true };
     looks.set(ex.kind, look);
   }
   return look;

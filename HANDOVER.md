@@ -2,7 +2,28 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-02, Update 0.3.14: floor 6 reworked — Skull Cove, its level)
+## Next up (2026-11-02, Update 0.3.15: Skull Cove's crew — floor 6's enemies and mini bosses)
+- **The plan's update 2** (spec `MD_UPDATES/U0315_COVE_CREW.md`): the Corsair (her hook drags you in), the Shanty Man
+  (his song quickens the crew), the Bomber (powder bombs you can punch back), the Cursed Crewman (goes on headless,
+  hunting by ear), the Thieving Gull (snatches coins), the Cave Bats (a swarm), the Kraken Tentacle (by the sea);
+  Mako and Captain Barbarossa the mini bosses. Floor 6 sends them now; its boss still stands in. Floor 6 has its Lab
+  column again. Every rule tested; **unseen in the game** (their size, the hook's rope, the red line, the shadow, the
+  fin, the bombs, the sounds).
+- Changed from the plan: the Corsair's front parry was floor 4's Skull Orc's block, so she has the hook instead.
+- **After the designer played it:** the Tentacle sinks only once (half health) and stands out in the water; the
+  Cursed Crewman sheds bone chips and has the Skeleton's execution; no blood splats on the sea. Then: the Tentacle
+  redone to the designer's design (lurks, grabs you by surprise, click free like the Bone King's grab, put down on the
+  shore never the sea; the sea's edge had been pushing it out of the water); at most 3 Shanty Men a room; enemies
+  "running on the spot": every enemy's run now plays at its real pace, and the Shanty Man, Bomber, Barbarossa, the
+  Headless and the big ones path round walls and the sea. A crowd simulation in every Skull Cove room found walkers no
+  more stuck there than on floor 1 (it didn't show the designer's case itself: worth a look in play). Then "after
+  breaking free from Kraken, it just dissapears and dies": its half-health sink came as it let you go; it no longer
+  sinks, and your clicks can't finish it. Then "do not make enemies tankier NEVER": the crew's health brought down to
+  the floors before's (they were about double; a test holds it), and the Bomber leads his throws.
+- **Next: the Big Shark** (the plan's update 3): the boss room flooded, the fight under water, kraken tentacles near
+  its end.
+
+## Before (2026-11-02, Update 0.3.14: floor 6 reworked — Skull Cove, its level)
 - **The designer: "time to rework floor 6 entirely"** (`ASSETS/QUATERNIUS/FLOOR-6`, the Pirate Kit): a pirate floor, the
   boss the Big Shark fought under water, new enemies. The plan: `MD/FLOOR6_PIRATE_PLAN.md` ("Go with it"): 1. the level
   (this), 2. the enemies (Corsair, Shanty Man, Bomber, Cursed Crewman, Thieving Gull, Cave Bats, Kraken Tentacle; Mako
@@ -13,7 +34,6 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   on fast gameplay"). The Pirate Kit's pieces keep
   their palette (the kit's first texture: the export makes it one image; Node tests parse the kit untextured). The
   Sunken Grove, its fish and the Old Whale are out (code kept). Stand-in enemies and boss. **Unseen in the game.**
-- **Next: floor 6's enemies** (the plan's update 2).
 
 ## Before (2026-11-02, Update 0.3.13: floor 8, The Forge — its level)
 - **The designer: "I want all designs to be done first"**: every floor's level (8, 9, 10's echo rooms) before any

@@ -5,13 +5,17 @@
 // Made in code: small wet boxes for the drops, a splat drawn on a canvas. The Options' Blood setting: on, less, off.
 // Update 0.3.2 (the designer: executions "brutal") — an execution's blows spray half again as much, and a thrown body
 // bursts where it lands, with pools. Update 0.3.7 — a body thrown into a wall bursts there too, with a pool (its blood
-// on the wall: wallSplatFx.ts).
-// Which enemy a hit landed on: the one whose body the hit's point is on (the events carry only the point).
+// on the wall: wallSplatFx.ts). Update 0.3.15 — none on the sea (the designer: "Blood is also on the water surface,
+// looks bad"), or over any pit: a drop falling there is gone.
+// Which enemy a hit landed on, and how much it bleeds: bloodHits.ts.
 import * as THREE from 'three';
-import type { CombatEvent, CombatState } from '../sim/combat/state';
-import { Enemy, radiusOf } from '../sim/enemies/enemy';
+import type { CombatState } from '../sim/combat/state';
+import { radiusOf } from '../sim/enemies/enemy';
+import { over } from '../sim/dungeon/ground';
+import type { ArenaBox } from '../world/arena';
 import type { BloodLevel } from '../state/settings';
-import { BloodAmount, BloodLook, BloodMode, bloodAmount, bloodOf } from './bloodLooks';
+import { BloodLook, BloodMode, bloodAmount, bloodOf } from './bloodLooks';
+import { bloodDrops, enemyAt } from './bloodHits';
 
 const DROPS = 900;
 const SPLATS = 260;
@@ -24,8 +28,6 @@ const MIST_LIFE = 1.1;
 const POOL = 2.6;
 const SPREAD = 0.7;
 const SPLAT_Y = 0.014;
-/** How far a hit's point may be off an enemy's body and still be on it (m). */
-const ON_BODY = 1;
 
 let level: BloodLevel = 'on';
 /** The Options' Blood setting (App.tsx sets it). */
@@ -96,6 +98,8 @@ export class BloodFx {
   private readonly splatGeo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
   private readonly splatTex = splatTexture();
   private readonly splatMat = new THREE.MeshStandardMaterial({ map: this.splatTex, transparent: true, depthWrite: false, roughness: 0.25, polygonOffset: true, polygonOffsetFactor: -2 });
+  /** The pits (the sea) where the fight is: no splats over them. */
+  private pits: readonly ArenaBox[] = [];
   private readonly splats: Splat[] = Array.from({ length: SPLATS }, () => ({ x: 0, y: 0, z: 0, rot: 0, size: 0, t: 0, life: 0 }));
   private readonly splatMesh = new THREE.InstancedMesh(this.splatGeo, this.splatMat, SPLATS);
   private nextDrop = 0;
@@ -122,10 +126,11 @@ export class BloodFx {
   apply(state: CombatState, eye: THREE.Vector3) {
     const amount = bloodAmount(level);
     if (!amount) return;
+    this.pits = state.ground.pits;
     const ev = state.events;
     for (let i = 0; i < ev.length; i++) {
       const e = ev.at(i);
-      const n = drops(e.kind, e.value, amount);
+      const n = bloodDrops(e.kind, e.value, amount);
       if (n === 0) continue;
       const foe = e.kind === 'execBurst' || e.kind === 'execLand' ? state.enemies[e.value] : enemyAt(state, e.x, e.z);
       if (!foe) continue;
@@ -167,6 +172,7 @@ export class BloodFx {
 
   /** A splat (`pool`: it spreads from nothing over SPREAD s). */
   private splat(x: number, y: number, z: number, size: number, life: number, hex: number, pool = false) {
+    if (over(this.pits, x, z)) return;
     const i = this.nextSplat;
     this.nextSplat = (this.nextSplat + 1) % SPLATS;
     const s = this.splats[i];
@@ -244,51 +250,4 @@ export class BloodFx {
     this.splatMat.dispose();
     this.splatTex.dispose();
   }
-}
-
-/** How many drops event `kind` (with `value`) sprays (0: none of blood's). */
-function drops(kind: CombatEvent, value: number, a: BloodAmount): number {
-  switch (kind) {
-    case 'hitJab':
-    case 'hitFinisher':
-    case 'hitSlash':
-    case 'hitPierce':
-    case 'hitThrown':
-    case 'hitKnife':
-    case 'hitShot':
-    case 'hitSlam':
-      return a.hit(value > 1 ? value : 15);
-    case 'hitHeavy':
-      return a.hit(20 + 30 * Math.min(1, value));
-    case 'cardDot':
-      return value === 0 ? Math.max(1, Math.round(a.hit(0) / 3)) : 0;
-    case 'cardBlastHit':
-    case 'cardZap':
-      return Math.round(a.hit(10) / 2);
-    case 'kill':
-    case 'wallSplat':
-      return a.kill;
-    case 'execBlow':
-      return Math.round(a.exec / 2);
-    case 'execBurst':
-    case 'execLand':
-      return a.exec;
-    default:
-      return 0;
-  }
-}
-
-/** The live enemy whose body (x, z) is on, if any. */
-function enemyAt(state: CombatState, x: number, z: number): Enemy | null {
-  let best: Enemy | null = null;
-  let near = ON_BODY;
-  for (const e of state.enemies) {
-    if (!e.alive) continue;
-    const d = Math.hypot(e.pos.x - x, e.pos.z - z) - radiusOf(e);
-    if (d < near) {
-      near = d;
-      best = e;
-    }
-  }
-  return best;
 }

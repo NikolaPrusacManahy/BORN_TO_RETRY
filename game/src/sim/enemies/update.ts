@@ -68,6 +68,16 @@ import { updateManta } from './manta';
 import { updateShark } from './shark';
 import { updateWhale } from './whale';
 import { floatUp } from './fishSwim';
+import { updateCorsair } from './corsair';
+import { updateShanty } from './shanty';
+import { updateBomber } from './bomber';
+import { updateCrewman, updateHeadless } from './crewman';
+import { gullDrops, updateGull } from './gull';
+import { updateBat } from './bat';
+import { tentacleSinks, updateTentacle } from './tentacle';
+import { updateMako } from './mako';
+import { updateCaptain } from './captain';
+import { FOES_COVE } from '../../tuning/foesCove';
 
 export type Update = (e: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number, world: CollisionWorld) => void;
 
@@ -125,10 +135,21 @@ const UPDATE: Record<EnemyKind, Update> = {
   mantaRay: updateManta,
   shark: updateShark,
   whale: updateWhale,
+  // Update 0.3.15 — floor 6's crew, Skull Cove.
+  corsair: updateCorsair,
+  shanty: updateShanty,
+  bomber: updateBomber,
+  crewman: updateCrewman,
+  headless: updateHeadless,
+  gull: updateGull,
+  bat: updateBat,
+  tentacle: updateTentacle,
+  mako: updateMako,
+  captain: updateCaptain,
 };
 /** A dead boss's show, each tick until its slot frees. Update 0.2.4 — and a Green Blob splitting as it dies.
- *  Update 0.2.11 — and a dead fish floating up. */
-const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld, dt: number) => void>> = { demon: doomDemon, dragon: doomDemon, boneKing: doomKing, dino: doomDemon, drownedKing: doomDemon, greenBlob: splitBlob, bigMushnub: splitMushnub, clownfish: floatUp, tuna: floatUp, angelfish: floatUp, dolphin: floatUp, mantaRay: floatUp, shark: floatUp, whale: doomDemon };
+ *  Update 0.2.11 — and a dead fish floating up. Update 0.3.15 — a Gull dropping your coins, a Tentacle sinking. */
+const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld, dt: number) => void>> = { demon: doomDemon, dragon: doomDemon, boneKing: doomKing, dino: doomDemon, drownedKing: doomDemon, greenBlob: splitBlob, bigMushnub: splitMushnub, clownfish: floatUp, tuna: floatUp, angelfish: floatUp, dolphin: floatUp, mantaRay: floatUp, shark: floatUp, whale: doomDemon, gull: gullDrops, tentacle: tentacleSinks };
 
 export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWorld, world: CollisionWorld, dt: number) {
   let any = false;
@@ -149,12 +170,15 @@ export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWor
   for (let i = 0; i < enemies.length; i++) {
     const e = enemies[i];
     // (Update 0.1.1 — one held in an execution is placed by it.)
-    // (Update 0.3.11 — on floor 7's ice a knocked body slides far.)
-    if (beginTick(e, w.nav[ENEMY_STATS[e.kind]().size], dt, onIce(e.pos.x, e.pos.y, e.pos.z, w.ice)) && e.phase !== 'held') {
-      if (waits(e, player)) wait(e, player, w, dt);
-      else UPDATE[e.kind](e, i, player, w, dt, world);
-      fanOut(e, player, w, dt);
-    }    else if (e.alive && e.phase === 'dead') DOOM[e.kind]?.(e, i, w, dt);
+    // (Update 0.3.11 — on floor 7's ice a knocked body slides far. Update 0.3.15 — quickened by floor 6's Shanty Man's
+    // song, its time runs faster: shanty.ts.)
+    const edt = e.hype > 0 ? dt * FOES_COVE.v.shantyHype : dt;
+    e.hype = Math.max(0, e.hype - dt);
+    if (beginTick(e, w.nav[ENEMY_STATS[e.kind]().size], edt, onIce(e.pos.x, e.pos.y, e.pos.z, w.ground?.ice ?? [])) && e.phase !== 'held') {
+      if (waits(e, player)) wait(e, player, w, edt);
+      else UPDATE[e.kind](e, i, player, w, edt, world);
+      fanOut(e, player, w, edt);
+    } else if (e.alive && e.phase === 'dead') DOOM[e.kind]?.(e, i, w, dt);
   }
   separateEnemies(enemies, w.nav);
 }

@@ -1,0 +1,57 @@
+// Update 0.3.15 — floor 6's crew, Skull Cove (the plan, MD/FLOOR6_PIRATE_PLAN.md; the designer: "make enemies new and
+// challenging, nothing duplicated from other floors"): the Corsair (her boarding hook drags you to her axe), the Shanty
+// Man (his song quickens the crew round him), the Bomber (lit bombs you can punch back), the Cursed Crewman (headless,
+// it hunts by sound), the Thieving Gull (it snatches your coins) and the Cave Bats (a swarm diving one at a time).
+// Times in seconds, distances in metres, speeds in m/s. **(placeholders)**
+import { group, knob } from './schema';
+
+// (Update 0.3.15 — health as the floors before's: the designer, "do not make enemies tankier NEVER"; they'd come in
+// at about twice that.)
+export const FOES_COVE = group('foesCove', 'Floor 6 crew', {
+  corsairHp: knob(45, 5, 400, 5, 'Corsair health', 'Damage to kill her.'),
+  corsairSpeed: knob(5.4, 1, 12, 0.1, 'Corsair speed', 'How fast she runs.'),
+  corsairReach: knob(2.3, 1, 5, 0.1, 'Corsair reach', 'Her axe reaches this far.'),
+  corsairWindup: knob(0.55, 0.1, 2, 0.05, 'Corsair wind-up', 'Her axe goes up this long before it falls.'),
+  corsairDamage: knob(18, 1, 100, 1, 'Corsair axe', 'To you, per blow.'),
+  hookTwirl: knob(0.8, 0.2, 2, 0.05, 'Hook twirl', 'She whirls her hook overhead this long before she throws it: your warning.'),
+  hookSpeed: knob(24, 8, 60, 1, 'Hook speed', 'How fast the hook flies.'),
+  hookRange: knob(15, 5, 30, 0.5, 'Hook range', 'How far it flies at most (she throws it from 5 m out to this).'),
+  hookPull: knob(16, 4, 40, 0.5, 'Hook pull', 'How fast it drags you to her.'),
+  hookEvery: knob(5, 1, 15, 0.5, 'Hook every', 'Seconds before she throws it again.'),
+  hookStrike: knob(0.3, 0.1, 1, 0.05, 'Hook strike', 'Dragged in, her axe falls this soon (parry it).'),
+  shantyHp: knob(35, 5, 400, 5, 'Shanty Man health', 'Damage to kill him.'),
+  shantySpeed: knob(4.6, 1, 12, 0.1, 'Shanty Man speed', 'How fast he backs off.'),
+  shantyAway: knob(9, 3, 20, 0.5, 'Shanty Man keeps off', 'He backs away from you while you’re nearer than this.'),
+  shantyReach: knob(12, 4, 30, 0.5, 'Shanty song reach', 'His song reaches the crew this far round him.'),
+  shantyHype: knob(1.35, 1, 2.5, 0.05, 'Shanty quickening', 'The crew in his song move and strike this many times as fast.'),
+  shantyBeat: knob(1.2, 0.3, 4, 0.1, 'Shanty beat', 'A note every this long; each keeps them quick for twice it.'),
+  shantyDamage: knob(10, 1, 100, 1, 'Shanty lute', 'Cornered, his lute to you.'),
+  bomberHp: knob(40, 5, 400, 5, 'Bomber health', 'Damage to kill him.'),
+  bomberSpeed: knob(4.4, 1, 12, 0.1, 'Bomber speed', 'How fast he moves.'),
+  bomberWindup: knob(0.8, 0.2, 2, 0.05, 'Bomber wind-up', 'He winds up his throw this long.'),
+  bomberFlight: knob(0.95, 0.3, 3, 0.05, 'Bomb flight', 'Seconds a bomb flies to where you stood.'),
+  bomberFuse: knob(1.4, 0.3, 4, 0.05, 'Bomb fuse', 'Landed, a bomb burns this long before it blows (punch it back meanwhile).'),
+  bombReach: knob(2.8, 1, 6, 0.1, 'Bomb blast', 'How far a bomb’s blast reaches.'),
+  bombDamage: knob(22, 1, 100, 1, 'Bomb damage', 'To you, in its blast.'),
+  bombFoes: knob(90, 0, 400, 5, 'Bomb on enemies', 'To an enemy in its blast.'),
+  bomberEvery: knob(3.2, 0.5, 10, 0.1, 'Bomber every', 'Seconds between his throws.'),
+  bomberDamage: knob(16, 1, 100, 1, 'Bomber cleaver', 'Up close, his cleaver to you.'),
+  crewmanHp: knob(35, 5, 400, 5, 'Crewman health', 'Damage to bring it down (then it goes on headless).'),
+  crewmanSpeed: knob(5, 1, 12, 0.1, 'Crewman speed', 'How fast it runs.'),
+  crewmanDamage: knob(15, 1, 100, 1, 'Crewman cutlass', 'To you, per blow.'),
+  headlessHp: knob(25, 5, 400, 5, 'Headless health', 'Damage to finish it.'),
+  headlessSpeed: knob(6.4, 1, 14, 0.1, 'Headless speed', 'How fast it charges where it heard you.'),
+  headlessDamage: knob(18, 1, 100, 1, 'Headless axe', 'To you, per wild swing.'),
+  headlessEars: knob(2.5, 0.5, 8, 0.1, 'Headless forgets', 'Heard nothing this long, it wanders.'),
+  gullHp: knob(25, 5, 200, 5, 'Gull health', 'Damage to kill one.'),
+  gullSpeed: knob(9, 2, 20, 0.5, 'Gull speed', 'How fast it flies.'),
+  gullDive: knob(15, 4, 35, 0.5, 'Gull dive', 'How fast it swoops at you.'),
+  gullSteal: knob(15, 1, 200, 1, 'Gull steals', 'Coins it snatches (with none to take, it pecks).'),
+  gullDamage: knob(8, 1, 100, 1, 'Gull peck', 'To you, with nothing to steal.'),
+  gullEscape: knob(5, 1, 15, 0.5, 'Gull escape', 'Seconds it flies off with your coins before it’s gone.'),
+  batHp: knob(12, 1, 200, 1, 'Bat health', 'Damage to kill one.'),
+  batSpeed: knob(10, 2, 25, 0.5, 'Bat speed', 'How fast it flies round you.'),
+  batDamage: knob(6, 1, 100, 1, 'Bat bite', 'To you, per bite.'),
+  batGap: knob(2.2, 0.3, 8, 0.1, 'Bat rest', 'Seconds before a bat dives again.'),
+  batSwarm: knob(4, 2, 8, 1, 'Bat swarm', 'How many come together.'),
+});

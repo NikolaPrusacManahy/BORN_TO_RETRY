@@ -66,6 +66,18 @@ section('Blood — sprays, splats and pools');
   check('under water it bleeds a cloud', fx.counts().clouds === fx.counts().drops && fx.counts().drops > 0);
   c.tide = 0;
   for (let i = 0; i < 120; i++) fx.update(1 / 60);
+  // Update 0.3.15 — over the sea (any pit): no splats.
+  c.ground.pits = [{ x: 0, y: -2, z: 0, w: 30, h: 1, d: 30, kind: 'lava' }];
+  c.enemies.forEach((e) => (e.alive = false));
+  spawnEnemy(c.enemies, 'grunt', new THREE.Vector3(0, 0, 0), 0);
+  for (let i = 0; i < 120; i++) fx.update(1 / 60);
+  const dry = fx.counts().splats;
+  c.events.push('kill', 0, 0, 1, 0);
+  fx.apply(c, eye);
+  c.events.clear();
+  for (let i = 0; i < 120; i++) fx.update(1 / 60);
+  check('over the sea it bleeds, but nothing lies on the water (the designer: “looks bad”)', fx.counts().splats === dry);
+  c.ground.pits = [];
   // Less and Off.
   setBloodLevel('off');
   c.events.push('hitJab', 12, 0, 1.2, 0);
