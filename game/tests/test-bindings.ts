@@ -9,19 +9,26 @@ import { isMouseSpike } from '../src/input/mouseSpike';
 
 section('Bindings');
 {
-  check('no default uses Ctrl (Ctrl+W closes the tab)', Object.values(DEFAULT_BINDINGS).every((c) => !c.startsWith('Control')));
+  // (Update 0.3.20 — the designer: "Ground pound is now Control key by default".)
+  check('only the ground pound uses Ctrl by default', DEFAULT_BINDINGS.slam === 'ControlLeft' && Object.entries(DEFAULT_BINDINGS).every(([a, c]) => a === 'slam' || !c.startsWith('Control')));
   check('every action has a default', ACTIONS.every((a) => typeof DEFAULT_BINDINGS[a.id] === 'string'));
   check('defaults are all different keys', new Set(Object.values(DEFAULT_BINDINGS)).size === ACTIONS.length);
   check('Esc, and the dev keys while the dev tools are on, are not bindable', !isBindable('Escape') && !isBindable('F1') && !isBindable('Backquote'));
-  const swapped = rebind(DEFAULT_BINDINGS, 'jump', 'KeyC');
-  check('rebinding to a used key swaps the two', swapped.jump === 'KeyC' && swapped.slide === 'Space');
+  const swapped = rebind(DEFAULT_BINDINGS, 'jump', 'ControlLeft');
+  check('rebinding to a used key swaps the two', swapped.jump === 'ControlLeft' && swapped.slam === 'Space');
   check('a broken save falls back to defaults', JSON.stringify(hydrateBindings('junk')) === JSON.stringify(DEFAULT_BINDINGS));
   check('a duplicated save falls back to defaults', JSON.stringify(hydrateBindings({ ...DEFAULT_BINDINGS, jump: 'KeyW' })) === JSON.stringify(DEFAULT_BINDINGS));
-  // Update 0.0.10 — the quick punch is gone (the designer). Update 0.0.12 — F is the ground slam.
-  check('F slams by default', DEFAULT_BINDINGS.slam === 'KeyF');
-  const { slam: _new, ...before } = DEFAULT_BINDINGS;
-  const old = hydrateBindings({ ...before, punch: 'KeyF' });
-  check("an old save's quick punch is dropped, and F goes to the slam", !('punch' in old) && old.slam === 'KeyF' && JSON.stringify(old) === JSON.stringify(DEFAULT_BINDINGS));
+  // Update 0.0.10 — the quick punch is gone (the designer). Update 0.0.12 — F is the ground slam (Update 0.3.20: Ctrl).
+  const old = hydrateBindings({ ...DEFAULT_BINDINGS, punch: 'KeyQ', throw: 'KeyG' });
+  check("an old save's quick punch is dropped", !('punch' in old) && old.throw === 'KeyG');
+  // Update 0.3.20 — the slide gone, the slam on Ctrl.
+  const pre = { ...DEFAULT_BINDINGS, slide: 'KeyC', slam: 'KeyF' };
+  const moved = hydrateBindings(pre);
+  check('a save from before: the slide dropped, its slam moved from F to Ctrl', !('slide' in moved) && moved.slam === 'ControlLeft' && JSON.stringify(moved) === JSON.stringify(DEFAULT_BINDINGS));
+  const mine = hydrateBindings({ ...pre, slam: 'KeyG' });
+  const taken = hydrateBindings({ ...pre, dash: 'ControlLeft' });
+  check('a slam the player moved stays; and F stays if Ctrl is already theirs for something else', mine.slam === 'KeyG' && taken.slam === 'KeyF' && taken.dash === 'ControlLeft');
+  check('a save from now keeps the slam where it is (F too)', hydrateBindings({ ...DEFAULT_BINDINGS, slam: 'KeyF' }).slam === 'KeyF');
 }
 
 section('Bindings — anything the player wants');

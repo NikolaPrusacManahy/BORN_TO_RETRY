@@ -1,0 +1,147 @@
+/* theme-43 — Update 0.3.20: the controls, bottom right (HudControls.tsx): the jab, the parry, the ground pound, each a
+   round badge in the look's steel frame with its key on a cap under it; the weapon slots a row above them. The parry
+   drained of colour while it waits, its icon and its ring filling back round like a clock (--ctl: 0..1, eased between
+   the HUD's steps), a flash once it's ready, dimmed with a weapon in hand. The ground pound lit while you could pound. */
+@property --ctl {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+
+.rb-ctls {
+  position: absolute;
+  right: 44px;
+  bottom: 26px;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.rb-ctl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+}
+
+.rb-ctl > .rb-cap {
+  font-size: 14px;
+}
+
+.rb-ctl-badge {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 38%, #2a2426, #0e0c0d 72%);
+  border: 3px solid var(--rb-steel);
+  box-shadow:
+    0 0 0 2px var(--rb-ink),
+    inset 0 0 12px rgba(0, 0, 0, 0.85);
+}
+
+.rb-ctl-badge > svg {
+  width: 36px;
+  height: 36px;
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.5));
+}
+
+/* The jab: always at hand. */
+.rb-ctl.is-jab .rb-ctl-badge {
+  border-color: var(--rb-brass);
+}
+
+/* The parry: its two icons stacked, the lit one shown round like a clock as its wait runs. */
+.rb-ctl.is-parry {
+  transition: --ctl 0.1s linear;
+}
+
+.rb-ctl.is-parry .rb-ctl-icon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -18px 0 0 -18px;
+}
+
+.rb-ctl-icon.is-dim {
+  filter: grayscale(1) brightness(0.55);
+}
+
+.rb-ctl-icon.is-lit {
+  -webkit-mask: conic-gradient(#000 calc(var(--ctl) * 1turn), transparent 0);
+  mask: conic-gradient(#000 calc(var(--ctl) * 1turn), transparent 0);
+}
+
+/* Its ring, filling the same way round. */
+.rb-ctl.is-parry .rb-ctl-badge::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: conic-gradient(var(--rb-brass-hi) calc(var(--ctl) * 1turn), transparent 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+}
+
+.rb-ctl.is-parry.is-ready .rb-ctl-badge {
+  border-color: var(--rb-brass);
+}
+
+.rb-ctl.is-parry.is-ready .rb-ctl-badge::before {
+  display: none;
+}
+
+.rb-ctl.is-parry.is-wait > .rb-cap,
+.rb-ctl.is-off > .rb-cap {
+  opacity: 0.6;
+}
+
+.rb-ctl.is-off .rb-ctl-badge {
+  opacity: 0.45;
+}
+
+.rb-ctl.is-off .rb-ctl-badge::before {
+  display: none;
+}
+
+/* Ready again: a ring of light opening out once. */
+.rb-ctl-flash {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 3px solid var(--rb-brass-hi);
+  opacity: 0;
+  animation: rb-ctl-flash 0.45s ease-out;
+}
+
+@keyframes rb-ctl-flash {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
+/* The ground pound: dim on the ground, lit while you're high enough to pound. */
+.rb-ctl.is-pound .rb-ctl-badge > svg {
+  filter: grayscale(1) brightness(0.7) drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.5));
+  transition: filter 0.1s ease;
+}
+
+.rb-ctl.is-pound.is-ready .rb-ctl-badge {
+  border-color: var(--rb-brass);
+  box-shadow:
+    0 0 0 2px var(--rb-ink),
+    0 0 14px rgba(240, 213, 140, 0.55),
+    inset 0 0 12px rgba(0, 0, 0, 0.85);
+}
+
+.rb-ctl.is-pound.is-ready .rb-ctl-badge > svg {
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.5));
+}

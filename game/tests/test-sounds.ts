@@ -156,8 +156,8 @@ section('Sounds — the landing (the designer’s recording) and the moves');
   m.play('land', 30);
   check('a step down makes no landing; a harder landing is louder', asked.length === 2 && asked[0].sound === 'land' && asked[1].scale > asked[0].scale);
   asked.length = 0;
-  for (const k of ['jump', 'slideJump', 'dashJump', 'wallJump', 'wallRunJump', 'dash', 'hurt', 'death'] as const) m.play(k, 0);
-  check('the moves ask for their clips (the jumps share one, as do the wall jumps)', asked.map((x) => x.sound).join() === 'jump,jump,jump,wallJump,wallJump,dash,hurt,death', asked.map((x) => x.sound).join());
+  for (const k of ['jump', 'dashJump', 'wallJump', 'wallRunJump', 'dash', 'hurt', 'death'] as const) m.play(k, 0);
+  check('the moves ask for their clips (the jumps share one, as do the wall jumps)', asked.map((x) => x.sound).join() === 'jump,jump,wallJump,wallJump,dash,hurt,death', asked.map((x) => x.sound).join());
 }
 
 section('Music (the designer’s own, ASSETS/BGM)');

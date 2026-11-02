@@ -2,7 +2,19 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-02, Update 0.3.19: the floors' fight music)
+## Next up (2026-11-02, Update 0.3.20: the controls on the HUD; no slide)
+- **The designer's UI change** (spec `MD_UPDATES/U0320_HUD_CONTROLS.md`): bottom right, the controls "like in the game
+  Blood rush": the jab, the parry (its icon and ring filling back round like a clock as its wait runs) and the ground
+  pound (lit when you could pound), their keys on caps; the weapon slots a row above, the bullets above those.
+- **The slide is gone** ("remove the sliding mechanics and all the Sliding fate or anything related to it"): its key
+  (C), move, camera and arm drop, scrape, and its cards (Slingshot, Bowling; the Traitor Card Runaway, whose price was
+  the slide). Under water the ground pound's key dives instead. The Feel Lab's low tunnel stays (nobody gets through).
+- **The ground pound is Ctrl** by default ("Ground pound is now Control key by default"); a save from before moves it
+  off F. Ctrl+W in a browser: the run's leave guard asks first; fullscreen's keyboard lock hands it to the game.
+- Checked by tests; **unseen in the game** (the badges' size and look, the fill, Ctrl in play).
+- **Next:** 0.3.21, floor 8's boss: the Frog, Fox and Flamingo mechs together.
+
+## Before (2026-11-02, Update 0.3.19: the floors' fight music)
 - **The designer's Combat OST** (spec `MD_UPDATES/U0319_COMBAT_MUSIC.md`; "Combat ost start when you enter the first
   room of a floor and is played and looped until you finish the Boss of the floor"; decided "Random each floor"): three
   tracks, encoded to Ogg (`tools/blender/encode_music.py`: Blender's encoder, no ffmpeg here). Then the designer: "only
@@ -11,8 +23,8 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   where the track left off; off when dead; each floor a new pick, never the floor before's. The lobby's credits wall
   has a MUSIC board (Polarnyne, Intersonic Sound).
 - Checked by tests; **unheard in the game** (the loudness: gains about 0.3, a placeholder; the loops' seams).
-- **Next:** 0.3.20, floor 8's boss: the Frog, Fox and Flamingo mechs together (models exported: `mech_frog`,
-  `mech_fox`, `mech_flamingo`).
+- **Next:** floor 8's boss: the Frog, Fox and Flamingo mechs together (models exported: `mech_frog`, `mech_fox`,
+  `mech_flamingo`); 0.3.20 went to the HUD's controls.
 
 ## Before (2026-11-02, Update 0.3.18: the Moon's crew)
 - **The plan's update 2** (spec `MD_UPDATES/U0318_MOON_CREW.md`; the designer's new roster: "the boss is 3 guys, Frog

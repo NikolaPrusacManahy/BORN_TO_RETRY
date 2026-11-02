@@ -15,7 +15,6 @@ import { setPhase, spawnEnemy } from '../src/sim/enemies/enemy';
 import { bonusLength, takeBonus } from '../src/sim/items/bonuses';
 import { takeItem } from '../src/sim/items/items';
 import { emptyIntent } from '../src/sim/player/intent';
-import { tryGroundJump } from '../src/sim/player/jump';
 import { createPlayer, PlayerState } from '../src/sim/player/state';
 import { tryStartWallRun } from '../src/sim/player/wallRun';
 import { bumpEnemies } from '../src/sim/cards/cardMoves';
@@ -26,7 +25,7 @@ import { holding, throwWeapon } from '../src/sim/weapons/weapons';
 import { BONUS } from '../src/tuning/bonus';
 import { FISTS } from '../src/tuning/combat';
 import { EXECUTION } from '../src/tuning/execution';
-import { DASH, SLAM, SLIDE } from '../src/tuning/movement';
+import { DASH, SLAM } from '../src/tuning/movement';
 import { CARDS } from '../src/tuning/cards';
 
 const kinds = (c: CombatState) => {
@@ -35,9 +34,9 @@ const kinds = (c: CombatState) => {
   return out;
 };
 
-section('Fate Cards — Shoulder Charge and Bowling');
+section('Fate Cards — Shoulder Charge');
 {
-  const bump = (card: CardKind | null, how: 'dash' | 'slide', kind: 'grunt' | 'brute' | 'demon' = 'grunt') => {
+  const bump = (card: CardKind | null, kind: 'grunt' | 'brute' | 'demon' = 'grunt') => {
     const c = createCombat(OPEN_ARENA);
     if (card) c.items.cards.add(card);
     const p = createPlayer(0, 0, 0, 0);
@@ -45,31 +44,25 @@ section('Fate Cards — Shoulder Charge and Bowling');
     const s = spawnEnemy(c.enemies, kind, new Vector3(0, 0, kind === 'grunt' ? -1 : -1.6), 0);
     const e = c.enemies[s];
     const hp = e.hp;
-    if (how === 'dash') {
-      p.dashTime = 0.1;
-      p.dashDir.set(0, 0, -1);
-    } else {
-      p.sliding = true;
-      p.slideDir.set(0, 0, -1);
-    }
+    p.dashTime = 0.1;
+    p.dashDir.set(0, 0, -1);
     bumpEnemies(c, p);
     const first = kinds(c).filter((k) => k === 'cardBump').length;
     bumpEnemies(c, p);
     const again = kinds(c).filter((k) => k === 'cardBump').length;
     return { flinch: e.phase === 'flinch', thrown: -e.vel.z, hurt: hp - e.hp, first, again };
   };
-  const charge = bump('shoulderCharge', 'dash');
+  const charge = bump('shoulderCharge');
   check('Shoulder Charge: dashing into an enemy throws it back and staggers it, no damage', charge.flinch && charge.thrown > 5 && charge.hurt === 0 && charge.first === 1, `thrown ${charge.thrown.toFixed(1)} m/s`);
   check('once a dash', charge.again === 1);
-  const plain = bump(null, 'dash');
+  const plain = bump(null);
   check('without it, a dash does nothing to it', !plain.flinch && plain.thrown === 0 && plain.first === 0);
-  check('Bowling: a slide into it does the same', bump('bowling', 'slide').flinch && !bump('shoulderCharge', 'slide').flinch && !bump('bowling', 'dash').flinch);
-  const mini = bump('shoulderCharge', 'dash', 'brute');
-  const boss = bump('shoulderCharge', 'dash', 'demon');
+  const mini = bump('shoulderCharge', 'brute');
+  const boss = bump('shoulderCharge', 'demon');
   check('a mini boss or a boss is shoved but not staggered', !mini.flinch && mini.first === 1 && !boss.flinch);
 }
 
-section('Fate Cards — Second Wind and Slingshot');
+section('Fate Cards — Second Wind');
 {
   const run = (card: boolean) => {
     const world = new FlatWorld();
@@ -85,18 +78,6 @@ section('Fate Cards — Second Wind and Slingshot');
   const full = createPlayer(0.1, 2, 0, 0);
   full.dashCharges = DASH.v.charges;
   check('never more than your charges', Math.min(DASH.v.charges, full.dashCharges + 1) === DASH.v.charges);
-  const jump = (card: boolean) => {
-    const p = createPlayer(0, 0, 0, 0);
-    p.grounded = true;
-    p.sliding = true;
-    p.slideCur = 12;
-    p.slideDir.set(0, 0, -1);
-    p.jumpBuffer = 0.1;
-    if (card) p.cards.add('slingshot');
-    tryGroundJump(p);
-    return -p.vel.z;
-  };
-  check(`Slingshot: a jump out of a slide carries ${CARDS.v.slingshot}× the speed`, near(jump(true), 12 * SLIDE.v.jumpKeep * CARDS.v.slingshot, 1e-9) && near(jump(false), 12 * SLIDE.v.jumpKeep, 1e-9), `${jump(true).toFixed(1)} vs ${jump(false).toFixed(1)} m/s`);
 }
 
 section('Fate Cards — Crater and Pogo');

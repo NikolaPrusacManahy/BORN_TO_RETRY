@@ -32,7 +32,7 @@ function alongWall(vel: Vector3, normal: Vector3, dir: Vector3): number {
 
 /** `wish`: the way you're heading (length 1). */
 export function tryStartWallRun(p: PlayerState, intent: PlayerIntent, wish: Vector3, world: CollisionWorld): boolean {
-  if (p.grounded || p.wallRunning || p.sliding || p.slamming || p.dashTime > 0 || p.wallRunCooldown > 0 || intent.moveZ <= 0) return false;
+  if (p.grounded || p.wallRunning || p.slamming || p.dashTime > 0 || p.wallRunCooldown > 0 || intent.moveZ <= 0) return false;
   // Update 0.0.3 — flying up past a wall (a pad launch, the start of a jump) never grabs it.
   if (p.vel.y > WALLRUN.v.maxRise) return false;
   if (!world.probeWall(p.pos, WALL.v.reach, n)) return false;

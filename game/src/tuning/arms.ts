@@ -30,7 +30,6 @@ export const ARMS = group('arms', 'Arms', {
   bobRate: knob(0.32, 0.05, 1.5, 0.01, 'Bob rate', 'Bobs per metre run (0.32 ≈ 4 a second at run speed).'),
   landDip: knob(0.004, 0, 0.02, 0.0005, 'Landing dip', 'Extra arm drop per m/s of landing.'),
   dashPull: knob(0.05, 0, 0.2, 0.005, 'Dash pull', 'Arms pulled back during a dash.'),
-  slideDrop: knob(0.05, 0, 0.2, 0.005, 'Slide drop', 'Arms lowered while sliding.'),
   // M2 — the sword arm (the left arm drops out of view while a weapon is held). The grip goes through the curled
   // fingers; the poses are in viewmodel/swordPoses.ts.
   weaponScale: knob(0.75, 0.3, 1.5, 0.01, 'Weapon size (held)', 'The held weapon\'s size in view (1 = its true size).'),

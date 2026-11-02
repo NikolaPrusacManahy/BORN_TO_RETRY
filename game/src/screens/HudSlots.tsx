@@ -2,10 +2,11 @@
 // something in: your fists in slot 1, then each weapon with its uses (red once it's broken), the one in your hand raised
 // and lit, its number on it. Bottom left above your coins, each bonus that's on with its time draining away.
 // Update 0.3.16 — the look: each slot's key (as bound) on a cap above it, lit for the one in hand.
+// Update 0.3.20 — a row above the controls (HudControls.tsx), which show the icon of what's in hand (SlotIcon).
 import type { CSSProperties } from 'react';
 import type { HudSlot } from '../engine/hudStore';
 
-function FistIcon() {
+export function FistIcon() {
   return (
     <svg viewBox="0 0 32 32" className="rb-slot-icon">
       <path d="M8 13h16a3 3 0 0 1 3 3v5a6 6 0 0 1-6 6h-8a6 6 0 0 1-6-6v-7a1 1 0 0 1 1-1z" fill="#d9c2a2" stroke="#2a2018" strokeWidth="1.5" />
@@ -76,6 +77,16 @@ function PistolIcon() {
   );
 }
 
+/** Update 0.3.20 — a weapon's icon. */
+export function SlotIcon({ kind }: { kind: HudSlot['kind'] }) {
+  if (kind === 'pistol') return <PistolIcon />;
+  if (kind === 'grimoire') return <BookIcon />;
+  if (kind === 'goldAxe') return <AxeIcon />;
+  if (kind === 'hammer' || kind === 'goldHammer') return <HammerIcon gold={kind === 'goldHammer'} />;
+  if (kind === 'daggers' || kind === 'goldDaggers') return <DaggersIcon gold={kind === 'goldDaggers'} />;
+  return <SwordIcon gold={kind === 'goldSword'} />;
+}
+
 /** `keys`: each slot's key, as bound ('|' between them). */
 export function WeaponSlots({ slots, slot, keys }: { slots: (HudSlot | null)[]; slot: number; keys: string }) {
   const key = keys.split('|');
@@ -90,7 +101,7 @@ export function WeaponSlots({ slots, slot, keys }: { slots: (HudSlot | null)[]; 
         s ? (
           <span key={i} className={`rb-slot${slot === i + 1 ? ' is-on' : ''}${s.uses <= 0 ? ' is-broken' : ''}`}>
             {cap(i + 1)}
-            {s.kind === 'pistol' ? <PistolIcon /> : s.kind === 'grimoire' ? <BookIcon /> : s.kind === 'goldAxe' ? <AxeIcon /> : s.kind === 'hammer' || s.kind === 'goldHammer' ? <HammerIcon gold={s.kind === 'goldHammer'} /> : s.kind === 'daggers' || s.kind === 'goldDaggers' ? <DaggersIcon gold={s.kind === 'goldDaggers'} /> : <SwordIcon gold={s.kind === 'goldSword'} />}
+            <SlotIcon kind={s.kind} />
             <b className="rb-slot-uses">{s.uses}</b>
           </span>
         ) : null,

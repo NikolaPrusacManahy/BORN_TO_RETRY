@@ -1,6 +1,6 @@
 // Update 0.2.11 — swimming (floor 6, the Sunken Grove; spec MD_UPDATES/U0211_SUNKEN_GROVE.md): slower than running,
 // forward where you look, rising and diving, gliding to a stop and sinking, pushing off the floor, the kick (slower to
-// come back), never out of the water, no wall runs, wall jumps or slides.
+// come back), never out of the water, no wall runs or wall jumps. (Update 0.3.20 — the slam key dives: the slide's gone.)
 import { check, near, section } from './harness';
 import { FlatWorld, run, ticks } from './fakes/flatWorld';
 import { createPlayer } from '../src/sim/player/state';
@@ -48,8 +48,8 @@ section('Swimming — where you look');
   run(rise, world, ticks(0.5), () => ({ jumpHeld: true }));
   check('jump held: you rise', rise.vel.y > v.speed * 0.9 && rise.pos.y > 2);
   const dive = swimmer(4);
-  run(dive, world, ticks(0.5), (i) => ({ slideHeld: true, slidePressed: i === 0 }));
-  check('the slide key held: you dive, no slide', dive.vel.y < -v.speed * 0.5 && !dive.sliding);
+  run(dive, world, ticks(0.5), () => ({ slamHeld: true }));
+  check('the slam key (Ctrl) held: you dive', dive.vel.y < -v.speed * 0.5);
 }
 
 section('Swimming — gliding, sinking, pushing off');
@@ -96,6 +96,6 @@ section('Swimming — never out of the water, no tricks');
   w.walls.push({ x: 1, normalX: -1 });
   const r = swimmer(2);
   r.pos.x = 0.55;
-  const seen = run(r, w, ticks(1), () => ({ moveZ: 1, moveX: 1, jumpPressed: true, slidePressed: true, slideHeld: true }));
-  check('no wall runs, wall jumps or slides', !r.wallRunning && !r.sliding && !seen.includes('wallJump') && !seen.includes('wallRunStart') && !seen.includes('slideStart'));
+  const seen = run(r, w, ticks(1), () => ({ moveZ: 1, moveX: 1, jumpPressed: true }));
+  check('no wall runs or wall jumps', !r.wallRunning && !seen.includes('wallJump') && !seen.includes('wallRunStart'));
 }

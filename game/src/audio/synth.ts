@@ -57,7 +57,7 @@ export function noise(a: AudioEngine, n: Noise) {
   src.stop(now + n.dur + 0.02);
 }
 
-/** A looping filtered-noise bed whose loudness follows `setLevel` (the slide's scrape). */
+/** A looping filtered-noise bed whose loudness follows `setLevel` (the wall run's scrape). */
 export class NoiseLoop {
   private gain: GainNode | null = null;
 

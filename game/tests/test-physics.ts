@@ -1,4 +1,5 @@
-// M1 — the real Rapier world on the Feel Lab: landing, walls, ramps, steps, the slide tunnel, wall probes.
+// M1 — the real Rapier world on the Feel Lab: landing, walls, ramps, steps, the low tunnel, wall probes. (Update 0.3.20 —
+// no slide: nobody gets through the tunnel now.)
 // Runs headless, so collision is checked without a browser.
 import { check, near, section } from './harness';
 import { run, ticks } from './fakes/flatWorld';
@@ -42,7 +43,7 @@ section('Physics — Rapier on the Feel Lab');
   check('the wall probe finds nothing in the open', !world.probeWall(new Vector3(0, 0, 0), 0.35, n));
 }
 {
-  check('no room to stand inside the slide tunnel', !world.canStand(new Vector3(20, 0, 5)));
+  check('no room to stand inside the low tunnel', !world.canStand(new Vector3(20, 0, 5)));
   check('room to stand in the open', world.canStand(new Vector3(0, 0, 20)));
 }
 {
@@ -87,11 +88,6 @@ section('Physics — Rapier on the Feel Lab');
   run(standing, world, ticks(0.2), () => ({}), pads);
   run(standing, world, ticks(1), () => ({ moveZ: 1 }), pads);
   check('standing, you cannot get into the tunnel', standing.pos.z > 8, `z ${standing.pos.z.toFixed(2)}`);
-  const sliding = createPlayer(20, 0, 11, 0);
-  run(sliding, world, ticks(0.2), () => ({}), pads);
-  run(sliding, world, ticks(0.15), () => ({ moveZ: 1 }), pads);
-  run(sliding, world, ticks(1), () => ({ moveZ: 1, slidePressed: true, slideHeld: true }), pads);
-  check('sliding, you get through the tunnel', sliding.pos.z < 2, `z ${sliding.pos.z.toFixed(2)}`);
 }
 {
   const p = createPlayer(12, 0, 10.5, 0);

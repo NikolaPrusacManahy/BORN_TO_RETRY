@@ -1,11 +1,12 @@
 /* Update 0.0.17 — the weapon slots, bottom right (the designer: fists in slot 1, weapons in 2, 3, 4…; the number keys
    swap), and the kill bonuses that are on, bottom left above your coins, each with its time draining.
    Update 0.3.16 — the look: each slot a dark streaked tile in a steel frame (brass for the one in hand), its key on a cap
-   above it; the ones not in hand drained of colour. */
+   above it; the ones not in hand drained of colour.
+   Update 0.3.20 — a row up: the controls under them (theme-43-hud-controls.css). */
 .rb-slots {
   position: absolute;
   right: 44px;
-  bottom: 34px;
+  bottom: 140px;
   display: flex;
   align-items: flex-end;
   gap: 14px;

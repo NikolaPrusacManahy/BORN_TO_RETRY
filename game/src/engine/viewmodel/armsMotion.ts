@@ -1,6 +1,6 @@
 // M1 step 6 — the arms' motion over their pose: they trail the mouse a little (sway), bob while running, dip on a
-// landing (a spring), pull back in a dash and drop in a slide. (Moved out of viewmodel.ts in Update 0.1.9, which had
-// grown past its size; no change in behaviour.)
+// landing (a spring), pull back in a dash (they dropped in a slide till Update 0.3.20 took it out). (Moved out of
+// viewmodel.ts in Update 0.1.9, which had grown past its size; no change in behaviour.)
 import type * as THREE from 'three';
 import { stepSpring } from '../../core/spring';
 import type { PlayerState } from '../../sim/player/state';
@@ -20,7 +20,6 @@ export class ArmsMotion {
   /** The landing dip (Update 0.2.14 — a spring stepped in slices: core/spring.ts). */
   private readonly dip = { x: 0, v: 0 };
   private pullZ = 0;
-  private dropY = 0;
 
   /** A landing at `speed` m/s dips the arms. */
   land(speed: number) {
@@ -37,20 +36,19 @@ export class ArmsMotion {
     this.swayY = Math.max(-MAX_SWAY, Math.min(MAX_SWAY, (this.swayY + mouseDy * v.sway) * (1 - ease(v.swayReturn, realDt))));
     // Bob while running on the ground.
     const speed = flatSpeed(p);
-    const running = p.grounded && !p.sliding && p.dashTime <= 0 && speed > 1;
+    const running = p.grounded && p.dashTime <= 0 && speed > 1;
     this.bobAmount += ((running ? Math.min(1, speed / 12) : 0) - this.bobAmount) * ease(8, gameDt);
     this.bobPhase += speed * gameDt * v.bobRate * Math.PI;
-    // Landing dip spring, dash pull and slide drop.
+    // Landing dip spring and dash pull.
     stepSpring(this.dip, 140, 16, gameDt);
     this.pullZ += ((p.dashTime > 0 ? v.dashPull : 0) - this.pullZ) * ease(14, gameDt);
-    this.dropY += ((p.sliding ? v.slideDrop : 0) - this.dropY) * ease(10, gameDt);
 
     pivot.rotation.set(PREVIEW_PITCH + this.swayY, this.swayX, 0);
     const bob = Math.sin(this.bobPhase) * v.bob * this.bobAmount;
-    holder.position.set(v.viewX + bob * 0.5, v.viewY - Math.abs(bob) + this.dip.x - this.dropY, v.viewZ + this.pullZ);
+    holder.position.set(v.viewX + bob * 0.5, v.viewY - Math.abs(bob) + this.dip.x, v.viewZ + this.pullZ);
   }
 
   reset() {
-    this.swayX = this.swayY = this.dip.x = this.dip.v = this.pullZ = this.dropY = 0;
+    this.swayX = this.swayY = this.dip.x = this.dip.v = this.pullZ = 0;
   }
 }

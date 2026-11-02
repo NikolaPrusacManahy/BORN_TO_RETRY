@@ -55,6 +55,7 @@ import { keyLabel, slotKeysOf } from '../input/keyLabel';
 import { applyMoveEvents } from './moveFeedback';
 import { fillDebug } from './overlayFeed';
 import { RunBase } from './runBase';
+import { canSlam } from '../sim/player/slam';
 import { endsRun } from './runLinks';
 import { skullOf } from '../sim/combat/grab';
 import { jawsOf } from '../sim/combat/pin';
@@ -193,7 +194,6 @@ export class Run extends RunBase {
       this.death.start();
       this.cb.onDeath();
     }
-    this.sounds.setSliding(!this.paused && p.sliding && p.grounded);
     this.sounds.setWallRunning(!this.paused && p.wallRunning);
     this.rig.update(real * scale, this.clock.alpha, this.prev, p, this.look, settings.fov, aspect);
     // The boss room's show may take the view.
@@ -242,6 +242,9 @@ export class Run extends RunBase {
     this.hudFeed.dashKey = keyLabel(input.bindings.dash);
     [this.hudFeed.leftKey, this.hudFeed.rightKey] = [keyLabel(input.bindings.left), keyLabel(input.bindings.right)];
     this.hudFeed.slotKeys = slotKeysOf(input.bindings);
+    // (Update 0.3.20 — the controls bottom right: the parry's and the ground pound's keys, a ground pound ready.)
+    [this.hudFeed.heavyKey, this.hudFeed.slamKey] = [keyLabel(input.bindings.heavy), keyLabel(input.bindings.slam)];
+    this.hudFeed.slamReady = !p.dead && canSlam(p, this.level.physics);
     // (Update 0.3.19 — the floor's fight music, while a fight is on: audio/music.ts.)
     setFloorMusic(d && combatMusicOn(d, p.dead) ? floorTrack(d) : null);
     this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d, this.look.yaw, this.show.hud, choosing ?? '');

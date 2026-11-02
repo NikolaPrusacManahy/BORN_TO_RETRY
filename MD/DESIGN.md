@@ -32,10 +32,9 @@ A first-person action roguelike. You start every run with your bare hands, tear 
 | Mouse | Look |
 | Space | Jump / wall jump |
 | Shift | Dash |
-| C | Slide. Pressed in the air, the slide starts when you land. |
 | Left click | Attack: the held weapon, or a jab combo when barehanded |
 | Right click | Parry when barehanded (a press; Update 0.3.5, 0.3.6), the weapon's alt attack otherwise (the Pistol: a strike with it) |
-| F | Ground slam, in the air from a real height (Update 0.0.12, the designer). (The quick punch it used to be was cut in Update 0.0.10.) |
+| Ctrl | Ground pound (the slam), in the air from a real height (Update 0.0.12, the designer: F; Update 0.3.20, the designer: "Ground pound is now Control key by default"). Under water, held, it dives. |
 | Q | Throw the held weapon |
 | R | Reload the Pistol (Update 0.2.4) |
 | E | Interact: pick up, buy, open |
@@ -43,7 +42,7 @@ A first-person action roguelike. You start every run with your bare hands, tear 
 | 1–5 | Weapon slots: 1 your fists, 2–5 the weapons you carry (Update 0.0.17, the designer); no gaps: a weapon gone, the ones after it move down a slot (Update 0.2.13, the designer) |
 | Esc | Pause |
 
-No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we test whether the browser's keyboard lock can capture Ctrl; in the Steam build it is free. **(placeholder: C for slide)**
+Only the ground pound uses Ctrl (Update 0.3.20, the designer's choice). Ctrl+W closes a browser tab: during a run the page asks first, and in fullscreen the browser's keyboard lock hands Ctrl+W to the game; in the Steam build it is free. A save from before 0.3.20 moves its ground pound from F to Ctrl (if Ctrl isn't taken). **The slide is gone (Update 0.3.20; the designer: "remove the sliding mechanics and all the Sliding fate or anything related to it"):** its key, its move, its sounds and its cards (Slingshot, Bowling, Runaway).
 
 **Rebinding (M1 step 9, the designer: anything players want):** every action takes any key (Ctrl too), any mouse button (side buttons too) or a wheel direction. Only Esc stays fixed (it pauses), and the OS keys. A key another action uses swaps with it.
 
@@ -55,11 +54,11 @@ No default uses Ctrl, because Ctrl+W closes the browser tab. In fullscreen we te
 - Fast base speed with quick acceleration and almost no friction in the air.
 - **Jump**, with coyote time (a jump still counts just after leaving a ledge) and a jump buffer (a jump pressed just before landing still counts).
 - **Dash:** a short burst in the movement direction, brief invincibility. 3 charges that refill over time. **(placeholder)**
-- **Slide:** eases up to slide speed, keeps it, lowers your height; slide-jump carries the momentum. Lasts **0.5 s at most**; press again to slide again (holding doesn't chain). Pressed in the air, it waits for the landing and eases in. (Update 0.0.3, the designer.)
+- ~~**Slide**~~ (Update 0.0.3 to 0.3.19): **removed in Update 0.3.20** (the designer: "remove the sliding mechanics").
 - **Wall run:** in the air beside a wall, holding forward and heading along it (not into it), you run on it for **1 s at most** (Update 0.0.4; first 2 s). Rising fast (a pad launch, the start of a jump) never grabs a wall. The view tilts **clockwise with the wall on your left, anticlockwise on your right**. Jump to push off towards the other side; the next wall catches you into a new run, so runs chain. A wall can't be run twice without landing. (Update 0.0.3, the designer.)
 - **Wall jump:** up to 3 in a row before touching the ground, when you're against a wall but not running on it. **(placeholder)** Jumps off a wall run don't count.
-- **Swimming (Update 0.2.11, floor 6 only: the designer, "full under water … the pain of being slower than them"):** you swim at 6.5 m/s (you run at 12); forward is where you look, up and down too; jump rises, the slide key dives; you speed up slowly and glide to a stop; doing nothing you sink slowly to the floor; jump on the floor pushes off it. The dash key **kicks** (14 m/s, bleeding back to swim speed, untouchable 0.3 s), its charges coming back 1.75 × slower. No wall runs, wall jumps or slides; the slam still dives. Your eyes never leave the water (its top is just over the walls). **(placeholders)**
-- **Ground slam (F, Update 0.0.12, the designer):** only from a real height (**2.8 m** or more above the ground, Update 0.1.7, the designer: higher, was 1.8: beyond a plain jump, so off a ledge, a pad, a wall jump or a slam's bounce), you slam straight down. As it drops both fists come up clasped side by side; as it lands they come down into the floor, with a hard shake and a jolt (Update 0.1.7; Update 0.1.8, the designer: wrists straight, the backs of the hands towards you). The landing is a blast: every enemy within **4 m** (wider and harder the further you fell, up to **7 m** and **90**) takes up to **35** damage (half at the edge) and is thrown outwards, with a shockwave, dust and a boom. Jumping right after landing bounces you higher. **(placeholder numbers)** **Update 0.2.21 (a tester's hands stuck up):** the fists follow the slam (a slam ended by a dash, a wall jump, a pad or the water lets them go back); barehanded, a click as you drop punches as you land. **Update 0.2.22 (a tester: "this can be a Build around ground smash instead of having it at the start"):** the blast is a Fate Card's, **Tremor**: without it the slam drops and lands but hurts nothing (with the Fate Cards off or on ARE YOU EVEN HUMAN?, the blast as before); Fate Cards below.
+- **Swimming (Update 0.2.11, floor 6 only: the designer, "full under water … the pain of being slower than them"):** you swim at 6.5 m/s (you run at 12); forward is where you look, up and down too; jump rises, the ground pound's key (Ctrl; the slide's till Update 0.3.20) dives; you speed up slowly and glide to a stop; doing nothing you sink slowly to the floor; jump on the floor pushes off it. The dash key **kicks** (14 m/s, bleeding back to swim speed, untouchable 0.3 s), its charges coming back 1.75 × slower. No wall runs, wall jumps or slides; the slam still dives. Your eyes never leave the water (its top is just over the walls). **(placeholders)**
+- **Ground slam, the ground pound (F, Update 0.0.12, the designer; Ctrl since Update 0.3.20):** only from a real height (**2.8 m** or more above the ground, Update 0.1.7, the designer: higher, was 1.8: beyond a plain jump, so off a ledge, a pad, a wall jump or a slam's bounce), you slam straight down. As it drops both fists come up clasped side by side; as it lands they come down into the floor, with a hard shake and a jolt (Update 0.1.7; Update 0.1.8, the designer: wrists straight, the backs of the hands towards you). The landing is a blast: every enemy within **4 m** (wider and harder the further you fell, up to **7 m** and **90**) takes up to **35** damage (half at the edge) and is thrown outwards, with a shockwave, dust and a boom. Jumping right after landing bounces you higher. **(placeholder numbers)** **Update 0.2.21 (a tester's hands stuck up):** the fists follow the slam (a slam ended by a dash, a wall jump, a pad or the water lets them go back); barehanded, a click as you drop punches as you land. **Update 0.2.22 (a tester: "this can be a Build around ground smash instead of having it at the start"):** the blast is a Fate Card's, **Tremor**: without it the slam drops and lands but hurts nothing (with the Fate Cards off or on ARE YOU EVEN HUMAN?, the blast as before); Fate Cards below.
 
 ### Health
 - 100 HP. **(placeholder)** No regeneration. Shown bottom left: the number and a bar.
@@ -112,7 +111,7 @@ From the shop (70 coins each) and chests (Ultimate RPG Pack models):
 | Red ring | +15 max health (and the health to fill it), for the rest of the run. (Update 0.0.17, the designer: was +25% damage.) Rings stack. **(placeholder: stacking)** |
 | Teal ring (Update 0.2.0, the designer) | +25 max health (and the health to fill it), for the rest of the run. **Mythic** (mythic chests), 110 in the shop (the Gold Daggers' price). The pack's teal band (Ring7). It replaces the purple ring (+20% damage): no ring or item adds damage any more. |
 | Green ring (Update 0.0.17) | +15% melee attack speed (jabs and slashes), for the rest of the run. |
-| Blue ring | +15% run speed (running and sliding; not the dash), for the rest of the run. (Update 0.0.17: was 20%.) |
+| Blue ring | +15% run speed (running; not the dash), for the rest of the run. (Update 0.0.17: was 20%.) |
 | Key | Opens a chest. |
 | White key (Update 0.0.16) | Opens a chest: rare or better. Pale silver, a blue aura. |
 | Gold key (Update 0.0.16) | Opens a chest: epic or mythic. Gold, a yellow aura. |
@@ -144,7 +143,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 ### The rush (Update 0.3.1, the designer: "like Doom or Ultrakill"; spec `MD_UPDATES/U031_EXECUTIONS_AND_RUSH.md`)
 - Executions hold you where you grabbed the enemy (in the air too) till you let go. A freeze on every hit (jab 25 ms,
   finisher 70, charged up to 120, kill 90), harder shakes and kicks, more knockback, a deep thump under every blow. The
-  dash 40 m/s for 0.14 s; the slide 22 m/s, lasting while held (1.5 s at most); the view widens 14° in a dash, up to 16°
+  dash 40 m/s for 0.14 s; the slide 22 m/s, lasting while held (1.5 s at most; the slide gone in Update 0.3.20); the view widens 14° in a dash, up to 16°
   at speed; speed lines. **(placeholder numbers, F1)**
 
 ### Brutal executions (Update 0.3.2; spec `MD_UPDATES/U032_BRUTAL_EXECUTIONS.md`)
@@ -284,14 +283,14 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 - **The deal:** the world holds still and blurs; a deck deals them one by one, face up, low on the screen; hover lifts one
   to read; a click takes it: it shrinks and flies to the card pile by your coins. You must take one.
 - **TAB:** what you carry (cards, weapons, rings, keys, bonuses, health, armour, dashes, coins); the world holds still.
-- **40 Fate Cards (46 since Update 0.2.22, below):** wave 1's 30 and (Update 0.2.18, the designer: "just build wave 2") wave 2's 10, with effects of their
+- **40 Fate Cards (46 since Update 0.2.22, below; 44 since Update 0.3.20: Slingshot and Bowling gone with the slide):** wave 1's 30 and (Update 0.2.18, the designer: "just build wave 2") wave 2's 10, with effects of their
   own: bleed, burn, lightning, blasts, homing knives, rings of fire and ice, a split throw (specs `U0216_FATE_CARDS.md`,
   `U0218_FATE_CARDS_WAVE2.md`; ideas from Risk of Rain 2's items, our names and effects). **(placeholder numbers)**
 - **Death Cards and Traitor Cards (Update 0.2.19, the designer: "it also end up in the same 3 cards pull, it is all
   rng"; spec `U0219_DEATH_TRAITOR_CARDS.md`):** each card dealt rolls its family first: **a Death Card 15%, a Traitor
   Card 12%**, else a Fate Card. **16 Death Cards** only hurt the run (more damage taken, slower, fewer uses, dearer shop,
   fewer coins, a slower meter, worse luck…); **you take whichever card you like** (the designer: "just random and allow
-  them to pick whatever they want"). **10 Traitor Cards** give something and cost something (both on the card, the price in
+  them to pick whatever they want"). **10 Traitor Cards** (9 since Update 0.3.20: Runaway, whose price was the slide, gone) give something and cost something (both on the card, the price in
   red). Their own faces: Death black, bone and sickly green with a skull; Traitor split gold and purple. Max health never
   under 10. **(placeholder numbers)**
 - **The shop's Fate Card (Update 0.2.20, the designer: "the shop has only one fate card. floating near, cost 100"; spec
@@ -509,6 +508,12 @@ Arenas are **hand-made templates assembled from a seed**, not random geometry, b
   face (Pixelify Sans) with a hard ink edge and, on big words, a hard coloured drop, never a soft glow; upright, never
   slanted; bars and panels in brass frames with an ink line outside, rivets in panels' corners; the keys to press on grey
   key caps, as bound; a number, then its mark. Drawn in code (CSS, canvas), no image files.
+- **The controls on the HUD (Update 0.3.20, the designer: "Bottom Right, display the controls like in the game Blood
+  rush … display jab control, parry and it's cooldown like a filling effect … weapons slots and all that can just be the
+  level above"; spec `MD_UPDATES/U0320_HUD_CONTROLS.md`):** bottom right, three round badges with their keys on caps
+  under them: the **jab** (your fist, or the weapon in hand), the **parry** (drained of colour while it waits, its icon
+  and ring filling back round like a clock; a flash once it's ready; dimmed with a weapon in hand) and the **ground
+  pound** (lit while you're high enough to pound). The weapon slots a row above them, the Pistol's bullets above those.
 - **Audio:** hits matter more than music. Every punch, impact, parry, dash and kill needs a clear, punchy sound. Music rises with the action. The menus' track plays on the menus only, not in the lobby (Update 0.2.13, the designer).
 - **Recorded sounds (Update 0.1.17, the designer):** human-made only, so the Steam page needs no AI notice: the Sonniss GDC 2026 bundle (royalty-free) and the designer's own recordings. Six batches picked by ear in the Lab (Sounds): combat, coins and chests, the bosses and magic, the enemies' warnings, the player's moves, the executions. No footsteps (the designer: "no need in this game"); the slide, the jump and the dash keep their made sounds. The rest is still made in code until its round. **Music (Update 0.1.17):** the designer's own; the menus' track loops on the menus and fades out into a run. **The fights' music (Update 0.3.19; spec `MD_UPDATES/U0319_COMBAT_MUSIC.md`):** the designer's three Combat OST tracks (Ogg, so they loop clean), only while a fight is on (a room's, a challenge room's, the boss's show and fight; the designer: "when a fight done, BGM fades away"): fading away (3 s) as it's won, the next fight going on where it left off; off when dead; each floor a random one, never the floor before's. Credited on the lobby's MUSIC board.
 

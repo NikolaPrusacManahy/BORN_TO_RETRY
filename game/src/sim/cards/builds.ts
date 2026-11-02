@@ -1,6 +1,6 @@
 // Update 0.2.22 — builds (testers: "build variety around Fate cards that allows a multiple of gameplay diversities";
 // the designer: "Everything at once"). Each Fate Card is of a build by its move: Fists, Kills, Throws (weapons),
-// Movement (dash, slide, jump), Slam, Executions (body, coins, bonuses and luck are of none). A deal leans to the builds
+// Movement (dash, jump; Update 0.3.20 — no slide), Slam, Executions (body, coins, bonuses and luck are of none). A deal leans to the builds
 // you carry (each card of a build makes its cards likelier); three of a build light its bonus. A card you carry that
 // can grow may be dealt again as II (stronger: cards.ts `up`). Some cards are dealt only with another: Tremor (the slam's
 // blast) opens the Slam build; a pair card both its builds. Pure.
@@ -12,7 +12,7 @@ export const BUILD_NAME: Record<Build, string> = { fists: 'Fists', kills: 'Kills
 export const BUILD_LIST = Object.keys(BUILD_NAME) as readonly Build[];
 /** The builds' own cards (buildPowers.ts): Tremor's and the pair cards. */
 export const BUILD_CARDS: readonly CardKind[] = ['tremor', 'aftershock', 'scorchedEarth', 'staticStep', 'shrapnel', 'lastRites'];
-const OF_MOVE: Partial<Record<string, Build>> = { Fists: 'fists', Kills: 'kills', Weapons: 'throws', Dash: 'movement', Slide: 'movement', Jump: 'movement', Slam: 'slam', Executions: 'executions' };
+const OF_MOVE: Partial<Record<string, Build>> = { Fists: 'fists', Kills: 'kills', Weapons: 'throws', Dash: 'movement', Jump: 'movement', Slam: 'slam', Executions: 'executions' };
 
 const pct = (share: number) => `${Math.round(share * 100)}%`;
 /** What each build's bonus does (on TAB). */

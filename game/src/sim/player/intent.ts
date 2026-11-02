@@ -10,15 +10,15 @@ export interface PlayerIntent {
   yaw: number;
   jumpPressed: boolean;
   dashPressed: boolean;
-  slidePressed: boolean;
-  slideHeld: boolean;
-  /** Update 0.0.12 — F: the ground slam. */
+  /** Update 0.0.12 — the ground slam (Update 0.3.20: Ctrl; the slide is gone). */
   slamPressed: boolean;
-  /** Update 0.2.11 — swimming (swim.ts): the look's pitch (rad, up +) and jump held (rising). */
+  /** Update 0.2.11 — swimming (swim.ts): the look's pitch (rad, up +) and jump held (rising). Update 0.3.20 — the slam
+   *  key held (diving). */
   pitch?: number;
   jumpHeld?: boolean;
+  slamHeld?: boolean;
 }
 
 export function emptyIntent(yaw = 0): PlayerIntent {
-  return { moveX: 0, moveZ: 0, yaw, jumpPressed: false, dashPressed: false, slidePressed: false, slideHeld: false, slamPressed: false };
+  return { moveX: 0, moveZ: 0, yaw, jumpPressed: false, dashPressed: false, slamPressed: false };
 }

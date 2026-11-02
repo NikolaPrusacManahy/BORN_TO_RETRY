@@ -157,7 +157,7 @@ export function tryExecute(state: CombatState, player: PlayerState, yaw: number,
   }
   e.vel.set(0, 0, 0);
   player.vel.set(0, 0, 0);
-  player.sliding = player.wallRunning = false;
+  player.wallRunning = false;
   player.dashTime = 0;
   player.invuln = Math.max(player.invuln, move.endAt / Math.max(0.1, EXECUTION.v.speed) + 0.2);
   pose(ex, 0);

@@ -135,7 +135,7 @@ export const hpBonusOf = (inv: Inventory) => ITEMS.v.redRingHp * inv.redRings + 
  *  0.2.16 — and Bloodrush (a Fate Card). Update 0.2.19 — Leaden Feet, Iron Skin (slower), Runaway (faster). */
 export const moveFactor = (state: CombatState) => {
   const v = CARDS.v;
-  const cards = (state.rush > 0 ? 1 + v.bloodrush : 1) * (holds(state, 'leadenFeet') ? 1 - v.leaden : 1) * (holds(state, 'ironSkin') ? 1 - v.ironSlow : 1) * (holds(state, 'runaway') ? 1 + v.runaway : 1);
+  const cards = (state.rush > 0 ? 1 + v.bloodrush : 1) * (holds(state, 'leadenFeet') ? 1 - v.leaden : 1) * (holds(state, 'ironSkin') ? 1 - v.ironSlow : 1);
   return speedFactor(state.items) * hasteFactor(state.bonuses) * (1 + (state.weapon ? HASTE[state.weapon.kind]() : 0)) * cards;
 };
 

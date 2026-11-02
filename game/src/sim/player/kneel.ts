@@ -18,7 +18,7 @@ export function startKneel(p: PlayerState, x: number, z: number, yaw: number, ti
   p.kneelYaw = yaw;
   p.vel.set(0, 0, 0);
   p.dashTime = 0;
-  p.sliding = p.slamming = p.wallRunning = false;
+  p.slamming = p.wallRunning = false;
 }
 
 /** One tick of kneeling. Returns false when you're not (the normal movement runs instead). */

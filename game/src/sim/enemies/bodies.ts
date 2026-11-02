@@ -57,7 +57,7 @@ export function pushPlayerOut(player: PlayerState, enemies: Enemy[], world: Coll
       const nx = d > 1e-4 ? dx / d : 1;
       const nz = d > 1e-4 ? dz / d : 0;
       shove.set(nx * (min - d), 0, nz * (min - d));
-      world.movePlayer(player.pos, shove, player.sliding, out);
+      world.movePlayer(player.pos, shove, player.kneel > 0, out);
     }
   }
 }

@@ -123,11 +123,11 @@ section('Shop card — buying');
 
 section('Shop card — its prompt and its look');
 {
-  const { t, c, p, card } = stall('slingshot', 0);
+  const { t, c, p, card } = stall('hoarder', 0);
   const f = focusOf(t, c, p, never, emptyFocus());
-  check('in reach: its card over its price, E to buy', f.card === 'slingshot' && f.act === 'buy' && f.item === null && Math.abs(f.at.y - (CARD_PRICE_Y + 0.35)) < 1e-9);
+  check('in reach: its card over its price, E to buy', f.card === 'hoarder' && f.act === 'buy' && f.item === null && Math.abs(f.at.y - (CARD_PRICE_Y + 0.35)) < 1e-9);
   p.pos.set(0, 0, 2.5);
-  check('nearby: its card to read', focusOf(t, c, p, never, emptyFocus()).card === 'slingshot' && focusOf(t, c, p, never, emptyFocus()).act === null);
+  check('nearby: its card to read', focusOf(t, c, p, never, emptyFocus()).card === 'hoarder' && focusOf(t, c, p, never, emptyFocus()).act === null);
   const view = new TreasureView(new THREE.Scene(), t, false);
   view.update(c, new THREE.Vector3(), DT);
   let shown = false;

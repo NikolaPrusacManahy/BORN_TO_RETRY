@@ -1,9 +1,9 @@
 // Update 0.2.11 — swimming (floor 6, the Sunken Grove, fully under water: the designer, "full under water gameplay …
 // enemies swims faster than you and you have to deal with the pain of being slower than them, swiming feeling and
 // mechanics is needed"). Under water you swim, you don't run: forward is where you look (up and down too), jump rises,
-// the slide key dives; you speed up slowly and glide to a stop; doing nothing you sink, slowly. On the floor, jump pushes
+// the slide key dives (Update 0.3.20: the slam key, Ctrl); you speed up slowly and glide to a stop; doing nothing you sink, slowly. On the floor, jump pushes
 // off it. The dash key kicks: a burst where you're heading, untouchable as a dash is, its charges slower to come back.
-// No wall runs, wall jumps or slides (step.ts); your eyes never leave the water (PlayerState.swimTop). Pure.
+// No wall runs or wall jumps (step.ts); your eyes never leave the water (PlayerState.swimTop). Pure.
 import { Vector3 } from 'three';
 import { CAMERA } from '../../tuning/camera';
 import { SWIM } from '../../tuning/swim';
@@ -20,7 +20,7 @@ export function swimWish(intent: PlayerIntent, out: Vector3): Vector3 {
   const flat = Math.cos(pitch);
   // Forward is (-sin, -cos) on the ground plane, tipped up by the pitch; right is (cos, -sin).
   out.set(-s * flat * intent.moveZ + c * intent.moveX, Math.sin(pitch) * intent.moveZ, -c * flat * intent.moveZ - s * intent.moveX);
-  out.y += (intent.jumpHeld ? 1 : 0) - (intent.slideHeld ? 1 : 0);
+  out.y += (intent.jumpHeld ? 1 : 0) - (intent.slamHeld ? 1 : 0);
   const len = out.length();
   if (len > 1) out.multiplyScalar(1 / len);
   return out;

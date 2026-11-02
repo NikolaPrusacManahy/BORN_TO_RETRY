@@ -1,6 +1,7 @@
 // M1 — what the HUD shows, pushed by the game a few times a second (React never runs per frame). Hit markers
 // and hurt flashes are counters: each new number restarts their animation.
 import { createRaptorHud } from './raptorHud';
+import { createControlsHud } from './controlsHud';
 import type { MoveMode } from '../sim/player/state';
 import type { KeyKind } from '../sim/items/items';
 import type { WeaponKind } from '../sim/weapons/catalog';
@@ -124,6 +125,13 @@ export interface HudState {
   dashKey: string;
   /** Update 0.3.16 — the weapon slots' keys, as bound ('|' between them: the HUD's caps). */
   slotKeys: string;
+  /** Update 0.3.20 — the controls bottom right (controlsHud.ts): the parry's and the ground pound's keys, the parry's
+   *  wait filled back (0..1, 1: ready), no parry with a weapon in hand, a ground pound could start now. */
+  heavyKey: string;
+  slamKey: string;
+  parryFill: number;
+  parryOff: boolean;
+  slamReady: boolean;
 }
 
 export interface HudStore {
@@ -133,7 +141,7 @@ export interface HudStore {
 }
 
 export function createHudStore(): HudStore {
-  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, mag: -1, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, tealRings: 0, cards: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, chestHere: false, styleRank: -1, styleFill: 0, styleFeed: [], execution: 0, bossMark: -1, grabHits: -1, grabNeed: 0, grabLeft: 0, grabEnd: '', attackKey: '', jawCue: 0, leftKey: '', rightKey: '', ...createRaptorHud(), dashKey: '', slotKeys: '' };
+  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, mag: -1, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, tealRings: 0, cards: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, chestHere: false, styleRank: -1, styleFill: 0, styleFeed: [], execution: 0, bossMark: -1, grabHits: -1, grabNeed: 0, grabLeft: 0, grabEnd: '', attackKey: '', jawCue: 0, leftKey: '', rightKey: '', ...createRaptorHud(), dashKey: '', slotKeys: '', ...createControlsHud() };
   const subs = new Set<() => void>();
   return {
     get: () => state,

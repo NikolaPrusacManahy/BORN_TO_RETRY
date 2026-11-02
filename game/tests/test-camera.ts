@@ -1,4 +1,5 @@
-// M1 — camera feel: mouse look, shake, landing dip, slide eye height, FOV kick, step smoothing.
+// M1 — camera feel: mouse look, shake, landing dip, FOV kick, step smoothing. (Update 0.3.20 — no slide: no slide eye
+// height.)
 import * as THREE from 'three';
 import { check, near, section } from './harness';
 import { Look, PITCH_LIMIT, RAD_PER_PX } from '../src/engine/look';
@@ -61,11 +62,6 @@ section('Camera — rig');
   const expected = Math.min(CAMERA.v.landDipMax, 20 * CAMERA.v.landDip);
   check('a landing dips the view about the tuned depth', lowest < 0 && near(-lowest, expected, expected * 0.35), `dip ${(-lowest).toFixed(3)} m, tuned ${expected.toFixed(3)}`);
   check('and springs back', near(cam.position.y, CAMERA.v.eyeHeight, 0.01));
-
-  p.sliding = true;
-  for (let i = 0; i < 120; i++) frame();
-  check('sliding lowers the eye', near(cam.position.y, CAMERA.v.slideEyeHeight, 0.01));
-  p.sliding = false;
 
   p.dashTime = 0.1;
   for (let i = 0; i < 60; i++) frame();

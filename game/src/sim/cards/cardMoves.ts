@@ -1,6 +1,6 @@
 // Update 0.2.15 — what the Scars did in a fight. Update 0.2.16 — the Fate Cards' (cards.ts), where it isn't a number
-// changed in place: Shoulder Charge and Bowling (a dash or a slide into an enemy throws it back and staggers it: no
-// damage), Pogo (a killing slam bounces you back up), Hair Trigger (the parry open twice as long; 0.3.5), Iron
+// changed in place: Shoulder Charge (a dash into an enemy throws it back and staggers it: no damage; Update 0.3.20 —
+// Bowling, the slide's, gone), Pogo (a killing slam bounces you back up), Hair Trigger (the parry open twice as long; 0.3.5), Iron
 // Knuckles (a punch on an enemy winding up makes it start over: a mini boss's, as any hit already staggers the rest),
 // Ricochet (a thrown weapon turns to the next enemy); and what kills set off (Bloodrush, Killing Spree, Giant Killer),
 // what a hit is worth (Mercy Kill, the meter's Air Butcher and Reaper's Rhythm), Cold Snap's freeze, Blood Money's
@@ -24,12 +24,11 @@ import { lit } from './builds';
 import { boost, holds } from './cards';
 import { killPowers } from './cardPowers';
 
-/** A dash or slide touches an enemy this much beyond your two bodies (m): before you're pushed out of it. */
+/** A dash touches an enemy this much beyond your two bodies (m): before you're pushed out of it. */
 const TOUCH = 0.35;
-/** Which move bumps now: none, a dash (Shoulder Charge), a slide (Bowling). */
+/** Which move bumps now: none, a dash (Shoulder Charge). */
 const NONE = 0;
 const DASH_MOVE = 1;
-const SLIDE_MOVE = 2;
 /** Killing Spree remembers this many kills' times. */
 const SPREE_MEMORY = 8;
 
@@ -121,14 +120,14 @@ export function chill(state: CombatState, i: number) {
 /** All In: your fists' hits, times this. Update 0.2.22 — and the Fists build's bonus. */
 export const fistFactor = (state: CombatState) => (state.weapon !== null ? 1 : (holds(state, 'allIn') ? 2 : 1) * (lit(state.items.cards, 'fists') ? 1 + BUILDS.v.fists : 1));
 
-/** Shoulder Charge and Bowling: each enemy your dash (or slide) runs into is thrown back along your way and away from
- *  you, and staggered (not a boss or a mini boss), once a dash or slide. */
+/** Shoulder Charge: each enemy your dash runs into is thrown back along your way and away from you, and staggered (not
+ *  a boss or a mini boss), once a dash. */
 export function bumpEnemies(state: CombatState, player: PlayerState) {
-  const move = player.dashTime > 0 && holds(state, 'shoulderCharge') ? DASH_MOVE : player.sliding && player.grounded && holds(state, 'bowling') ? SLIDE_MOVE : NONE;
+  const move = player.dashTime > 0 && holds(state, 'shoulderCharge') ? DASH_MOVE : NONE;
   if (move !== state.bumpMove) state.bumped.length = 0;
   state.bumpMove = move;
   if (move === NONE) return;
-  const dir = move === DASH_MOVE ? player.dashDir : player.slideDir;
+  const dir = player.dashDir;
   for (let i = 0; i < state.enemies.length; i++) {
     const e = state.enemies[i];
     if (!isLive(e) || e.phase === 'held' || e.phase === 'rebuild' || state.bumped.includes(i)) continue;

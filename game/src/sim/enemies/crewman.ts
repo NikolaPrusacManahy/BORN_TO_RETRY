@@ -33,7 +33,7 @@ export function updateCrewman(e: Enemy, index: number, player: PlayerState, w: E
 }
 
 /** What it hears of yours: your moves, and your blows and kills. */
-const LOUD_MOVES = new Set<string>(['jump', 'airJump', 'dashJump', 'slideJump', 'land', 'slamLand', 'dash', 'slideStart', 'wallJump', 'wallRunJump', 'pad']);
+const LOUD_MOVES = new Set<string>(['jump', 'airJump', 'dashJump', 'land', 'slamLand', 'dash', 'wallJump', 'wallRunJump', 'pad']);
 const LOUD_BLOWS = new Set<string>(['jabL', 'jabR', 'heavy', 'kill', 'slash']);
 /** It swings once it's this near where it heard you, or this near you (m: it bumps into you); its wild swing reaches
  *  this far all round its front (m, degrees); its wind-up and rest (s); wandering, it picks a way this often (s). */

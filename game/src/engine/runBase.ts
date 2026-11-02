@@ -271,7 +271,6 @@ export abstract class RunBase {
 
   /** Loops off (leaving for the menu). */
   silence() {
-    this.sounds.setSliding(false);
     this.sounds.setWallRunning(false);
     this.audio.muffle(false);
   }

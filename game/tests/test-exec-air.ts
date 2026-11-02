@@ -21,7 +21,6 @@ section('Executions — held where you are');
   // In the air (a jump), a Wasp just ahead and above.
   const p = createPlayer(0, 2.2, 0, 0);
   p.grounded = false;
-  p.sliding = true;
   c.execution = 1;
   spawnEnemy(c.enemies, 'wasp', new Vector3(0, 3.2, -1.6), 0);
   const grab = emptyCombatIntent();
@@ -41,6 +40,6 @@ section('Executions — held where you are');
     }
   }
   check(`grabbing a Wasp in mid-air: you hang where you were the whole time (${held} ticks)`, held > 30 && Math.abs(lowest - 2.2) < 0.02 && Math.abs(highest - 2.2) < 0.02, `${lowest.toFixed(2)}–${highest.toFixed(2)} m`);
-  check('no slide or dash carried into it', !p.sliding && p.dashTime === 0);
+  check('no dash carried into it', p.dashTime === 0);
   check('let go, you fall back to the floor', !execHeld(c.exec) && p.pos.y < 0.05);
 }

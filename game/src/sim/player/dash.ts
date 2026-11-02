@@ -10,7 +10,6 @@ import { lit } from '../cards/builds';
 import { BUILDS } from '../../tuning/builds';
 import { applyGravity } from './air';
 import type { PlayerState } from './state';
-import { endSlide } from './slide';
 
 /** Update 0.2.16 — your dash charges (Restless: more). Update 0.2.22 — the Movement build's bonus: more. */
 export const dashMaxOf = (p: PlayerState) => DASH.v.charges + (bears(p, 'restless') ? Math.round(CARDS.v.restless) : 0) + (lit(p.cards, 'movement') ? Math.round(BUILDS.v.movement) : 0);
@@ -33,7 +32,6 @@ export function tryStartDash(p: PlayerState, pressed: boolean, wish: Vector3): b
   p.invuln = Math.max(p.invuln, DASH.v.duration);
   if (wish.x !== 0 || wish.z !== 0) p.dashDir.set(wish.x, 0, wish.z);
   else p.dashDir.set(-Math.sin(p.yaw), 0, -Math.cos(p.yaw));
-  if (p.sliding) endSlide(p);
   p.slamming = false;
   p.vel.y = 0;
   p.events.push('dash');

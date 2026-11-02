@@ -30,7 +30,7 @@ const hit = emptyTargetHit();
 
 /** The eye and aim direction (length 1) from the player's feet, facing and look pitch. */
 export function aim(p: PlayerState, yaw: number, pitch: number, eye: Vector3, dir: Vector3) {
-  eye.set(p.pos.x, p.pos.y + (p.sliding ? CAMERA.v.slideEyeHeight : CAMERA.v.eyeHeight), p.pos.z);
+  eye.set(p.pos.x, p.pos.y + CAMERA.v.eyeHeight, p.pos.z);
   const c = Math.cos(pitch);
   dir.set(-Math.sin(yaw) * c, Math.sin(pitch), -Math.cos(yaw) * c);
 }

@@ -13,12 +13,11 @@ export function readPlayerIntent(input: Input, look: Look, i: PlayerIntent, aliv
   i.moveZ = live ? (input.action('forward') ? 1 : 0) - (input.action('back') ? 1 : 0) : 0;
   i.jumpPressed = live && input.actionPressed('jump');
   i.dashPressed = live && input.actionPressed('dash');
-  i.slidePressed = live && input.actionPressed('slide');
-  i.slideHeld = live && input.action('slide');
   i.slamPressed = live && input.actionPressed('slam');
-  // (Update 0.2.11 — swimming.)
+  // (Update 0.2.11 — swimming. Update 0.3.20 — the slam key dives.)
   i.pitch = look.pitch;
   i.jumpHeld = live && input.action('jump');
+  i.slamHeld = live && input.action('slam');
 }
 
 /** M1 step 6. */

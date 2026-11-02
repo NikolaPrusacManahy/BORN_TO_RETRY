@@ -6,6 +6,7 @@
 // Update 0.0.16 — white and gold keys, and the key you'd use at a chest.
 // Update 0.0.17 — max health with the red rings, the green and purple rings, the weapon slots, the kill bonuses.
 // Update 0.2.3 — the boss bar's mark; held in the Bone King's hand, the QTE (your hits, the time left, how it ended).
+// Update 0.3.20 — the controls bottom right (controlsHud.ts).
 import { SHOOTS } from '../sim/weapons/catalog';
 import type { CombatState } from '../sim/combat/state';
 import { PlayerState, flatSpeed, moveMode } from '../sim/player/state';
@@ -47,6 +48,7 @@ import { CELL, GRID } from '../world/dungeon/floorPlan';
 import { grabRules } from '../sim/combat/grab';
 import { jawCue } from '../sim/enemies/bigSharkMoves';
 import { createRaptorHud, raptorHud, sameRaptor } from './raptorHud';
+import { controlsHud, createControlsHud, createParryClock, sameControls } from './controlsHud';
 
 /** HUD refresh interval (s); hits, hurts and health changes push at once. */
 const HUD_EVERY = 0.05;
@@ -78,7 +80,13 @@ export class HudFeed {
   rightKey = '';
   /** Update 0.3.16 — the weapon slots' keys ('|' between them). */
   slotKeys = '';
+  /** Update 0.3.20 — the parry's and the ground pound's keys, and a ground pound could start now. */
+  heavyKey = '';
+  slamKey = '';
+  slamReady = false;
   private readonly raptor = createRaptorHud();
+  private readonly controls = createControlsHud();
+  private readonly parryClock = createParryClock();
 
   constructor(private readonly hud: HudStore) {}
 
@@ -123,8 +131,9 @@ export class HudFeed {
     // (Update 0.3.16 — the Big Shark's arrow.)
     const shark = combat.enemies.find((e) => e.kind === 'bigShark' && e.alive);
     const jaw = shark ? jawCue(shark) : 0;
+    const ctl = controlsHud(combat, this.heavyKey, this.slamKey, this.slamReady, this.parryClock, this.controls);
     const grab = cur.grabHits === grabHits && cur.grabLeft === grabLeft && cur.grabEnd === grabEnd && cur.bossMark === bossMark && cur.attackKey === this.attackKey && sameRaptor(cur, raptor) && cur.dashKey === this.dashKey && cur.jawCue === jaw && cur.leftKey === this.leftKey && cur.rightKey === this.rightKey && cur.slotKeys === this.slotKeys;
-    if (this.timer > 0 && same && shown && grab && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution && cur.chestHere === chestHere && cur.styleRank === styleRank && this.styleTop === styleTop) return;
+    if (this.timer > 0 && same && shown && grab && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution && cur.chestHere === chestHere && cur.styleRank === styleRank && this.styleTop === styleTop && sameControls(cur, ctl)) return;
     this.styleTop = styleTop;
     this.bonus = bonus;
     const bonusLeft: Record<string, number> = {};
@@ -188,6 +197,7 @@ export class HudFeed {
       ...raptor,
       dashKey: this.dashKey,
       slotKeys: this.slotKeys,
+      ...ctl,
     });
   }
 }

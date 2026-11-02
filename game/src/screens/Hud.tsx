@@ -17,6 +17,8 @@
 // Update 0.2.15 — the Scars you carried. Update 0.2.16 — the Fate Cards you carry, after the rings: a little pile and
 // how many.
 // Update 0.3.16 — the look (theme-01-base.css, theme-41-look.css): the dash's key on a cap beside its bars.
+// Update 0.3.20 — the controls bottom right (HudControls.tsx): the jab, the parry filling back, the ground pound; the
+// weapon slots a row above.
 import { StyleRank } from './StyleRank';
 import { CSSProperties, useSyncExternalStore } from 'react';
 import type { HudStore } from '../engine/hudStore';
@@ -26,6 +28,7 @@ import { PinQte } from './PinQte';
 import { JawCue } from './JawCue';
 import { KeyIcon, KeyPicker } from './KeyPicker';
 import { Bonuses, WeaponSlots } from './HudSlots';
+import { Controls } from './HudControls';
 import { Minimap } from './Minimap';
 
 /** At or below this share of max health the bar pulses. */
@@ -146,6 +149,7 @@ export function Hud({ store }: { store: HudStore }) {
         </div>
       )}
       <WeaponSlots slots={s.slots} slot={s.slot} keys={s.slotKeys} />
+      <Controls s={s} />
       <Bonuses left={s.bonusLeft} />
       <div className={`rb-hud-exec${s.execution >= 1 ? ' is-full' : ''}`} style={{ '--fill': s.execution } as CSSProperties}>
         <i className="rb-hud-exec-fill" />

@@ -9,7 +9,8 @@
 // … can make the run a bit painful"), and Traitor Cards, 10 with a gift and a price ("a good part and a counter part
 // costs"). A deal is deal.ts; what each does is where its move is (cardMoves.ts, cardPowers.ts and in place). Update
 // 0.2.20 — the shop's own Fate Card: shopCard.ts. Update 0.2.22 — builds (builds.ts): the slam's blast is a card
-// (Tremor), pair cards, a card dealt again as II (`up`). Pure.
+// (Tremor), pair cards, a card dealt again as II (`up`). Update 0.3.20 — the slide gone, its cards too (the designer:
+// "remove the sliding mechanics and all the Sliding fate"): Slingshot, Bowling and Runaway. Pure.
 import { BUILDS } from '../../tuning/builds';
 import { CARDS } from '../../tuning/cards';
 import type { CombatState } from '../combat/state';
@@ -19,7 +20,6 @@ import { WEAPON_STATS, WeaponKind } from '../weapons/catalog';
 
 export type CardKind =
   // Common.
-  | 'slingshot'
   | 'secondWind'
   | 'hoarder'
   | 'collector'
@@ -30,7 +30,6 @@ export type CardKind =
   | 'haggler'
   // Uncommon.
   | 'shoulderCharge'
-  | 'bowling'
   | 'crater'
   | 'hairTrigger'
   | 'airButcher'
@@ -90,7 +89,6 @@ export type CardKind =
   // Update 0.2.19 — Traitor Cards.
   | 'bloodPact'
   | 'fragileFortune'
-  | 'runaway'
   | 'fasting'
   | 'ironSkin'
   | 'bottledLightning'
@@ -130,7 +128,6 @@ const death = (move: string, name: string, does: () => string): CardFace => ({ f
 const traitor = (move: string, name: string, does: () => string, cost: () => string): CardFace => ({ family: 'traitor', rarity: 'common', move, name, does, cost });
 
 export const CARD: Record<CardKind, CardFace> = {
-  slingshot: { rarity: 'common', move: 'Slide', name: 'Slingshot', does: () => `A jump out of a slide carries ${pct(v().slingshot - 1)} more speed.` },
   secondWind: { rarity: 'common', move: 'Dash', name: 'Second Wind', does: () => 'A wall run gives you back a dash.' },
   hoarder: { rarity: 'common', move: 'Bonuses', name: 'Hoarder', does: () => `Kill bonuses last ${times(v().hoarder)} as long.` },
   collector: { rarity: 'common', move: 'Weapons', name: 'Collector', up: 2, does: (m = 1) => `New weapons have ${pct(v().collector * m)} more uses.` },
@@ -140,7 +137,6 @@ export const CARD: Record<CardKind, CardFace> = {
   bloodMoney: { rarity: 'common', move: 'Coins', name: 'Blood Money', does: () => `Every hit you take drops ${Math.round(v().bloodMoney)} coins for you.` },
   haggler: { rarity: 'common', move: 'Coins', name: 'Haggler', up: 2, does: (m = 1) => `The shop is ${pct(v().haggler * m)} cheaper.` },
   shoulderCharge: { rarity: 'uncommon', move: 'Dash', name: 'Shoulder Charge', does: () => 'Dashing into an enemy throws it back and staggers it.' },
-  bowling: { rarity: 'uncommon', move: 'Slide', name: 'Bowling', does: () => 'Sliding into an enemy throws it back and staggers it.' },
   crater: { rarity: 'uncommon', move: 'Slam', name: 'Crater', needs: 'tremor', up: 2, does: (m = 1) => `The higher you slam from, the wider its ring: up to ${times(1 + (v().craterGrowth - 1) * m)} as wide.` },
   hairTrigger: { rarity: 'uncommon', move: 'Fists', name: 'Hair Trigger', does: () => 'Your parry stays open twice as long.' },
   airButcher: { rarity: 'uncommon', move: 'Executions', name: 'Air Butcher', does: () => `Kills while you're in the air count ${times(v().airButcher)} on the execution meter.` },
@@ -199,7 +195,6 @@ export const CARD: Record<CardKind, CardFace> = {
   // Update 0.2.19 — Traitor Cards: a gift, and its price.
   bloodPact: traitor('Body', 'Blood Pact', () => `Your hits deal ${pct(v().bloodPact)} more.`, () => `You take ${pct(v().bloodPact)} more.`),
   fragileFortune: traitor('Luck', 'Fragile Fortune', () => 'Every chest and deal rolls one rarity higher.', () => `${v().fragileHp} less max health.`),
-  runaway: traitor('Body', 'Runaway', () => `You run ${pct(v().runaway)} faster.`, () => 'You can’t slide.'),
   fasting: traitor('Executions', 'Fasting', () => `The execution meter fills in ${Math.round(v().fastingKills)} kills.`, () => 'The shop won’t sell to you.'),
   ironSkin: traitor('Body', 'Iron Skin', () => `Hits on you are ${pct(v().ironSkin)} weaker.`, () => `You run ${pct(v().ironSlow)} slower.`),
   bottledLightning: traitor('Dash', 'Bottled Lightning', () => 'Your dashes refill twice as fast.', () => `${v().bottledHp} less max health.`),

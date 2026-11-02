@@ -22,7 +22,6 @@ import { moveFactor, priceOf } from '../src/sim/items/items';
 import { refillDash } from '../src/sim/player/dash';
 import { damagePlayer, maxHpOf } from '../src/sim/player/health';
 import { tryGroundJump } from '../src/sim/player/jump';
-import { canStartSlide } from '../src/sim/player/slide';
 import { createPlayer } from '../src/sim/player/state';
 import { holding } from '../src/sim/weapons/weapons';
 import { CARDS } from '../src/tuning/cards';
@@ -144,14 +143,14 @@ section('Death and Traitor Cards — dealt among the Fate Cards');
   }
   const n = counts.fate + counts.traitor + counts.death;
   check(`each card dealt is a Death Card ${Math.round(v.deathChance * 100)}% of the time, a Traitor Card ${Math.round(v.traitorChance * 100)}%, else a Fate Card`, near(counts.death / n, v.deathChance, 0.03) && near(counts.traitor / n, v.traitorChance, 0.03), JSON.stringify(counts));
-  check('16 Death Cards and 10 Traitor Cards in all', CARD_KINDS.filter((k) => familyOf(k) === 'death').length === 16 && CARD_KINDS.filter((k) => familyOf(k) === 'traitor').length === 10);
+  check('16 Death Cards and 9 Traitor Cards in all (Update 0.3.20 — Runaway gone with the slide)', CARD_KINDS.filter((k) => familyOf(k) === 'death').length === 16 && CARD_KINDS.filter((k) => familyOf(k) === 'traitor').length === 9);
 
   // (The designer, of making a Death Card come with your pick: "nope, just random and allow them to pick whatever they want".)
   const { c, p } = both();
-  c.deal = { cards: ['pogo', 'brittleBones', 'slingshot'], chest: -1, rerolls: 0 };
+  c.deal = { cards: ['pogo', 'brittleBones', 'hoarder'], chest: -1, rerolls: 0 };
   check('you take whichever you like: a Fate Card leaves the Death Card behind', pickCard(c, p, 0) === 'pogo' && !c.items.cards.has('brittleBones') && c.deal === null);
   const doom = both();
-  doom.c.deal = { cards: ['pogo', 'brittleBones', 'slingshot'], chest: -1, rerolls: 0 };
+  doom.c.deal = { cards: ['pogo', 'brittleBones', 'hoarder'], chest: -1, rerolls: 0 };
   check('or the Death Card alone, if you want it', pickCard(doom.c, doom.p, 1) === 'brittleBones' && doom.c.items.cards.size === 1);
 
   let four = true;
@@ -250,11 +249,6 @@ section('Traitor Cards — a gift, a price');
 {
   check(`Blood Pact: your hits ${Math.round(v.bloodPact * 100)}% harder, the hits on you too`, near(struck(10, 'bloodPact'), 10 * (1 + v.bloodPact), 1e-6) && near(struck(10), 10, 1e-6) && near(taken('bloodPact'), 10 * (1 + v.bloodPact), 1e-9));
   const plain = moveFactor(fight());
-  const run = both('runaway');
-  run.p.slideArmed = true;
-  const slide = both();
-  slide.p.slideArmed = true;
-  check(`Runaway: ${Math.round(v.runaway * 100)}% faster, no sliding`, near(moveFactor(run.c) / plain, 1 + v.runaway, 1e-9) && !canStartSlide(run.p, true) && canStartSlide(slide.p, true));
   const iron = taken('ironSkin');
   check(`Iron Skin: hits on you ${Math.round(v.ironSkin * 100)}% weaker, you ${Math.round(v.ironSlow * 100)}% slower`, near(iron, 10 * (1 - v.ironSkin), 1e-9) && near(moveFactor(fight('ironSkin')) / plain, 1 - v.ironSlow, 1e-9));
   check(`Bottled Lightning: dashes refill twice as fast, ${v.bottledHp} less max health`, near(refilled('bottledLightning') / refilled(), 2, 1e-9) && maxHpOf(body('bottledLightning')) === HEALTH.v.maxHp - v.bottledHp);

@@ -1,4 +1,5 @@
 // M1 — everything the movement rules remember about the player between ticks.
+// Update 0.3.20 — the slide is gone (the designer: "remove the sliding mechanics").
 import { Vector3 } from 'three';
 import { EventQueue } from '../../core/eventQueue';
 import { HEALTH } from '../../tuning/health';
@@ -14,15 +15,12 @@ export type MoveEvent =
   | 'poisoned'
   | 'none'
   | 'jump'
-  | 'slideJump'
   | 'dashJump'
   | 'wallJump'
   | 'slamBounce'
   | 'pad'
   | 'land'
   | 'dash'
-  | 'slideStart'
-  | 'slideEnd'
   | 'slam'
   | 'slamLand'
   | 'wallRunStart'
@@ -64,17 +62,6 @@ export interface PlayerState {
   /** Time left in the current dash (0 = not dashing). */
   dashTime: number;
   dashDir: Vector3;
-  sliding: boolean;
-  slideDir: Vector3;
-  /** The speed the slide is heading for (never below the slide speed at the start; friction lowers it). */
-  slideSpeed: number;
-  /** The slide's actual speed, easing up to `slideSpeed`. */
-  slideCur: number;
-  /** Seconds into the current slide (it ends at the max). */
-  slideTime: number;
-  /** Update 0.0.3 — the slide key was pressed and is still held, and no slide has used that press yet. A slide
-   *  needs a fresh press; one pressed in the air starts on landing. */
-  slideArmed: boolean;
   wallJumpsLeft: number;
   /** Touching a wall after the last move, and its normal (also the wall being run on). */
   onWall: boolean;
@@ -160,12 +147,6 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     dashCharges: DASH.v.charges,
     dashTime: 0,
     dashDir: new Vector3(0, 0, -1),
-    sliding: false,
-    slideDir: new Vector3(0, 0, -1),
-    slideSpeed: 0,
-    slideCur: 0,
-    slideTime: 0,
-    slideArmed: false,
     wallJumpsLeft: WALL.v.count,
     onWall: false,
     wallNormal: new Vector3(),
@@ -218,13 +199,13 @@ export function resetPlayer(p: PlayerState, x: number, y: number, z: number, yaw
   p.current.set(0, 0, 0);
   p.yaw = yaw;
   p.grounded = false;
-  p.coyote = p.jumpBuffer = p.dashTime = p.slamBounce = p.slamImpact = p.invuln = p.slideTime = p.wallRunTime = p.wallRunCooldown = p.hurtTime = 0;
+  p.coyote = p.jumpBuffer = p.dashTime = p.slamBounce = p.slamImpact = p.invuln = p.wallRunTime = p.wallRunCooldown = p.hurtTime = 0;
   p.hp = HEALTH.v.maxHp;
   p.shield = p.kneel = p.hpBonus = p.poison = p.poisonDps = p.blind = p.dashLock = p.ink = p.freeDash = p.shrug = p.airJumps = 0;
   p.dead = false;
   p.hurtBy = p.poisonBy = null;
   p.dashCharges = DASH.v.charges;
-  p.sliding = p.slamming = p.onWall = p.slideArmed = p.wallRunning = p.lastWallSet = false;
+  p.slamming = p.onWall = p.wallRunning = p.lastWallSet = false;
   p.wallJumpsLeft = WALL.v.count;
   p.events.clear();
 }
@@ -234,14 +215,13 @@ export function flatSpeed(p: PlayerState): number {
   return Math.hypot(p.vel.x, p.vel.z);
 }
 
-export type MoveMode = 'ground' | 'air' | 'slide' | 'dash' | 'slam' | 'wall' | 'wallrun';
+export type MoveMode = 'ground' | 'air' | 'dash' | 'slam' | 'wall' | 'wallrun';
 
 /** For the debug overlay and camera. */
 export function moveMode(p: PlayerState): MoveMode {
   if (p.dashTime > 0) return 'dash';
   if (p.slamming) return 'slam';
   if (p.wallRunning) return 'wallrun';
-  if (p.sliding) return 'slide';
   if (p.grounded) return 'ground';
   return p.onWall ? 'wall' : 'air';
 }

@@ -1,7 +1,8 @@
-// M1 — one movement tick: timers → actions (dash, slide, wall run, jumps) → velocity → collision → landing.
+// M1 — one movement tick: timers → actions (dash, wall run, jumps) → velocity → collision → landing.
 // Each mechanic lives in its own module; this file only decides the order.
-// Update 0.2.11 — under water (floor 6) you swim instead (swim.ts): no dash, slide, wall run or wall jump, the slam
+// Update 0.2.11 — under water (floor 6) you swim instead (swim.ts): no dash, wall run or wall jump, the slam
 // still dives; kicks come back slower; your eyes never leave the water.
+// Update 0.3.20 — the slide is gone (the designer: "remove the sliding mechanics").
 import { Vector3 } from 'three';
 import { MOVE, WALL } from '../../tuning/movement';
 import { SWIM } from '../../tuning/swim';
@@ -15,7 +16,6 @@ import { updateKneel } from './kneel';
 import { tryAirJump, tryGroundJump, updateJumpTimers } from './jump';
 import { checkPads } from './jumpPad';
 import { landSlam, tryStartSlam, updateSlam } from './slam';
-import { armSlide, canStartSlide, endSlide, slideOver, startSlide, updateSlide } from './slide';
 import type { PlayerState } from './state';
 import { swim, swimCeiling } from './swim';
 import { applyWallSlide, tryWallJump } from './wallJump';
@@ -61,17 +61,14 @@ export function stepPlayer(p: PlayerState, intent: PlayerIntent, world: Collisio
     else swim(p, intent, dt);
   } else steer(p, intent, world, dt);
   checkPads(p, pads);
-  collide(p, intent, world, dt);
+  collide(p, world, dt);
 }
 
 /** On foot: the actions, then the velocity. */
 function steer(p: PlayerState, intent: PlayerIntent, world: CollisionWorld, dt: number) {
-  // Actions. Update 0.0.3 — the slide key no longer slams in the air: a slide pressed in the air waits for the
-  // landing. Update 0.0.12 — the slam has its own key (F).
+  // Actions. Update 0.0.12 — the slam has its own key (Update 0.3.20: Ctrl).
   if (tryStartDash(p, intent.dashPressed, wish)) endWallRun(p);
   if (tryStartSlam(p, intent.slamPressed, world)) endWallRun(p);
-  armSlide(p, intent.slidePressed, intent.slideHeld);
-  if (canStartSlide(p, intent.slideHeld)) startSlide(p, wish);
   if (!p.grounded && !p.wallRunning) tryStartWallRun(p, intent, wish, world);
   if (p.jumpBuffer > 0 && !tryGroundJump(p)) {
     if (p.wallRunning) wallRunJump(p);
@@ -83,8 +80,7 @@ function steer(p: PlayerState, intent: PlayerIntent, world: CollisionWorld, dt: 
   if (p.dashTime > 0) updateDash(p, dt);
   else if (p.slamming) updateSlam(p);
   else if (!(p.wallRunning && updateWallRun(p, intent, world, dt))) {
-    if (p.sliding) updateSlide(p, wish, dt);
-    else if (p.grounded) groundMove(p.vel, wish.x, wish.z, dt, p.speedMul, p.grip);
+    if (p.grounded) groundMove(p.vel, wish.x, wish.z, dt, p.speedMul, p.grip);
     else airMove(p.vel, wish.x, wish.z, dt, p.speedMul);
     if (!p.grounded) {
       applyGravity(p.vel, dt, p.gravity);
@@ -94,7 +90,7 @@ function steer(p: PlayerState, intent: PlayerIntent, world: CollisionWorld, dt: 
 }
 
 /** Moves you as far as the world lets you, then what that did: walls, the ceiling, landing. */
-function collide(p: PlayerState, intent: PlayerIntent, world: CollisionWorld, dt: number) {
+function collide(p: PlayerState, world: CollisionWorld, dt: number) {
   const wasGrounded = p.grounded;
   const fallSpeed = -p.vel.y;
   delta.copy(p.vel).multiplyScalar(dt);
@@ -102,7 +98,7 @@ function collide(p: PlayerState, intent: PlayerIntent, world: CollisionWorld, dt
   delta.x += p.current.x * dt;
   delta.z += p.current.z * dt;
   if (p.grounded && p.vel.y <= 0) delta.y = -GROUND_STICK;
-  world.movePlayer(p.pos, delta, p.sliding, move);
+  world.movePlayer(p.pos, delta, false, move);
 
   p.onWall = move.wall;
   if (move.wall) {
@@ -133,5 +129,4 @@ function collide(p: PlayerState, intent: PlayerIntent, world: CollisionWorld, dt
     else p.events.push('land', Math.max(0, fallSpeed));
   }
   if (p.grounded) p.vel.y = 0;
-  if (p.sliding && slideOver(p, intent.slideHeld, world)) endSlide(p);
 }

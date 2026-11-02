@@ -112,7 +112,7 @@ section('Builds — three of a build light its bonus');
   const kills = three(['pyre', 'deathThroes', 'mercyKill']);
   check(`Kills: the cards’ hits ${Math.round(BUILDS.v.kills * 100)}% harder`, near(cardFactor(kills), 1 + BUILDS.v.kills, 1e-9) && cardFactor(fight('pyre')) === 1);
   const p = createPlayer(0, 0, 0, 0);
-  p.cards = three(['slingshot', 'secondWind', 'lightBones']).items.cards;
+  p.cards = three(['shoulderCharge', 'secondWind', 'lightBones']).items.cards;
   check(`Movement: ${BUILDS.v.movement} more dash charge`, dashMaxOf(p) === DASH.v.charges + BUILDS.v.movement && dashMaxOf(createPlayer(0, 0, 0, 0)) === DASH.v.charges);
   const q = createPlayer(0, 0, 0, 0);
   q.cards = three(['tremor', 'crater', 'pogo']).items.cards;

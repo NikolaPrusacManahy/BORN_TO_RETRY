@@ -86,9 +86,9 @@ section('Fate Cards — the cards');
 {
   const fate = CARD_KINDS.filter((k) => familyOf(k) === 'fate');
   const by = RARITIES.map((r) => fate.filter((k) => CARD[k].rarity === r).length);
-  check('waves 1 and 2 and the builds’ (0.2.22): 46 Fate Cards, every rarity among them', fate.length === 46 && by.every((n) => n >= 3), by.join(' '));
-  check('16 Death Cards, 10 Traitor Cards (72 in all)', CARD_KINDS.filter((k) => familyOf(k) === 'death').length === 16 && CARD_KINDS.filter((k) => familyOf(k) === 'traitor').length === 10 && CARD_KINDS.length === 72);
-  check('each with its own name, the move it changes and what it does', new Set(CARD_KINDS.map((k) => CARD[k].name)).size === 72 && CARD_KINDS.every((k) => CARD[k].move.length > 0 && CARD[k].does().length > 10));
+  check('waves 1 and 2 and the builds’ (0.2.22): 44 Fate Cards (Update 0.3.20 — the slide’s two gone), every rarity among them', fate.length === 44 && by.every((n) => n >= 3), by.join(' '));
+  check('16 Death Cards, 9 Traitor Cards (69 in all; Runaway gone with the slide)', CARD_KINDS.filter((k) => familyOf(k) === 'death').length === 16 && CARD_KINDS.filter((k) => familyOf(k) === 'traitor').length === 9 && CARD_KINDS.length === 69);
+  check('each with its own name, the move it changes and what it does', new Set(CARD_KINDS.map((k) => CARD[k].name)).size === 69 && CARD_KINDS.every((k) => CARD[k].move.length > 0 && CARD[k].does().length > 10));
   check('a Traitor Card says its price; no other does', CARD_KINDS.every((k) => (familyOf(k) === 'traitor') === (CARD[k].cost?.().length ?? 0) > 5));
 }
 
@@ -103,9 +103,9 @@ section('Fate Cards — a boss’s chest deals');
   const taken = pickCard(c, p, 1);
   check('taking one: it’s yours for the run, the deal’s over', taken === kind && c.items.cards.has(kind) && p.cards === c.items.cards && c.deal === null);
   check('the run’s last boss deals none (the run ends there)', openBossChest(5, true).c.deal === null);
-  const most = [...all()].filter((k) => k !== 'pogo' && k !== 'slingshot' && familyOf(k) === 'fate');
+  const most = [...all()].filter((k) => k !== 'pogo' && k !== 'hoarder' && familyOf(k) === 'fate');
   const two = openBossChest(2, false, most).c.deal?.cards ?? [];
-  check('only cards you don’t carry (or as II)', two.length === 2 && two.includes('pogo') && two.includes('slingshot'));
+  check('only cards you don’t carry (or as II)', two.length === 2 && two.includes('pogo') && two.includes('hoarder'));
   check('carrying every one (as II where it can be), no deal', openBossChest(3, false, [...all()]).c.deal === null);
 }
 
@@ -235,7 +235,7 @@ section('Fate Cards — carried, shown, the Lab');
   carryOver(a, b);
   check('they come down to the next floor with you; a new run has none', b.items.cards.has('pogo') && createCombat(OPEN_ARENA).items.cards.size === 0);
   const c = createCombat(OPEN_ARENA);
-  c.items.cards.add('allIn').add('slingshot');
+  c.items.cards.add('allIn').add('hoarder');
   c.items.redRings = 2;
   c.items.whiteKeys = 1;
   c.bag[2] = holding('goldSword', 12);
@@ -245,8 +245,8 @@ section('Fate Cards — carried, shown, the Lab');
   const v = inventoryView(c, p);
   const page = renderToStaticMarkup(createElement(Inventory, { view: v, closeKey: 'Tab', onClose() {} }));
   const look = page.slice(page.indexOf('rb-inv-look'));
-  check('on its page each card is small, the first shown whole beside them (no card grown over the others)', (page.match(/class="rb-inv-card[ "]/g) ?? []).length === 2 && page.includes('rb-inv-card is-shown') && look.includes('>Slingshot<') && !look.includes('>All In<'));
-  check('TAB shows your cards (commonest first), weapons, rings, keys and your health', v.cards.map((x) => x.kind).join() === 'slingshot,allIn' && v.cards[1].rarity === 'mythic' && v.weapons.length === 1 && v.weapons[0].uses === 12 && v.weapons[0].inHand && v.rings[0].n === 2 && v.keys.length === 1 && v.maxHp === 50, JSON.stringify({ cards: v.cards.map((x) => x.name), maxHp: v.maxHp }));
+  check('on its page each card is small, the first shown whole beside them (no card grown over the others)', (page.match(/class="rb-inv-card[ "]/g) ?? []).length === 2 && page.includes('rb-inv-card is-shown') && look.includes('>Hoarder<') && !look.includes('>All In<'));
+  check('TAB shows your cards (commonest first), weapons, rings, keys and your health', v.cards.map((x) => x.kind).join() === 'hoarder,allIn' && v.cards[1].rarity === 'mythic' && v.weapons.length === 1 && v.weapons[0].uses === 12 && v.weapons[0].inHand && v.rings[0].n === 2 && v.keys.length === 1 && v.maxHp === 50, JSON.stringify({ cards: v.cards.map((x) => x.name), maxHp: v.maxHp }));
   const lab = createCombat(OPEN_ARENA);
   const q = createPlayer(0, 0, 0, 0);
   runLab({ kind: 'deal' }, lab, q, 0, emptyTreasure());

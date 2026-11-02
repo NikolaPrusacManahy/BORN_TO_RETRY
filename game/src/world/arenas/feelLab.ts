@@ -25,7 +25,7 @@ export const FEEL_LAB: Arena = {
     rampZ(18, 0, 0, -11, 4, 6),
     // East: a drop tower (8 m) with a jump pad in front, for slams.
     boxAt(10, 0, 14, 4, 8, 4, 'block'),
-    // East: a low tunnel (1.3 m) you can only slide through.
+    // East: a low tunnel (1.3 m): no room to stand (it was slid through; Update 0.3.20 — no slide).
     boxAt(18, 1.3, 2, 4, 0.4, 6, 'accent'),
     boxAt(17.5, 0, 2, 0.5, 1.7, 6, 'block'),
     boxAt(22, 0, 2, 0.5, 1.7, 6, 'block'),

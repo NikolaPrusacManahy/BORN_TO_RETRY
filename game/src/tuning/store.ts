@@ -1,7 +1,7 @@
 // M1 — the list of tuning groups, plus saving, exporting and importing changed values.
 // Export/import keys are "group.knob" (for example "movement.runSpeed").
 import { TuningGroup, resetGroup, setKnob } from './schema';
-import { DASH, MOVE, SLAM, SLIDE, WALL, WALLRUN } from './movement';
+import { DASH, MOVE, SLAM, WALL, WALLRUN } from './movement';
 import { CAMERA, SHAKE } from './camera';
 import { LAB } from './lab';
 import { FEEDBACK, FISTS, TARGETS } from './combat';
@@ -51,7 +51,7 @@ import { FOES_COVE } from './foesCove';
 import { FOES_COVE_B } from './foesCoveB';
 
 /** Panel order. */
-export const GROUPS: TuningGroup[] = [MOVE, DASH, SLIDE, WALL, WALLRUN, SLAM, SWIM, FISTS, WEAPONS, GUN, FEEDBACK, LAUNCH, HEALTH, ENEMIES, FOES, FOES2, FOES3, FOES3B, FOES4, FOES5, FOES5B, FOES6, FOES6B, COVE_KNOBS, FOES_COVE, FOES_COVE_B, FROZEN_KNOBS, FORGE_KNOBS, MOON, CROWD, BOSS, DRAGON, BONE_KING, DINO, DROWNED, WHALE, BIG_SHARK, ROOMS, GARDEN, TIDE, UNDERWATER, EXECUTION, CINEMA, SOUND, MONEY, ITEMS, BONUS, CARDS, BUILDS, ARMS, CAMERA, LIGHT, LOBBY_LIGHT, SHAKE, TARGETS, LAB];
+export const GROUPS: TuningGroup[] = [MOVE, DASH, WALL, WALLRUN, SLAM, SWIM, FISTS, WEAPONS, GUN, FEEDBACK, LAUNCH, HEALTH, ENEMIES, FOES, FOES2, FOES3, FOES3B, FOES4, FOES5, FOES5B, FOES6, FOES6B, COVE_KNOBS, FOES_COVE, FOES_COVE_B, FROZEN_KNOBS, FORGE_KNOBS, MOON, CROWD, BOSS, DRAGON, BONE_KING, DINO, DROWNED, WHALE, BIG_SHARK, ROOMS, GARDEN, TIDE, UNDERWATER, EXECUTION, CINEMA, SOUND, MONEY, ITEMS, BONUS, CARDS, BUILDS, ARMS, CAMERA, LIGHT, LOBBY_LIGHT, SHAKE, TARGETS, LAB];
 
 /** Named after the working title; kept when the game became Born To Retry so tuned values carry over. */
 export const TUNING_KEY = 'ruinbreaker-tuning';

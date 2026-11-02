@@ -1,6 +1,7 @@
-// M1 — placeholder movement sounds: jumps, landings, dashes, the slide scrape, slams and pads. M1 step 8 — and
+// M1 — placeholder movement sounds: jumps, landings, dashes, slams and pads (Update 0.3.20 — the slide's scrape gone
+// with it). M1 step 8 — and
 // getting hurt and dying.
-// Update 0.1.17 — the landing from the designer's recording (clips.ts; louder the harder). The slide keeps its scrape.
+// Update 0.1.17 — the landing from the designer's recording (clips.ts; louder the harder).
 // (Footsteps came and went: the designer, "no need in this game".)
 // Batch 5: every other move a clip first (MOVE_CLIPS: the jumps share one, as do the wall jumps), the made sound without.
 import type { MoveEvent } from '../sim/player/state';
@@ -18,7 +19,6 @@ export function slamThud(a: AudioEngine) {
 /** Update 0.1.17 — the clip each move plays, if it has one picked. */
 const MOVE_CLIPS: Partial<Record<MoveEvent, ClipSound>> = {
   jump: 'jump',
-  slideJump: 'jump',
   dashJump: 'jump',
   wallJump: 'wallJump',
   wallRunJump: 'wallJump',
@@ -33,11 +33,9 @@ const MOVE_CLIPS: Partial<Record<MoveEvent, ClipSound>> = {
 };
 
 export class MoveSounds {
-  private slide: NoiseLoop;
   private wallRun: NoiseLoop;
 
   constructor(private a: AudioEngine) {
-    this.slide = new NoiseLoop(a, 900);
     this.wallRun = new NoiseLoop(a, 1600);
   }
 
@@ -47,7 +45,6 @@ export class MoveSounds {
     if (clip && a.clips.play(clip)) return;
     switch (kind) {
       case 'jump':
-      case 'slideJump':
       case 'dashJump':
         tone(a, { from: 230, to: 430, dur: 0.07, gain: 0.12 });
         noise(a, { dur: 0.08, gain: 0.12, filter: 'highpass', from: 1500, to: 3500 });
@@ -121,11 +118,6 @@ export class MoveSounds {
       default:
         break;
     }
-  }
-
-  /** Every frame: the scrape is on while sliding on the ground. */
-  setSliding(on: boolean) {
-    this.slide.setLevel(on ? 0.16 : 0);
   }
 
   /** Every frame: a lighter, brighter scrape while wall running. */

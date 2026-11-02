@@ -43,7 +43,7 @@ function pop(o: Orb, at: Vector3, events: EventQueue<CombatEvent>) {
 
 export function updateOrbs(orbs: Orb[], player: PlayerState, world: CollisionWorld, events: EventQueue<CombatEvent>, dt: number) {
   const r = TARGETS.v.orbRadius;
-  const height = player.sliding ? BODY.crouchHeight : BODY.height;
+  const height = BODY.height;
   for (const o of orbs) {
     if (!o.alive || o.parried) continue;
     o.life -= dt;

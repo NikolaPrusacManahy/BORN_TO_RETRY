@@ -1,5 +1,6 @@
 // M1 — places the first-person camera each frame: the interpolated body position, eye height (lower while
-// sliding), a spring dip on landing, smoothed steps, FOV kick with speed and dashes, roll tilt, and shake.
+// kneeling; Update 0.3.20 — no slide), a spring dip on landing, smoothed steps, FOV kick with speed and dashes, roll
+// tilt, and shake.
 // Update 0.2.11 — swimming (floor 6): the view bobs and sways slowly, as if held up by the water.
 // Update 0.2.14 — the dip spring is stepped in slices (core/spring.ts): on a slow frame it flew the view into the sky.
 import * as THREE from 'three';
@@ -64,7 +65,7 @@ export class CameraRig {
     const v = CAMERA.v;
     this.at.lerpVectors(prev, p.pos, alpha);
 
-    const eye = p.kneel > 0 ? v.kneelEyeHeight : p.sliding ? v.slideEyeHeight : v.eyeHeight;
+    const eye = p.kneel > 0 ? v.kneelEyeHeight : v.eyeHeight;
     this.eye += (eye - this.eye) * ease(v.eyeRate, dt);
     this.stepOffset *= 1 - ease(STEP_EASE, dt);
     stepSpring(this.dip, v.springStiffness, v.springDamping, dt);
@@ -73,11 +74,11 @@ export class CameraRig {
     const fovTarget = (p.dashTime > 0 ? v.dashFovKick : 0) + Math.min(v.speedFovMax, Math.max(0, speed - MOVE.v.runSpeed) * v.speedFov);
     this.fovExtra += (fovTarget - this.fovExtra) * ease(v.fovRate, dt);
 
-    // Roll: lean into strafes, more while sliding, and away from a wall you slide down.
+    // Roll: lean into strafes, and away from a wall you slide down.
     const rightX = Math.cos(look.yaw);
     const rightZ = -Math.sin(look.yaw);
     const side = Math.max(-1, Math.min(1, (p.vel.x * rightX + p.vel.z * rightZ) / MOVE.v.runSpeed));
-    let rollTarget = -side * (p.sliding ? v.slideTilt : v.strafeTilt) * DEG;
+    let rollTarget = -side * v.strafeTilt * DEG;
     // A wall on your left has its normal pointing right (dot > 0): roll clockwise (−), away from it; a wall on your
     // right rolls anticlockwise (+). Update 0.0.3 — stronger while wall running, as the designer specified.
     const wallSide = Math.sign(p.wallNormal.x * rightX + p.wallNormal.z * rightZ);

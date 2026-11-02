@@ -67,8 +67,8 @@ section('Slam');
 {
   const w = new FlatWorld();
   const p = createPlayer(0, 5, 0, 0);
-  const seen = run(p, w, 1, () => ({ slidePressed: true, slideHeld: true }));
-  check('the slide key in the air no longer slams (Update 0.0.3)', !p.slamming && !seen.includes('slam'));
+  const seen = run(p, w, 1, () => ({ jumpPressed: true, dashPressed: true }));
+  check('only the slam key slams (Update 0.3.20: Ctrl)', !p.slamming && !seen.includes('slam'));
 }
 
 section('Slam — the blast');

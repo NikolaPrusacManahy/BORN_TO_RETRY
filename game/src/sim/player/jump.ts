@@ -1,10 +1,9 @@
 // M1 — jumping from the ground, with coyote time and a jump buffer. What you were doing changes the jump:
-// out of a dash or a slide you keep their speed, and right after a slam landing you bounce higher.
-import { DASH, MOVE, SLAM, SLIDE } from '../../tuning/movement';
+// out of a dash you keep its speed, and right after a slam landing you bounce higher. (Update 0.3.20 — no slide.)
+import { DASH, MOVE, SLAM } from '../../tuning/movement';
 import { CARDS } from '../../tuning/cards';
 import { bears } from '../cards/cards';
 import type { PlayerState } from './state';
-import { endSlide } from './slide';
 
 /** Upward speed for a jump `mult` times the normal height. */
 export function jumpSpeed(mult = 1): number {
@@ -26,13 +25,6 @@ export function tryGroundJump(p: PlayerState): boolean {
     p.vel.z = p.dashDir.z * DASH.v.speed * DASH.v.jumpKeep;
     p.dashTime = 0;
     p.events.push('dashJump');
-  } else if (p.sliding) {
-    // (Update 0.2.15 — Slingshot, a Fate Card: more of the slide's speed.)
-    const keep = SLIDE.v.jumpKeep * (bears(p, 'slingshot') ? CARDS.v.slingshot : 1);
-    p.vel.x = p.slideDir.x * p.slideCur * keep;
-    p.vel.z = p.slideDir.z * p.slideCur * keep;
-    endSlide(p);
-    p.events.push('slideJump');
   } else if (p.slamBounce > 0) {
     mult = SLAM.v.bounceHeight;
     p.events.push('slamBounce');

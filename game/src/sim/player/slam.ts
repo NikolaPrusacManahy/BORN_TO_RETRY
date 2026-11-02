@@ -24,9 +24,13 @@ export function heightAboveGround(p: PlayerState, world: CollisionWorld): number
 /** Update 0.2.22 — how high up you can slam from (the Slam build's bonus: lower, a jump is enough). */
 export const slamFloor = (p: PlayerState) => (lit(p.cards, 'slam') ? Math.min(SLAM.v.minHeight, BUILDS.v.slamHeight) : SLAM.v.minHeight);
 
+/** Update 0.3.20 — a slam could start now (the HUD lights the ground pound's key). */
+export function canSlam(p: PlayerState, world: CollisionWorld): boolean {
+  return !p.grounded && !p.slamming && p.dashTime <= 0 && heightAboveGround(p, world) >= slamFloor(p);
+}
+
 export function tryStartSlam(p: PlayerState, pressed: boolean, world: CollisionWorld): boolean {
-  if (!pressed || p.grounded || p.slamming || p.dashTime > 0) return false;
-  if (heightAboveGround(p, world) < slamFloor(p)) return false;
+  if (!pressed || !canSlam(p, world)) return false;
   p.slamming = true;
   p.slamFrom = p.pos.y;
   p.vel.set(0, -SLAM.v.speed, 0);
