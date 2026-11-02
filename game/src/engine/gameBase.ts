@@ -44,6 +44,7 @@ export abstract class GameBase {
   private labWaves = false;
   /** Update 0.1.1 — the Lab's Meter: its Execution Power meter kept full (on at first; never outside the Lab). */
   private labMeter = true;
+  private paused = false;
   /** Update 0.2.9 — the difficulty the run was started on (Update 0.2.12: the run plays by it; the Lab's is the real
    *  one). */
   runDifficulty: Difficulty = 'real';
@@ -157,10 +158,18 @@ export abstract class GameBase {
     if (this.run) this.run.hold = on;
   }
 
+  /** Update 0.3.12 — the pause menu is up (the designer: "pause menu actually pauses the game"): no time passes. A new
+   *  run starts as paused as the last. */
+  setPaused(on: boolean) {
+    this.paused = on;
+    if (this.run) this.run.paused = on;
+  }
+
   protected newRun(level: Level) {
     this.run?.dispose();
     this.run = new Run(level, this.audio, this.renderer, this.hud, this.cb, this.levels, this.inLab ? 'real' : this.runDifficulty, this.inLab || this.runCards);
     this.run.waves = !this.inLab || this.labWaves;
+    this.run.paused = this.paused;
     if (this.inLab) this.run.labCommand({ kind: 'meter', on: this.labMeter });
   }
 

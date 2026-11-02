@@ -1,7 +1,9 @@
 // Update 0.3.4 — the style rank (the designer: "a nice visual for now, no need to add bonuses", "aggressive … fast pace
 // energy"): D up to SSS from what you do, variety climbing it, air kills and multikills more, draining all the time,
 // a hurt knocking a lump off, a feed of what you did; and the speed lines taken out ("it takes too much space").
-import { existsSync } from 'node:fs';
+// Update 0.3.12 — the designer: "combo bar isn't frozen during executions", "pause menu actually pauses the game": it
+// holds through an execution and a held world; paused, no time passes at all.
+import { existsSync, readFileSync } from 'node:fs';
 import { check, section } from './harness';
 import { RANKS, StyleMeter } from '../src/engine/styleMeter';
 
@@ -54,4 +56,22 @@ section('Style rank — losing it');
   for (let i = 0; i < 60 * 30; i++) s.update(1 / 60, false);
   check('left alone it drains away, the feed too', s.rank === -1 && s.feed.length === 0);
   check('the speed lines are gone', !existsSync('src/engine/speedLines.ts'));
+}
+
+section('Style rank — held through an execution; the pause menu pauses');
+{
+  const s = new StyleMeter();
+  for (const k of ['execBurst', 'parry', 'kill', 'hitThrown'] as const) s.event(k, 0);
+  const before = s.points;
+  const rank = s.rank;
+  for (let i = 0; i < 60 * 4; i++) s.update(1 / 60, false, true);
+  check('through an execution (4 s) the bar doesn’t drain', s.points === before && s.rank === rank, `${before.toFixed(0)} → ${s.points.toFixed(0)}`);
+  check('its feed still goes', s.feed.length === 0);
+  s.update(1, false);
+  check('after, it drains again', s.points < before);
+  const src = (f: string) => readFileSync(new URL(`../src/${f}`, import.meta.url), 'utf-8');
+  const run = src('engine/run.ts');
+  check('the run holds the rank in an execution or a held world', run.includes('realFrame(real, !p.grounded, this.hits.hurts, frozen || this.combat.exec.active)'));
+  check('paused, the run’s time stops (the world, the show, the rank, the fade)', run.includes('const real = this.paused ? 0 : elapsed;') && !/elapsed/.test(run.replace('const real = this.paused ? 0 : elapsed;', '').replace(/frame\(elapsed/, '').replace('stats.push(elapsed', '')));
+  check('the pause menu (a run’s, the lobby’s) pauses the game; a new run keeps it', src('App.tsx').includes("getGame()?.setPaused(p === 'paused' || p === 'lobbyPaused')") && src('engine/gameBase.ts').includes('this.run.paused = this.paused;'));
 }

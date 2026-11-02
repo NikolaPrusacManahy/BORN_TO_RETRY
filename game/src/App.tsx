@@ -19,13 +19,12 @@
 // GateConfirm.tsx), then the run starts with the loader as before.
 // Update 0.2.12 — the boot screens over the main menu first (CreditIntro.tsx: the studio's logo, the tips; the menu
 // waits for them).
+// Update 0.3.12 — the pause menu pauses the game (no time passes); the dev keys moved to screens/useDevKeys.ts.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MenuView } from './engine/Game';
 import { CAMP_FADE } from './engine/menu/campScene';
 import { INTRO } from './engine/menu/introTimeline';
 import { HEALTH } from './tuning/health';
-import { LAB } from './tuning/lab';
-import { setKnob } from './tuning/schema';
 import { CampMenu } from './screens/CampMenu';
 import { GameHandle, GameView } from './screens/GameView';
 import { GateConfirm } from './screens/GateConfirm';
@@ -47,7 +46,8 @@ import { setUiSize } from './ui/uiScale';
 import { setBloodLevel } from './engine/bloodFx';
 import { setEffectsLow } from './engine/effectsLevel';
 import { setGlowOn } from './engine/halos';
-import { devKeyAction, devToolsEnabled } from './state/devTools';
+import { devToolsEnabled } from './state/devTools';
+import { useDevKeys } from './screens/useDevKeys';
 
 /** Update 0.2.9 — 'lobby': walking round the lobby; 'lobbyPaused': its pause menu; 'confirm': its gate's questions. */
 type Phase = 'menu' | 'intro' | 'lobby' | 'lobbyPaused' | 'confirm' | 'playing' | 'paused' | 'dead';
@@ -77,11 +77,15 @@ export default function App() {
   const phaseRef = useRef<Phase>('menu');
   const dev = devToolsEnabled(import.meta.env.DEV);
   const getGame = useCallback(() => view.current?.game() ?? null, []);
-  // The ref changes at once: a lock change can land before React re-renders.
-  const go = useCallback((p: Phase) => {
-    phaseRef.current = p;
-    setPhase(p);
-  }, []);
+  // The ref changes at once: a lock change can land before React re-renders. (Update 0.3.12 — paused, the game waits.)
+  const go = useCallback(
+    (p: Phase) => {
+      phaseRef.current = p;
+      setPhase(p);
+      getGame()?.setPaused(p === 'paused' || p === 'lobbyPaused');
+    },
+    [getGame],
+  );
   /** Update 0.0.19 — the Lab's panel (useLabDock.tsx). */
   const lab = useLabDock(getGame, go);
   /** Update 0.2.16 — the Fate Cards' screens: a deal, TAB (useFate.tsx). */
@@ -200,24 +204,8 @@ export default function App() {
     [getGame, play],
   );
 
-  useEffect(() => {
-    if (!dev) return;
-    const onKey = (e: KeyboardEvent) => {
-      const action = devKeyAction(e.code);
-      if (!action || e.repeat) return;
-      if ((e.target as HTMLElement | null)?.tagName === 'TEXTAREA') return;
-      e.preventDefault();
-      if (action === 'tuning') setTuningOpen(!tuningRef.current);
-      else if (action === 'debug') setDebug((d) => !d);
-      else if (action === 'respawn' && phaseRef.current === 'dead') retry();
-      else if (action === 'respawn' && phaseRef.current !== 'intro' && phaseRef.current !== 'confirm') getGame()?.restart();
-      else if (action === 'god') setKnob(LAB, 'god', LAB.v.god >= 1 ? 0 : 1);
-      else if (action === 'lab') getGame()?.toggleLab();
-      else if (action === 'labPanel' && (phaseRef.current === 'playing' || lab.ref.current)) lab.setPanel(!lab.ref.current);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [dev, getGame, setTuningOpen, lab.ref, lab.setPanel, retry]);
+  const toggleDebug = useCallback(() => setDebug((d) => !d), []);
+  useDevKeys({ dev, getGame, phase: phaseRef, tuning: tuningRef, setTuningOpen, toggleDebug, lab, retry });
 
   const changeSettings = (settings: Settings) => {
     const next = { ...save, settings };

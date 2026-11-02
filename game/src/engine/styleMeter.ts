@@ -4,6 +4,8 @@
 // a while after), so variety climbs it; killing in the air and several kills at once add more. The points drain all the
 // time, faster the higher you are; being hurt knocks a lump off. Each new thing worth saying ("+ PARRY") goes up beside
 // it. It gives nothing: it's to be seen (the HUD's StyleRank.tsx). The words are the game's own.
+// Update 0.3.12 (the designer: "combo bar isn't frozen during executions") — it doesn't drain through an execution, nor
+// while the world holds still (a hit-stop, TAB, a deal, the Lab's panel); paused, nothing moves at all.
 import type { CombatEvent } from '../sim/combat/state';
 
 export interface Rank {
@@ -116,11 +118,12 @@ export class StyleMeter {
     this.points *= 1 - HURT;
   }
 
-  /** `dt`: game time; `airborne`: off the ground. */
-  update(dt: number, airborne: boolean) {
+  /** `dt`: game time; `airborne`: off the ground; `still`: an execution or a held world (the points stay; the feed
+   *  goes on). */
+  update(dt: number, airborne: boolean, still = false) {
     this.clock += dt;
     this.airborne = airborne;
-    this.points = Math.max(0, this.points - (DRAIN + DRAIN_RANK * Math.max(0, this.rank)) * dt);
+    if (!still) this.points = Math.max(0, this.points - (DRAIN + DRAIN_RANK * Math.max(0, this.rank)) * dt);
     for (const [k, f] of this.fresh) this.fresh.set(k, Math.min(1, f + FRESHEN * dt));
     while (this.feed.length > 0 && this.clock - this.feed[0].t > FEED_LIFE) this.feed.shift();
   }

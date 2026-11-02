@@ -2,7 +2,13 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-02, Update 0.3.11: floor 7, Frozen Depths — its level)
+## Next up (2026-11-02, Update 0.3.12: the pause menu pauses; the style rank holds through executions)
+- The designer: "combo bar isn't frozen during executions", "pause menu actually pauses the game, eh?" (spec
+  `MD_UPDATES/U0312_PAUSE_AND_RANK.md`): paused, no time passes at all (before, the world went on behind the menu); the
+  style rank doesn't drain through an execution or a held world. The dev keys moved to `screens/useDevKeys.ts`.
+  **Unseen in the game.** Then on with floor 7's enemies and the Frost Roc.
+
+## Before (2026-11-02, Update 0.3.11: floor 7, Frozen Depths — its level)
 - **Players polled: at least 10 floors.** The plan for floors 7–10 (`MD/FLOORS_7_10_PLAN.md`): 7 Frozen Depths, 8 The
   Forge, 9 The Rift, 10 The Last Floor (a dark Joseph, The Retrier). The designer: "Go with it".
 - **Floor 6 is in the run** (`LAST_FLOOR` 6); it moves to each new floor as it's done. **Floor 7 plays from the Lab**

@@ -191,13 +191,14 @@ export class CombatScene {
   }
 
   /** The parts timed in real time: (Update 0.3.2) an execution's slow motion and flash; (Update 0.3.4) the style rank
-   *  (`airborne`: you're off the ground; `hurts`: how many times you've been hurt so far). */
-  realFrame(real: number, airborne: boolean, hurts: number) {
+   *  (`airborne`: you're off the ground; `hurts`: how many times you've been hurt so far; Update 0.3.12 — `still`: an
+   *  execution or a held world, the rank doesn't drain). */
+  realFrame(real: number, airborne: boolean, hurts: number, still: boolean) {
     this.execFx.update(real);
     const style = this.feedback.style;
     if (hurts > this.hurts) style.hurt();
     this.hurts = hurts;
-    style.update(real, airborne);
+    style.update(real, airborne, still);
   }
 
   /** Update 0.3.2 — the world's speed (an execution's finish slows it). */

@@ -84,6 +84,8 @@ export abstract class RunBase {
   /** Update 0.0.19 — the Lab's waves come (the Feel Lab's knobs); the world holds still (the Lab's panel is open). */
   waves = true;
   hold = false;
+  /** Update 0.3.12 — the pause menu is up: no time passes at all (Run.frame). */
+  paused = false;
   /** Update 0.2.16 — a deal of Fate Cards is up (the world holds still till you've taken one and the screen's done). */
   protected dealing = false;
   protected show = new BossShow(null);

@@ -136,7 +136,9 @@ export class Run extends RunBase {
     return n;
   }
 
-  frame(real: number, input: Input, settings: Settings, aspect: number, renderer: THREE.WebGLRenderer, stats: FrameStats, debug: DebugInfo) {
+  frame(elapsed: number, input: Input, settings: Settings, aspect: number, renderer: THREE.WebGLRenderer, stats: FrameStats, debug: DebugInfo) {
+    // (Update 0.3.12 — paused, no time passes: the world, the show, the rank, the death's fade all wait; it's drawn.)
+    const real = this.paused ? 0 : elapsed;
     const p = this.player;
     const locked = input.locked;
     // Update 0.0.13 — kneeling at a chest, the view turns to it and the mouse waits (and during the boss room's show).
@@ -175,7 +177,7 @@ export class Run extends RunBase {
       this.dealing = this.hold = true;
       this.cb.onDeal(dealView(this.combat));
     }
-    stats.push(real * 1000, steps, this.clock.dropped);
+    stats.push(elapsed * 1000, steps, this.clock.dropped);
 
     applyMoveEvents(p.events, this.rig, this.sounds, this.arms, this.hits);
     p.events.clear();
@@ -185,8 +187,8 @@ export class Run extends RunBase {
       this.death.start();
       this.cb.onDeath();
     }
-    this.sounds.setSliding(p.sliding && p.grounded);
-    this.sounds.setWallRunning(p.wallRunning);
+    this.sounds.setSliding(!this.paused && p.sliding && p.grounded);
+    this.sounds.setWallRunning(!this.paused && p.wallRunning);
     this.rig.update(real * scale, this.clock.alpha, this.prev, p, this.look, settings.fov, aspect);
     // The boss room's show may take the view.
     const shot = this.show.update(real, this.camera, this.look, this.combat);
@@ -206,7 +208,7 @@ export class Run extends RunBase {
       this.view.breakPillar?.(e.value, pillar);
     }
     this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt, this.clock.alpha);
-    this.combatScene.realFrame(real, !p.grounded, this.hits.hurts);
+    this.combatScene.realFrame(real, !p.grounded, this.hits.hurts, frozen || this.combat.exec.active);
     followHeld(this.combat, this.look, this.arms, this.camera, real);
     const free = locked && !p.dead && !this.show.locked && !shot.cinematic && !chestShot && !execHeld(this.combat.exec);
     const lobby = this.level.lobby;

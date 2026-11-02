@@ -211,6 +211,8 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 - D DIRTY, C CRUEL, B BRUTAL, A ATROCIOUS, S SAVAGE, SS SLAUGHTERHOUSE, SSS UNKILLABLE, from what you do (blows, kills,
   parries, executions; the same move again adds less; air kills ×1.5, multikills); it drains, faster the higher; a hurt
   knocks a third off. A visual only. (The 0.3.1 speed lines: taken out, "too much space on the screen".)
+- Update 0.3.12 (the designer: "combo bar isn't frozen during executions"): it doesn't drain through an execution, nor
+  while the world holds still; the **pause menu pauses the game** (no time passes; spec `MD_UPDATES/U0312_PAUSE_AND_RANK.md`).
 
 ### Fate Cards (Update 0.2.16, the designer; spec `MD_UPDATES/U0216_FATE_CARDS.md`; Update 0.2.15's Scars became 14 of them)
 - **When:** a boss's chest (not the run's last) and a challenge room's always **deal three Fate Cards**; a chest opened
