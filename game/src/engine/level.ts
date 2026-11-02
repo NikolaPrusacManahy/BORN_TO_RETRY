@@ -4,6 +4,7 @@
 // Update 0.0.19 — the Lab's boss room: a floor laid out as usual, you standing just inside its boss room.
 // Update 0.2.9 — the lobby: one closed hall (world/lobby/) with its stations (sim/lobby/lobby.ts), where you choose your
 // difficulty and character and go through the main gate into a run.
+import type { Pillar } from '../sim/combat/pillars';
 import * as THREE from 'three';
 import { RapierWorld } from '../physics/rapierWorld';
 import { LAB_SEED } from '../sim/combat/state';
@@ -27,6 +28,8 @@ export interface LevelView extends ArenaView {
   update?(dt: number, run: DungeonRun, at: THREE.Vector3, flood?: number, kicks?: number): void;
   /** Update 0.2.9 — anywhere else (the lobby): its own life each frame; `at`: the camera. */
   frame?(dt: number, at: THREE.Vector3): void;
+  /** Update 0.3.9 — pillar `i` (`p`) broken by the pillar finisher. */
+  breakPillar?(i: number, p: Pillar): void;
 }
 
 export interface Level {

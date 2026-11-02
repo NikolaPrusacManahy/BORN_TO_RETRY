@@ -17,6 +17,8 @@
 // Update 0.3.8 (the designer: "Finishers that interact with environment") — a body pinned to a wall can be executed for
 // free (the meter as it is): the wall finisher (execPin.ts). You're brought up to it, facing it; it heals Wall finisher
 // heal; its kill was counted as it died. The throw's aim and landing moved to execThrow.ts.
+// Update 0.3.9 — one pinned to a pillar: the pillar finisher (execPin.ts): thrown straight through it (it breaks:
+// pillars.ts) to the wall beyond, bursting there with its blood on the wall.
 import { Vector3 } from 'three';
 import { CARDS } from '../../tuning/cards';
 import { boost, holds } from '../cards/cards';
@@ -33,7 +35,8 @@ import type { CombatState } from './state';
 import { BLOWS, EXEC_MOVES, EXECUTABLE, heightOf, moveOf } from './execMoves';
 import { moveFor, PIN_AHEAD, PIN_HEAD, PIN_LUNGE } from './execPin';
 import { F, frame, pose, R } from './execPose';
-import { findWall, throwTo } from './execThrow';
+import { findWall, throwTo, wallPast } from './execThrow';
+import { breakPillar, pillarAt } from './pillars';
 import { emptyTargetHit, landHit } from './strike';
 
 export { EXECUTABLE, moveOf, pose };
@@ -69,14 +72,16 @@ export interface Execution {
   from: Vector3;
   land: Vector3;
   flight: number;
-  /** Update 0.3.8 — the wall finisher (a pinned body: execPin.ts), and where you stood before you were brought up to it. */
+  /** Update 0.3.8 — the wall finisher (a pinned body: execPin.ts), and where you stood before you were brought up to it.
+   *  Update 0.3.9 — the pillar it's pinned to (−1: none; pillars.ts). */
   pinned: boolean;
   walk: Vector3;
+  pillar: number;
 }
 
 export function createExecution(): Execution {
   const v = () => new Vector3();
-  return { active: false, target: -1, kind: 'snake', t: 0, origin: v(), yaw: 0, pitch: 0, aimYaw: 0, wall: Infinity, grip: v(), dir: v().set(0, 1, 0), middle: v(), lookYaw: 0, lookPitch: 0, stand: v(), start: v(), slams: 0, beat: 0, thrown: false, from: v(), land: v(), flight: 0, pinned: false, walk: v() };
+  return { active: false, target: -1, kind: 'snake', t: 0, origin: v(), yaw: 0, pitch: 0, aimYaw: 0, wall: Infinity, grip: v(), dir: v().set(0, 1, 0), middle: v(), lookYaw: 0, lookPitch: 0, stand: v(), start: v(), slams: 0, beat: 0, thrown: false, from: v(), land: v(), flight: 0, pinned: false, walk: v(), pillar: -1 };
 }
 
 const UP = new Vector3(0, 1, 0);
@@ -126,6 +131,7 @@ export function tryExecute(state: CombatState, player: PlayerState, yaw: number,
   ex.target = i;
   ex.kind = e.kind;
   ex.pinned = e.phase === 'dead';
+  ex.pillar = ex.pinned ? pillarAt(state, e.wall) : -1;
   const move = moveFor(ex);
   ex.t = 0;
   ex.slams = 0;
@@ -138,7 +144,8 @@ export function tryExecute(state: CombatState, player: PlayerState, yaw: number,
   ex.pitch = pitch;
   ex.aimYaw = ex.yaw;
   ex.wall = Infinity;
-  if (move.end === 'wall') findWall(state, ex);
+  if (move.end === 'wall' && ex.pillar < 0) findWall(state, ex);
+  else if (move.end === 'wall') wallPast(state, ex, past(state, ex));
   ex.stand.copy(e.pos);
   ex.start.copy(e.pos);
   // (A pinned body is held by its head as it hangs.)
@@ -156,6 +163,12 @@ export function tryExecute(state: CombatState, player: PlayerState, yaw: number,
   pose(ex, 0);
   state.events.push('execGrab', i, ex.grip.x, ex.grip.y, ex.grip.z);
   return true;
+}
+
+/** Update 0.3.9 — how far ahead (m) the pillar's far side is (its corners, whichever way you face it). */
+function past(state: CombatState, ex: Execution): number {
+  const p = state.pillars[ex.pillar];
+  return (p.x - ex.origin.x) * -Math.sin(ex.yaw) + (p.z - ex.origin.z) * -Math.cos(ex.yaw) + p.half * Math.SQRT2;
 }
 
 /** A pinned body stays pinned this long (s) while it's executed. */
@@ -221,6 +234,8 @@ export function stepExecution(state: CombatState, dt: number, player: PlayerStat
     ex.thrown = true;
     ex.from.copy(ex.middle);
     throwTo(state, ex, move);
+    // (Update 0.3.9 — straight through the pillar: it breaks.)
+    if (ex.pillar >= 0) breakPillar(state, ex.pillar, ex.aimYaw, Math.max(0, ex.wall - past(state, ex)));
     state.events.push('execThrow', ex.target, ex.middle.x, ex.middle.y, ex.middle.z);
   }
   pose(ex, ex.t);
@@ -245,6 +260,8 @@ function finish(state: CombatState, ex: Execution, at: Vector3, kind: 'execLand'
   e.prev.copy(e.pos);
   state.events.push(kind, ex.target, at.x, at.y, at.z);
   F.set(-Math.sin(ex.aimYaw), 0, -Math.cos(ex.aimYaw));
+  // (Update 0.3.9 — through a pillar into the wall: its blood on the wall.)
+  if (ex.pillar >= 0) state.events.push('wallSplat', 12, at.x + F.x * 0.5, ex.land.y, at.z + F.z * 0.5);
   const hit = emptyTargetHit();
   hit.kind = 'enemy';
   hit.index = ex.target;

@@ -36,6 +36,8 @@ export type CombatEvent =
   | 'guard'
   // Update 0.3.7 — a body thrown into a wall (value: how fast, m/s; at the wall: combat/splat.ts).
   | 'wallSplat'
+  // Update 0.3.9 — a pillar broken by the pillar finisher (value: which; at its middle, where it snaps: pillars.ts).
+  | 'pillarBreak'
   | 'respawn'
   // M2 — enemies (value = which enemy): one arriving, each kind's warning and attack.
   | 'enemySpawn'

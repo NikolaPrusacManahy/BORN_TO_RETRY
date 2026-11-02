@@ -39,6 +39,7 @@ import { FistState, createFists } from './fists';
 import { HitStop } from './hitStop';
 import { Dummy, Orb, Turret, createDummy, createOrbs, createTurret } from './targets';
 import { Hive, resetHives } from '../dungeon/hives';
+import { Pillar, pillarsOf } from './pillars';
 
 /** The lab's RNG seed: the same seed, the same drops and waves. */
 export const LAB_SEED = 1;
@@ -143,6 +144,8 @@ export interface CombatState {
   hitsSeen: number;
   /** Update 0.2.18 — wave 2's: bleeds, burns, bolts, blasts (sim/cards/cardPowers.ts). */
   powers: Powers;
+  /** Update 0.3.9 — the floor's pillars, whole or broken (pillars.ts). */
+  pillars: Pillar[];
   hitStop: HitStop;
   events: EventQueue<CombatEvent>;
 }
@@ -183,6 +186,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     bonusDrops: Infinity,
     pickups: createPickups(),
     stands: createStands(arena.stands),
+    pillars: pillarsOf(arena),
     thrown: createThrown(),
     fireballs: createFireballs(),
     ki: createKi(),
@@ -260,6 +264,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   for (const k of state.knives) k.alive = false;
   state.recallHeld = state.smashHeld = false;
   state.stands = createStands(arena.stands);
+  state.pillars = pillarsOf(arena);
   state.rng = createRng(LAB_SEED);
   state.money = 0;
   for (const c of state.coins) c.alive = false;
@@ -287,14 +292,4 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.events.clear();
 }
 
-/** Update 0.0.17 — what comes down to the next floor with you: your weapons (and the one in your hand), your coins,
- *  your keys and rings. */
-export function carryOver(from: CombatState, to: CombatState) {
-  to.weapon = from.weapon;
-  to.bag = from.bag;
-  to.slot = from.slot;
-  to.money = from.money;
-  to.items = from.items;
-  to.execution = from.execution;
-  to.kills = from.kills;
-}
+export { carryOver } from './carry';

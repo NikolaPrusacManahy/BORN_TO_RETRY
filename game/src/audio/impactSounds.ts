@@ -41,6 +41,11 @@ export function impactLayer(a: AudioEngine, kind: CombatEvent, value: number) {
     case 'parry':
       if (!OFF.has('parry')) clang(a);
       return;
+    // (Update 0.3.9 — a pillar snapping: a deep boom, a crack.)
+    case 'pillarBreak':
+      hit(0.9, 0.35);
+      if (!OFF.has('killCrack')) crack(a);
+      return;
     // (Update 0.3.7 — a body thrown into a wall: a crunch over a deep thump.)
     case 'wallSplat':
       hit(0.7, 0.2);

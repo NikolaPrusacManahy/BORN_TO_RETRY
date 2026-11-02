@@ -49,6 +49,8 @@ export interface Arena {
   turrets: Spot[];
   /** M2 — stands holding a weapon (the lab's sword); it's back a moment after you take it. */
   stands?: Spot[];
+  /** Update 0.3.9 — the pillars (a dungeon's columns): middle, half side, height (m). The pillar finisher breaks them. */
+  pillars?: { x: number; z: number; half: number; h: number }[];
 }
 
 /** M1 step 8 — the arena's hazard boxes (spike strips). */

@@ -129,6 +129,13 @@ export class CombatFeedback {
         case 'knifeStick':
           this.f.sparks.spawn(at, back, 5, 0.7);
           break;
+        // Update 0.3.9 — a pillar broken: stone flying from where it snapped, a jolt.
+        case 'pillarBreak': {
+          const k = this.nearHere(20);
+          this.f.chunks.spawn(at, back, Math.round(40 * Math.max(0.3, k)), 1.4);
+          this.f.rig.shake.add(fb.shakeHeavy * 1.4 * (0.4 + 0.6 * k));
+          break;
+        }
         // Update 0.3.7 — a body thrown into a wall: a heavy thud, felt more the closer it is.
         case 'wallSplat': {
           const k = this.nearHere(18);

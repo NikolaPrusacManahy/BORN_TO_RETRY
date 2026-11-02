@@ -4,7 +4,12 @@
 // (sim/enemies/flight.ts): free, whatever the meter. You're brought up to it, facing it; a left hook to its head, a
 // right; its head grabbed in both hands and slammed down across the floor in front of you; your fists clasped and
 // smashed down on it, and it bursts. The same for every kind that's pinned (each held by its head). The hands are the
-// view's (engine/exec/pinLook.ts), timed to these. Pure.
+// view's (engine/exec/pinLook.ts), timed to these.
+// Update 0.3.9 (the designer: "when the humanoid monster is pinned there [a pillar], another animation is played: right
+// jab, left jab, right heavy hit punch and the enemy go through the pillar and it breaks the pillar and it send the
+// monster flying until it reaches a wall and explode there") — the pillar finisher, for one pinned to a pillar
+// (pillars.ts): it stands pinned for a right jab and a left; the right heavy sends it straight back through the pillar
+// (it snaps) to the wall beyond, where it bursts. Pure.
 import type { Execution } from './execution';
 import { ExecMove, moveOf } from './execMoves';
 
@@ -43,5 +48,25 @@ export const PINNED: ExecMove = {
   half: 0.5,
 };
 
-/** The moves an execution plays: the wall finisher's, or its kind's. */
-export const moveFor = (ex: Execution): ExecMove => (ex.pinned ? PINNED : moveOf(ex.kind));
+export const PILLARED: ExecMove = {
+  held: false,
+  keys: [
+    { t: 0, grip: null, look: null },
+    { t: 0.15, grip: null, look: [0, -4] },
+    { t: 0.62, grip: null, look: [0, -4] },
+    { t: 0.7, grip: null, look: [0, -1] },
+  ],
+  beats: [
+    { t: 0.22, blow: 'punch', stop: 0.06 },
+    { t: 0.42, blow: 'punch', stop: 0.06 },
+    { t: 0.7, blow: 'punch', stop: 0.2 },
+  ],
+  end: 'wall',
+  endAt: 0.7,
+  half: 0.5,
+  lob: 0.3,
+  fly: 0.7,
+};
+
+/** The moves an execution plays: the pillar finisher's, the wall finisher's, or its kind's. */
+export const moveFor = (ex: Execution): ExecMove => (!ex.pinned ? moveOf(ex.kind) : ex.pillar >= 0 ? PILLARED : PINNED);

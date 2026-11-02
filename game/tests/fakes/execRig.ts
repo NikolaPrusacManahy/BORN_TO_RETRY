@@ -22,7 +22,7 @@ import { EnemyKind, RADIUS } from '../../src/sim/enemies/kinds';
 import { createPlayer } from '../../src/sim/player/state';
 import { verticalFov } from '../../src/state/settings';
 import { CAMERA } from '../../src/tuning/camera';
-import type { Arena } from '../../src/world/arena';
+import { type Arena, boxAt } from '../../src/world/arena';
 
 export const ASPECT = 16 / 9;
 export const MODEL: Record<string, string> = { grunt: 'orc', spitter: 'wizard', brute: 'yeti', leaper: 'ninja', stinger: 'armabee', wraith: 'ghost', slime: 'slime', frog: 'frog', snake: 'snake', wasp: 'wasp', spider: 'spider', blueDemon: 'bluedemon', skeleton: 'skeleton', mushnub: 'mushnub', ninja: 'ninja', tribal: 'tribal', cactoro: 'cactoro', cactoroBig: 'cactoro_big', hywirl: 'hywirl', dinoBlob: 'dino', lizard: 'lizard', greenBlob: 'green_blob', blobling: 'green_blob', maskTribal: 'tribal_mask', skullOrc: 'skull_orc', dragonling: 'dragonling', skullWraith: 'skull_wraith', rabbit: 'rabbit', bigMushnub: 'mushroom_king', snapper: 'snapper', urchin: 'urchin', jelly: 'jelly', glub: 'glub', bigGlub: 'big_glub', squidle: 'squidle', spawnling: 'spawnling', deepOne: 'deep_one', bogBrute: 'bog_brute', clownfish: 'clownfish', tuna: 'tuna', angelfish: 'angelfish', dolphin: 'dolphin', drownedPrince: 'drowned_king', mantaRay: 'manta_ray', shark: 'shark' };
@@ -35,8 +35,10 @@ export async function armsModel() {
 }
 
 /** `kind` in front of you (its edge 1.4 m off), the meter full, ready to press E. Update 0.3.8 — `pinned`: its body
- *  pinned (as to a wall behind it), facing you, the meter empty: E is the wall finisher. */
-export async function execRig(kind: EnemyKind, arena: Arena = OPEN_ARENA, pinned = false) {
+ *  pinned (as to a wall behind it), facing you, the meter empty: E is the wall finisher. Update 0.3.9 — 'pillar': pinned
+ *  to a pillar behind it (a wall far beyond): the pillar finisher. */
+export async function execRig(kind: EnemyKind, arena: Arena = OPEN_ARENA, pinned: boolean | 'pillar' = false) {
+  if (pinned === 'pillar') arena = pillarArena(1.4 + 2 * RADIUS[kind]);
   const arms = await armsModel();
   const rig = ArmsRig.fromScene(arms.scene);
   const vm = new Viewmodel(false);
@@ -59,6 +61,7 @@ export async function execRig(kind: EnemyKind, arena: Arena = OPEN_ARENA, pinned
     e.pinned = 3;
     e.pos.y = 0.3;
     e.facing = Math.PI;
+    e.wall.set(0, 1, e.pos.z - RADIUS[kind]);
     c.execution = 0;
   }
   const look = new Look();
@@ -88,4 +91,10 @@ export async function execRig(kind: EnemyKind, arena: Arena = OPEN_ARENA, pinned
     scene.updateMatrixWorld(true);
   };
   return { c, p, s, scene, view, exec, vm, rig, arms: arms.scene, cam, look, step, seen };
+}
+
+/** Update 0.3.9 — a pillar (2 m, 4.9 high) behind a body `far` m ahead, and a wall 6 m beyond it. */
+export function pillarArena(far: number): Arena {
+  const z = -(far + 1);
+  return { ...OPEN_ARENA, boxes: [boxAt(-1, 0, z - 1, 2, 4.9, 2, 'block'), boxAt(-10, 0, z - 8, 20, 6, 1, 'wall')], pillars: [{ x: 0, z, half: 1, h: 4.9 }] };
 }

@@ -255,7 +255,10 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
       lairs: lairsOf(r),
     };
   });
-  const arena: Arena = { name: `Dungeon ${plan.level}`, boxes, pads, playerStart: { ...plan.start }, spawns: [], dummies: [], turrets: [] };
+  // (Update 0.3.9 — every column a pillar the pillar finisher can break.)
+  const pillars: Arena['pillars'] = [];
+  for (let row = 0; row < GRID; row++) for (let col = 0; col < GRID; col++) if (cellAt(plan, col, row) === 'column') pillars.push({ x: cellX(col), z: cellZ(row), half: CELL / 2, h: HEIGHT.column! });
+  const arena: Arena = { name: `Dungeon ${plan.level}`, boxes, pads, playerStart: { ...plan.start }, spawns: [], dummies: [], turrets: [], pillars };
   const gate = gates.push(woodGate) - 1;
   const br = rooms[out.room];
   const end: Rect = { min: br.min, max: br.max };

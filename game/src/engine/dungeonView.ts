@@ -23,6 +23,7 @@
 // Update 0.2.24 — floor 3's crystals glow (the look's `glow`); its graves, burrows and mushrooms (gardenView.ts).
 // Update 0.3.0 (the designer: "remove the glow on fire torches, it lags": 122–130 fps, 144 before) — no torch lights:
 // every lit surface paid for each of the 8; the torches' flames still burn. Each floor's motes (motesView.ts).
+// Update 0.3.9 — a pillar broken by the pillar finisher: its pieces taken out and split (pillarBreak.ts).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { portalOpen, wallsOpen } from '../sim/dungeon/bossRoom';
@@ -48,6 +49,8 @@ import { GardenView } from './gardenView';
 import { grassPatch } from './grassShader';
 import { MotesView } from './motesView';
 import { DungeonGlows } from './dungeonGlows';
+import { PillarBreaks } from './pillarBreak';
+import type { Pillar } from '../sim/combat/pillars';
 
 export const KIT_URL = '/models/dungeon/kit.glb';
 /** The sky (the background and the haze), and the sky light's colours above and from the ground. */
@@ -89,6 +92,7 @@ export class DungeonView implements ArenaView {
   private readonly garden: GardenView;
   private readonly motes: MotesView;
   private readonly glows: DungeonGlows;
+  private readonly breaks = new PillarBreaks();
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -127,7 +131,7 @@ export class DungeonView implements ArenaView {
     this.motes = new MotesView(look.id);
     this.glows = new DungeonGlows(this.dressing, level);
     this.water = new WaterView(level.tide, look.water ?? 0, level.boss.end);
-    this.group.add(this.sand.group, this.water.group, this.garden.group, this.motes.group);
+    this.group.add(this.sand.group, this.water.group, this.garden.group, this.motes.group, this.breaks.group);
     this.under = underwaterOf(level, this.dressing.sand);
     if (this.under) this.group.add(this.under.group);
     this.group.add(this.shell.group, this.portal.group, this.lava.group, roomSigns(level.plan, this.mats, this.geos));
@@ -137,6 +141,12 @@ export class DungeonView implements ArenaView {
           .then((gltf) => this.build(gltf.scene))
           .catch((err) => console.error('dungeon kit failed to load', err))
       : Promise.resolve();
+  }
+
+  /** Update 0.3.9 — the pillar a piece stands in (−1: none), and one broken. */
+  private pillarOf = (p: Placement) => (this.level.arena.pillars ?? []).findIndex((c) => Math.abs(p.x - c.x) < c.half && Math.abs(p.z - c.z) < c.half);
+  breakPillar(i: number, p: Pillar) {
+    this.breaks.break(i, p);
   }
 
   /** Every placement as instances of its kit piece; the gates' bars as their own meshes. */
@@ -165,6 +175,8 @@ export class DungeonView implements ArenaView {
           q.setFromAxisAngle(UP, p.rot);
           scale.set(p.sx, p.sy, p.sz);
           inst.setMatrixAt(i, m.compose(pos, q, scale).multiply(local));
+          const pillar = this.pillarOf(p);
+          if (pillar >= 0) this.breaks.add(pillar, inst, i);
         });
         inst.computeBoundingSphere();
         // Update 0.0.13 — in the sun: everything takes shadows; the floor tiles cast none (they're flat and most of
@@ -227,6 +239,7 @@ export class DungeonView implements ArenaView {
     this.shell.set(wallsOpen(b));
     this.portal.update(dt, portalOpen(b));
     this.lava.update(dt);
+    this.breaks.update(dt);
     this.motes.update(dt, at);
     this.glows.update(dt);
     this.sand.update(dt);
@@ -261,6 +274,7 @@ export class DungeonView implements ArenaView {
     this.portal.dispose();
     this.woodGate.dispose();
     this.lava.dispose();
+    this.breaks.dispose();
     this.sand.dispose();
     this.garden.dispose();
     this.motes.dispose();

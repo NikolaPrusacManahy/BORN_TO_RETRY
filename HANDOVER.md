@@ -2,7 +2,14 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-01, Update 0.3.8: the wall finisher; the Yeti's barrage)
+## Next up (2026-11-01, Update 0.3.9: the pillar finisher)
+- **The designer** (spec `MD_UPDATES/U039_PILLAR_FINISHER.md`): a body pinned to a pillar (any column, every floor) gets
+  the pillar finisher: a right jab, a left, a heavy punch that drives it straight through the pillar to the wall beyond,
+  where it bursts. The column is cut in two a quarter of the way up (lower than "in half", so its stump doesn't hide the
+  body flying on); the top flies the way the body went and lies where it lands. Collision unchanged. Checked by tests
+  (`test-pillar.ts`) and renders; **unseen in the game**.
+
+## Before (2026-11-01, Update 0.3.8: the wall finisher; the Yeti's barrage)
 - **The designer: "Finishers that interact with environment"** (spec `MD_UPDATES/U038_WALL_FINISHER.md`): a Grunt,
   Skeleton, White Rabbit or Leaper flung dead into a wall is pinned there, flickering, for 3 s, then drops. Meanwhile E
   executes it for free (the meter not spent): you're brought up to it; a left hook, a right; its head grabbed, slammed to

@@ -3,14 +3,17 @@
 // (the world through the game camera, the arms through theirs, both brought to the arms camera's lens) and from the
 // side (you a post, a floor of metre tiles). Update 0.1.2 — any enemy's, at its keys and blows. Shots are only as true
 // as the code they run; feel still needs playing.
-//   npx tsx tools/exec-shots.ts <out folder> [kinds…]   (Update 0.3.8 — a kind as grunt:pin: its wall finisher)
+//   npx tsx tools/exec-shots.ts <out folder> [kinds…]   (Update 0.3.8 — a kind as grunt:pin: its wall finisher;
+//   Update 0.3.9 — grunt:pillar: its pillar finisher)
 //   blender --background --python tools/blender/render_view.py -- --json <out folder>/shots.json --out <out folder>
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as THREE from 'three';
 import { execRig } from '../tests/fakes/execRig';
 import { moveOf } from '../src/sim/combat/execution';
-import { PINNED } from '../src/sim/combat/execPin';
+import { PILLARED, PINNED } from '../src/sim/combat/execPin';
+import { PillarBreaks } from '../src/engine/pillarBreak';
+import { parseUntextured } from '../tests/fakes/glb';
 import { OPEN_ARENA } from '../tests/fakes/enemyWorld';
 import { EXECUTABLE } from '../src/sim/combat/execMoves';
 import type { EnemyKind } from '../src/sim/enemies/kinds';
@@ -50,9 +53,35 @@ function grab(scene: THREE.Object3D, camera: THREE.PerspectiveCamera, skip: THRE
   });
 }
 
+/** Update 0.3.9 — the kit's column standing at `p`, and its breaks (it's drawn plainly till it breaks). */
+async function kitColumn(p: { x: number; z: number }, scene: THREE.Object3D) {
+  const kit = await parseUntextured(new URL('../public/models/dungeon/kit.glb', import.meta.url));
+  kit.scene.updateMatrixWorld(true);
+  const root = kit.scene.getObjectByName('kit_p2_Column')!;
+  let src: THREE.Mesh | null = null;
+  root.traverse((o) => {
+    if (!src && o instanceof THREE.Mesh) src = o;
+  });
+  const mesh = src as unknown as THREE.Mesh;
+  const place = new THREE.Matrix4().makeTranslation(p.x, 0, p.z).multiply(root.matrixWorld.clone().invert().multiply(mesh.matrixWorld));
+  const mat = new THREE.MeshStandardMaterial({ color: 0xa8a8b0 });
+  const column = new THREE.Mesh(mesh.geometry, mat);
+  column.matrixAutoUpdate = false;
+  column.matrix.copy(place);
+  scene.add(column);
+  const inst = new THREE.InstancedMesh(mesh.geometry, mat, 1);
+  inst.setMatrixAt(0, place);
+  const breaks = new PillarBreaks();
+  breaks.add(0, inst, 0);
+  scene.add(breaks.group);
+  return { column, breaks };
+}
+
 for (const arg of kinds) {
   const [kind, pin] = arg.split(':') as [EnemyKind, string?];
-  const r = await execRig(kind, OPEN_ARENA, pin === 'pin');
+  const r = await execRig(kind, OPEN_ARENA, pin === 'pillar' ? 'pillar' : pin === 'pin');
+  // (Update 0.3.9 — the pillar: the kit's column, broken as the floor's view breaks it.)
+  const pillar = pin === 'pillar' ? await kitColumn(r.c.pillars[0], r.scene) : null;
   // A floor of metre tiles, and you (a post) for the side view.
   const floor = new THREE.Group();
   for (let x = -6; x <= 6; x++)
@@ -69,13 +98,18 @@ for (const arg of kinds) {
   side.position.set(8, 1.8, -3);
   side.lookAt(0, 1.2, -3);
   // Its moments: each key and blow (a few of a barrage), and after.
-  const move = pin === 'pin' ? PINNED : moveOf(kind);
+  const move = pin === 'pillar' ? PILLARED : pin === 'pin' ? PINNED : moveOf(kind);
   const beats = move.beats.length > 8 ? [move.beats[0], move.beats[15], move.beats[move.beats.length - 1]] : move.beats;
   const at = [...new Set([0.08, ...move.keys.filter((k, i) => !k.glide || i % 5 === 0).map((k) => k.t), ...beats.map((b) => b.t + 0.01), move.endAt + 0.15, move.endAt + 0.45].filter((t) => t > 0).map((t) => +t.toFixed(2)))].sort((a, b) => a - b).slice(0, 14);
   let next = 0;
   let t = 0;
   for (let k = 0; next < at.length && k < 4000; k++) {
     r.step();
+    if (pillar && pillar.column.visible && r.seen.some((s) => s.startsWith('pillarBreak'))) {
+      pillar.breaks.break(0, r.c.pillars[0]);
+      pillar.column.visible = false;
+    }
+    pillar?.breaks.update(DT);
     t += DT;
     if (t + 1e-9 < at[next]) continue;
     const name = `${kind}${pin ? '-pin' : ''}_${String(next).padStart(2, '0')}_${at[next].toFixed(2)}s`;

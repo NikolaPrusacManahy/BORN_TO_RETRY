@@ -4,6 +4,8 @@
 // to its head, a right; its head between your palms as it's pulled in, pressed down as it's slammed to the floor; then
 // the ground slam's clasped fists up and down on it (handMoves.ts `slam`). Whatever kind is pinned, the same: each held by its head (its rig's Head to
 // its Hips), cut as a humanoid is (the Skeleton into its bones).
+// Update 0.3.9 — the pillar finisher's hands (sim/combat/execPin.ts): a right jab to its head, a left; the right drawn
+// back and shaking, then a heavy punch into its chest that carries on out after it as it goes through the pillar.
 import type { Execution } from '../../sim/combat/execution';
 import { G, HandAt, HandKey, HAND_MOVES, palms, slam } from './handMoves';
 import { EXEC_LOOKS, ExecLook, HUMANOID } from './looks';
@@ -33,6 +35,23 @@ export const PIN_HANDS: readonly HandKey[] = [
   ...slam(1.12, 1.5, 'Torso'),
 ];
 
+/** A jab to its head; the right drawn back for the heavy, shaking harder; the heavy, and the arm carried on out. */
+const jab = (x: number): HandAt => ({ mode: 'fist', on: 'Head', off: [x, 0, 0.12] });
+const wind = (shake: number): HandAt => ({ mode: 'fist', me: [0.3, 1.56, 0.24], way: [-0.15, 0.1, 1], shake });
+
+export const PILLAR_HANDS: readonly HandKey[] = [
+  { t: 0, L: G, R: G },
+  { t: 0.1, L: COCK_L, R: COCK_R },
+  { t: 0.22, L: COCK_L, R: jab(0.05) },
+  { t: 0.32, L: COCK_L, R: COCK_R },
+  { t: 0.42, L: jab(-0.05), R: COCK_R },
+  { t: 0.5, L: COCK_L, R: wind(0.008) },
+  { t: 0.62, L: COCK_L, R: wind(0.014) },
+  { t: 0.7, L: COCK_L, R: { mode: 'fist', on: 'Torso', off: [0, 0.12, 0.3] } },
+  { t: 0.85, L: COCK_L, R: { mode: 'fist', me: [0.12, 1.45, 0.95], way: [0, 0, 1] } },
+  { t: 1.05, L: G, R: G },
+];
+
 const looks = new Map<string, ExecLook>();
 
 /** How an execution's body is drawn: the wall finisher's (held by its head, burst), or its kind's. */
@@ -46,8 +65,8 @@ export function lookFor(ex: Execution): ExecLook | undefined {
   return look;
 }
 
-/** Its hands: the wall finisher's, or its kind's. */
-export const handsFor = (ex: Execution): readonly HandKey[] | undefined => (ex.pinned ? PIN_HANDS : HAND_MOVES[ex.kind]);
+/** Its hands: the pillar finisher's, the wall finisher's, or its kind's. */
+export const handsFor = (ex: Execution): readonly HandKey[] | undefined => (!ex.pinned ? HAND_MOVES[ex.kind] : ex.pillar >= 0 ? PILLAR_HANDS : PIN_HANDS);
 
-/** Its pieces are cut once per kind, and once more for the wall finisher's cuts. */
+/** Its pieces are cut once per kind, and once more for the finishers' cuts. */
 export const piecesKey = (ex: Execution) => (ex.pinned ? `${ex.kind}:pinned` : ex.kind);

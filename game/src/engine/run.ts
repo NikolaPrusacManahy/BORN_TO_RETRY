@@ -195,6 +195,8 @@ export class Run extends RunBase {
     const tv = this.treasureView;
     tv.update(this.combat, this.camera.position, gameDt);
     this.arms.chest.update(tv.reach.k, tv.reach.left, tv.reach.right, this.camera, this.arms.camera);
+    // (Update 0.3.9 — a pillar the pillar finisher broke: the floor's view breaks it.)
+    for (let i = 0; i < this.combat.events.length; i++) if (this.combat.events.at(i).kind === 'pillarBreak') this.view.breakPillar?.(this.combat.events.at(i).value, this.combat.pillars[this.combat.events.at(i).value]);
     this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt, this.clock.alpha);
     this.combatScene.realFrame(real, !p.grounded, this.hits.hurts);
     followHeld(this.combat, this.look, this.arms, this.camera, real);
