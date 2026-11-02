@@ -42,8 +42,8 @@ export type MoveEvent =
   | 'bornAgain';
 
 /** Update 0.1.14 — what hurt you (the death screen names what killed you): an enemy's kind, or the world. */
-// (Update 0.3.11 — and floor 7's icicles.)
-export type Cause = EnemyKind | 'turret' | 'spikes' | 'lava' | 'fall' | 'icicle';
+// (Update 0.3.11 — and floor 7's icicles. Update 0.3.13 — floor 8's presses and fire vents.)
+export type Cause = EnemyKind | 'turret' | 'spikes' | 'lava' | 'fall' | 'icicle' | 'crusher' | 'vent';
 
 export interface PlayerState {
   /** Feet position. */

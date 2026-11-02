@@ -46,7 +46,7 @@
 }
 
 .rb-lab-body {
-  height: 380px;
+  height: 396px;
   margin: 14px 0;
   overflow-y: auto;
 }
@@ -57,25 +57,33 @@
   height: 100%;
 }
 
-/* Update 0.3.11 — seven floors: the columns a little closer, their heads a little tighter, so a floor's name and its
-   Play fit side by side (the name never gives way; Play would clip first). */
+/* Update 0.3.13 (the designer: "put page 1 & 2 instead of stacking them together") — the floors three to a page, wide
+   enough for every name, Page 1 and Page 2 under them (the body 16 px taller for them; a column a little tighter). */
+.rb-lab-floors {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+}
+
 .rb-lab-cols.is-floors {
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px;
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .rb-lab-cols.is-floors > .rb-lab-col {
-  padding: 8px 4px;
+  gap: 6px;
 }
 
-.rb-lab-cols.is-floors .rb-lab-head {
-  flex-shrink: 0;
-  letter-spacing: 0.08em;
+.rb-lab-cols.is-floors .rb-lab-list {
+  gap: 3px;
 }
 
-.rb-lab-cols.is-floors .rb-lab-btn.is-floor {
-  min-width: 0;
-  padding: 0 8px;
+.rb-lab-pages {
+  display: flex;
+  gap: 4px;
 }
 
 .rb-lab-cols.is-items {
@@ -216,6 +224,15 @@
 }
 
 .rb-lab-btn.is-floor:hover {
+  background: rgba(120, 170, 255, 0.34);
+}
+
+/* Update 0.3.13 — a new floor's button in the bottom row (the designer: "always put a new floor there"). */
+.rb-lab-btn.is-tool.is-floor {
+  background: rgba(120, 170, 255, 0.18);
+}
+
+.rb-lab-btn.is-tool.is-floor:hover {
   background: rgba(120, 170, 255, 0.34);
 }
 

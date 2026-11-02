@@ -134,6 +134,11 @@ export class CombatFeedback {
           this.f.sparks.spawn(at, UP, 26, 1.2);
           this.f.rig.shake.add(fb.shakeJab * this.nearHere(8));
           break;
+        // Update 0.3.13 — a press slamming down: grit off its plate, a jolt if it's near (the bigger, the harder).
+        case 'pressSlam':
+          this.f.sparks.spawn(at, UP, 16, 1);
+          this.f.rig.shake.add(fb.shakeJab * (0.3 + e.value / 10) * this.nearHere(9));
+          break;
         // Update 0.3.9 — a pillar broken: stone flying from where it snapped, a jolt.
         case 'pillarBreak': {
           const k = this.nearHere(20);

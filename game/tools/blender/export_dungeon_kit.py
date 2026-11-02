@@ -16,6 +16,9 @@
 #       ... --rpg <Ultimate RPG Pack folder>
 # Update 0.3.11 — and floor 7's, Frozen Depths: the Nature pack's snow set (snowy pines, birches and trees, dead ones,
 # a bush, rocks, a stump and a log).
+# Update 0.3.13 — and floor 8's, The Forge: part 1's small table (the workbenches) and swords on a wall mount, the RPG
+# pack's gold ingots and ore. Shape keys come off every piece (the ore had some): the game draws the kit instanced, and
+# an instanced piece with morph targets threw on every frame (floor 8 froze).
 import argparse
 import math
 import os
@@ -29,7 +32,9 @@ from scene_kit import export_glb, load_pieces, setup_previews, shoot  # noqa: E4
 
 # Part 1: brick dungeon walls and floors, doors, props. Part 2: rock columns, torches, rubble.
 PART1 = ['Floor_Modular', 'Wall_Modular', 'WallCover_Modular', 'Arch', 'Arch_bars', 'Column', 'Crate', 'Barrel', 'Barrel2', 'Trap_spikes',
-         'Trapdoor_open', 'Banner_wall', 'Skull', 'Cobweb', 'Vase', 'Bucket', 'Chest', 'Pedestal', 'Woodfire', 'Cobweb2']
+         'Trapdoor_open', 'Banner_wall', 'Skull', 'Cobweb', 'Vase', 'Bucket', 'Chest', 'Pedestal', 'Woodfire', 'Cobweb2',
+         # Update 0.3.13 — floor 8's.
+         'Table_Small', 'Sword_WallMount']
 PART2 = ['Column', 'Column_Broken2', 'Rock1', 'Rock2', 'Rock3', 'Bones', 'Bones2', 'Torch_wall', 'Candelabrum_tall', 'Carpet',
          'ModularStoneWall', 'ModularStoneWall_top', 'ModularStoneWall_EntranceTop', 'ModularFloor', 'Entrance', 'Bars', 'WallRocks',
          'ModularColumn_bottom', 'ModularColumn_middle', 'ModularColumn_top', 'Rock4', 'Rock5', 'Candelabrum', 'Candle']
@@ -46,7 +51,9 @@ NATURE = ['PalmTree_1', 'PalmTree_3', 'Cactus_1', 'Cactus_3', 'CactusFlowers_2',
           'PineTree_Snow_1', 'PineTree_Snow_3', 'PineTree_Snow_5', 'BirchTree_Snow_2', 'CommonTree_Snow_1', 'CommonTree_Dead_Snow_2',
           'BirchTree_Dead_Snow_3', 'Bush_Snow_1', 'Rock_Snow_1', 'Rock_Snow_3', 'Rock_Snow_6', 'TreeStump_Snow', 'WoodLog_Snow']
 # Update 0.2.24 — floor 3's: crystal clusters (the Skull Wraiths blink between them), skulls and a bone.
-RPG = ['Crystal1', 'Crystal2', 'Crystal3', 'Crystal4', 'Crystal5', 'Skull', 'Skull2', 'Bone']
+RPG = ['Crystal1', 'Crystal2', 'Crystal3', 'Crystal4', 'Crystal5', 'Skull', 'Skull2', 'Bone',
+       # Update 0.3.13 — floor 8's.
+       'Gold_Ingots', 'Mineral']
 # Faced +x as they come: turned a quarter so they face −y.
 TURN = {'ModularStoneWall', 'ModularStoneWall_top', 'ModularStoneWall_EntranceTop', 'Entrance', 'Bars', 'WallRocks'}
 
@@ -73,6 +80,8 @@ def main():
     for prefix, folder, names in packs:
         protos = load_pieces(folder, names, {}, bake=True, recenter=names)
         for name, o in protos.items():
+            if o.data.shape_keys:
+                o.shape_key_clear()
             if prefix == 'p2' and name in TURN:
                 o.data.transform(Matrix.Rotation(-math.pi / 2, 4, 'Z'))
             o.name = f'kit_{prefix}_{name}'

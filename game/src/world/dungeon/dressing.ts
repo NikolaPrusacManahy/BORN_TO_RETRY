@@ -166,7 +166,7 @@ export function dress(plan: FloorPlan): Dressing {
               put(KIT.torch, tx, TORCH_Y, tz, FACING[side] - Math.PI / 2);
               torches.push({ x: x + dc * (CELL / 2 + 0.95), y: TORCH_Y + 1.2, z: z + dr * (CELL / 2 + 0.95) });
             } else if (room >= 0 && (col * 7 + row * 3) % 23 === 0) {
-              put(K.decor, x + dc * (CELL / 2 + K.decorOut), K.decorY, z + dr * (CELL / 2 + K.decorOut), FACING[side]);
+              put(K.decor, x + dc * (CELL / 2 + K.decorOut), K.decorY, z + dr * (CELL / 2 + K.decorOut), FACING[side], ...(K.decorScale ?? [1, 1, 1]));
             }
           }
           break;

@@ -24,7 +24,8 @@
 // Update 0.3.0 (the designer: "remove the glow on fire torches, it lags": 122–130 fps, 144 before) — no torch lights:
 // every lit surface paid for each of the 8; the torches' flames still burn. Each floor's motes (motesView.ts).
 // Update 0.3.9 — a pillar broken by the pillar finisher: its pieces taken out and split (pillarBreak.ts).
-// Update 0.3.11 — floor 7's sheets of ice (iceView.ts) and icicles (icicleView.ts).
+// Update 0.3.11 — floor 7's sheets of ice (iceView.ts) and icicles (icicleView.ts). Update 0.3.13 — those and floor 8's
+// presses, fire vents and belts drawn together (depthsView.ts).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { portalOpen, wallsOpen } from '../sim/dungeon/bossRoom';
@@ -51,8 +52,7 @@ import { grassPatch } from './grassShader';
 import { MotesView } from './motesView';
 import { DungeonGlows } from './dungeonGlows';
 import { PillarBreaks } from './pillarBreak';
-import { IceView } from './iceView';
-import { IcicleView } from './icicleView';
+import { DepthsView } from './depthsView';
 import type { Pillar } from '../sim/combat/pillars';
 
 export const KIT_URL = '/models/dungeon/kit.glb';
@@ -96,9 +96,7 @@ export class DungeonView implements ArenaView {
   private readonly motes: MotesView;
   private readonly glows: DungeonGlows;
   private readonly breaks = new PillarBreaks();
-  private readonly ice: IceView;
-  private readonly icicles: IcicleView;
-  private time = 0;
+  private readonly depths: DepthsView;
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -137,9 +135,8 @@ export class DungeonView implements ArenaView {
     this.motes = new MotesView(look.id);
     this.glows = new DungeonGlows(this.dressing, level);
     this.water = new WaterView(level.tide, look.water ?? 0, level.boss.end);
-    this.ice = new IceView(level.ice);
-    this.icicles = new IcicleView(level.icicles.length);
-    this.group.add(this.sand.group, this.water.group, this.garden.group, this.motes.group, this.breaks.group, this.ice.group, this.icicles.group);
+    this.depths = new DepthsView(level);
+    this.group.add(this.sand.group, this.water.group, this.garden.group, this.motes.group, this.breaks.group, this.depths.group);
     this.under = underwaterOf(level, this.dressing.sand);
     if (this.under) this.group.add(this.under.group);
     this.group.add(this.shell.group, this.portal.group, this.lava.group, roomSigns(level.plan, this.mats, this.geos));
@@ -248,8 +245,7 @@ export class DungeonView implements ArenaView {
     this.portal.update(dt, portalOpen(b));
     this.lava.update(dt);
     this.breaks.update(dt);
-    this.time += dt;
-    if (run.icicles.length) this.icicles.update(run.icicles, this.time);
+    this.depths.update(dt, run);
     this.motes.update(dt, at);
     this.glows.update(dt);
     this.sand.update(dt);
@@ -285,8 +281,7 @@ export class DungeonView implements ArenaView {
     this.woodGate.dispose();
     this.lava.dispose();
     this.breaks.dispose();
-    this.ice.dispose();
-    this.icicles.dispose();
+    this.depths.dispose();
     this.sand.dispose();
     this.garden.dispose();
     this.motes.dispose();

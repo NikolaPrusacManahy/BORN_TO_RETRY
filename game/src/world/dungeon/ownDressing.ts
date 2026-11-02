@@ -1,12 +1,14 @@
 // Update 0.2.24 (out of dressing.ts, which had reached its size) — the cells and the dressing only some floors have:
 // floor 2's Venom Garden (gardenDressing.ts) and floor 3's Bone Keep (keepDressing.ts), and the marks they leave on the
-// floor (engine/gardenView.ts draws them). Update 0.3.11 — and floor 7's snow (frozen.ts). Pure.
+// floor (engine/gardenView.ts draws them). Update 0.3.11 — and floor 7's snow (frozen.ts). Update 0.3.13 — and floor
+// 8's workbenches (forge.ts); its presses, vents and belts are paving here (engine/forgeView.ts draws them). Pure.
 import type { Rng } from '../../core/rng';
 import type { FloorPlan } from './floorPlan';
 import type { Put, SandCell } from './dressExtras';
 import { dressBed, dressGarden, dressWeb, Mark } from './gardenDressing';
 import { dressCrystal, dressKeep, dressLair } from './keepDressing';
 import { dressFrozen } from './frozen';
+import { dressBench } from './forge';
 import type { Cell } from './rooms';
 import type { DungeonStyle } from './styles';
 
@@ -44,6 +46,13 @@ export function dressOwnCell(c: Cell, x: number, z: number, boss: boolean, rng: 
     case 'pine':
     case 'snow':
       dressFrozen(c, x, z, rng, put, sand);
+      return true;
+    case 'bench':
+      dressBench(x, z, rng, put);
+      return true;
+    case 'crusher':
+    case 'vent':
+    case 'belt':
       return true;
     default:
       return false;

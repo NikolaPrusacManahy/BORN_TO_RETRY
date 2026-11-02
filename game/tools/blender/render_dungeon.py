@@ -12,12 +12,15 @@
 # with --day: no sun or sky, a warm fill from all round, a key light from above and point `lights` (watts).
 # Update 0.2.10 — floor 5's tide at high water (`water`: its level and the rooms it floods), see-through green.
 # Update 0.2.23 — floor 2's: ash beds (`ash` cells), the boss room's charred pieces (the look's `burnt`).
+# Update 0.3.13 — the boxes made straight into the scene, sharing one cube and a material a colour (floor 8 has
+# thousands).
 import argparse
 import json
 import math
 import os
 import sys
 
+import bmesh
 import bpy
 from mathutils import Matrix, Vector
 
@@ -38,60 +41,53 @@ def parse_args():
 TO_B = Matrix(((1, 0, 0, 0), (0, 0, -1, 0), (0, 1, 0, 0), (0, 0, 0, 1)))
 
 
+def cube_mesh(name, inside):
+    """A unit cube (`inside`: turned inside out)."""
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1)
+    if inside:
+        bmesh.ops.reverse_faces(bm, faces=bm.faces)
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    me.materials.append(None)
+    return me
+
+
 def game_boxes(boxes):
     """Unit cubes placed by game matrices (column-major, as Three.js writes them), each in its colour; black ones
-    shadeless (the dark)."""
+    shadeless (the dark). Update 0.3.13 — one cube shared by them all (one inside out for the dark), one material a
+    colour, made straight into the scene: floor 8's machinery is two thousand of them, too many to add one by one."""
+    cubes = {}
+    mats = {}
     for i, b in enumerate(boxes):
         e = b['m']
         gm = Matrix([[e[c * 4 + r] for c in range(4)] for r in range(4)])
-        bpy.ops.mesh.primitive_cube_add(size=1)
-        o = bpy.context.active_object
+        dark = sum(b['color']) == 0
+        if dark not in cubes:
+            cubes[dark] = cube_mesh('BoxInside' if dark else 'BoxCube', dark)
+        key = (tuple(b['color']), dark)
+        mat = mats.get(key)
+        if mat is None:
+            mat = bpy.data.materials.new(f'Box{len(mats)}')
+            mat.use_nodes = True
+            col = (*b['color'], 1)
+            bsdf = mat.node_tree.nodes['Principled BSDF']
+            bsdf.inputs['Base Color'].default_value = col
+            if dark:
+                # The dark: drawn from the inside only, as the game does (its near side never hides what's in it).
+                bsdf.inputs['Roughness'].default_value = 1
+                bsdf.inputs['Specular IOR Level'].default_value = 0
+                mat.use_backface_culling = True
+            mat.diffuse_color = col
+            mats[key] = mat
+        o = bpy.data.objects.new(f'Box{i}', cubes[dark])
+        bpy.context.scene.collection.objects.link(o)
         o.matrix_world = TO_B @ gm @ TO_B.inverted()
-        mat = bpy.data.materials.new(f'Box{i}')
-        mat.use_nodes = True
-        col = (*b['color'], 1)
-        bsdf = mat.node_tree.nodes['Principled BSDF']
-        bsdf.inputs['Base Color'].default_value = col
-        if sum(b['color']) == 0:
-            # The dark: drawn from the inside only, as the game does (its near side never hides what's in it).
-            bsdf.inputs['Roughness'].default_value = 1
-            bsdf.inputs['Specular IOR Level'].default_value = 0
-            mat.use_backface_culling = True
-            bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.mesh.flip_normals()
-            bpy.ops.object.mode_set(mode='OBJECT')
-        mat.diffuse_color = col
-        o.data.materials.append(mat)
+        o.material_slots[0].link = 'OBJECT'
+        o.material_slots[0].material = mat
         if b.get('noShadow'):
             o.visible_shadow = False
-
-
-def demon_at(path, d):
-    """The Demon in its stance (Wave, trident raised), scaled to its size, facing as the game turns it."""
-    before = set(bpy.data.objects)
-    bpy.ops.import_scene.gltf(filepath=os.path.abspath(path))
-    new = [o for o in bpy.data.objects if o not in before]
-    arm = next((o for o in new if o.type == 'ARMATURE'), None)
-    root = next((o for o in new if o.parent is None), new[0])
-    if arm and arm.animation_data is None:
-        arm.animation_data_create()
-    # (Update 0.2.10 — a boss with no Wave stands in its Idle.)
-    act = next((a for a in bpy.data.actions if a.name.endswith('Wave')), None) or next((a for a in bpy.data.actions if a.name.endswith('Idle')), None)
-    if arm and act:
-        arm.animation_data.action = act
-        bpy.context.scene.frame_set(30)
-    bpy.context.view_layer.update()
-    zs = [(o.matrix_world @ Vector(c)).z for o in new if o.type == 'MESH' for c in o.bound_box]
-    h = max(zs) - min(zs) if zs else 1
-    k = d['height'] / h
-    root.scale = (k, k, k)
-    root.location = to_blender(d['x'], 0, d['z'])
-    root.rotation_mode = 'XYZ'
-    root.rotation_euler.z = d['yaw'] + math.pi
-    bpy.context.view_layer.update()
-    zs = [(o.matrix_world @ Vector(c)).z for o in new if o.type == 'MESH' for c in o.bound_box]
-    if zs:
-        root.location.z -= min(zs)
 
 
 def write_boards(boards):

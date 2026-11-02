@@ -9,10 +9,13 @@
 // Items, Fate Cards (Update 0.2.16) and Sounds, the panel the same size on each and fitting the window. Enemies: a column a floor (labLists.ts),
 // its Play (a run from its start), its enemies (mini bosses tinted, last) and its boss (here, or its Room). Items: a
 // column a kind. Below, always: Clear, Heal, Back; Waves, God, Meter, and Stay (every pick keeps the panel open).
-// Update 0.3.11 — floor 7's column (its Play).
+// Update 0.3.11 — floor 7's column (its Play). Update 0.3.13 (the designer: "always put a new floor there", "put page 1
+// & 2 instead of stacking them together") — the floors with nothing of their own yet (7, 8) a button each in the
+// middle of the bottom row, on every tab; the floors' columns three to a page (Page 1, Page 2), wide enough for every
+// name.
 import { useState } from 'react';
 import { LabSounds } from './LabSounds';
-import { isMini, LAB_CARDS, LAB_DARK, LAB_FLOORS, LAB_ITEMS, LabBoss, labName } from './labLists';
+import { isMini, LAB_CARDS, LAB_DARK, LAB_ITEMS, LAB_NEW, LAB_PAGES, LabBoss, labName } from './labLists';
 import type { LabCommand } from '../sim/lab/labCommands';
 
 interface Props {
@@ -42,15 +45,21 @@ const TABS: [Tab, string][] = [
 ];
 const COUNTS = [1, 3, 5];
 
-/** The tab, the count and Stay picked last (kept between openings). */
+/** The tab, the count, Stay and the floors' page picked last (kept between openings). */
 let lastTab: Tab = 'enemies';
 let lastCount = 1;
 let lastStay = false;
+let lastPage = 0;
 
 export function LabPanel({ away, waves, meter, god, onCommand, onBossRoom, onFloor, onBack, onWaves, onMeter, onGod }: Props) {
   const [tab, setTab] = useState(lastTab);
   const [count, setCount] = useState(lastCount);
   const [stay, setStay] = useState(lastStay);
+  const [page, setPage] = useState(Math.min(lastPage, LAB_PAGES.length - 1));
+  const turn = (n: number) => {
+    lastPage = n;
+    setPage(n);
+  };
   const show = (t: Tab) => {
     lastTab = t;
     setTab(t);
@@ -89,8 +98,9 @@ export function LabPanel({ away, waves, meter, god, onCommand, onBossRoom, onFlo
         </header>
         <div className="rb-lab-body">
           {tab === 'enemies' && (
+            <div className="rb-lab-floors">
             <div className="rb-lab-cols is-floors">
-              {LAB_FLOORS.map((f) => (
+              {LAB_PAGES[page].map((f) => (
                 <section key={f.floor} className="rb-lab-col">
                   <div className="rb-lab-col-head">
                     <h3 className="rb-lab-head">Floor {f.floor}</h3>
@@ -117,6 +127,16 @@ export function LabPanel({ away, waves, meter, god, onCommand, onBossRoom, onFlo
                   )}
                 </section>
               ))}
+            </div>
+            {LAB_PAGES.length > 1 && (
+              <nav className="rb-lab-pages">
+                {LAB_PAGES.map((_, n) => (
+                  <button key={n} className={`rb-lab-count${n === page ? ' is-on' : ''}`} onClick={() => turn(n)}>
+                    Page {n + 1}
+                  </button>
+                ))}
+              </nav>
+            )}
             </div>
           )}
           {tab === 'items' && (
@@ -182,6 +202,13 @@ export function LabPanel({ away, waves, meter, god, onCommand, onBossRoom, onFlo
                 Back
               </button>
             )}
+          </div>
+          <div className="rb-lab-row">
+            {LAB_NEW.map((n) => (
+              <button key={n} className="rb-lab-btn is-tool is-floor" onClick={() => onFloor(n)}>
+                Floor {n}
+              </button>
+            ))}
           </div>
           <div className="rb-lab-row">
             <button className={toggle(waves)} onClick={onWaves}>

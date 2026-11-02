@@ -28,14 +28,18 @@ import { styleOf } from './styles';
 import { hasYeti } from '../../sim/dungeon/wavePlan';
 import { columnBoxes } from './columns';
 import { IcicleSpot, iciclesOf } from './frozen';
+import { bossStart } from './bossWalls';
+import { Forge, forgeOf } from './forge';
 // Update 0.2.4 — floor 4's desert: a palm's trunk and a cactus are narrow blocks in their cells (their sand is floor);
 // quicksand is floor too, listed apart (DungeonLevel.sand) for the slow you feel in it.
 // Update 0.2.23 — floor 2's Venom Garden (garden.ts): a tree's trunk is a willow's block; its webs and its hives.
 // Update 0.2.24 — floor 3's Bone Keep: a crystal cluster is a block; each room's lairs (lairs.ts).
+// Update 0.3.13 — floor 8's Forge (forge.ts): its presses (their posts solid), fire vents and belts; a workbench is a
+// block. The boss room's start moved to bossWalls.ts.
 
 /** Heights of what stands on a cell (m); the floor's top is y = 0. */
-export const HEIGHT: Partial<Record<Cell, number>> = { wall: 6, column: 4.9, low: 1.3, high: 2.85, ledge: 1, highLedge: 2.5, spikes: 0.3, chest: 0.9 };
-const BOX_KIND: Partial<Record<Cell, BoxKind>> = { wall: 'wall', column: 'block', low: 'block', high: 'block', ledge: 'block', highLedge: 'block', spikes: 'hazard' };
+export const HEIGHT: Partial<Record<Cell, number>> = { wall: 6, column: 4.9, low: 1.3, high: 2.85, ledge: 1, highLedge: 2.5, spikes: 0.3, chest: 0.9, bench: 0.9 };
+const BOX_KIND: Partial<Record<Cell, BoxKind>> = { wall: 'wall', column: 'block', low: 'block', high: 'block', ledge: 'block', highLedge: 'block', spikes: 'hazard', bench: 'block' };
 /** Update 0.0.20 — a lava pit's depth: its lava's top under the floor's (m). */
 export const LAVA_DEPTH = 1.6;
 /** How far a jump pad throws you (m/s up): onto the high ledges with room to spare. */
@@ -50,9 +54,6 @@ export const CHEST_D = 0.9;
 const CHEST_BACK = 0.4;
 /** Update 0.2.0 — the boss's chest stands this far in front of the wooden gate's wall (m). */
 export const BOSS_CHEST_OUT = 3;
-/** The boss room before its walls slide back: this many cells across the entrance wall, and deep. */
-export const BOSS_START_W = 16;
-export const BOSS_START_D = 14;
 
 export interface Rect {
   min: { x: number; z: number };
@@ -138,6 +139,8 @@ export interface DungeonLevel {
   /** Update 0.3.11 — floor 7's sheets of ice (flat areas on the floor) and its icicles. */
   ice: ArenaBox[];
   icicles: IcicleSpot[];
+  /** Update 0.3.13 — floor 8's presses, fire vents and belts. */
+  forge: Forge;
 }
 
 /** Update 0.2.4 — a palm's trunk and a cactus: their blocks' sides and heights (m). */
@@ -183,24 +186,6 @@ function chestBox(c: ChestSpot): ArenaBox {
   return { x: c.x, y: HEIGHT.chest! / 2, z: c.z, w: across ? CHEST_W : CHEST_D, h: HEIGHT.chest!, d: across ? CHEST_D : CHEST_W, kind: 'block' };
 }
 
-/** The boss room's inside before its walls slide back: BOSS_START_W × BOSS_START_D cells against its entrance wall. */
-function bossStart(end: Rect, entrance: Side): Rect {
-  const across = (BOSS_START_W * CELL) / 2;
-  const deep = BOSS_START_D * CELL;
-  const mx = (end.min.x + end.max.x) / 2;
-  const mz = (end.min.z + end.max.z) / 2;
-  switch (entrance) {
-    case 'n':
-      return { min: { x: mx - across, z: end.min.z }, max: { x: mx + across, z: end.min.z + deep } };
-    case 's':
-      return { min: { x: mx - across, z: end.max.z - deep }, max: { x: mx + across, z: end.max.z } };
-    case 'w':
-      return { min: { x: end.min.x, z: mz - across }, max: { x: end.min.x + deep, z: mz + across } };
-    case 'e':
-      return { min: { x: end.max.x - deep, z: mz - across }, max: { x: end.max.x, z: mz + across } };
-  }
-}
-
 export function buildDungeon(plan: FloorPlan): DungeonLevel {
   const boxes: ArenaBox[] = [];
   merge(plan, hasFloor, (col, row, w, h) => cellsBox(col, row, w, h, -LAVA_DEPTH - 1, 0, 'floor'), boxes);
@@ -221,6 +206,7 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
   // (Update 0.3.11 — floor 7's ice, as quicksand is.)
   const ice: ArenaBox[] = [];
   merge(plan, (c) => c === 'ice', (col, row, w, h) => cellsBox(col, row, w, h, -0.1, 0.1, 'accent'), ice);
+  const forge = forgeOf(plan, boxes);
   // Chests: a box the size of the model (one that rises: a gate, below).
   const chests: ChestSpot[] = [];
   for (const r of plan.rooms) {
@@ -285,5 +271,5 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
     dark: { min: { x: cellX(out.x0) - CELL / 2, z: cellZ(out.z0) - CELL / 2 }, max: { x: cellX(out.x1) + CELL / 2, z: cellZ(out.z1) + CELL / 2 } },
   };
   const tide = styleOf(plan.level).water === undefined ? [] : rooms.filter((r) => r.kind === 'fight').map((r): ArenaBox => ({ x: (r.min.x + r.max.x) / 2, y: 0, z: (r.min.z + r.max.z) / 2, w: r.max.x - r.min.x, h: 0, d: r.max.z - r.min.z, kind: 'accent' }));
-  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests, boss, sand, tide, webs: websOf(plan), hives: hivesOf(plan), ice, icicles: iciclesOf(plan, styleOf(plan.level).id === 'frozen') };
+  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests, boss, sand, tide, webs: websOf(plan), hives: hivesOf(plan), ice, icicles: iciclesOf(plan, styleOf(plan.level).id === 'frozen'), forge };
 }

@@ -66,6 +66,16 @@ export function crunch(a: AudioEngine, k: number) {
 export const iceCreak = (a: AudioEngine) => noise(a, { dur: 0.35, gain: 0.12, filter: 'bandpass', from: 2600, to: 3800, q: 6 });
 export const iceShatter = (a: AudioEngine) => noise(a, { dur: 0.22, gain: 0.3, filter: 'highpass', from: 3200, to: 1800, q: 0.7 });
 
+/** Update 0.3.13 — floor 8's machinery: a press's clank (its warning), its slam (a deep boom, iron on stone), a vent
+ *  sputtering (a hiss), its fire roaring up. */
+export const pressClank = (a: AudioEngine) => tone(a, { from: 220, to: 180, dur: 0.18, gain: 0.12, type: 'square' });
+export function pressSlam(a: AudioEngine) {
+  thump(a, 0.8, 0.22);
+  noise(a, { dur: 0.3, gain: 0.25, filter: 'lowpass', from: 900, to: 200, q: 0.8 });
+}
+export const ventHiss = (a: AudioEngine) => noise(a, { dur: 0.5, gain: 0.08, filter: 'highpass', from: 4000, to: 2500, q: 0.7 });
+export const ventRoar = (a: AudioEngine) => noise(a, { dur: 1.1, gain: 0.2, filter: 'bandpass', from: 300, to: 700, q: 0.6 });
+
 /** Update 0.3.5 — the block coming up: a quick, low whoosh. */
 export const guardUp = (a: AudioEngine) => noise(a, { dur: 0.09, gain: 0.16, filter: 'bandpass', from: 500, to: 1400, q: 1.2 });
 

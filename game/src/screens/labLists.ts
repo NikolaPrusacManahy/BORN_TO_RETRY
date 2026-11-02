@@ -4,6 +4,8 @@
 // Update 0.2.16 — the Fate Cards (their own tab): a deal, or any card given you, a column a rarity.
 // Update 0.3.11 — floor 7 (the designer: "F8 command please"): its Play, to see Frozen Depths past the run's end. Its
 // stand-ins come from the floors before, so its column is empty till its own enemies are made.
+// Update 0.3.13 — and floor 8: the floors with nothing of their own to list yet (7, 8) are buttons to play them (in
+// the panel's bottom row); the rest a column each, three to a page.
 import { rosterOf } from '../sim/dungeon/wavePlan';
 import { BUILD_CARDS } from '../sim/cards/builds';
 import { CARD, CARD_KINDS, CardKind, familyOf } from '../sim/cards/cards';
@@ -79,8 +81,8 @@ export interface LabFloor {
   boss: LabBoss | null;
 }
 
-/** The floors the panel offers (Update 0.3.11 — 7 too). */
-export const LAB_FLOOR_NUMBERS = [1, 2, 3, 4, 5, 6, 7];
+/** The floors the panel offers (Update 0.3.11 — 7 too; Update 0.3.13 — 8). */
+export const LAB_FLOOR_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 export const LAB_FLOORS: readonly LabFloor[] = (() => {
   const seen = new Set<EnemyKind>();
@@ -93,6 +95,13 @@ export const LAB_FLOORS: readonly LabFloor[] = (() => {
     return { floor, enemies: [...fresh.filter((k) => !isMini(k)), ...fresh.filter(isMini)], boss };
   });
 })();
+
+/** Update 0.3.13 — the floors with nothing of their own yet (their enemies and boss stand in): only to play; the rest
+ *  each a column, this many to a page. */
+export const LAB_NEW = LAB_FLOORS.filter((f) => f.enemies.length === 0 && !f.boss).map((f) => f.floor);
+export const LAB_COLUMNS = LAB_FLOORS.filter((f) => !LAB_NEW.includes(f.floor));
+export const PER_PAGE = 3;
+export const LAB_PAGES: readonly LabFloor[][] = Array.from({ length: Math.ceil(LAB_COLUMNS.length / PER_PAGE) }, (_, i) => LAB_COLUMNS.slice(i * PER_PAGE, (i + 1) * PER_PAGE));
 
 type Pick = [string, LabCommand];
 const item = (kind: DropKind, label: string): Pick => [label, { kind: 'item', item: kind }];

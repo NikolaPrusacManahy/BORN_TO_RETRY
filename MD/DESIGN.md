@@ -169,6 +169,15 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   right fist punches the shot (half a second on screen with the freeze). **4 s** after a parry that lands; **0.5 s**
   after a press that caught nothing.
 
+### Floor 8 — The Forge (Update 0.3.13; spec `MD_UPDATES/U0313_THE_FORGE.md`)
+- The designer: every floor's level first ("I want all designs to be done first"), then the enemies.
+- Floor 3's stone sooty grey under a pale smoky sky, warmed by lava pits again (wider), swords on the walls,
+  workbenches with glowing ore, embers rising. **Presses** (crusher cells side by side, one hammer): hang, clank (a shadow spreads), drop, rest
+  (in the way), rise; landing on you 40 and you're thrown out, on an enemy 150. **Fire vents:** idle, sputter, jet
+  4 m (15 to you once a jet, thrown up; 40 to an enemy). **Belts** carry you (2.6 m/s), enemies and bodies. A room's
+  presses and vents go in waves. All of it holds still while an execution holds the world. Nine rooms of its own;
+  stand-in enemies and boss. **(placeholder numbers, F1 → The Forge)**
+
 ### Floor 7 — Frozen Depths (Update 0.3.11; the plan for floors 7–10: `MD/FLOORS_7_10_PLAN.md`; spec `MD_UPDATES/U0311_FROZEN_DEPTHS.md`)
 - The run is **10 floors** (players polled: at least 10); for now it ends at floor 6's way down, moving on as each floor
   is done.

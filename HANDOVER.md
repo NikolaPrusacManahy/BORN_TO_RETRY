@@ -2,7 +2,17 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-02, Update 0.3.12: the pause menu pauses; the style rank holds through executions)
+## Next up (2026-11-02, Update 0.3.13: floor 8, The Forge — its level)
+- **The designer: "I want all designs to be done first"**: every floor's level (8, 9, 10's echo rooms) before any
+  floor's enemies (don't propose floor 7's yet). Floor 7's level: "fine". Floor 6 waits on test phase 2's testers.
+- **Floor 8's level** (spec `MD_UPDATES/U0313_THE_FORGE.md`): presses that slam on a beat (a shadow and a clank first;
+  they crush enemies too), fire vents jetting in waves, belts that carry you and enemies (rings, and lines into lava),
+  lava again, workbenches, swords on the walls, embers; nine rooms. Stand-in enemies and boss. Play it from the Lab
+  (F8 → Floor 8, in the bottom row: the designer, "always put a new floor there"; the floors' columns now three to a
+  page). Checked by tests (`test-floor8.ts`) and Blender renders; **unseen in the game**.
+- **Next: floor 9, The Rift** (the plan): islands over an abyss, crumbling platforms, updrafts.
+
+## Before (2026-11-02, Update 0.3.12: the pause menu pauses; the style rank holds through executions)
 - The designer: "combo bar isn't frozen during executions", "pause menu actually pauses the game, eh?" (spec
   `MD_UPDATES/U0312_PAUSE_AND_RANK.md`): paused, no time passes at all (before, the world went on behind the menu); the
   style rank doesn't drain through an execution or a held world. The dev keys moved to `screens/useDevKeys.ts`.

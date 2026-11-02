@@ -26,6 +26,9 @@
 // to them). Its boss room is its own, the Throne Hall. The lava rooms are retired.
 // Update 0.3.11 — floor 7's Frozen Depths (frozenRooms.ts): I a sheet of ice (floor you slide on), F a snowy tree in a
 // bed of snow, n a bed of snow (floor).
+// Update 0.3.13 — floor 8's Forge (forgeRooms.ts): H a crusher (its hammer slams the cell on a beat; cells side by side
+// are one press), V a fire vent (a grate that jets fire on a timer), > < v A a belt running east, west, south, north
+// (it carries what stands on it; turned and mirrored with the room), k a workbench (a block); L lava pits again.
 import type { Rng } from '../../core/rng';
 import { FIGHT_ROOMS as FIRST_ROOMS, quarter } from './fightRooms';
 import { KEEP_ROOMS } from './keepRooms';
@@ -35,14 +38,15 @@ import { SUNKEN_CHALLENGE, SUNKEN_ROOMS } from './sunkenRooms';
 import { SCORCHED_ROOM, VENOM_ROOMS } from './venomRooms';
 import { BONE_ROOMS, THRONE_ROOM } from './boneRooms';
 import { FROZEN_ROOMS } from './frozenRooms';
+import { FORGE_ROOMS } from './forgeRooms';
 
 /** Every fight room (Update 0.0.20: the lava rooms too, from their floor on; Update 0.0.21: floor 3's). */
-export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...VENOM_ROOMS, ...BONE_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS, ...SUNKEN_ROOMS, SUNKEN_CHALLENGE, ...FROZEN_ROOMS];
+export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...VENOM_ROOMS, ...BONE_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS, ...SUNKEN_ROOMS, SUNKEN_CHALLENGE, ...FROZEN_ROOMS, ...FORGE_ROOMS];
 
 /** Update 0.0.21 — the rooms floor `floor` has. */
 export const onFloor = (t: RoomTemplate, floor: number) => (t.from ?? 1) <= floor && floor <= (t.until ?? Infinity);
 
-export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed' | 'bed' | 'grass' | 'tree' | 'web' | 'grave' | 'shroom' | 'burrow' | 'crystal' | 'ice' | 'pine' | 'snow';
+export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed' | 'bed' | 'grass' | 'tree' | 'web' | 'grave' | 'shroom' | 'burrow' | 'crystal' | 'ice' | 'pine' | 'snow' | 'crusher' | 'vent' | 'belt' | 'bench';
 export type RoomKind = 'start' | 'fight' | 'boss' | 'shop';
 
 export interface RoomTemplate {
@@ -90,7 +94,17 @@ const CHAR: Record<string, Cell> = {
   I: 'ice',
   F: 'pine',
   n: 'snow',
+  H: 'crusher',
+  V: 'vent',
+  '>': 'belt',
+  '<': 'belt',
+  v: 'belt',
+  A: 'belt',
+  k: 'bench',
 };
+
+/** Update 0.3.13 — a belt's way (dx, dz on the grid: +z is south). */
+export const BELT_WAY: Record<string, [number, number]> = { '>': [1, 0], '<': [-1, 0], v: [0, 1], A: [0, -1] };
 
 export const START_ROOM: RoomTemplate = {
   id: 'start',
@@ -162,16 +176,35 @@ export interface RoomLayout {
   perches: [number, number][];
   /** Update 0.2.23 — cells beside a wall with a wasps' hive on it. */
   hives: [number, number][];
+  /** Update 0.3.13 — belts: (col, row) and the way each runs (dx, dz), turned and mirrored with the room. */
+  belts: [number, number, number, number][];
 }
 
-/** The template's characters, turned and mirrored: what's at (col, row) of the varied room. */
-function sourceChar(t: RoomTemplate, col: number, row: number, turn: boolean, flipX: boolean, flipZ: boolean): string {
+/** Where (col, row) of the varied room comes from in the template (turned and mirrored). */
+function sourceAt(t: RoomTemplate, col: number, row: number, turn: boolean, flipX: boolean, flipZ: boolean): [number, number] {
   const w = turn ? t.rows.length : t.rows[0].length;
   const h = turn ? t.rows[0].length : t.rows.length;
   let c = flipX ? w - 1 - col : col;
   let r = flipZ ? h - 1 - row : row;
   if (turn) [c, r] = [r, w - 1 - c];
+  return [c, r];
+}
+
+/** The template's characters, turned and mirrored: what's at (col, row) of the varied room. */
+function sourceChar(t: RoomTemplate, col: number, row: number, turn: boolean, flipX: boolean, flipZ: boolean): string {
+  const [c, r] = sourceAt(t, col, row, turn, flipX, flipZ);
   return t.rows[r][c];
+}
+
+/** Update 0.3.13 — the way a belt drawn running `way` runs in the varied room: the step in it that's that step in the
+ *  template. */
+function variedWay(t: RoomTemplate, way: [number, number], turn: boolean, flipX: boolean, flipZ: boolean): [number, number] {
+  const [c0, r0] = sourceAt(t, 0, 0, turn, flipX, flipZ);
+  for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+    const [c, r] = sourceAt(t, dx, dz, turn, flipX, flipZ);
+    if (c - c0 === way[0] && r - r0 === way[1]) return [dx, dz];
+  }
+  return way;
 }
 
 /** One run's version of a template: mirrored and turned by the seed, every ? decided. */
@@ -188,6 +221,7 @@ export function layOut(t: RoomTemplate, rng: Rng): RoomLayout {
   const tiles: [number, number][] = [];
   const perches: [number, number][] = [];
   const hives: [number, number][] = [];
+  const belts: [number, number, number, number][] = [];
   for (let row = 0; row < h; row++) {
     for (let col = 0; col < w; col++) {
       const ch = sourceChar(t, col, row, turn, flipX, flipZ);
@@ -196,8 +230,9 @@ export function layOut(t: RoomTemplate, rng: Rng): RoomLayout {
       if (ch === 'S') tiles.push([col, row]);
       if (ch === 'U') perches.push([col, row]);
       if (ch === 'h') hives.push([col, row]);
+      if (BELT_WAY[ch]) belts.push([col, row, ...variedWay(t, BELT_WAY[ch], turn, flipX, flipZ)]);
       cells.push(ch === '?' ? (rng() < 0.5 ? 'low' : 'floor') : CHAR[ch] ?? 'floor');
     }
   }
-  return { template: t, w, h, cells, spawns, chestSpots, tiles, perches, hives };
+  return { template: t, w, h, cells, spawns, chestSpots, tiles, perches, hives, belts };
 }

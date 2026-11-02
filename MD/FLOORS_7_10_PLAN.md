@@ -3,7 +3,9 @@
 The designer polled players: half want 10 floors, half more than 10 — "people want at least 10". The run goes back to
 **10 floors** (it was cut to 7 on 2026-10-30). This is Claude's plan for the four new floors, to be agreed before
 building. Each floor is built as floor 6 was: **the level and its look first, then its enemies, then its boss**, each
-its own update with a spec in `MD_UPDATES/`.
+its own update with a spec in `MD_UPDATES/`. **The designer (2026-11-02, after floor 7's level): "I want all designs
+to be done first"** — every floor's level (8, 9, 10) before any floor's enemies; floor 7's design: "fine". Floor 6 waits
+on test phase 2's testers.
 
 ## The way down
 
@@ -90,7 +92,9 @@ temple (8), under that the ground gives way to an abyss (9), and at the bottom, 
 
 ## Order of work
 
-1. Floor 6 into the alpha (`LAST_FLOOR` 6), if wanted.
-2. Floor 7: level and look (ice, icicles, snow beds, rooms) → its enemies → the Frost Roc.
-3. Floor 8, then 9, as their models arrive.
-4. Floor 10: the echo rooms → The Retrier → `LAST_FLOOR` 10.
+(Reordered by the designer, 2026-11-02: "all designs to be done first".)
+1. Floor 6 into the run (`LAST_FLOOR` 6). Done (0.3.11). Its verdict: test phase 2's testers.
+2. **The levels:** floor 7 (done, 0.3.11: "fine"), floor 8 (done, 0.3.13), floor 9, floor 10's echo rooms; each
+   playable from the Lab (F8) with stand-in enemies.
+3. **Then the enemies and bosses:** floor 7's and the Frost Roc, floor 8's, 9's (as their models arrive), The Retrier;
+   `LAST_FLOOR` moves on as each floor is whole.

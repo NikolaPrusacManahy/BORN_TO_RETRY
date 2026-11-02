@@ -5,7 +5,7 @@
 // Update 0.3.2 (the designer: executions "brutal") — a bone crunch under an execution's blows, a bigger one at its end.
 import type { CombatEvent } from '../sim/combat/state';
 import type { AudioEngine } from './audio';
-import { clang, crack, crunch, guardUp, iceCreak, iceShatter, OFF, thump } from './soundLayers';
+import { clang, crack, crunch, guardUp, iceCreak, iceShatter, OFF, pressClank, pressSlam, thump, ventHiss, ventRoar } from './soundLayers';
 
 /** A blow's thump (nothing for the rest). */
 export function impactLayer(a: AudioEngine, kind: CombatEvent, value: number) {
@@ -48,6 +48,19 @@ export function impactLayer(a: AudioEngine, kind: CombatEvent, value: number) {
     case 'icicleShatter':
       iceShatter(a);
       hit(0.35, 0.1);
+      return;
+    // (Update 0.3.13 — floor 8's machinery, near you.)
+    case 'pressWarn':
+      pressClank(a);
+      return;
+    case 'pressSlam':
+      pressSlam(a);
+      return;
+    case 'ventWarn':
+      ventHiss(a);
+      return;
+    case 'ventBurst':
+      ventRoar(a);
       return;
     // (Update 0.3.9 — a pillar snapping: a deep boom, a crack.)
     case 'pillarBreak':

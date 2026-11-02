@@ -9,6 +9,8 @@
 // Update 0.2.10 — floor 5's water: the tide at high water over its rooms (`water`), its lily pads on it; and looks into
 // its rooms.
 // Update 0.3.11 — floor 7's sheets of ice and its icicles (pale slabs and thin pale blocks), and looks into its rooms.
+// Update 0.3.13 — floor 8's machinery (the presses' frames, hammers some up and some down, their striped plates; the
+// vents' grates, some jetting; the belts), and looks into its rooms.
 //   npx tsx tools/dungeon-shots.ts <out folder> [seed] [floor]
 //   blender --background --python tools/blender/render_dungeon.py -- --json <out folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <out folder>
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -22,6 +24,8 @@ import { planFloor } from '../src/world/dungeon/floorPlan';
 import { DESERT_ROOMS } from '../src/world/dungeon/desertRooms';
 import { VENOM_ROOMS } from '../src/world/dungeon/venomRooms';
 import { BONE_ROOMS } from '../src/world/dungeon/boneRooms';
+import { FRAME_H, POST, POST_IN } from '../src/world/dungeon/forge';
+import { HAMMER, HAMMER_IN, pressAt } from '../src/sim/dungeon/machinery';
 
 const out = process.argv[2];
 if (!out) throw new Error('usage: npx tsx tools/dungeon-shots.ts <out folder> [seed] [floor]');
@@ -92,8 +96,25 @@ const pieces = [...d.pieces, ...(wet ? d.floats.map((f) => ({ ...f, y: high + 0.
 const ICE = [0.55, 0.78, 0.9];
 for (const b of level.ice) lava.push({ m: new Matrix4().compose(new Vector3(b.x, 0.012, b.z), new Quaternion(), new Vector3(b.w, 0.01, b.d)).elements, color: ICE });
 for (const ic of level.icicles) lava.push({ m: new Matrix4().compose(new Vector3(ic.x, 5.8, ic.z), new Quaternion(), new Vector3(0.16, 1, 0.16)).elements, color: [0.86, 0.95, 1] });
-if (d.style.id === 'frozen') {
-  for (const r of level.rooms.filter((x) => x.kind === 'fight').slice(0, 5)) {
+const block = (x: number, y: number, z: number, w: number, h: number, dd: number, color: number[]) => lava.push({ m: new Matrix4().compose(new Vector3(x, y, z), new Quaternion(), new Vector3(w, h, dd)).elements, color });
+const IRON = [0.16, 0.145, 0.135];
+level.forge.presses.forEach((p, i) => {
+  const px = p.w / 2 - POST_IN;
+  const pz = p.d / 2 - POST_IN;
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) block(p.x + sx * px, FRAME_H / 2, p.z + sz * pz, POST, FRAME_H, POST, IRON);
+  for (const sz of [-1, 1]) block(p.x, FRAME_H - 0.18, p.z + sz * pz, 2 * px + POST, 0.36, 0.36, IRON);
+  for (const sx of [-1, 1]) block(p.x + sx * px, FRAME_H - 0.18, p.z, 0.36, 0.36, 2 * pz + POST, IRON);
+  const y = pressAt(p, i * 1.3).y;
+  block(p.x, y + HAMMER / 2, p.z, p.w - 2 * HAMMER_IN, HAMMER, p.d - 2 * HAMMER_IN, [0.1, 0.09, 0.085]);
+  block(p.x, 0.015, p.z, p.w - 0.1, 0.02, p.d - 0.1, [0.62, 0.38, 0.12]);
+});
+level.forge.vents.forEach((v, i) => {
+  block(v.x, 0.02, v.z, 1.6, 0.02, 1.6, [0.12, 0.1, 0.09]);
+  if (i % 3 === 0) block(v.x, 2, v.z, 1.1, 4, 1.1, [1, 0.55, 0.12]);
+});
+for (const b of level.forge.belts) block(b.x, 0.025, b.z, b.dx ? 2 : 1.7, 0.03, b.dz ? 2 : 1.7, [0.24, 0.22, 0.21]);
+if (d.style.id === 'frozen' || d.style.id === 'forge') {
+  for (const r of level.rooms.filter((x) => x.kind === 'fight').slice(0, 9)) {
     const id = level.plan.rooms[r.index].layout.template.id.replace(/ /g, '-');
     const m = { x: (r.min.x + r.max.x) / 2, z: (r.min.z + r.max.z) / 2 };
     cams.push({ name: `${id}-eye`, at: [r.min.x + 4, 1.6, r.min.z + 4], to: [m.x, 0.6, m.z] });

@@ -4,6 +4,7 @@ import type { Floor2Event } from './events2';
 import type { DrownedEvent } from './events5';
 import type { FishEvent } from './events6';
 import type { CardEvent } from './eventsCards';
+import type { DepthsEvent } from './events7';
 
 export type CombatEvent =
   | 'none'
@@ -38,9 +39,6 @@ export type CombatEvent =
   | 'wallSplat'
   // Update 0.3.9 — a pillar broken by the pillar finisher (value: which; at its middle, where it snaps: pillars.ts).
   | 'pillarBreak'
-  // Update 0.3.11 — floor 7's icicles: one shaking (where it hangs), one shattering (where it lands: dungeon/icicles.ts).
-  | 'icicleShake'
-  | 'icicleShatter'
   | 'respawn'
   // M2 — enemies (value = which enemy): one arriving, each kind's warning and attack.
   | 'enemySpawn'
@@ -306,8 +304,10 @@ export type CombatEvent =
   | 'execReady'
   | 'standRespawn'
   // Update 0.2.10 — floor 5's (events5.ts); Update 0.2.11 — floor 6's (events6.ts); Update 0.2.16 — the Fate Cards'.
-  // Update 0.2.23 — floor 2's (events2.ts: the Dragon's, moved there, and the Venom Garden's).
+  // Update 0.2.23 — floor 2's (events2.ts: the Dragon's, moved there, and the Venom Garden's). Update 0.3.13 — floors 7
+  // and 8's (events7.ts: floor 7's icicles, moved there, and floor 8's machinery).
   | Floor2Event
   | DrownedEvent
   | FishEvent
-  | CardEvent;
+  | CardEvent
+  | DepthsEvent;
