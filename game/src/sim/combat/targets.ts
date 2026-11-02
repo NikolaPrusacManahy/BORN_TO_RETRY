@@ -49,8 +49,11 @@ export interface Orb {
   /** Update 0.1.14 — who fired it. */
   by: Cause | null;
   /** Update 0.2.4 — a glowing orb, a Tribal's spear or a Cactoro's spine (how it's drawn). */
-  /** (Update 0.2.10 — 'water': floor 5's Glubs' bolts.) */
-  look: 'fire' | 'spear' | 'spine' | 'carrot' | 'water';
+  /** (Update 0.2.10 — 'water': floor 5's Glubs' bolts. Update 0.3.18 — floor 8's: 'laser', a blaster bolt; 'missile',
+   *  the Bee mech's.) */
+  look: 'fire' | 'spear' | 'spine' | 'carrot' | 'water' | 'laser' | 'missile';
+  /** Update 0.3.18 — it turns after you this fast (rad/s; 0: straight: the Bee mech's missiles home). */
+  home: number;
   /** Update 0.3.3 — punched back (parry.ts): it hits enemies, not you. */
   parried: boolean;
 }
@@ -67,7 +70,7 @@ export function createTurret(s: Spot): Turret {
 }
 
 export function createOrbs(): Orb[] {
-  return Array.from({ length: ORB_POOL }, () => ({ alive: false, pos: new Vector3(), vel: new Vector3(), damage: 0, life: 0, by: null, look: 'fire' as Orb['look'], parried: false }));
+  return Array.from({ length: ORB_POOL }, () => ({ alive: false, pos: new Vector3(), vel: new Vector3(), damage: 0, life: 0, by: null, look: 'fire' as Orb['look'], parried: false, home: 0 }));
 }
 
 /** The bottom and top of a dummy's capsule axis right now. */

@@ -9,7 +9,8 @@
 // Update 0.2.8 — the Velociraptor's sandstorm, its eyes in it, its blitz's afterimages (boss/raptorFx.ts).
 // Update 0.2.10 — floor 5's fins, rings on the water, spikes and lash lines (drownedFx.ts).
 // Update 0.2.11 — floor 6's bubble columns, shadows, lanes, rings and jets (fishFx.ts). Update 0.3.15 — Skull Cove's
-// crew: the Corsair's hook, Barbarossa's aim, the Tentacle's shadow, Mako's fin (cove/crewFx.ts).
+// crew: the Corsair's hook, Barbarossa's aim, the Tentacle's shadow, Mako's fin (cove/crewFx.ts). Update 0.3.18 — and
+// floor 8's crew's lines on the ground (moon/crewMarks.ts).
 // Update 0.2.23 — floor 2's wasps' hives (hivesView.ts), and its tall grass parting round you and the enemies.
 // Update 0.2.26 — blood (bloodFx.ts). Update 0.2.27 — the enemies' shots (shotsView.ts). Update 0.2.28 — your
 // blows' arcs, dust rings and the hammer's rocks (blowsFx.ts). Update 0.3.0 — the halos (halos.ts): each frame starts
@@ -35,6 +36,7 @@ import { RaptorFx } from './boss/raptorFx';
 import { DrownedFx } from './drownedFx';
 import { FishFx } from './fishFx';
 import { CrewFx } from './cove/crewFx';
+import { CrewMarks } from './moon/crewMarks';
 import { EnemiesView } from './enemiesView';
 import { ExecScene } from './exec/execScene';
 import { FireView } from './fireView';
@@ -82,6 +84,7 @@ export class CombatScene {
   private readonly drowned: DrownedFx;
   private readonly fish: FishFx;
   private readonly crew: CrewFx;
+  private readonly moonMarks: CrewMarks;
   readonly raptor: RaptorFx;
   private readonly hives: HivesView;
   private readonly blood: BloodFx;
@@ -107,6 +110,7 @@ export class CombatScene {
     this.drowned = new DrownedFx(scene);
     this.fish = new FishFx(scene);
     this.crew = new CrewFx(scene);
+    this.moonMarks = new CrewMarks(scene);
     this.raptor = new RaptorFx(scene);
     this.hives = new HivesView(scene, state);
     this.blood = new BloodFx(scene);
@@ -161,6 +165,7 @@ export class CombatScene {
     this.drowned.update(state, gameDt);
     this.fish.update(state, gameDt);
     this.crew.update(state, playerChest, gameDt);
+    this.moonMarks.update(state);
     this.raptor.update(state, alpha, gameDt, (i) => this.enemies.headOf(i));
     this.waves.update(gameDt);
     this.coins.update(state.coins, gameDt);
@@ -188,6 +193,7 @@ export class CombatScene {
     this.drowned.clear();
     this.fish.clear();
     this.crew.clear();
+    this.moonMarks.clear();
     this.fire.clear();
     this.knives.clear();
     this.cards.clear();
@@ -224,6 +230,7 @@ export class CombatScene {
     this.drowned.dispose();
     this.fish.dispose();
     this.crew.dispose();
+    this.moonMarks.dispose();
     this.raptor.dispose();
     this.hives.dispose();
     this.blood.dispose();

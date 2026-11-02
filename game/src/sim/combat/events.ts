@@ -6,6 +6,7 @@ import type { FishEvent } from './events6';
 import type { CardEvent } from './eventsCards';
 import type { DepthsEvent } from './events7';
 import type { CoveEvent } from './eventsCove';
+import type { MoonEvent } from './eventsMoon';
 
 export type CombatEvent =
   | 'none'
@@ -312,4 +313,5 @@ export type CombatEvent =
   | FishEvent
   | CardEvent
   | DepthsEvent
-  | CoveEvent;
+  | CoveEvent
+  | MoonEvent;

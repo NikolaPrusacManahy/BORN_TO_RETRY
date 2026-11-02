@@ -202,9 +202,9 @@ section('Floor 8 — meteor showers');
   check('“A meteor” on the death screen', causeName('meteor') === 'A meteor');
 }
 
-section('Floor 8 — stand-ins (its own enemies come next: the plan)');
+section('Floor 8 — its crew (Update 0.3.18: test-floor8-crew.ts); its boss still stands in');
 {
   const roster = rosterOf(8);
-  check('its enemies stand in from the dry floors (none of floor 6’s)', roster.length > 0 && roster.every((k) => !(KINDS6 as readonly string[]).includes(k)), roster.join(', '));
-  check('its boss stands in (the Velociraptor) till the alien’s model is in', bossOf(8) === 'dino');
+  check('its own enemies (none of floor 6’s)', roster.includes('gunner') && roster.every((k) => !(KINDS6 as readonly string[]).includes(k)), roster.join(', '));
+  check('its boss stands in (the Velociraptor) till the three mechs are made', bossOf(8) === 'dino');
 }

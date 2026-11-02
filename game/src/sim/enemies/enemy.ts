@@ -7,14 +7,12 @@
 // Update 0.0.15 — the Demon's phases (its charge, stunned, its roar, its entrance) and which move it winds up; a boss's
 // body doesn't fall when it dies (its death show places it); a hit on a stunned boss is worth more.
 // Update 0.0.17 — frozen (the snowflake bonus): it stands still, its attack paused, until the ice wears off.
-// Update 0.0.18 — the Dragon's fire beam (a phase of its own) and a burst's shots; the enemy world knows every enemy
-// (the beam burns them).
-// Update 0.0.21 — the Dragon up in the sky (a phase of its own: it doesn't fall), its fire bombs, and how long you've
-// stayed close to it. A perched enemy (a spitter on a high ledge, floor 3) stands on its ledge: it falls only to it,
-// and hits don't slide it off. Update 0.1.1 — held in an execution (its own phase: the execution places it).
-// Update 0.1.15 — its attack token (tokens.ts) and its angle round you (spread.ts); bodies pushing apart moved to
-// bodies.ts. Update 0.1.19 — a Skeleton brought down falls to pieces to rebuild (its own phase: skeleton.ts); the
-// Ninja's teleport rest.
+// Update 0.0.18 — the Dragon's fire beam (a phase) and a burst's shots; the world knows every enemy (the beam burns
+// them). Update 0.0.21 — the Dragon in the sky (a phase: it doesn't fall), its fire bombs, how long you've stayed
+// close. A perched enemy stands on its ledge: it falls only to it, hits don't slide it off. Update 0.1.1 — held in an
+// execution (a phase: the execution places it). Update 0.1.15 — its attack token (tokens.ts), its angle round you
+// (spread.ts); bodies pushing apart in bodies.ts. Update 0.1.19 — a Skeleton brought down falls to pieces to rebuild
+// (skeleton.ts); the Ninja's teleport rest.
 // Update 0.2.3 — the Bone King (boneKing.ts): brought down the first time it falls to pieces and rebuilds (its second
 // life), nothing hurting it meanwhile; it holds you in its hand ('grab') and charges its final blast ('blast').
 // Update 0.2.4 — under the sand ('burrow': the Cactoros), out of reach of every hit.
@@ -254,8 +252,8 @@ export function inLine(e: Enemy, player: PlayerState, nav: NavGrid, level: numbe
   return Math.abs(player.pos.y - e.pos.y) < level && !wallBetween(nav, e.pos.x, e.pos.z, player.pos.x, player.pos.z);
 }
 
-/** Update 0.1.19 — brought down now, does it fall to pieces (to rebuild: skeleton.ts) rather than die? A Skeleton, not
- *  while in pieces or held in an execution, until its revives are used. Update 0.2.3 — the Bone King, in its first life. */
+/** Update 0.1.19 — brought down, does it fall to pieces (skeleton.ts) rather than die? A Skeleton, not in pieces or
+ *  held, till its revives are used. Update 0.2.3 — the Bone King, in its first life. */
 export const fallsApart = (e: Enemy) => (e.kind === 'skeleton' && e.phase !== 'rebuild' && e.phase !== 'held' && e.stage < Math.round(FOES3.v.skeletonRevives)) || (e.kind === 'boneKing' && e.stage === 0 && e.phase !== 'rebuild');
 
 /** Damages an enemy pushed along (dirX, dirZ) (length 1). A hit at least as hard as its stagger flinches it
@@ -275,11 +273,13 @@ export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, 
     return false;
   }
   e.hp = 0;
-  // Update 0.3.15 — floor 6's Cursed Crewman brought down: its skull flies off, and it goes on headless (crewman.ts),
-  // its own health. (Not one held in an execution: that finishes it.)
-  if (e.kind === 'crewman' && e.phase !== 'held') {
-    e.kind = 'headless';
-    e.hp = ENEMY_STATS.headless().hp;
+  // Update 0.3.15 — floor 6's Cursed Crewman brought down: its skull flies off, and it goes on headless (crewman.ts);
+  // Update 0.3.18 — floor 8's Bee mech broken, Barbara climbs out (beeMech.ts): each its own health. (Not one held in
+  // an execution: that finishes it.)
+  const next = e.kind === 'crewman' ? 'headless' : e.kind === 'beeMech' ? 'beeNaut' : null;
+  if (next && e.phase !== 'held') {
+    e.kind = next;
+    e.hp = ENEMY_STATS[next]().hp;
     e.shots = 1;
     e.vel.set(0, 0, 0);
     setPhase(e, 'flinch');

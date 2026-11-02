@@ -4,6 +4,7 @@
 // Update 0.2.3 — a skeleton the Bone King throws is drawn by kingView.ts: here only its spot.
 // Update 0.2.4 — a Lizard's poison glob: a green ball. Update 0.3.15 — the Bomber's powder bomb: a small black ball, its
 // fuse spitting sparks; its ring fills over its flight and its fuse together (batted back, over its short flight).
+// Update 0.3.18 — floor 8's mine: a small steel ball floating down, its light blinking red, faster as its fuse runs.
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
 import { BOMB_POOL } from '../../sim/combat/bombs';
@@ -35,6 +36,7 @@ export class BombView {
   /** Update 0.2.10 — floor 5's Big Glub's bubbles. */
   private readonly bubbleMat = new THREE.MeshStandardMaterial({ color: 0x9ff0ff, emissive: 0x2a9ab8, emissiveIntensity: 0.8, transparent: true, opacity: 0.6, roughness: 0.1 });
   private readonly powderMat = new THREE.MeshStandardMaterial({ color: 0x161616, roughness: 0.55, metalness: 0.3 });
+  private readonly mineMat = new THREE.MeshStandardMaterial({ color: 0x4a5048, roughness: 0.4, metalness: 0.6, emissive: 0xff2010, emissiveIntensity: 0 });
   private readonly sparkMat = new THREE.MeshBasicMaterial({ color: 0xffc040, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
   private readonly shown: Shown[] = [];
   private readonly mats: THREE.Material[] = [];
@@ -62,8 +64,10 @@ export class BombView {
       s.spark.visible = b.alive && b.look === 'powder';
       if (!b.alive) continue;
       s.ball.visible = b.look !== 'bones' && b.look !== 'geyser';
-      s.ball.material = b.look === 'poison' ? this.poisonMat : b.look === 'bubble' ? this.bubbleMat : b.look === 'powder' ? this.powderMat : this.ballMat;
-      const powder = b.look === 'powder';
+      s.ball.material = b.look === 'poison' ? this.poisonMat : b.look === 'bubble' ? this.bubbleMat : b.look === 'powder' ? this.powderMat : b.look === 'mine' ? this.mineMat : this.ballMat;
+      const powder = b.look === 'powder' || b.look === 'mine';
+      // (A mine's light: blinking faster as its fuse runs out.)
+      if (b.look === 'mine') this.mineMat.emissiveIntensity = Math.sin(this.time * (8 + 22 * Math.min(1, Math.max(0, (b.t - b.fall) / Math.max(0.1, b.fuse))))) > 0 ? 2.5 : 0;
       const k = Math.min(1, b.t / (b.fall + (powder ? b.fuse : 0)));
       const flicker = 0.85 + 0.15 * Math.sin(this.time * 40 + i);
       s.ball.position.copy(b.pos);
@@ -91,6 +95,7 @@ export class BombView {
     this.ringGeo.dispose();
     this.discGeo.dispose();
     this.ballMat.dispose();
+    this.mineMat.dispose();
     this.poisonMat.dispose();
     this.bubbleMat.dispose();
     this.powderMat.dispose();

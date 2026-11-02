@@ -22,6 +22,8 @@ const SPORE: BloodLook = { mode: 'mist', drop: 0xc6a8f0, splat: 0 };
 const WISP: BloodLook = { mode: 'mist', drop: 0xbfe6ff, splat: 0 };
 const SAP: BloodLook = { mode: 'drip', drop: 0xe0a02c, splat: 0x9a6612 };
 const INK: BloodLook = { mode: 'drip', drop: 0x2c1f4f, splat: 0x1d1536 };
+/** Update 0.3.18 — floor 8's machines (its ships, the Bee's mech): metal chips. */
+const METAL: BloodLook = { mode: 'chip', drop: 0xa8acb2, splat: 0 };
 
 const OF: Partial<Record<EnemyKind, BloodLook>> = {
   spitter: ICHOR,
@@ -41,6 +43,11 @@ const OF: Partial<Record<EnemyKind, BloodLook>> = {
   crewman: BONE,
   headless: BONE,
   tentacle: INK,
+  strafer: METAL,
+  diver: METAL,
+  mineLayer: METAL,
+  beeShip: METAL,
+  beeMech: METAL,
   boneKing: BONE,
   skullWraith: BONE,
   mushnub: SPORE,

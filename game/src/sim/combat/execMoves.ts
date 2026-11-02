@@ -268,7 +268,9 @@ EXEC_MOVES.maskTribal = EXEC_MOVES.wraith;
 // Update 0.3.15 — Skull Cove's crew: the pirates the Orc's (the same skeleton), the Cursed Crewman (headless or not) the
 // Skeleton's (the designer: "put the default skeleton execution on them"; its pieces its own: looks.ts), the Gull and
 // the Bats the Wraith's, the mini bosses the Yeti's. The Kraken's Tentacle has none (rooted in the sea).
-export const ALIKE: readonly [EnemyKind, EnemyKind][] = [['corsair', 'grunt'], ['shanty', 'grunt'], ['bomber', 'grunt'], ['crewman', 'skeleton'], ['headless', 'skeleton'], ['gull', 'wraith'], ['bat', 'wraith'], ['mako', 'brute'], ['captain', 'brute'], ['snapper', 'slime'], ['urchin', 'slime'], ['jelly', 'slime'], ['spawnling', 'slime'], ['glub', 'wraith'], ['bigGlub', 'wraith'], ['squidle', 'wraith'], ['deepOne', 'brute'], ['bogBrute', 'brute'], ['clownfish', 'wraith'], ['tuna', 'wraith'], ['angelfish', 'wraith'], ['dolphin', 'wraith'], ['drownedPrince', 'grunt'], ['mantaRay', 'wraith'], ['shark', 'wraith']];
+// Update 0.3.18 — the Moon's crew: the astronauts the Orc's (the same skeleton). The ships none (no skeleton: no
+// grip; they're a punch or two), nor the Bee mech (it must break, and Barbara climb out: the designer's).
+export const ALIKE: readonly [EnemyKind, EnemyKind][] = [['corsair', 'grunt'], ['shanty', 'grunt'], ['bomber', 'grunt'], ['crewman', 'skeleton'], ['headless', 'skeleton'], ['gull', 'wraith'], ['bat', 'wraith'], ['mako', 'brute'], ['captain', 'brute'], ['snapper', 'slime'], ['urchin', 'slime'], ['jelly', 'slime'], ['spawnling', 'slime'], ['glub', 'wraith'], ['bigGlub', 'wraith'], ['squidle', 'wraith'], ['deepOne', 'brute'], ['bogBrute', 'brute'], ['clownfish', 'wraith'], ['tuna', 'wraith'], ['angelfish', 'wraith'], ['dolphin', 'wraith'], ['drownedPrince', 'grunt'], ['mantaRay', 'wraith'], ['shark', 'wraith'], ['gunner', 'grunt'], ['flanker', 'grunt'], ['hopper', 'grunt'], ['beeNaut', 'grunt']];
 for (const [kind, like] of ALIKE) EXEC_MOVES[kind] = EXEC_MOVES[like];
 EXEC_MOVES.brute = EXEC_MOVES.blueDemon;
 

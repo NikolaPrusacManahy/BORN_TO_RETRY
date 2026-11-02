@@ -24,8 +24,8 @@ its enemies, then its boss**, each its own update with a spec in `MD_UPDATES/`.
   antennas, radars, metal supports), **rocks**, **planets** (eleven), **alien plants and trees**, and pickups (crate,
   key card, jar…).
 
-**The boss isn't on this PC yet.** `NEW-BOSSES` holds the *free* Bestiary kit, which has only the Imp and the Puglin.
-The big monster is in the full (Source) pack from quaternius.com. The level and the enemies don't wait on it.
+~~The boss isn't on this PC yet~~ (the Bestiary monster): dropped by the designer ("forget about it that boss"); the
+boss is the three mechs together (below).
 
 ## The look
 - **A space sky**: black, full of stars, with **the Earth hanging large in it** (blue seas, green and brown land,
@@ -57,31 +57,58 @@ Greenhouse (inside the geodesic dome: plants in beds), Solar Farm (rows of panel
 and ramps), Radar Ridge (antennas on raised rock), Earthrise (an open rim with the Earth right over it), Meteor Plain
 (open dust, meteor showers).
 
-## Its enemies (new, none like another floor's)
-1. **Tiny spaceships** (the four ships, shrunk to a wasp's size): they **fly in pairs and fours**, strafe round you,
-   fire small laser bolts, and peel off one at a time to dive at you. Each of the four flies its own way (the Bee's
-   darts, the Flamingo's long passes, the Frog's hops, the Red Panda's spins).
-2. **The aliens**: Enemy_Small (a flier that headbutts), Enemy_ExtraSmall (a swarm of little ones), Enemy_Flying (a
-   tall floater), Enemy_Large (a heavy walker with a weapon). Their twists are written when they're built, each new to
-   the game.
-3. **Mini bosses: the four mechs**, each with its own twist:
-   - **Barbara the Bee**: **hovers** on her jets in the low gravity, out of reach, and rains a spiral of small shots;
-     she drops in a stomp when you're under her.
-   - **Fernando the Flamingo**: the **sniper**: tall, far off, a charged beam whose sight line tracks you then locks
-     before it fires; close in, his kick sends you flying across the room.
-   - **Finn the Frog**: **giant moon leaps** across the room; each landing sends a shock ring along the ground you jump
-     over.
-   - **Rae the Red Panda**: the **brawler**: rushes you firing both guns, then a spinning kick.
-   - **Break a mech and its pilot jumps out** (the astronaut model) and fights on foot with a little blaster: kill
-     them to finish it. Mech and pilot together never more health than the floors before's mini bosses (never
-     tankier).
+## Its enemies (the designer, 2026-11-02, replacing the plan's first roster)
+The designer: "forget about it that boss: the boss is 3 guys, Frog mech + Fox mech + flamingo mech together; Mini boss -
+One spaceship and Bee mech (turn into astronaut bee after mech dies); Normal enemies -> 3 spaceships and the astronaut
+Flamingo, frog, fox; Bee mech is able to glide in the air and shoot salvos of missiles and lands with a 1sec cooldown;
+The AI of the enemies in rooms should be well splitted with different roles". The aliens and the Bestiary monster
+aren't used. ("Fox" is the kit's Rae the Red Panda.)
 
-## The boss: the massive alien (from the full Bestiary pack)
-When its model is here: a huge brute in a crater arena, with moves built on moon gravity (leaps that shake the ground,
-throwing rocks, grabs), and its own show. Planned with the designer once the model is in.
+So each of the three animals comes **on foot**, **in its tiny ship** and, at the end, **in its mech**, and each animal
+has its role, the same in all three:
+- **Flamingo — range.** It keeps its distance and shoots down lines.
+- **Fox — the flank.** Fast, it comes at you from where you aren't looking.
+- **Frog — the ground.** It controls the floor: leaps, shock rings, mines.
+The Bee is the mini bosses' family.
+
+### Normal enemies (six)
+1. **Flamingo astronaut — the Gunner.** Keeps 9–16 m off, finds a clear line to you, plants its feet and fires a burst
+   of three slow blaster bolts (a glow at its gun first); between bursts it sidesteps. Comes no closer; cornered, it
+   kicks you off and backs away.
+2. **Fox astronaut — the Flanker.** Fast; it circles to your side or back (outside your view) and darts in for a
+   two-punch combo, then springs away. Two Flankers go round opposite ways.
+3. **Frog astronaut — the Leaper.** A huge moon-gravity jump onto where you stand (its shadow grows under you); its
+   landing sends a shock ring along the ground (jump it). Between leaps it hops to keep out of punching range.
+4. **Flamingo ship (tiny) — the Strafer.** Long straight passes over you, a line of small laser bolts along its path
+   (its line shows a moment first); then it climbs and turns for the next.
+5. **Fox ship (tiny) — the Diver.** Circles tight and fast, then spins down and rams you; misses, it pulls up.
+6. **Frog ship (tiny) — the Mine-layer.** Drifts over the room dropping small mines that float slowly down in the low
+   gravity and drift at you; one near you blinks and pops.
+The ships are a wasp's size (about 1 m): one punch or a few hits each.
+
+### Mini bosses
+- **The Bee's ship** (Barbara's, a few metres long). It circles the room high and strafes with twin lasers; every few
+  passes, a **bombing run**: its line marked on the ground first, then bombs down it. Between runs it **drops low to
+  cool down** (2 s): that's when you can hit it.
+- **The Bee mech** (Barbara). It **jumps and glides** on its jets, out of reach, firing **salvos of missiles** (they
+  curve after you; dash through or sidestep); then it **lands and holds there 1 s** (its cooldown: hit it then) and goes
+  up again. **When the mech dies, Barbara climbs out as the Bee astronaut** and fights on foot (a blaster, quick
+  punches) until she's beaten. Mech and astronaut together no more health than the floors before's mini bosses.
+
+### Rooms: the roles split
+A room's waves mix the roles: never all one kind; range, flank and ground each in it when the wave has room; the ships
+over the walkers; at most two Gunners shooting at once and the close fighters taking turns (the game's turns, as other
+floors'). (The mini bosses as other floors': a room with one has the chest.)
+
+## The boss: the three mechs together (Frog, Fox and Flamingo)
+Fernando the Flamingo's mech (range: a sniper's charged beam, its sight line tracking you, then locking), Rae the Red
+Panda's (the flank: rushes you firing both guns, a spinning kick) and Finn the Frog's (the ground: giant leaps, shock
+rings) fight you together, each in its role; as one falls, the others change their pattern. Its own show. Built after
+the enemies.
 
 ## Order of work
-1. **The level** (Update 0.3.17): the moon look, the space sky with the Earth, moon gravity, meteor showers, launch
-   pads, nine rooms; playable from the Lab with stand-in enemies.
-2. **The enemies** (0.3.18): the tiny ships, the aliens, the four mechs and their pilots.
-3. **The boss** (0.3.19), once its model is in `NEW-BOSSES`.
+1. **The level** (Update 0.3.17, done): the moon look, the space sky with the Earth, moon gravity, meteor showers,
+   nine rooms.
+2. **The enemies** (0.3.18, done): the six regulars, the two mini bosses (the Bee astronaut after the mech), the
+   rooms' roles.
+3. **The boss** (0.3.19): the three mechs together.

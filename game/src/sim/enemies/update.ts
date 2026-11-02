@@ -78,6 +78,12 @@ import { tentacleSinks, updateTentacle } from './tentacle';
 import { updateMako } from './mako';
 import { updateCaptain } from './captain';
 import { updateBigShark } from './bigShark';
+import { updateGunner } from './gunner';
+import { updateFlanker } from './flanker';
+import { updateHopper } from './hopper';
+import { updateDiver, updateMineLayer, updateStrafer } from './ships';
+import { updateBeeShip } from './beeShip';
+import { updateBeeMech, updateBeeNaut } from './beeMech';
 import { FOES_COVE } from '../../tuning/foesCove';
 
 export type Update = (e: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number, world: CollisionWorld) => void;
@@ -148,6 +154,16 @@ const UPDATE: Record<EnemyKind, Update> = {
   mako: updateMako,
   captain: updateCaptain,
   bigShark: updateBigShark,
+  // Update 0.3.18 — floor 8's crew, the Moon.
+  gunner: updateGunner,
+  flanker: updateFlanker,
+  hopper: updateHopper,
+  strafer: updateStrafer,
+  diver: updateDiver,
+  mineLayer: updateMineLayer,
+  beeShip: updateBeeShip,
+  beeMech: updateBeeMech,
+  beeNaut: updateBeeNaut,
 };
 /** A dead boss's show, each tick until its slot frees. Update 0.2.4 — and a Green Blob splitting as it dies.
  *  Update 0.2.11 — and a dead fish floating up. Update 0.3.15 — a Gull dropping your coins, a Tentacle sinking. */

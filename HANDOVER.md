@@ -2,7 +2,18 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-02, Update 0.3.17: floor 8 reworked, the Moon: its level)
+## Next up (2026-11-02, Update 0.3.18: the Moon's crew)
+- **The plan's update 2** (spec `MD_UPDATES/U0318_MOON_CREW.md`; the designer's new roster: "the boss is 3 guys, Frog
+  mech + Fox mech + flamingo mech together; Mini boss - One spaceship and Bee mech (turn into astronaut bee after mech
+  dies); Normal enemies -> 3 spaceships and the astronaut Flamingo, frog, fox"): the Gunner, the Flanker and the Leaper on
+  foot, the Strafer, the Diver and the Mine-layer in their tiny ships, each animal its role (range, the flank, the
+  ground); every wave mixes the roles. The Bee's ship and the Bee mech (gliding, homing missile salvos, landing 1 s),
+  Barbara on foot after it. The ships are static models (`export_ship.py`; the view holds a model with no clips).
+- Checked by tests and probes; **unseen in the game** (their size, the ships' noses, the shots, the fights).
+- **Next:** 0.3.19, the boss: the Frog, Fox and Flamingo mechs together (models exported: `mech_frog`, `mech_fox`,
+  `mech_flamingo`).
+
+## Before (2026-11-02, Update 0.3.17: floor 8 reworked, the Moon: its level)
 - **The plan's update 1** (`MD/FLOOR8_MOON_PLAN.md`; spec `MD_UPDATES/U0317_THE_MOON.md`; the designer: "BIG REWORK of
   FLOOR 8"): a black space sky of stars with the Earth (the Space Kit's Planet_1), a ringed planet and the sun; bright
   pale grey moon dust; the moon base, domes, rovers, solar panels, boulders, craters and meteorites; alien plants only in

@@ -154,6 +154,17 @@ export class ShotsView {
           g.quaternion.copy(q);
           g.scale.set(r * 0.8, r * 2.2, r * 0.8);
           break;
+        // (Update 0.3.18 — floor 8's: a blaster bolt drawn long and glowing; a missile nose first, its exhaust glowing.)
+        case 'laser':
+          g.quaternion.copy(q);
+          g.scale.set(r * 0.4, r * 3.2, r * 0.4);
+          HALOS.add(o.pos.x, o.pos.y, o.pos.z, r * 5, 0xff5ab4, 0.55);
+          break;
+        case 'missile':
+          g.quaternion.copy(q);
+          g.scale.setScalar(1);
+          HALOS.add(o.pos.x - dir.x * 0.3, o.pos.y - dir.y * 0.3, o.pos.z - dir.z * 0.3, 2.4, 0xff8a30, 0.6);
+          break;
         case 'carrot':
           // End over end.
           side.set(-dir.z, 0, dir.x).normalize();

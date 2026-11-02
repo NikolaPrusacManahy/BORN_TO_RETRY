@@ -207,9 +207,14 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   sun on pale grey moon dust). Moon base modules, domes, rovers, solar panels, boulders, craters (meteorites in the big
   ones); alien plants only in the greenhouse's beds. No torches. **Moon gravity** (0.625: jumps 1.6 times as high,
   knocked enemies fly further). **Meteor showers** in three rooms (warned by a shadow and a glow; 20 to you, thrown; 60
-  to an enemy). Nine rooms of its own; stand-in enemies and boss. Next: the tiny spaceships, the aliens, the four mech
-  mini bosses (their pilots jump out), then the massive alien boss (its model still to come: the full Bestiary pack).
-  **(placeholder numbers, F1 → Moon)**
+  to an enemy). Nine rooms of its own. **(placeholder numbers, F1 → Moon)**
+- **Its crew (Update 0.3.18; spec `MD_UPDATES/U0318_MOON_CREW.md`; the designer's roster):** each animal its role, on
+  foot and in its tiny ship: Flamingo range (the Gunner's bursts, the Strafer's lines of bolts), Fox the flank (the
+  Flanker round to your side, the Diver's ram), Frog the ground (the Leaper's leap and shock ring, the Mine-layer's
+  floating mines). Every wave mixes the three roles. Mini bosses: the Bee's ship (passes, a bombing run down a marked
+  line, then low and cooling) and the Bee mech (it glides on its jets firing salvos of homing missiles, lands and holds
+  1 s), broken, Barbara climbs out and fights on foot. Its boss next: the Frog, Fox and Flamingo mechs together.
+  **(placeholder numbers, F1 → Moon crew, Moon mini bosses)**
 
 ### The Forge (Update 0.3.13; spec `MD_UPDATES/U0313_THE_FORGE.md`; Update 0.3.17 — out of floor 8, kept on floor 10)
 - The designer: every floor's level first ("I want all designs to be done first"), then the enemies.

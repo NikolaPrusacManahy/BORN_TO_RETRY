@@ -185,7 +185,8 @@ section('Lab panel — a column a floor, the items by kind');
   // (The designer: "always put a new floor there", "put page 1 & 2 instead of stacking them together".)
   // (Update 0.3.14 — and floor 6, reworked: its stand-ins and its boss's are other floors'. Update 0.3.15 — its crew
   // made: its column back.)
-  check('floors 7 and 8 only to play (new floors); the rest a column each, three to a page (floor 6 its crew)', LAB_NEW.join() === '7,8' && LAB_COLUMNS.length === 6 && LAB_PAGES.map((pg) => pg.map((f) => f.floor).join('')).join(' ') === '123 456');
+  // (Update 0.3.18 — floor 8 has its crew: a column, page 3.)
+  check('floor 7 only to play (a new floor); the rest a column each, three to a page (floor 6 its crew, floor 8 its own)', LAB_NEW.join() === '7' && LAB_COLUMNS.length === 7 && LAB_PAGES.map((pg) => pg.map((f) => f.floor).join('')).join(' ') === '123 456 8');
   check('a floor’s column fits (9 enemies at most)', LAB_FLOORS.every((f) => f.enemies.length <= 9), LAB_FLOORS.map((f) => f.enemies.length).join(' '));
   const items = LAB_ITEMS.flatMap(([, picks]) => picks.map(([, cmd]) => cmd));
   const drops = items.flatMap((c) => (c.kind === 'item' ? [c.item] : []));
@@ -206,7 +207,7 @@ section('Lab panel — a column a floor, the items by kind');
   // — seven floors to play; floor 7's stand-in boss is floor 4's, listed there. Update 0.3.13 — floors 7 and 8 in New
   // floors.)
   const said = (text: string) => count(`>${text}<`) + count(`>${text.replace(' ', ' <!-- -->')}<`);
-  check('it opens on Enemies: five tabs, page 1 of 2 (floors 1–3, their bosses with their rooms)', (html.match(/rb-lab-tab[ "]/g) ?? []).length === 5 && count('>Play<') === 3 && count('>Room<') === 3 && html.includes('>Demon<') && html.includes('>Bone King<') && !html.includes('>Velociraptor<') && said('Page 1') === 1 && said('Page 2') === 1);
-  check('the new floors in the bottom row: Floor 7, Floor 8', said('Floor 7') === 1 && said('Floor 8') === 1 && html.indexOf('rb-lab-foot') < Math.max(html.indexOf('>Floor 7<'), html.indexOf('>Floor <!-- -->7<')));
+  check('it opens on Enemies: five tabs, page 1 of 3 (floors 1–3, their bosses with their rooms)', (html.match(/rb-lab-tab[ "]/g) ?? []).length === 5 && count('>Play<') === 3 && count('>Room<') === 3 && html.includes('>Demon<') && html.includes('>Bone King<') && !html.includes('>Velociraptor<') && said('Page 1') === 1 && said('Page 2') === 1 && said('Page 3') === 1);
+  check('the new floor in the bottom row: Floor 7', said('Floor 7') === 1 && said('Floor 8') === 0 && html.indexOf('rb-lab-foot') < Math.max(html.indexOf('>Floor 7<'), html.indexOf('>Floor <!-- -->7<')));
   check('below: Clear, Heal, Back; Waves, God, Meter, Stay', ['Clear', 'Heal', 'Back', 'Waves', 'God', 'Meter', 'Stay'].every((t) => html.includes(`>${t}<`)));
 }

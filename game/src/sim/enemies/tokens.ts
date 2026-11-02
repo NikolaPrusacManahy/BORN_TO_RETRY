@@ -20,6 +20,7 @@ import type { PlayerState } from '../player/state';
 import { ENEMY_POOL, Enemy, EnemyPhase, EnemyWorld, isLive } from './enemy';
 import { ENEMY_STATS, EnemyKind } from './kinds';
 import { keepRing } from './moves';
+import { REACH as FLANK_REACH } from './flanker';
 
 export type Role = 'melee' | 'ranged' | 'heavy';
 
@@ -95,10 +96,22 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   mako: 'heavy',
   captain: 'heavy',
   bigShark: null,
+  // Update 0.3.18 — floor 8's crew, each its role (the designer: "well splitted with different roles"): the Gunner's
+  // bursts and the Strafer's passes as ranged shots (no more than two at once); the Flanker's dart and the Diver's ram as
+  // close ones; the Leaper's leap as a big one's (one at a time). The Mine-layer and the mini bosses go their own ways.
+  gunner: 'ranged',
+  strafer: 'ranged',
+  flanker: 'melee',
+  diver: 'melee',
+  hopper: 'heavy',
+  mineLayer: null,
+  beeShip: null,
+  beeMech: null,
+  beeNaut: null,
 };
 
 /** Kinds whose attack waits for its cooldown: they take a token only once it's ready (a token isn't held idle). */
-const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon', 'dragonling', 'skullWraith', 'glub', 'squidle', 'clownfish', 'tuna', 'angelfish', 'dolphin', 'mantaRay', 'shark', 'bomber', 'captain']);
+const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon', 'dragonling', 'skullWraith', 'glub', 'squidle', 'clownfish', 'tuna', 'angelfish', 'dolphin', 'mantaRay', 'shark', 'bomber', 'captain', 'gunner', 'strafer', 'diver', 'hopper']);
 
 /** How far a close fighter's attack reaches (m): waiting, it keeps out of it. */
 const REACH: Partial<Record<EnemyKind, () => number>> = {
@@ -121,6 +134,8 @@ const REACH: Partial<Record<EnemyKind, () => number>> = {
   crewman: () => 2.2,
   mako: () => FOES_COVE_B.v.makoReach,
   captain: () => FOES_COVE_B.v.captainReach,
+  // Update 0.3.18 — floor 8's Flanker waits its turn out of its punches' reach.
+  flanker: () => FLANK_REACH,
 };
 
 /** The phases an attack holds its token through: the run-in, the wind-up, a leap, a dive, a charge (Update 0.3.15 — and

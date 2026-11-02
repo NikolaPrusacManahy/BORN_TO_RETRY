@@ -25,11 +25,11 @@ import { ENEMY_KINDS, EnemyKind, MINI_BOSSES } from '../enemies/kinds';
 import { ROOMS } from '../../tuning/rooms';
 import { FOES_COVE } from '../../tuning/foesCove';
 
-export const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3, demon: 99, slime: 1, frog: 2, snake: 1, wasp: 2, spider: 4, blueDemon: 4, dragon: 99, skeleton: 1, mushnub: 1, ninja: 4, boneKing: 99, tribal: 2, cactoro: 2, cactoroBig: 4, hywirl: 2, dino: 99, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 1, maskTribal: 2, skullOrc: 4, dragonling: 2, skullWraith: 3, rabbit: 1, bigMushnub: 4, snapper: 2, urchin: 2, jelly: 2, glub: 2, bigGlub: 3, squidle: 2, spawnling: 1, deepOne: 4, bogBrute: 4, drownedKing: 99, clownfish: 1, tuna: 2, angelfish: 2, dolphin: 2, drownedPrince: 3, mantaRay: 4, shark: 4, whale: 99, corsair: 2, shanty: 2, bomber: 2, crewman: 2, headless: 2, gull: 1, bat: 1, tentacle: 3, mako: 4, captain: 4, bigShark: 99 };
+export const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3, demon: 99, slime: 1, frog: 2, snake: 1, wasp: 2, spider: 4, blueDemon: 4, dragon: 99, skeleton: 1, mushnub: 1, ninja: 4, boneKing: 99, tribal: 2, cactoro: 2, cactoroBig: 4, hywirl: 2, dino: 99, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 1, maskTribal: 2, skullOrc: 4, dragonling: 2, skullWraith: 3, rabbit: 1, bigMushnub: 4, snapper: 2, urchin: 2, jelly: 2, glub: 2, bigGlub: 3, squidle: 2, spawnling: 1, deepOne: 4, bogBrute: 4, drownedKing: 99, clownfish: 1, tuna: 2, angelfish: 2, dolphin: 2, drownedPrince: 3, mantaRay: 4, shark: 4, whale: 99, corsair: 2, shanty: 2, bomber: 2, crewman: 2, headless: 2, gull: 1, bat: 1, tentacle: 3, mako: 4, captain: 4, bigShark: 99, gunner: 2, flanker: 2, hopper: 2, strafer: 2, diver: 1, mineLayer: 2, beeShip: 4, beeMech: 4, beeNaut: 2 };
 /** How often each kind is picked, and the first room (on floor 1) it comes in. **(placeholders)** The Demon is never
  *  bought: it's the boss room's. */
-const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1, demon: 0, slime: 2, frog: 1.5, snake: 2, wasp: 1.5, spider: 0.6, blueDemon: 0.6, dragon: 0, skeleton: 3, mushnub: 3, ninja: 0.6, boneKing: 0, tribal: 2.5, cactoro: 2.5, cactoroBig: 0.6, hywirl: 1.8, dino: 0, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 0, maskTribal: 1.2, skullOrc: 0.6, dragonling: 2, skullWraith: 1, rabbit: 2, bigMushnub: 0.6, snapper: 2.5, urchin: 2, jelly: 1.5, glub: 2, bigGlub: 0.8, squidle: 1.8, spawnling: 3, deepOne: 0.6, bogBrute: 0.6, drownedKing: 0, clownfish: 3, tuna: 2, angelfish: 2, dolphin: 1.8, drownedPrince: 0.8, mantaRay: 0.6, shark: 0.6, whale: 0, corsair: 2.5, shanty: 1, bomber: 1.8, crewman: 2.5, headless: 0, gull: 0.9, bat: 0.5, tentacle: 0.9, mako: 0.6, captain: 0.6, bigShark: 0 };
-const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3, demon: Infinity, slime: 1, frog: 1, snake: 1, wasp: 1, spider: 1, blueDemon: 1, dragon: Infinity, skeleton: 1, mushnub: 1, ninja: 1, boneKing: Infinity, tribal: 1, cactoro: 1, cactoroBig: 1, hywirl: 1, dino: Infinity, dinoBlob: 1, lizard: 1, greenBlob: 1, blobling: Infinity, maskTribal: 1, skullOrc: 1, dragonling: 1, skullWraith: 1, rabbit: 1, bigMushnub: 1, snapper: 1, urchin: 1, jelly: 1, glub: 1, bigGlub: 1, squidle: 1, spawnling: 1, deepOne: 1, bogBrute: 1, drownedKing: Infinity, clownfish: 1, tuna: 1, angelfish: 1, dolphin: 1, drownedPrince: 1, mantaRay: 1, shark: 1, whale: Infinity, corsair: 1, shanty: 1, bomber: 1, crewman: 1, headless: Infinity, gull: 1, bat: 1, tentacle: 1, mako: 1, captain: 1, bigShark: Infinity };
+const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1, demon: 0, slime: 2, frog: 1.5, snake: 2, wasp: 1.5, spider: 0.6, blueDemon: 0.6, dragon: 0, skeleton: 3, mushnub: 3, ninja: 0.6, boneKing: 0, tribal: 2.5, cactoro: 2.5, cactoroBig: 0.6, hywirl: 1.8, dino: 0, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 0, maskTribal: 1.2, skullOrc: 0.6, dragonling: 2, skullWraith: 1, rabbit: 2, bigMushnub: 0.6, snapper: 2.5, urchin: 2, jelly: 1.5, glub: 2, bigGlub: 0.8, squidle: 1.8, spawnling: 3, deepOne: 0.6, bogBrute: 0.6, drownedKing: 0, clownfish: 3, tuna: 2, angelfish: 2, dolphin: 1.8, drownedPrince: 0.8, mantaRay: 0.6, shark: 0.6, whale: 0, corsair: 2.5, shanty: 1, bomber: 1.8, crewman: 2.5, headless: 0, gull: 0.9, bat: 0.5, tentacle: 0.9, mako: 0.6, captain: 0.6, bigShark: 0, gunner: 2.4, flanker: 2.4, hopper: 2, strafer: 1.6, diver: 1.8, mineLayer: 1.2, beeShip: 0.6, beeMech: 0.6, beeNaut: 0 };
+const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3, demon: Infinity, slime: 1, frog: 1, snake: 1, wasp: 1, spider: 1, blueDemon: 1, dragon: Infinity, skeleton: 1, mushnub: 1, ninja: 1, boneKing: Infinity, tribal: 1, cactoro: 1, cactoroBig: 1, hywirl: 1, dino: Infinity, dinoBlob: 1, lizard: 1, greenBlob: 1, blobling: Infinity, maskTribal: 1, skullOrc: 1, dragonling: 1, skullWraith: 1, rabbit: 1, bigMushnub: 1, snapper: 1, urchin: 1, jelly: 1, glub: 1, bigGlub: 1, squidle: 1, spawnling: 1, deepOne: 1, bogBrute: 1, drownedKing: Infinity, clownfish: 1, tuna: 1, angelfish: 1, dolphin: 1, drownedPrince: 1, mantaRay: 1, shark: 1, whale: Infinity, corsair: 1, shanty: 1, bomber: 1, crewman: 1, headless: Infinity, gull: 1, bat: 1, tentacle: 1, mako: 1, captain: 1, bigShark: Infinity, gunner: 1, flanker: 1, hopper: 1, strafer: 1, diver: 1, mineLayer: 1, beeShip: 1, beeMech: 1, beeNaut: Infinity };
 /** Each floor's enemies (index: the floor; past the last, the last's). */
 const ROSTER: readonly (readonly EnemyKind[])[] = [
   [],
@@ -51,6 +51,12 @@ const ROSTER: readonly (readonly EnemyKind[])[] = [
   // Update 0.3.11 — floor 7, Frozen Depths: **stand-ins** from the dry floors till its own are designed (the plan for
   // floors 7–10: its level first, then its enemies): the humanoid runners (pinned, finished), a flier or two, the Yeti
   // and the Ninja for its mini bosses.
+  ['skeleton', 'rabbit', 'leaper', 'tribal', 'dinoBlob', 'skullWraith', 'dragonling', 'brute', 'ninja'],
+  // Update 0.3.18 — floor 8, the Moon (the designer: "Normal enemies -> 3 spaceships and the astronaut Flamingo, frog,
+  // fox"; "Mini boss - One spaceship and Bee mech"): the astronauts on foot, their tiny ships, the Bee's ship and mech
+  // (the Bee astronaut isn't bought: a broken mech becomes her); its rooms' roles split (moonWaves).
+  ['gunner', 'flanker', 'hopper', 'strafer', 'diver', 'mineLayer', 'beeShip', 'beeMech'],
+  // (Floors 9 and on, unbuilt: floor 7's stand-ins.)
   ['skeleton', 'rabbit', 'leaper', 'tribal', 'dinoBlob', 'skullWraith', 'dragonling', 'brute', 'ninja'],
 ];
 
@@ -196,3 +202,58 @@ function flock(w: EnemyKind[], kind: EnemyKind, size: number) {
 
 /** A mini boss (a big one: the Yeti, the Spider, the Blue Demon) comes in these waves. */
 export const hasYeti = (waves: readonly EnemyKind[][]) => waves.some((w) => w.some((k) => MINI_BOSSES.includes(k)));
+
+/** Update 0.3.18 — floor 8's crew by its roles (the designer: "The AI of the enemies in rooms should be well splitted
+ *  with different roles"): range (the Gunner, the Strafer), the flank (the Flanker, the Diver), the ground (the Leaper,
+ *  the Mine-layer). */
+const FAMILY: Partial<Record<EnemyKind, number>> = { gunner: 0, strafer: 0, flanker: 1, diver: 1, hopper: 2, mineLayer: 2 };
+const FOOT: readonly EnemyKind[] = ['gunner', 'flanker', 'hopper'];
+const SHIPS: readonly EnemyKind[] = ['strafer', 'diver', 'mineLayer'];
+/** The most Mine-layers a wave sends. */
+export const LAYERS_MAX = 2;
+
+/** Update 0.3.18 — the Moon's waves, its roles split: no role more than a third of a wave's regulars and one (the
+ *  rest given to the role with fewest, so a wave of three or more has all three); the ships never more than half of
+ *  them (the rest on foot); at most LAYERS_MAX Mine-layers. Mini bosses as they come. Other floors' waves are as they
+ *  were. */
+export function moonWaves(waves: EnemyKind[][]): EnemyKind[][] {
+  for (const w of waves) {
+    const at = w.map((k, i) => (FAMILY[k] !== undefined ? i : -1)).filter((i) => i >= 0);
+    const n = at.length;
+    if (n === 0) continue;
+    const cap = Math.ceil(n / 3) + (n >= 6 ? 1 : 0);
+    const count = [0, 0, 0];
+    for (const i of at) count[FAMILY[w[i]]!]++;
+    for (const i of [...at].reverse()) {
+      const f = FAMILY[w[i]]!;
+      if (count[f] <= cap) continue;
+      const to = count.indexOf(Math.min(...count));
+      count[f]--;
+      count[to]++;
+      w[i] = SHIPS.includes(w[i]) ? SHIPS[to] : FOOT[to];
+    }
+    // (A wave of three or more has every role: the biggest role gives one up to each missing one.)
+    for (let f = 0; f < 3 && n >= 3; f++) {
+      if (count[f] > 0) continue;
+      const big = count.indexOf(Math.max(...count));
+      const i = [...at].reverse().find((j) => FAMILY[w[j]] === big)!;
+      count[big]--;
+      count[f]++;
+      w[i] = SHIPS.includes(w[i]) ? SHIPS[f] : FOOT[f];
+    }
+    let ships = at.filter((i) => SHIPS.includes(w[i])).length;
+    let layers = at.filter((i) => w[i] === 'mineLayer').length;
+    for (const i of [...at].reverse()) {
+      if (w[i] === 'mineLayer' && layers > LAYERS_MAX) {
+        w[i] = 'hopper';
+        layers--;
+        ships--;
+      } else if (SHIPS.includes(w[i]) && ships > Math.floor(n / 2)) {
+        w[i] = FOOT[FAMILY[w[i]]!];
+        ships--;
+      }
+    }
+    w.sort((a, b) => COST[b] - COST[a]);
+  }
+  return waves;
+}

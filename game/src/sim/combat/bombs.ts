@@ -8,12 +8,18 @@
 // ('geyserBurst'), throwing you high.
 // Update 0.3.15 — floor 6's Bomber's powder bombs (`look` 'powder'): landed, it sits burning its `fuse`, then blows
 // ('powderBlast': enemies and powder kegs in it too, dungeon/powder.ts, where a punch bats one back).
+// Update 0.3.18 — floor 8's Mine-layer's mines (`look` 'mine'): floated down, it sits blinking its `fuse`, then pops
+// ('mineBlast'); you coming within Mine near of it pops it at once (a moment later).
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { damagePlayer } from '../player/health';
 import type { Cause, PlayerState } from '../player/state';
 import type { CombatEvent } from './state';
 import { addPuddle, Puddle } from './puddles';
+import { FOES_MOON } from '../../tuning/foesMoon';
+
+/** Update 0.3.18 — a mine you come near pops this long after (s). */
+const MINE_SNAP = 0.25;
 
 export interface Bomb {
   alive: boolean;
@@ -31,7 +37,7 @@ export interface Bomb {
   by: Cause | null;
   /** Update 0.2.3 — a fireball, or a skeleton (the Bone King's). */
   /** (Update 0.2.10 — 'bubble': floor 5's Big Glub's; it pops, 'bubblePop'. 'geyser': the Drowned King's.) */
-  look: 'fire' | 'bones' | 'poison' | 'bubble' | 'geyser' | 'powder';
+  look: 'fire' | 'bones' | 'poison' | 'bubble' | 'geyser' | 'powder' | 'mine';
   /** Update 0.3.15 — landed, it burns this long before it goes (s). */
   fuse: number;
 }
@@ -77,14 +83,16 @@ export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQue
     b.t += dt;
     const k = Math.min(1, b.t / b.fall);
     b.pos.lerpVectors(b.from, b.to, k);
-    b.pos.y += Math.sin(Math.PI * k) * ARC;
+    b.pos.y += b.look === 'mine' ? 0 : Math.sin(Math.PI * k) * ARC;
+    // (A mine you come near pops a moment later.)
+    if (b.look === 'mine' && k >= 1 && Math.hypot(player.pos.x - b.to.x, player.pos.z - b.to.z) < FOES_MOON.v.mineNear) b.fuse = Math.min(b.fuse, b.t - b.fall + MINE_SNAP);
     if (k < 1 || b.t < b.fall + b.fuse) continue;
     b.alive = false;
     if (b.look === 'poison') {
       addPuddle(puddles, b.to.x, b.to.y, b.to.z, events);
       continue;
     }
-    events.push(b.look === 'bones' ? 'boneCrash' : b.look === 'bubble' ? 'bubblePop' : b.look === 'geyser' ? 'geyserBurst' : b.look === 'powder' ? 'powderBlast' : 'bombBlast', b.radius, b.to.x, b.to.y, b.to.z);
+    events.push(b.look === 'bones' ? 'boneCrash' : b.look === 'bubble' ? 'bubblePop' : b.look === 'geyser' ? 'geyserBurst' : b.look === 'powder' ? 'powderBlast' : b.look === 'mine' ? 'mineBlast' : 'bombBlast', b.radius, b.to.x, b.to.y, b.to.z);
     const dx = player.pos.x - b.to.x;
     const dz = player.pos.z - b.to.z;
     const d = Math.hypot(dx, dz);

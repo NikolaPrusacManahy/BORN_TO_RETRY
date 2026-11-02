@@ -4,9 +4,8 @@
 // or slowed so the blow lands as the wind-up ends), a hit reaction on a flinch, its death. A wind-up glows in the
 // kind's colour until the blow; a hit flashes white; a winding-up brute shows its slam's reach as a ring on the
 // ground. Animations run on game time, so hit-stop freezes them.
-// Update 0.0.13 — the Leaper is the Ninja, the Stinger the Armabee, the Wraith the Ghost (Ultimate Monsters); a leap
-// or a dive plays the kind's 'air' clip; bodies are placed by their lowest point (the fliers' models float above
-// their origin).
+// Update 0.0.13 — the Leaper is the Ninja, the Stinger the Armabee, the Wraith the Ghost; a leap or a dive plays the
+// kind's 'air' clip; bodies are placed by their lowest point (the fliers' models float above their origin).
 // Update 0.0.15 — not the Demon: a boss is drawn by boss/demonView.ts (its aura, its death show).
 // Update 0.0.17 — frozen (the snowflake bonus): its pose stops and it turns icy blue.
 // Update 0.0.18 — floor 2's (Ultimate Monsters' newer pack: clip names carry the monster's name, no hit clips, so a
@@ -123,7 +122,9 @@ export class EnemiesView {
   }
 
   /** One body of `kind` per slot, scaled so its skinned body is the kind's height (its hit capsule's). */
-  attach(kind: EnemyKind, model: THREE.Object3D, animations: THREE.AnimationClip[]) {
+  attach(kind: EnemyKind, model: THREE.Object3D, clips: THREE.AnimationClip[]) {
+    // (Update 0.3.18 — floor 8's ships have no clips and no skeleton: one still clip; their box their whole model.)
+    const animations = clips.length ? clips : [new THREE.AnimationClip('Still', 1, [])];
     let skinned: THREE.SkinnedMesh | null = null;
     model.traverse((o) => {
       if (o instanceof THREE.SkinnedMesh && (!skinned || o.geometry.attributes.position.count > skinned.geometry.attributes.position.count)) skinned = o;
@@ -133,7 +134,7 @@ export class EnemiesView {
     const find = (name: string) => animations.find((a) => a.name === name || a.name.endsWith(`|${name}`));
     const geo = (skinned as THREE.SkinnedMesh | null)?.geometry;
     geo?.computeBoundingBox();
-    const box = look.posed ? posedBounds(model, find(look.clips.idle), new THREE.Box3()) : geo?.boundingBox;
+    const box = !skinned ? new THREE.Box3().setFromObject(model) : look.posed ? posedBounds(model, find(look.clips.idle), new THREE.Box3()) : geo?.boundingBox;
     const height = box && !box.isEmpty() ? box.max.y - box.min.y : 2;
     const lowest = box && !box.isEmpty() ? box.min.y : 0;
     for (const slot of this.slots) {

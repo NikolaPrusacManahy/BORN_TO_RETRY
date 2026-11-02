@@ -34,6 +34,10 @@ import { bigSharkWindup } from '../sim/enemies/bigShark';
 import { FOES_COVE } from '../tuning/foesCove';
 import { FOES_COVE_B } from '../tuning/foesCoveB';
 import { HOOK_TWIRL } from '../sim/enemies/corsair';
+import { FOES_MOON } from '../tuning/foesMoon';
+import { FOES_MOON_B } from '../tuning/foesMoonB';
+import { BURST } from '../sim/enemies/gunner';
+import { BOMBING } from '../sim/enemies/beeShip';
 
 /** Update 0.3.15 — the Corsair's: her hook's twirl, her axe dragged in (at once), her axe. */
 const corsairWindup = (move: number) => (move === HOOK_TWIRL ? FOES_COVE.v.hookTwirl : move === 4 ? FOES_COVE.v.hookStrike : FOES_COVE.v.corsairWindup);
@@ -70,6 +74,8 @@ const PIRATE = { idle: 'Idle', move: 'Run', attack: 'Sword', hit: 'HitReact', de
  *  is turned in code: fishPose.ts). */
 const swimming = (clip: string) => ({ idle: clip, move: clip, attack: clip, hit: clip, death: clip, air: clip });
 const SWIM = swimming('Swim');
+/** Update 0.3.18 — floor 8's ships have no clips: they fly in code (enemiesView.ts holds them still). */
+const STILL = swimming('Still');
 
 const newer = (name: string, move: string, air: string): Record<Exclude<Role, 'rise'>, string> => ({
   idle: `${name}_Idle`,
@@ -162,6 +168,19 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
   // Update 0.3.16 — floor 6's boss, the Big Shark (the Pirate Kit's Shark, export_monster.py): its bite (Swim_Bite) as its
   // jaws come, its fast swim (Swim_Fast) as it lunges, charges and leaps out in its show.
   bigShark: { url: '/models/enemies/big_shark.glb', clips: { idle: 'Swim', move: 'Swim', attack: 'Swim_Bite', hit: 'Swim', death: 'Swim', air: 'Swim_Fast' }, lands: 9 / 30, windup: bigSharkWindup, glow: [0.4, 0.8, 1], posed: true },
+  // Update 0.3.18 — floor 8's crew (the Space Kit: export_monster.py, export_ship.py). The astronauts: aiming its gun
+  // (Idle_Gun), firing (Run_Gun_Shoot), crouching (Duck), darting with its punches, leaping. The ships have no clips
+  // (they fly in code); their noses point the other way (Barbara's ship's sideways). The Bee's mech: up on its jets
+  // (Jump), landed (Jump_Landing), its kick.
+  gunner: { url: '/models/enemies/astronaut_flamingo.glb', clips: { idle: 'Idle_Gun', move: 'Walk_Gun', attack: 'Idle_Gun', hit: 'HitReact', death: 'Death', air: 'Run_Gun_Shoot' }, lands: 17 / 30, windup: (move) => (move === BURST ? FOES_MOON.v.gunnerAim : 0.45), glow: [1, 0.45, 0.8], posed: true },
+  flanker: { url: '/models/enemies/astronaut_fox.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Duck', hit: 'HitReact', death: 'Death', air: 'Punch' }, lands: 17 / 30, windup: () => FOES_MOON.v.flankerWarn, glow: [1, 0.5, 0.1], posed: true },
+  hopper: { url: '/models/enemies/astronaut_frog.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Duck', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 17 / 30, windup: () => 0.5, glow: [0.45, 1, 0.3], posed: true },
+  strafer: { url: '/models/enemies/ship_flamingo.glb', clips: STILL, lands: 0, windup: () => FOES_MOON.v.strafeWarn, glow: [1, 0.45, 0.8], turn: Math.PI, posed: true },
+  diver: { url: '/models/enemies/ship_fox.glb', clips: STILL, lands: 0, windup: () => FOES_MOON.v.diveWarn, glow: [1, 0.5, 0.1], turn: Math.PI, posed: true },
+  mineLayer: { url: '/models/enemies/ship_frog.glb', clips: STILL, lands: 0, windup: () => 0, glow: [0.45, 1, 0.3], turn: Math.PI, posed: true },
+  beeShip: { url: '/models/enemies/ship_bee.glb', clips: STILL, lands: 0, windup: (move) => (move === BOMBING ? FOES_MOON_B.v.bombLine : 0.6), glow: [1, 0.85, 0.2], turn: -Math.PI / 2, posed: true },
+  beeMech: { url: '/models/enemies/mech_bee.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Kick', hit: 'Jump_Landing', death: 'Death', air: 'Jump' }, lands: 15 / 30, windup: () => 0.5, glow: [1, 0.85, 0.2], posed: true },
+  beeNaut: { url: '/models/enemies/astronaut_bee.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Run_Gun_Shoot' }, lands: 17 / 30, windup: () => 0.28, glow: [1, 0.85, 0.2], posed: true },
 };
 
 /** The role a phase plays; once its attack is over, a recovering enemy stands. */

@@ -3,7 +3,8 @@
 // bigger the press); floor 6's powder keg's blast (fire and debris, a hard jolt the nearer); a body sinking into a pit
 // (spray). Update 0.3.15 — and Skull Cove's crew: a powder bomb's blast, a bomb batted back, a skull knocked off, the
 // Tentacle bursting out and grabbing you, slamming you down (sand and a jolt), the sea round it, Mako's sand, Barbarossa's shot striking, his hook catching you.
-// Update 0.3.17 — floor 8's meteor striking (moon dust and rock flung, a hard jolt the nearer).
+// Update 0.3.17 — floor 8's meteor striking (moon dust and rock flung, a hard jolt the nearer). Update 0.3.18 — its
+// crew's: a mine popping, a Leaper's and the Bee mech's landings, Barbara bursting out of her broken mech.
 import * as THREE from 'three';
 import type { CombatEvent } from '../sim/combat/state';
 import { FEEDBACK } from '../tuning/combat';
@@ -22,6 +23,20 @@ export function depthsFeedback(f: FeedbackParts, kind: CombatEvent, value: numbe
     case 'pressSlam':
       f.sparks.spawn(at, UP, 16, 1);
       f.rig.shake.add(fb.shakeJab * (0.3 + value / 10) * near(9));
+      return true;
+    case 'mineBlast':
+      f.sparks.spawn(at, UP, 30, 1.4);
+      f.chunks.spawn(at, UP, 6, 0.9);
+      f.rig.shake.add(fb.shakeHeavy * 0.8 * near(10));
+      return true;
+    case 'hopperLand':
+    case 'beeMechLand':
+      f.chunks.spawn(at, UP, kind === 'beeMechLand' ? 14 : 8, kind === 'beeMechLand' ? 1.4 : 1);
+      f.rig.shake.add(fb.shakeHeavy * (kind === 'beeMechLand' ? 1.1 : 0.6) * near(12));
+      return true;
+    case 'beeEject':
+      f.chunks.spawn(at, UP, 12, 1.2);
+      f.sparks.spawn(at, UP, 24, 1.2);
       return true;
     case 'meteorStrike':
       f.chunks.spawn(at, UP, 16, 1.5);

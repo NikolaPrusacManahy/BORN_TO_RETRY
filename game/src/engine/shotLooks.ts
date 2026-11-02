@@ -4,16 +4,19 @@
 // wobbles), the Glubs' water (a bolt drawn out along its flight), a Tribal's spear (a shaft with a steel point), a
 // Cactoro's thorn, a Mask Tribal's feather (white, red-tipped, fluttering), a White Rabbit's carrot (leaves and all,
 // tumbling). And what each leaves behind it and where it lands (shotsView.ts). Pure data and meshes.
+// Update 0.3.18 — floor 8's: a blaster bolt (a pink-white streak, glowing) and the Bee mech's missile (a steel body,
+// its nose cone, its exhaust glowing and smoking behind it).
 import * as THREE from 'three';
 import type { Orb } from '../sim/combat/targets';
 
-export type ShotStyle = 'fire' | 'blueFire' | 'acid' | 'water' | 'spear' | 'spine' | 'feather' | 'carrot';
+export type ShotStyle = 'fire' | 'blueFire' | 'acid' | 'water' | 'spear' | 'spine' | 'feather' | 'carrot' | 'laser' | 'missile';
 
 /** A shot's style: by who fired it, then by its look. */
 export function shotStyle(o: Orb): ShotStyle {
   if (o.by === 'blueDemon') return 'blueFire';
   if (o.by === 'spitter') return 'acid';
   if (o.by === 'maskTribal') return 'feather';
+  if (o.look === 'laser' || o.look === 'missile') return o.look;
   return o.look === 'water' ? 'water' : o.look === 'spear' ? 'spear' : o.look === 'spine' ? 'spine' : o.look === 'carrot' ? 'carrot' : 'fire';
 }
 
@@ -40,6 +43,8 @@ export const TRAILS: Record<ShotStyle, ShotTrail> = {
   spine: { rate: 0, color: 0, falls: true, burst: 6, burstColor: 0xe8d6a0, flash: null },
   feather: { rate: 4, color: 0xf4f0e8, falls: true, burst: 6, burstColor: 0xf4f0e8, flash: null },
   carrot: { rate: 0, color: 0, falls: true, burst: 8, burstColor: 0xff7418, flash: null },
+  laser: { rate: 0, color: 0, falls: false, burst: 10, burstColor: 0xff8ad0, flash: 0xff8ad0 },
+  missile: { rate: 40, color: 0xd8d2cc, falls: false, burst: 20, burstColor: 0xff8a30, flash: 0xffa040 },
 };
 
 /** Every style's meshes for one shot's slot (each hidden but its own: shotsView.ts shows one). Geometries and
@@ -96,7 +101,21 @@ export class ShotMeshes {
       leaf.rotation.set(Math.PI + Math.cos(k * 2.1) * 0.4, 0, Math.sin(k * 2.1) * 0.4);
       carrot.add(leaf);
     }
+    const laser = new THREE.Mesh(kit.ball, kit.laser);
+    // Along +y, its nose at the top.
+    const missile = new THREE.Group();
+    const body = new THREE.Mesh(kit.rod, kit.steel);
+    body.scale.set(0.07, 0.42, 0.07);
+    const nose = new THREE.Mesh(kit.cone, kit.steel);
+    nose.scale.set(0.07, 0.16, 0.07);
+    nose.position.y = 0.29;
+    const jet = new THREE.Mesh(kit.ball, kit.fireInner);
+    jet.scale.set(0.08, 0.14, 0.08);
+    jet.position.y = -0.27;
+    missile.add(body, nose, jet);
     this.parts = {
+      laser,
+      missile,
       fire: fireball(kit.fireCore, kit.fireInner, kit.fireOuter, this.flame),
       blueFire: fireball(kit.blueCore, kit.blueInner, kit.blueOuter, this.blue),
       acid,
@@ -141,6 +160,7 @@ export class ShotKit {
   readonly featherTip = new THREE.MeshStandardMaterial({ color: 0xc42a2a, roughness: 0.7 });
   readonly carrot = new THREE.MeshStandardMaterial({ color: 0xff7418, roughness: 0.7 });
   readonly leafGreen = new THREE.MeshStandardMaterial({ color: 0x4caa2e, roughness: 0.8 });
+  readonly laser = new THREE.MeshBasicMaterial({ color: 0xffd6ee, toneMapped: false });
 
   dispose() {
     for (const v of Object.values(this)) if (v instanceof THREE.BufferGeometry || v instanceof THREE.Material) v.dispose();
