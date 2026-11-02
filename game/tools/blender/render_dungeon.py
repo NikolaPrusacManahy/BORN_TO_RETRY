@@ -24,6 +24,9 @@ import bmesh
 import bpy
 from mathutils import Matrix, Vector
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from demon_at import demon_at  # noqa: E402 (Update 0.3.16 — the boss in its stance: demon_at.py)
+
 
 def parse_args():
     argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []

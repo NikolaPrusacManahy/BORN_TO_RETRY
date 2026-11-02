@@ -70,11 +70,11 @@ export function swimTo(e: Enemy, x: number, y: number, z: number, speed: number,
 }
 
 /** Circles you `ring` m off, its middle at your chest's height plus `dy`, its own way round (Enemy.strafe: it turns
- *  back at a wall). */
-export function circleYou(e: Enemy, player: PlayerState, ring: number, dy: number, speed: number, dt: number, w: EnemyWorld, world: CollisionWorld) {
-  const ang = Math.atan2(e.pos.z - player.pos.z, e.pos.x - player.pos.x) + e.strafe * LEAD;
-  const x = player.pos.x + Math.cos(ang) * ring;
-  const z = player.pos.z + Math.sin(ang) * ring;
+ *  back at a wall). Update 0.3.16 — round `about` (you, unless it's given: the Big Shark's circle kept off the walls). */
+export function circleYou(e: Enemy, player: PlayerState, ring: number, dy: number, speed: number, dt: number, w: EnemyWorld, world: CollisionWorld, about: { x: number; z: number } = player.pos) {
+  const ang = Math.atan2(e.pos.z - about.z, e.pos.x - about.x) + e.strafe * LEAD;
+  const x = about.x + Math.cos(ang) * ring;
+  const z = about.z + Math.sin(ang) * ring;
   if (!freeAt(w.nav.air, x, z)) e.strafe = -e.strafe;
   swimTo(e, x, chest(player) + dy, z, speed, dt, w, world);
 }

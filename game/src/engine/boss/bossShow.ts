@@ -5,6 +5,8 @@
 // What the HUD shows of all this (the letterbox, the boss's name card and health bar, the black, the floor's name).
 // Update 0.0.18 — each floor's boss its name; the Dragon's scream in its stance shakes the view.
 // Update 0.0.19 — a boss brought into the Lab shows its name and health bar too.
+// Update 0.3.16 — floor 6's Big Shark has its own show (sharkCinema.ts): its name on the right as it leaps out of the
+// water, the run slowed mid-leap (sim/dungeon/sharkShow.ts).
 import * as THREE from 'three';
 import { BossBeat, introBeats } from '../../sim/dungeon/bossRoom';
 import type { DungeonRun } from '../../sim/dungeon/roomLoop';
@@ -20,12 +22,15 @@ import { WHALE } from '../../tuning/whale';
 import type { Enemy } from '../../sim/enemies/enemy';
 import type { Look } from '../look';
 import { Cinema, Shot } from './cinema';
+import { SharkCinema } from './sharkCinema';
+import { sharkSlow } from '../../sim/dungeon/sharkShow';
+import { BIG_SHARK } from '../../tuning/bigShark';
 import { bossIn } from './demonView';
 
 /** The boss's name card. **(placeholder names)** */
 export const BOSS_NAME = 'THE DEMON';
 /** Update 0.0.18 — each boss's name. */
-export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { demon: BOSS_NAME, dragon: 'THE DRAGON', boneKing: 'THE BONE KING', dino: 'THE VELOCIRAPTOR', drownedKing: 'THE DROWNED KING', whale: 'THE OLD WHALE' };
+export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { demon: BOSS_NAME, dragon: 'THE DRAGON', boneKing: 'THE BONE KING', dino: 'THE VELOCIRAPTOR', drownedKing: 'THE DROWNED KING', whale: 'THE OLD WHALE', bigShark: 'THE BIG SHARK' };
 
 /** Update 0.2.3 — a boss bar's mark: where it rages (the Demon, the Dragon), or the Bone King's final blast (its second
  *  life only). */
@@ -37,6 +42,8 @@ function markOf(boss: Enemy): number {
   if (boss.kind === 'drownedKing') return boss.stage > 0 ? -1 : DROWNED.v.risenAt;
   // (Update 0.2.11 — the Old Whale: where it turns on you.)
   if (boss.kind === 'whale') return boss.stage > 0 ? -1 : WHALE.v.phase2At;
+  // (Update 0.3.16 — the Big Shark: where it frenzies.)
+  if (boss.kind === 'bigShark') return boss.stage > 0 ? -1 : BIG_SHARK.v.frenzyAt;
   return boss.kind === 'dragon' ? DRAGON.v.rageAt : BOSS.v.rageAt;
 }
 export const bossTitle = (floor: number) => `Warden of Floor ${floor}`;
@@ -63,6 +70,7 @@ const view: Shot = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
 export class BossShow {
   readonly hud: ShowHud = { cine: false, card: false, bossName: BOSS_NAME, bossTitle: '', bossHp: -1, bossMark: -1, veil: false, floorName: '' };
   private readonly cinema: Cinema | null;
+  private readonly shark: SharkCinema | null;
   private beat: BossBeat = 'waiting';
   /** Real seconds of the death's slow motion left. */
   private slow = 0;
@@ -76,6 +84,7 @@ export class BossShow {
 
   constructor(private readonly run: DungeonRun | null) {
     this.cinema = run ? new Cinema(run.level.boss, run.boss.kind) : null;
+    this.shark = run && run.boss.kind === 'bigShark' ? new SharkCinema(run.level.boss.portal) : null;
     if (run) {
       this.hud.bossTitle = bossTitle(run.level.plan.level);
       this.hud.bossName = BOSS_NAMES[run.boss.kind] ?? BOSS_NAME;
@@ -92,6 +101,8 @@ export class BossShow {
   /** The sim's time scale: slow as the boss dies, easing back. */
   get timeScale(): number {
     const c = CINEMA.v;
+    // (Update 0.3.16 — and the Big Shark's leap, mid-show.)
+    if (this.run && sharkSlow(this.run.boss) < 1) return sharkSlow(this.run.boss);
     if (this.slow <= 0 || c.slowTime <= 0) return 1;
     const k = 1 - this.slow / c.slowTime;
     return c.slow + (1 - c.slow) * k * k;
@@ -131,19 +142,21 @@ export class BossShow {
     // A beat starting.
     if (b.beat !== this.beat) {
       if (b.beat === 'intro') this.cinema.start(eye, dir);
+      if (b.beat === 'intro') this.shark?.start(eye, dir, eye);
       if (b.beat === 'fight' && this.beat === 'intro') {
-        look.yaw = this.cinema.endYaw;
-        look.pitch = this.cinema.endPitch;
+        look.yaw = (this.shark ?? this.cinema).endYaw;
+        look.pitch = (this.shark ?? this.cinema).endPitch;
       }
       if (b.beat === 'dying') this.slow = CINEMA.v.slowTime;
       this.beat = b.beat;
     }
     if (b.beat === 'intro') {
-      this.cinema.intro(b.t, view);
+      if (this.shark) this.shark.intro(b.t, eye, view);
+      else this.cinema.intro(b.t, view);
       out.cinematic = true;
       h.cine = true;
       const s = introBeats();
-      h.card = b.t >= s.riseTo - CARD_EDGE && b.t < s.stanceTo + CARD_EDGE;
+      h.card = this.shark ? SharkCinema.named(b.t) : b.t >= s.riseTo - CARD_EDGE && b.t < s.stanceTo + CARD_EDGE;
     } else if (b.beat === 'open' && this.cinema.gateShot(b.t, eye, dir, view)) {
       out.cinematic = true;
       h.cine = true;

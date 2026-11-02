@@ -1,6 +1,7 @@
 // Update 0.0.17 — the weapon slots and the kill bonuses on screen (the designer). Bottom right, a box per slot you have
 // something in: your fists in slot 1, then each weapon with its uses (red once it's broken), the one in your hand raised
 // and lit, its number on it. Bottom left above your coins, each bonus that's on with its time draining away.
+// Update 0.3.16 — the look: each slot's key (as bound) on a cap above it, lit for the one in hand.
 import type { CSSProperties } from 'react';
 import type { HudSlot } from '../engine/hudStore';
 
@@ -75,17 +76,20 @@ function PistolIcon() {
   );
 }
 
-export function WeaponSlots({ slots, slot }: { slots: (HudSlot | null)[]; slot: number }) {
+/** `keys`: each slot's key, as bound ('|' between them). */
+export function WeaponSlots({ slots, slot, keys }: { slots: (HudSlot | null)[]; slot: number; keys: string }) {
+  const key = keys.split('|');
+  const cap = (i: number) => <i className={`rb-slot-n rb-cap${slot === i ? ' is-lit' : ''}`}>{key[i] ?? i + 1}</i>;
   return (
     <div className="rb-slots">
       <span className={`rb-slot${slot === 0 ? ' is-on' : ''}`}>
-        <i className="rb-slot-n">1</i>
+        {cap(0)}
         <FistIcon />
       </span>
       {slots.map((s, i) =>
         s ? (
           <span key={i} className={`rb-slot${slot === i + 1 ? ' is-on' : ''}${s.uses <= 0 ? ' is-broken' : ''}`}>
-            <i className="rb-slot-n">{i + 2}</i>
+            {cap(i + 1)}
             {s.kind === 'pistol' ? <PistolIcon /> : s.kind === 'grimoire' ? <BookIcon /> : s.kind === 'goldAxe' ? <AxeIcon /> : s.kind === 'hammer' || s.kind === 'goldHammer' ? <HammerIcon gold={s.kind === 'goldHammer'} /> : s.kind === 'daggers' || s.kind === 'goldDaggers' ? <DaggersIcon gold={s.kind === 'goldDaggers'} /> : <SwordIcon gold={s.kind === 'goldSword'} />}
             <b className="rb-slot-uses">{s.uses}</b>
           </span>

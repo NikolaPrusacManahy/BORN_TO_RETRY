@@ -106,6 +106,10 @@ export interface HudState {
   grabLeft: number;
   grabEnd: '' | 'free' | 'thrown';
   attackKey: string;
+  /** Update 0.3.16 — the Big Shark's jaws coming: the way to go (−1 left, 1 right, 0: none), and your move keys. */
+  jawCue: number;
+  leftKey: string;
+  rightKey: string;
   /** Update 0.2.8 — the Velociraptor's sand in your eyes, its screech's dash lock and its pin (raptorHud.ts), and your
    *  dash's key. */
   blind: number;
@@ -118,6 +122,8 @@ export interface HudState {
   /** Update 0.2.10 — floor 5's Squidle's ink over your view (raptorHud.ts). */
   ink: number;
   dashKey: string;
+  /** Update 0.3.16 — the weapon slots' keys, as bound ('|' between them: the HUD's caps). */
+  slotKeys: string;
 }
 
 export interface HudStore {
@@ -127,7 +133,7 @@ export interface HudStore {
 }
 
 export function createHudStore(): HudStore {
-  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, mag: -1, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, tealRings: 0, cards: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, chestHere: false, styleRank: -1, styleFill: 0, styleFeed: [], execution: 0, bossMark: -1, grabHits: -1, grabNeed: 0, grabLeft: 0, grabEnd: '', attackKey: '', ...createRaptorHud(), dashKey: '' };
+  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, mag: -1, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, tealRings: 0, cards: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, chestHere: false, styleRank: -1, styleFill: 0, styleFeed: [], execution: 0, bossMark: -1, grabHits: -1, grabNeed: 0, grabLeft: 0, grabEnd: '', attackKey: '', jawCue: 0, leftKey: '', rightKey: '', ...createRaptorHud(), dashKey: '', slotKeys: '' };
   const subs = new Set<() => void>();
   return {
     get: () => state,

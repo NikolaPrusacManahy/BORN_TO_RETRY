@@ -15,7 +15,7 @@ import type { DropKind } from '../sim/items/drops';
 import type { LabCommand } from '../sim/lab/labCommands';
 import type { WeaponKind } from '../sim/weapons/catalog';
 
-export type LabBoss = 'demon' | 'dragon' | 'boneKing' | 'dino' | 'drownedKing' | 'whale';
+export type LabBoss = 'demon' | 'dragon' | 'boneKing' | 'dino' | 'drownedKing' | 'whale' | 'bigShark';
 
 const NAMES: Partial<Record<EnemyKind, string>> = {
   grunt: 'Grunt',
@@ -75,6 +75,7 @@ const NAMES: Partial<Record<EnemyKind, string>> = {
   tentacle: 'Kraken Tentacle',
   mako: 'Mako',
   captain: 'Barbarossa',
+  bigShark: 'Big Shark',
   demon: 'Demon',
   dragon: 'Dragon',
   boneKing: 'Bone King',

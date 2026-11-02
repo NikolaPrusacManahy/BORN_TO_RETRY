@@ -1,6 +1,7 @@
 /* Update 0.1.14 — the death screen: over the black (above the fade), a dim label, what killed you large in crimson,
    three numbers (floor, time, kills), Retry and Menu. Each line rises in, one after another. All of it 1.5× bigger
-   than first drawn (the designer, after the preview): the box's zoom. */
+   than first drawn (the designer, after the preview): the box's zoom.
+   Update 0.3.16 — the look: upright in the pixel face, ink edges and hard drops in place of the glows. */
 .rb-death {
   position: absolute;
   inset: 0;
@@ -28,7 +29,7 @@
 }
 
 .rb-death-label {
-  font-family: var(--rb-mono);
+  font-family: var(--rb-font);
   font-size: 13px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -37,14 +38,16 @@
 
 .rb-death-cause {
   margin: 6px 0 34px;
-  font-family: 'Anton', var(--rb-font);
+  font-family: var(--rb-font);
   font-size: clamp(44px, 9vw, 96px);
   line-height: 1;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  font-weight: 700;
   color: #d61f3a;
-  text-shadow: 0 0 28px rgba(214, 31, 58, 0.45);
-  transform: skewX(-8deg);
+  text-shadow:
+    var(--rb-edge-thick),
+    0 7px 0 #3a050c;
   animation-delay: 0.12s;
 }
 
@@ -63,7 +66,7 @@
 }
 
 .rb-death-stat span {
-  font-family: var(--rb-mono);
+  font-family: var(--rb-font);
   font-size: 11px;
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -74,7 +77,7 @@
   font-family: var(--rb-font);
   font-size: 30px;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
+  text-shadow: var(--rb-edge);
 }
 
 .rb-death-actions {
@@ -95,22 +98,6 @@
   }
 }
 
-/* The cause keeps its slant while it rises. */
-.rb-death-box > .rb-death-cause {
-  animation-name: rb-death-cause-in;
-}
-
-@keyframes rb-death-cause-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px) skewX(-8deg);
-  }
-  to {
-    opacity: 1;
-    transform: skewX(-8deg);
-  }
-}
-
 /* Update 0.2.2 — the run's end (the last floor's way down): gold where the death screen is crimson. */
 .rb-death.rb-won {
   background: radial-gradient(ellipse at center, rgba(90, 64, 6, 0.35), rgba(0, 0, 0, 0) 60%);
@@ -118,5 +105,7 @@
 
 .rb-won .rb-death-cause {
   color: #e8b931;
-  text-shadow: 0 0 28px rgba(232, 185, 49, 0.45);
+  text-shadow:
+    var(--rb-edge-thick),
+    0 7px 0 #4a3204;
 }

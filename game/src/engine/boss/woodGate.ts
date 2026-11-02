@@ -104,7 +104,7 @@ export class WoodGate {
     c.width = 512;
     c.height = 128;
     const g = c.getContext('2d')!;
-    g.font = '600 64px Georgia, serif';
+    g.font = "700 64px 'Pixelify Sans', Georgia, serif";
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     g.shadowColor = 'rgba(255, 120, 60, 0.9)';

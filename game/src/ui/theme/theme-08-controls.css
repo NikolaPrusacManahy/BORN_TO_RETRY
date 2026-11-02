@@ -1,5 +1,6 @@
 /* M1 step 9 — the controls screen (main menu and pause menu): two columns of actions, each key on a slanted button;
-   the one being rebound turns red and pulses. Plus the pause menu's Settings / Controls tabs. */
+   the one being rebound turns red and pulses. Plus the pause menu's Settings / Controls tabs.
+   Update 0.3.16 — the look: each key on a grey key cap (theme-41-look.css). */
 .rb-binds {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -20,23 +21,29 @@
 
 .rb-bind-key {
   min-width: 84px;
-  padding: 5px 10px;
-  border: 0;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--rb-accent-hi);
-  font-family: var(--rb-mono);
-  font-size: 12px;
+  padding: 4px 10px 3px;
+  border: 2px solid #6e6669;
+  border-bottom: 4px solid #262224;
+  border-radius: 3px;
+  background: #3b3638;
+  box-shadow: 0 0 0 2px var(--rb-ink);
+  color: #ece6e8;
+  font-family: var(--rb-font);
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
 }
 
 .rb-bind-key:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: #4a4446;
+  border-color: var(--rb-brass);
+  border-bottom-color: var(--rb-brass-lo);
 }
 
 .rb-bind-key.is-listening {
   background: var(--rb-accent);
+  border-color: var(--rb-accent-hi);
+  border-bottom-color: #4a0c08;
   color: #fff;
   animation: rb-bind-wait 0.8s ease-in-out infinite;
 }

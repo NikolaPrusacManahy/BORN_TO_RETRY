@@ -6,7 +6,7 @@
    behind its mark, its name in bone. */
 .rb-card.is-death {
   --rarity: #d9d2bf;
-  background: radial-gradient(circle at 50% 35%, #1a1f1a 0%, #070807 60%, #000 100%);
+  background: var(--rb-rivets), radial-gradient(circle at 50% 35%, #1a1f1a 0%, #070807 60%, #000 100%);
   border-style: solid;
   box-shadow: 0 0 calc(24px * var(--s)) rgba(120, 255, 150, 0.28), inset 0 0 calc(30px * var(--s)) rgba(0, 0, 0, 0.9), 0 calc(10px * var(--s)) calc(26px * var(--s)) rgba(0, 0, 0, 0.7);
 }
@@ -50,7 +50,7 @@
 .rb-card.is-traitor {
   --rarity: #e8b931;
   border-color: #e8b931 #9b4dff #9b4dff #e8b931;
-  background: linear-gradient(135deg, #2b2208 0%, #1a1405 48%, #1d0c2e 52%, #12071f 100%);
+  background: var(--rb-rivets), linear-gradient(135deg, #2b2208 0%, #1a1405 48%, #1d0c2e 52%, #12071f 100%);
   box-shadow: 0 0 calc(22px * var(--s)) rgba(232, 185, 49, 0.3), 0 0 calc(22px * var(--s)) rgba(155, 77, 255, 0.3), 0 calc(10px * var(--s)) calc(26px * var(--s)) rgba(0, 0, 0, 0.6);
 }
 

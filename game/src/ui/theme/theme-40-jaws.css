@@ -1,0 +1,36 @@
+/* Update 0.3.16 — the Big Shark's jaws coming: the grab QTE's look (theme-27-grab.css), its arrow and the move key pushed
+   out to the side to go, pulsing white to crimson as the jaws close in. */
+.rb-jaw {
+  top: 55%;
+}
+
+.rb-jaw.is-left {
+  left: 36%;
+}
+
+.rb-jaw.is-right {
+  left: 64%;
+}
+
+.rb-jaw-arrow {
+  font-family: var(--rb-font);
+  font-weight: 700;
+  font-size: 84px;
+  line-height: 1;
+  color: #fff;
+  text-shadow:
+    var(--rb-edge-thick),
+    0 7px 0 #8a1410;
+  animation: rb-jaw-pulse 0.25s ease-in-out infinite alternate;
+}
+
+@keyframes rb-jaw-pulse {
+  from {
+    color: #fff;
+    transform: scale(1);
+  }
+  to {
+    color: #ff4a3a;
+    transform: scale(1.15);
+  }
+}

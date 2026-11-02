@@ -57,6 +57,8 @@ export interface DungeonStyle {
   /** Update 0.2.11 — fully under water: the water's top over the floor (m; you swim, sim/player/swim.ts), and no
    *  torches. */
   under?: number;
+  /** Update 0.3.16 — its boss room's walls this many rows of the kit's wall high (floor 6's: 4.5, 9 m; tallWalls.ts). */
+  bossWalls?: number;
   /** Update 0.2.11 — low cover's piece and its size (crates when not given). Update 0.2.23 — it grows out of a bed of
    *  earth (floor 2's bushes: no paving under them). */
   low?: string;

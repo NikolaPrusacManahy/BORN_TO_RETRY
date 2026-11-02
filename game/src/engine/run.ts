@@ -34,6 +34,7 @@ import { riseChests, stepTreasure } from '../sim/dungeon/treasure';
 import { lavaStep } from '../sim/dungeon/lava';
 import { execHeld } from '../sim/combat/execution';
 import { followHeld } from './execView';
+import { followJaws } from './exec/jawHands';
 import { hpBonusOf, moveFactor } from '../sim/items/items';
 import { pushPlayerOut } from '../sim/enemies/bodies';
 import { dealView } from './fateView';
@@ -48,7 +49,7 @@ import { LAB } from '../tuning/lab';
 import type { DebugInfo } from './hudStore';
 import { readCombatIntent, readPlayerIntent } from './intents';
 import { focusOf } from '../sim/items/focus';
-import { keyLabel } from '../input/keyLabel';
+import { keyLabel, slotKeysOf } from '../input/keyLabel';
 import { applyMoveEvents } from './moveFeedback';
 import { fillDebug } from './overlayFeed';
 import { RunBase } from './runBase';
@@ -59,6 +60,7 @@ import { iceGrip, sandSlow, webSlow } from '../sim/dungeon/quicksand';
 import { floodSlow, stepTide, tideSlow } from '../sim/dungeon/tide';
 import { Lobby, lobbyFocus, stepLobby } from '../sim/lobby/lobby';
 import { styleOf } from '../world/dungeon/styles';
+import { sharkSea } from '../sim/dungeon/sharkShow';
 import { playLobby } from '../audio/lobbySounds';
 
 /** Update 0.2.3 — held in the Bone King's hand, the view turns to its skull this fast (1/s) (Update 0.2.8: pinned, to
@@ -93,7 +95,7 @@ export class Run extends RunBase {
       // (Update 0.1.9 — and the weapon in your hand: the Dual Daggers' +15%.)
       // (Update 0.2.4 — and quicksand. Update 0.2.23 — and webs.)
       // (Update 0.2.10 — and wading at high water, or in the Drowned King's. Update 0.2.11 — under water you swim.)
-      p.swimTop = d ? (styleOf(this.level.floor).under ?? 0) : 0;
+      p.swimTop = d ? (styleOf(this.level.floor).under ?? sharkSea(d.boss, this.combat.flood)) : 0;
       const wade = d && p.swimTop === 0 ? (bossOn ? floodSlow(p, this.combat.flood) : tideSlow(p, d.tide, d.level.tide)) : 1;
       p.speedMul = moveFactor(this.combat) * (d ? sandSlow(p, d.level.sand) * webSlow(p, d.level.webs) * wade : 1);
       // (Update 0.3.11 — floor 7's ice.)
@@ -212,6 +214,7 @@ export class Run extends RunBase {
     this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt, this.clock.alpha);
     this.combatScene.realFrame(real, !p.grounded, this.hits.hurts, frozen || this.combat.exec.active);
     followHeld(this.combat, this.look, this.arms, this.camera, real);
+    followJaws(this.combat, this.arms, this.camera, this.look.yaw, p.pos, this.combatScene.rootOf);
     const free = locked && !p.dead && !this.show.locked && !shot.cinematic && !chestShot && !execHeld(this.combat.exec);
     const lobby = this.level.lobby;
     const focus = lobby ? lobbyFocus(lobby, this.focus) : focusOf(this.treasure, this.combat, p, this.fighting, this.focus);
@@ -233,6 +236,8 @@ export class Run extends RunBase {
     fillDebug(debug, p, this.combat);
     this.hudFeed.attackKey = keyLabel(input.bindings.attack);
     this.hudFeed.dashKey = keyLabel(input.bindings.dash);
+    [this.hudFeed.leftKey, this.hudFeed.rightKey] = [keyLabel(input.bindings.left), keyLabel(input.bindings.right)];
+    this.hudFeed.slotKeys = slotKeysOf(input.bindings);
     this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d, this.look.yaw, this.show.hud, choosing ?? '');
     // Dead: once it's black, the death screen (the dungeon: Retry is a new run) or the lab's start. The way down: the
     // next floor (Update 0.2.2: off the last, the run is won).

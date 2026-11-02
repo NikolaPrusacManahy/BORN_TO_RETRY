@@ -1,6 +1,8 @@
 // M1 — a short label for a key code ('ShiftLeft' → 'Shift', 'Mouse0' → 'LMB').
 // M1 step 9 — every key can be bound now, so punctuation, arrows, the numpad and the wheel get short names too.
 // Update 0.1.20 — moved from screens/ (the game's [E] prompts name the Interact key too).
+import type { Bindings } from './bindings';
+
 const MOUSE = ['LMB', 'MMB', 'RMB', 'Mouse 4', 'Mouse 5'];
 
 const NAMES: Record<string, string> = {
@@ -47,3 +49,6 @@ export function keyLabel(code: string): string {
   if (mod) return mod[1] === 'Control' ? 'Ctrl' : mod[1];
   return code;
 }
+
+/** Update 0.3.16 — the weapon slots' keys, '|' between them (the HUD's key caps). */
+export const slotKeysOf = (b: Bindings) => [b.slot1, b.slot2, b.slot3, b.slot4, b.slot5].map(keyLabel).join('|');

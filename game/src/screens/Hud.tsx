@@ -10,18 +10,20 @@
 // Update 0.3.4 — the style rank, right of centre (StyleRank.tsx).
 // Update 0.0.15 — the boss room's show (BossHud.tsx); while it has the view, the rest fades out.
 // Update 0.2.3 — the Bone King's grab QTE (GrabQte.tsx). Update 0.2.8 — the Velociraptor's: sand in your eyes, your
-// dash taken by its screech, its pin's dash cue (PinQte.tsx).
+// dash taken by its screech, its pin's dash cue (PinQte.tsx). Update 0.3.16 — the Big Shark's arrow (JawCue.tsx).
 // Update 0.0.16 — white and gold keys beside the normal ones; at a chest, the key picker (KeyPicker.tsx).
 // Update 0.0.17 — four rings (red, blue, green, purple); the weapon slots in place of the weapon's name and uses; the
 // kill bonuses that are on (HudSlots.tsx).
 // Update 0.2.15 — the Scars you carried. Update 0.2.16 — the Fate Cards you carry, after the rings: a little pile and
 // how many.
+// Update 0.3.16 — the look (theme-01-base.css, theme-41-look.css): the dash's key on a cap beside its bars.
 import { StyleRank } from './StyleRank';
 import { CSSProperties, useSyncExternalStore } from 'react';
 import type { HudStore } from '../engine/hudStore';
 import { BossHud } from './BossHud';
 import { GrabQte } from './GrabQte';
 import { PinQte } from './PinQte';
+import { JawCue } from './JawCue';
 import { KeyIcon, KeyPicker } from './KeyPicker';
 import { Bonuses, WeaponSlots } from './HudSlots';
 import { Minimap } from './Minimap';
@@ -143,12 +145,13 @@ export function Hud({ store }: { store: HudStore }) {
           <span>{Math.max(0, s.uses - s.mag)}</span>
         </div>
       )}
-      <WeaponSlots slots={s.slots} slot={s.slot} />
+      <WeaponSlots slots={s.slots} slot={s.slot} keys={s.slotKeys} />
       <Bonuses left={s.bonusLeft} />
       <div className={`rb-hud-exec${s.execution >= 1 ? ' is-full' : ''}`} style={{ '--fill': s.execution } as CSSProperties}>
         <i className="rb-hud-exec-fill" />
       </div>
       <div className={`rb-hud-dash${s.dashLocked ? ' is-locked' : ''}`}>
+        {s.dashKey && <span className="rb-cap">{s.dashKey}</span>}
         {Array.from({ length: s.dashMax }, (_, i) => (
           <span key={i} className="rb-hud-pip" style={{ '--fill': Math.max(0, Math.min(1, s.dashCharges - i)) } as CSSProperties} />
         ))}
@@ -158,6 +161,7 @@ export function Hud({ store }: { store: HudStore }) {
       <BossHud s={s} />
       <GrabQte s={s} />
       <PinQte s={s} />
+      <JawCue s={s} />
     </div>
   );
 }

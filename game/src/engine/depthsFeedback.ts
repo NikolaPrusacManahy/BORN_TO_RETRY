@@ -60,6 +60,27 @@ export function depthsFeedback(f: FeedbackParts, kind: CombatEvent, value: numbe
     case 'hookCatch':
       f.rig.shake.add(fb.shakeJab * 0.6);
       return true;
+    // (Update 0.3.16 — the Big Shark: its leap's spray, its bites, its teeth in a wall, its jaws on you.)
+    case 'bigSharkBreach':
+    case 'bigSharkSplash':
+      f.sparks.spawn(at, UP, 70, 2.4);
+      f.rig.shake.add(fb.shakeHeavy * near(30));
+      return true;
+    case 'bigSharkBite':
+    case 'bigSharkSnap':
+    case 'bigSharkTail':
+      f.rig.shake.add(fb.shakeHeavy * near(10));
+      return true;
+    case 'bigSharkStuck':
+      f.chunks.spawn(at, UP, 16, 1.2);
+      f.rig.shake.add(fb.shakeHeavy * near(20));
+      return true;
+    case 'bigSharkCatch':
+    case 'bigSharkThroat':
+    case 'bigSharkGulp':
+    case 'bigSharkFrenzy':
+      f.rig.shake.add(fb.shakeHeavy * (kind === 'bigSharkFrenzy' ? near(30) : 1.2));
+      return true;
     default:
       return false;
   }

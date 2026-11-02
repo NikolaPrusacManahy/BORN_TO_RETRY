@@ -232,6 +232,8 @@ export const FORGE_LOOK: DungeonStyle = {
 export const COVE_LOOK: DungeonStyle = {
   ...STONE,
   id: 'cove',
+  // (Update 0.3.16 — the Big Shark's arena, half again as high.)
+  bossWalls: 4.5,
   litter: ['kit_pf_Prop_Bucket', 'kit_pf_Prop_Bottle_1', 'kit_pf_Prop_Bottle_2', 'kit_pf_Prop_Skull', 'kit_pf_Prop_Anchor', 'kit_pf_Environment_Rock_1', 'kit_pf_Prop_Bucket_Fishes', 'kit_pf_Environment_Rock_4'],
   core: [0.09, 0.08, 0.07],
   tint: { RockLight: 0xa79c8d, Rock: 0x7c7366, Steel: 0x5f5a54, DarkSteel: 0x48443f, Bones: 0xeee4d0, Wood: 0x8a6440, DarkWood: 0x5e4129, Grey_Floor: 0xb8ab94, Fire: 0xff9a4a },

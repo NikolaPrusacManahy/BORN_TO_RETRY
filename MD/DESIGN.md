@@ -194,6 +194,13 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   stops it). Its boss still stands in till the Big Shark. **(placeholder numbers, F1 → Floor 6 crew; Floor 6 kraken,
   Mako, Captain)**
 
+- **Its boss, the Big Shark** (Update 0.3.16; spec `MD_UPDATES/U0316_BIG_SHARK.md`): its arena's walls half again as
+  high (9 m), flooded to 8.4 m in its show (high over the corner as it floods, over its shoulder as it swims, ahead of it
+  as it leaps out of the water slowed, its name on the right); you swim. Its lunge and its snap: an arrow, press move
+  left or move right that way to escape its jaws. Its swallow: caught, your hands hold its jaws apart, click fast and
+  punch its throat, or it's one shot. Its tail, its teeth stuck in a wall, its frenzy below half. 1800 health. Dead,
+  the arena drains. **(placeholder numbers, F1 → Big Shark)**
+
 ### Floor 8 — The Forge (Update 0.3.13; spec `MD_UPDATES/U0313_THE_FORGE.md`)
 - The designer: every floor's level first ("I want all designs to be done first"), then the enemies.
 - Floor 3's stone sooty grey under a pale smoky sky, warmed by lava pits again (wider), swords on the walls,
@@ -473,7 +480,7 @@ Arenas are **hand-made templates assembled from a seed**, not random geometry, b
 - Names, looks and kits are the designer's call.
 
 ## 13. Between runs **(placeholder)**
-- **Main menu (Update 0.0.4):** a low shot up a staircase at a dungeon gate with a portcullis, torches and banners, glowing white behind the bars. Rearing horse statues guard the stairs, with crates, a campfire and pale dead trees (Update 0.0.5). The BORN TO RETRY logo sits in the sky (skewed RETRY with a red offset, echoes trailing off it, a turning retry arrow; tagline "Die · Learn · Retry"). Start grinds the portcullis up and fades to black into the game (the designer cut the first-person walk-in). No hints on the menu (no key labels; the designer's rule for every interface).
+- **Main menu (Update 0.0.4):** a low shot up a staircase at a dungeon gate with a portcullis, torches and banners, glowing white behind the bars. Rearing horse statues guard the stairs, with crates, a campfire and pale dead trees (Update 0.0.5). The BORN TO RETRY logo sits in the sky (RETRY with a red drop, upright in the pixel face since Update 0.3.16, echoes trailing off it, a turning retry arrow; tagline "Die · Learn · Retry"). Start grinds the portcullis up and fades to black into the game (the designer cut the first-person walk-in). No hints on the menu (no key labels; the designer's rule for every interface).
 - **Settings (Update 0.0.7, the designer):** the main menu has Start and Settings. Settings moves to a night camp in a forest clearing: sat on a log by a campfire, the options beside it, in two tabs (General, Controls: the controls live inside the settings). Back returns to the gate. The pause menu shows the same options. **Update 0.2.21 (the designer, to a tester: "adaptative UI scalling"):** the in-play HUD is the same share of the screen at any size, as at 1080p (counted in the screen's own pixels), and General has **UI size** (70–140%) on top; the menus keep their own fit to the window.
 - A small hub: pick a character, start a run, see stats and settings. (Update 0.2.9: the lobby is that hub; stats to come.)
 - Saved: unlocked characters, wins, best time, total kills, settings and key bindings.
@@ -483,6 +490,10 @@ Arenas are **hand-made templates assembled from a seed**, not random geometry, b
 ## 14. Art and audio
 - **Packs:** Modular Dungeon (the main menu's gate), Ultimate Nature (flat colour; the menu's dead trees), Modular Ruins, Bestiary/Dungeon Monsters, Ultimate Monsters, Fantasy Props MegaKit (melee weapons), Ultimate Guns (firearms), Universal Base Characters (first-person arms).
 - **Look:** dark palette, fog, strong rim light so enemies read clearly against the background. Baked lighting in Blender for the arenas.
+- **The interface's look (Update 0.3.16, the designer; spec `MD_UPDATES/U0316_THE_LOOK.md`):** every word in one pixel
+  face (Pixelify Sans) with a hard ink edge and, on big words, a hard coloured drop, never a soft glow; upright, never
+  slanted; bars and panels in brass frames with an ink line outside, rivets in panels' corners; the keys to press on grey
+  key caps, as bound; a number, then its mark. Drawn in code (CSS, canvas), no image files.
 - **Audio:** hits matter more than music. Every punch, impact, parry, dash and kill needs a clear, punchy sound. Music rises with the action. The menus' track plays on the menus only, not in the lobby (Update 0.2.13, the designer).
 - **Recorded sounds (Update 0.1.17, the designer):** human-made only, so the Steam page needs no AI notice: the Sonniss GDC 2026 bundle (royalty-free) and the designer's own recordings. Six batches picked by ear in the Lab (Sounds): combat, coins and chests, the bosses and magic, the enemies' warnings, the player's moves, the executions. No footsteps (the designer: "no need in this game"); the slide, the jump and the dash keep their made sounds. The rest is still made in code until its round. **Music (Update 0.1.17):** the designer's own; the menus' track loops on the menus and fades out into a run; the fights' music to come.
 

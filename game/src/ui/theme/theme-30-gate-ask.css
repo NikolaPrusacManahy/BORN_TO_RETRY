@@ -26,13 +26,16 @@
 
 .rb-gate-ask-says {
   margin-bottom: 30px;
-  font-family: 'Anton', var(--rb-font);
+  font-family: var(--rb-font);
   font-size: clamp(30px, 5.4vw, 60px);
   line-height: 1.1;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+  font-weight: 700;
   color: #ffc75a;
-  text-shadow: 0 0 26px rgba(255, 150, 40, 0.35), 0 2px 0 rgba(0, 0, 0, 0.8);
+  text-shadow:
+    var(--rb-edge-thick),
+    0 6px 0 #4a2a04;
 }
 
 .rb-gate-ask-answers {

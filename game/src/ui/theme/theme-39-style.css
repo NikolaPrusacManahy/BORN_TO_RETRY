@@ -1,14 +1,15 @@
 /* Update 0.3.4 — the style rank (screens/StyleRank.tsx): aggressive, fast. Right of centre, slanted; the letter in
    Anton, its rank's colour, a hard black shadow and a glow; a new rank slams in white-hot; from S up it trembles and
-   splits red and cyan; the feed's lines slam in from the right. */
+   splits red and cyan; the feed's lines slam in from the right.
+   Update 0.3.16 — the look: upright in the pixel face, ink edges in place of the glows, its bar in brass; nearer the
+   middle (the designer, after the mockup: "the combo a bit on the right, much better"). */
 .rb-style {
   --rank: #8a8580;
   --fill: 0;
   position: absolute;
-  right: 56px;
+  right: 340px;
   top: 30%;
   width: 300px;
-  transform: skewX(-12deg);
   pointer-events: none;
   text-align: right;
 }
@@ -26,15 +27,14 @@
 
 .rb-style-letter {
   position: relative;
-  font-family: 'Anton', var(--rb-font);
+  font-family: var(--rb-font);
+  font-weight: 700;
   font-size: 128px;
   line-height: 0.9;
-  letter-spacing: -6px;
   color: var(--rank);
   text-shadow:
-    6px 6px 0 #000,
-    0 0 22px var(--rank),
-    0 0 46px color-mix(in srgb, var(--rank) 60%, transparent);
+    var(--rb-edge-thick),
+    0 9px 0 #000;
 }
 
 .rb-style-word {
@@ -45,8 +45,9 @@
   font-weight: 700;
   letter-spacing: 0.32em;
   color: var(--rank);
-  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.78) 18%);
-  text-shadow: 0 0 10px var(--rank);
+  background: rgba(14, 9, 11, 0.82);
+  border-right: 4px solid var(--rank);
+  text-shadow: var(--rb-edge-thin);
 }
 
 .rb-style-bar {
@@ -54,9 +55,10 @@
   position: relative;
   margin: 8px 0 0 auto;
   width: 230px;
-  height: 7px;
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+  height: 12px;
+  background: #1c1416;
+  border: 2px solid var(--rb-brass);
+  box-shadow: var(--rb-frame);
 }
 
 .rb-style-bar-fill {
@@ -65,7 +67,6 @@
   transform-origin: left;
   transform: scaleX(var(--fill));
   background: var(--rank);
-  box-shadow: 0 0 12px var(--rank);
   transition: transform 0.12s linear;
 }
 
@@ -81,9 +82,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   color: #fff;
-  text-shadow:
-    2px 2px 0 #000,
-    0 0 10px var(--rank);
+  text-shadow: var(--rb-edge);
   animation: rb-style-line 0.2s cubic-bezier(0.2, 1.5, 0.4, 1) both;
 }
 
@@ -125,9 +124,8 @@
 /* The top rank burns. */
 .rb-style.is-r6 .rb-style-letter {
   text-shadow:
-    6px 6px 0 #000,
-    0 0 26px #ff2a1a,
-    0 0 60px #ff6a1a;
+    var(--rb-edge-thick),
+    0 9px 0 #8a1408;
 }
 
 @keyframes rb-style-slam {

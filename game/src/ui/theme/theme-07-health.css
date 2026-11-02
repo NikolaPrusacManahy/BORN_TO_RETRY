@@ -1,6 +1,9 @@
 /* M1 step 8 — the health readout, bottom left: the number, then a slanted bar. A pale trail behind the bar catches
    up a moment after a hit, so you see what it took. Both pulse when health is low.
-   Update 0.0.8 — twice the size (the designer). */
+   Update 0.0.8 — twice the size (the designer).
+   Update 0.3.16 — the look (theme-01-base.css; the designer: "The HP bar looks way too similar, remove the white
+   bandages"): the number large in the pixel face, its ink edge on a red drop; the bar upright in a brass frame, cut
+   into tenths, its fill bevelled light on top and dark below. */
 .rb-hud-health {
   position: absolute;
   left: 44px;
@@ -12,26 +15,35 @@
 
 .rb-hud-hp {
   min-width: 2.2em;
-  font-family: 'Anton', var(--rb-font);
-  font-size: 68px;
+  font-family: var(--rb-font);
+  font-weight: 700;
+  font-size: 64px;
   line-height: 1;
   text-align: right;
   color: #fff;
   text-shadow:
-    4px 4px 0 var(--rb-accent),
-    0 0 14px rgba(0, 0, 0, 0.6);
-  transform: skewX(-10deg);
+    var(--rb-edge-thick),
+    0 7px 0 #8a1410;
 }
 
 .rb-hud-bar {
   --fill: 1;
   position: relative;
   width: 440px;
-  height: 24px;
+  height: 30px;
   overflow: hidden;
-  transform: skewX(-20deg);
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.55);
+  background: #2a0b0f;
+  border: 3px solid var(--rb-brass);
+  box-shadow: var(--rb-frame);
+}
+
+/* Its tenths: a notch over the fill every tenth of the bar. */
+.rb-hud-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 3px), rgba(18, 10, 11, 0.6) calc(10% - 3px) 10%);
 }
 
 .rb-hud-bar i {
@@ -47,7 +59,7 @@
 }
 
 .rb-hud-bar-fill {
-  background: var(--rb-accent);
+  background: linear-gradient(#ff8a6a 0 22%, var(--rb-accent) 22% 74%, #a3241a 74%);
   transition: transform 0.08s ease-out;
 }
 

@@ -58,7 +58,7 @@ function faceTexture(card: ShopCard): THREE.Texture {
   g.lineWidth = 2;
   g.strokeRect(18, 18, 220, 324);
   g.globalAlpha = 1;
-  g.font = 'bold 18px sans-serif';
+  g.font = "bold 18px 'Pixelify Sans', sans-serif";
   g.textBaseline = 'middle';
   g.fillStyle = colour;
   g.textAlign = 'left';
@@ -83,7 +83,7 @@ function faceTexture(card: ShopCard): THREE.Texture {
   g.restore();
   g.fillStyle = '#ffffff';
   g.textAlign = 'center';
-  g.font = 'bold 34px Anton, Impact, sans-serif';
+  g.font = "bold 34px 'Pixelify Sans', Impact, sans-serif";
   const name = lines(g, face.name.toUpperCase(), 210);
   name.forEach((l, i) => g.fillText(l, 128, 284 + (i - (name.length - 1) / 2) * 38));
   const t = new THREE.CanvasTexture(c);

@@ -11,11 +11,11 @@
   --fill: 0;
   position: relative;
   width: 440px;
-  height: 12px;
+  height: 16px;
   overflow: hidden;
-  transform: skewX(-20deg);
-  background: rgba(120, 180, 255, 0.1);
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.55);
+  background: #0e1a2a;
+  border: 2px solid var(--rb-brass);
+  box-shadow: var(--rb-frame);
 }
 
 .rb-hud-shield-fill {
@@ -23,8 +23,7 @@
   inset: 0;
   transform-origin: left;
   transform: scaleX(var(--fill));
-  background: linear-gradient(#9fd2ff, #3b8cff);
-  box-shadow: 0 0 12px rgba(80, 160, 255, 0.8);
+  background: linear-gradient(#bfe2ff 0 30%, #3b8cff 30%);
   transition: transform 0.12s ease-out;
 }
 
@@ -44,6 +43,7 @@
 
 .rb-hud-item {
   display: flex;
+  flex-direction: row-reverse;
   align-items: center;
   gap: 4px;
 }
@@ -60,11 +60,12 @@
 }
 
 .rb-hud-item-n {
-  font-family: 'Anton', var(--rb-font);
+  font-family: var(--rb-font);
+  font-weight: 700;
   font-size: 26px;
   line-height: 1;
   color: #fff;
-  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.7);
+  text-shadow: var(--rb-edge);
 }
 
 /* The shop on the minimap: gold. */

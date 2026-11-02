@@ -131,6 +131,10 @@ export interface PlayerState {
   /** Update 0.2.11 — under water (floor 6): you swim (swim.ts) and this is the water's top over the floor (m); 0: on
    *  foot. Set by the run each tick. */
   swimTop: number;
+  /** Update 0.3.16 — the way you're pressing sideways (−1 left … 1 right), and the way you newly pressed this tick (0:
+   *  none): the Big Shark's jaws, escaped (sim/enemies/bigSharkMoves.ts). */
+  strafe: number;
+  strafePressed: number;
   /** Update 0.1.14 — what last took your health (null: nothing yet), and who poisoned you. */
   hurtBy: Cause | null;
   poisonBy: Cause | null;
@@ -191,6 +195,8 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     ink: 0,
     current: new Vector3(),
     swimTop: 0,
+    strafe: 0,
+    strafePressed: 0,
     dashLock: 0,
     hurtBy: null,
     poisonBy: null,

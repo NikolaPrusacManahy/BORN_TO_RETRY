@@ -1,6 +1,7 @@
 /* Update 0.1.20 — the prompts in play (engine/promptView.ts): an item's card over it (its name in its rarity's colour,
    the rarity, what it does, what E does), the chest's "[E] to open", and "[E] TO EXECUTE" over the execution skull.
-   Placed each frame by the engine (transform); they fade in and out. Under the HUD. */
+   Placed each frame by the engine (transform); they fade in and out. Under the HUD.
+   Update 0.3.16 — the look: square, riveted, edged in its rarity's colour; the key on a cap. */
 .rb-prompts {
   position: absolute;
   inset: 0;
@@ -34,10 +35,10 @@
   min-width: calc(150px * var(--rb-ui));
   max-width: calc(260px * var(--rb-ui));
   padding: calc(8px * var(--rb-ui)) calc(12px * var(--rb-ui)) calc(9px * var(--rb-ui));
-  background: rgba(12, 10, 14, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 2px solid var(--rb-rarity);
-  box-shadow: 0 0 calc(18px * var(--rb-ui)) color-mix(in srgb, var(--rb-rarity) 35%, transparent), 0 4px 14px rgba(0, 0, 0, 0.5);
+  background: var(--rb-rivets), rgba(14, 9, 11, 0.9);
+  border: 2px solid color-mix(in srgb, var(--rb-rarity) 55%, #2a2224);
+  border-top: 4px solid var(--rb-rarity);
+  box-shadow: 0 0 0 2px var(--rb-ink), 0 4px 14px rgba(0, 0, 0, 0.5);
   text-align: center;
   font-family: var(--rb-font);
   color: var(--rb-text);
@@ -63,18 +64,20 @@
 .rb-prompt.is-bare {
   min-width: 0;
   padding: calc(5px * var(--rb-ui)) calc(12px * var(--rb-ui));
-  border-top-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  border-color: var(--rb-steel);
+  border-top-width: 2px;
+  background: rgba(14, 9, 11, 0.9);
 }
 
 .rb-prompt-name {
-  font-family: 'Anton', var(--rb-font);
+  font-family: var(--rb-font);
   font-size: calc(22px * var(--rb-ui));
   letter-spacing: 0.04em;
   line-height: 1.1;
   text-transform: uppercase;
+  font-weight: 700;
   color: var(--rb-rarity);
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.8);
+  text-shadow: var(--rb-edge-thin);
 }
 
 .rb-prompt-rarity {
@@ -114,18 +117,25 @@
 }
 
 .rb-prompt-key {
-  color: #ffd76a;
-  font-weight: 700;
+  margin-right: 0.15em;
+  padding: 0.1em 0.35em 0.05em;
+  font-size: 0.95em;
+  vertical-align: 0.05em;
+  border-width: 1px 1px 3px;
+  box-shadow: 0 0 0 1px var(--rb-ink);
 }
 
 /* Over the skull: crimson capitals, beating with it. */
 .rb-prompt-exec {
-  font-family: 'Anton', var(--rb-font);
+  font-family: var(--rb-font);
   font-size: calc(26px * var(--rb-ui));
   letter-spacing: 0.06em;
   white-space: nowrap;
+  font-weight: 700;
   color: #ff2a3a;
-  text-shadow: 0 0 10px rgba(255, 42, 58, 0.65), 0 2px 0 #2a0306, 0 0 2px #000;
+  text-shadow:
+    var(--rb-edge),
+    0 4px 0 #2a0306;
 }
 
 .rb-prompt-exec.is-on {
@@ -134,6 +144,7 @@
 
 .rb-prompt-exec .rb-prompt-key {
   color: #fff;
+  text-shadow: none;
 }
 
 @keyframes rb-prompt-beat {

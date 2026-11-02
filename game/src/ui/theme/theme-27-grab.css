@@ -1,6 +1,7 @@
 /* Update 0.2.3 — the Bone King's grab QTE: under the middle of the view, HIT! (slanted, shaking) beside your attack's
    key (a key cap, pulsing); the combo count slamming in with each hit (×N, bigger, a crimson glow); a pip lit per hit;
-   the time left draining under them (crimson as it runs low). As it ends, BROKE FREE (gold) or THROWN (crimson). */
+   the time left draining under them (crimson as it runs low). As it ends, BROKE FREE (gold) or THROWN (crimson).
+   Update 0.3.16 — the look: upright and edged in the pixel face; the key on a big cap; the pips and the time in brass. */
 .rb-qte {
   position: absolute;
   left: 50%;
@@ -23,30 +24,31 @@
 }
 
 .rb-qte-hit {
-  font-family: 'Anton', var(--rb-font);
+  font-family: var(--rb-font);
   font-size: 72px; /* (Update 0.2.21 — was clamp(40px, 6vw, 72px): the HUD's size scales it.) */
   line-height: 1;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  font-weight: 700;
   color: #fff3e6;
   text-shadow:
-    0 0 18px rgba(214, 31, 58, 0.85),
-    0 3px 0 rgba(0, 0, 0, 0.6);
-  transform: skewX(-10deg);
+    var(--rb-edge-thick),
+    0 7px 0 #8a1410;
 }
 
 .rb-qte-key {
-  min-width: 52px;
-  padding: 6px 12px;
-  border: 2px solid rgba(255, 243, 230, 0.9);
-  border-radius: 8px;
-  background: rgba(20, 8, 10, 0.75);
-  font-family: var(--rb-mono);
-  font-size: 18px;
+  min-width: 60px;
+  padding: 8px 14px 6px;
+  border: 3px solid #8a8285;
+  border-bottom: 7px solid #262224;
+  border-radius: 4px;
+  background: #3b3638;
+  font-family: var(--rb-font);
+  font-size: 24px;
   font-weight: 700;
   color: #fff3e6;
   text-align: center;
-  box-shadow: 0 4px 0 rgba(255, 243, 230, 0.35);
+  box-shadow: 0 0 0 3px var(--rb-ink);
   animation: rb-qte-press 0.36s ease-in-out infinite;
 }
 
@@ -59,22 +61,23 @@
 }
 
 .rb-qte-combo b {
-  font-family: 'Anton', var(--rb-font);
+  font-family: var(--rb-font);
   font-size: 60px;
   line-height: 1;
+  font-weight: 700;
   color: #ffd76a;
   text-shadow:
-    0 0 22px rgba(214, 31, 58, 0.9),
-    0 3px 0 rgba(0, 0, 0, 0.6);
-  transform: skewX(-10deg);
+    var(--rb-edge-thick),
+    0 6px 0 #8a1410;
 }
 
 .rb-qte-combo span {
-  font-family: var(--rb-mono);
+  font-family: var(--rb-font);
   font-size: 13px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: rgba(255, 243, 230, 0.8);
+  color: rgba(255, 243, 230, 0.85);
+  text-shadow: var(--rb-edge-thin);
 }
 
 .rb-qte-pips {
@@ -86,24 +89,25 @@
   width: 16px;
   height: 16px;
   transform: rotate(45deg);
-  border: 2px solid rgba(255, 243, 230, 0.55);
-  background: rgba(0, 0, 0, 0.35);
+  border: 2px solid var(--rb-brass-lo);
+  background: #1c1416;
+  box-shadow: 0 0 0 2px var(--rb-ink);
   transition:
     background 0.08s,
     box-shadow 0.08s;
 }
 
 .rb-qte-pips i.is-on {
-  border-color: #ffd76a;
+  border-color: var(--rb-brass-hi);
   background: #d61f3a;
-  box-shadow: 0 0 12px rgba(214, 31, 58, 0.9);
 }
 
 .rb-qte-time {
   width: 360px;
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(0, 0, 0, 0.45);
+  height: 12px;
+  background: #1c1416;
+  border: 2px solid var(--rb-brass);
+  box-shadow: var(--rb-frame);
   overflow: hidden;
 }
 
@@ -127,8 +131,9 @@
   position: absolute;
   left: 50%;
   top: 40%;
-  transform: translateX(-50%) skewX(-8deg);
-  font-family: 'Anton', var(--rb-font);
+  transform: translateX(-50%);
+  font-family: var(--rb-font);
+  font-weight: 700;
   font-size: 88px;
   line-height: 1;
   letter-spacing: 0.04em;
@@ -140,12 +145,16 @@
 
 .rb-qte-end.is-free {
   color: #e8b931;
-  text-shadow: 0 0 28px rgba(232, 185, 49, 0.55);
+  text-shadow:
+    var(--rb-edge-thick),
+    0 8px 0 #5a3a08;
 }
 
 .rb-qte-end.is-thrown {
   color: #d61f3a;
-  text-shadow: 0 0 28px rgba(214, 31, 58, 0.55);
+  text-shadow:
+    var(--rb-edge-thick),
+    0 8px 0 #2a0306;
 }
 
 @keyframes rb-qte-shake {
@@ -165,8 +174,8 @@
 
 @keyframes rb-qte-press {
   50% {
-    transform: translateY(3px);
-    box-shadow: 0 1px 0 rgba(255, 243, 230, 0.35);
+    transform: translateY(4px);
+    border-bottom-width: 3px;
   }
 }
 
@@ -184,11 +193,11 @@
 @keyframes rb-qte-end {
   0% {
     opacity: 0;
-    transform: translateX(-50%) skewX(-8deg) scale(1.4);
+    transform: translateX(-50%) scale(1.4);
   }
   15% {
     opacity: 1;
-    transform: translateX(-50%) skewX(-8deg) scale(1);
+    transform: translateX(-50%) scale(1);
   }
   75% {
     opacity: 1;

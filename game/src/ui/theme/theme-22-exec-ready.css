@@ -34,10 +34,10 @@
 
 @keyframes rb-exec-flare {
   from {
-    transform: translateX(-50%) skewX(-20deg) scaleY(2.6);
+    transform: translateX(-50%) scaleY(2.6);
   }
   to {
-    transform: translateX(-50%) skewX(-20deg) scaleY(1);
+    transform: translateX(-50%) scaleY(1);
   }
 }
 

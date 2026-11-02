@@ -2,7 +2,27 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-02, Update 0.3.15: Skull Cove's crew — floor 6's enemies and mini bosses)
+## Next up (2026-11-02, Update 0.3.16: floor 6's boss, the Big Shark)
+- **The plan's update 3** (spec `MD_UPDATES/U0316_BIG_SHARK.md`; the designer's show and jaw moves): its arena's walls
+  9 m, flooded to 8.4 m in its show (the flood from high over the corner, over its shoulder as it swims, its leap out of
+  the water slowed with its name on the right); you swim. Lunge and snap: an arrow, press move left / move right to
+  escape. Swallow: your hands on its jaws, click 12 times in 3 s and punch its throat, or one shot. Tail, teeth in a
+  wall, frenzy. 1800 health; the arena drains when it dies. The Lab's floor 6 column has its room.
+- **After the designer played it**: its own arena, the Shark's Graveyard (open water in the middle; cliffs, giant ribs,
+  sunk boats and seaweed round it; no torches under the water); faster (13 m/s) and unpredictable (its circle swelling
+  and tightening, turning back, feints); its circle kept in open water and no lunge into a wall behind you (a probe: its
+  body in something under 6% of the time, was up to 25%); the show close over its left shoulder, a fixed shot under the
+  water as it comes at the view, the leap twice as fast, back in your eyes faster.
+- Checked by tests and Blender renders (the hands on its jaws, the arena and the show's cameras with the shark in them);
+  **unseen in the game** (the show's motion, under its water, the arrow, how it plays).
+- **The look** (same update; spec `MD_UPDATES/U0316_THE_LOOK.md`; the designer, from another game's HUD: "just how it
+  LOOKS and how it is presented"): every word in a pixel face (Pixelify Sans) with a hard ink edge, upright; bars and
+  panels in brass frames with rivets; the keys to press on grey key caps (weapon slots, dash, QTEs, prompts); a number,
+  then its mark. Our layout kept; the health bar our own (number, then a framed bar cut in tenths: no wraps); the style
+  rank nearer the middle. Drawn in code; not looked at in a browser.
+- Floor 6 is whole now (level, crew, boss). **Next:** the designer's call (floor 9's level, by the floors plan).
+
+## Before (2026-11-02, Update 0.3.15: Skull Cove's crew — floor 6's enemies and mini bosses)
 - **The plan's update 2** (spec `MD_UPDATES/U0315_COVE_CREW.md`): the Corsair (her hook drags you in), the Shanty Man
   (his song quickens the crew), the Bomber (powder bombs you can punch back), the Cursed Crewman (goes on headless,
   hunting by ear), the Thieving Gull (snatches coins), the Cave Bats (a swarm), the Kraken Tentacle (by the sea);

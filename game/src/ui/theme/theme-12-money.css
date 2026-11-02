@@ -7,7 +7,6 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  transform: skewX(-10deg);
 }
 
 .rb-hud-coin {
@@ -22,13 +21,15 @@
 }
 
 .rb-hud-money-n {
-  font-family: 'Anton', var(--rb-font);
+  order: -1;
+  font-family: var(--rb-font);
+  font-weight: 700;
   font-size: 40px;
   line-height: 1;
   color: #ffe7a0;
   text-shadow:
-    3px 3px 0 #8a5a00,
-    0 0 12px rgba(0, 0, 0, 0.6);
+    var(--rb-edge),
+    0 4px 0 #8a5a00;
   animation: rb-hud-money-pop 0.22s ease-out;
 }
 

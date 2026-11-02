@@ -3,7 +3,8 @@
    it does; its back. The deal screen (screens/FateDeal.tsx): the world blurred, a deck at the bottom dealing the cards
    one by one, face up, into a row half below the edge; hover lifts one to read; the one taken lifts, shrinks and flies
    to the card pile by your coins, the rest drop away. Update 0.2.19 — the Death and Traitor Cards' faces: theme-34;
-   the inventory (screens/Inventory.tsx, TAB): theme-35. */
+   the inventory (screens/Inventory.tsx, TAB): theme-35.
+   Update 0.3.16 — the look: squarer corners, a brass rivet in each, the name edged in the pixel face. */
 .rb-card,
 .rb-card-back {
   /* Its scale (the UI's; smaller in the inventory). */
@@ -13,9 +14,9 @@
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  border-radius: calc(12px * var(--s));
+  border-radius: calc(3px * var(--s));
   border: calc(3px * var(--s)) solid var(--rarity);
-  background: linear-gradient(170deg, #241216 0%, #150a0d 55%, #0d0608 100%);
+  background: var(--rb-rivets), linear-gradient(170deg, #241216 0%, #150a0d 55%, #0d0608 100%);
   box-shadow: 0 0 calc(22px * var(--s)) color-mix(in srgb, var(--rarity) 45%, transparent), 0 calc(10px * var(--s)) calc(26px * var(--s)) rgba(0, 0, 0, 0.6);
   overflow: hidden;
 }
@@ -36,7 +37,6 @@
   position: absolute;
   inset: calc(6px * var(--s));
   border: 1px solid color-mix(in srgb, var(--rarity) 35%, transparent);
-  border-radius: calc(8px * var(--s));
   pointer-events: none;
 }
 
@@ -95,13 +95,14 @@
 }
 
 .rb-card-name {
-  font-family: 'Anton', var(--rb-font);
+  font-family: var(--rb-font);
   font-size: calc(24px * var(--s));
   line-height: 1.05;
   letter-spacing: 0.02em;
   text-transform: uppercase;
+  font-weight: 700;
   color: #fff;
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.7);
+  text-shadow: var(--rb-edge);
 }
 
 .rb-card-does {
@@ -117,7 +118,7 @@
   --rarity: #ff2a3a;
   display: grid;
   place-items: center;
-  background: repeating-linear-gradient(45deg, #2a0d12 0 8px, #22090e 8px 16px);
+  background: var(--rb-rivets), repeating-linear-gradient(45deg, #2a0d12 0 8px, #22090e 8px 16px);
 }
 
 .rb-card-back svg {

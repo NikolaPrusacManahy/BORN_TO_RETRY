@@ -39,8 +39,19 @@
 .rb-hud-pip {
   --fill: 1;
   width: 92px;
-  height: 14px;
-  transform: skewX(-20deg);
-  background: linear-gradient(90deg, #4fc3ff calc(var(--fill) * 100%), rgba(255, 255, 255, 0.14) calc(var(--fill) * 100%));
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  height: 18px;
+  background: linear-gradient(90deg, #7fd0ff calc(var(--fill) * 100%), #1d2a32 calc(var(--fill) * 100%));
+  border: 2px solid var(--rb-brass);
+  box-shadow: var(--rb-frame);
+}
+
+/* Update 0.3.16 — the look: the dash's key on its cap, left of the bars (they stay centred). */
+.rb-hud-dash {
+  align-items: center;
+}
+
+.rb-hud-dash > .rb-cap {
+  position: absolute;
+  right: 100%;
+  margin-right: 16px;
 }

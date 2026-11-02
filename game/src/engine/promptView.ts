@@ -30,11 +30,11 @@ function el(parent: HTMLElement, cls: string): HTMLDivElement {
   return d;
 }
 
-/** `node` says "[key] words", the key lit. */
+/** `node` says "[key] words", the key lit (Update 0.3.16 — on a key cap: theme-41-look.css). */
 function keyed(node: HTMLElement, key: string, words: string) {
   const k = document.createElement('span');
-  k.className = 'rb-prompt-key';
-  k.textContent = `[${key}]`;
+  k.className = 'rb-prompt-key rb-cap';
+  k.textContent = key;
   node.replaceChildren(k, ` ${words}`);
 }
 

@@ -27,6 +27,10 @@ export interface HandTarget {
 }
 
 /** The body as drawn this frame: its root, and the line it's held by (its end, the way it runs: world). */
+/** Where hands are worked out from: your way and feet, and the body's middle (an execution's; Update 0.3.16 — or the Big
+ *  Shark's jaws': exec/jawHands.ts). */
+export type HandFrame = Pick<Execution, 'yaw' | 'origin' | 'middle'>;
+
 export interface Drawn {
   root: THREE.Object3D | null;
   tip: THREE.Vector3;
@@ -60,7 +64,7 @@ export function resetHands() {
 }
 
 /** Both hands at `t` s into `keys` (`held`: the body is still in your hands). Returns false once they're done. */
-export function handsAt(keys: readonly HandKey[] | undefined, t: number, ex: Execution, held: boolean, drawn: Drawn, camera: THREE.Camera, out: Record<Side, HandTarget>): boolean {
+export function handsAt(keys: readonly HandKey[] | undefined, t: number, ex: HandFrame, held: boolean, drawn: Drawn, camera: THREE.Camera, out: Record<Side, HandTarget>): boolean {
   if (!keys || t >= keys[keys.length - 1].t) {
     out.L.a.mode = out.L.b.mode = out.R.a.mode = out.R.b.mode = 'guard';
     return false;
@@ -94,7 +98,7 @@ function folded(root: THREE.Object3D, name: string | undefined): boolean {
   return false;
 }
 
-function resolve(h: HandAt, slot: number, side: Side, t: number, ex: Execution, held: boolean, drawn: Drawn, camera: THREE.Camera, store: { at: THREE.Vector3[]; way: THREE.Vector3[]; ok: boolean[] }, out: HandSub) {
+function resolve(h: HandAt, slot: number, side: Side, t: number, ex: HandFrame, held: boolean, drawn: Drawn, camera: THREE.Camera, store: { at: THREE.Vector3[]; way: THREE.Vector3[]; ok: boolean[] }, out: HandSub) {
   out.mode = h.mode;
   out.slide = h.slide ?? 0;
   if (h.mode === 'guard' || h.mode === 'slamUp') return;

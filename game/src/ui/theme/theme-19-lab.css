@@ -31,7 +31,6 @@
   line-height: 1;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  transform: skewX(-8deg);
 }
 
 .rb-lab-tabs {
@@ -156,7 +155,6 @@
   cursor: pointer;
   color: var(--rb-text);
   background: rgba(255, 255, 255, 0.08);
-  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
   transition: background 0.08s;
 }
 

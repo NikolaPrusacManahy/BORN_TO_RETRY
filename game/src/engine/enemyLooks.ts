@@ -30,6 +30,7 @@ import { FOES6 } from '../tuning/foes6';
 import { FOES6B } from '../tuning/foes6b';
 import { mantaWindup } from '../sim/enemies/manta';
 import { whaleWindup } from '../sim/enemies/whale';
+import { bigSharkWindup } from '../sim/enemies/bigShark';
 import { FOES_COVE } from '../tuning/foesCove';
 import { FOES_COVE_B } from '../tuning/foesCoveB';
 import { HOOK_TWIRL } from '../sim/enemies/corsair';
@@ -158,6 +159,9 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
   tentacle: { url: '/models/enemies/tentacle.glb', clips: { idle: 'Tentacle_Idle', move: 'Tentacle_Idle', attack: 'Tentacle_Attack', hit: 'Tentacle_Idle', death: 'Tentacle_Idle', air: 'Tentacle_Attack2' }, lands: 13 / 30, windup: (move) => (move === 1 ? FOES_COVE_B.v.tentacleWindup : 0.45), glow: [1, 0.3, 0.6] },
   mako: { url: '/models/enemies/mako.glb', clips: { ...PIRATE, air: 'Run' }, lands: 15 / 30, windup: (move) => (move === 1 ? FOES_COVE_B.v.makoRise : FOES_COVE_B.v.makoWindup), glow: [1, 0.2, 0.15] },
   captain: { url: '/models/enemies/barbarossa.glb', clips: PIRATE, lands: 14 / 30, windup: (move) => (move === 1 ? FOES_COVE_B.v.captainAim : FOES_COVE_B.v.captainWindup), glow: [1, 0.15, 0.1] },
+  // Update 0.3.16 — floor 6's boss, the Big Shark (the Pirate Kit's Shark, export_monster.py): its bite (Swim_Bite) as its
+  // jaws come, its fast swim (Swim_Fast) as it lunges, charges and leaps out in its show.
+  bigShark: { url: '/models/enemies/big_shark.glb', clips: { idle: 'Swim', move: 'Swim', attack: 'Swim_Bite', hit: 'Swim', death: 'Swim', air: 'Swim_Fast' }, lands: 9 / 30, windup: bigSharkWindup, glow: [0.4, 0.8, 1], posed: true },
 };
 
 /** The role a phase plays; once its attack is over, a recovering enemy stands. */

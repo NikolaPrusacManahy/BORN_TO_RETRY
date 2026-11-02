@@ -2,21 +2,22 @@
 // radii, how long each fish is (its hit capsule lies along it), and their stats as the knobs say now. The Clownfish,
 // the Tuna, the Angelfish, the Dolphin (they swim: the 'air' grid); the Drowned Prince (the percher: a small Drowned
 // King on its feet); the Manta Ray and the Shark (mini bosses: only a hard hit staggers them); the Old Whale (the
-// boss). Pure.
+// boss). Update 0.3.16 — and Skull Cove's boss, the Big Shark (tuning/bigShark.ts), fought in its flooded arena. Pure.
 import { BOSS } from '../../tuning/boss';
 import { ENEMIES } from '../../tuning/enemies';
 import { FOES6 } from '../../tuning/foes6';
 import { FOES6B } from '../../tuning/foes6b';
 import { WHALE } from '../../tuning/whale';
+import { BIG_SHARK } from '../../tuning/bigShark';
 import { blank, DOOM_AFTER, doomTime, EnemyStats, fill } from './kindStats';
 
-export type Kind6 = 'clownfish' | 'tuna' | 'angelfish' | 'dolphin' | 'drownedPrince' | 'mantaRay' | 'shark' | 'whale';
-export const KINDS6: readonly Kind6[] = ['clownfish', 'tuna', 'angelfish', 'dolphin', 'drownedPrince', 'mantaRay', 'shark', 'whale'];
+export type Kind6 = 'clownfish' | 'tuna' | 'angelfish' | 'dolphin' | 'drownedPrince' | 'mantaRay' | 'shark' | 'whale' | 'bigShark';
+export const KINDS6: readonly Kind6[] = ['clownfish', 'tuna', 'angelfish', 'dolphin', 'drownedPrince', 'mantaRay', 'shark', 'whale', 'bigShark'];
 
 /** Body radii (m): a fish's is half its body's height (its hit capsule's). Not knobs: the walk grids are built for them. */
-export const RADIUS6: Record<Kind6, number> = { clownfish: 0.4, tuna: 0.45, angelfish: 0.6, dolphin: 0.5, drownedPrince: 0.6, mantaRay: 0.9, shark: 0.7, whale: 2.25 };
+export const RADIUS6: Record<Kind6, number> = { clownfish: 0.4, tuna: 0.45, angelfish: 0.6, dolphin: 0.5, drownedPrince: 0.6, mantaRay: 0.9, shark: 0.7, whale: 2.25, bigShark: 1.6 };
 /** How long each fish is, as a share of its body's height (its model's); 0: it stands (the Prince). */
-const LONG: Record<Kind6, number> = { clownfish: 1.86, tuna: 3, angelfish: 1.64, dolphin: 3, drownedPrince: 0, mantaRay: 2.8, shark: 3, whale: 3 };
+const LONG: Record<Kind6, number> = { clownfish: 1.86, tuna: 3, angelfish: 1.64, dolphin: 3, drownedPrince: 0, mantaRay: 2.8, shark: 3, whale: 3, bigShark: 2.8 };
 /** The kinds that swim (everything on floor 6 but the Prince). */
 export const SWIMS: ReadonlySet<string> = new Set(KINDS6.filter((k) => LONG[k] > 0));
 /** How long `kind`'s body is (m; 0: not a fish). */
@@ -31,6 +32,7 @@ export const CACHE6: Record<Kind6, EnemyStats> = {
   mantaRay: blank('air'),
   shark: blank('air'),
   whale: blank('air', true),
+  bigShark: blank('air', true),
 };
 
 export const STATS6: Record<Kind6, () => EnemyStats> = {
@@ -69,6 +71,12 @@ export const STATS6: Record<Kind6, () => EnemyStats> = {
   whale: () => {
     const v = WHALE.v;
     const s = fill(CACHE6.whale, v.whaleHp, RADIUS6.whale, v.whaleHeight, v.whaleSpeed, 0.05, Infinity, 0, doomTime() + DOOM_AFTER, 0);
+    s.stunned = BOSS.v.stunBonus;
+    return s;
+  },
+  bigShark: () => {
+    const v = BIG_SHARK.v;
+    const s = fill(CACHE6.bigShark, v.bigHp, RADIUS6.bigShark, v.bigHeight, v.bigSpeed, 0.05, Infinity, 0, doomTime() + DOOM_AFTER, 0);
     s.stunned = BOSS.v.stunBonus;
     return s;
   },

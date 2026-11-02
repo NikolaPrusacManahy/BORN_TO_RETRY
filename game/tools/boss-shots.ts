@@ -3,18 +3,24 @@
 // and the dark, and the Demon in its stance at the portal; the cameras are the show's own shots. Blender draws it with
 // the real kit (tools/blender/render_dungeon.py).
 // Update 0.2.10 — any floor's (`floor`): its look, its boss at its size (the Drowned King's room flooded deep).
-//   npx tsx tools/boss-shots.ts <out folder> [seed] [k] [floor] [--open]
+// Update 0.3.16 — floor 6's Big Shark: its arena flooded to its top, its show's own shots (the flood, over its shoulder,
+// ahead of its leap; the shark a block where it is then). `--beat=flood|shoulder|under|leap`: the shark placed at that
+// beat (its shots all four; the leap's by default).
+//   npx tsx tools/boss-shots.ts <out folder> [seed] [k] [floor] [--open] [--beat=under]
 //   blender --background --python tools/blender/render_dungeon.py -- --json <out folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <out folder> --day
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { parseUntextured } from '../tests/fakes/glb';
 import { Cinema, Shot } from '../src/engine/boss/cinema';
 import { Shell } from '../src/engine/boss/shell';
 import { WoodGate } from '../src/engine/boss/woodGate';
 import { introBeats } from '../src/sim/dungeon/bossRoom';
 import { bossOf, ENEMY_STATS } from '../src/sim/enemies/kinds';
 import { DROWNED } from '../src/tuning/drowned';
+import { BIG_SHARK } from '../src/tuning/bigShark';
+import { SharkCinema } from '../src/engine/boss/sharkCinema';
+import { sharkAt, sharkBeats, sharkMark } from '../src/sim/dungeon/sharkShow';
 import { buildDungeon } from '../src/world/dungeon/assemble';
 import { dress, KIT, Placement } from '../src/world/dungeon/dressing';
 import { planFloor } from '../src/world/dungeon/floorPlan';
@@ -34,8 +40,8 @@ const b = level.boss;
 const room = level.rooms[b.room];
 
 // The sliding walls, posed by the game's own code: their kit pieces and cores read back out of the instances.
-const buf = readFileSync(new URL('../public/models/dungeon/kit.glb', import.meta.url));
-const kit = await new GLTFLoader().parseAsync(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer, '');
+// (Update 0.3.16 — read untextured: the kit has the Pirate Kit's image since 0.3.14, which Node can't decode.)
+const kit = await parseUntextured(new URL('../public/models/dungeon/kit.glb', import.meta.url));
 const shell = new Shell(b.start, b.end, new THREE.MeshBasicMaterial(), new THREE.BoxGeometry(1, 1, 1));
 shell.build(kit.scene, (src) => src);
 shell.set(k);
@@ -102,10 +108,21 @@ const cams = [
 ];
 const kind = bossOf(floor);
 const demon = { x: b.portal.x, z: b.portal.z, yaw: Math.atan2(-(eye.x - b.portal.x), -(eye.z - b.portal.z)), height: ENEMY_STATS[kind]().height };
+if (kind === 'bigShark') {
+  const sc = new SharkCinema(b.portal);
+  sc.start(eye, new THREE.Vector3(-ex, 0, -ez), eye);
+  const sb = sharkBeats();
+  const at = (t: number) => (sc.intro(t, eye, shot), { at: shot.pos.toArray(), to: shot.look.toArray() });
+  const when = { flood: sb.flood * 0.6, shoulder: (sb.swimFrom + sb.swimTo) / 2, under: (sb.swimTo + sb.approachTo) / 2, leap: (sb.slowFrom + sb.slowTo) / 2 };
+  const beat = (process.argv.find((a) => a.startsWith('--beat='))?.slice(7) ?? 'leap') as keyof typeof when;
+  cams.splice(1, 2, ...(['flood', 'shoulder', 'under', 'leap'] as const).map((n) => ({ name: `shark-${n}`, ...at(when[n]) })));
+  const mk = sharkAt(when[beat] ?? when.leap, b.portal, eye, sharkMark());
+  Object.assign(demon, { x: mk.mid.x, y: mk.mid.y - ENEMY_STATS.bigShark().height / 2, z: mk.mid.z, yaw: mk.yaw, height: ENEMY_STATS.bigShark().height });
+}
 const extent = { min: { x: room.min.x - 8, z: room.min.z - 8 }, max: { x: room.max.x + 8, z: room.max.z + 8 } };
 const floors = level.arena.boxes.filter((x) => x.kind === 'floor').map((x) => ({ x: x.x, z: x.z, w: x.w, d: x.d }));
 // (The Drowned King's room in its flood.)
 const end = b.end;
-const water = kind === 'drownedKing' ? { level: DROWNED.v.floodDeep, rooms: [{ x: (end.min.x + end.max.x) / 2, z: (end.min.z + end.max.z) / 2, w: end.max.x - end.min.x, d: end.max.z - end.min.z }] } : null;
+const water = kind === 'drownedKing' || kind === 'bigShark' ? { level: kind === 'bigShark' ? BIG_SHARK.v.floodTop : DROWNED.v.floodDeep, rooms: [{ x: (end.min.x + end.max.x) / 2, z: (end.min.z + end.max.z) / 2, w: end.max.x - end.min.x, d: end.max.z - end.min.z }] } : null;
 writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ seed, floor, pieces, water, gates: d.gates, torches: d.torches, cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, sand: d.sand, boxes, demon, floors }));
 console.log(`seed ${seed}: boss room ${b.room} (entrance ${b.entrance}), walls at ${k}, gate ${open ? 'open' : 'shut'}, ${pieces.length} pieces, ${boxes.length} gate boxes`);

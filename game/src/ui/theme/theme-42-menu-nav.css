@@ -1,0 +1,161 @@
+/* theme-42 — Update 0.3.16: the main menu's buttons, its foot line, Start pressed and the fade to black (split off
+   theme-06-menu.css, the logo's, which had grown past 300 lines). */
+/* ---- the buttons ---- */
+.rb-menu-nav {
+  position: absolute;
+  left: 5vw;
+  bottom: 9vh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5vh;
+  animation: rb-nav-in 0.6s 0.3s cubic-bezier(0.2, 0.9, 0.2, 1) backwards;
+}
+
+@keyframes rb-nav-in {
+  from {
+    opacity: 0;
+    transform: translateX(-4vw);
+  }
+}
+
+.rb-menu-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.16em 0.9em 0.16em 0.7em;
+  border: 0;
+  background: none;
+  color: var(--rb-text);
+  font-family: var(--rb-font);
+  font-weight: 700;
+  font-size: min(2.1vw, 3.7vh);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: var(--rb-edge);
+  cursor: pointer;
+  transition:
+    transform 0.12s,
+    color 0.12s,
+    background 0.12s;
+}
+
+/* The red bar that marks the button under the mouse. */
+.rb-menu-btn::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 14%;
+  bottom: 14%;
+  width: 4px;
+  background: var(--rb-accent);
+  transform: scaleY(0);
+  transition: transform 0.12s;
+}
+
+.rb-menu-btn:hover:not(:disabled),
+.rb-menu-btn:focus-visible,
+.rb-menu-btn.is-open {
+  color: #fff;
+  transform: translateX(0.4em);
+  outline: none;
+}
+
+.rb-menu-btn:hover::before,
+.rb-menu-btn:focus-visible::before,
+.rb-menu-btn.is-open::before {
+  transform: scaleY(1);
+}
+
+.rb-menu-btn.is-start {
+  margin-bottom: 0.6vh;
+  padding: 0.1em 1em 0.1em 0.8em;
+  font-size: min(3.3vw, 5.6vh);
+  background: var(--rb-accent);
+  color: #fff;
+  border: 3px solid var(--rb-brass);
+  text-shadow: var(--rb-edge);
+  box-shadow:
+    0 0 0 3px var(--rb-ink),
+    0 0.16em 0 #4a0c08;
+  animation: rb-start-glow 2.2s ease-in-out infinite;
+}
+
+.rb-menu-btn.is-start::before {
+  display: none;
+}
+
+.rb-menu-btn.is-start:hover:not(:disabled),
+.rb-menu-btn.is-start:focus-visible {
+  background: var(--rb-accent-hi);
+}
+
+.rb-menu-btn.is-start:disabled {
+  opacity: 0.55;
+  cursor: wait;
+  animation: none;
+}
+
+@keyframes rb-start-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 3px var(--rb-ink),
+      0 0.16em 0 #4a0c08,
+      0 0 0 rgba(232, 70, 43, 0);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px var(--rb-ink),
+      0 0.16em 0 #4a0c08,
+      0 0 0.9em rgba(232, 70, 43, 0.55);
+  }
+}
+
+.rb-menu-foot {
+  position: absolute;
+  right: 2.4vw;
+  bottom: 2.4vh;
+  font-family: var(--rb-font);
+  font-size: max(11px, min(0.75vw, 1.3vh));
+  letter-spacing: 0.08em;
+  color: var(--rb-dim);
+  text-shadow: var(--rb-edge-thin);
+}
+
+/* ---- Start pressed: everything slides off while the gate opens ---- */
+.rb-menu.is-leaving .rb-logo {
+  animation: rb-logo-out 0.55s cubic-bezier(0.6, 0, 0.8, 0.4) forwards;
+}
+
+@keyframes rb-logo-out {
+  to {
+    opacity: 0;
+    transform: translateY(-5vh) scale(1.12);
+    filter: blur(6px);
+  }
+}
+
+.rb-menu.is-leaving .rb-menu-nav,
+.rb-menu.is-leaving .rb-menu-foot {
+  animation: rb-nav-out 0.35s ease-in forwards;
+}
+
+@keyframes rb-nav-out {
+  to {
+    opacity: 0;
+    transform: translateX(-4vw);
+  }
+}
+
+/* The fade to black once the gate is up (its timing is set inline from INTRO.fade). */
+.rb-fade {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: #000;
+  pointer-events: none;
+  transition-property: opacity;
+  transition-timing-function: ease-in;
+}

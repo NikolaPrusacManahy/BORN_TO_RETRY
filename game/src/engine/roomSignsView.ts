@@ -1,7 +1,8 @@
 // Update 0.1.20 — the words over the doorways (world/dungeon/signs.ts): ROOM, CHALLENGE, SHOP, BOSS, painted in the
 // HUD's display face (Anton) with a dark edge so they read on brick and stone, each in its own colour: a pale ivory for
 // a room, fire for a challenge, gold for the shop, crimson for the boss. Unlit, so they read in the shade. The four
-// words are painted once and kept (repainted when the face has loaded).
+// words are painted once and kept (repainted when the face has loaded). Update 0.3.16 — the look's pixel face
+// (Pixelify Sans: ui/theme/theme-01-base.css).
 import * as THREE from 'three';
 import { signsOf, SignWord } from '../world/dungeon/signs';
 import type { FloorPlan } from '../world/dungeon/floorPlan';
@@ -10,7 +11,7 @@ import type { FloorPlan } from '../world/dungeon/floorPlan';
 const WIDTH = 3.6;
 const HEIGHT = 0.9;
 const COLOUR: Record<SignWord, string> = { Room: '#f3e6cf', Challenge: '#ff6a2a', Shop: '#ffc23a', Boss: '#ff2a3a' };
-const FACE = 'Anton';
+const FACE = "'Pixelify Sans'";
 
 const textures = new Map<SignWord, THREE.CanvasTexture>();
 
@@ -19,11 +20,11 @@ function paint(c: HTMLCanvasElement, word: SignWord) {
   g.clearRect(0, 0, c.width, c.height);
   const text = word.toUpperCase();
   let size = 190;
-  g.font = `${size}px ${FACE}, Impact, sans-serif`;
+  g.font = `700 ${size}px ${FACE}, Impact, sans-serif`;
   const fit = c.width * 0.92;
   const wide = g.measureText(text).width;
   if (wide > fit) size = Math.floor((size * fit) / wide);
-  g.font = `${size}px ${FACE}, Impact, sans-serif`;
+  g.font = `700 ${size}px ${FACE}, Impact, sans-serif`;
   g.textAlign = 'center';
   g.textBaseline = 'middle';
   g.lineJoin = 'round';
@@ -51,8 +52,8 @@ function textureOf(word: SignWord): THREE.Texture {
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 4;
   textures.set(word, t);
-  // Painted in a stand-in face until Anton has loaded: then again.
-  void document.fonts?.load(`190px ${FACE}`).then(() => {
+  // Painted in a stand-in face until the pixel face has loaded: then again.
+  void document.fonts?.load(`700 190px ${FACE}`).then(() => {
     paint(c, word);
     t.needsUpdate = true;
   });

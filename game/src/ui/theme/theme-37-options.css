@@ -11,8 +11,8 @@
   padding: 4px 12px;
   color: var(--rb-dim);
   background: transparent;
-  border: 1px solid currentColor;
-  border-radius: 4px;
+  border: 2px solid currentColor;
+  box-shadow: 0 0 0 1px var(--rb-ink);
   cursor: pointer;
 }
 

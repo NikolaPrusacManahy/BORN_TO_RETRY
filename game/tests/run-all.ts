@@ -31,6 +31,7 @@ import './test-floor6-foes';
 import './test-floor6-minis';
 import './test-floor6-crew';
 import './test-floor6-cove-minis';
+import './test-floor6-boss';
 import './test-whale';
 import './test-cards';
 import './test-card-moves';

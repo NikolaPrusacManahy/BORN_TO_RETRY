@@ -60,18 +60,17 @@
 
 .rb-pin.is-now .rb-qte-key {
   opacity: 1;
-  border-color: #ffd76a;
-  box-shadow:
-    0 4px 0 rgba(255, 215, 106, 0.5),
-    0 0 18px rgba(255, 140, 40, 0.9);
+  border-color: var(--rb-brass);
+  border-bottom-color: var(--rb-brass-lo);
+  background: #5a4a2a;
   animation: rb-qte-press 0.18s ease-in-out infinite;
 }
 
 .rb-pin.is-wasted .rb-qte-hit {
   color: #ff8a9a;
   text-shadow:
-    0 0 18px rgba(214, 31, 58, 1),
-    0 3px 0 rgba(0, 0, 0, 0.6);
+    var(--rb-edge-thick),
+    0 7px 0 #2a0306;
 }
 
 .rb-pin.is-wasted .rb-qte-key {

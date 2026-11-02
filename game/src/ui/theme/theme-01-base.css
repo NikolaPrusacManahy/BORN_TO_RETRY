@@ -1,4 +1,8 @@
-/* M1 — base: colours, fonts, the full-window game and its canvas. */
+/* M1 — base: colours, fonts, the full-window game and its canvas.
+   Update 0.3.16 — the look (the designer, from another game's HUD: "just how it LOOKS and how it is presented"; "make
+   sure even Bosses HP and just all text and the UI looks like this across the whole game"): every word in a pixel face
+   (Pixelify Sans) with a hard dark edge, upright (no slants); bars and panels in brass frames with rivets at the corners;
+   the keys to press on grey key caps (theme-41-look.css). Drawn in code: no image files. */
 :root {
   --rb-bg: #0b0a0c;
   --rb-panel: rgba(18, 15, 20, 0.92);
@@ -8,8 +12,23 @@
   --rb-accent: #e8462b;
   --rb-accent-hi: #ff6a45;
   --rb-ui: 1;
-  --rb-font: 'Chakra Petch', system-ui, sans-serif;
+  --rb-font: 'Pixelify Sans', system-ui, sans-serif;
   --rb-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  /* The look's ink (every edge), brass (frames, rivets) and steel (what's not lit). */
+  --rb-ink: #120a0b;
+  --rb-brass: #c9a14a;
+  --rb-brass-hi: #f0d58c;
+  --rb-brass-lo: #6b4a16;
+  --rb-steel: #77706c;
+  /* A word's hard edge, thin, as is, thick (text-shadow). */
+  --rb-edge-thin: 1px 0 0 var(--rb-ink), -1px 0 0 var(--rb-ink), 0 1px 0 var(--rb-ink), 0 -1px 0 var(--rb-ink);
+  --rb-edge: 2px 0 0 var(--rb-ink), -2px 0 0 var(--rb-ink), 0 2px 0 var(--rb-ink), 0 -2px 0 var(--rb-ink), 2px 2px 0 var(--rb-ink), -2px 2px 0 var(--rb-ink), 2px -2px 0 var(--rb-ink), -2px -2px 0 var(--rb-ink);
+  --rb-edge-thick: 3px 0 0 var(--rb-ink), -3px 0 0 var(--rb-ink), 0 3px 0 var(--rb-ink), 0 -3px 0 var(--rb-ink), 3px 3px 0 var(--rb-ink), -3px 3px 0 var(--rb-ink), 3px -3px 0 var(--rb-ink), -3px -3px 0 var(--rb-ink);
+  /* A brass frame's ink line outside and its glint inside (box-shadow, with a brass border). */
+  --rb-frame: 0 0 0 2px var(--rb-ink), inset 0 0 0 1px rgba(255, 236, 180, 0.22);
+  /* A rivet in each corner (background layers, before the panel's own). */
+  --rb-rivet: radial-gradient(circle, var(--rb-brass-hi) 0 1.5px, var(--rb-brass) 2.5px, var(--rb-brass-lo) 3.5px, transparent 4.5px);
+  --rb-rivets: var(--rb-rivet) left 2px top 2px / 10px 10px no-repeat, var(--rb-rivet) right 2px top 2px / 10px 10px no-repeat, var(--rb-rivet) left 2px bottom 2px / 10px 10px no-repeat, var(--rb-rivet) right 2px bottom 2px / 10px 10px no-repeat;
 }
 
 * {

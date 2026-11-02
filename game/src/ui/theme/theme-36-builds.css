@@ -13,14 +13,16 @@
   bottom: calc(var(--card-h) * 1.06 + 22px * var(--rb-ui));
   transform: translateX(-50%);
   padding: calc(8px * var(--rb-ui)) calc(22px * var(--rb-ui));
-  border: calc(2px * var(--rb-ui)) solid #ffd23a;
-  border-radius: calc(8px * var(--rb-ui));
-  background: rgba(20, 8, 10, 0.75);
-  font-family: 'Anton', var(--rb-font);
+  border: calc(3px * var(--rb-ui)) solid var(--rb-brass);
+  background: rgba(20, 8, 10, 0.85);
+  box-shadow: var(--rb-frame);
+  font-family: var(--rb-font);
   font-size: calc(18px * var(--rb-ui));
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #fff;
+  text-shadow: var(--rb-edge-thin);
   cursor: pointer;
   transition: opacity 0.3s, background 0.15s;
 }
@@ -48,7 +50,6 @@
   position: absolute;
   inset: calc(4px * var(--s));
   border: calc(2px * var(--s)) solid #ffd23a;
-  border-radius: calc(9px * var(--s));
   pointer-events: none;
 }
 

@@ -46,6 +46,9 @@ export function stepPlayer(p: PlayerState, intent: PlayerIntent, world: Collisio
   // Update 0.0.13 — kneeling at a chest, nothing else moves you.
   if (updateKneel(p, world, dt)) return;
   p.yaw = intent.yaw;
+  // (Update 0.3.16 — a sideways press, newly.)
+  p.strafePressed = intent.moveX !== 0 && Math.sign(intent.moveX) !== Math.sign(p.strafe) ? Math.sign(intent.moveX) : 0;
+  p.strafe = intent.moveX;
   updateJumpTimers(p, intent.jumpPressed, dt);
   p.slamBounce = Math.max(0, p.slamBounce - dt);
   p.invuln = Math.max(0, p.invuln - dt);

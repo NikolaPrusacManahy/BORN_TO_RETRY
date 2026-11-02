@@ -11,7 +11,9 @@
 // front of the wooden gate as it opens (treasure.ts, roomLoop.ts).
 // Update 0.2.3 — floor 3's is the Bone King: it roars as it takes its stance. Update 0.2.4 — floor 4's the Dino (it
 // roars too). Update 0.2.10 — floor 5's the Drowned King: it roars too, and as it rises for good it calls its brood of
-// Spawnlings, once (the designer: "only one wave of smaller minions, once only, not infinite").
+// Spawnlings, once (the designer: "only one wave of smaller minions, once only, not infinite"). Update 0.3.16 — floor 6's
+// the Big Shark: its show is its own (sharkShow.ts: the arena floods, no portal, no walls sliding), and dead, its arena
+// drains.
 import type { Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import { BOSS } from '../../tuning/boss';
@@ -20,6 +22,7 @@ import { BONE_KING } from '../../tuning/boneKing';
 import { DINO } from '../../tuning/dino';
 import { DROWNED } from '../../tuning/drowned';
 import { WHALE } from '../../tuning/whale';
+import { BIG_SHARK } from '../../tuning/bigShark';
 import { CINEMA } from '../../tuning/cinema';
 import { clearQuakes } from '../combat/quakes';
 import { clearBombs } from '../combat/bombs';
@@ -27,6 +30,7 @@ import type { CombatState } from '../combat/state';
 import { hitEnemy, isLive, setPhase, spawnEnemy } from '../enemies/enemy';
 import { ENEMY_STATS, EnemyKind } from '../enemies/kinds';
 import { spawnAt } from '../enemies/waves';
+import { sharkWater, stepSharkIntro } from './sharkShow';
 import type { ItemKind } from '../items/items';
 import type { PlayerState } from '../player/state';
 import { Vector3 } from 'three';
@@ -92,7 +96,7 @@ function callsOf(kind: EnemyKind): Calls | null {
 }
 
 /** The coins a boss leaves (Update 0.2.0: in its chest). */
-export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : kind === 'whale' ? WHALE.v.whaleCoins : BOSS.v.demonCoins);
+export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : kind === 'whale' ? WHALE.v.whaleCoins : kind === 'bigShark' ? BIG_SHARK.v.bigCoins : BOSS.v.demonCoins);
 
 /** The show's beats, in seconds from stepping in. */
 export interface IntroBeats {
@@ -130,6 +134,7 @@ const smooth = (k: number) => {
 
 /** How far the walls have slid back (0: the small room you walk into, 1: the whole room). */
 export function wallsOpen(b: BossRun): number {
+  if (b.kind === 'bigShark') return 1;
   if (b.beat === 'waiting') return 0;
   if (b.beat !== 'intro') return 1;
   const s = introBeats();
@@ -138,7 +143,7 @@ export function wallsOpen(b: BossRun): number {
 
 /** How open the portal is (0..1): it opens, holds while the boss rises, then closes. */
 export function portalOpen(b: BossRun): number {
-  if (b.beat !== 'intro') return 0;
+  if (b.beat !== 'intro' || b.kind === 'bigShark') return 0;
   const s = introBeats();
   if (b.t < s.riseTo) return smooth((b.t - s.portalFrom) / (s.portalTo - s.portalFrom));
   return 1 - smooth((b.t - s.riseTo) / 0.8);
@@ -163,8 +168,13 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
   const ev = combat.events;
   b.t += dt;
   const boss = b.slot >= 0 ? combat.enemies[b.slot] : null;
+  if (b.kind === 'bigShark') sharkWater(b, combat);
   switch (b.beat) {
     case 'intro': {
+      if (b.kind === 'bigShark') {
+        stepSharkIntro(b, portal, player, combat, dt);
+        break;
+      }
       const s = introBeats();
       if (!boss && b.t >= s.riseFrom) {
         mid.set(portal.x, -height, portal.z);

@@ -44,6 +44,7 @@ import { roomSigns } from './roomSignsView';
 import { WaterView } from './waterView';
 import { Underwater, underwaterOf } from './underwater';
 import { UNDERWATER } from '../tuning/underwater';
+import { SEA_HAZE } from './cove/sharkArena';
 import { SEAWEED } from '../world/dungeon/dressExtras';
 import { TALL_GRASS } from '../world/dungeon/gardenDressing';
 import { solidOf } from './dungeonSolid';
@@ -134,7 +135,7 @@ export class DungeonView implements ArenaView {
     this.garden = new GardenView(this.dressing.marks);
     this.motes = new MotesView(look.id);
     this.glows = new DungeonGlows(this.dressing, level);
-    this.water = new WaterView(level.tide, look.water ?? 0, level.boss.end);
+    this.water = new WaterView(level.tide, look.water ?? look.pit?.deep ?? 0, level.boss.end);
     this.depths = new DepthsView(level);
     this.group.add(this.sand.group, this.water.group, this.garden.group, this.motes.group, this.breaks.group, this.depths.group);
     this.under = underwaterOf(level, this.dressing.sand);
@@ -246,7 +247,7 @@ export class DungeonView implements ArenaView {
     this.portal.update(dt, portalOpen(b));
     this.lava.update(dt);
     this.breaks.update(dt);
-    this.depths.update(dt, run);
+    this.depths.update(dt, run, at, flood, kicks);
     this.motes.update(dt, at);
     this.glows.update(dt);
     this.sand.update(dt);
@@ -270,8 +271,10 @@ export class DungeonView implements ArenaView {
     this.sky.intensity = v.sky;
     this.sun.intensity = v.sun;
     this.sun.castShadow = v.shadows >= 1;
-    this.haze.near = this.under ? UNDERWATER.v.hazeNear : v.hazeNear;
-    this.haze.far = this.under ? UNDERWATER.v.hazeFar : v.hazeFar;
+    // (Update 0.3.16 — and under the Big Shark's arena's water.)
+    this.haze.near = this.under || this.depths.sunk ? UNDERWATER.v.hazeNear : v.hazeNear;
+    this.haze.far = this.under || this.depths.sunk ? UNDERWATER.v.hazeFar : v.hazeFar;
+    this.haze.color.setHex(this.depths.sunk ? SEA_HAZE : (this.dressing.style.sky ?? SKY));
     this.sun.target.position.set(at.x, 0, at.z);
     this.sun.position.set(at.x + SUN_DIR.x * 100, SUN_DIR.y * 100, at.z + SUN_DIR.z * 100);
   }

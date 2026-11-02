@@ -94,6 +94,7 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   tentacle: null,
   mako: 'heavy',
   captain: 'heavy',
+  bigShark: null,
 };
 
 /** Kinds whose attack waits for its cooldown: they take a token only once it's ready (a token isn't held idle). */

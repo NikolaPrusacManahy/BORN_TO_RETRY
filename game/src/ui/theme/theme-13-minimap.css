@@ -4,10 +4,10 @@
   position: absolute;
   top: 28px;
   right: 28px;
-  padding: 6px;
-  background: rgba(10, 8, 14, 0.55);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
+  padding: 8px;
+  background: var(--rb-rivets), rgba(14, 9, 11, 0.62);
+  border: 3px solid var(--rb-brass);
+  box-shadow: var(--rb-frame);
   pointer-events: none;
 }
 
@@ -47,11 +47,11 @@
   right: 0;
   margin-top: 8px;
   white-space: nowrap;
-  font-family: 'Anton', var(--rb-font);
+  font-family: var(--rb-font);
   font-size: 34px; /* (Update 0.2.21 — was 17px times the panels' zoom, 2 at 1080p.) */
   letter-spacing: 0.06em;
   color: #ffc23a;
-  text-shadow: 0 0 10px rgba(255, 194, 58, 0.5), 0 2px 0 rgba(0, 0, 0, 0.8);
+  text-shadow: var(--rb-edge);
   animation: rb-map-chest-in 0.25s ease-out;
 }
 

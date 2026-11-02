@@ -1,0 +1,45 @@
+// Update 0.3.16 — floor 6's boss, the Big Shark (the plan, MD/FLOOR6_PIRATE_PLAN.md; the designer's moves and show, spec
+// MD_UPDATES/U0316_BIG_SHARK.md), fought in its arena flooded to the top. Its health no more than the floor before's
+// boss (the designer: "do not make enemies tankier NEVER"). Times in seconds, distances in metres, speeds in m/s.
+// **(placeholders)**
+import { group, knob } from './schema';
+
+export const BIG_SHARK = group('bigShark', 'Big Shark', {
+  bigHp: knob(1800, 200, 10000, 50, 'Big Shark health', 'Damage to kill it (the Velociraptor’s; the Drowned King’s 2000).'),
+  bigHeight: knob(3.2, 1.5, 6, 0.1, 'Big Shark size', 'Its body this tall (about 2.8 times as long).'),
+  bigSpeed: knob(13, 2, 25, 0.5, 'Big Shark speed', 'How fast it swims round you (the designer: "it needs to be faster").'),
+  bigRing: knob(9, 4, 16, 0.5, 'Big Shark circle', 'It circles you this far off.'),
+  bigLap: knob(2.2, 0.5, 8, 0.1, 'Big Shark lap', 'On average it circles you this long between moves (any moment after a third of it).'),
+  turnBack: knob(0.35, 0, 2, 0.05, 'Big Shark turns', 'How often it turns back on its circle (a second).'),
+  feints: knob(0.25, 0, 0.8, 0.05, 'Big Shark feints', 'The share of its moves that are feints: it rushes past you, no bite.'),
+  lungeWarn: knob(0.9, 0.3, 3, 0.05, 'Lunge warning', 'It lines up on you, jaws opening, this long.'),
+  lungeSpeed: knob(30, 8, 50, 1, 'Lunge speed', 'How fast it lunges through you.'),
+  lungeDamage: knob(30, 1, 100, 1, 'Lunge bite', 'Its lunge’s bite, not escaped.'),
+  dodgeWindow: knob(0.5, 0.15, 1.5, 0.05, 'Escape window', 'The arrow shows this long before the jaws close: press that way to escape.'),
+  dodgeKick: knob(11, 2, 25, 0.5, 'Escape kick', 'Escaping, you’re thrown aside this fast.'),
+  snapWarn: knob(0.7, 0.2, 2, 0.05, 'Snap warning', 'Passing you, it swings its head back this long before it snaps sideways.'),
+  snapReach: knob(4.5, 2, 8, 0.25, 'Snap reach', 'Its snap reaches you this far from it.'),
+  snapDamage: knob(22, 1, 100, 1, 'Snap bite', 'Its snap’s bite, not escaped.'),
+  swallowEvery: knob(3, 1, 10, 1, 'Swallow every', 'After this many moves, it tries to swallow you.'),
+  swallowWarn: knob(1.4, 0.4, 4, 0.1, 'Swallow warning', 'It backs off, jaws wide, this long before it charges.'),
+  swallowSpeed: knob(24, 6, 40, 1, 'Swallow speed', 'How fast it charges to swallow you (swim out of its way).'),
+  holdHits: knob(12, 1, 40, 1, 'Jaw hits', 'Caught in its jaws: clicks to force them open and punch its throat.'),
+  holdTime: knob(3, 1, 10, 0.1, 'Jaw time', 'Seconds you have before its jaws close on you.'),
+  throatDamage: knob(60, 0, 300, 5, 'Throat punch', 'Your punch to its throat, breaking free.'),
+  eaten: knob(1000, 1, 1000, 1, 'Swallowed', 'Its jaws closing on you (one shot: the designer).'),
+  stunTime: knob(2.5, 0, 6, 0.1, 'Big Shark stun', 'Stunned (its teeth in a wall, or punched in the throat) this long: hits do more.'),
+  tailReach: knob(4.5, 1, 10, 0.25, 'Tail reach', 'Behind it this near, its tail whips you.'),
+  tailWarn: knob(0.45, 0.15, 1.5, 0.05, 'Tail warning', 'Its tail draws back this long.'),
+  tailDamage: knob(16, 1, 100, 1, 'Tail whip', 'Its tail’s blow.'),
+  frenzyAt: knob(0.5, 0, 1, 0.05, 'Frenzy at', 'Below this share of its health it frenzies: its warnings and laps shorter.'),
+  frenzyQuick: knob(0.7, 0.3, 1, 0.05, 'Frenzy quickness', 'Frenzied, its warnings and laps last this share as long.'),
+  bigCoins: knob(15, 0, 300, 5, 'Big Shark coins', 'Coins in its chest.'),
+  floodTop: knob(8.4, 3, 8.8, 0.1, 'Arena water', 'The water fills its arena to this high (its walls 9 m: the designer, half again as high).'),
+  showFlood: knob(4.5, 1, 10, 0.1, 'Show: flood', 'The arena floods this long.'),
+  showSwim: knob(2.8, 1, 8, 0.1, 'Show: swim', 'Over its shoulder as it swims, this long.'),
+  showApproach: knob(1.4, 0.4, 4, 0.1, 'Show: coming', 'Under the water, it swims at the view this long before it leaps.'),
+  showBreach: knob(2, 0.6, 8, 0.1, 'Show: breach', 'It leaps out of the water this long (show time; the designer: twice as fast).'),
+  showSlow: knob(0.4, 0.05, 1, 0.05, 'Show: slow motion', 'Mid-leap, time runs this fast.'),
+  showBack: knob(0.6, 0.2, 4, 0.1, 'Show: back', 'Back into your eyes this long.'),
+  drainTime: knob(3, 0.5, 10, 0.1, 'Drain', 'Dead, its arena drains this long.'),
+});

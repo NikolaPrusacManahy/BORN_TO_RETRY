@@ -41,7 +41,8 @@ function paint(p: Painted) {
   for (const l of p.lines) {
     const size = l.size * h;
     const title = l.tone === 'gold';
-    g.font = `${title ? '' : '600 '}${size}px ${title ? "'Anton'" : "'Chakra Petch'"}, sans-serif`;
+    // (Update 0.3.16 — the look's pixel face: ui/theme/theme-01-base.css.)
+    g.font = `${title ? '700' : '500'} ${size}px 'Pixelify Sans', sans-serif`;
     const fit = Math.min(1, (w * 0.9) / Math.max(1, g.measureText(l.text).width));
     g.save();
     g.translate(w / 2, y + size * 0.65);

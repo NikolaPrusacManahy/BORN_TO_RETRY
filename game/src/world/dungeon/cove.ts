@@ -71,6 +71,8 @@ export const PIRATE = {
   palms: ['kit_pf_Environment_PalmTree_1', 'kit_pf_Environment_PalmTree_2', 'kit_pf_Environment_PalmTree_3'],
   palmScale: 1.8,
   treasure: ['kit_pf_Prop_Chest_Gold', 'kit_pf_Prop_Coins', 'kit_pf_Prop_GoldBag', 'kit_pf_Prop_Chest_Closed', 'kit_pf_Prop_Coins'],
+  /** Update 0.3.16 — on the Big Shark's sand. */
+  seabed: ['kit_pf_Prop_Chest_Gold', 'kit_pf_Prop_Coins', 'kit_pf_Prop_Skull', 'kit_pf_Prop_CannonBall', 'kit_pf_Prop_Anchor', 'kit_pf_Prop_GoldBag', 'kit_pf_Prop_Skull'],
 };
 
 const SET: Partial<Record<Cell, PieceKind>> = { wreck: 'wreck', boat: 'boat', house: 'house', outcrop: 'outcrop', bones: 'bones' };
@@ -169,6 +171,10 @@ export function dressCove(plan: FloorPlan, rng: Rng, put: Put) {
         } else if (c === 'floor' && id === 'the hoard' && rng() < 0.12) {
           const s = 1 + 0.4 * rng();
           put(PIRATE.treasure[Math.floor(rng() * PIRATE.treasure.length)], x + (rng() - 0.5), 0, z + (rng() - 0.5), rng() * Math.PI * 2, s, s, s);
+        } else if (c === 'floor' && id === "the shark's graveyard" && rng() < 0.05) {
+          // (Update 0.3.16 — what lies on the Big Shark's sand: treasure, skulls, cannonballs, an anchor.)
+          const s = 1 + 0.5 * rng();
+          put(PIRATE.seabed[Math.floor(rng() * PIRATE.seabed.length)], x + (rng() - 0.5), 0, z + (rng() - 0.5), rng() * Math.PI * 2, s, s, s);
         }
       }
     }

@@ -56,7 +56,7 @@ function faceTexture(front: boolean): THREE.Texture {
   }
   if (front) {
     g.fillStyle = '#ffffff';
-    g.font = 'bold 40px Anton, Impact, sans-serif';
+    g.font = "bold 40px 'Pixelify Sans', Impact, sans-serif";
     g.textAlign = 'center';
     g.fillText('FATE', 128, 262);
     g.fillText('CARDS', 128, 306);

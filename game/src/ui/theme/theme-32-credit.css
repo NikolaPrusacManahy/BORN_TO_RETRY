@@ -35,7 +35,7 @@
   align-items: center;
   gap: 16px;
   margin: 0;
-  font-family: var(--rb-mono);
+  font-family: var(--rb-font);
   font-size: 17px;
   letter-spacing: 0.06em;
   color: var(--rb-text);
@@ -45,11 +45,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
+  min-width: 44px;
   height: 36px;
-  border: 2px solid var(--rb-text);
-  border-radius: 6px;
-  font-size: 13px;
+  padding: 0 8px;
+  border: 2px solid #6e6669;
+  border-bottom: 5px solid #262224;
+  border-radius: 3px;
+  background: #3b3638;
+  box-shadow: 0 0 0 2px var(--rb-ink);
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0;
 }

@@ -1,0 +1,33 @@
+/* theme-41 — Update 0.3.16: the look's shared pieces (its colours and edges: theme-01-base.css). A key cap: the key to
+   press, grey, its lower lip darker, in the pixel face; the weapon slots, the dash, the QTEs, the prompts, the controls
+   and the boot tips all show their keys on one. */
+.rb-cap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.9em;
+  padding: 0.18em 0.45em 0.12em;
+  font-family: var(--rb-font);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  color: #ece6e8;
+  background: #3b3638;
+  border: 2px solid #6e6669;
+  border-bottom: 4px solid #262224;
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px var(--rb-ink);
+  text-shadow: none;
+}
+
+/* Lit: the one in use. */
+.rb-cap.is-lit {
+  color: #fff4d6;
+  background: #5a4a2a;
+  border-color: var(--rb-brass);
+  border-bottom-color: var(--rb-brass-lo);
+}

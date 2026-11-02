@@ -5,9 +5,10 @@
   top: 28px;
   left: 50%;
   display: flex;
+  flex-direction: row-reverse;
   align-items: center;
-  gap: 10px;
-  transform: translateX(-50%) skewX(-10deg);
+  gap: 8px;
+  transform: translateX(-50%);
   /* (Update 0.2.21 — was the panels' zoom, 2 at 1080p; the HUD's own size scales it now.) */
   zoom: 2;
   pointer-events: none;
@@ -16,8 +17,8 @@
 .rb-hud-skull {
   width: 26px;
   height: 26px;
-  color: #ece6ee;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8));
+  color: #d8d0c8;
+  filter: drop-shadow(1px 1px 0 var(--rb-ink)) drop-shadow(-1px -1px 0 var(--rb-ink));
 }
 
 .rb-hud-left-n {
@@ -25,7 +26,7 @@
   font-weight: 700;
   font-size: 30px;
   color: #ece6ee;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+  text-shadow: var(--rb-edge-thin);
   animation: rb-left-pop 0.25s ease-out;
 }
 

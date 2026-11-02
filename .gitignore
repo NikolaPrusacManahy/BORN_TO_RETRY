@@ -3,6 +3,9 @@ CLAUDE.md
 CLAUDE.local.md
 .claude/
 
+# The designer's private notes, never in the repo: the Blender workflow.
+/MD/NO_COMMIT-TO_GIT-HUB/blender-workflow.md
+
 # Raw staging (Quaternius packs, source audio): converted copies ship from game/public/.
 /ASSETS/
 

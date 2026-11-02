@@ -1,10 +1,13 @@
 /* Every theme chunk, in order. Add a new chunk per feature instead of growing an old one. */
 @import './theme/theme-01-base.css';
+/* (The look's shared pieces right after the base: the chunks after it may change them.) */
+@import './theme/theme-41-look.css';
 @import './theme/theme-02-menus.css';
 @import './theme/theme-03-hud.css';
 @import './theme/theme-04-dev.css';
 @import './theme/theme-05-hits.css';
 @import './theme/theme-06-menu.css';
+@import './theme/theme-42-menu-nav.css';
 @import './theme/theme-07-health.css';
 @import './theme/theme-08-controls.css';
 @import './theme/theme-09-camp.css';
@@ -37,3 +40,4 @@
 @import './theme/theme-37-options.css';
 @import './theme/theme-38-effects.css';
 @import './theme/theme-39-style.css';
+@import './theme/theme-40-jaws.css';

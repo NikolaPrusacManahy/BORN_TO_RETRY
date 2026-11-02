@@ -7,6 +7,7 @@ import { HEIGHT, LAVA_DEPTH } from './assemble';
 import type { ArenaBox } from '../arena';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID } from './floorPlan';
 import type { Cell } from './rooms';
+import { ROWS, rowsAt, tallRing, WALL_PIECE } from './tallWalls';
 
 /** A core sits this far behind its faces' fronts (inside their depth), from below the floor to just under the top: the
  *  wall's caps, or a ledge's top tiles (0.25 thick). */
@@ -22,10 +23,14 @@ const height = (c: Cell) => HEIGHT[c] ?? 0;
  *  Update 0.2.9 — and the feet under them (feetOf), after them. */
 export function coresOf(plan: FloorPlan): ArenaBox[] {
   const cores: ArenaBox[] = [];
+  // (Update 0.3.16 — round a tall boss room, taller; over its doorways too: tallWalls.ts.)
+  const tall = tallRing(plan);
   for (let row = 0; row < GRID; row++) {
     for (let col = 0; col < GRID; col++) {
       const c = cellAt(plan, col, row);
-      const h = solidTop(c);
+      const rows = rowsAt(plan, tall, col, row);
+      if (rows > ROWS && c !== 'wall' && c !== 'void') cores.push({ x: cellX(col), y: (HEIGHT.wall! + rows * WALL_PIECE) / 2, z: cellZ(row), w: CELL * 0.5, h: rows * WALL_PIECE - HEIGHT.wall! - 0.02, d: CELL * 0.5, kind: 'wall' });
+      const h = c === 'wall' ? (rows * WALL_PIECE * HEIGHT.wall!) / (ROWS * WALL_PIECE) : solidTop(c);
       if (h === 0) continue;
       const w0 = faced(plan, col, row, -1, 0) ? CORE_INSET : 0;
       const w1 = faced(plan, col, row, 1, 0) ? CORE_INSET : 0;

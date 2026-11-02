@@ -7,9 +7,10 @@
   display: flex;
   align-items: baseline;
   gap: 8px;
-  font-family: 'Anton', var(--rb-font);
+  font-family: var(--rb-font);
+  font-weight: 700;
   color: #fff;
-  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.7);
+  text-shadow: var(--rb-edge);
 }
 
 .rb-ammo b {

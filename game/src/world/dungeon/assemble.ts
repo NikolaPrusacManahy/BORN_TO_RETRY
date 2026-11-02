@@ -25,6 +25,7 @@ import { OPPOSITE } from './wayOut';
 import type { Cell, RoomKind } from './rooms';
 import type { EnemyKind } from '../../sim/enemies/kinds';
 import { styleOf } from './styles';
+import { tallBoxes } from './tallWalls';
 import { hasYeti } from '../../sim/dungeon/wavePlan';
 import { columnBoxes } from './columns';
 import { IcicleSpot, iciclesOf } from './frozen';
@@ -197,6 +198,8 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
   merge(plan, (c) => BOX_KIND[c] !== undefined && c !== 'column', (col, row, w, h, c) => cellsBox(col, row, w, h, 0, HEIGHT[c]!, BOX_KIND[c]!), boxes);
   // (Update 0.3.9 — every column a pillar the pillar finisher can break: columns.ts.)
   const pillars = columnBoxes(plan, HEIGHT.column!, boxes);
+  // (Update 0.3.16 — a tall boss room's walls, over its doorways too.)
+  tallBoxes(plan, boxes);
   // Update 0.2.4 — the desert's palms and cacti; its quicksand.
   for (let row = 0; row < GRID; row++) {
     for (let col = 0; col < GRID; col++) {

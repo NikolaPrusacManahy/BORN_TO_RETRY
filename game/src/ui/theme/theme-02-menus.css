@@ -1,4 +1,6 @@
-/* M1 — pause menu (and the main menu's panels): dark panels, slanted red call-to-action. Panels scale with --rb-ui. */
+/* M1 — pause menu (and the main menu's panels): dark panels, slanted red call-to-action. Panels scale with --rb-ui.
+   Update 0.3.16 — the look: panels in a riveted brass frame; the call to action a red plate, the other buttons steel
+   plates, each framed, pressed down on click. */
 .rb-overlay {
   position: absolute;
   inset: 0;
@@ -11,9 +13,9 @@
 
 .rb-panel {
   zoom: var(--rb-ui);
-  background: var(--rb-panel);
-  border: 1px solid var(--rb-line);
-  border-left: 3px solid var(--rb-accent);
+  background: var(--rb-rivets), var(--rb-panel);
+  border: 3px solid var(--rb-brass);
+  box-shadow: var(--rb-frame);
   padding: 28px 34px;
   min-width: 420px;
 }
@@ -24,9 +26,12 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  border: 0;
   cursor: pointer;
-  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+
+.rb-cta:active:not(:disabled),
+.rb-btn:active:not(:disabled) {
+  transform: translateY(2px);
 }
 
 .rb-cta {
@@ -34,6 +39,11 @@
   color: #fff;
   font-size: 16px;
   padding: 12px 36px;
+  border: 2px solid var(--rb-brass);
+  box-shadow:
+    0 0 0 2px var(--rb-ink),
+    0 4px 0 #4a0c08;
+  text-shadow: var(--rb-edge-thin);
 }
 
 .rb-cta:hover:not(:disabled) {
@@ -46,14 +56,17 @@
 }
 
 .rb-btn {
-  background: rgba(255, 255, 255, 0.08);
+  background: #2a2426;
   color: var(--rb-text);
   font-size: 12px;
   padding: 9px 20px;
+  border: 2px solid var(--rb-steel);
+  box-shadow: 0 0 0 2px var(--rb-ink);
 }
 
 .rb-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.16);
+  background: #3b3336;
+  border-color: var(--rb-brass);
 }
 
 .rb-pause {
@@ -65,7 +78,7 @@
   font-size: 30px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  transform: skewX(-8deg);
+  text-shadow: var(--rb-edge);
 }
 
 .rb-pause-actions {
@@ -96,7 +109,7 @@
 }
 
 .rb-slider output {
-  font-family: var(--rb-mono);
+  font-family: var(--rb-font);
   font-size: 12px;
   color: var(--rb-dim);
   text-align: right;

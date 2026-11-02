@@ -66,7 +66,7 @@ export class CombatScene {
   private readonly cards: CardFx;
   private readonly gun: GunView;
   private readonly execMark: ExecMarkView;
-  private readonly rootOf = (i: number) => this.enemies.rootOf(i);
+  readonly rootOf = (i: number) => this.enemies.rootOf(i);
   private readonly waves = new Shockwaves();
   private readonly coins: CoinsView;
   readonly weapons: WeaponsView;

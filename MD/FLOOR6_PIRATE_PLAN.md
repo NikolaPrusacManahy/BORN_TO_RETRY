@@ -67,6 +67,7 @@ Each its own update, each shown before the next:
    the Corsair has a boarding hook that drags you in (her front parry was floor 4's Skull Orc's block); the Shanty
    Man's song quickens the crew; the bombs burn where they land (no rolling); the Bats come 4 to a swarm; Mako on boards
    charges, no grab.
-3. **The boss**: the Big Shark, and the boss room flooded (swimming only there).
+3. **The boss** (done, 0.3.16, spec `MD_UPDATES/U0316_BIG_SHARK.md`): the Big Shark, and the boss room flooded (swimming only
+   there), with the designer's own show and jaw moves; its walls half again as high. No kraken tentacles near its end.
 
 Needed first: the dungeon kit's export takes the pirate pieces with their atlas texture (and no shape keys).

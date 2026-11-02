@@ -94,7 +94,7 @@
 }
 
 .rb-inv-stats b {
-  font-family: 'Anton', var(--rb-font);
+  font-family: var(--rb-font);
   font-size: calc(26px * var(--rb-ui));
   margin-right: 6px;
 }

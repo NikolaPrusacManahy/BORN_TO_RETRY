@@ -72,6 +72,7 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   tentacle: 'Kraken Tentacle',
   mako: 'Mako',
   captain: 'Captain Barbarossa',
+  bigShark: 'The Big Shark',
   keg: 'A powder keg',
 };
 

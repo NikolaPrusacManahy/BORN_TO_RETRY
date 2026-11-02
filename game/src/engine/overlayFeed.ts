@@ -45,6 +45,7 @@ import { chestToOpen } from '../sim/dungeon/treasure';
 import type { DungeonRun } from '../sim/dungeon/roomLoop';
 import { CELL, GRID } from '../world/dungeon/floorPlan';
 import { grabRules } from '../sim/combat/grab';
+import { jawCue } from '../sim/enemies/bigSharkMoves';
 import { createRaptorHud, raptorHud, sameRaptor } from './raptorHud';
 
 /** HUD refresh interval (s); hits, hurts and health changes push at once. */
@@ -73,6 +74,10 @@ export class HudFeed {
    *  dash's (the Velociraptor's pin). */
   attackKey = '';
   dashKey = '';
+  leftKey = '';
+  rightKey = '';
+  /** Update 0.3.16 — the weapon slots' keys ('|' between them). */
+  slotKeys = '';
   private readonly raptor = createRaptorHud();
 
   constructor(private readonly hud: HudStore) {}
@@ -115,7 +120,10 @@ export class HudFeed {
     const grabEnd = !g.on && g.since < GRAB_FLASH ? g.end : '';
     const bossMark = show.bossMark;
     const raptor = raptorHud(p, combat, this.raptor);
-    const grab = cur.grabHits === grabHits && cur.grabLeft === grabLeft && cur.grabEnd === grabEnd && cur.bossMark === bossMark && cur.attackKey === this.attackKey && sameRaptor(cur, raptor) && cur.dashKey === this.dashKey;
+    // (Update 0.3.16 — the Big Shark's arrow.)
+    const shark = combat.enemies.find((e) => e.kind === 'bigShark' && e.alive);
+    const jaw = shark ? jawCue(shark) : 0;
+    const grab = cur.grabHits === grabHits && cur.grabLeft === grabLeft && cur.grabEnd === grabEnd && cur.bossMark === bossMark && cur.attackKey === this.attackKey && sameRaptor(cur, raptor) && cur.dashKey === this.dashKey && cur.jawCue === jaw && cur.leftKey === this.leftKey && cur.rightKey === this.rightKey && cur.slotKeys === this.slotKeys;
     if (this.timer > 0 && same && shown && grab && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution && cur.chestHere === chestHere && cur.styleRank === styleRank && this.styleTop === styleTop) return;
     this.styleTop = styleTop;
     this.bonus = bonus;
@@ -174,8 +182,12 @@ export class HudFeed {
       grabLeft,
       grabEnd,
       attackKey: this.attackKey,
+      jawCue: jaw,
+      leftKey: this.leftKey,
+      rightKey: this.rightKey,
       ...raptor,
       dashKey: this.dashKey,
+      slotKeys: this.slotKeys,
     });
   }
 }

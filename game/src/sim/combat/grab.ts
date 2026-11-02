@@ -5,10 +5,12 @@
 // break free: you drop and it reels (stunned). Run out of time and it throws you at the nearest wall, hard. The screen
 // shows the count (engine: the QTE). Pure.
 // Update 0.3.15 — floor 6's Kraken Tentacle holds you the same way, on its own terms (coil.ts): up in its coil, your
-// clicks to break free, then down on the shore along an arc (`fly`, `from`, `to`, `slam`).
+// clicks to break free, then down on the shore along an arc (`fly`, `from`, `to`, `slam`). Update 0.3.16 — and the Big
+// Shark's jaws (jaws.ts): your clicks force them open, then your punch to its throat.
 import { Vector3 } from 'three';
 import { BONE_KING } from '../../tuning/boneKing';
 import { FOES_COVE_B } from '../../tuning/foesCoveB';
+import { BIG_SHARK } from '../../tuning/bigShark';
 import { wallBetween } from '../../world/navGrid';
 import { hitEnemy, setPhase } from '../enemies/enemy';
 import { ENEMY_STATS } from '../enemies/kinds';
@@ -17,6 +19,7 @@ import type { PlayerState } from '../player/state';
 import type { CombatIntent } from './fists';
 import type { CombatState } from './state';
 import { coilEye, coilHeldAt, stepCoil } from './coil';
+import { jawsEye, jawsHeldAt, stepJaws } from './jaws';
 
 export interface Grab {
   /** You're in its hand. */
@@ -42,8 +45,10 @@ export function createGrab(): Grab {
 
 /** Clicks to break free of whatever holds you, and the seconds you have. */
 export function grabRules(state: Pick<CombatState, 'enemies' | 'grab'>): { hits: number; time: number } {
-  const coil = state.enemies[state.grab.slot]?.kind === 'tentacle';
-  return coil ? { hits: Math.round(FOES_COVE_B.v.tentacleGrabHits), time: FOES_COVE_B.v.tentacleGrabTime } : { hits: Math.round(BONE_KING.v.grabHits), time: BONE_KING.v.grabTime };
+  const kind = state.enemies[state.grab.slot]?.kind;
+  if (kind === 'tentacle') return { hits: Math.round(FOES_COVE_B.v.tentacleGrabHits), time: FOES_COVE_B.v.tentacleGrabTime };
+  if (kind === 'bigShark') return { hits: Math.round(BIG_SHARK.v.holdHits), time: BIG_SHARK.v.holdTime };
+  return { hits: Math.round(BONE_KING.v.grabHits), time: BONE_KING.v.grabTime };
 }
 
 /** Where you're held: in front of it, this share of its height up (your feet), this far out from its body (m): its
@@ -66,6 +71,7 @@ type Holder = Pick<CombatState, 'enemies' | 'grab' | 'events'>;
 export function heldAt(state: Holder, slot: number, out: Vector3): Vector3 {
   const k = state.enemies[slot];
   if (k.kind === 'tentacle') return coilHeldAt(state, slot, out);
+  if (k.kind === 'bigShark') return jawsHeldAt(state, slot, out);
   const s = ENEMY_STATS[k.kind]();
   const out2 = s.radius + HELD_OUT;
   return out.set(k.pos.x - Math.sin(k.facing) * out2, k.pos.y + s.height * HELD_UP, k.pos.z - Math.cos(k.facing) * out2);
@@ -75,6 +81,7 @@ export function heldAt(state: Holder, slot: number, out: Vector3): Vector3 {
 export function skullOf(state: Holder, slot: number, out: Vector3): Vector3 {
   const k = state.enemies[slot];
   if (k.kind === 'tentacle') return coilEye(state, slot, out);
+  if (k.kind === 'bigShark') return jawsEye(state, slot, out);
   const s = ENEMY_STATS[k.kind]();
   return out.set(k.pos.x - Math.sin(k.facing) * s.radius * 0.6, k.pos.y + s.height * 0.76, k.pos.z - Math.cos(k.facing) * s.radius * 0.6);
 }
@@ -99,6 +106,7 @@ export function stepGrab(state: CombatState, player: PlayerState, intent: Combat
   const v = BONE_KING.v;
   const k = state.enemies[g.slot];
   if (k?.kind === 'tentacle') return stepCoil(state, player, intent, dt);
+  if (k?.kind === 'bigShark') return stepJaws(state, player, intent, dt);
   // It's gone to pieces (or died) under your hits: you drop.
   if (!k.alive || k.phase !== 'grab' || player.dead) {
     release(state, player, 'free');

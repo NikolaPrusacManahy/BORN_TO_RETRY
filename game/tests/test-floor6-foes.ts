@@ -22,7 +22,8 @@ const mid = new Vector3();
 // (Update 0.3.14 — floor 6 reworked, Skull Cove: the Sunken Grove's fish are retired from it, their code kept.)
 section('The Sunken Grove’s fish (retired from floor 6)');
 {
-  const roster = KINDS6.filter((k) => k !== 'whale');
+  // (Update 0.3.16 — floor 6's kinds hold its new boss too, the Big Shark: not one of the retired fish.)
+  const roster = KINDS6.filter((k) => k !== 'whale' && k !== 'bigShark');
   const five = rosterOf(5);
   check(`seven: ${roster.join(', ')}; none of floor 5’s; none on any floor now`, roster.length === 7 && roster.every((k) => !five.includes(k)) && [1, 2, 3, 4, 5, 6, 7, 8].every((f) => roster.every((k) => !rosterOf(f).includes(k))));
   check('the Manta Ray and the Shark still mini bosses; no floor’s percher or boss of theirs', percherOf(6) !== 'drownedPrince' && MINI_BOSSES.includes('mantaRay') && MINI_BOSSES.includes('shark') && bossOf(6) !== 'whale');

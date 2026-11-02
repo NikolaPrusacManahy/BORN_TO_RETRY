@@ -19,8 +19,8 @@
 // dressExtras.ts's; sand cells get no paving.
 // Update 0.2.9 — the walls' and ledges' cores moved to cores.ts, with feet under them and behind a pit's faces: the sky no
 // longer shows along their feet.
-// Update 0.2.23 — floor 2's Venom Garden (gardenDressing.ts): beds, tall grass, trees, webs, cobwebs, the boss room's ash.
-// Update 0.2.24 — and floor 3's Bone Keep (keepDressing.ts), both through ownDressing.ts.
+// Update 0.2.23 — floor 2's Venom Garden (gardenDressing.ts): beds, tall grass, trees, webs, cobwebs, the boss room's ash;
+// 0.2.24, floor 3's Bone Keep (keepDressing.ts), both through ownDressing.ts. 0.3.16 — tall boss walls (tallWalls.ts).
 import { createRng } from '../../core/rng';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, Side } from './floorPlan';
 import { HEIGHT, LAVA_DEPTH } from './assemble';
@@ -29,6 +29,7 @@ import type { Cell } from './rooms';
 import { DungeonStyle, styleOf } from './styles';
 import { dressSand, dressShop, SANDY, SandCell } from './dressExtras';
 import { coresOf, surface } from './cores';
+import { ROWS, rowsAt, tallRing } from './tallWalls';
 import { dressOwnCell, dressOwnRooms, Marks, noMarks } from './ownDressing';
 
 export { CORE_BOTTOM, CORE_INSET } from './cores';
@@ -121,6 +122,7 @@ export function dress(plan: FloorPlan): Dressing {
   const marks = noMarks();
   const put = (piece: string, x: number, y: number, z: number, rot = 0, sx = 1, sy = 1, sz = 1) => pieces.push({ piece, x, y, z, rot, sx, sy, sz });
   const inRoom = new Int16Array(GRID * GRID).fill(-1);
+  const tall = tallRing(plan);
   for (const r of plan.rooms) for (let row = -1; row <= r.layout.h; row++) for (let col = -1; col <= r.layout.w; col++) inRoom[(r.z0 + row) * GRID + r.x0 + col] = r.index;
   const nearDoor = (col: number, row: number) => {
     for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++) if (cellAt(plan, col + dc, row + dr) === 'door') return true;
@@ -153,18 +155,19 @@ export function dress(plan: FloorPlan): Dressing {
           for (const [dc, dr, side] of DIRS) {
             const n = cellAt(plan, col + dc, row + dr);
             if (!surface(n) || n === 'door') continue;
-            // The face between this wall and the floor beside it: three bricks high, capped.
+            // The face between this wall and the floor beside it: three bricks high (round a tall boss room, more), capped.
             const fx = x + dc * (CELL / 2 - WALL_DEPTH / 2);
             const fz = z + dr * (CELL / 2 - WALL_DEPTH / 2);
-            for (let k = 0; k < 3; k++) put(K.wall, fx, k * WALL_PIECE, fz, FACING[side]);
+            const rows = rowsAt(plan, tall, col, row);
+            for (let k = 0; k < rows; k++) put(K.wall, fx, k * WALL_PIECE, fz, FACING[side], 1, Math.min(1, rows - k), 1);
             // Standing in lava, its face goes down to it.
             if (n === 'lava') put(K.wall, fx, -LAVA_DEPTH, fz, FACING[side], 1, LAVA_DEPTH / WALL_PIECE, 1);
-            put(K.cap, fx, 3 * WALL_PIECE, fz, FACING[side]);
+            put(K.cap, fx, rows * WALL_PIECE, fz, FACING[side]);
             const room = inRoom[(row + dr) * GRID + col + dc];
             // (Not beside the wooden gate: it has its own pair.)
             const byGate = Math.hypot(x - plan.wayOut.doorX, z - plan.wayOut.doorZ) < GATE_TORCHES;
-            // (Update 0.2.11 — none under water.)
-            if (room >= 0 && K.under === undefined && (col * 3 + row * 5) % 7 === 0 && !nearDoor(col + dc, row + dr) && !byGate) {
+            // (Update 0.2.11 — none under water; 0.3.16 — nor on the Big Shark's tall walls: its arena floods.)
+            if (room >= 0 && K.under === undefined && rows <= ROWS && (col * 3 + row * 5) % 7 === 0 && !nearDoor(col + dc, row + dr) && !byGate) {
               const tx = x + dc * (CELL / 2 + TORCH_REACH);
               const tz = z + dr * (CELL / 2 + TORCH_REACH);
               put(KIT.torch, tx, TORCH_Y, tz, FACING[side] - Math.PI / 2);
@@ -239,7 +242,7 @@ export function dress(plan: FloorPlan): Dressing {
       const row = ns ? (side === 'n' ? r.z0 - 1 : r.z0 + r.layout.h) : r.z0 + r.layout.h / 2;
       const x = ns ? cellX(col) - CELL / 2 : cellX(col);
       const z = ns ? cellZ(row) : cellZ(row) - CELL / 2;
-      const rot = ns ? 0 : Math.PI / 2;
+      const [rot, rows] = [ns ? 0 : Math.PI / 2, rowsAt(plan, tall, col, row)];
       put(K.arch, x, 0, z, rot, ...K.archScale);
       if (K.over) put(K.over, x, K.overY, z, rot, ...K.overScale);
       gates.push({ x, z, rot, room: r.index });
@@ -250,8 +253,8 @@ export function dress(plan: FloorPlan): Dressing {
           const fx = ns ? ax : ax + face * (CELL / 2 - WALL_DEPTH / 2);
           const fz = ns ? az + face * (CELL / 2 - WALL_DEPTH / 2) : az;
           const facing = ns ? (face > 0 ? FACING.s : FACING.n) : face > 0 ? FACING.e : FACING.w;
-          put(K.wall, fx, 2 * WALL_PIECE, fz, facing);
-          put(K.cap, fx, 3 * WALL_PIECE, fz, facing);
+          for (let k = 2; k < rows; k++) put(K.wall, fx, k * WALL_PIECE, fz, facing, 1, Math.min(1, rows - k), 1);
+          put(K.cap, fx, rows * WALL_PIECE, fz, facing);
         }
       }
     }
@@ -268,12 +271,11 @@ export function dress(plan: FloorPlan): Dressing {
   const fx = gx - ox * (CELL / 2 - WALL_DEPTH / 2);
   const fz = gz - oz * (CELL / 2 - WALL_DEPTH / 2);
   for (const k of [-1, 1]) {
-    const ax = ns ? fx + (k * CELL) / 2 : fx;
-    const az = ns ? fz : fz + (k * CELL) / 2;
-    put(K.wall, ax, 2 * WALL_PIECE, az, FACING[inward]);
-    put(K.cap, ax, 3 * WALL_PIECE, az, FACING[inward]);
-    // (Update 0.2.11 — none under water.)
-    if (K.under !== undefined) continue;
+    const [ax, az, outRows] = [ns ? fx + (k * CELL) / 2 : fx, ns ? fz : fz + (k * CELL) / 2, tall ? (K.bossWalls ?? 3) : 3];
+    for (let r = 2; r < outRows; r++) put(K.wall, ax, r * WALL_PIECE, az, FACING[inward], 1, Math.min(1, outRows - r), 1);
+    put(K.cap, ax, outRows * WALL_PIECE, az, FACING[inward]);
+    // (Update 0.2.11 — none under water; 0.3.16 — nor in the Big Shark's arena, which floods.)
+    if (K.under !== undefined || tall) continue;
     const tx = ns ? gx + k * 1.6 * CELL : gx - ox * (CELL / 2 + TORCH_REACH);
     const tz = ns ? gz - oz * (CELL / 2 + TORCH_REACH) : gz + k * 1.6 * CELL;
     put(KIT.torch, tx, TORCH_Y, tz, FACING[inward] - Math.PI / 2);

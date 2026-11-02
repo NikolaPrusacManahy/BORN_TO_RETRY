@@ -122,7 +122,7 @@ export class TreasureView {
     g.beginPath();
     g.arc(52, 48, 18, 0, Math.PI * 2);
     g.fill();
-    g.font = 'bold 64px sans-serif';
+    g.font = "bold 64px 'Pixelify Sans', sans-serif";
     g.textBaseline = 'middle';
     g.fillStyle = 'rgba(0,0,0,0.6)';
     g.fillText(String(price), 98, 53);

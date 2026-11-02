@@ -166,3 +166,30 @@ export const COVE_ROOMS: readonly RoomTemplate[] = [
     '.....=LLLLLLLL',
   ]),
 ];
+
+/** Update 0.3.16 — the Big Shark's arena, the Shark's Graveyard (the designer: "the arena isn't appropriate for the Shark
+ *  at all, it bumps on pillar … find a new design that would fit an underwater boss arena, maybe weeds or anything sea
+ *  related"): open water in the middle, nothing standing in it; cliffs in its corners, arches of giant ribs against its
+ *  far walls, small boats sunk against its sides (their blocks hug the walls); seaweed in clumps across the sand (no
+ *  blocks), treasure, skulls and cannonballs lying among it (cove.ts). Its doorways' middles kept clear. */
+export const SHARK_ROOM: RoomTemplate = {
+  id: "the shark's graveyard",
+  kind: 'boss',
+  rows: quarter([
+    '...............',
+    '.rrr...........',
+    '.rrr..XXXX.....',
+    '.rrr..XXXX..~..',
+    '......XXXX.....',
+    '..~.........~..',
+    '.....~.........',
+    'zz.......~.....',
+    'zz...~.......~.',
+    'zz.............',
+    '.........~.....',
+    '..~....~.....~.',
+    '...............',
+    '.E......~......',
+    '...............',
+  ]),
+};

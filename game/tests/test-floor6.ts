@@ -191,5 +191,5 @@ section('Floor 6 — its fish retired');
 {
   const roster = rosterOf(6);
   check('its enemies are its crew now (test-floor6-crew.ts): its fish retired', roster.length > 0 && roster.every((k) => !(KINDS6 as readonly string[]).includes(k)), roster.join(', '));
-  check('its boss stands in (the Velociraptor): the Old Whale is retired', bossOf(6) === 'dino' && [1, 2, 3, 4, 5, 6, 7, 8].every((f) => bossOf(f) !== 'whale'));
+  check('its boss is its own now, the Big Shark (test-floor6-boss.ts): the Old Whale is retired', bossOf(6) === 'bigShark' && [1, 2, 3, 4, 5, 6, 7, 8].every((f) => bossOf(f) !== 'whale'));
 }

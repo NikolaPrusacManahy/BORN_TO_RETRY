@@ -28,7 +28,7 @@ section('Floor 6 — the crew');
   check('its roster is the crew: the Corsair, the Shanty Man, the Bomber, the Cursed Crewman, the Gull, the Bats, the Tentacle, Mako, Barbarossa', roster.length === 9 && roster.every((k) => CREW.includes(k)), roster.join(', '));
   const before = [1, 2, 3, 4, 5, 7].flatMap((f) => [...rosterOf(f)]);
   check('none of them on any other floor', CREW.every((k) => !before.includes(k)));
-  check('Mako and Barbarossa are its mini bosses; its boss still stands in (update 3: the Big Shark)', MINI_BOSSES.includes('mako') && MINI_BOSSES.includes('captain') && bossOf(6) === 'dino');
+  check('Mako and Barbarossa are its mini bosses; its boss the Big Shark (0.3.16)', MINI_BOSSES.includes('mako') && MINI_BOSSES.includes('captain') && bossOf(6) === 'bigShark');
   check('the crew are enemy kinds', CREW.every((k) => ENEMY_KINDS.includes(k)));
   // (The designer: "do not make enemies tankier NEVER".)
   const earlier = [1, 2, 3, 4, 5].flatMap((f) => [...rosterOf(f)]).filter((k) => !MINI_BOSSES.includes(k) && !ENEMY_STATS[k]().boss);
