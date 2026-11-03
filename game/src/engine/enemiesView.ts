@@ -100,8 +100,9 @@ export class EnemiesView {
   private readonly ringGeo = new THREE.RingGeometry(0.92, 1, 48).rotateX(-Math.PI / 2);
   private readonly tongues = new TongueView();
 
-  /** `loadModels`: fetch the models (tests attach parsed ones instead). */
-  constructor(scene: THREE.Scene, loadModels = true) {
+  /** `loadModels`: fetch the models (tests attach parsed ones instead). Update 0.3.24 — only `kinds`' (the level's:
+   *  sim/dungeon/floorKinds.ts; the Lab's every one). */
+  constructor(scene: THREE.Scene, loadModels = true, kinds: readonly EnemyKind[] = ENEMY_KINDS) {
     scene.add(this.group);
     this.group.add(this.tongues.group);
     for (let i = 0; i < ENEMY_POOL; i++) {
@@ -113,7 +114,7 @@ export class EnemiesView {
     const loader = new GLTFLoader();
     this.loaded = loadModels
       ? Promise.all(
-          ENEMY_KINDS.filter((kind) => LOOKS[kind]).map((kind) =>
+          kinds.filter((kind) => LOOKS[kind]).map((kind) =>
             loader
               .loadAsync(LOOKS[kind]!.url)
               .then((gltf) => this.attach(kind, gltf.scene, gltf.animations))

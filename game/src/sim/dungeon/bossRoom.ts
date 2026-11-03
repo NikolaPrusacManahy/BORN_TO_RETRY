@@ -95,6 +95,9 @@ function callsOf(kind: EnemyKind): Calls | null {
   return CALLS;
 }
 
+/** Update 0.3.24 — whom a boss calls (null: none): its floor loads their models too (floorKinds.ts). */
+export const calledBy = (kind: EnemyKind): EnemyKind | null => callsOf(kind)?.kind ?? null;
+
 /** The coins a boss leaves (Update 0.2.0: in its chest). */
 export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : kind === 'whale' ? WHALE.v.whaleCoins : kind === 'bigShark' ? BIG_SHARK.v.bigCoins : BOSS.v.demonCoins);
 

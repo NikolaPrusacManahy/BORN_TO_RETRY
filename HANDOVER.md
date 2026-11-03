@@ -2,7 +2,14 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.23: loading screens)
+## Next up (2026-11-03, Update 0.3.24: floors load faster)
+- The designer, asked whether to load only each floor's own enemies: "Yes, do it" (spec
+  `MD_UPDATES/U0324_FASTER_FLOORS.md`). A dungeon floor loads only the enemy models it can bring in
+  (`sim/dungeon/floorKinds.ts`: its rooms' waves, its boss and whom it calls, hives' Wasps, what they become or let out):
+  12 at most of 78. The lobby loads none; the Lab (its room, floors and boss rooms) every one.
+- Checked by tests (`test-floor-kinds.ts`); **unseen in the game** (the loader's time now).
+
+## Before (2026-11-03, Update 0.3.23: loading screens)
 - **The designer** ("before everything else, we need to add few loading screens and give the game some time to load
   stuff": after Lab, after Start, a new floor, the Lab's level buttons). Spec `MD_UPDATES/U0323_LOADING_SCREENS.md`.
 - The loader (the retry arrow on black) now covers every way into a level and stays till it's ready: the level's views'
@@ -10,8 +17,7 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   least (`engine/levelLoad.ts`: `readyLevel`, `LevelLoader`). It's put up and painted before the (heavy, page-holding)
   build: the Game's `covered` (gameBase.ts) and the run's `loadCovered` (runBase.ts). The world, and the floor's name,
   wait under it (Run.frame: no time passes while `loading`).
-- Checked by tests (`test-loading.ts`); **unseen in the game** (how long each load takes now: every level still parses
-  all the enemy models, so floors may sit on the loader a few seconds; loading only a floor's own enemies would cut it).
+- Checked by tests (`test-loading.ts`); **unseen in the game** (how long each load takes: 0.3.24 cut what a floor loads).
 
 ## Before (2026-11-03, Update 0.3.22: floor 7's enemies, the frozen warband)
 - **The designer**: "I have more enemies models in More enemies folder; let's sort things out for Floor 7 … if it does

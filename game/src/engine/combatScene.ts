@@ -24,6 +24,7 @@ import * as THREE from 'three';
 import type { AudioEngine } from '../audio/audio';
 import { CombatSounds } from '../audio/combatSounds';
 import type { CombatState } from '../sim/combat/state';
+import { ENEMY_KINDS, EnemyKind } from '../sim/enemies/kinds';
 import type { CameraRig } from './cameraRig';
 import { CombatFeedback } from './combatFeedback';
 import { Burst } from './fx/burst';
@@ -100,9 +101,10 @@ export class CombatScene {
   private hurts = 0;
   private readonly execFx: ExecFx;
 
-  constructor(scene: THREE.Scene, state: CombatState, audio: AudioEngine, rig: CameraRig, arms: Viewmodel) {
+  /** Update 0.3.24 — `kinds`: the enemies whose models the level needs (enemiesView.ts). */
+  constructor(scene: THREE.Scene, state: CombatState, audio: AudioEngine, rig: CameraRig, arms: Viewmodel, kinds: readonly EnemyKind[] = ENEMY_KINDS) {
     this.targets = new TargetsView(scene, state);
-    this.enemies = new EnemiesView(scene);
+    this.enemies = new EnemiesView(scene, true, kinds);
     this.exec = new ExecScene(scene);
     this.demon = new DemonView(scene);
     this.demonFx = new DemonFx(scene);

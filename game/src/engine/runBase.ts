@@ -41,6 +41,7 @@ import { cancelCharges } from '../sim/weapons/kiCharge';
 import { pickCard, rerollDeal } from '../sim/cards/deal';
 import { DealView, dealView, InventoryView, inventoryView } from './fateView';
 import { LevelLoader, whenTrue } from './levelLoad';
+import { levelKinds } from '../sim/dungeon/floorKinds';
 import type { Difficulty } from '../sim/lobby/difficulty';
 import { abandonAll } from '../sim/dungeon/checkpoint';
 import { maxHpOf } from '../sim/player/health';
@@ -109,6 +110,8 @@ export abstract class RunBase {
     readonly difficulty: Difficulty = 'real',
     /** Update 0.2.17 — chests deal Fate Cards (the lobby's stand). */
     readonly cards = true,
+    /** Update 0.3.24 — the Lab's (any enemy can be called up there: every enemy's model loaded; floorKinds.ts). */
+    private readonly everyone = false,
   ) {
     // Loading the same models again (each floor) comes from memory.
     THREE.Cache.enabled = true;
@@ -155,7 +158,7 @@ export abstract class RunBase {
     this.combat.rng = createRng(level.fightSeed);
     this.combat.bare = this.difficulty === 'human';
     this.combat.fate = this.cards;
-    this.combatScene = new CombatScene(this.scene, this.combat, this.audio, this.rig, this.arms);
+    this.combatScene = new CombatScene(this.scene, this.combat, this.audio, this.rig, this.arms, levelKinds(this.everyone, level.dungeon, !!level.lobby));
     this.restartHere();
     if (keep && old) {
       this.player.hp = hp;

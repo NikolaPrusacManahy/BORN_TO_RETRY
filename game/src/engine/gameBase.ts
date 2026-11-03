@@ -189,7 +189,7 @@ export abstract class GameBase {
 
   protected newRun(level: Level) {
     this.run?.dispose();
-    this.run = new Run(level, this.audio, this.renderer, this.hud, this.cb, this.levels, this.inLab ? 'real' : this.runDifficulty, this.inLab || this.runCards);
+    this.run = new Run(level, this.audio, this.renderer, this.hud, this.cb, this.levels, this.inLab ? 'real' : this.runDifficulty, this.inLab || this.runCards, this.inLab);
     this.run.waves = !this.inLab || this.labWaves;
     this.run.paused = this.paused;
     if (this.inLab) this.run.labCommand({ kind: 'meter', on: this.labMeter });
