@@ -7,6 +7,7 @@
 // Update 0.3.13 — and floor 8: the floors with nothing of their own to list yet (7, 8) are buttons to play them (in
 // the panel's bottom row); the rest a column each, three to a page. Update 0.3.15 — floor 6 has its crew: a column again.
 // Update 0.3.22 — floor 7 its warband: a column too (none left only to play).
+// Update 0.3.28 — the Moon's four mechs: a floor's mini bosses two to a row (LabPanel.tsx); the Moon's crew named.
 import { rosterOf } from '../sim/dungeon/wavePlan';
 import { BUILD_CARDS } from '../sim/cards/builds';
 import { CARD, CARD_KINDS, CardKind, familyOf } from '../sim/cards/cards';
@@ -87,6 +88,22 @@ const NAMES: Partial<Record<EnemyKind, string>> = {
   berserker: 'Berserker',
   haugbui: 'Haugbui',
   frostRoc: 'Frost Roc',
+  // (Update 0.3.28 — the Moon's crew, and its four mechs and their pilots.)
+  gunner: 'Gunner',
+  flanker: 'Flanker',
+  hopper: 'Leaper',
+  strafer: 'Strafer',
+  diver: 'Diver',
+  mineLayer: 'Mine-layer',
+  beeShip: 'Bee Ship',
+  beeMech: 'Bee Mech',
+  beeNaut: 'Barbara',
+  flamingoMech: 'Flamingo Mech',
+  flamingoNaut: 'Fernando',
+  foxMech: 'Fox Mech',
+  foxNaut: 'Rae',
+  frogMech: 'Frog Mech',
+  frogNaut: 'Finn',
   demon: 'Demon',
   dragon: 'Dragon',
   boneKing: 'Bone King',
@@ -94,6 +111,8 @@ const NAMES: Partial<Record<EnemyKind, string>> = {
 };
 export const labName = (kind: EnemyKind) => NAMES[kind] ?? kind;
 export const isMini = (kind: EnemyKind) => MINI_BOSSES.includes(kind);
+/** Update 0.3.28 — the rows a floor's column takes: one an enemy, its mini bosses two to a row. */
+export const labRows = (f: LabFloor) => f.enemies.filter((k) => !isMini(k)).length + Math.ceil(f.enemies.filter(isMini).length / 2);
 
 export interface LabFloor {
   floor: number;

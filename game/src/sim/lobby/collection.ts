@@ -12,7 +12,8 @@ import { EnemyKind, ownBossOf } from '../enemies/kinds';
 
 /** The floors shown (the run's ten). */
 export const FLOOR_COUNT = 10;
-/** A body that becomes another when it breaks: shown beside it. */
+/** A body that becomes another when it breaks: shown beside it. (Update 0.3.28 — not the Flamingo's, the Fox's or the
+ *  Frog's pilots: they look as the Gunner, the Flanker and the Leaper do, already on the Moon's shelf.) */
 const SECOND: Partial<Record<EnemyKind, EnemyKind>> = { crewman: 'headless', beeMech: 'beeNaut' };
 
 export interface FloorShelf {

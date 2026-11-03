@@ -278,7 +278,7 @@ export const bossOf = (floor: number): EnemyKind => BOSSES[realmOf(floor)];
 export const ownBossOf = (floor: number): EnemyKind | null => (OWN_BOSS.has(realmOf(floor)) ? bossOf(floor) : null);
 
 /** Update 0.0.18 — the mini bosses (the designer): a room with one has a chest, and the first killed drops its key. */
-export const MINI_BOSSES: readonly EnemyKind[] = ['brute', 'spider', 'blueDemon', 'ninja', 'cactoroBig', 'skullOrc', 'bigMushnub', 'deepOne', 'bogBrute', 'mantaRay', 'shark', 'mako', 'captain', 'beeShip', 'beeMech', 'berserker', 'haugbui'];
+export const MINI_BOSSES: readonly EnemyKind[] = ['brute', 'spider', 'blueDemon', 'ninja', 'cactoroBig', 'skullOrc', 'bigMushnub', 'deepOne', 'bogBrute', 'mantaRay', 'shark', 'mako', 'captain', 'beeShip', 'beeMech', 'flamingoMech', 'foxMech', 'frogMech', 'berserker', 'haugbui'];
 
 
 /** Fliers (they stay up; their bodies fall when they die). */

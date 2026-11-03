@@ -33,6 +33,7 @@ import type { Rng } from '../../core/rng';
 import type { PlayerState } from '../player/state';
 import type { Flow } from './chase';
 import { ENEMY_STATS, EnemyKind, flies, SizeClass } from './kinds';
+import { KindMoon, PILOT_OF } from './kindsMoon';
 import { fishLength } from './kinds6';
 import { FOES3 } from '../../tuning/foes3';
 
@@ -275,8 +276,8 @@ export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, 
   e.hp = 0;
   // Update 0.3.15 — floor 6's Cursed Crewman brought down: its skull flies off, and it goes on headless (crewman.ts);
   // Update 0.3.18 — floor 8's Bee mech broken, Barbara climbs out (beeMech.ts): each its own health. (Not one held in
-  // an execution: that finishes it.)
-  const next = e.kind === 'crewman' ? 'headless' : e.kind === 'beeMech' ? 'beeNaut' : null;
+  // an execution: that finishes it. Update 0.3.28 — each of the four mechs its pilot.)
+  const next = e.kind === 'crewman' ? 'headless' : (PILOT_OF[e.kind as KindMoon] ?? null);
   if (next && e.phase !== 'held') {
     e.kind = next;
     e.hp = ENEMY_STATS[next]().hp;

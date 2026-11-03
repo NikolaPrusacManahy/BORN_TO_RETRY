@@ -67,6 +67,13 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   beeShip: 'The Bee’s Ship',
   beeMech: 'The Bee Mech',
   beeNaut: 'Barbara the Bee',
+  // Update 0.3.28 — the other three mechs and their pilots.
+  flamingoMech: 'The Flamingo Mech',
+  flamingoNaut: 'Fernando the Flamingo',
+  foxMech: 'The Fox Mech',
+  foxNaut: 'Rae the Fox',
+  frogMech: 'The Frog Mech',
+  frogNaut: 'Finn the Frog',
   icicle: 'An icicle',
   meteor: 'A meteor',
   crusher: 'A press',

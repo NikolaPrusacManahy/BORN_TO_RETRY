@@ -213,8 +213,12 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   Flanker round to your side, the Diver's ram), Frog the ground (the Leaper's leap and shock ring, the Mine-layer's
   floating mines). Every wave mixes the three roles. Mini bosses: the Bee's ship (passes, a bombing run down a marked
   line, then low and cooling) and the Bee mech (it glides on its jets firing salvos of homing missiles, lands and holds
-  1 s), broken, Barbara climbs out and fights on foot. Its boss next: the Frog, Fox and Flamingo mechs together.
-  **(placeholder numbers, F1 → Moon crew, Moon mini bosses)**
+  1 s), broken, Barbara climbs out and fights on foot. **(placeholder numbers, F1 → Moon crew, Moon mini bosses)**
+  **Update 0.3.28 (the designer: "Mechs as minibosses, they are all the same just different looks … just add the
+  remaning 3 as identical functions as bee mech"; spec `MD_UPDATES/U0328_MOON_MECHS.md`):** the Flamingo's, the Fox's
+  and the Frog's mechs are mini bosses too, the Bee mech's in everything but their looks; broken, Fernando, Rae and Finn
+  climb out and fight as Barbara. The four share the Bee mech's old share of the rooms. Its boss: the Bestiary pack's
+  Tidebreaker (the designer: "Alien as Moon boss"), to come.
 
 ### The Forge (Update 0.3.13; spec `MD_UPDATES/U0313_THE_FORGE.md`; Update 0.3.17 — out of floor 8, kept on floor 10; Update 0.3.25 — floor 10 is Hell on Earth, its rooms meanwhile)
 - The designer: every floor's level first ("I want all designs to be done first"), then the enemies.

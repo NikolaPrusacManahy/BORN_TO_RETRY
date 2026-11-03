@@ -5,6 +5,7 @@
 // (its landing hurts close by) and holds there Bee mech landing: 1 s, its cooldown, the time to hit it. Close to it on
 // the ground, it kicks. Broken, Barbara climbs out (enemy.ts makes it the Bee astronaut) and fights on foot: quick, her
 // blaster from range, her punches close in. Only a hard hit staggers either. Pure.
+// Update 0.3.28 — the Flamingo's, the Fox's and the Frog's mechs and pilots move the same (each its own name: `e.kind`).
 import { Vector3 } from 'three';
 import { FOES_MOON_B } from '../../tuning/foesMoonB';
 import { fireOrb } from '../combat/orbs';
@@ -64,7 +65,7 @@ const from = new Vector3();
 
 export function updateBeeMech(e: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number) {
   const v = FOES_MOON_B.v;
-  const s = ENEMY_STATS.beeMech();
+  const s = ENEMY_STATS[e.kind]();
   const dist = Math.hypot(player.pos.x - e.pos.x, player.pos.z - e.pos.z);
   switch (e.phase) {
     case 'chase':
@@ -96,7 +97,7 @@ export function updateBeeMech(e: Enemy, index: number, player: PlayerState, w: E
       if (k < 1) return;
       e.pos.y = 0;
       w.events.push('beeMechLand', index, e.pos.x, 0, e.pos.z);
-      if (!player.dead && Math.hypot(player.pos.x - e.pos.x, player.pos.z - e.pos.z) <= v.stompReach + s.radius && player.pos.y < 1.5) damagePlayer(player, v.stompDamage, 'beeMech');
+      if (!player.dead && Math.hypot(player.pos.x - e.pos.x, player.pos.z - e.pos.z) <= v.stompReach + s.radius && player.pos.y < 1.5) damagePlayer(player, v.stompDamage, e.kind);
       setPhase(e, 'stun');
       return;
     }
@@ -145,14 +146,14 @@ function salvo(e: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
   for (let i = 0; i < n; i++) {
     const a = yaw + (n > 1 ? (i / (n - 1) - 0.5) * FAN * 2 : 0);
     dir.set(Math.sin(a), 0.35, Math.cos(a)).normalize();
-    fireOrb(w.orbs, from, dir, v.missileSpeed, v.missileDamage, 'beeMech', 'missile', v.missileTurn);
+    fireOrb(w.orbs, from, dir, v.missileSpeed, v.missileDamage, e.kind, 'missile', v.missileTurn);
   }
   w.events.push('beeMissiles', index, from.x, from.y, from.z);
 }
 
 /** Barbara on foot, out of her broken mech: her blaster from range, quick punches close in. */
 export function updateBeeNaut(e: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number) {
-  const s = ENEMY_STATS.beeNaut();
+  const s = ENEMY_STATS[e.kind]();
   // (Just out: she climbs out, a moment.)
   if (e.shots === 1) {
     e.shots = 0;
@@ -179,7 +180,7 @@ function shoot(e: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
   e.near++;
   from.set(e.pos.x, e.pos.y + 1.25, e.pos.z);
   dir.set(player.pos.x - from.x, player.pos.y + AIM_HEIGHT - from.y, player.pos.z - from.z).normalize();
-  if (!player.dead && fireOrb(w.orbs, from, dir, 16, 9, 'beeNaut', 'laser')) w.events.push('gunnerShot', index, from.x, from.y, from.z);
+  if (!player.dead && fireOrb(w.orbs, from, dir, 16, 9, e.kind, 'laser')) w.events.push('gunnerShot', index, from.x, from.y, from.z);
   if (e.near < 2) return;
   e.cooldown = NAUT_EVERY;
   setPhase(e, 'recover');

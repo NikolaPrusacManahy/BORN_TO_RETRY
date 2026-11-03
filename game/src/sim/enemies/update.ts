@@ -170,6 +170,12 @@ const UPDATE: Record<EnemyKind, Update> = {
   beeShip: updateBeeShip,
   beeMech: updateBeeMech,
   beeNaut: updateBeeNaut,
+  flamingoMech: updateBeeMech,
+  flamingoNaut: updateBeeNaut,
+  foxMech: updateBeeMech,
+  foxNaut: updateBeeNaut,
+  frogMech: updateBeeMech,
+  frogNaut: updateBeeNaut,
   // Update 0.3.22 — floor 7's warband, Frozen Depths.
   raider: updateRaider,
   axeThrower: updateAxeThrower,

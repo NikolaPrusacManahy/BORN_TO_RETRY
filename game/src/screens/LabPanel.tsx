@@ -109,11 +109,19 @@ export function LabPanel({ away, waves, meter, god, onCommand, onBossRoom, onFlo
                     </button>
                   </div>
                   <div className="rb-lab-list">
-                    {f.enemies.map((kind) => (
-                      <button key={kind} className={`rb-lab-btn${isMini(kind) ? ' is-mini' : ''}`} onClick={run({ kind: 'enemy', enemy: kind, count })}>
+                    {f.enemies.filter((kind) => !isMini(kind)).map((kind) => (
+                      <button key={kind} className="rb-lab-btn" onClick={run({ kind: 'enemy', enemy: kind, count })}>
                         {labName(kind)}
                       </button>
                     ))}
+                    {/* (Update 0.3.28 — the mini bosses two to a row: the Moon has five.) */}
+                    <div className="rb-lab-minis">
+                      {f.enemies.filter(isMini).map((kind) => (
+                        <button key={kind} className="rb-lab-btn is-mini" onClick={run({ kind: 'enemy', enemy: kind, count })} title={labName(kind)}>
+                          {labName(kind)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                   {f.boss && (
                     <div className="rb-lab-boss">

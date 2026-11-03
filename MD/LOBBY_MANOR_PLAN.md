@@ -50,4 +50,4 @@ candelabra) and the Ultimate RPG Pack (armour, weapons, books, scrolls, potions,
    on its plinth, black until killed.
 3. **The floor selector**: the floors you've beaten remembered (saved); each painting of its floor (rendered from its
    own rooms); E at a beaten floor's starts a run there, fresh; its boss beaten, back to the lobby.
-4. Then floor 8's boss (the three mechs).
+4. Then floor 8's boss (the three mechs). (Update 0.3.28 — the Moon's boss is Tidebreaker now; the mechs mini bosses.)

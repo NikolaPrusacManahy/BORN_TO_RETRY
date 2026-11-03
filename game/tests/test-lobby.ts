@@ -27,6 +27,7 @@ import { FURNITURE, PEDESTAL } from '../src/world/lobby/furniture';
 import { LOBBY_HALL } from '../src/world/lobby/hall';
 import { dressHall } from '../src/world/lobby/hallDressing';
 import { ALTARS, CARD_STAND, CRYSTAL_DAIS, DAIS, FIGURES, GATE, GATE_BACK, HALL, LOBBY_START, STAIR, WING, WING_ARCH_Z } from '../src/world/lobby/spots';
+import { ROWS } from '../src/world/lobby/hallTrim';
 import { collection } from '../src/sim/lobby/collection';
 import { CARD_KINDS } from '../src/sim/cards/cards';
 import { BONUS_KINDS } from '../src/sim/items/bonuses';
@@ -151,7 +152,9 @@ section('Lobby — the bestiary’s list');
   check('a body’s second self beside it: the Headless Crewman, Barbara out of her mech', shelves[FLOOR.cove - 1].enemies.indexOf('headless') === shelves[FLOOR.cove - 1].enemies.indexOf('crewman') + 1 && shelves[FLOOR.moon - 1].enemies.indexOf('beeNaut') === shelves[FLOOR.moon - 1].enemies.indexOf('beeMech') + 1);
   // (Update 0.3.22 — floor 7 has its warband.)
   check('the Shrine Dimension (8) and Hell on Earth (10) have none of their own yet; Frozen Depths (4) its warband', [FLOOR.shrine, FLOOR.hell].every((f) => shelves[f - 1].enemies.length === 0) && shelves[FLOOR.frozen - 1].enemies.join() === 'raider,axeThrower,draugr,barrowMaid,volva,berserker,haugbui');
-  check('no floor has more than a row holds (ten)', shelves.every((f) => f.enemies.length <= 10));
+  // (Update 0.3.28 — the Moon's four mechs: twelve. A plinth 0.7 m across, the boss's 1.15.)
+  const fits = (n: number) => ROWS.start + (n - 1) * ROWS.step + 0.35 + 0.15 <= ROWS.boss - 0.575;
+  check('no floor has more than its row holds before the boss’s plinth (twelve)', shelves.every((f) => fits(f.enemies.length)) && fits(12) && !fits(13), shelves.map((f) => f.enemies.length).join(' '));
 }
 
 await initPhysics();

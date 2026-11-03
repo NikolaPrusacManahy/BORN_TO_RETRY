@@ -97,6 +97,10 @@ const newer = (name: string, move: string, air: string): Record<Exclude<Role, 'r
   air: `${name}_${air}`,
 });
 
+/** Update 0.3.28 — a mech, the Bee's look in another animal's model, and its pilot on foot. */
+const mechLook = (animal: string, glow: [number, number, number]): Look => ({ url: `/models/enemies/mech_${animal}.glb`, clips: { idle: 'Idle', move: 'Walk', attack: 'Kick', hit: 'Jump_Landing', death: 'Death', air: 'Jump' }, lands: 15 / 30, windup: () => 0.5, glow, posed: true });
+const nautLook = (animal: string, glow: [number, number, number]): Look => ({ url: `/models/enemies/astronaut_${animal}.glb`, clips: { idle: 'Idle', move: 'Run', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Run_Gun_Shoot' }, lands: 17 / 30, windup: () => 0.28, glow, posed: true });
+
 export const LOOKS: Record<EnemyKind, Look | null> = {
   grunt: { url: '/models/enemies/orc.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Run' }, lands: 16 / 30, windup: () => ENEMIES.v.gruntWindup, glow: [0.9, 0.06, 0.04] },
   spitter: { url: '/models/enemies/wizard.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', air: 'Walk' }, lands: 7 / 30, windup: () => ENEMIES.v.spitterWindup, glow: [0.35, 0.9, 0.1] },
@@ -192,6 +196,13 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
   beeShip: { url: '/models/enemies/ship_bee.glb', clips: STILL, lands: 0, windup: (move) => (move === BOMBING ? FOES_MOON_B.v.bombLine : 0.6), glow: [1, 0.85, 0.2], turn: -Math.PI / 2, posed: true },
   beeMech: { url: '/models/enemies/mech_bee.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Kick', hit: 'Jump_Landing', death: 'Death', air: 'Jump' }, lands: 15 / 30, windup: () => 0.5, glow: [1, 0.85, 0.2], posed: true },
   beeNaut: { url: '/models/enemies/astronaut_bee.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Run_Gun_Shoot' }, lands: 17 / 30, windup: () => 0.28, glow: [1, 0.85, 0.2], posed: true },
+  // Update 0.3.28 — the other three mechs, the Bee's in their own looks, and their pilots (each its astronaut's glow).
+  flamingoMech: mechLook('flamingo', [1, 0.45, 0.8]),
+  flamingoNaut: nautLook('flamingo', [1, 0.45, 0.8]),
+  foxMech: mechLook('fox', [1, 0.5, 0.1]),
+  foxNaut: nautLook('fox', [1, 0.5, 0.1]),
+  frogMech: mechLook('frog', [0.45, 1, 0.3]),
+  frogNaut: nautLook('frog', [0.45, 1, 0.3]),
   // Update 0.3.22 — floor 7's warband (export_people.py; recoloured, their eyes lit: norseLooks.ts). The axes land at
   // 13/24 of the SwordSlash (the Raider's crouch raises his, his slide swings it; the Thrower's throw), the dead's grasp
   // and Haugbui's blows at 9/24 of a Punch, the Völva's bolt at 5/24 of her shot. The Thrower rolls (Roll), the dead rise

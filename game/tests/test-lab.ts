@@ -32,7 +32,7 @@ import { planFloor } from '../src/world/dungeon/floorPlan';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { LabPanel } from '../src/screens/LabPanel';
-import { isMini, LAB_CARDS, LAB_COLUMNS, LAB_DARK, LAB_FLOOR_NUMBERS, LAB_FLOORS, LAB_ITEMS, LAB_NEW, LAB_PAGES } from '../src/screens/labLists';
+import { isMini, LAB_CARDS, LAB_COLUMNS, LAB_DARK, LAB_FLOOR_NUMBERS, LAB_FLOORS, LAB_ITEMS, LAB_NEW, LAB_PAGES, labRows } from '../src/screens/labLists';
 import { rosterOf } from '../src/sim/dungeon/wavePlan';
 import { ownBossOf } from '../src/sim/enemies/kinds';
 import { DROP_KINDS } from '../src/sim/items/drops';
@@ -190,7 +190,8 @@ section('Lab panel — a column a floor, the items by kind');
   // made: its column back.)
   // (Update 0.3.18 — floor 8 has its crew: a column, page 3. Update 0.3.22 — and floor 7 its warband: a column beside it.)
   check('no floor only to play now; each a column, three to a page (floor 7 its warband, floor 8 its crew)', LAB_NEW.length === 0 && LAB_COLUMNS.length === 8 && LAB_PAGES.map((pg) => pg.map((f) => f.floor).join('')).join(' ') === '123 456 79');
-  check('a floor’s column fits (9 enemies at most)', LAB_FLOORS.every((f) => f.enemies.length <= 9), LAB_FLOORS.map((f) => f.enemies.length).join(' '));
+  // (Update 0.3.28 — its mini bosses two to a row: the Moon's five.)
+  check('a floor’s column fits (9 rows at most: its mini bosses two to a row)', LAB_FLOORS.every((f) => labRows(f) <= 9), LAB_FLOORS.map(labRows).join(' '));
   const items = LAB_ITEMS.flatMap(([, picks]) => picks.map(([, cmd]) => cmd));
   const drops = items.flatMap((c) => (c.kind === 'item' ? [c.item] : []));
   const weapons = items.flatMap((c) => (c.kind === 'weapon' ? [c.weapon as string] : []));

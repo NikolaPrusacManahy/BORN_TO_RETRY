@@ -167,9 +167,17 @@
   text-overflow: ellipsis;
 }
 
-.rb-lab-list > .rb-lab-btn {
+.rb-lab-list > .rb-lab-btn,
+.rb-lab-minis > .rb-lab-btn {
   text-align: left;
   padding-left: 14px;
+}
+
+/* Update 0.3.28 — a floor's mini bosses two to a row (the Moon has five: its ship and four mechs). */
+.rb-lab-minis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px;
 }
 
 .rb-lab-tab {

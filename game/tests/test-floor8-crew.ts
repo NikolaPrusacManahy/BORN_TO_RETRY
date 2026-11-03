@@ -3,6 +3,8 @@
 // after mech dies) … Bee mech is able to glide in the air and shoot salvos of missiles and lands with a 1sec cooldown …
 // The AI of the enemies in rooms should be well splitted with different roles"): its roster and waves (the roles split),
 // and each one's rules.
+// Update 0.3.28 — the designer: "Mechs as minibosses, they are all the same just different looks, Bee is already there,
+// just add the remaning 3 as identical functions as bee mech": the Flamingo's, the Fox's and the Frog's mechs.
 import { readFileSync } from 'node:fs';
 import { check, near, section } from './harness';
 import { at, crew, ready, run, until } from './fakes/crewMeet';
@@ -19,16 +21,21 @@ import { FOES_MOON_B } from '../src/tuning/foesMoonB';
 import { LOOKS } from '../src/engine/enemyLooks';
 import { causeName } from '../src/screens/deathText';
 import { FLOOR } from '../src/world/dungeon/floorOrder';
+import { PILOT_OF } from '../src/sim/enemies/kindsMoon';
+import { BRINGS } from '../src/sim/dungeon/floorKinds';
+import { labName } from '../src/screens/labLists';
 
 const v = FOES_MOON.v;
 const b = FOES_MOON_B.v;
-const CREW: EnemyKind[] = ['gunner', 'flanker', 'hopper', 'strafer', 'diver', 'mineLayer', 'beeShip', 'beeMech'];
+const MECHS = ['beeMech', 'flamingoMech', 'foxMech', 'frogMech'] as const;
+const PILOTS = ['beeNaut', 'flamingoNaut', 'foxNaut', 'frogNaut'] as const;
+const CREW: EnemyKind[] = ['gunner', 'flanker', 'hopper', 'strafer', 'diver', 'mineLayer', 'beeShip', ...MECHS];
 const FAMILY: Partial<Record<EnemyKind, number>> = { gunner: 0, strafer: 0, flanker: 1, diver: 1, hopper: 2, mineLayer: 2 };
 
 section('Floor 8 — the Moon’s crew');
 {
   const roster = rosterOf(FLOOR.moon);
-  check('its roster: the astronauts Flamingo, Fox and Frog, their three tiny ships, the Bee’s ship and the Bee’s mech', roster.length === 8 && CREW.every((k) => roster.includes(k)), roster.join(', '));
+  check('its roster: the astronauts Flamingo, Fox and Frog, their three tiny ships, the Bee’s ship and the four mechs', roster.length === 11 && CREW.every((k) => roster.includes(k)), roster.join(', '));
   check('none of them on any other floor', CREW.every((k) => ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].some((f) => f !== FLOOR.moon && rosterOf(f).includes(k))));
   check('the Bee’s ship and mech are its mini bosses; the Bee astronaut is never sent (a broken mech becomes her)', MINI_BOSSES.includes('beeShip') && MINI_BOSSES.includes('beeMech') && !roster.includes('beeNaut') && ENEMY_KINDS.includes('beeNaut'));
   // (The designer: "do not make enemies tankier NEVER".)
@@ -44,7 +51,7 @@ section('Floor 8 — the Moon’s crew');
   check('the astronauts can be executed; the ships (a punch or two) and the Bee mech (it must break) can’t', (['gunner', 'flanker', 'hopper', 'beeNaut'] as const).every((k) => !!EXEC_MOVES[k]) && (['strafer', 'diver', 'mineLayer', 'beeShip', 'beeMech'] as const).every((k) => !EXEC_MOVES[k]));
   check('the astronauts are pinned to a wall they’re thrown into dead', (['gunner', 'flanker', 'hopper', 'beeNaut'] as const).every((k) => PINNABLE.has(k)));
   let missing = '';
-  for (const k of [...CREW, 'beeNaut' as const]) {
+  for (const k of [...CREW, ...PILOTS]) {
     const look = LOOKS[k]!;
     const glb = readFileSync(`public${look.url}`);
     const json = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString()) as { animations?: { name: string }[]; meshes: unknown[] };
@@ -172,6 +179,37 @@ section('Floor 8 — the Bee mech (mini boss), then Barbara');
   check('broken, Barbara climbs out: the Bee astronaut, her own health', k.e.kind === 'beeNaut' && k.e.alive && out.seen.includes('beeEject') && k.e.hp === ENEMY_STATS.beeNaut().hp);
   const fight = run(k, 4, undefined, false);
   check('and fights on foot: her blaster, her punches', fight.seen.includes('gunnerShot') || fight.seen.includes('flankerPunch'));
+}
+
+section('Floor 8 — the Flamingo’s, the Fox’s and the Frog’s mechs (Update 0.3.28)');
+{
+  const same = (k: EnemyKind, to: EnemyKind) => {
+    const x = ENEMY_STATS[k]();
+    const y = ENEMY_STATS[to]();
+    return x.hp === y.hp && x.speed === y.speed && x.radius === y.radius && x.height === y.height && x.size === y.size && x.coins === y.coins;
+  };
+  check('mini bosses, every one the Bee mech’s numbers; each pilot Barbara’s', MECHS.every((k) => MINI_BOSSES.includes(k) && same(k, 'beeMech')) && PILOTS.every((k) => same(k, 'beeNaut') && !MINI_BOSSES.includes(k)));
+  check('each broken, its own pilot climbs out (and the floor loads it)', MECHS.every((k, i) => PILOT_OF[k] === PILOTS[i] && BRINGS[k]?.includes(PILOTS[i])));
+  check('each its own look: its mech, its astronaut', new Set(MECHS.map((k) => LOOKS[k]!.url)).size === 4 && new Set(PILOTS.map((k) => LOOKS[k]!.url)).size === 4 && LOOKS.flamingoMech!.url.endsWith('mech_flamingo.glb') && LOOKS.frogNaut!.url.endsWith('astronaut_frog.glb'));
+  // (Together as often as the Bee's mech alone was: one mini boss in four looks.)
+  const roster = rosterOf(FLOOR.moon);
+  check('the pilots are never sent (a broken mech becomes its pilot)', PILOTS.every((k) => !roster.includes(k)));
+  check('the pilots can be executed and pinned, as Barbara', PILOTS.every((k) => !!EXEC_MOVES[k] && PINNABLE.has(k)) && MECHS.every((k) => !EXEC_MOVES[k]));
+  check('their names: on the death screen and in the Lab', causeName('flamingoMech') === 'The Flamingo Mech' && causeName('foxNaut') === 'Rae the Fox' && causeName('frogNaut') === 'Finn the Frog' && labName('foxMech') === 'Fox Mech');
+  for (const [i, k] of MECHS.slice(1).entries()) {
+    const m = crew(k, [at(0, 0, -10)]);
+    m.e.cooldown = 0;
+    let top = 0;
+    const r = until(m, () => m.e.phase === 'stun', b.glideTime + 3, () => (top = Math.max(top, m.e.pos.y)));
+    const missiles = m.c.orbs.filter((o) => o.look === 'missile' && o.by === k);
+    const k2 = crew(k, [at(0, 0, -6)]);
+    k2.e.cooldown = 99;
+    hitEnemy(k2.e, ENEMY_STATS[k]().hp, 0, 0, 0);
+    const out = run(k2, 0.2);
+    const fight = run(k2, 4, undefined, false);
+    const pilot = PILOTS[i + 1];
+    check(`${labName(k)}: it jumps, glides, fires its salvos (its own), comes down near you; broken, ${labName(pilot)} climbs out and fights on foot`, r.includes('beeMechUp') && near(top, b.glideHeight, 0.3) && r.filter((x) => x === 'beeMissiles').length === Math.round(b.salvos) && missiles.length > 0 && r.includes('beeMechLand') && k2.e.kind === pilot && out.seen.includes('beeEject') && k2.e.hp === ENEMY_STATS[pilot]().hp && (fight.seen.includes('gunnerShot') || fight.seen.includes('flankerPunch')));
+  }
 }
 
 section('Floor 8 — homing missiles');

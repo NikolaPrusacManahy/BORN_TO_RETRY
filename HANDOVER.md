@@ -2,7 +2,21 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.27: the rooms' new rules, the chests, Frozen Depths, the dash bars)
+## Next up (2026-11-03, Update 0.3.28: the Moon's four mechs, mini bosses all)
+- **The designer**: "Mechs as minibosses … just add the remaning 3 as identical functions as bee mech". Spec
+  `MD_UPDATES/U0328_MOON_MECHS.md`. The Flamingo's, the Fox's and the Frog's mechs, the Bee mech's in everything but
+  their looks; broken, their pilots climb out and fight as Barbara. The Lab's mini bosses two to a row; the Moon's
+  enemies named there.
+- **The new bosses (agreed, not built)**: the Bestiary pack (`ASSETS/QUATERNIUS/High-quality-enemies`: Tidebreaker,
+  Hellwarden, Imp, Lycan, Puglin, two Skeletons; no clips) animated with the Universal Animation Library (`ASSETS/
+  QUATERNIUS/ULA 1`, `ULA 2`: 120 + 134 clips, the same 65-bone skeleton). A retarget script (in the session's
+  scratchpad: `ual_bake.py`, each bone's turn carried from its rest pose; the pelvis's bob scaled to the leg) bakes
+  clips into a monster's own GLB; tested on both bosses. **Next: Tidebreaker, the Moon's boss** (its moves: smash,
+  combo, uppercut, moon leap, boulder throw, shell roll, rage with meteors), then **Hellwarden, Hell's** (sword chains,
+  heavies, dash slash, guard and counter; at half, fire wave, plunge, Imps). To do with them: their textures to 1024 px,
+  the sword or club arm held in walks (`Sword_Idle` mixed in), metal that isn't black without an environment map.
+
+## Before (2026-11-03, Update 0.3.27: the rooms' new rules, the chests, Frozen Depths, the dash bars)
 - **The designer's list**; spec `MD_UPDATES/U0327_ROOMS_CHESTS_FROZEN.md`.
 - Fixed floor 2's count looping back (the hives kept letting wasps out after the room's own were dead).
 - Rooms: 8, 10, 12 … a room on every floor; 4 fight rooms on the way on floors 1–3, 5 on 4–7, 6 on 8–10.
@@ -10,7 +24,7 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   deals. The challenge chest's aura red; both auras far bigger (`engine/chestAura.ts`).
 - Frozen Depths: no enemy slides on ice (the Raider, the Berserker, the Roc, knocked bodies); speeds ×1.5, the Draugr,
   Barrow Maid and Haugbui ×1.7. The dash bars share the Execution meter's width past three.
-- Checked by tests; **unseen in the game**. **Next: floor 8, the Shrine Dimension.**
+- Checked by tests; unseen in the game. Next (as it stood): floor 8; then the Bestiary bosses came first.
 
 ## Before (2026-11-03, Update 0.3.26: floor 4's boss, the Frost Roc)
 - **The designer**: "before we move to floor 8, we need floor 4 boss" → "Birb, the Frost Roc". Spec

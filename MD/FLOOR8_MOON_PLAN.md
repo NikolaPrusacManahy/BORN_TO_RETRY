@@ -103,6 +103,9 @@ over the walkers; at most two Gunners shooting at once and the close fighters ta
 floors'). (The mini bosses as other floors': a room with one has the chest.)
 
 ## The boss: the three mechs together (Frog, Fox and Flamingo)
+> Update 0.3.28 — not built: the designer made the Bestiary pack's Tidebreaker the Moon's boss ("Alien as Moon boss"),
+> and the three mechs mini bosses, the Bee mech's in everything but their looks (`MD_UPDATES/U0328_MOON_MECHS.md`).
+
 Fernando the Flamingo's mech (range: a sniper's charged beam, its sight line tracking you, then locking), Rae the Red
 Panda's (the flank: rushes you firing both guns, a spinning kick) and Finn the Frog's (the ground: giant leaps, shock
 rings) fight you together, each in its role; as one falls, the others change their pattern. Its own show. Built after
@@ -114,4 +117,4 @@ the enemies.
 2. **The enemies** (0.3.18, done): the six regulars, the two mini bosses (the Bee astronaut after the mech), the
    rooms' roles.
 3. **The boss** (0.3.24; 0.3.19 went to the floors' fight music, 0.3.20 to the HUD's controls, 0.3.21–0.3.23 to the
-   new lobby): the three mechs together.
+   new lobby): the three mechs together. Update 0.3.28 — the mechs mini bosses instead; the boss Tidebreaker, next.
