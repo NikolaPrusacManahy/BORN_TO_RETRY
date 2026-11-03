@@ -49,6 +49,8 @@ import { grabRules } from '../sim/combat/grab';
 import { jawCue } from '../sim/enemies/bigSharkMoves';
 import { createRaptorHud, raptorHud, sameRaptor } from './raptorHud';
 import { controlsHud, createControlsHud, createParryClock, sameControls } from './controlsHud';
+import type { Bindings } from '../input/bindings';
+import { keyLabel, slotKeysOf } from '../input/keyLabel';
 
 /** HUD refresh interval (s); hits, hurts and health changes push at once. */
 const HUD_EVERY = 0.05;
@@ -91,6 +93,17 @@ export class HudFeed {
   private readonly parryClock = createParryClock();
 
   constructor(private readonly hud: HudStore) {}
+
+  /** Update 0.3.37 — the keys it names, as they're bound (moved from run.ts). */
+  keysOf(b: Bindings) {
+    this.attackKey = keyLabel(b.attack);
+    this.skipKey = keyLabel(b.jump);
+    this.dashKey = keyLabel(b.dash);
+    [this.leftKey, this.rightKey] = [keyLabel(b.left), keyLabel(b.right)];
+    this.slotKeys = slotKeysOf(b);
+    // (Update 0.3.20 — the controls bottom right: the parry's and the ground pound's keys.)
+    [this.heavyKey, this.slamKey] = [keyLabel(b.heavy), keyLabel(b.slam)];
+  }
 
   /** `hits`: how many times you've been hurt, and your shield hit (each new one flashes the screen's edge). */
   /** Update 0.0.21 — `run`: the floor (null: the Lab), for its minimap and the enemies left. */

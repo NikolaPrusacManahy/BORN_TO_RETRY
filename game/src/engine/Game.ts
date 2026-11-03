@@ -17,6 +17,7 @@
 // scenes moved to menu/menuScenes.ts, the run side (the run, its levels, the Lab) to gameBase.ts.
 // Update 0.3.23 — the lobby and every run built behind the loader (gameBase.ts `covered`; the designer: "add few loading
 // screens and give the game some time to load stuff").
+// Update 0.3.37 — the capture kit on the page (capture/captureView.ts), every frame.
 import { MAX_FRAME } from '../core/fixedStep';
 import { requestLock, releaseLock } from '../platform/pointerLock';
 import { FullscreenState, enterFullscreen, exitFullscreen, state as fullscreenState } from '../platform/fullscreen';
@@ -32,6 +33,7 @@ import { GameBase, GameCallbacks } from './gameBase';
 import { MenuScenes, MenuView } from './menu/menuScenes';
 import { preloadLobby } from './lobby/lobbyView';
 import { setFloorMusic } from '../audio/music';
+import { CaptureView } from './capture/captureView';
 
 export type { GameCallbacks, GameMode } from './gameBase';
 export type { MenuView };
@@ -52,10 +54,12 @@ export class Game extends GameBase {
   private raf = 0;
   private last = performance.now();
   private aspect = 16 / 9;
+  private readonly captureView: CaptureView;
 
   constructor(host: HTMLElement, settings: Settings, hud: HudStore, cb: GameCallbacks) {
     super(host, settings, hud, cb);
     this.menus = new MenuScenes(this.audio);
+    this.captureView = new CaptureView(host);
     this.setSettings(settings);
     document.addEventListener('pointerlockchange', this.onLockChange);
     window.addEventListener('keydown', this.onEsc);
@@ -208,6 +212,7 @@ export class Game extends GameBase {
     this.raf = requestAnimationFrame(this.frame);
     const real = Math.min(Math.max(0, (now - this.last) / 1000), MAX_FRAME);
     this.last = now;
+    this.captureView.frame(real);
     // (Update 0.3.23 — the loader going up for a build: nothing runs under it meanwhile.)
     if (this.covering) return;
     if (this.mode === 'play' && this.run) this.run.frame(real, this.input, this.settings, this.aspect, this.renderer, this.stats, this.debug);
@@ -236,6 +241,7 @@ export class Game extends GameBase {
     this.run?.dispose();
     setFloorMusic(null); // (Update 0.3.19 — no fight music left on after the game.)
     this.menus.dispose();
+    this.captureView.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }

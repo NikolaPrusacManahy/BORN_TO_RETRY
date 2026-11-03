@@ -17,6 +17,8 @@ export class Input {
   private pressed = new Set<string>();
   mouseDX = 0;
   mouseDY = 0;
+  /** Update 0.3.37 — the wheel's notches since the frame's mouse was used (up +): the capture kit's free camera. */
+  wheelSteps = 0;
   bindings: Bindings = DEFAULT_BINDINGS;
   /** The last moves kept (when, s; how big, px), to tell a glitch from a flick. A ring, so high-rate mice
    *  (1000+ moves a second) make no garbage. */
@@ -84,6 +86,7 @@ export class Input {
     if (!this.locked || e.deltaY === 0) return;
     e.preventDefault();
     this.pressed.add(e.deltaY < 0 ? 'WheelUp' : 'WheelDown');
+    this.wheelSteps += e.deltaY < 0 ? 1 : -1;
   };
   /** Right click is Heavy: never open the browser menu over the game. */
   private onContextMenu = (e: MouseEvent) => {
@@ -109,6 +112,7 @@ export class Input {
   clearMouse() {
     this.mouseDX = 0;
     this.mouseDY = 0;
+    this.wheelSteps = 0;
   }
 
   clear() {

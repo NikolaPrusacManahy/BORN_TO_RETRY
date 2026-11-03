@@ -75,7 +75,8 @@ section('Loading — every way into a level');
   const runBase = src('engine/runBase.ts');
   check('after Lab, its floors and boss rooms, back to the Lab: behind the loader', /startLab\(\) \{\s+this\.covered/.test(base) && base.includes('this.covered(() => this.newRun(dungeonLevel(') && base.includes('this.covered(() => this.newRun(bossRoomLevel(') && base.includes('this.covered(() => this.newRun(labLevel()))'));
   check('after Start (through the gate into the lobby) and into a run: behind the loader', /throughTheGate\(\) \{[\s\S]{0,80}this\.covered/.test(game) && /startRun\([\s\S]{0,300}this\.covered/.test(game));
-  check('a new floor (the way down), a Retry and a Restart: behind the loader', run.includes('this.loadCovered(() => this.levels.next(this.level), true)') && runBase.includes('this.loadCovered(() => this.levels.fresh(), false)') && runBase.includes('this.loadCovered(() => this.levels.again(this.level), false)'));
+  // (Update 0.3.37 — and the capture kit's boss room alone.)
+  check('a new floor (the way down), a Retry, a Restart and the boss’s show again: behind the loader', run.includes('this.loadCovered(() => this.levels.next(this.level), true)') && runBase.includes('this.loadCovered(() => this.levels.fresh(), false)') && runBase.includes('this.loadCovered(() => this.levels.again(this.level), false)') && runBase.includes('this.loadCovered(() => this.levels.boss(this.level), false)'));
   check('every level made ready (its models, the arms, its shaders) and the world held still meanwhile', runBase.includes('this.makeReady();') && runBase.includes('compileAsync') && run.includes('this.paused || this.loading ? 0 : elapsed'));
   const app = src('App.tsx');
   check('the App: the loader on black while it’s up, clearing after', app.includes('onLoading={setLoading}') && app.includes('{loading && <RunLoader />}'));

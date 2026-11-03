@@ -24,6 +24,8 @@
 // still yours (a twist out of a bite).
 // Update 0.2.9 — the lobby (sim/lobby/lobby.ts): its stations used with E and their cards, walking into the main gate;
 // what happens there is passed on (a choice to save, the gate) with its sound.
+// Update 0.3.37 — the capture kit (dev builds; capture/capture.ts): its free camera flown (you held), its dolly's view
+// or the free camera's in place of yours, its slow motion and freeze, its field of view, the arms shown or not.
 import * as THREE from 'three';
 import type { FrameStats } from '../core/frameStats';
 import type { Input } from '../input/input';
@@ -51,7 +53,8 @@ import { combatMusicOn, floorTrack, setFloorMusic } from '../audio/music';
 import type { DebugInfo } from './hudStore';
 import { readCombatIntent, readPlayerIntent } from './intents';
 import { focusOf } from '../sim/items/focus';
-import { keyLabel, slotKeysOf } from '../input/keyLabel';
+import { keyLabel } from '../input/keyLabel';
+import { capture, controlsOf } from './capture/capture';
 import { applyMoveEvents } from './moveFeedback';
 import { fillDebug } from './overlayFeed';
 import { RunBase } from './runBase';
@@ -92,7 +95,7 @@ export class Run extends RunBase {
       this.prev.copy(p.pos);
       const wasGrounded = p.grounded;
       // The dead don't steer or punch; nor does anyone during the boss room's show.
-      const free = !p.dead && !this.show.locked && !this.chestShot.locked && !execHeld(this.combat.exec);
+      const free = !p.dead && !this.show.locked && !this.chestShot.locked && !execHeld(this.combat.exec) && !capture.flying;
       const held = this.combat.grab.on || this.combat.pin.on;
       readPlayerIntent(input, this.look, this.intent, free && !held);
       readCombatIntent(input, this.look, this.combatIntent, free);
@@ -128,7 +131,7 @@ export class Run extends RunBase {
       stepCombat(this.combat, p, this.combatIntent, this.level.physics, stepDt, d || !this.waves ? [] : this.level.arena.spawns);
       if (d) {
         // (Update 0.3.36 — SPACE skips a boss's show.)
-        if (d.boss.beat === 'intro' && input.locked && input.actionPressed('jump')) d.boss.skip = true;
+        if (d.boss.beat === 'intro' && input.locked && input.actionPressed('jump') && !capture.flying) d.boss.skip = true;
         if (d.level.tide.length > 0 && !bossOn) stepTide(d.tide, this.combat.events, stepDt);
         stepRooms(d, p, this.combat, this.combat.rng, stepDt);
         this.level.physics.setGates(d.shut);
@@ -163,7 +166,7 @@ export class Run extends RunBase {
     const kneeling = p.kneel > 0;
     const grab = this.combat.grab;
     const pin = this.combat.pin;
-    const still = this.loading || kneeling || this.show.locked || this.chestShot.locked || execHeld(this.combat.exec) || grab.on || pin.on;
+    const still = this.loading || kneeling || this.show.locked || this.chestShot.locked || execHeld(this.combat.exec) || grab.on || pin.on || capture.flying;
     const mouseDx = locked && !still ? input.mouseDX : 0;
     const mouseDy = locked && !still ? input.mouseDY : 0;
     if (locked && !still) this.look.apply(mouseDx, mouseDy, settings);
@@ -176,6 +179,7 @@ export class Run extends RunBase {
       const dz = this.skull.z - p.pos.z;
       this.look.turnTo(Math.atan2(-dx, -dz), Math.atan2(this.skull.y - p.pos.y - CAMERA.v.eyeHeight, Math.hypot(dx, dz)), GRAB_TURN, real);
     }
+    capture.steer(controlsOf(input, capture), settings, real);
     input.clearMouse();
     // (Update 0.2.16 — TAB: what you carry; the page shows it and holds the world.)
     if (locked && !p.dead && !this.hold && !still && input.actionPressed('inventory')) {
@@ -184,10 +188,10 @@ export class Run extends RunBase {
     }
 
     // (Update 0.2.21 — a chest's shot holds the world still: only the chest comes up.)
-    const frozen = this.combat.hitStop.tick(real) || this.hold || this.told || this.chestShot.locked;
+    const frozen = this.combat.hitStop.tick(real) || this.hold || this.told || this.chestShot.locked || capture.frozen;
     if (this.chestShot.locked) riseChests(this.treasure, real * LAB.v.timeScale);
     if (locked && !p.dead) this.played += real;
-    const scale = LAB.v.timeScale * this.death.timeScale * this.show.timeScale * this.combatScene.timeScale;
+    const scale = LAB.v.timeScale * this.death.timeScale * this.show.timeScale * this.combatScene.timeScale * capture.timeScale;
     const gameDt = frozen ? 0 : real * scale;
     const steps = frozen ? 0 : this.tick(gameDt, input);
     // (Update 0.2.16 — a chest dealt Fate Cards: the world holds still, the page's deal screen shows them.)
@@ -206,11 +210,13 @@ export class Run extends RunBase {
       this.cb.onDeath();
     }
     this.sounds.setWallRunning(!this.paused && p.wallRunning);
-    this.rig.update(real * scale, this.clock.alpha, this.prev, p, this.look, settings.fov, aspect);
+    const fov = capture.fovOf(settings.fov);
+    this.rig.update(real * scale, this.clock.alpha, this.prev, p, this.look, fov, aspect);
     // The boss room's show may take the view.
     const shot = this.show.update(real, this.camera, this.look, this.combat);
     const chestShot = !shot.cinematic && this.chestShot.update(real, this.treasure, this.camera, p.grounded && !p.dead);
     if (chestShot) this.show.hud.cine = true;
+    const away = capture.view(this.camera, this.rig.shake, fov, aspect, real);
     this.chest.set(p.pos.x, p.pos.y + AIM_HEIGHT, p.pos.z);
     // The shop and chests read this frame's events before the combat scene clears them; the hands follow a lid.
     const tv = this.treasureView;
@@ -224,7 +230,7 @@ export class Run extends RunBase {
     this.combatScene.realFrame(real, !p.grounded, this.hits.hurts, frozen || this.combat.exec.active);
     followHeld(this.combat, this.look, this.arms, this.camera, real);
     followJaws(this.combat, this.arms, this.camera, this.look.yaw, p.pos, this.combatScene.rootOf);
-    const free = locked && !p.dead && !this.show.locked && !shot.cinematic && !chestShot && !execHeld(this.combat.exec);
+    const free = locked && !p.dead && !this.show.locked && !shot.cinematic && !chestShot && !away && !execHeld(this.combat.exec);
     const lobby = this.level.lobby;
     const focus = lobby ? lobbyFocus(lobby, this.focus) : focusOf(this.treasure, this.combat, p, this.fighting, this.focus);
     this.prompts.update(focus, this.camera, renderer, keyLabel(input.bindings.interact), free, this.combatScene.markAt());
@@ -240,16 +246,11 @@ export class Run extends RunBase {
     this.arms.update(gameDt, real, mouseDx, mouseDy, p, f.charging ? f.charge / FISTS.v.chargeTime : -1);
 
     renderer.render(this.scene, this.camera);
-    if (!shot.cinematic && !chestShot) this.arms.render(renderer, aspect);
+    if (!shot.cinematic && !chestShot && !away && capture.armsShown) this.arms.render(renderer, aspect);
 
     fillDebug(debug, p, this.combat);
-    this.hudFeed.attackKey = keyLabel(input.bindings.attack);
-    this.hudFeed.skipKey = keyLabel(input.bindings.jump);
-    this.hudFeed.dashKey = keyLabel(input.bindings.dash);
-    [this.hudFeed.leftKey, this.hudFeed.rightKey] = [keyLabel(input.bindings.left), keyLabel(input.bindings.right)];
-    this.hudFeed.slotKeys = slotKeysOf(input.bindings);
-    // (Update 0.3.20 — the controls bottom right: the parry's and the ground pound's keys, a ground pound ready.)
-    [this.hudFeed.heavyKey, this.hudFeed.slamKey] = [keyLabel(input.bindings.heavy), keyLabel(input.bindings.slam)];
+    this.hudFeed.keysOf(input.bindings);
+    // (Update 0.3.20 — a ground pound ready.)
     this.hudFeed.slamReady = !p.dead && canSlam(p, this.level.physics);
     // (Update 0.3.19 — the floor's fight music, while a fight is on: audio/music.ts.)
     setFloorMusic(d && combatMusicOn(d, p.dead) ? floorTrack(d) : null);

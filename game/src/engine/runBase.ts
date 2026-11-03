@@ -245,13 +245,13 @@ export abstract class RunBase {
     this.rig.reset();
   }
 
-  /** F3 and Restart: the lab from its start; a dungeon floor laid out again from its start. Update 0.1.14 — the
-   *  death screen's Retry: a new run. */
-  restart() {
-    // (Update 0.3.23 — behind the loader.)
+  /** F3 and Restart: the lab, or a dungeon floor laid out again, from its start (Update 0.1.14 — the death screen's
+   *  Retry: a new run; 0.3.23 — behind the loader; 0.3.37 — `boss`: the floor's boss room alone, its show: capture). */
+  restart(boss = false) {
     if (this.told) this.loadCovered(() => this.levels.fresh(), false);
+    else if (this.level.dungeon && boss) this.loadCovered(() => this.levels.boss(this.level), false);
     else if (this.level.dungeon) this.loadCovered(() => this.levels.again(this.level), false);
-    else this.restartHere();
+    else if (!boss) this.restartHere();
   }
 
   /** Update 0.0.19 — the Lab's panel asked for something (in front of where you look). */

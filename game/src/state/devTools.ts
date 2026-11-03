@@ -8,7 +8,7 @@ export function devToolsEnabled(isDev: boolean): boolean {
 
 /** Which dev panel a key opens or closes (null: not a dev key). F1 has ` as a fallback, because some
  *  browsers open their help page on F1. */
-export function devKeyAction(code: string): 'tuning' | 'debug' | 'respawn' | 'god' | 'lab' | 'labPanel' | null {
+export function devKeyAction(code: string): 'tuning' | 'debug' | 'respawn' | 'god' | 'lab' | 'labPanel' | 'capture' | null {
   if (code === 'F1' || code === 'Backquote') return 'tuning';
   if (code === 'F2') return 'debug';
   if (code === 'F3') return 'respawn';
@@ -17,5 +17,7 @@ export function devKeyAction(code: string): 'tuning' | 'debug' | 'respawn' | 'go
   if (code === 'F9') return 'lab';
   // Update 0.0.19 — F8 opens the Lab's panel (in the Lab).
   if (code === 'F8') return 'labPanel';
+  // Update 0.3.37 — F7 the capture kit (engine/capture/capture.ts), \ if the browser keeps F7.
+  if (code === 'F7' || code === 'Backslash') return 'capture';
   return null;
 }

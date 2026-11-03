@@ -58,4 +58,6 @@ export interface Levels {
   next(current: Level): Level;
   /** This floor again from its start (F3, Restart). */
   again(current: Level): Level;
+  /** Update 0.3.37 — this floor's boss room alone, its show from the start (the capture kit's . key). */
+  boss(current: Level): Level;
 }

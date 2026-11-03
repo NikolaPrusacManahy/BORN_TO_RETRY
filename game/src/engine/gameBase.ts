@@ -60,6 +60,7 @@ export abstract class GameBase {
     fresh: () => (this.inLab ? labLevel() : dungeonLevel(newSeed(), 1)),
     next: (l: Level) => (this.inLab && l.bossRoom ? labLevel() : dungeonLevel(l.seed, l.floor + 1)),
     again: (l: Level) => (l.bossRoom ? bossRoomLevel(l.seed, l.floor) : dungeonLevel(l.seed, l.floor)),
+    boss: (l: Level) => bossRoomLevel(l.seed, l.floor),
   };
 
   constructor(
@@ -198,8 +199,9 @@ export abstract class GameBase {
     if (this.inLab) this.run.labCommand({ kind: 'meter', on: this.labMeter });
   }
 
-  /** Back to the start, full health; the targets back in place and whole (F3, Restart). */
-  restart() {
-    this.run?.restart();
+  /** Back to the start, full health; the targets back in place and whole (F3, Restart). Update 0.3.37 — `boss`: this
+   *  floor's boss room alone, its show from the start (the capture kit). */
+  restart(boss = false) {
+    this.run?.restart(boss);
   }
 }

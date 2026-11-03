@@ -1,0 +1,58 @@
+/* Update 0.3.37 — the capture kit (dev builds; engine/capture/): with the HUD gone (the game's host `is-clean`), only
+   the picture: no crosshair, bars, money, slots, controls, rank, prompts or cards over things, no boss bar or skip key.
+   The screen's own flashes stay (a hurt, low health, poison, sand, ink), and the boss show's bars, name card and the
+   floor's name (they're the show's). The key card shows for a moment as capture mode comes on; a word for each change
+   (both cut in the edit). */
+.rb-game.is-clean .rb-hud > :not(.rb-show-bars):not(.rb-show-card):not(.rb-show-veil):not(.rb-show-floor):not(.rb-hud-hurt):not(.rb-hud-low):not(.rb-hud-shieldhit):not(.rb-hud-poison):not(.rb-hud-sand):not(.rb-hud-ink),
+.rb-game.is-clean .rb-prompts {
+  visibility: hidden !important;
+}
+
+.rb-capture-card,
+.rb-capture-toast {
+  position: absolute;
+  z-index: 50;
+  font-family: var(--rb-font);
+  color: #ece6e8;
+  background: rgba(8, 6, 10, 0.78);
+  border: 1px solid rgba(236, 230, 232, 0.18);
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.rb-capture-card.is-on,
+.rb-capture-toast.is-on {
+  opacity: 1;
+}
+
+.rb-capture-card {
+  top: 16px;
+  left: 16px;
+  padding: 10px 14px;
+  display: grid;
+  gap: 5px;
+  font-size: 15px;
+  max-width: calc(100% - 32px);
+}
+
+.rb-capture-title {
+  font-size: 17px;
+  opacity: 0.8;
+  margin-bottom: 2px;
+}
+
+.rb-capture-row .rb-cap {
+  font-size: 14px;
+  margin-right: 6px;
+}
+
+.rb-capture-toast {
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  font-size: 17px;
+  white-space: nowrap;
+}

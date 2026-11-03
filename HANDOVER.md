@@ -2,7 +2,21 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.36: skip a boss's show; weapons past their last use)
+## Next up (2026-11-03, Update 0.3.37: the capture kit, for the trailer)
+- **The designer**: "Might need to make a trailer for this game", then "Build capture kit". Spec
+  `MD_UPDATES/U0337_CAPTURE_KIT.md` (the keys, how to film each kind of shot, the trailer's 75 s plan).
+- **Where:** `engine/capture/`:
+  - `capture.ts`: one state for the whole game, so the dolly's points outlast a load;
+  - `freeCam.ts`;
+  - `dolly.ts`: a Catmull-Rom glide, even speed, eased;
+  - `captureView.ts`: the page, with the host's `is-clean` class (`theme-44-capture.css`).
+- **Wired in:**
+  - `run.ts` asks it each frame for the view, the time, the field of view and the arms.
+  - F7 and its keys are in `useDevKeys.ts`.
+  - `.` is `restart(true)`: `levels.boss`, the floor's boss room alone.
+- **Next:** the designer records. If the browser keeps F7, `\` does the same.
+
+## Before (2026-11-03, Update 0.3.36: skip a boss's show; weapons past their last use)
 - **The designer**: "Add a skip button while the Intro is played for any boss -> "SPACE" to skip", and a tester's bug
   ("holding attack and pick up a weapon you can use it infinitely as long as you hold click"). Spec
   `MD_UPDATES/U0336_SKIP_AND_WEAPONS.md`.
