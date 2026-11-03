@@ -7,22 +7,25 @@
 // Update 0.3.18 — floor 8's: a blaster bolt (a pink-white streak, glowing) and the Bee mech's missile (a steel body,
 // its nose cone, its exhaust glowing and smoking behind it).
 // Update 0.3.22 — floor 7's Axe Thrower's axe (a hand axe, spinning flat: a wooden haft, a steel head).
+// Update 0.3.33 — floor 8's: a shuriken (a dark steel star, spinning flat), a kunai and an arrow (nose first, the arrow
+// fletched red and white), the Sensei's ki (a big blue fireball).
 import * as THREE from 'three';
 import type { Orb } from '../sim/combat/targets';
 
-export type ShotStyle = 'fire' | 'blueFire' | 'acid' | 'water' | 'spear' | 'spine' | 'feather' | 'carrot' | 'laser' | 'missile' | 'axe';
+export type ShotStyle = 'fire' | 'blueFire' | 'acid' | 'water' | 'spear' | 'spine' | 'feather' | 'carrot' | 'laser' | 'missile' | 'axe' | 'shuriken' | 'kunai' | 'arrow';
 
 /** A shot's style: by who fired it, then by its look. */
 export function shotStyle(o: Orb): ShotStyle {
   if (o.by === 'blueDemon') return 'blueFire';
   if (o.by === 'spitter') return 'acid';
   if (o.by === 'maskTribal') return 'feather';
-  if (o.look === 'laser' || o.look === 'missile' || o.look === 'axe') return o.look;
+  if (o.look === 'laser' || o.look === 'missile' || o.look === 'axe' || o.look === 'shuriken' || o.look === 'kunai' || o.look === 'arrow') return o.look;
+  if (o.look === 'ki') return 'blueFire';
   return o.look === 'water' ? 'water' : o.look === 'spear' ? 'spear' : o.look === 'spine' ? 'spine' : o.look === 'carrot' ? 'carrot' : 'fire';
 }
 
 /** A fireball's size by who threw it (times the orbs' size). */
-export const fireScale = (o: Orb) => (o.by === 'dragon' ? 1.7 : o.by === 'demon' ? 1.35 : o.by === 'dragonling' ? 0.85 : 1);
+export const fireScale = (o: Orb) => (o.by === 'dragon' ? 1.7 : o.by === 'demon' ? 1.35 : o.by === 'dragonling' ? 0.85 : o.by === 'sensei' ? 1.9 : 1);
 
 /** What a style leaves behind it (particles a second; their colour; whether they fall) and throws out where it lands
  *  (how many; their colour; a flash of fire). */
@@ -47,6 +50,9 @@ export const TRAILS: Record<ShotStyle, ShotTrail> = {
   laser: { rate: 0, color: 0, falls: false, burst: 10, burstColor: 0xff8ad0, flash: 0xff8ad0 },
   missile: { rate: 40, color: 0xd8d2cc, falls: false, burst: 20, burstColor: 0xff8a30, flash: 0xffa040 },
   axe: { rate: 0, color: 0, falls: true, burst: 6, burstColor: 0xb8c0c8, flash: null },
+  shuriken: { rate: 0, color: 0, falls: true, burst: 6, burstColor: 0x9aa2ac, flash: null },
+  kunai: { rate: 0, color: 0, falls: true, burst: 5, burstColor: 0x8a929c, flash: null },
+  arrow: { rate: 0, color: 0, falls: true, burst: 5, burstColor: 0xd8c4a0, flash: null },
 };
 
 /** Every style's meshes for one shot's slot (each hidden but its own: shotsView.ts shows one). Geometries and
@@ -124,8 +130,37 @@ export class ShotMeshes {
     head.scale.set(0.09, 0.05, 0.24);
     head.position.set(0.26, 0, 0.07);
     axe.add(haft, head);
+    // (Update 0.3.33 — a shuriken flat, a kunai and an arrow along +y, nose at the top.)
+    const shuriken = new THREE.Mesh(kit.star, kit.darkSteel);
+    shuriken.scale.setScalar(0.17);
+    const kunai = new THREE.Group();
+    const blade = new THREE.Mesh(kit.cone, kit.darkSteel);
+    blade.scale.set(0.045, 0.2, 0.015);
+    blade.position.y = 0.08;
+    const grip = new THREE.Mesh(kit.rod, kit.wrap);
+    grip.scale.set(0.016, 0.14, 0.016);
+    grip.position.y = -0.1;
+    kunai.add(blade, grip);
+    const arrow = new THREE.Group();
+    const arrowShaft = new THREE.Mesh(kit.rod, kit.wood);
+    arrowShaft.scale.set(0.012, 0.8, 0.012);
+    arrowShaft.position.y = -0.4;
+    const point = new THREE.Mesh(kit.cone, kit.steel);
+    point.scale.set(0.025, 0.08, 0.025);
+    point.position.y = 0.04;
+    arrow.add(arrowShaft, point);
+    for (const k of [0, 1]) {
+      const vane = new THREE.Mesh(kit.leaf, k ? kit.feather : kit.featherTip);
+      vane.scale.set(0.05, 0.16, 1);
+      vane.position.y = -0.72;
+      vane.rotation.y = k * (Math.PI / 2);
+      arrow.add(vane);
+    }
     this.parts = {
       axe,
+      shuriken,
+      kunai,
+      arrow,
       laser,
       missile,
       fire: fireball(kit.fireCore, kit.fireInner, kit.fireOuter, this.flame),
@@ -157,6 +192,10 @@ export class ShotKit {
   readonly box = new THREE.BoxGeometry(1, 1, 1);
   /** A feather's vane: a thin diamond in the plane. */
   readonly leaf = new THREE.ShapeGeometry(new THREE.Shape([new THREE.Vector2(0, -0.5), new THREE.Vector2(0.5, 0), new THREE.Vector2(0, 0.5), new THREE.Vector2(-0.5, 0)]));
+  /** Update 0.3.33 — a shuriken: a four-pointed star, flat (in the x-z plane). */
+  readonly star = new THREE.ShapeGeometry(new THREE.Shape(Array.from({ length: 8 }, (_, k) => new THREE.Vector2(Math.cos((k * Math.PI) / 4) * (k % 2 ? 0.28 : 1), Math.sin((k * Math.PI) / 4) * (k % 2 ? 0.28 : 1))))).rotateX(-Math.PI / 2);
+  readonly darkSteel = new THREE.MeshStandardMaterial({ color: 0x5c636c, roughness: 0.35, metalness: 0.7, side: THREE.DoubleSide });
+  readonly wrap = new THREE.MeshStandardMaterial({ color: 0x5a1a1a, roughness: 0.9 });
   private readonly glow = (color: number, opacity: number) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
   readonly fireCore = new THREE.MeshBasicMaterial({ color: 0xfff4c8, toneMapped: false });
   readonly fireInner = this.glow(0xff9a2a, 0.75);

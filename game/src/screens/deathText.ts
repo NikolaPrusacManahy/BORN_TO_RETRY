@@ -103,6 +103,16 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   berserker: 'The Berserker',
   haugbui: 'Haugbui',
   frostRoc: 'The Frost Roc',
+  karateka: 'A Karateka',
+  karateGirl: 'A Karate Girl',
+  shinobi: 'A Shinobi',
+  kunoichi: 'A Kunoichi',
+  sandNinja: 'A Sand Ninja',
+  sandNinjaF: 'A Sand Ninja',
+  archer: 'An Archer',
+  sensei: 'The Sensei',
+  shadow: 'The Shadow',
+  shadowClone: 'The Shadow',
 };
 
 export const causeName = (by: Cause | null) => (by ? CAUSE_NAMES[by] : 'Unknown');

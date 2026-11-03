@@ -214,9 +214,27 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
     bridges.
   - **Nine rooms:** the torii path, the sakura grove, the zen garden, the koi pond, the bamboo forest, the dojo, the
     lantern steps, the pagoda court, the tea garden. Its boss room is the Great Shrine.
-  - Playable in the Lab (a new floor). Its enemies stand in (the dry floors') and its boss too (the Velociraptor)
-    **till its own come**; the run still ends at floor 7.
-- **Next:** its martial artists (the plan's six and two mini bosses); its boss is on hold (the designer will redesign it).
+  - Playable in the Lab. Its boss stands in (the Velociraptor) **till its own comes**; the run still ends at floor 7.
+- **Its martial artists (0.3.33; spec `MD_UPDATES/U0333_SHRINE_FIGHTERS.md`).** The designer: "make sure enemies are
+  indeed martial art experts, dashing, side steps … something challeging … match the proper animation".
+  - **Their clips:** the Universal Animation Library's, retargeted onto the people's rig and baked into each model.
+    Every move plays its own clip, and each blow lands where the clip's fist, foot or blade does.
+  - **What they all share** (`sim/enemies/martial.ts`):
+    - a stance at their own distance, side-stepping round you, backing off if crowded;
+    - a sprinting dash ending in a blow;
+    - side-steps from your blows, likelier the more you swing;
+    - open after each strike.
+  - **Karateka (40):** combos and a kick that throws you back; blocks blows from in front and counters at once.
+  - **Karate Girl (30):** quicker, a flying knee, dodges more, back-flips away after her combo.
+  - **Shinobi (28):** a fan of three shuriken; a dash cut through you; vanishes behind you.
+  - **Kunoichi (24):** wall runs and leaps down on you (a blow all round her landing); kunai.
+  - **Sand Ninjas (26):** smoke bombs (clouds you can't see through); caltrops that cut and slow; a roll away.
+  - **Archer (22):** draws with a glint, then a shot or, every third, a volley of three; backs away; the perchers.
+  - **The Sensei (320):** turns every blow from in front, and every third brings his counter; staff combos, a slam's
+    ring, a ki palm.
+  - **The Shadow (300):** a long cut along a red line through you; clones at two thirds and one third of his health
+    (one hit each, half his blows, gone when he falls); a leap; vanishes behind you.
+- **Next:** its boss, once the designer has redesigned it; then the run goes on past floor 7.
 
 ### Floor 8 — the Moon (floor 9 since Update 0.3.25) (Update 0.3.17; the plan `MD/FLOOR8_MOON_PLAN.md`; spec `MD_UPDATES/U0317_THE_MOON.md`)
 - The designer: "BIG REWORK of FLOOR 8": a sci-fi moon floor (the Ultimate Space Kit, `ASSETS/QUATERNIUS/FLOOR-8`).

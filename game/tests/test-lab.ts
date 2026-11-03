@@ -183,14 +183,15 @@ section('Lab panel — a column a floor, the items by kind');
   check('each floor with its own boss (none while another’s stands in)', LAB_FLOORS.every((f) => f.boss === ownBossOf(f.floor) || (f.boss === null && ownBossOf(f.floor) === null)));
   // (Update 0.3.11 — the designer: "F8 command please": floor 7 to play from the Lab, past the run's end.)
   // (Update 0.3.26 — Frozen Depths' boss its own, the Frost Roc.)
-  // (Update 0.3.32 — the Shrine Dimension built, its enemies to come: to play, a new floor.)
-  check('Frozen Depths is in the panel (floor 4) with its Frost Roc, the Velociraptor under the Desert (6); the Shrine Dimension (8) to play, the Moon (9) too', LAB_FLOORS.some((f) => f.floor === FLOOR.frozen && f.boss === 'frostRoc') && LAB_FLOORS.find((f) => f.boss === 'dino')?.floor === FLOOR.desert && LAB_NEW.includes(FLOOR.shrine) && LAB_FLOORS.some((f) => f.floor === FLOOR.moon));
+  // (Update 0.3.32 — the Shrine Dimension built; Update 0.3.33 — its martial artists: a column of its own, its boss still
+  // another's.)
+  check('Frozen Depths is in the panel (floor 4) with its Frost Roc, the Velociraptor under the Desert (6); the Shrine Dimension (8) its fighters, the Moon (9) too', LAB_FLOORS.some((f) => f.floor === FLOOR.frozen && f.boss === 'frostRoc') && LAB_FLOORS.find((f) => f.boss === 'dino')?.floor === FLOOR.desert && LAB_FLOORS.some((f) => f.floor === FLOOR.shrine && f.enemies.includes('karateka') && f.boss === null) && LAB_FLOORS.some((f) => f.floor === FLOOR.moon));
   // (Update 0.3.13 — and floor 8: the floors with nothing of their own yet share New floors.)
   // (The designer: "always put a new floor there", "put page 1 & 2 instead of stacking them together".)
   // (Update 0.3.14 — and floor 6, reworked: its stand-ins and its boss's are other floors'. Update 0.3.15 — its crew
   // made: its column back.)
   // (Update 0.3.18 — floor 8 has its crew: a column, page 3. Update 0.3.22 — and floor 7 its warband: a column beside it.)
-  check('the Shrine Dimension only to play (its enemies to come); each other floor a column, three to a page', LAB_NEW.join() === String(FLOOR.shrine) && LAB_COLUMNS.length === 8 && LAB_PAGES.map((pg) => pg.map((f) => f.floor).join('')).join(' ') === '123 456 79');
+  check('no floor only to play now; each a column, three to a page (floor 8 its fighters)', LAB_NEW.length === 0 && LAB_COLUMNS.length === 9 && LAB_PAGES.map((pg) => pg.map((f) => f.floor).join('')).join(' ') === '123 456 789');
   // (Update 0.3.28 — its mini bosses two to a row: the Moon's five.)
   check('a floor’s column fits (9 rows at most: its mini bosses two to a row)', LAB_FLOORS.every((f) => labRows(f) <= 9), LAB_FLOORS.map(labRows).join(' '));
   const items = LAB_ITEMS.flatMap(([, picks]) => picks.map(([, cmd]) => cmd));
@@ -214,7 +215,7 @@ section('Lab panel — a column a floor, the items by kind');
   const said = (text: string) => count(`>${text}<`) + count(`>${text.replace(' ', ' <!-- -->')}<`);
   check('it opens on Enemies: five tabs, page 1 of 3 (floors 1–3, their bosses with their rooms)', (html.match(/rb-lab-tab[ "]/g) ?? []).length === 5 && count('>Play<') === 3 && count('>Room<') === 3 && html.includes('>Demon<') && html.includes('>Bone King<') && !html.includes('>Velociraptor<') && said('Page 1') === 1 && said('Page 2') === 1 && said('Page 3') === 1);
   // (Update 0.3.22 — floor 7 has its warband: no new floor left in the bottom row.)
-  // (Update 0.3.32 — the Shrine Dimension there, till its enemies come.)
-  check('floor 8 in the bottom row, a new floor to play (floor 7 a column)', said('Floor 7') === 0 && said('Floor 8') === 1);
+  // (Update 0.3.32 — the Shrine Dimension there, till its enemies came: Update 0.3.33, a column.)
+  check('no new floor in the bottom row (floors 7 and 8 columns)', said('Floor 7') === 0 && said('Floor 8') === 0);
   check('below: Clear, Heal, Back; Waves, God, Meter, Stay', ['Clear', 'Heal', 'Back', 'Waves', 'God', 'Meter', 'Stay'].every((t) => html.includes(`>${t}<`)));
 }

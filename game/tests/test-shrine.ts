@@ -5,7 +5,7 @@
 // under each sakura; a torii in its doorways and across its paths (walk under them, their posts solid); its bridges
 // railed along the water; its look (bright, a pale pink haze, its leaves cut out, petals falling); islands floating in
 // its sky with the shrine's pieces on them; playable in the Lab
-// (its enemies and boss stand in till their own come); the run still ending at floor 7.
+// (Update 0.3.33: its own martial artists; its boss stands in); the run still ending at floor 7.
 import * as THREE from 'three';
 import { check, section } from './harness';
 import { parseUntextured } from './fakes/glb';
@@ -20,7 +20,7 @@ import { styleOf } from '../src/world/dungeon/styles';
 import { buildNavGrid } from '../src/world/navGrid';
 import { createFlow, updateFlow } from '../src/sim/enemies/chase';
 import { GRID_RADIUS } from '../src/sim/enemies/kinds';
-import { LAB_NEW } from '../src/screens/labLists';
+import { LAB_FLOORS, LAB_NEW } from '../src/screens/labLists';
 import { LAST_FLOOR } from '../src/engine/runLinks';
 import { kitMaterial } from '../src/engine/kitMaterial';
 import { MotesView } from '../src/engine/motesView';
@@ -179,7 +179,8 @@ section('Shrine Dimension — its look');
 
 section('Shrine Dimension — to play');
 {
-  check('in the Lab, a new floor (its enemies and boss stand in till their own come)', LAB_NEW.includes(F));
+  // (Update 0.3.33 — its martial artists: a column of its own in the Lab.)
+  check('in the Lab, a column of its own (its boss stands in till its own comes)', !LAB_NEW.includes(F) && LAB_FLOORS.some((f) => f.floor === F && f.enemies.length > 0 && f.boss === null));
   check('the run still ends at Skull Cove (floor 7) till its enemies come', LAST_FLOOR === FLOOR.cove);
 }
 

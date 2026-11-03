@@ -1,0 +1,57 @@
+// Update 0.3.33 — floor 8's martial artists, the Shrine Dimension (MD/FLOOR8_SHRINE_PLAN.md; the designer: "make sure
+// enemies are indeed martial art experts, dashing, side steps, etc etc... something challeging"): the Karateka's stance
+// and combos, his block and counter; the Karate Girl's speed, her flying knee and back-flips; the Shinobi's shuriken and
+// dash cut, his vanishing; the Kunoichi's wall runs and leaps; the Sand Ninjas' smoke and caltrops; the Archer's bow.
+// Their health in the floors before's range (the designer: "do not make enemies tankier NEVER"): harder by their moves.
+// Times in seconds, distances in metres, speeds in m/s. **(placeholders)**
+import { group, knob } from './schema';
+
+export const FOES_SHRINE = group('foesShrine', 'Shrine fighters', {
+  karatekaHp: knob(40, 5, 400, 5, 'Karateka health', 'The karate fighter: his stance, combos, a block and counter.'),
+  karatekaSpeed: knob(5.2, 0.5, 12, 0.1, 'Karateka speed', 'How fast he runs in.'),
+  karatekaBlock: knob(0.35, 0, 1, 0.05, 'Karateka block', 'The share of blows from in front of him he blocks, and counters.'),
+  karatekaDodge: knob(0.2, 0, 1, 0.05, 'Karateka side-step', 'The share of blows he side-steps (more the more you swing).'),
+  karateGirlHp: knob(30, 5, 400, 5, 'Karate Girl health', 'Quicker and lighter: her flying knee, side-steps, back-flips.'),
+  karateGirlSpeed: knob(6.2, 0.5, 12, 0.1, 'Karate Girl speed', 'How fast she runs in.'),
+  karateGirlDodge: knob(0.35, 0, 1, 0.05, 'Karate Girl side-step', 'The share of blows she side-steps (more the more you swing).'),
+  dodgeMore: knob(0.15, 0, 0.5, 0.01, 'Side-step more', 'Each blow you’ve thrown at one lately adds this to its side-step.'),
+  dodgeRest: knob(1, 0.2, 4, 0.05, 'Side-step rest', 'Between one’s side-steps.'),
+  strafeSpeed: knob(3.6, 0.5, 8, 0.1, 'Stance side-step speed', 'How fast they circle you in their stance.'),
+  dashSpeed: knob(14, 4, 30, 0.5, 'Dash speed', 'A fighter’s dash in, at you, before its blow.'),
+  punch: knob(8, 1, 40, 1, 'Punch', 'A jab, a cross, a hook, to you.'),
+  kick: knob(12, 1, 40, 1, 'Kick', 'A kick or a knee: it throws you back.'),
+  counter: knob(14, 1, 40, 1, 'Counter', 'His uppercut after a block: it throws you up.'),
+  shinobiHp: knob(28, 5, 400, 5, 'Shinobi health', 'The ninja with the katana: shuriken, a dash cut, vanishing.'),
+  shinobiSpeed: knob(5.8, 0.5, 12, 0.1, 'Shinobi speed', 'How fast he runs.'),
+  shuriken: knob(7, 1, 40, 1, 'Shuriken', 'Each of his three, to you.'),
+  shurikenSpeed: knob(20, 5, 40, 0.5, 'Shuriken speed', 'How fast they fly.'),
+  dashCut: knob(16, 1, 60, 1, 'Dash cut', 'His dash through you, katana out.'),
+  slash: knob(8, 1, 40, 1, 'Katana slash', 'Each of his close cuts.'),
+  vanish: knob(0.35, 0, 1, 0.05, 'Vanish', 'The share of blows a Shinobi vanishes from, behind you.'),
+  vanishRest: knob(2.2, 0.2, 8, 0.1, 'Vanish rest', 'Between his vanishings.'),
+  kunoichiHp: knob(24, 5, 400, 5, 'Kunoichi health', 'She runs along the walls and leaps off them at you.'),
+  kunoichiSpeed: knob(6.6, 0.5, 12, 0.1, 'Kunoichi speed', 'How fast she runs.'),
+  wallRunSpeed: knob(11, 3, 25, 0.5, 'Wall run speed', 'Running along a wall.'),
+  wallRunFor: knob(1.2, 0.3, 3, 0.05, 'Wall run for', 'At most this long on a wall before she leaps.'),
+  leapTime: knob(0.8, 0.3, 2, 0.05, 'Kunoichi leap', 'In the air this long, turning over, coming down on you.'),
+  leapHit: knob(14, 1, 60, 1, 'Kunoichi landing', 'Coming down on you: everything this near her landing.'),
+  leapReach: knob(1.8, 0.5, 5, 0.1, 'Kunoichi landing reach', 'How near her landing hurts.'),
+  kunai: knob(6, 1, 40, 1, 'Kunai', 'Each of her two kunai, to you.'),
+  kunoichiDodge: knob(0.4, 0, 1, 0.05, 'Kunoichi side-step', 'The share of blows she side-steps.'),
+  sandHp: knob(26, 5, 400, 5, 'Sand Ninja health', 'Smoke bombs, caltrops, rolling away.'),
+  sandSpeed: knob(5.4, 0.5, 12, 0.1, 'Sand Ninja speed', 'How fast they run.'),
+  smokeEvery: knob(7, 1, 20, 0.5, 'Smoke bomb every', 'Between a Sand Ninja’s smoke bombs.'),
+  smokeSize: knob(4.5, 1, 10, 0.25, 'Smoke size', 'A smoke cloud’s reach (you can’t see through it).'),
+  smokeLast: knob(5, 1, 15, 0.25, 'Smoke lasts', 'How long a cloud hangs.'),
+  caltropsEvery: knob(6, 1, 20, 0.5, 'Caltrops every', 'Between a Sand Ninja’s scattered caltrops.'),
+  caltropsSize: knob(1.8, 0.5, 5, 0.1, 'Caltrops size', 'How far across a scatter of caltrops lies.'),
+  caltropsLast: knob(9, 1, 30, 0.5, 'Caltrops last', 'How long they lie.'),
+  caltropsCut: knob(6, 1, 30, 1, 'Caltrops cut', 'Standing in them: this, once in a while.'),
+  caltropsSlow: knob(0.55, 0.1, 1, 0.05, 'Caltrops slow', 'Your speed in them, a share of your own.'),
+  archerHp: knob(22, 5, 400, 5, 'Archer health', 'Her bow, from far off and the rooftops.'),
+  archerSpeed: knob(4.6, 0.5, 12, 0.1, 'Archer speed', 'How fast she moves.'),
+  aimTime: knob(0.9, 0.2, 3, 0.05, 'Archer aim', 'She draws this long (a glint) before loosing.'),
+  arrow: knob(12, 1, 50, 1, 'Arrow', 'An arrow, to you.'),
+  arrowSpeed: knob(30, 8, 60, 1, 'Arrow speed', 'How fast her arrows fly.'),
+  arrowEvery: knob(2.4, 0.5, 10, 0.1, 'Archer every', 'Between her shots (every third a volley of three).'),
+});

@@ -13,6 +13,7 @@
 // floor 8's crew's lines on the ground (moon/crewMarks.ts). Update 0.3.22 — and floor 7's warband's rime, chants and
 // stomps (norse/warbandFx.ts). Update 0.3.26 — and its boss's, the Frost Roc's leap, breath and gust (norse/rocFx.ts).
 // Update 0.3.29 — and the Moon's boss, Tidebreaker's shell, boulder, landing and blows (moon/tideFx.ts).
+// Update 0.3.33 — and floor 8's martial artists' smoke, caltrops, cut lines and glints (shrine/shrineFx.ts).
 // Update 0.2.23 — floor 2's wasps' hives (hivesView.ts), and its tall grass parting round you and the enemies.
 // Update 0.2.26 — blood (bloodFx.ts). Update 0.2.27 — the enemies' shots (shotsView.ts). Update 0.2.28 — your
 // blows' arcs, dust rings and the hammer's rocks (blowsFx.ts). Update 0.3.0 — the halos (halos.ts): each frame starts
@@ -43,6 +44,7 @@ import { CrewMarks } from './moon/crewMarks';
 import { WarbandFx } from './norse/warbandFx';
 import { RocFx } from './norse/rocFx';
 import { TideFx } from './moon/tideFx';
+import { ShrineFx } from './shrine/shrineFx';
 import { EnemiesView } from './enemiesView';
 import { ExecScene } from './exec/execScene';
 import { FireView } from './fireView';
@@ -94,6 +96,7 @@ export class CombatScene {
   private readonly warband: WarbandFx;
   private readonly roc: RocFx;
   private readonly tide: TideFx;
+  private readonly shrine: ShrineFx;
   readonly raptor: RaptorFx;
   private readonly hives: HivesView;
   private readonly blood: BloodFx;
@@ -124,6 +127,7 @@ export class CombatScene {
     this.warband = new WarbandFx(scene);
     this.roc = new RocFx(scene);
     this.tide = new TideFx(scene);
+    this.shrine = new ShrineFx(scene);
     this.raptor = new RaptorFx(scene);
     this.hives = new HivesView(scene, state);
     this.blood = new BloodFx(scene);
@@ -187,6 +191,7 @@ export class CombatScene {
     this.warband.update(state, gameDt);
     this.roc.update(state, gameDt);
     this.tide.update(state, this.rootOf, gameDt);
+    this.shrine.update(state, gameDt);
     this.raptor.update(state, alpha, gameDt, (i) => this.enemies.headOf(i));
     this.waves.update(gameDt);
     this.coins.update(state.coins, gameDt);
@@ -257,6 +262,7 @@ export class CombatScene {
     this.warband.dispose();
     this.roc.dispose();
     this.tide.dispose();
+    this.shrine.dispose();
     this.raptor.dispose();
     this.hives.dispose();
     this.blood.dispose();

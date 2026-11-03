@@ -3,6 +3,8 @@
 // material name; the dead frost-blue (Haugbui darker), the Völva's robe pale with her hat-band lit, the Thrower in a
 // darker tunic; and their eyes (the pack's 'Face': the white eyes on its dark faces) lit: ice-blue, the Berserker's red.
 // A lit eye is unlit by the scene and not the body's (a hit's flash, a wind-up's glow leave it). Made in code.
+// Update 0.3.33 — and floor 8's martial artists: the Archer in indigo, the Sensei in a black gi with a gold belt, the
+// Shadow all black with a blood-red sash (his clones see-through, a shadow of him); the ninjas' and the masters' eyes lit.
 import * as THREE from 'three';
 import type { EnemyKind } from '../../sim/enemies/kinds';
 
@@ -14,7 +16,14 @@ const TINTS: Partial<Record<EnemyKind, Record<string, number>>> = {
   barrowMaid: DEAD,
   volva: { Clothes: 0xc3ccd6, Hat: 0x2a3a4e, Belt: 0x5a4a3a },
   haugbui: { ...DEAD, Skin: 0x4f6573, Clothes: 0x2e353d, DarkClothes: 0x1f242a, Pants: 0x4a5258, Brain: 0x7f9aa8 },
+  archer: { Clothes: 0x2f4a7a, Band: 0xe8d9b0 },
+  sensei: { Clothes: 0x232328, Band: 0xc9a227 },
+  kunoichi: { Details: 0x8a1a5a },
+  shadow: { Main: 0x08080a, Details: 0x7a0c0c, Grey: 0x1a1a1e },
+  shadowClone: { Main: 0x050507, Details: 0x4a0808, Grey: 0x101012, Skin: 0x050507 },
 };
+/** Update 0.3.33 — see-through, a shadow of someone (the Shadow's clones). */
+const GHOST: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['shadowClone']);
 const ICE = 0x7fdcff;
 /** What's lit on each (material: colour). */
 const LIT: Partial<Record<EnemyKind, Record<string, number>>> = {
@@ -25,6 +34,13 @@ const LIT: Partial<Record<EnemyKind, Record<string, number>>> = {
   volva: { Face: ICE, Gold: ICE },
   berserker: { Face: 0xff4a2a },
   haugbui: { Face: ICE },
+  shinobi: { Face: 0xff3a2a },
+  kunoichi: { Face: 0xff5ad8 },
+  sandNinja: { Face: 0xffb050 },
+  sandNinjaF: { Face: 0xffb050 },
+  sensei: { Face: 0xffd36a },
+  shadow: { Face: 0xff2020 },
+  shadowClone: { Face: 0xff2020 },
 };
 
 /** One lit material per colour, shared by every body. */
@@ -49,6 +65,11 @@ export function ownMaterials(kind: EnemyKind, root: THREE.Object3D): THREE.MeshS
       return;
     }
     if (tints?.[name] !== undefined) m.color.setHex(tints[name]);
+    if (GHOST.has(kind)) {
+      m.transparent = true;
+      m.opacity = 0.5;
+      m.depthWrite = false;
+    }
     o.material = m;
     mats.push(m);
   });

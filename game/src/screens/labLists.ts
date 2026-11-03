@@ -88,6 +88,17 @@ const NAMES: Partial<Record<EnemyKind, string>> = {
   berserker: 'Berserker',
   haugbui: 'Haugbui',
   frostRoc: 'Frost Roc',
+  // (Update 0.3.33 — floor 8's martial artists.)
+  karateka: 'Karateka',
+  karateGirl: 'Karate Girl',
+  shinobi: 'Shinobi',
+  kunoichi: 'Kunoichi',
+  sandNinja: 'Sand Ninja',
+  sandNinjaF: 'Sand Ninja (she)',
+  archer: 'Archer',
+  sensei: 'Sensei',
+  shadow: 'The Shadow',
+  shadowClone: 'Shadow clone',
   // (Update 0.3.28 — the Moon's crew, and its four mechs and their pilots.)
   gunner: 'Gunner',
   flanker: 'Flanker',

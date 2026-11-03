@@ -2,7 +2,25 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.32: floor 8, the Shrine Dimension's level)
+## Next up (2026-11-03, Update 0.3.33: floor 8's martial artists)
+- **The designer**: "make sure enemies are indeed martial art experts, dashing, side steps, etc etc... something
+  challeging. Make sure you match the proper animation, with 200+ animation SURELY you can do something about it".
+  Spec `MD_UPDATES/U0333_SHRINE_FIGHTERS.md`.
+- **The fighters:** Karateka, Karate Girl, Shinobi, Kunoichi, two Sand Ninjas and the Archer; the Sensei and the Shadow
+  are the mini bosses.
+  - Their shared brain is `sim/enemies/martial.ts`; their moves, clip lengths and blow timings are in
+    `shrineShared.ts`.
+  - Each fighter has its own file, and its numbers are in `tuning/foesShrine.ts` and `foesShrineB.ts`.
+  - Their looks are in `engine/shrine/shrineLooks.ts`.
+- **The clips** are UAL's, retargeted onto the people's rig.
+  - The scripts: `tools/ual_people.py` (retarget and bake), `ual_fighters.py` (each fighter's list, run in Blender),
+    and `ual_lands.py` (where blows land: rerun it if clips change, then update `CLIPS`).
+  - `test-shrine-fighters.ts` checks every clip played is in its model and timed by its length.
+- Playable in the Lab; the run still ends at floor 7; the boss is a stand-in.
+- Checked by tests (35) and Blender renders; **unseen in the game**.
+- **Next:** the designer plays them. Then floor 8's boss, once redesigned (an intro at Tidebreaker's quality).
+
+## Before (2026-11-03, Update 0.3.32: floor 8, the Shrine Dimension's level)
 - **The designer**: "floor 8 - Japan theme"; the plan `MD/FLOOR8_SHRINE_PLAN.md` agreed ("go with that, without the Wolf
   yet, I will redesign him after"). Spec `MD_UPDATES/U0332_SHRINE_LEVEL.md`.
 - Its code:

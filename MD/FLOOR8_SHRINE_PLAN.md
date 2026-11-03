@@ -2,6 +2,10 @@
 
 > The designer: "go with that, without the Wolf yet, I will redesign him after". The level, its enemies and its mini
 > bosses as planned; **its boss is on hold** (the Ōkami below is a first idea only; a stand-in meanwhile).
+>
+> **Built:** the level (0.3.32), its enemies and mini bosses (0.3.33, `MD_UPDATES/U0333_SHRINE_FIGHTERS.md`). As
+> built, the Archers are the perchers; the Kunoichi runs the walls and leaps from the floor instead of waiting in
+> trees.
 
 The designer: "floor 8 - Japan theme … karate or martial art enemies … Sakura trees and a shrine and this kind of
 thing, loads of sakura leaves"; More_nature added ("to be used in any floors and maybe if any can be used here"); "I

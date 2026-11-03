@@ -63,6 +63,7 @@ import { skullOf } from '../sim/combat/grab';
 import { jawsOf } from '../sim/combat/pin';
 import { iceGrip, sandSlow, webSlow } from '../sim/dungeon/quicksand';
 import { chillSlow, rimeGrip } from '../sim/combat/frost';
+import { caltropSlow } from '../sim/combat/smoke';
 import { floodSlow, stepTide, tideSlow } from '../sim/dungeon/tide';
 import { Lobby, lobbyFocus, stepLobby } from '../sim/lobby/lobby';
 import { styleOf } from '../world/dungeon/styles';
@@ -107,7 +108,7 @@ export class Run extends RunBase {
       const wade = d && p.swimTop === 0 ? (bossOn ? floodSlow(p, this.combat.flood) : tideSlow(p, d.tide, d.level.tide)) : 1;
       // (Update 0.3.22 — and the chill in you, floor 7's warband's; their rime as slick as the ice.)
       const frost = this.combat.ground.frost;
-      p.speedMul = moveFactor(this.combat) * (d ? sandSlow(p, d.level.sand) * webSlow(p, d.level.webs) * wade * chillSlow(frost) : 1);
+      p.speedMul = moveFactor(this.combat) * (d ? sandSlow(p, d.level.sand) * webSlow(p, d.level.webs) * wade * chillSlow(frost) * caltropSlow(this.combat.ground.smoke, p) : 1);
       // (Update 0.3.11 — floor 7's ice.)
       p.grip = d ? Math.min(iceGrip(p, d.level.ice), rimeGrip(frost, p.pos.x, p.pos.y, p.pos.z)) : 1;
       p.hpBonus = hpBonusOf(this.combat.items);

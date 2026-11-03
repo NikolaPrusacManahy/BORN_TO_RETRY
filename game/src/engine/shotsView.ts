@@ -165,6 +165,11 @@ export class ShotsView {
           g.scale.setScalar(1);
           HALOS.add(o.pos.x - dir.x * 0.3, o.pos.y - dir.y * 0.3, o.pos.z - dir.z * 0.3, 2.4, 0xff8a30, 0.6);
           break;
+        // (Update 0.3.33 — floor 8's shuriken, spinning flat, fast.)
+        case 'shuriken':
+          g.quaternion.setFromAxisAngle(UP, spin * 3);
+          g.scale.setScalar(1);
+          break;
         // (Update 0.3.22 — floor 7's thrown axe, spinning flat.)
         case 'axe':
           g.quaternion.setFromAxisAngle(UP, spin * 1.6);

@@ -41,6 +41,7 @@ import { BOMBING } from '../sim/enemies/beeShip';
 import { FOES_NORSE } from '../tuning/foesNorse';
 import { FOES_NORSE_B } from '../tuning/foesNorseB';
 import { SLIDE } from '../sim/enemies/raider';
+import { SHRINE_LOOKS } from './shrine/shrineLooks';
 import { ROAR } from '../sim/enemies/berserker';
 import { HURL, STOMP } from '../sim/enemies/haugbui';
 import { BREATH, GUST, LEAP, ROAR as ROC_ROAR, rocWindup, SLIDE as BELLY, SWIPE } from '../sim/enemies/frostRoc';
@@ -229,6 +230,8 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
   },
   tidebreaker: TIDE_LOOK,
   haugbui: { url: '/models/enemies/draugr.glb', clips: { ...PEOPLE, move: 'Walk', attack: 'Punch', rise: 'StandUp' }, lands: 9 / 24, windup: (move) => (move === STOMP ? FOES_NORSE_B.v.stompWindup : move === HURL ? FOES_NORSE_B.v.hurlWindup : FOES_NORSE_B.v.haugbuiWindup), glow: [0.4, 0.75, 1], posed: true },
+  // Update 0.3.33 — floor 8's martial artists (shrine/shrineLooks.ts).
+  ...SHRINE_LOOKS,
 };
 
 /** The role a phase plays; once its attack is over, a recovering enemy stands. */

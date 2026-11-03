@@ -86,6 +86,13 @@ import { updateBeeMech, updateBeeNaut } from './beeMech';
 import { updateTidebreaker } from './tidebreaker';
 import { updateRaider } from './raider';
 import { updateAxeThrower } from './axeThrower';
+import { updateKarate } from './karate';
+import { updateShinobi } from './shinobi';
+import { updateKunoichi } from './kunoichi';
+import { updateSandNinja } from './sandNinja';
+import { updateArcher } from './archer';
+import { updateSensei } from './sensei';
+import { updateClone, updateShadow } from './shadow';
 import { updateDraugr } from './draugr';
 import { updateVolva } from './volva';
 import { updateBerserker } from './berserker';
@@ -188,6 +195,17 @@ const UPDATE: Record<EnemyKind, Update> = {
   haugbui: updateHaugbui,
   // Update 0.3.26 — its boss.
   frostRoc: updateFrostRoc,
+  // Update 0.3.33 — floor 8's martial artists, the Shrine Dimension.
+  karateka: updateKarate,
+  karateGirl: updateKarate,
+  shinobi: updateShinobi,
+  kunoichi: updateKunoichi,
+  sandNinja: updateSandNinja,
+  sandNinjaF: updateSandNinja,
+  archer: updateArcher,
+  sensei: updateSensei,
+  shadow: updateShadow,
+  shadowClone: updateClone,
 };
 /** A dead boss's show, each tick until its slot frees. Update 0.2.4 — and a Green Blob splitting as it dies.
  *  Update 0.2.11 — and a dead fish floating up. Update 0.3.15 — a Gull dropping your coins, a Tentacle sinking. */

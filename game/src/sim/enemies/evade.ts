@@ -19,6 +19,13 @@ import { ninjaDodges } from './ninja';
 import { BURIED } from './cactoro';
 import { hopAway } from './dinoBlob';
 import { riposte } from './skullOrc';
+import { karateDodges } from './karate';
+import { shinobiDodges } from './shinobi';
+import { kunoichiDodges } from './kunoichi';
+import { sandDodges } from './sandNinja';
+import { archerDodges } from './archer';
+import { senseiGuards } from './sensei';
+import { shadowDodges } from './shadow';
 
 /** You aim at an enemy within this angle of it (as the crow flies), and no further off than this (m). */
 const AIM_FAR = 30;
@@ -139,6 +146,23 @@ export function dodges(state: CombatState, i: number, dirX: number, dirZ: number
       e.blink = v.hywirlDartRest;
       state.events.push('hywirlDart', i, e.pos.x, e.pos.y + 0.7, e.pos.z);
       return true;
+    // Update 0.3.33 — floor 8's martial artists: side-steps, blocks, the ninjas' vanishing, the Sensei's guard.
+    case 'karateka':
+    case 'karateGirl':
+      return karateDodges(state, i, dirX, dirZ);
+    case 'shinobi':
+      return shinobiDodges(state, i, dirX, dirZ);
+    case 'kunoichi':
+      return kunoichiDodges(state, i, dirX, dirZ);
+    case 'sandNinja':
+    case 'sandNinjaF':
+      return sandDodges(state, i, dirX, dirZ);
+    case 'archer':
+      return archerDodges(state, i, dirX, dirZ);
+    case 'sensei':
+      return senseiGuards(state, i, dirX, dirZ);
+    case 'shadow':
+      return shadowDodges(state, i, dirX, dirZ);
     default:
       return false;
   }

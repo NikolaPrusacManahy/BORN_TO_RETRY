@@ -127,10 +127,23 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   berserker: 'heavy',
   haugbui: 'heavy',
   frostRoc: null,
+  // Update 0.3.33 — floor 8's martial artists: the karate fighters, the Kunoichi and the clones close in; the Shinobi, the
+  // Sand Ninjas and the Archer from range; the masters as heavies. (None waits on a ring: their stance is their own.)
+  karateka: 'melee',
+  karateGirl: 'melee',
+  kunoichi: 'melee',
+  // (The Shadow's clones are his fight: no turns of their own.)
+  shadowClone: null,
+  shinobi: 'ranged',
+  sandNinja: 'ranged',
+  sandNinjaF: 'ranged',
+  archer: 'ranged',
+  sensei: 'heavy',
+  shadow: 'heavy',
 };
 
 /** Kinds whose attack waits for its cooldown: they take a token only once it's ready (a token isn't held idle). */
-const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon', 'dragonling', 'skullWraith', 'glub', 'squidle', 'clownfish', 'tuna', 'angelfish', 'dolphin', 'mantaRay', 'shark', 'bomber', 'captain', 'gunner', 'strafer', 'diver', 'hopper', 'axeThrower', 'volva']);
+const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon', 'dragonling', 'skullWraith', 'glub', 'squidle', 'clownfish', 'tuna', 'angelfish', 'dolphin', 'mantaRay', 'shark', 'bomber', 'captain', 'gunner', 'strafer', 'diver', 'hopper', 'axeThrower', 'volva', 'shinobi', 'kunoichi', 'sandNinja', 'sandNinjaF', 'archer']);
 
 /** How far a close fighter's attack reaches (m): waiting, it keeps out of it. */
 const REACH: Partial<Record<EnemyKind, () => number>> = {

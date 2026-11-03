@@ -28,6 +28,8 @@
 // bosses), and the Bee astronaut out of the mech. Their numbers are kindsMoon.ts's.
 // Update 0.3.22 — floor 7's warband (tuning/foesNorse.ts, foesNorseB.ts): the Raider, the Axe Thrower, the Draugr and
 // the Barrow Maid, the Völva; the Berserker and Haugbui (mini bosses). Their numbers are kindsNorse.ts's.
+// Update 0.3.33 — floor 8's martial artists (tuning/foesShrine.ts, foesShrineB.ts): the Karateka and the Karate Girl, the
+// Shinobi, the Kunoichi, the Sand Ninjas, the Archer; the Sensei and the Shadow (mini bosses) and his clones.
 import { BOSS } from '../../tuning/boss';
 import { blank, DOOM_AFTER, doomTime, EnemyStats, fill, SizeClass } from './kindStats';
 import { Realm, realmOf } from '../../world/dungeon/floorOrder';
@@ -36,6 +38,7 @@ import { CACHE6, RADIUS6, STATS6 } from './kinds6';
 import { CACHE_COVE, RADIUS_COVE, STATS_COVE } from './kindsCove';
 import { CACHE_MOON, KindMoon, KINDS_MOON, RADIUS_MOON, STATS_MOON } from './kindsMoon';
 import { CACHE_NORSE, KindNorse, KINDS_NORSE, RADIUS_NORSE, STATS_NORSE } from './kindsNorse';
+import { CACHE_SHRINE, KindShrine, KINDS_SHRINE, RADIUS_SHRINE, STATS_SHRINE } from './kindsShrine';
 import { DRAGON } from '../../tuning/dragon';
 import { FOES2 } from '../../tuning/foes2';
 import { ENEMIES } from '../../tuning/enemies';
@@ -49,13 +52,13 @@ import { DINO } from '../../tuning/dino';
 export type { EnemyStats, SizeClass } from './kindStats';
 export { doomTime, DOOM_AFTER } from './kindStats';
 
-export type EnemyKind = 'grunt' | 'spitter' | 'brute' | 'leaper' | 'stinger' | 'wraith' | 'demon' | 'slime' | 'frog' | 'snake' | 'wasp' | 'spider' | 'blueDemon' | 'dragon' | 'skeleton' | 'mushnub' | 'ninja' | 'boneKing' | 'tribal' | 'cactoro' | 'cactoroBig' | 'hywirl' | 'dino' | 'dinoBlob' | 'lizard' | 'greenBlob' | 'blobling' | 'maskTribal' | 'skullOrc' | 'dragonling' | 'skullWraith' | 'rabbit' | 'bigMushnub' | 'snapper' | 'urchin' | 'jelly' | 'glub' | 'bigGlub' | 'squidle' | 'spawnling' | 'deepOne' | 'bogBrute' | 'drownedKing' | 'clownfish' | 'tuna' | 'angelfish' | 'dolphin' | 'drownedPrince' | 'mantaRay' | 'shark' | 'whale' | 'corsair' | 'shanty' | 'bomber' | 'crewman' | 'headless' | 'gull' | 'bat' | 'tentacle' | 'mako' | 'captain' | 'bigShark' | KindMoon | KindNorse;
+export type EnemyKind = 'grunt' | 'spitter' | 'brute' | 'leaper' | 'stinger' | 'wraith' | 'demon' | 'slime' | 'frog' | 'snake' | 'wasp' | 'spider' | 'blueDemon' | 'dragon' | 'skeleton' | 'mushnub' | 'ninja' | 'boneKing' | 'tribal' | 'cactoro' | 'cactoroBig' | 'hywirl' | 'dino' | 'dinoBlob' | 'lizard' | 'greenBlob' | 'blobling' | 'maskTribal' | 'skullOrc' | 'dragonling' | 'skullWraith' | 'rabbit' | 'bigMushnub' | 'snapper' | 'urchin' | 'jelly' | 'glub' | 'bigGlub' | 'squidle' | 'spawnling' | 'deepOne' | 'bogBrute' | 'drownedKing' | 'clownfish' | 'tuna' | 'angelfish' | 'dolphin' | 'drownedPrince' | 'mantaRay' | 'shark' | 'whale' | 'corsair' | 'shanty' | 'bomber' | 'crewman' | 'headless' | 'gull' | 'bat' | 'tentacle' | 'mako' | 'captain' | 'bigShark' | KindMoon | KindNorse | KindShrine;
 
-export const ENEMY_KINDS: readonly EnemyKind[] = ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith', 'demon', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon', 'dragon', 'skeleton', 'mushnub', 'ninja', 'boneKing', 'tribal', 'cactoro', 'cactoroBig', 'hywirl', 'dino', 'dinoBlob', 'lizard', 'greenBlob', 'blobling', 'maskTribal', 'skullOrc', 'dragonling', 'skullWraith', 'rabbit', 'bigMushnub', 'snapper', 'urchin', 'jelly', 'glub', 'bigGlub', 'squidle', 'spawnling', 'deepOne', 'bogBrute', 'drownedKing', 'clownfish', 'tuna', 'angelfish', 'dolphin', 'drownedPrince', 'mantaRay', 'shark', 'whale', 'corsair', 'shanty', 'bomber', 'crewman', 'headless', 'gull', 'bat', 'tentacle', 'mako', 'captain', 'bigShark', ...KINDS_MOON, ...KINDS_NORSE];
+export const ENEMY_KINDS: readonly EnemyKind[] = ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith', 'demon', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon', 'dragon', 'skeleton', 'mushnub', 'ninja', 'boneKing', 'tribal', 'cactoro', 'cactoroBig', 'hywirl', 'dino', 'dinoBlob', 'lizard', 'greenBlob', 'blobling', 'maskTribal', 'skullOrc', 'dragonling', 'skullWraith', 'rabbit', 'bigMushnub', 'snapper', 'urchin', 'jelly', 'glub', 'bigGlub', 'squidle', 'spawnling', 'deepOne', 'bogBrute', 'drownedKing', 'clownfish', 'tuna', 'angelfish', 'dolphin', 'drownedPrince', 'mantaRay', 'shark', 'whale', 'corsair', 'shanty', 'bomber', 'crewman', 'headless', 'gull', 'bat', 'tentacle', 'mako', 'captain', 'bigShark', ...KINDS_MOON, ...KINDS_NORSE, ...KINDS_SHRINE];
 export const SIZE_CLASSES: readonly SizeClass[] = ['small', 'large', 'air'];
 
 /** Body radii (m). Not knobs: the walk grids are built for them. */
-export const RADIUS: Record<EnemyKind, number> = { grunt: 0.45, spitter: 0.4, brute: 0.85, leaper: 0.45, stinger: 0.5, wraith: 0.55, demon: 1.7, slime: 0.5, frog: 0.55, snake: 0.4, wasp: 0.5, spider: 1.3, blueDemon: 0.85, dragon: 1.8, skeleton: 0.45, mushnub: 0.45, ninja: 0.45, boneKing: 1.5, tribal: 0.45, cactoro: 0.5, cactoroBig: 1.1, hywirl: 0.55, dino: 1.8, dinoBlob: 0.5, lizard: 0.5, greenBlob: 0.6, blobling: 0.4, maskTribal: 0.55, skullOrc: 1, dragonling: 0.55, skullWraith: 0.55, rabbit: 0.45, bigMushnub: 1.05, ...RADIUS5, ...RADIUS6, ...RADIUS_COVE, ...RADIUS_MOON, ...RADIUS_NORSE };
+export const RADIUS: Record<EnemyKind, number> = { grunt: 0.45, spitter: 0.4, brute: 0.85, leaper: 0.45, stinger: 0.5, wraith: 0.55, demon: 1.7, slime: 0.5, frog: 0.55, snake: 0.4, wasp: 0.5, spider: 1.3, blueDemon: 0.85, dragon: 1.8, skeleton: 0.45, mushnub: 0.45, ninja: 0.45, boneKing: 1.5, tribal: 0.45, cactoro: 0.5, cactoroBig: 1.1, hywirl: 0.55, dino: 1.8, dinoBlob: 0.5, lizard: 0.5, greenBlob: 0.6, blobling: 0.4, maskTribal: 0.55, skullOrc: 1, dragonling: 0.55, skullWraith: 0.55, rabbit: 0.45, bigMushnub: 1.05, ...RADIUS5, ...RADIUS6, ...RADIUS_COVE, ...RADIUS_MOON, ...RADIUS_NORSE, ...RADIUS_SHRINE };
 /** The grid each size class walks: blocked for this radius (a little less than the brute's, so 2 m gaps stay open:
  *  the push out of walls keeps its body clear anyway). */
 export const GRID_RADIUS: Record<SizeClass, number> = { small: 0.45, large: 0.65, air: 0.6 };
@@ -99,6 +102,7 @@ const CACHE: Record<EnemyKind, EnemyStats> = {
   ...CACHE_COVE,
   ...CACHE_MOON,
   ...CACHE_NORSE,
+  ...CACHE_SHRINE,
 };
 
 
@@ -262,6 +266,7 @@ export const ENEMY_STATS: Record<EnemyKind, () => EnemyStats> = {
   ...STATS_COVE,
   ...STATS_MOON,
   ...STATS_NORSE,
+  ...STATS_SHRINE,
 };
 
 /** Update 0.0.18 — each floor's boss. Update 0.2.3 — floor 3's the Bone King. Update 0.2.4 — floor 4's the Dino.
@@ -278,7 +283,7 @@ export const bossOf = (floor: number): EnemyKind => BOSSES[realmOf(floor)];
 export const ownBossOf = (floor: number): EnemyKind | null => (OWN_BOSS.has(realmOf(floor)) ? bossOf(floor) : null);
 
 /** Update 0.0.18 — the mini bosses (the designer): a room with one has a chest, and the first killed drops its key. */
-export const MINI_BOSSES: readonly EnemyKind[] = ['brute', 'spider', 'blueDemon', 'ninja', 'cactoroBig', 'skullOrc', 'bigMushnub', 'deepOne', 'bogBrute', 'mantaRay', 'shark', 'mako', 'captain', 'beeShip', 'beeMech', 'flamingoMech', 'foxMech', 'frogMech', 'berserker', 'haugbui'];
+export const MINI_BOSSES: readonly EnemyKind[] = ['brute', 'spider', 'blueDemon', 'ninja', 'cactoroBig', 'skullOrc', 'bigMushnub', 'deepOne', 'bogBrute', 'mantaRay', 'shark', 'mako', 'captain', 'beeShip', 'beeMech', 'flamingoMech', 'foxMech', 'frogMech', 'berserker', 'haugbui', 'sensei', 'shadow'];
 
 
 /** Fliers (they stay up; their bodies fall when they die). */
