@@ -11,7 +11,8 @@ import type { HeldWeapon } from './weapons';
 /** Advances the held weapon's swing. Writes a slash into `out` and returns true when one is swung this tick. */
 export function updateSlashes(w: HeldWeapon, intent: CombatIntent, events: EventQueue<CombatEvent>, dt: number, out: Punch, rate = 1): boolean {
   w.cooldown = Math.max(0, w.cooldown - dt);
-  if (!(intent.attackPressed || intent.attackHeld) || w.cooldown > 0) return false;
+  // (Update 0.3.36 — broken, it isn't swung: it's thrown, step.ts.)
+  if (!(intent.attackPressed || intent.attackHeld) || w.cooldown > 0 || w.uses <= 0) return false;
   const s = WEAPON_STATS[w.kind]();
   // Update 0.0.17 — green rings make slashes come quicker.
   w.cooldown = s.interval / rate;

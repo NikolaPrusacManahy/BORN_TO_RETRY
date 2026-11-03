@@ -2,7 +2,16 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.35: Yokai : Okami's moves)
+## Next up (2026-11-03, Update 0.3.36: skip a boss's show; weapons past their last use)
+- **The designer**: "Add a skip button while the Intro is played for any boss -> "SPACE" to skip", and a tester's bug
+  ("holding attack and pick up a weapon you can use it infinitely as long as you hold click"). Spec
+  `MD_UPDATES/U0336_SKIP_AND_WEAPONS.md`.
+- **Skip:** `stepBoss` (`bossRoom.ts`) runs a skipped show on to its end in small steps, keeping only its view's lasting
+  events (`SKIP_KEEP`). The jump key sets `boss.skip` (`run.ts`); the hint is in `BossHud.tsx`.
+- **Weapons:** a broken weapon is thrown on a held click too (`step.ts`), and never swung at 0 uses (`swing.ts`).
+- **Next:** the designer plays them.
+
+## Before (2026-11-03, Update 0.3.35: Yokai : Okami's moves)
 - **The designer**: "Now make his moves". Spec `MD_UPDATES/U0335_OKAMI_MOVES.md`.
 - **Its picker:** `sim/enemies/okami.ts` chooses by your distance, never three times running.
 - **Its moves:**

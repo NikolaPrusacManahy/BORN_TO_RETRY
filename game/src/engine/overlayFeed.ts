@@ -75,6 +75,8 @@ export class HudFeed {
   /** Update 0.2.3 — your attack's key (the QTE says to press it), set by the run each frame. Update 0.2.8 — and your
    *  dash's (the Velociraptor's pin). */
   attackKey = '';
+  /** Update 0.3.36 — the key that skips a boss's show. */
+  skipKey = '';
   dashKey = '';
   leftKey = '';
   rightKey = '';
@@ -115,7 +117,8 @@ export class HudFeed {
     const same = cur.hits === fb.hits && cur.hurts === hits.hurts && cur.shields === hits.shields && cur.hp === hp && cur.shield === shield && cur.weapon === name && cur.uses === uses && cur.mag === mag && cur.money === money;
     // The boss's bar moves in steps of 1%.
     const bossHp = show.bossHp < 0 ? -1 : Math.ceil(show.bossHp * 100) / 100;
-    const shown = cur.cine === show.cine && cur.card === show.card && cur.bossHp === bossHp && cur.veil === show.veil && cur.floorName === show.floorName && cur.bossTitle === show.bossTitle;
+    const skip = show.skip ? this.skipKey : '';
+    const shown = cur.cine === show.cine && cur.card === show.card && cur.skip === skip && cur.bossHp === bossHp && cur.veil === show.veil && cur.floorName === show.floorName && cur.bossTitle === show.bossTitle;
     const keys = cur.keys === it.keys && cur.whiteKeys === it.whiteKeys && cur.goldKeys === it.goldKeys && cur.keyPick === keyPick;
     const rings = cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.greenRings === it.greenRings && cur.tealRings === it.tealRings && cur.cards === it.cards.size;
     const sig = slotSig(combat);
@@ -173,6 +176,7 @@ export class HudFeed {
       mapYaw: yaw,
       cine: show.cine,
       card: show.card,
+      skip,
       bossName: show.bossName,
       bossTitle: show.bossTitle,
       bossHp,

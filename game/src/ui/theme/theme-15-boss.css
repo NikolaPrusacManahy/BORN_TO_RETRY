@@ -8,7 +8,7 @@
   transition: opacity 0.4s ease;
 }
 
-.rb-hud.is-cine > :not(.rb-show-bars):not(.rb-show-card):not(.rb-show-veil):not(.rb-show-floor) {
+.rb-hud.is-cine > :not(.rb-show-bars):not(.rb-show-card):not(.rb-show-veil):not(.rb-show-floor):not(.rb-show-skip) {
   opacity: 0;
 }
 
@@ -207,4 +207,20 @@
     opacity: 0;
     letter-spacing: 0.3em;
   }
+}
+
+/* Update 0.3.36 — while a boss's show plays: the key that skips it (the designer: "SPACE" to skip), small, in the
+   bottom bar's right corner, a little dimmed so it doesn't take the eye. */
+.rb-show-skip {
+  position: absolute;
+  right: 3%;
+  bottom: 3.2%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--rb-font);
+  font-size: 18px;
+  color: #ece6e8;
+  opacity: 0.75;
+  pointer-events: none;
 }

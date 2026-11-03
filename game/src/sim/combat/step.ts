@@ -140,7 +140,9 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   if (intent.slotPressed >= 0 && !throwing && !state.fists.charging && !state.ki.charging) selectSlot(state, intent.slotPressed);
   const held = state.weapon;
   // (A charge that has burnt the book's last use is still let go as a cast, not a throw.)
-  const spent = held !== null && held.uses <= 0 && !state.ki.charging && (intent.attackPressed || (intent.heavyHeld && !SHOOTS[held.kind]));
+  // (Update 0.3.36 — a tester: "if you are holding attack and pick up a weapon you can use it infinitely as long as you
+  // hold click": a broken one held swinging is thrown too, not swung on at no uses.)
+  const spent = held !== null && held.uses <= 0 && !state.ki.charging && (intent.attackPressed || intent.attackHeld || (intent.heavyHeld && !SHOOTS[held.kind]));
   if (held && !throwing && (intent.throwPressed || spent)) {
     held.throwing = 0;
     state.fists.charging = state.fists.chargeReady = false;

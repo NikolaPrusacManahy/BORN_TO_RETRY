@@ -14,6 +14,9 @@
 // Spawnlings, once (the designer: "only one wave of smaller minions, once only, not infinite"). Update 0.3.16 — floor 6's
 // the Big Shark: its show is its own (sharkShow.ts: the arena floods, no portal, no walls sliding), and dead, its arena
 // drains.
+// Update 0.3.36 (the designer: "Add a skip button while the Intro is played for any boss -> "SPACE" to skip") — any
+// boss's show skipped (`skip`): run on to its end at once, each of its beats done (its boss where its show leaves it,
+// you where it puts you), unheard; what its view keeps of it (Tidebreaker's crater) still told.
 import type { Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import { BOSS } from '../../tuning/boss';
@@ -56,6 +59,8 @@ export interface BossRun {
   /** Seconds to its next call for grunts, and whether it has started calling (it rages). */
   summon: number;
   calling: boolean;
+  /** Update 0.3.36 — its show to be skipped (SPACE). */
+  skip: boolean;
 }
 
 /** What the boss leaves you (Update 0.2.0: in its chest). Update 0.2.15 — no key any more (the designer: "the chest on
@@ -69,7 +74,7 @@ const CALL_CLEAR = 8;
 const FIRST_MOVE = 1;
 
 export function createBossRun(kind: EnemyKind = 'demon'): BossRun {
-  return { kind, stance: false, beat: 'waiting', t: 0, slot: -1, summon: 0, calling: false };
+  return { kind, stance: false, beat: 'waiting', t: 0, slot: -1, summon: 0, calling: false, skip: false };
 }
 
 /** Update 0.0.18 — who a boss calls once it rages, how many and how often (s) (Update 0.0.21: only the Demon calls;
@@ -126,8 +131,20 @@ export function startShow(b: BossRun, combat: CombatState, at: { x: number; z: n
 
 const mid = new Vector3();
 
+/** A show skipped runs on in steps this long (s), at most this many. What a skipped show's events leave for good (its
+ *  view's), still told. */
+const SKIP_DT = 1 / 30;
+const SKIP_STEPS = 3000;
+const SKIP_KEEP: ReadonlySet<string> = new Set(['tideArrive']);
+
 /** One tick of the boss room once its show has started. Returns true the tick the wooden gate opens. */
 export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: readonly Spot[], player: PlayerState, combat: CombatState, rng: Rng, dt: number, level?: DungeonLevel): boolean {
+  if (b.skip && b.beat === 'intro') {
+    b.skip = false;
+    skipShow(b, portal, spawns, player, combat, rng, level);
+    return false;
+  }
+  b.skip = false;
   const height = ENEMY_STATS[b.kind]().height;
   const calls = callsOf(b.kind);
   const ev = combat.events;
@@ -217,6 +234,21 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
       break;
   }
   return false;
+}
+
+/** Its show run on to its end at once (its beats each done; their sounds and shakes not, but what stays). */
+function skipShow(b: BossRun, portal: { x: number; z: number }, spawns: readonly Spot[], player: PlayerState, combat: CombatState, rng: Rng, level?: DungeonLevel) {
+  const ev = combat.events;
+  const kept: { kind: Parameters<typeof ev.push>[0]; value: number; x: number; y: number; z: number }[] = [];
+  for (let i = 0; i < SKIP_STEPS && b.beat === 'intro'; i++) {
+    stepBoss(b, portal, spawns, player, combat, rng, SKIP_DT, level);
+    for (let k = 0; k < ev.length; k++) {
+      const e = ev.at(k);
+      if (SKIP_KEEP.has(e.kind)) kept.push({ kind: e.kind, value: e.value, x: e.x, y: e.y, z: e.z });
+    }
+    ev.clear();
+  }
+  for (const e of kept) ev.push(e.kind, e.value, e.x, e.y, e.z);
 }
 
 /** It's dead: every grunt dies with it, its orbs and quakes are gone. */

@@ -127,6 +127,8 @@ export class Run extends RunBase {
       this.combat.tide = p.swimTop > 0 ? p.swimTop : bossOn ? this.combat.flood : d && d.level.tide.length > 0 ? d.tide.level : 0;
       stepCombat(this.combat, p, this.combatIntent, this.level.physics, stepDt, d || !this.waves ? [] : this.level.arena.spawns);
       if (d) {
+        // (Update 0.3.36 — SPACE skips a boss's show.)
+        if (d.boss.beat === 'intro' && input.locked && input.actionPressed('jump')) d.boss.skip = true;
         if (d.level.tide.length > 0 && !bossOn) stepTide(d.tide, this.combat.events, stepDt);
         stepRooms(d, p, this.combat, this.combat.rng, stepDt);
         this.level.physics.setGates(d.shut);
@@ -242,6 +244,7 @@ export class Run extends RunBase {
 
     fillDebug(debug, p, this.combat);
     this.hudFeed.attackKey = keyLabel(input.bindings.attack);
+    this.hudFeed.skipKey = keyLabel(input.bindings.jump);
     this.hudFeed.dashKey = keyLabel(input.bindings.dash);
     [this.hudFeed.leftKey, this.hudFeed.rightKey] = [keyLabel(input.bindings.left), keyLabel(input.bindings.right)];
     this.hudFeed.slotKeys = slotKeysOf(input.bindings);

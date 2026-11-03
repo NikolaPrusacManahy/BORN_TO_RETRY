@@ -97,6 +97,7 @@ import './test-shrine-fighters';
 import './test-okami-show';
 import './test-okami-show-view';
 import './test-okami-moves';
+import './test-boss-skip';
 import './test-forge';
 import './test-floor8-crew';
 import './test-music';

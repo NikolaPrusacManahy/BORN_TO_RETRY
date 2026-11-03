@@ -108,6 +108,24 @@ section('Sword — breaking and throwing');
   check(`and ${w.throwWindup} s later it leaves the hand`, state.weapon === null && later.includes('throw') && state.thrown.some((x) => x.alive));
 }
 {
+  // (Update 0.3.36 — a tester: "if you are holding attack and pick up a weapon you can use it infinitely as long as you
+  // hold click".) The click held through its last use: not one more slash at no uses; it's thrown.
+  const { state, p, world } = lab([{ x: 0, y: 0, z: -1.8 }], { x: 0, y: 0, z: -1.2 });
+  run(state, p, world, 0.3, { attackHeld: true });
+  tick(state, p, world, { attackHeld: true, interactPressed: true });
+  const picked = state.weapon?.kind === 'sword';
+  let after = 0;
+  let thrown = false;
+  for (let i = 0; i < ticks(10) && state.weapon; i++) {
+    const was = state.weapon.uses;
+    const ev = tick(state, p, world, { attackHeld: true });
+    state.dummies[0].hp = Math.max(state.dummies[0].hp, 40);
+    if (was === 0 && ev.includes('slash')) after++;
+    thrown ||= ev.includes('throwStart');
+  }
+  check('picked up with the click held, swung down to no uses: not swung on at no uses, thrown', picked && after === 0 && thrown && state.weapon === null);
+}
+{
   const { state, p, world } = lab([{ x: 0, y: 0, z: -8 }]);
   state.weapon = holding('sword', 12);
   tick(state, p, world, { throwPressed: true });

@@ -3,6 +3,7 @@
 // health bar along the top during the fight (a mark where it rages); the black of the way down, and the next floor's
 // name as it clears.
 // Update 0.2.3 — the mark is each boss's own (the Bone King's: its final blast, in its second life; none before).
+// Update 0.3.36 — while its show plays, the key that skips it (the designer: "SPACE" to skip), in the bottom bar.
 import type { CSSProperties } from 'react';
 import type { HudState } from '../engine/hudStore';
 
@@ -25,6 +26,11 @@ export function BossHud({ s }: { s: HudState }) {
             <i className="rb-boss-bar-fill" />
             {s.bossMark >= 0 && <i className="rb-boss-bar-rage" />}
           </div>
+        </div>
+      )}
+      {s.skip && (
+        <div className="rb-show-skip">
+          <i className="rb-cap">{s.skip}</i> skip
         </div>
       )}
       <div className={`rb-show-veil${s.veil ? ' is-on' : ''}`} />

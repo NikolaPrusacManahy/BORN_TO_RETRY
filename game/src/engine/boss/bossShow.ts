@@ -74,6 +74,8 @@ export interface ShowHud {
   bossMark: number;
   veil: boolean;
   floorName: string;
+  /** Update 0.3.36 — its show can be skipped now (SPACE). */
+  skip: boolean;
 }
 
 const dir = new THREE.Vector3();
@@ -81,7 +83,7 @@ const eye = new THREE.Vector3();
 const view: Shot = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
 
 export class BossShow {
-  readonly hud: ShowHud = { cine: false, card: false, bossName: BOSS_NAME, bossTitle: '', bossHp: -1, bossMark: -1, veil: false, floorName: '' };
+  readonly hud: ShowHud = { cine: false, card: false, bossName: BOSS_NAME, bossTitle: '', bossHp: -1, bossMark: -1, veil: false, floorName: '', skip: false };
   private readonly cinema: Cinema | null;
   private readonly shark: SharkCinema | null;
   private readonly tide: TideCinema | null;
@@ -149,7 +151,7 @@ export class BossShow {
     if (this.title <= 0) this.hud.floorName = '';
     const run = this.run;
     const h = this.hud;
-    h.cine = h.card = false;
+    h.cine = h.card = h.skip = false;
     h.bossHp = -1;
     if (!run || !this.cinema) {
       this.labBoss(combat);
@@ -177,7 +179,7 @@ export class BossShow {
       else if (this.okami) this.okami.intro(b.t, eye, view);
       else this.cinema.intro(b.t, view);
       out.cinematic = true;
-      h.cine = true;
+      h.cine = h.skip = true;
       const s = introBeats();
       h.card = this.shark ? SharkCinema.named(b.t) : this.tide ? TideCinema.named(b.t) : this.okami ? OkamiCinema.named(b.t) : b.t >= s.riseTo - CARD_EDGE && b.t < s.stanceTo + CARD_EDGE;
     } else if (b.beat === 'open' && this.cinema.gateShot(b.t, eye, dir, view)) {

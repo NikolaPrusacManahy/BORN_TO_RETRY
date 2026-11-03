@@ -81,6 +81,8 @@ export interface HudState {
    *  name card, its health (0..1; −1: no bar), the black of the way down, and the next floor's name. */
   cine: boolean;
   card: boolean;
+  /** Update 0.3.36 — the key that skips the boss's show (its label; '': it can't be skipped now). */
+  skip: string;
   bossName: string;
   bossTitle: string;
   bossHp: number;
@@ -141,7 +143,7 @@ export interface HudStore {
 }
 
 export function createHudStore(): HudStore {
-  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, mag: -1, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, tealRings: 0, cards: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, chestHere: false, styleRank: -1, styleFill: 0, styleFeed: [], execution: 0, bossMark: -1, grabHits: -1, grabNeed: 0, grabLeft: 0, grabEnd: '', attackKey: '', jawCue: 0, leftKey: '', rightKey: '', ...createRaptorHud(), dashKey: '', slotKeys: '', ...createControlsHud() };
+  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, mag: -1, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, tealRings: 0, cards: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, skip: '', bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, chestHere: false, styleRank: -1, styleFill: 0, styleFeed: [], execution: 0, bossMark: -1, grabHits: -1, grabNeed: 0, grabLeft: 0, grabEnd: '', attackKey: '', jawCue: 0, leftKey: '', rightKey: '', ...createRaptorHud(), dashKey: '', slotKeys: '', ...createControlsHud() };
   const subs = new Set<() => void>();
   return {
     get: () => state,
