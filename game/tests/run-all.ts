@@ -99,6 +99,7 @@ import './test-okami-show-view';
 import './test-okami-moves';
 import './test-boss-skip';
 import './test-capture';
+import './test-perf';
 import './test-forge';
 import './test-floor8-crew';
 import './test-music';

@@ -1,6 +1,8 @@
 // Main menu — the gate scene (built by tools/blender/build_menu_scene.py): a low shot up the stairs at the gate,
 // with flickering torches and a campfire, drifting dust and a slow camera drift. Start (introTimeline.ts) grinds
 // the portcullis up, then the screen fades to black.
+// Update 0.3.38 — its still pieces merged by material (mergeStatic.ts: 653 meshes to a few dozen), all but the
+// portcullis and the gate's glow; it says when its shadows need drawing again (`moving`: the portcullis on its way).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { AudioEngine } from '../../audio/audio';
@@ -8,6 +10,7 @@ import { noise, tone } from '../../audio/synth';
 import { Dust } from '../fx/dust';
 import { INTRO, INTRO_LENGTH, gateLift } from './introTimeline';
 import { Flames, nodeAt, readyMaterials } from './sceneBits';
+import { mergeStatic } from './mergeStatic';
 
 export const MENU_URL = '/models/menu/gate.glb';
 /** The menu shot's vertical FOV (degrees), matching MENU_VFOV in the Blender script. */
@@ -94,6 +97,13 @@ export class MenuScene {
     // Dust from just behind the bars (lit by the glow) out to near the camera.
     this.dust = new Dust(380, new THREE.Vector3(-9, 0.2, this.gateLight.position.z - 1), new THREE.Vector3(9, 10, this.shot.pos.z - 2));
     this.scene.add(this.dust.points);
+    const gate = this.portcullis;
+    mergeStatic(root, this.scene, (o) => o === gate || o.name === 'GateGlow');
+  }
+
+  /** Update 0.3.38 — the portcullis is on its way up (its shadow moves with it). */
+  get moving(): boolean {
+    return this.introT >= 0;
   }
 
   get ready() {

@@ -1,12 +1,14 @@
 // Settings screen — the night camp (built by tools/blender/build_camp_scene.py): sat on a log by a campfire in a
 // forest clearing, the fire on the left and the options panel on the right. Entering glides the camera in; embers
 // rise from the fire, stars show between the trees, and the fire crackles.
+// Update 0.3.38 — its pieces merged by material (mergeStatic.ts: 207 meshes to a few dozen); nothing in it moves.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { AudioEngine } from '../../audio/audio';
 import { NoiseLoop, noise } from '../../audio/synth';
 import { Dust } from '../fx/dust';
 import { Flames, nodeAt, readyMaterials } from './sceneBits';
+import { mergeStatic } from './mergeStatic';
 
 export const CAMP_URL = '/models/menu/camp.glb';
 /** The camp shot's vertical FOV (degrees), matching CAMP_VFOV in the Blender script. */
@@ -92,6 +94,7 @@ export class CampScene {
       rise: [0.6, 1.5],
     });
     this.scene.add(this.embers.points);
+    mergeStatic(root, this.scene, () => false);
     this.place(1);
   }
 

@@ -2,7 +2,18 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.37: the capture kit, for the trailer)
+## Next up (2026-11-03, Update 0.3.38: lighter to run)
+- **The designer**: "when I boot up the game my PC go full fan speed", then "Build fixes 1–3". Spec
+  `MD_UPDATES/U0338_LIGHTER.md` (what was wrong, counted from the scenes).
+- **The fixes:**
+  - A floor's pieces by 30 m square: `engine/floorPieces.ts`, used by `dungeonView.ts build`.
+  - The frame cap: `core/framePacer.ts`, in `Game.ts frame`; the setting `frameCap`.
+  - The menus merged by look (`engine/menu/mergeStatic.ts`), their shadows drawn once (`menuScenes.ts`).
+- **Not done:** fix 4, a lower-detail floor tile and wall in the distance (floor 1's tile is 1,176 triangles). It needs
+  Blender renders for the designer to approve.
+- **Next:** the designer compares the fans and F2's fps.
+
+## Before (2026-11-03, Update 0.3.37: the capture kit, for the trailer)
 - **The designer**: "Might need to make a trailer for this game", then "Build capture kit". Spec
   `MD_UPDATES/U0337_CAPTURE_KIT.md` (the keys, how to film each kind of shot, the trailer's 75 s plan).
 - **Where:** `engine/capture/`:

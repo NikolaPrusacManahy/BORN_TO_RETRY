@@ -1,5 +1,7 @@
 // Update 0.2.9 — the menu's two scenes, moved out of Game.ts (it had grown past its size): the gate (the main menu) and
 // the night camp (settings). Which one shows, Start's intro at the gate, and drawing whichever shows. Nothing simulates.
+// Update 0.3.38 — their shadows drawn once, not every frame (nothing that casts one moves): again when the scene shown
+// changes or comes in, when the menu's back (from a run), and while the portcullis rises.
 import type * as THREE from 'three';
 import type { AudioEngine } from '../../audio/audio';
 import { CampScene } from './campScene';
@@ -12,6 +14,8 @@ export class MenuScenes {
   private readonly gate: MenuScene;
   private readonly camp: CampScene;
   private view: MenuView = 'gate';
+  /** What the shadows were last drawn for ('': draw them again). */
+  private shadowsOf = '';
 
   constructor(audio: AudioEngine) {
     this.gate = new MenuScene(audio);
@@ -43,12 +47,17 @@ export class MenuScenes {
 
   /** Back at the gate, shut (from a run or the lobby). */
   reset() {
+    this.shadowsOf = '';
     this.show('gate');
     this.gate.reset();
   }
 
   /** Draws the scene that shows; returns what the gate's intro reached this frame. */
   frame(real: number, renderer: THREE.WebGLRenderer, aspect: number): MenuEvent | null {
+    const now = `${this.view} ${this.gate.ready} ${this.camp.ready}`;
+    renderer.shadowMap.autoUpdate = false;
+    if (now !== this.shadowsOf || this.gate.moving) renderer.shadowMap.needsUpdate = true;
+    this.shadowsOf = now;
     if (this.view === 'camp' && this.camp.ready) {
       this.camp.update(real);
       this.camp.render(renderer, aspect);

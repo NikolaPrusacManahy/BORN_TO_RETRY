@@ -3,9 +3,11 @@
 // Update 0.2.9 — and what you chose in the lobby: your difficulty and character.
 // Update 0.2.26 — Blood: on, less or off (engine/bloodFx.ts).
 // Update 0.3.0 — Glow (engine/glowPass.ts) and Effects: high or low (engine/effectsLevel.ts).
+// Update 0.3.38 — the frame-rate cap (core/framePacer.ts).
 import { Bindings, DEFAULT_BINDINGS, hydrateBindings } from '../input/bindings';
 import { CharacterId, ROSTER } from '../sim/characters';
 import { DEFAULT_DIFFICULTY, Difficulty, isDifficulty } from '../sim/lobby/difficulty';
+import { DEFAULT_FRAME_CAP, FRAME_CAPS } from '../core/framePacer';
 
 export interface Settings {
   /** Mouse sensitivity multiplier, 0.1 – 5. */
@@ -26,6 +28,8 @@ export interface Settings {
   /** Update 0.3.0 — what shines glows (fire, lava, crystals); how many motes, embers and trails. */
   glow: boolean;
   effects: EffectsLevel;
+  /** Update 0.3.38 — frames drawn a second at most (FRAME_CAPS; 0: no cap). */
+  frameCap: number;
   bindings: Bindings;
 }
 
@@ -53,7 +57,7 @@ export const SENS_MAX = 5;
 export const UI_SIZE_MIN = 0.7;
 export const UI_SIZE_MAX = 1.4;
 
-export const DEFAULT_SETTINGS: Settings = { sensitivity: 1, invertY: false, fov: 100, volume: 0.8, sfxVolume: 1, musicVolume: 0.7, uiSize: 1, blood: 'on', glow: true, effects: 'high', bindings: DEFAULT_BINDINGS };
+export const DEFAULT_SETTINGS: Settings = { sensitivity: 1, invertY: false, fov: 100, volume: 0.8, sfxVolume: 1, musicVolume: 0.7, uiSize: 1, blood: 'on', glow: true, effects: 'high', frameCap: DEFAULT_FRAME_CAP, bindings: DEFAULT_BINDINGS };
 
 export function defaultSave(): SaveData {
   return { version: 1, settings: { ...DEFAULT_SETTINGS, bindings: { ...DEFAULT_BINDINGS } }, difficulty: DEFAULT_DIFFICULTY, character: DEFAULT_CHARACTER, cards: true };
@@ -87,6 +91,7 @@ export function hydrateSave(raw: unknown): SaveData {
       blood: BLOOD_LEVELS.includes(s.blood as BloodLevel) ? (s.blood as BloodLevel) : DEFAULT_SETTINGS.blood,
       glow: typeof s.glow === 'boolean' ? s.glow : DEFAULT_SETTINGS.glow,
       effects: EFFECTS_LEVELS.includes(s.effects as EffectsLevel) ? (s.effects as EffectsLevel) : DEFAULT_SETTINGS.effects,
+      frameCap: FRAME_CAPS.includes(s.frameCap as number) ? (s.frameCap as number) : DEFAULT_SETTINGS.frameCap,
       bindings: hydrateBindings(s.bindings),
     },
   };

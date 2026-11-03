@@ -149,6 +149,11 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   crystals, mushrooms and candles, never torches; no torch lights (they cost frames: the designer); at low health the
   screen's edge beats red. **Options in pages:** General, Graphics (display, field of view, Glow, Effects high/low,
   Blood), Audio, Controls; each page can restore its defaults.
+- **Lighter to run (Update 0.3.38, the designer: "my PC go full fan speed"; spec `MD_UPDATES/U0338_LIGHTER.md`):**
+  a floor's pieces are drawn square by square (30 m), so what's out of view or out of the sun's shadow box isn't drawn
+  (about a third of a floor, not all of it). Graphics has **Frame rate** (30–240 fps or Unlimited; 144 at first); the
+  menus and the pause menu at 60 at most. The menus' scenes merged by look (the gate 653 meshes → 20), their shadows
+  drawn once.
 
 ### The rush (Update 0.3.1, the designer: "like Doom or Ultrakill"; spec `MD_UPDATES/U031_EXECUTIONS_AND_RUSH.md`)
 - Executions hold you where you grabbed the enemy (in the air too) till you let go. A freeze on every hit (jab 25 ms,

@@ -29,6 +29,7 @@
 // Update 0.3.31 — the Moon's rooms blown away in Tidebreaker's show, the meteor (moon/tideShowView.ts); its haze pushed
 // out for the show's wide shots.
 import * as THREE from 'three';
+import { placeByArea } from './floorPieces';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { portalOpen, wallsOpen } from '../sim/dungeon/bossRoom';
 import type { DungeonRun } from '../sim/dungeon/roomLoop';
@@ -69,12 +70,6 @@ const SUN_DIR = new THREE.Vector3(-0.45, 1, 0.35).normalize();
 const SHADOW_REACH = 40;
 /** Update 0.0.15 — the boss room's sliding walls: dark masses seen from above (their faces are brick). */
 const SHELL = new THREE.Color().setRGB(0.06, 0.048, 0.04);
-
-const m = new THREE.Matrix4();
-const q = new THREE.Quaternion();
-const pos = new THREE.Vector3();
-const scale = new THREE.Vector3();
-const UP = new THREE.Vector3(0, 1, 0);
 
 export class DungeonView implements ArenaView {
   readonly group = new THREE.Group();
@@ -164,40 +159,13 @@ export class DungeonView implements ArenaView {
   /** Every placement as instances of its kit piece; the gates' bars as their own meshes. */
   build(kit: THREE.Object3D) {
     kit.updateMatrixWorld(true);
-    const byPiece = new Map<string, Placement[]>();
-    for (const p of this.dressing.pieces) {
-      let list = byPiece.get(p.piece);
-      if (!list) byPiece.set(p.piece, (list = []));
-      list.push(p);
-    }
-    for (const [name, list] of byPiece) {
-      const root = kit.getObjectByName(name);
-      if (!root) {
-        console.warn(`dungeon kit: no ${name}`);
-        continue;
-      }
-      const inv = root.matrixWorld.clone().invert();
-      root.traverse((o) => {
-        if (!(o instanceof THREE.Mesh)) return;
-        const local = inv.clone().multiply(o.matrixWorld);
-        const mat = this.material(o.material as THREE.MeshStandardMaterial, name);
-        const inst = new THREE.InstancedMesh(o.geometry, mat, list.length);
-        list.forEach((p, i) => {
-          pos.set(p.x, p.y, p.z);
-          q.setFromAxisAngle(UP, p.rot);
-          scale.set(p.sx, p.sy, p.sz);
-          inst.setMatrixAt(i, m.compose(pos, q, scale).multiply(local));
-          const pillar = this.pillarOf(p);
-          if (pillar >= 0) this.breaks.add(pillar, inst, i);
-        });
-        inst.computeBoundingSphere();
-        // Update 0.0.13 — in the sun: everything takes shadows; the floor tiles cast none (they're flat and most of
-        // the pieces).
-        inst.castShadow = name !== KIT.floor;
-        inst.receiveShadow = true;
-        this.group.add(inst);
-      });
-    }
+    // (Update 0.3.38 — square by square, so what's out of view isn't drawn: floorPieces.ts. Update 0.0.13 — in the sun
+    // everything takes shadows; the floor tiles cast none, they're flat and most of the pieces.)
+    const missing = placeByArea(this.group, kit, this.dressing.pieces, (src, name) => this.material(src, name), (name) => name !== KIT.floor, (p, inst, i) => {
+      const pillar = this.pillarOf(p);
+      if (pillar >= 0) this.breaks.add(pillar, inst, i);
+    });
+    for (const name of missing) console.warn(`dungeon kit: no ${name}`);
     const style = this.dressing.style;
     const bars = kit.getObjectByName(style.bars);
     if (bars) {

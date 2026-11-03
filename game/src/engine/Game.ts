@@ -18,7 +18,10 @@
 // Update 0.3.23 — the lobby and every run built behind the loader (gameBase.ts `covered`; the designer: "add few loading
 // screens and give the game some time to load stuff").
 // Update 0.3.37 — the capture kit on the page (capture/captureView.ts), every frame.
+// Update 0.3.38 — the frame-rate cap (core/framePacer.ts): a refresh drawn only once its time has come; the menus and the
+// pause menu at 60 at most. The menus' shadows are drawn once (menuScenes.ts); a run's every frame.
 import { MAX_FRAME } from '../core/fixedStep';
+import { capOf, FramePacer } from '../core/framePacer';
 import { requestLock, releaseLock } from '../platform/pointerLock';
 import { FullscreenState, enterFullscreen, exitFullscreen, state as fullscreenState } from '../platform/fullscreen';
 import { setLeaveGuard } from '../platform/leaveGuard';
@@ -55,6 +58,7 @@ export class Game extends GameBase {
   private last = performance.now();
   private aspect = 16 / 9;
   private readonly captureView: CaptureView;
+  private readonly pacer = new FramePacer();
 
   constructor(host: HTMLElement, settings: Settings, hud: HudStore, cb: GameCallbacks) {
     super(host, settings, hud, cb);
@@ -210,11 +214,13 @@ export class Game extends GameBase {
 
   private frame = (now: number) => {
     this.raf = requestAnimationFrame(this.frame);
+    if (!this.pacer.ready(now, capOf(this.settings.frameCap, this.mode !== 'play' || this.paused))) return;
     const real = Math.min(Math.max(0, (now - this.last) / 1000), MAX_FRAME);
     this.last = now;
     this.captureView.frame(real);
     // (Update 0.3.23 — the loader going up for a build: nothing runs under it meanwhile.)
     if (this.covering) return;
+    this.renderer.shadowMap.autoUpdate = this.mode === 'play';
     if (this.mode === 'play' && this.run) this.run.frame(real, this.input, this.settings, this.aspect, this.renderer, this.stats, this.debug);
     else this.menuFrame(real);
   };

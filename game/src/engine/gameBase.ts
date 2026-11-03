@@ -47,7 +47,7 @@ export abstract class GameBase {
   private labWaves = false;
   /** Update 0.1.1 — the Lab's Meter: its Execution Power meter kept full (on at first; never outside the Lab). */
   private labMeter = true;
-  private paused = false;
+  protected paused = false;
   /** Update 0.2.9 — the difficulty the run was started on (Update 0.2.12: the run plays by it; the Lab's is the real
    *  one). */
   runDifficulty: Difficulty = 'real';
