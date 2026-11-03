@@ -208,6 +208,7 @@ section('Floor 8 — its crew (Update 0.3.18: test-floor8-crew.ts); its boss sti
 {
   const roster = rosterOf(FLOOR.moon);
   check('its own enemies (none of floor 6’s)', roster.includes('gunner') && roster.every((k) => !(KINDS6 as readonly string[]).includes(k)), roster.join(', '));
-  // (Update 0.3.29 — its boss its own: Tidebreaker, test-tidebreaker.ts; the mechs mini bosses, 0.3.28.)
-  check('its boss is its own, Tidebreaker, in its shattered crater', bossOf(FLOOR.moon) === 'tidebreaker' && bossRoomOf(FLOOR.moon).id === 'the shattered crater' && bossRoomOf(FLOOR.moon).rows.join('').split('C').length - 1 === 12);
+  // (Update 0.3.29 — its boss its own: Tidebreaker, test-tidebreaker.ts; the mechs mini bosses, 0.3.28. Update 0.3.31 —
+  // its crater twice a boss room, twenty-eight pillars: test-tidebreaker-show.ts.)
+  check('its boss is its own, Tidebreaker, in its shattered crater', bossOf(FLOOR.moon) === 'tidebreaker' && bossRoomOf(FLOOR.moon).id === 'the shattered crater' && bossRoomOf(FLOOR.moon).rows.join('').split('C').length - 1 === 28);
 }

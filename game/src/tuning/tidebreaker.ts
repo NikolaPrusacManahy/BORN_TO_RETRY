@@ -62,4 +62,11 @@ export const TIDEBREAKER = group('tidebreaker', 'Tidebreaker', {
   quakeBreaks: knob(9, 0, 30, 0.5, 'Quake breaks', 'Every pillar this near its quake snaps.'),
   rockEvery: knob(2.8, 0.5, 15, 0.1, 'Rock every', 'Raging, rock comes down near you this often (frenzied, twice as often).'),
   tideCoins: knob(15, 0, 200, 1, 'Tidebreaker coins', 'Coins in its chest.'),
+  // (Update 0.3.31 — its show: the designer's cinematic.)
+  showWreck: knob(3, 1, 8, 0.1, 'Show: rooms blow', 'The floor’s other rooms blow up one after another over this long.'),
+  showGrow: knob(3.4, 1, 8, 0.1, 'Show: the room grows', 'Its walls slide out to a boss room’s size, hold, then out to twice it, over this long.'),
+  showEarth: knob(2.4, 0.5, 6, 0.1, 'Show: the Earth', 'The Earth shakes this long, then bursts.'),
+  showMeteor: knob(3, 1, 8, 0.1, 'Show: the meteor', 'The meteor falls from the burst Earth this long.'),
+  showReveal: knob(3.4, 1, 8, 0.1, 'Show: the reveal', 'From its landing to the fight.'),
+  showSlow: knob(0.35, 0.1, 1, 0.05, 'Show: slow motion', 'Revealed, the run’s time this slow while its name shows.'),
 });

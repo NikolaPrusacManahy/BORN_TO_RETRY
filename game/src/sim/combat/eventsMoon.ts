@@ -52,4 +52,12 @@ export type MoonEvent =
   | 'pillarGrab'
   | 'pillarSwing'
   | 'boulderSmash'
-  | 'pillarCrash';
+  | 'pillarCrash'
+  // Update 0.3.31 — its show (sim/dungeon/tideShow.ts): a room blowing up (value: the room; y: its half-width), its walls
+  // sliding out (value: 0, then 1 past a boss room's size), the Earth shaking (0) and bursting (1), the meteor falling,
+  // landing (value: its ring's reach).
+  | 'tideBlast'
+  | 'tideGrow'
+  | 'tideEarth'
+  | 'tideMeteor'
+  | 'tideArrive';

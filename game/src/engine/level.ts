@@ -33,6 +33,8 @@ export interface LevelView extends ArenaView {
   breakPillar?(i: number, p: Pillar): void;
   /** Update 0.3.29 — the floor's pillars' pieces (one torn out by the Moon's boss: pillarEvents.ts). */
   readonly breaks?: PillarBreaks;
+  /** Update 0.3.31 — has the floor been blown away here (the Moon's boss's show: moon/floorBlast.ts)? */
+  readonly gone?: (x: number, z: number) => boolean;
 }
 
 export interface Level {

@@ -31,6 +31,9 @@ import { hitEnemy, isLive, setPhase, spawnEnemy } from '../enemies/enemy';
 import { ENEMY_STATS, EnemyKind } from '../enemies/kinds';
 import { spawnAt } from '../enemies/waves';
 import { sharkWater, stepSharkIntro } from './sharkShow';
+import { stepTideIntro } from './tideShow';
+import { introBeats } from './bossBeats';
+import type { DungeonLevel } from '../../world/dungeon/assemble';
 import type { ItemKind } from '../items/items';
 import type { PlayerState } from '../player/state';
 import { Vector3 } from 'three';
@@ -110,59 +113,7 @@ export const calledBy = (kind: EnemyKind): EnemyKind | null => callsOf(kind)?.ki
 /** The coins a boss leaves (Update 0.2.0: in its chest). */
 export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : kind === 'whale' ? WHALE.v.whaleCoins : kind === 'bigShark' ? BIG_SHARK.v.bigCoins : kind === 'frostRoc' ? FROST_ROC.v.rocCoins : kind === 'tidebreaker' ? TIDEBREAKER.v.tideCoins : BOSS.v.demonCoins);
 
-/** The show's beats, in seconds from stepping in. */
-export interface IntroBeats {
-  wallsFrom: number;
-  wallsTo: number;
-  portalFrom: number;
-  portalTo: number;
-  riseFrom: number;
-  riseTo: number;
-  stanceTo: number;
-  end: number;
-}
-
-const BEATS: IntroBeats = { wallsFrom: 0, wallsTo: 0, portalFrom: 0, portalTo: 0, riseFrom: 0, riseTo: 0, stanceTo: 0, end: 0 };
-
-/** The beats as the knobs say now (one object, refilled: the view asks every frame). */
-export function introBeats(): IntroBeats {
-  const c = CINEMA.v;
-  const b = BEATS;
-  b.wallsFrom = c.pull * 0.6;
-  b.wallsTo = b.wallsFrom + c.walls;
-  b.portalFrom = Math.max(b.wallsFrom, b.wallsTo - 0.3);
-  b.portalTo = b.portalFrom + c.portal;
-  b.riseFrom = b.portalTo - 0.2;
-  b.riseTo = b.riseFrom + c.rise;
-  b.stanceTo = b.riseTo + c.stance;
-  b.end = b.stanceTo + c.back;
-  return b;
-}
-
-const smooth = (k: number) => {
-  const c = Math.max(0, Math.min(1, k));
-  return c * c * (3 - 2 * c);
-};
-
-/** How far the walls have slid back (0: the small room you walk into, 1: the whole room). */
-export function wallsOpen(b: BossRun): number {
-  if (b.kind === 'bigShark') return 1;
-  if (b.beat === 'waiting') return 0;
-  if (b.beat !== 'intro') return 1;
-  const s = introBeats();
-  return smooth((b.t - s.wallsFrom) / (s.wallsTo - s.wallsFrom));
-}
-
-/** How open the portal is (0..1): it opens, holds while the boss rises, then closes. */
-export function portalOpen(b: BossRun): number {
-  if (b.beat !== 'intro' || b.kind === 'bigShark') return 0;
-  const s = introBeats();
-  if (b.t < s.riseTo) return smooth((b.t - s.portalFrom) / (s.portalTo - s.portalFrom));
-  return 1 - smooth((b.t - s.riseTo) / 0.8);
-}
-
-/** The show is on: you neither move nor fight. */
-export const inShow = (b: BossRun) => b.beat === 'intro';
+export { inShow, introBeats, portalOpen, wallsOpen, type IntroBeats } from './bossBeats';
 
 /** The room is shut and the show starts (stepRooms calls this as you step in). */
 export function startShow(b: BossRun, combat: CombatState, at: { x: number; z: number }) {
@@ -174,7 +125,7 @@ export function startShow(b: BossRun, combat: CombatState, at: { x: number; z: n
 const mid = new Vector3();
 
 /** One tick of the boss room once its show has started. Returns true the tick the wooden gate opens. */
-export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: readonly Spot[], player: PlayerState, combat: CombatState, rng: Rng, dt: number): boolean {
+export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: readonly Spot[], player: PlayerState, combat: CombatState, rng: Rng, dt: number, level?: DungeonLevel): boolean {
   const height = ENEMY_STATS[b.kind]().height;
   const calls = callsOf(b.kind);
   const ev = combat.events;
@@ -185,6 +136,11 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
     case 'intro': {
       if (b.kind === 'bigShark') {
         stepSharkIntro(b, portal, player, combat, dt);
+        break;
+      }
+      // (Update 0.3.31 — Tidebreaker's own show: tideShow.ts.)
+      if (b.kind === 'tidebreaker' && level) {
+        stepTideIntro(b, level, player, combat, dt);
         break;
       }
       const s = introBeats();

@@ -29,7 +29,7 @@ import { tallBoxes } from './tallWalls';
 import { hasYeti } from '../../sim/dungeon/wavePlan';
 import { columnBoxes } from './columns';
 import { IcicleSpot, iciclesOf } from './frozen';
-import { bossStart } from './bossWalls';
+import { bossMid, bossStart } from './bossWalls';
 import { Forge, forgeOf } from './forge';
 import { Cove, coveOf } from './cove';
 import { Moon, moonOf } from './moon';
@@ -71,8 +71,10 @@ export interface BossLayout {
   room: number;
   /** The side you come in by. */
   entrance: Side;
-  /** Its inside before the walls slide back, and after (m). */
+  /** Its inside before the walls slide back, and after (m); (Update 0.3.31) a room bigger than a boss room's, its middle
+   *  stage: a boss room's size (null: none). */
   start: Rect;
+  mid: Rect | null;
   end: Rect;
   portal: { x: number; z: number };
   /** The wooden gate: its index in DungeonLevel.gates, where it stands, its turn, the way it opens (outward, into the
@@ -277,6 +279,7 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
     room: out.room,
     entrance: OPPOSITE[out.side],
     start: bossStart(end, OPPOSITE[out.side]),
+    mid: bossMid(end, OPPOSITE[out.side]),
     end,
     portal: { x: (end.min.x + end.max.x) / 2, z: (end.min.z + end.max.z) / 2 },
     gate,

@@ -165,7 +165,8 @@ section('Tidebreaker — its rock falls as meteors do');
 
 section('Tidebreaker — in its arena, the place comes down');
 {
-  // Two minutes in the Moon's boss room with you circling it (unhurt): it tears the place apart.
+  // Two minutes in the Moon's boss room with you circling it (unhurt): it tears the place apart. (Update 0.3.31 — the room
+  // twice a boss room, 28 pillars: those near the fight come down.)
   const level = buildDungeon(planFloor(31, FLOOR.moon));
   const room = level.rooms[level.boss.room];
   const mx = (room.min.x + room.max.x) / 2;
@@ -196,6 +197,6 @@ section('Tidebreaker — in its arena, the place comes down');
     ok &&= Number.isFinite(e.pos.x + e.pos.y + e.pos.z) && e.alive;
   }
   const broken = inRoom.filter((q) => q.broken).length;
-  check(`its arena’s ${inRoom.length} pillars: it tears them down (${broken}), one torn out and hurled`, inRoom.length === 12 && broken >= 5 && seen.has('pillarGrab') && seen.has('pillarCrash'), `${broken} broken; ${[...seen].filter((k) => k.startsWith('pillar')).join(', ')}`);
+  check(`its arena’s ${inRoom.length} pillars: it tears them down (${broken}), one torn out and hurled`, inRoom.length === 28 && broken >= 4 && seen.has('pillarGrab') && seen.has('pillarCrash'), `${broken} broken; ${[...seen].filter((k) => k.startsWith('pillar')).join(', ')}`);
   check('raging, its quakes and rock (it keeps fighting the whole while, in its room)', seen.has('tideQuake') && seen.has('tideRoar') && rocks >= 10 && ok && e.pos.x > room.min.x && e.pos.x < room.max.x && e.pos.z > room.min.z && e.pos.z < room.max.z, `${rocks} rock; quake ${seen.has('tideQuake')}, roar ${seen.has('tideRoar')}, ok ${ok}`);
 }

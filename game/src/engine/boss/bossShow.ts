@@ -7,6 +7,8 @@
 // Update 0.0.19 — a boss brought into the Lab shows its name and health bar too.
 // Update 0.3.16 — floor 6's Big Shark has its own show (sharkCinema.ts): its name on the right as it leaps out of the
 // water, the run slowed mid-leap (sim/dungeon/sharkShow.ts).
+// Update 0.3.31 — the Moon's Tidebreaker its own (tideCinema.ts): its name on the right as it rises out of its meteor's
+// crater, the run slowed (sim/dungeon/tideShow.ts), the whole place shaking.
 import * as THREE from 'three';
 import { BossBeat, introBeats } from '../../sim/dungeon/bossRoom';
 import type { DungeonRun } from '../../sim/dungeon/roomLoop';
@@ -24,6 +26,8 @@ import type { Look } from '../look';
 import { Cinema, Shot } from './cinema';
 import { SharkCinema } from './sharkCinema';
 import { sharkSlow } from '../../sim/dungeon/sharkShow';
+import { tideSlow } from '../../sim/dungeon/tideShow';
+import { TideCinema } from './tideCinema';
 import { BIG_SHARK } from '../../tuning/bigShark';
 import { TIDEBREAKER } from '../../tuning/tidebreaker';
 import { bossIn } from './demonView';
@@ -74,6 +78,7 @@ export class BossShow {
   readonly hud: ShowHud = { cine: false, card: false, bossName: BOSS_NAME, bossTitle: '', bossHp: -1, bossMark: -1, veil: false, floorName: '' };
   private readonly cinema: Cinema | null;
   private readonly shark: SharkCinema | null;
+  private readonly tide: TideCinema | null;
   private beat: BossBeat = 'waiting';
   /** Real seconds of the death's slow motion left. */
   private slow = 0;
@@ -88,6 +93,7 @@ export class BossShow {
   constructor(private readonly run: DungeonRun | null) {
     this.cinema = run ? new Cinema(run.level.boss, run.boss.kind) : null;
     this.shark = run && run.boss.kind === 'bigShark' ? new SharkCinema(run.level.boss.portal) : null;
+    this.tide = run && run.boss.kind === 'tidebreaker' ? new TideCinema(run.level) : null;
     if (run) {
       this.hud.bossTitle = bossTitle(run.level.plan.level);
       this.hud.bossName = BOSS_NAMES[run.boss.kind] ?? BOSS_NAME;
@@ -106,6 +112,7 @@ export class BossShow {
     const c = CINEMA.v;
     // (Update 0.3.16 — and the Big Shark's leap, mid-show.)
     if (this.run && sharkSlow(this.run.boss) < 1) return sharkSlow(this.run.boss);
+    if (this.run && tideSlow(this.run.boss) < 1) return tideSlow(this.run.boss);
     if (this.slow <= 0 || c.slowTime <= 0) return 1;
     const k = 1 - this.slow / c.slowTime;
     return c.slow + (1 - c.slow) * k * k;
@@ -146,20 +153,22 @@ export class BossShow {
     if (b.beat !== this.beat) {
       if (b.beat === 'intro') this.cinema.start(eye, dir);
       if (b.beat === 'intro') this.shark?.start(eye, dir, eye);
+      if (b.beat === 'intro') this.tide?.start(eye, dir);
       if (b.beat === 'fight' && this.beat === 'intro') {
-        look.yaw = (this.shark ?? this.cinema).endYaw;
-        look.pitch = (this.shark ?? this.cinema).endPitch;
+        look.yaw = (this.shark ?? this.tide ?? this.cinema).endYaw;
+        look.pitch = (this.shark ?? this.tide ?? this.cinema).endPitch;
       }
       if (b.beat === 'dying') this.slow = CINEMA.v.slowTime;
       this.beat = b.beat;
     }
     if (b.beat === 'intro') {
       if (this.shark) this.shark.intro(b.t, eye, view);
+      else if (this.tide) this.tide.intro(b.t, eye, view);
       else this.cinema.intro(b.t, view);
       out.cinematic = true;
       h.cine = true;
       const s = introBeats();
-      h.card = this.shark ? SharkCinema.named(b.t) : b.t >= s.riseTo - CARD_EDGE && b.t < s.stanceTo + CARD_EDGE;
+      h.card = this.shark ? SharkCinema.named(b.t) : this.tide ? TideCinema.named(b.t) : b.t >= s.riseTo - CARD_EDGE && b.t < s.stanceTo + CARD_EDGE;
     } else if (b.beat === 'open' && this.cinema.gateShot(b.t, eye, dir, view)) {
       out.cinematic = true;
       h.cine = true;
@@ -168,6 +177,7 @@ export class BossShow {
       camera.position.copy(view.pos);
       camera.lookAt(view.look);
       if (b.beat === 'intro' && run.boss.kind === 'dragon') this.scream(camera, b.t);
+      if (b.beat === 'intro') this.tide?.shake(camera, b.t);
     }
     const boss = bossIn(combat);
     if ((b.beat === 'fight' || b.beat === 'dying') && boss) {

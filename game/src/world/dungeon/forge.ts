@@ -6,7 +6,7 @@
 import type { Rng } from '../../core/rng';
 import type { ArenaBox } from '../arena';
 import type { Put } from './dressExtras';
-import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID } from './floorPlan';
+import { CELL, cellAt, cellX, cellZ, colAt, FloorPlan, GRID, rowAt } from './floorPlan';
 
 /** A press: its middle and its size (m: the crusher cells'), its room, its place in the beat. */
 export interface PressSpot {
@@ -90,8 +90,8 @@ export function forgeOf(plan: FloorPlan, boxes: ArenaBox[]): Forge {
 
 /** The belt under (x, z) (null: none). */
 export function beltUnder(forge: Forge, x: number, z: number): BeltCell | null {
-  const col = Math.floor(x / CELL + GRID / 2);
-  const row = Math.floor(z / CELL + GRID / 2);
+  const col = colAt(x);
+  const row = rowAt(z);
   if (col < 0 || row < 0 || col >= GRID || row >= GRID) return null;
   const i = forge.beltAt[row * GRID + col];
   return i > 0 ? forge.belts[i - 1] : null;
@@ -109,4 +109,4 @@ export function dressBench(x: number, z: number, rng: Rng, put: Put) {
 }
 
 /** The plan's cell under (x, z), for the tests. */
-export const cellUnder = (plan: FloorPlan, x: number, z: number) => cellAt(plan, Math.floor(x / CELL + GRID / 2), Math.floor(z / CELL + GRID / 2));
+export const cellUnder = (plan: FloorPlan, x: number, z: number) => cellAt(plan, colAt(x), rowAt(z));

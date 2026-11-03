@@ -55,6 +55,11 @@ export function depthsFeedback(f: FeedbackParts, kind: CombatEvent, value: numbe
     case 'tideLand':
       f.rig.shake.add(fb.shakeHeavy * 2.4 * near(50));
       return true;
+    // (Update 0.3.31 — its show: the view is its cinema's, shaking there, boss/tideCinema.ts; its meteor's landing still
+    // shakes you after.)
+    case 'tideArrive':
+      f.rig.shake.add(fb.shakeHeavy * 3);
+      return true;
     case 'pillarCrash':
       f.rig.shake.add(fb.shakeHeavy * 1.7 * near(28));
       return true;

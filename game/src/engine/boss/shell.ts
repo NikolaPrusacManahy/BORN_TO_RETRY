@@ -5,6 +5,8 @@
 // kit's brick faces and caps along its inside edge; faces run the room's whole length (their ends hide in the blocks
 // beside them). Updated in place: nothing is made per frame.
 // Update 0.0.20 — in the floor's look (floor 3: stone faces).
+// Update 0.3.31 — a room bigger than a boss room (the Moon's, twice one) slides out in two stages: to a boss room's size
+// against the wall you came in by (`mid`) by half way, then on to the whole room.
 import * as THREE from 'three';
 import type { Rect } from '../../world/dungeon/assemble';
 import { CORE_BOTTOM, CORE_INSET } from '../../world/dungeon/dressing';
@@ -80,6 +82,7 @@ export class Shell {
     private readonly end: Rect,
     coreMat: THREE.Material,
     box: THREE.BufferGeometry,
+    private readonly mid: Rect | null = null,
   ) {
     this.cores = new THREE.InstancedMesh(box, coreMat, EDGES.length);
     this.cores.castShadow = this.cores.receiveShadow = true;
@@ -110,12 +113,13 @@ export class Shell {
     this.shown = k;
     this.group.visible = k < 1;
     if (k >= 1) return;
-    const s = this.start;
     const e = this.end;
-    const x0 = s.min.x + (e.min.x - s.min.x) * k;
-    const x1 = s.max.x + (e.max.x - s.max.x) * k;
-    const z0 = s.min.z + (e.min.z - s.min.z) * k;
-    const z1 = s.max.z + (e.max.z - s.max.z) * k;
+    // (Two stages through its middle one, if it has one.)
+    const [s, t, u] = !this.mid ? [this.start, e, k] : k < 0.5 ? [this.start, this.mid, k * 2] : [this.mid, e, k * 2 - 1];
+    const x0 = s.min.x + (t.min.x - s.min.x) * u;
+    const x1 = s.max.x + (t.max.x - s.max.x) * u;
+    const z0 = s.min.z + (t.min.z - s.min.z) * u;
+    const z1 = s.max.z + (t.max.z - s.max.z) * u;
     const top = HEIGHT.wall! - 0.02;
     for (let b = 0; b < EDGES.length; b++) {
       const edge = EDGES[b];

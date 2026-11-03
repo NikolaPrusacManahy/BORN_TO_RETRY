@@ -26,6 +26,8 @@
 // Update 0.3.9 — a pillar broken by the pillar finisher: its pieces taken out and split (pillarBreak.ts).
 // Update 0.3.11 — floor 7's sheets of ice (iceView.ts) and icicles (icicleView.ts). Update 0.3.13 — those and floor 8's
 // presses, fire vents and belts drawn together (depthsView.ts). Update 0.3.14 — and floor 6's powder kegs.
+// Update 0.3.31 — the Moon's rooms blown away in Tidebreaker's show, the meteor (moon/tideShowView.ts); its haze pushed
+// out for the show's wide shots.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { portalOpen, wallsOpen } from '../sim/dungeon/bossRoom';
@@ -45,16 +47,17 @@ import { WaterView } from './waterView';
 import { Underwater, underwaterOf } from './underwater';
 import { UNDERWATER } from '../tuning/underwater';
 import { SEA_HAZE } from './cove/sharkArena';
-import { SEAWEED } from '../world/dungeon/dressExtras';
-import { TALL_GRASS } from '../world/dungeon/gardenDressing';
 import { solidOf } from './dungeonSolid';
 import { GardenView } from './gardenView';
-import { grassPatch } from './grassShader';
+import { kitMaterial } from './kitMaterial';
 import { MotesView } from './motesView';
 import { DungeonGlows } from './dungeonGlows';
 import { PillarBreaks } from './pillarBreak';
 import { DepthsView } from './depthsView';
 import type { Pillar } from '../sim/combat/pillars';
+import { bossOf } from '../sim/enemies/kinds';
+import { TideShowView } from './moon/tideShowView';
+import { tideWide, WIDE_HAZE } from './boss/tideCinema';
 
 export const KIT_URL = '/models/dungeon/kit.glb';
 /** The sky (the background and the haze), and the sky light's colours above and from the ground. */
@@ -98,6 +101,9 @@ export class DungeonView implements ArenaView {
   private readonly glows: DungeonGlows;
   readonly breaks = new PillarBreaks();
   private readonly depths: DepthsView;
+  private readonly tide: TideShowView | null;
+  /** Update 0.3.31 — has the floor been blown away here (Tidebreaker's show)? */
+  readonly gone = (x: number, z: number) => this.tide?.gone(x, z) ?? false;
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -127,7 +133,7 @@ export class DungeonView implements ArenaView {
     const b = level.boss;
     const shellMat = new THREE.MeshStandardMaterial({ color: SHELL, roughness: 1 });
     this.mats.push(shellMat);
-    this.shell = new Shell(b.start, b.end, shellMat, box);
+    this.shell = new Shell(b.start, b.end, shellMat, box, b.mid);
     this.portal = new Portal(b.portal);
     this.woodGate = new WoodGate(scene, b, `FLOOR ${level.plan.level + 1}`);
     this.lava = new LavaView(this.dressing.lava, look.pit);
@@ -137,6 +143,8 @@ export class DungeonView implements ArenaView {
     this.glows = new DungeonGlows(this.dressing, level);
     this.water = new WaterView(level.tide, look.water ?? look.pit?.deep ?? 0, level.boss.end);
     this.depths = new DepthsView(level);
+    this.tide = bossOf(level.plan.level) === 'tidebreaker' ? new TideShowView(level) : null;
+    if (this.tide) this.group.add(this.tide.group);
     this.group.add(this.sand.group, this.water.group, this.garden.group, this.motes.group, this.breaks.group, this.depths.group);
     this.under = underwaterOf(level, this.dressing.sand);
     if (this.under) this.group.add(this.under.group);
@@ -214,24 +222,14 @@ export class DungeonView implements ArenaView {
     this.depths.build(kit, (src, piece) => this.material(src, piece));
     this.water.build(kit, this.dressing.floats);
     this.under?.patchAll(this.group);
+    // (What the Moon's rooms take with them as they blow: all but the arena's own.)
+    const keep = new Set<THREE.Object3D>([this.shell.group, this.portal.group, this.sky, this.sun, this.sun.target, this.motes.group, this.breaks.group, this.depths.group]);
+    this.tide?.take([...this.group.children.filter((o) => !keep.has(o) && o !== this.tide?.group), ...this.depths.craters]);
   }
 
-  /** The kit's flat colours, a little rough; fire glows. Update 0.2.4 — recoloured as the look says (`piece`: the floor
-   *  tile has its own). Update 0.2.23 — or a piece recoloured whole (`burnt`); floor 2's tall grass parts. */
+  /** The kit's flat colours (kitMaterial.ts). */
   private material(src: THREE.MeshStandardMaterial, piece = ''): THREE.Material {
-    const mat = src.clone();
-    const look = this.dressing.style;
-    const base = src.name.split('.')[0];
-    const tint = look.burnt?.[piece] ?? (piece === look.floor ? look.floorTint?.[base] : undefined) ?? look.tint?.[base];
-    if (tint !== undefined) mat.color.setHex(tint);
-    mat.roughness = 0.9;
-    mat.metalness = 0;
-    this.under?.patch(mat, SEAWEED.has(piece));
-    if (look.id === 'venom' && TALL_GRASS.has(piece)) grassPatch(mat);
-    if (/fire|candle/i.test(src.name) || look.glow?.includes(base)) {
-      mat.emissive.copy(src.color);
-      mat.emissiveIntensity = 2.2;
-    }
+    const mat = kitMaterial(src, piece, this.dressing.style, this.under);
     this.mats.push(mat);
     return mat;
   }
@@ -240,7 +238,7 @@ export class DungeonView implements ArenaView {
    *  lights. */
   update(dt: number, run: DungeonRun, at: THREE.Vector3, flood = 0, kicks = 0) {
     const shut = run.shut;
-    this.daylight(at);
+    this.daylight(at, tideWide(run.boss));
     this.under?.update(dt, at, kicks);
     const b = run.boss;
     this.shell.set(wallsOpen(b));
@@ -263,10 +261,11 @@ export class DungeonView implements ArenaView {
       this.bars[i].position.y = this.barsY[i];
       this.bars[i].visible = Math.abs(this.barsY[i] - style.barsHidden) > 0.01;
     }
+    this.tide?.update(b);
   }
 
-  /** The light knobs as they are now, and the sun's shadows kept round you. */
-  private daylight(at: THREE.Vector3) {
+  /** The light knobs as they are now, and the sun's shadows kept round you. `wide`: the haze pushed out (0..1). */
+  private daylight(at: THREE.Vector3, wide: number) {
     const v = LIGHT.v;
     this.sky.intensity = v.sky;
     this.sun.intensity = v.sun;
@@ -274,6 +273,8 @@ export class DungeonView implements ArenaView {
     // (Update 0.3.16 — and under the Big Shark's arena's water.)
     this.haze.near = this.under || this.depths.sunk ? UNDERWATER.v.hazeNear : v.hazeNear;
     this.haze.far = this.under || this.depths.sunk ? UNDERWATER.v.hazeFar : v.hazeFar;
+    this.haze.near += (WIDE_HAZE[0] - this.haze.near) * wide;
+    this.haze.far += (WIDE_HAZE[1] - this.haze.far) * wide;
     this.haze.color.setHex(this.depths.sunk ? SEA_HAZE : (this.dressing.style.haze ?? this.dressing.style.sky ?? SKY));
     this.sun.target.position.set(at.x, 0, at.z);
     this.sun.position.set(at.x + SUN_DIR.x * 100, SUN_DIR.y * 100, at.z + SUN_DIR.z * 100);
@@ -286,6 +287,7 @@ export class DungeonView implements ArenaView {
     this.lava.dispose();
     this.breaks.dispose();
     this.depths.dispose();
+    this.tide?.dispose();
     this.sand.dispose();
     this.garden.dispose();
     this.motes.dispose();

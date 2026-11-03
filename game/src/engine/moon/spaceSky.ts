@@ -3,7 +3,9 @@
 // turning slowly), a ringed planet far off (Planet_7), and the sun, a white disc with a glow where the sun's light comes
 // from. All of it round the view, at the edge of what the camera draws, untouched by the haze. The stars are made in
 // code; the planets are the kit's, once it's loaded.
+// Update 0.3.31 — and torn apart in Tidebreaker's show (skyShow.ts).
 import * as THREE from 'three';
+import { SkyShow } from './skyShow';
 
 /** How far out it all is (m: inside the camera's 400); how many stars. */
 const FAR = 360;
@@ -22,12 +24,16 @@ const dirOf = (yawDeg: number, upDeg: number) => {
   const u = THREE.MathUtils.degToRad(upDeg);
   return new THREE.Vector3(Math.sin(y) * Math.cos(u), Math.sin(u), -Math.cos(y) * Math.cos(u));
 };
+/** Update 0.3.31 — the way to the Earth from anywhere on the floor (Tidebreaker's meteor comes out of it). */
+export const EARTH_DIR = dirOf(EARTH.yaw, EARTH.up);
 
 export class SpaceSky {
   readonly group = new THREE.Group();
   private readonly stuff: { dispose(): void }[] = [];
   private readonly sun = new THREE.Group();
   private earth: THREE.Object3D | null = null;
+  private ringed: THREE.Object3D | null = null;
+  private readonly show = new SkyShow(FAR, dirOf(EARTH.yaw, EARTH.up).multiplyScalar(FAR * 0.9), EARTH.size, dirOf(RINGED.yaw, RINGED.up).multiplyScalar(FAR * 0.9), RINGED.size);
 
   constructor() {
     const pos = new Float32Array(STARS * 3);
@@ -66,14 +72,14 @@ export class SpaceSky {
     // (The sky only ever moves, never turns: facing its middle, it faces you.)
     this.sun.lookAt(0, 0, 0);
     this.stuff.push(disc, sunMat, glowMat);
-    this.group.add(stars, this.sun);
+    this.group.add(stars, this.sun, this.show.group);
   }
 
   /** The dungeon kit is loaded: the Earth and the ringed planet from it. */
   build(kit: THREE.Object3D) {
     const earth = this.planet(kit, 'kit_m_Planet_1', EARTH);
     if (earth) this.earth = earth;
-    this.planet(kit, 'kit_m_Planet_7', RINGED);
+    this.ringed = this.planet(kit, 'kit_m_Planet_7', RINGED);
   }
 
   private planet(kit: THREE.Object3D, name: string, at: { yaw: number; up: number; size: number }): THREE.Object3D | null {
@@ -106,14 +112,16 @@ export class SpaceSky {
     return holder;
   }
 
-  /** `at`: the view (the sky stays round it). */
-  update(dt: number, at: THREE.Vector3) {
+  /** `at`: the view (the sky stays round it); `show`: Tidebreaker's show's time (floorBlast.ts showTime). */
+  update(dt: number, at: THREE.Vector3, show = -1) {
     this.group.position.copy(at);
     if (this.earth) this.earth.rotation.y += SPIN * dt;
+    this.show.update(dt, show, this.earth, this.ringed);
   }
 
   dispose() {
     this.group.removeFromParent();
+    this.show.dispose();
     for (const s of this.stuff) s.dispose();
   }
 }

@@ -2,11 +2,23 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.30: Tidebreaker, seen)
+## Next up (2026-11-03, Update 0.3.31: Tidebreaker's show)
+- **The designer**: "Intro cinematic for the boss * All previous rooms explode and all of space * The boss room is x2
+  bigger than a normal boss room, you see it expanding * A shot of the earth shakes and explode * A meteor is coming from
+  the earth exploding … revealing the boss doing the monster transformation animation as the whole place shakes and name
+  displayed in slow motion like the shark boss". Spec `MD_UPDATES/U0331_TIDEBREAKER_SHOW.md`.
+- Its beats `sim/dungeon/tideShow.ts`; its shots `engine/boss/tideCinema.ts`; the rooms flung away
+  `engine/moon/floorBlast.ts`; the fireballs and the meteor `moon/tideShowView.ts`; the sky `moon/skyShow.ts`. The board
+  holds one room twice a boss room's side (`floorPlan.ts` `BIG_ROOM`; the world's middle where it was).
+- Checked by tests on the real kit (every piece out of the arena gone, each shot framed); **unseen in the game.**
+  **Next: Hellwarden.**
+
+## Before (2026-11-03, Update 0.3.30: Tidebreaker, seen)
 - **The designer**, having seen it: no weapon; its jump the three Jump clips; its own landing impact (not "the recycled
   version of every boss"); its pillar run ×2; no arc or landing mark before its pillar flies; then no shell roll
   ("remove the spinning attack, everything else looks great"). Spec `MD_UPDATES/U0330_TIDEBREAKER_SEEN.md`. Its impacts and dust-wall shockwaves: `engine/moon/tideImpact.ts`.
-- Checked by tests and Blender renders; the new impact is three.js-only: **unseen in the game**. **Next: Hellwarden.**
+- Checked by tests and Blender renders; the new impact is three.js-only: unseen in the game. Next (as it stood):
+  Hellwarden; 0.3.31 went to its show first.
 
 ## Before (2026-11-03, Update 0.3.29: the Moon's boss, Tidebreaker)
 - **The designer**: "Alien as Moon boss"; "It's the last boss before the last boss, make sure it is intense and full

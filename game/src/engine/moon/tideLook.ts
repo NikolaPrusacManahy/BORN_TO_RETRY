@@ -4,13 +4,17 @@
 // Update 0.3.30 (the designer, having seen it) — no weapon; its jump the three Jump clips ("after start jump is performed
 // then you see him jump and land with ground shake": crouched, Jump_Start into Jump_Loop up in the air, Jump_Land); its
 // run to a pillar played twice as fast; its shell roll gone.
+// Update 0.3.31 — rising out of its meteor's crater in its show, its MonsterTransformation (the designer: "revealing the
+// boss doing the monster transformation animation"), a little slowed (it's slowed with the show too).
 import type { Look } from '../enemyLooks';
 import { COMBO, COMBO_C, COMBO_D, HURL, LEAP, PILLAR, QUAKE, ROAR, SMASH, SWING, THROW, UPPERCUT } from '../../sim/enemies/tideShared';
 import { tideWindup } from '../../sim/enemies/tidebreaker';
 import { TIDEBREAKER } from '../../tuning/tidebreaker';
 
-/** Its run to a pillar played this much faster (the designer: "perform the animation x2 faster too"). */
+/** Its run to a pillar played this much faster (the designer: "perform the animation x2 faster too"). Its show's
+ *  transformation this fast. */
 const RUN_PLAY = 2;
+const RISE_PLAY = 0.8;
 
 /** Its warning at its stage (raging, frenzied: quicker), as the sim has it. */
 const windup = (move: number, stage = 0) => tideWindup(move) / (stage >= 2 ? TIDEBREAKER.v.frenzyPace : stage === 1 ? TIDEBREAKER.v.ragePace : 1);
@@ -43,6 +47,7 @@ export const TIDE_LOOK: Look = {
     [`windup:${SWING}`]: ['Sword_Heavy_A', true, 0.41],
     [`windup:${QUAKE}`]: ['Sword_GroundPound', true, 0.37],
     [`charge:${QUAKE}`]: ['Sword_GroundPound', true],
+    [`intro:${ROAR}`]: ['MonsterTransformation', true, undefined, RISE_PLAY],
     [`windup:${ROAR}`]: ['MonsterTransformation', true, 0.3],
     [`recover:${ROAR}`]: ['MonsterTransformation', true],
   },

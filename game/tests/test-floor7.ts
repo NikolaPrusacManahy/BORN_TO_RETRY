@@ -25,15 +25,15 @@ import { buildDungeon } from '../src/world/dungeon/assemble';
 import { dress } from '../src/world/dungeon/dressing';
 import { FROZEN } from '../src/world/dungeon/frozen';
 import { FROZEN_ROOMS } from '../src/world/dungeon/frozenRooms';
-import { CELL, cellAt, GRID, planFloor } from '../src/world/dungeon/floorPlan';
+import { cellAt, colAt, planFloor, rowAt } from '../src/world/dungeon/floorPlan';
 import { FIGHT_ROOMS, onFloor } from '../src/world/dungeon/rooms';
 import { styleOf } from '../src/world/dungeon/styles';
 import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const v = FROZEN_KNOBS.v;
 /** The cell a point is in. */
-const colOf = (x: number) => Math.floor(x / CELL + GRID / 2);
-const rowOf = (z: number) => Math.floor(z / CELL + GRID / 2);
+const colOf = colAt;
+const rowOf = rowAt;
 
 section('Floor 7 — Frozen Depths: its look and rooms');
 {

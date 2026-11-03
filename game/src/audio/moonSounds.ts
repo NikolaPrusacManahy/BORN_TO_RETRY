@@ -6,7 +6,8 @@
 // and a bomb's blast are a keg's, smaller.
 // Update 0.3.29 — and its boss, Tidebreaker: its growl warning a move, its anchor's whoosh and its smash (a crack and a
 // deep thud), its leap and its landing, stone tearing as it rips up a boulder or a pillar, a pillar smashing, its quake's
-// rumble, its roar.
+// rumble, its roar. Update 0.3.31 — its show: each room blowing (a boom, far off), its walls grinding out, the Earth's
+// rumble and its burst, the meteor's roar coming, its landing (the biggest boom of all).
 import type { CombatEvent } from '../sim/combat/state';
 import type { AudioEngine } from './audio';
 import { kegBoom } from './soundLayers';
@@ -147,6 +148,31 @@ export function playMoon(a: AudioEngine, kind: CombatEvent, _value: number, far:
     case 'tideQuake':
       noise(a, { dur: _value > 0 ? 2.4 : 0.8, gain: 0.4 * Math.max(0.6, far), filter: 'lowpass', from: 220, to: 60 });
       thump(a, Math.max(0.6, far), 2.8);
+      return true;
+    case 'tideBlast':
+      kegBoom(a);
+      noise(a, { dur: 1.4, gain: 0.28, filter: 'lowpass', from: 700, to: 50, q: 0.7 });
+      return true;
+    case 'tideGrow':
+      noise(a, { dur: _value > 0 ? 2.2 : 1.4, gain: 0.3, filter: 'lowpass', from: 260, to: 90 });
+      stone(a, 0.6, 2);
+      return true;
+    case 'tideEarth':
+      if (_value > 0) {
+        kegBoom(a);
+        thump(a, 1, 4);
+        noise(a, { dur: 3, gain: 0.45, filter: 'lowpass', from: 1800, to: 40, q: 0.6 });
+      } else noise(a, { dur: 1.8, gain: 0.38, filter: 'lowpass', from: 120, to: 50 });
+      return true;
+    case 'tideMeteor':
+      noise(a, { dur: 3.2, gain: 0.34, filter: 'bandpass', from: 300, to: 1500, q: 0.9 });
+      tone(a, { from: 90, to: 160, dur: 3.2, gain: 0.22, type: 'sawtooth' });
+      return true;
+    case 'tideArrive':
+      kegBoom(a);
+      thump(a, 1, 5);
+      stone(a, 1, 3);
+      noise(a, { dur: 3.5, gain: 0.55, filter: 'lowpass', from: 2400, to: 35, q: 0.6 });
       return true;
     case 'tideRoar':
       tone(a, { from: 160, to: 60, dur: 1.6, gain: 0.4 * Math.max(0.6, far), type: 'sawtooth' });

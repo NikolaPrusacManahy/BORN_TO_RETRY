@@ -166,12 +166,13 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
     if (room.kind === 'boss') {
       // Its show's clock runs on once the room is cleared (the gate swinging, the view turned to it): Update 0.0.15
       // fix, it stopped there and the view stayed locked on you.
-      if (run.boss.beat !== 'waiting' && stepBoss(run.boss, run.level.boss.portal, room.spawns, player, combat, rng, dt)) {
+      if (run.boss.beat !== 'waiting' && stepBoss(run.boss, run.level.boss.portal, room.spawns, player, combat, rng, dt, run.level)) {
         // The boss is dead: the wooden gate swings open, and the room's own gates lift; its chest rises (Update 0.2.0).
         rr.state = 'cleared';
         raiseChest(run.treasure, room.chest, combat);
         run.shut[run.level.boss.gate] = false;
-        for (const g of room.gates) run.shut[g] = false;
+        // (Update 0.3.31 — not Tidebreaker's: the rooms behind them blew up in its show, tideShow.ts.)
+        if (run.boss.kind !== 'tidebreaker') for (const g of room.gates) run.shut[g] = false;
         ev.push('woodGateOpen', i, run.level.boss.gateAt.x, 2, run.level.boss.gateAt.z);
         ev.push('gatesOpen', i, (room.min.x + room.max.x) / 2, 1, (room.min.z + room.max.z) / 2);
       }

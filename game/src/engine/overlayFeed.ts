@@ -44,7 +44,7 @@ import { mapOf } from './mapFeed';
 import { enemiesLeft } from '../sim/dungeon/enemyCount';
 import { chestToOpen } from '../sim/dungeon/treasure';
 import type { DungeonRun } from '../sim/dungeon/roomLoop';
-import { CELL, GRID } from '../world/dungeon/floorPlan';
+import { boardAt } from '../world/dungeon/floorPlan';
 import { grabRules } from '../sim/combat/grab';
 import { jawCue } from '../sim/enemies/bigSharkMoves';
 import { createRaptorHud, raptorHud, sameRaptor } from './raptorHud';
@@ -168,8 +168,8 @@ export class HudFeed {
       slotSig: sig,
       bonusLeft,
       map,
-      mapX: p.pos.x / CELL + GRID / 2,
-      mapZ: p.pos.z / CELL + GRID / 2,
+      mapX: boardAt(p.pos.x),
+      mapZ: boardAt(p.pos.z),
       mapYaw: yaw,
       cine: show.cine,
       card: show.card,

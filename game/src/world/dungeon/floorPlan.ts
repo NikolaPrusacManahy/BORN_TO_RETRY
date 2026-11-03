@@ -34,7 +34,12 @@ export const SLOTS = 5;
 export const MAX_ROOM = 36;
 const GAP = 6;
 const MARGIN = 4;
-export const GRID = SLOTS * (MAX_ROOM + GAP) + MARGIN * 2;
+/** Update 0.3.31 (the designer: "The boss room is x2 bigger than a normal boss room, you see it expanding") — one room this wide (cells: the Moon's
+ *  boss room, twice a boss room's 30) fits a board row and column past the rest; the board's old side keeps the world's
+ *  middle where it was (every floor's rooms stand where they did). */
+export const BIG_ROOM = 60;
+const BASE = SLOTS * (MAX_ROOM + GAP) + MARGIN * 2;
+export const GRID = BASE + BIG_ROOM - MAX_ROOM;
 /** Fight rooms on the way from the start to the way down on floor `level`: one more every Rooms apart floors, at most
  *  8 (the board holds that many). Update 0.3.27 — 4, one more from floor 4, one more from floor 8. */
 export const pathFights = (level: number) => Math.min(8, Math.round(ROOMS.v.wayRooms) + Math.floor(Math.max(1, level) / Math.max(1, Math.round(ROOMS.v.wayRoomsApart))));
@@ -86,10 +91,12 @@ export interface FloorPlan {
 }
 
 /** A cell's centre in the world (m): the grid is centred on the origin. */
-export const cellX = (col: number) => (col + 0.5 - GRID / 2) * CELL;
-export const cellZ = (row: number) => (row + 0.5 - GRID / 2) * CELL;
-export const colAt = (x: number) => Math.floor(x / CELL + GRID / 2);
-export const rowAt = (z: number) => Math.floor(z / CELL + GRID / 2);
+export const cellX = (col: number) => (col + 0.5 - BASE / 2) * CELL;
+export const cellZ = (row: number) => (row + 0.5 - BASE / 2) * CELL;
+/** Update 0.3.31 — the board's cell (fractional) at a world x or z (the map's you-are-here). */
+export const boardAt = (v: number) => v / CELL + BASE / 2;
+export const colAt = (x: number) => Math.floor(x / CELL + BASE / 2);
+export const rowAt = (z: number) => Math.floor(z / CELL + BASE / 2);
 
 export const cellAt = (plan: FloorPlan, col: number, row: number): Cell =>
   col < 0 || row < 0 || col >= GRID || row >= GRID ? 'void' : plan.cells[row * GRID + col];

@@ -57,6 +57,7 @@ import { fillDebug } from './overlayFeed';
 import { RunBase } from './runBase';
 import { canSlam } from '../sim/player/slam';
 import { holdPillars, pillarEvents } from './pillarEvents';
+import { hideGone } from './moon/floorBlast';
 import { endsRun } from './runLinks';
 import { skullOf } from '../sim/combat/grab';
 import { jawsOf } from '../sim/combat/pin';
@@ -211,6 +212,7 @@ export class Run extends RunBase {
     // The shop and chests read this frame's events before the combat scene clears them; the hands follow a lid.
     const tv = this.treasureView;
     tv.update(this.combat, this.camera.position, gameDt);
+    if (this.view.gone) hideGone(tv.group, this.view.gone);
     this.arms.chest.update(tv.reach.k, tv.reach.left, tv.reach.right, this.camera, this.arms.camera);
     // (A pillar broken or torn out, a keg blown up: their collision and the floor's view. Update 0.3.29 — pillarEvents.ts.)
     pillarEvents(this.combat, this.level, this.view);

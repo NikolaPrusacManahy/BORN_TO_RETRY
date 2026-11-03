@@ -2,6 +2,7 @@
 // each a dish pressed into the dust with a low rim round it (world/dungeon/moon.ts lays them out); its meteors
 // (sim/dungeon/meteors.ts): a rock glowing as it comes down out of the sky on a slant, its shadow growing where it'll
 // strike, then a scorch mark left on the dust. Made in code (the meteor's rock a lumpy ball, its trail a cone).
+// Update 0.3.31 — its craters blown away with their rooms in Tidebreaker's show (floorBlast.ts); its sky torn apart.
 import * as THREE from 'three';
 import type { DungeonLevel } from '../../world/dungeon/assemble';
 import { styleOf } from '../../world/dungeon/styles';
@@ -40,6 +41,8 @@ export class MoonView {
   private readonly trails: THREE.InstancedMesh;
   private readonly shadows: THREE.InstancedMesh;
   private readonly marks: THREE.InstancedMesh;
+  /** Update 0.3.31 — the craters' rims and dishes (each room's blow away with it). */
+  readonly craters: THREE.Object3D[] = [];
 
   constructor(level: DungeonLevel) {
     const look = styleOf(level.plan.level);
@@ -64,6 +67,7 @@ export class MoonView {
       rims.receiveShadow = dishes.receiveShadow = true;
       rims.castShadow = true;
       this.group.add(rims, dishes);
+      this.craters.push(rims, dishes);
     }
     // The meteors: a glowing rock, its trail, its shadow; their marks.
     const rockGeo = new THREE.IcosahedronGeometry(ROCK, 0);
@@ -90,9 +94,9 @@ export class MoonView {
     this.sky?.build(kit);
   }
 
-  /** `at`: the view. */
-  update(dt: number, meteors: Meteors, at: THREE.Vector3) {
-    this.sky?.update(dt, at);
+  /** `at`: the view; `show`: Tidebreaker's show's time (floorBlast.ts showTime). */
+  update(dt: number, meteors: Meteors, at: THREE.Vector3, show = -1) {
+    this.sky?.update(dt, at, show);
     const v = MOON.v;
     for (let i = 0; i < FALLING; i++) {
       const f = meteors.falling[i];

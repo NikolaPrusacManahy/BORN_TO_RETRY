@@ -3,7 +3,7 @@
 // (forge/), moving with the machinery's clock (sim/dungeon/machinery.ts). Made in code. Update 0.3.14 — and floor 6's
 // powder kegs (cove/coveView.ts: the Pirate Kit's pieces, once the kit is loaded). Update 0.3.16 — and its boss arena
 // under its water (cove/sharkArena.ts). Update 0.3.17 — and floor 8's moon (moon/moonView.ts: its sky, craters and
-// meteors).
+// meteors). Update 0.3.31 — its sky torn apart in Tidebreaker's show; its craters blown away with their rooms.
 import * as THREE from 'three';
 import type { DungeonRun } from '../sim/dungeon/roomLoop';
 import type { DungeonLevel } from '../world/dungeon/assemble';
@@ -15,6 +15,7 @@ import { VentView } from './forge/ventView';
 import { CoveView } from './cove/coveView';
 import { SharkArena } from './cove/sharkArena';
 import { MoonView } from './moon/moonView';
+import { showTime } from './moon/floorBlast';
 import { styleOf } from '../world/dungeon/styles';
 
 export class DepthsView {
@@ -53,6 +54,11 @@ export class DepthsView {
   }
 
   /** `at`: the view; `flood`: the boss room's water (m); `kicks`: your kicks this frame. */
+  /** Update 0.3.31 — the Moon's craters (blown away with their rooms: moon/floorBlast.ts). */
+  get craters(): readonly THREE.Object3D[] {
+    return this.moon.craters;
+  }
+
   update(dt: number, run: DungeonRun, at: THREE.Vector3, flood: number, kicks: number) {
     this.time += dt;
     this.arena.update(dt, at, flood, kicks);
@@ -62,7 +68,7 @@ export class DepthsView {
     if (mach.vents.length) this.vents.update(mach.vents, mach.t);
     this.belts.update(mach.t);
     this.cove.update(run.powder, this.time);
-    this.moon.update(dt, run.meteors, at);
+    this.moon.update(dt, run.meteors, at, showTime(run.boss));
   }
 
   dispose() {

@@ -87,6 +87,7 @@ export class TreasureView {
     scene.add(this.group);
     this.card = new ShopCardView(treasure.card, (price) => this.tag(price));
     this.group.add(this.drops.group, this.glows.group, this.card.group);
+    this.drops.group.userData.keep = this.glows.group.userData.keep = true;
     this.loaded = loadModels
       ? new GLTFLoader()
           .loadAsync(ITEMS_URL)

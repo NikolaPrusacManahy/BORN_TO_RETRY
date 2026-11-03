@@ -231,7 +231,12 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   no weapon (its fists); no shell roll ("remove the spinning attack"); its jump the three Jump clips (crouch,
   Jump_Start into Jump_Loop, Jump_Land); its own impact (a crater cracked into the dust, dust rising, rock flung out)
   and shockwaves (walls of dust); its run to a pillar twice as fast; no fan or mark before its pillar flies; raging,
-  its quake far likelier.
+  its quake far likelier. **Update 0.3.31 — its show (`MD_UPDATES/U0331_TIDEBREAKER_SHOW.md`):** its arena twice a
+  boss room (120 m, 28 pillars); stepping in, the floor's other rooms blow up one after another, the furthest first,
+  every piece flung into space, the sky bursting and the ringed planet with them; its walls slide out to a boss room's
+  size, then twice it; the Earth shakes and bursts (a field of rock where it hung after); a meteor out of it (two
+  angles) strikes the arena's middle, white; Tidebreaker rises out of the crater doing its MonsterTransformation,
+  slowed, its name on the right, the whole place shaking. Won, only the way down opens (the rooms behind are gone).
 
 ### The Forge (Update 0.3.13; spec `MD_UPDATES/U0313_THE_FORGE.md`; Update 0.3.17 — out of floor 8, kept on floor 10; Update 0.3.25 — floor 10 is Hell on Earth, its rooms meanwhile)
 - The designer: every floor's level first ("I want all designs to be done first"), then the enemies.
