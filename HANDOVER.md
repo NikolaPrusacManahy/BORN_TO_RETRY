@@ -2,7 +2,29 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-02, Update 0.3.20: the controls on the HUD; no slide)
+## Next up (2026-11-03, Update 0.3.21: the lobby, a manor)
+- **The plan's update 1** (`MD/LOBBY_MANOR_PLAN.md`; spec `MD_UPDATES/U0321_MANOR_LOBBY.md`). The designer first gave a
+  blueprint for a new lobby (built sci-fi, not kept), then: "come back to the old one but you visually upgrade it? like
+  it looks like an explorable manor and we have databse of enemies still like upstairs". The old hall made a manor in
+  the dungeon kit's bricks (`manorWalls.ts`): the great hall with the blueprint's stations (the gate, the grand stairs
+  to the landings, the characters west, the altars and the Fate Cards east, the crystal in the middle, the ten floor
+  paintings south), and upstairs the bestiary's rows of plinths (empty yet) with the credits. The lobby's kit
+  (`build_lobby_kit.py`) has the packs' stairs, fences, windows, armour, weapons, books, gold.
+- **Reworked after the designer played it:** the altars and the Fate Cards' stand moved north ("a bit on the left");
+  the wing banners under the upper floor (they went through it); the wings wider (18 × 32 m) and the bestiary all ten
+  floors in the west with a wide carpeted aisle; the wings' rooms made **galleries** (`world/lobby/galleries.ts`,
+  `engine/lobby/galleryView.ts`): every weapon on the left downstairs, everything else on the right, each turning over
+  its pedestal, its card (name, rarity, effect) as you come near; upstairs east every card on the walls, painted by
+  `engine/cardFace.ts` (the shop's painter, each family's colours). The dining hall and the library behind them; the
+  armoury and treasury gone.
+- Checked by tests (the galleries' rows and stations; walking: up the stairs into the bestiary, through the arches)
+  and Blender renders (`tools/lobby-shots.ts`); **unseen in the game** (the light in the rooms, the crystal's glow,
+  the windows, the exhibits turning, the painted cards).
+- Floors 1, 3 and 4's names are placeholders (`world/dungeon/floorNames.ts`: THE DUNGEON, THE BONE KEEP, THE DESERT).
+- **Next:** 0.3.22, the bestiary (kills remembered, each enemy's statue on its plinth); 0.3.23, the floor paintings
+  (playable); then floor 8's boss (0.3.24).
+
+## Before (2026-11-02, Update 0.3.20: the controls on the HUD; no slide)
 - **The designer's UI change** (spec `MD_UPDATES/U0320_HUD_CONTROLS.md`): bottom right, the controls "like in the game
   Blood rush": the jab, the parry (its icon and ring filling back round like a clock as its wait runs) and the ground
   pound (lit when you could pound), their keys on caps; the weapon slots a row above, the bullets above those.
@@ -12,7 +34,7 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
 - **The ground pound is Ctrl** by default ("Ground pound is now Control key by default"); a save from before moves it
   off F. Ctrl+W in a browser: the run's leave guard asks first; fullscreen's keyboard lock hands it to the game.
 - Checked by tests; **unseen in the game** (the badges' size and look, the fill, Ctrl in play).
-- **Next:** 0.3.21, floor 8's boss: the Frog, Fox and Flamingo mechs together.
+- **Next:** floor 8's boss: the Frog, Fox and Flamingo mechs together (0.3.21 went to the new lobby).
 
 ## Before (2026-11-02, Update 0.3.19: the floors' fight music)
 - **The designer's Combat OST** (spec `MD_UPDATES/U0319_COMBAT_MUSIC.md`; "Combat ost start when you enter the first

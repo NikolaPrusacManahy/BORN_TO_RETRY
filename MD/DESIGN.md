@@ -279,7 +279,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   odds** (Update 0.2.17, the designer: "a chance for each card"): no key and no big fight changes them. Each card once a
   run, lost when you die. No card heals.
 - **On or off** (Update 0.2.17, the designer): a stand in the lobby past ARE YOU EVEN HUMAN?'s altar (a small table, a big
-  card floating over it); off, no chest deals. Saved.
+  card floating over it; Update 0.3.21: after the altars, along the east wall); off, no chest deals. Saved.
 - **The deal:** the world holds still and blurs; a deck deals them one by one, face up, low on the screen; hover lifts one
   to read; a click takes it: it shrinks and flies to the card pile by your coins. You must take one.
 - **TAB:** what you carry (cards, weapons, rings, keys, bonuses, health, armour, dashes, coins); the world holds still.
@@ -483,6 +483,17 @@ Arenas are **hand-made templates assembled from a seed**, not random geometry, b
 ## 12. Characters **(placeholder)**
 - **The roster (Update 0.0.8, the designer):** Joseph (the Adventurer): fists only, picks up used weapons. Fallen King, William Rich and Alpha Team stand locked (Update 0.2.9: as dark silhouettes in the lobby); their kits come later.
 - **The lobby (Update 0.2.9, the designer; it replaced the character select's prison corridor):** Start opens the gate onto a closed, roofed dungeon hall you walk round in first person. Its areas: the characters on a dais (one playable, the rest dark silhouettes), the difficulties at their altars, the credits on the wall, feast tables, and the big main gate showing your difficulty and character; walking into it (or E) starts the run. Spec `MD_UPDATES/U029_LOBBY.md`.
+- **The manor (Update 0.3.21, the designer: "come back to the old one but you visually upgrade it … like it looks like
+  an explorable manor and we have database of enemies still like upstairs"; the plan `MD/LOBBY_MANOR_PLAN.md`, spec
+  `MD_UPDATES/U0321_MANOR_LOBBY.md`):** the great hall (the gate north, the grand stairs climbing to landings in its
+  north corners, the characters on their dais west, the altars and the Fate Cards' stand east, the great crystal over
+  its dais in the middle, the ten floor paintings south: playable from 0.3.23); through its side arches the wings'
+  **galleries** (the designer: "display all weapon align them all properly and put their name and effect as player get
+  closer"): every weapon turning over its pedestal on the left, everything else (health, armour, rings, keys, the kill
+  bonuses) on the right, each one's card as you come near; behind them the dining hall (west) and the library (east);
+  upstairs from the landings, the **bestiary** west (all ten floors: a row of plinths a floor, its boss's at the far
+  wall; statues from 0.3.22) with the **credits**, and the **cards gallery** east (every card on its walls in gilt
+  frames, each shown as you come near). Windows lit from outside.
 - **Difficulties (Update 0.2.9, the designer):** WEAKLING EXPERIENCE, THE REAL EXPERIENCE, ARE YOU EVEN HUMAN?, chosen in the lobby and saved. The gate asks before letting you through: THE REAL EXPERIENCE "Ready for pain?", "Are you sure?", "Don't cry when you die", "Did I mention you only have 1 life? oops"; ARE YOU EVEN HUMAN? "Let's just assume you are not human"; each with two answers. What each changes (Update 0.2.12, the designer; spec `MD_UPDATES/U0212_ALPHA.md`): **WEAKLING EXPERIENCE** is easy, no one-life punishment: dead, you're back at your checkpoint, full health, all you carry kept, the fight starting over. **THE REAL EXPERIENCE**: one life. **ARE YOU EVEN HUMAN?**: just fists and nothing else: no coins, swords, keys, bonuses, chests, shop or rewards (executions still heal); one life. The gate mocks WEAKLING three times ("Hmm? Not feeling like playing properly?", "Bro, just play it normally", "Alright “Weakling”, go on and enjoy your run…").
 - **Boot screens (Update 0.2.12, the designer; as Last Ward's):** black, the studio's logo typing itself out ("DEVELOPED BY NIKO GAME COLLECTION"), then "[F11] Play in full screen for a better experience" (the logo as long as its animation, about 6 s; the tip 3 s); a click fades the one that's up within 0.5 s. Then the main menu ("Alpha v…" bottom right during the alpha).
 - **Checkpoints (Update 0.2.12, the designer):** going into a fight room or the boss room saves one, just outside the door you came in by (under its "Room" or "Boss" sign), facing in. Lava sends you there (every difficulty); so does dying on WEAKLING.

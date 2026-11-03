@@ -111,4 +111,5 @@ the enemies.
    nine rooms.
 2. **The enemies** (0.3.18, done): the six regulars, the two mini bosses (the Bee astronaut after the mech), the
    rooms' roles.
-3. **The boss** (0.3.21; 0.3.19 went to the floors' fight music, 0.3.20 to the HUD's controls): the three mechs together.
+3. **The boss** (0.3.24; 0.3.19 went to the floors' fight music, 0.3.20 to the HUD's controls, 0.3.21–0.3.23 to the
+   new lobby): the three mechs together.

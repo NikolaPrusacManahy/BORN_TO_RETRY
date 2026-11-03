@@ -2,6 +2,7 @@
 // warm fill from all round keeps it as bright as the dungeon (the designer found dark play spaces "way too dark"), a key
 // light from high above gives the furniture its shadows, and chandeliers, torches, the hearth, the chosen altar and the
 // playable character carry warm light of their own.
+// Update 0.3.21 — the manor: the crystal over its dais glows cold.
 import { group, knob } from './schema';
 
 export const LOBBY_LIGHT = group('lobbyLight', 'Lobby light', {
@@ -10,5 +11,6 @@ export const LOBBY_LIGHT = group('lobbyLight', 'Lobby light', {
   chandeliers: knob(40, 0, 150, 1, 'Chandeliers', 'Each chandelier over the carpet and the tables.'),
   torches: knob(14, 0, 60, 1, 'Torches', 'The wall torches near you.'),
   chosen: knob(18, 0, 60, 1, 'Chosen glow', 'The light on your difficulty’s altar and on your character.'),
+  crystal: knob(22, 0, 80, 1, 'Crystal', 'The great crystal’s cold glow over its dais.'),
   shadows: knob(1, 0, 1, 1, 'Shadows', '1: the key light casts shadows; 0: none (faster).'),
 });

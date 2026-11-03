@@ -3,6 +3,10 @@
 // timber beams and the chandeliers hanging from them (iron rings and chains, made here); the walls' dark cores; the
 // dark beyond the gate (drawn from the inside); the portcullis, rising as you go through; the boards (boardsView.ts);
 // the characters on their dais, breathing, the locked ones as dark silhouettes; and the light (lobbyLights.ts).
+// Update 0.3.21 — the manor (MD/LOBBY_MANOR_PLAN.md): the characters on the west wall facing the hall, the Fate Cards'
+// card facing it from the east wall; the great crystal floating and turning over its dais, glowing cold; each floor's
+// painting in a gilt frame with a brass plaque under it; the windows' daylight behind their frames; the galleries'
+// exhibits (galleryView.ts).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ROSTER } from '../../sim/characters';
@@ -10,13 +14,15 @@ import { DIFFICULTIES } from '../../sim/lobby/difficulty';
 import type { Lobby } from '../../sim/lobby/lobby';
 import { BRICK } from '../../world/dungeon/styles';
 import { dressHall, HallDressing, RING_R } from '../../world/lobby/hallDressing';
-import { DAIS, FIGURES, HALL } from '../../world/lobby/spots';
+import { CRYSTAL_DAIS, CRYSTAL_Y, DAIS, FIGURES, HALL } from '../../world/lobby/spots';
 import { KIT_URL } from '../dungeonView';
 import { boxInstances, instancePieces, kitMaterial } from '../kitPieces';
 import type { LevelView } from '../level';
 import { BoardsView } from './boardsView';
 import { LobbyLights } from './lobbyLights';
 import { FateStand } from './fateStand';
+import { GalleryView } from './galleryView';
+import { ITEMS_URL } from '../treasureView';
 
 export const LOBBY_KIT_URL = '/models/menu/lobby.glb';
 /** What shows through any gap (nothing should): the dark of the stone. */
@@ -29,12 +35,17 @@ const BARS_LIFT = 5.5;
 const BARS_RATE = 4.5;
 /** A chandelier's chain runs up to its beam; its four arms meet this far over its ring (m). */
 const HUB = 1;
+/** Update 0.3.21 — the crystal: its size (times the kit's), how fast it turns (rad/s) and bobs; its glow. A painting's
+ *  gilt frame (its bars' width, m), the brass plaque under it; the windows' daylight. */
+const CRYSTAL = { scale: 2.6, turn: 0.35, bob: 0.12, color: 0x9fe3ff } as const;
+const FRAME = { bar: 0.13, depth: 0.08, color: 0xc9a14a, plaque: 0xb08d3a } as const;
+const DAYLIGHT = 0xdff0ff;
 
 /** Fetches the lobby's models ahead (once it's built they come from memory: THREE.Cache), so it's whole as it shows. */
 export function preloadLobby(): Promise<void> {
   THREE.Cache.enabled = true;
   const files = new THREE.FileLoader().setResponseType('arraybuffer');
-  return Promise.all([KIT_URL, LOBBY_KIT_URL].map((url) => files.loadAsync(url))).then(
+  return Promise.all([KIT_URL, LOBBY_KIT_URL, ITEMS_URL].map((url) => files.loadAsync(url))).then(
     () => undefined,
     (err) => console.error('lobby models failed to load', err),
   );
@@ -51,7 +62,9 @@ export class LobbyView implements LevelView {
   private readonly figures: THREE.Object3D[] = [];
   /** Update 0.2.17 — the Fate Cards' stand's card. */
   private readonly stand: FateStand;
+  private readonly gallery: GalleryView;
   private bars: THREE.Object3D | null = null;
+  private crystal: THREE.Object3D | null = null;
   private lift = 0;
   private time = 0;
   /** Your difficulty's altar and your character's place (indexes), and the name over the gate, as last seen. */
@@ -71,18 +84,20 @@ export class LobbyView implements LevelView {
     scene.fog = null;
     this.lights = new LobbyLights(this.group, this.dressing);
     this.boards = new BoardsView(this.dressing.boards);
-    this.stand = new FateStand(lobby.cards);
-    this.group.add(this.stand.group);
+    this.stand = new FateStand(lobby.cards, -Math.PI / 2);
+    this.gallery = new GalleryView(loadModels);
+    this.group.add(this.stand.group, this.gallery.group);
     this.choice();
     this.lights.place(this.altar);
     this.group.add(this.boards.group);
     this.solids();
     const loader = new GLTFLoader();
-    this.loaded = loadModels
+    const own = loadModels
       ? Promise.all([loader.loadAsync(KIT_URL), loader.loadAsync(LOBBY_KIT_URL)])
-          .then(([kit, own]) => this.build(kit.scene, own.scene))
+          .then(([kit, lobbyKit]) => this.build(kit.scene, lobbyKit.scene))
           .catch((err) => console.error('lobby models failed to load', err))
       : Promise.resolve();
+    this.loaded = Promise.all([own, this.gallery.loaded]).then(() => undefined);
   }
 
   /** Your difficulty and character, if they changed: the altar lit, the character's light, the boards. */
@@ -122,7 +137,7 @@ export class LobbyView implements LevelView {
       const body = own.getObjectByName(`Char_${c.id}`)?.clone();
       if (!body) return;
       body.position.set(FIGURES[i].x, DAIS.h, FIGURES[i].z);
-      body.rotation.set(0, -Math.PI / 2, 0);
+      body.rotation.set(0, Math.PI / 2, 0);
       body.scale.setScalar(1);
       body.traverse((o) => {
         if (!(o instanceof THREE.Mesh)) return;
@@ -132,6 +147,19 @@ export class LobbyView implements LevelView {
       this.group.add(body);
       this.figures[i] = body;
     });
+    // The great crystal, cold and lit from within.
+    const crystal = own.getObjectByName('lobby_r_Crystal1')?.clone();
+    if (crystal) {
+      const glow = new THREE.MeshStandardMaterial({ color: CRYSTAL.color, emissive: CRYSTAL.color, emissiveIntensity: 1.1, roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0.88 });
+      this.mats.push(glow);
+      crystal.traverse((o) => {
+        if (o instanceof THREE.Mesh) o.material = glow;
+      });
+      crystal.scale.setScalar(CRYSTAL.scale);
+      crystal.position.set(CRYSTAL_DAIS.x, CRYSTAL_Y, CRYSTAL_DAIS.z);
+      this.group.add(crystal);
+      this.crystal = crystal;
+    }
   }
 
   /** The walls' cores, the beams, the chandeliers' iron and the dark beyond the gate: none of it casts a shadow. */
@@ -149,6 +177,7 @@ export class LobbyView implements LevelView {
     beyond.position.set(d.dark.x, d.dark.y, d.dark.z);
     beyond.scale.set(d.dark.w, d.dark.h, d.dark.d);
     this.group.add(beyond);
+    this.frames(box);
     const ring = new THREE.TorusGeometry(RING_R, 0.05, 6, 28).rotateX(Math.PI / 2);
     const rod = new THREE.CylinderGeometry(0.025, 0.025, 1, 5);
     this.geos.push(ring, rod);
@@ -174,22 +203,69 @@ export class LobbyView implements LevelView {
     }
   }
 
+  /** Update 0.3.21 — each painting's gilt frame and brass plaque (round its board), the bestiary boards' rods, and the
+   *  windows' daylight. */
+  private frames(box: THREE.BoxGeometry) {
+    const d = this.dressing;
+    const gilt = new THREE.MeshStandardMaterial({ color: FRAME.color, roughness: 0.35, metalness: 0.6 });
+    const brass = new THREE.MeshStandardMaterial({ color: FRAME.plaque, roughness: 0.4, metalness: 0.7 });
+    const day = new THREE.MeshBasicMaterial({ color: DAYLIGHT });
+    const pane = new THREE.PlaneGeometry(1, 1);
+    this.mats.push(gilt, brass, day);
+    this.geos.push(pane);
+    const bars: { x: number; y: number; z: number; w: number; h: number; d: number }[] = [];
+    const plaques: typeof bars = [];
+    for (const b of d.boards) {
+      if (b.kind !== 'floor') continue;
+      // (On the south wall, facing north: the frame lies along x.)
+      const t = FRAME.bar;
+      const z = b.z + Math.cos(b.rot) * 0.02;
+      bars.push({ x: b.x, y: b.y + b.h / 2 + t / 2, z, w: b.w + 2 * t, h: t, d: FRAME.depth });
+      bars.push({ x: b.x, y: b.y - b.h / 2 - t / 2, z, w: b.w + 2 * t, h: t, d: FRAME.depth });
+      for (const s of [-1, 1]) bars.push({ x: b.x + s * (b.w / 2 + t / 2), y: b.y, z, w: t, h: b.h, d: FRAME.depth });
+      plaques.push({ x: b.x, y: b.y - b.h / 2 - 0.42, z, w: 0.7, h: 0.16, d: 0.04 });
+    }
+    // The bestiary rows' boards hang from the roof on two rods each.
+    const rods: typeof bars = [];
+    for (const b of d.boards) {
+      if (b.kind !== 'row') continue;
+      const top = b.y + b.h / 2;
+      for (const s of [-1, 1]) rods.push({ x: b.x, y: (top + HALL.wallH) / 2, z: b.z + s * (b.w / 2 - 0.3), w: 0.04, h: HALL.wallH - top, d: 0.04 });
+    }
+    const iron = new THREE.MeshStandardMaterial({ color: IRON, roughness: 0.6, metalness: 0.3 });
+    this.mats.push(iron);
+    this.group.add(boxInstances(bars, gilt, box), boxInstances(plaques, brass, box), boxInstances(rods, iron, box));
+    for (const p of d.panes) {
+      const m = new THREE.Mesh(pane, day);
+      m.position.set(p.x, p.y, p.z);
+      m.rotation.y = p.rot;
+      m.scale.set(p.w, p.h, 1);
+      this.group.add(m);
+    }
+  }
+
   /** Each frame: the light, the boards, the characters breathing, the portcullis rising as you go through, the Fate
-   *  Cards' card. */
+   *  Cards' card, the crystal turning. */
   frame(dt: number, at: THREE.Vector3) {
     this.time += dt;
     this.choice();
     this.lights.update(this.time, dt, at, this.altar, this.figure);
     this.stand.update(this.time, dt, this.lobby.cards);
+    this.gallery.update(this.time);
     for (let i = 0; i < this.figures.length; i++) if (this.figures[i]) this.figures[i].scale.y = 1 + Math.sin(this.time * 1.7 + i * 1.3) * 0.006;
     if (this.lobby.opening) this.lift = Math.min(BARS_LIFT, this.lift + BARS_RATE * dt);
     if (this.bars) this.bars.position.y = this.dressing.bars.y + this.lift;
+    if (this.crystal) {
+      this.crystal.rotation.y = this.time * CRYSTAL.turn;
+      this.crystal.position.y = CRYSTAL_Y + Math.sin(this.time * 1.1) * CRYSTAL.bob;
+    }
   }
 
   dispose() {
     this.scene.remove(this.group);
     this.boards.dispose();
     this.stand.dispose();
+    this.gallery.dispose();
     for (const m of this.mats) m.dispose();
     for (const g of this.geos) g.dispose();
     this.scene.background = null;

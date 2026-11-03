@@ -5,14 +5,22 @@
 // run steps it (engine/run.ts) and passes on what happened (its events) to the App, which asks the gate's questions.
 // Update 0.2.17 — the Fate Cards' stand (the designer: "asking if the player wants the Cards in their run"): E turns them
 // on or off for your runs (saved, as a difficulty is).
+// Update 0.3.21 — the manor's galleries (world/lobby/galleries.ts; the designer: "put their name and effect as player get
+// closer"): each weapon's and each item's pedestal, each card on the cards gallery's walls, a station that only shows
+// its card (its name, rarity and what it does) as you come near, on its own floor (upstairs or down); E does nothing
+// there.
+import type { CardKind } from '../cards/cards';
 import type { CharacterId } from '../characters';
+import type { InfoKind } from '../items/itemInfo';
 import { ROSTER } from '../characters';
 import type { Focus } from '../items/focus';
 import type { PlayerState } from '../player/state';
 import { ALTAR_H, ALTARS, CARD_FLOAT, CARD_STAND, DAIS, FIGURES, GATE, GATE_LINE } from '../../world/lobby/spots';
+import { CARD_SIZE, cardSlots, ITEM_STANDS, WEAPON_STANDS } from '../../world/lobby/galleries';
+import { PEDESTAL } from '../../world/lobby/furniture';
 import { DIFFICULTIES, Difficulty } from './difficulty';
 
-export type StationKind = 'difficulty' | 'character' | 'gate' | 'cards';
+export type StationKind = 'difficulty' | 'character' | 'gate' | 'cards' | 'exhibit' | 'gallery';
 
 export interface Station {
   kind: StationKind;
@@ -24,6 +32,11 @@ export interface Station {
   y: number;
   /** E reaches it from this far across (m). */
   reach: number;
+  /** Update 0.3.21 — the floor it stands on (m: you're only in its reach on it), and a gallery's exhibit: an item or a
+   *  weapon (its pedestal's), or a card (on the cards gallery's wall). */
+  level: number;
+  item?: InfoKind;
+  card?: CardKind;
 }
 
 /** 'pick': a difficulty or a character was chosen (or Fate Cards turned on or off); 'locked': a locked character was
@@ -47,17 +60,21 @@ export interface Lobby {
 }
 
 /** How far E reaches each kind of station (m, across). */
-export const REACH: Readonly<Record<StationKind, number>> = { difficulty: 2.6, character: 3.4, gate: 3.5, cards: 2.6 };
+export const REACH: Readonly<Record<StationKind, number>> = { difficulty: 2.6, character: 3.4, gate: 3.5, cards: 2.6, exhibit: 1.9, gallery: 1.4 };
+/** You're on a station's floor within this much of its level (m). */
+const SAME_FLOOR = 2.5;
 /** Where the gate's card hangs, and a character's over their head (m). */
 const GATE_CARD = 3.2;
 const HEAD = 2.55;
 
 export function createLobby(difficulty: Difficulty, character: CharacterId, cards = true): Lobby {
   const stations: Station[] = [
-    ...ALTARS.map((a, i): Station => ({ kind: 'difficulty', index: i, x: a.x, z: a.z, y: ALTAR_H + 0.95, reach: REACH.difficulty })),
-    ...FIGURES.map((f, i): Station => ({ kind: 'character', index: i, x: f.x, z: f.z, y: DAIS.h + HEAD, reach: REACH.character })),
-    { kind: 'gate', index: 0, x: 0, z: GATE.barsZ + 0.9, y: GATE_CARD, reach: REACH.gate },
-    { kind: 'cards', index: 0, x: CARD_STAND.x, z: CARD_STAND.z, y: CARD_FLOAT + 0.75, reach: REACH.cards },
+    ...ALTARS.map((a, i): Station => ({ kind: 'difficulty', index: i, x: a.x, z: a.z, y: ALTAR_H + 0.95, reach: REACH.difficulty, level: 0 })),
+    ...FIGURES.map((f, i): Station => ({ kind: 'character', index: i, x: f.x, z: f.z, y: DAIS.h + HEAD, reach: REACH.character, level: 0 })),
+    { kind: 'gate', index: 0, x: 0, z: GATE.barsZ + 0.9, y: GATE_CARD, reach: REACH.gate, level: 0 },
+    { kind: 'cards', index: 0, x: CARD_STAND.x, z: CARD_STAND.z, y: CARD_FLOAT + 0.75, reach: REACH.cards, level: 0 },
+    ...[...WEAPON_STANDS, ...ITEM_STANDS].map((s, i): Station => ({ kind: 'exhibit', index: i, x: s.x, z: s.z, y: PEDESTAL.top + 1.25, reach: REACH.exhibit, level: 0, item: s.kind })),
+    ...cardSlots().map((c, i): Station => ({ kind: 'gallery', index: i, x: c.x, z: c.z, y: c.y + 0.75, reach: REACH.gallery, level: c.y - CARD_SIZE.y, card: c.kind })),
   ];
   return { stations, difficulty, character, cards, near: -1, inGate: false, opening: false, events: [] };
 }
@@ -69,7 +86,7 @@ function nearest(l: Lobby, p: PlayerState): number {
   for (let i = 0; i < l.stations.length; i++) {
     const s = l.stations[i];
     const d = Math.hypot(p.pos.x - s.x, p.pos.z - s.z);
-    if (d > s.reach || d >= bestD) continue;
+    if (d > s.reach || d >= bestD || Math.abs(p.pos.y - s.level) > SAME_FLOOR) continue;
     bestD = d;
     best = i;
   }
@@ -84,6 +101,7 @@ export function stepLobby(l: Lobby, p: PlayerState, interact: boolean): boolean 
   l.inGate = inside;
   if (!interact || l.near < 0) return false;
   const s = l.stations[l.near];
+  if (s.kind === 'exhibit' || s.kind === 'gallery') return false;
   if (s.kind === 'gate') l.events.push('gate');
   else if (s.kind === 'cards') {
     l.cards = !l.cards;
@@ -117,7 +135,11 @@ export function lobbyFocus(l: Lobby, out: Focus): Focus {
   if (l.near < 0) return out;
   const s = l.stations[l.near];
   out.at.set(s.x, s.y, s.z);
-  if (s.kind === 'gate') {
+  if (s.kind === 'exhibit') {
+    out.item = s.item ?? null;
+  } else if (s.kind === 'gallery') {
+    out.card = s.card ?? null;
+  } else if (s.kind === 'gate') {
     out.label = '';
     out.act = 'enter';
   } else if (s.kind === 'cards') {

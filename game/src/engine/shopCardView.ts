@@ -2,13 +2,14 @@
 // card. floating near, cost 100"): the card floats past the end of the row of tiles, turning slowly and bobbing, lit in
 // its rarity's colour, its price over it (red when you can't pay). Its face painted in code like the cards on the page:
 // its rarity's frame, its rarity and move along the top, its mark, its name; its back the lobby stand's. Gone once
-// bought. Blank where there's no page to paint on (the rule tests).
+// bought. Blank where there's no page to paint on (the rule tests). (Update 0.3.21 — its face painter: cardFace.ts.)
 import * as THREE from 'three';
-import { CARD } from '../sim/cards/cards';
 import { CARD_FLOAT, CARD_PRICE_Y, cardPrice, ShopCard } from '../sim/cards/shopCard';
 import type { CombatState } from '../sim/combat/state';
 import { CARDS } from '../tuning/cards';
-import { markOf, RARITY_HEX } from '../ui/cardMarks';
+import { CARD } from '../sim/cards/cards';
+import { RARITY_HEX } from '../ui/cardMarks';
+import { cardFaceTexture } from './cardFace';
 import { cardBackTexture } from './lobby/fateStand';
 
 /** The card's size (m), how fast it turns (rad/s), its bob (m) and its light. */
@@ -17,79 +18,11 @@ const H = 0.77;
 const TURN = 0.8;
 const BOB = 0.06;
 const GLOW = 6;
-/** Its mark drawn this many times its 64 grid (px). */
-const MARK_SCALE = 1.7;
 
 type Tags = (price: number) => { cheap: THREE.SpriteMaterial; dear: THREE.SpriteMaterial };
 
-/** Fits `text` on lines no wider than `width` (px). */
-function lines(g: CanvasRenderingContext2D, text: string, width: number): string[] {
-  const out: string[] = [];
-  let line = '';
-  for (const word of text.split(' ')) {
-    const next = line ? `${line} ${word}` : word;
-    if (line && g.measureText(next).width > width) {
-      out.push(line);
-      line = word;
-    } else line = next;
-  }
-  if (line) out.push(line);
-  return out;
-}
-
-/** The card's face: its frame, its rarity and move, its mark, its name. */
-function faceTexture(card: ShopCard): THREE.Texture {
-  if (typeof document === 'undefined' || card.kind === null) return new THREE.Texture();
-  const face = CARD[card.kind];
-  const colour = RARITY_HEX[face.rarity];
-  const c = document.createElement('canvas');
-  c.width = 256;
-  c.height = 360;
-  const g = c.getContext('2d')!;
-  const grad = g.createLinearGradient(0, 0, 0, 360);
-  grad.addColorStop(0, '#241216');
-  grad.addColorStop(1, '#0d0608');
-  g.fillStyle = grad;
-  g.fillRect(0, 0, 256, 360);
-  g.strokeStyle = colour;
-  g.lineWidth = 8;
-  g.strokeRect(6, 6, 244, 348);
-  g.globalAlpha = 0.4;
-  g.lineWidth = 2;
-  g.strokeRect(18, 18, 220, 324);
-  g.globalAlpha = 1;
-  g.font = "bold 18px 'Pixelify Sans', sans-serif";
-  g.textBaseline = 'middle';
-  g.fillStyle = colour;
-  g.textAlign = 'left';
-  g.fillText(face.rarity.toUpperCase(), 30, 40);
-  g.textAlign = 'right';
-  g.fillStyle = '#c9bfc6';
-  g.fillText(face.move.toUpperCase(), 226, 40);
-  // Its mark on a soft glow.
-  const glow = g.createRadialGradient(128, 150, 4, 128, 150, 90);
-  glow.addColorStop(0, `${colour}55`);
-  glow.addColorStop(1, `${colour}00`);
-  g.fillStyle = glow;
-  g.fillRect(28, 60, 200, 180);
-  g.save();
-  g.translate(128 - 32 * MARK_SCALE, 150 - 32 * MARK_SCALE);
-  g.scale(MARK_SCALE, MARK_SCALE);
-  g.strokeStyle = colour;
-  g.lineWidth = 3;
-  g.lineJoin = 'round';
-  g.lineCap = 'round';
-  g.stroke(new Path2D(markOf(face.move)));
-  g.restore();
-  g.fillStyle = '#ffffff';
-  g.textAlign = 'center';
-  g.font = "bold 34px 'Pixelify Sans', Impact, sans-serif";
-  const name = lines(g, face.name.toUpperCase(), 210);
-  name.forEach((l, i) => g.fillText(l, 128, 284 + (i - (name.length - 1) / 2) * 38));
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
+/** The card's face (cardFace.ts; Update 0.3.21 — shared with the manor's cards gallery). */
+const faceTexture = (card: ShopCard): THREE.Texture => (card.kind === null ? new THREE.Texture() : cardFaceTexture(card.kind));
 
 export class ShopCardView {
   readonly group = new THREE.Group();

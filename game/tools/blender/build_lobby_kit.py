@@ -8,6 +8,10 @@
 #     --part1 "<Modular Dungeon Pack - part 1>" --part2 "<Modular Dungeon Pack - part2>" --rpg "<Ultimate RPG Pack>" \
 #     --characters "<Humanoid Rig/Individual Characters/Blend>" --glb public/models/menu/lobby.glb [--previews <folder>]
 # (Moved here from build_prison_scene.py, the old character select's corridor: the posing and baking of the roster.)
+# Update 0.3.21 — the manor (MD/LOBBY_MANOR_PLAN.md): its stairs and their side covers, fences (the landings' rails),
+# arched doors, columns, the big pedestal (the bestiary's plinths), barrels and chests; windows, an entrance, the tall
+# candelabrum, more potions; the RPG pack's armour, weapons (the armoury), books open and closed (the library), crystals
+# (the great hall's), gold, chests, crowns, coins (the treasury).
 import argparse
 import os
 import sys
@@ -19,9 +23,15 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from scene_kit import bake_posed, export_glb, load_pieces, orient_bone, setup_previews, shoot  # noqa: E402
 
 PART1 = ['Table_Big', 'Table_Small', 'Chair', 'Banner', 'Pedestal2', 'Statue_Horse', 'Sword_WallMount', 'Chest_Gold',
-         'Coin_Pile', 'Bag_Coins', 'Bag_Standing', 'Decorative_Wall']
-PART2 = ['Candelabrum', 'Candle', 'Book2', 'Book3', 'Book_Open', 'Potion2', 'Potion3']
-RPG = ['Chalice', 'ChickenLeg', 'Sword_big', 'Skull2', 'Crown', 'Scroll', 'Book1_Closed', 'Potion1_Filled', 'Heart']
+         'Coin_Pile', 'Bag_Coins', 'Bag_Standing', 'Decorative_Wall', 'Stairs_Modular', 'Stairs_SideCover',
+         'Fence_Straight_Modular', 'Fence_End_Modular', 'Arch_Door', 'Column2', 'Pedestal', 'Barrel', 'Chest']
+PART2 = ['Candelabrum', 'Candle', 'Book2', 'Book3', 'Book_Open', 'Potion2', 'Potion3', 'Window', 'Entrance2',
+         'Candelabrum_tall', 'Potion4', 'Potion5', 'Potion6']
+RPG = ['Chalice', 'ChickenLeg', 'Sword_big', 'Skull2', 'Crown', 'Scroll', 'Book1_Closed', 'Potion1_Filled', 'Heart',
+       'Armor_Black', 'Armor_Golden', 'Armor_Leather', 'Armor_Metal', 'Armor_Metal2', 'Axe_Double', 'Axe_Double_Golden',
+       'Hammer_Double', 'Bow_Wooden', 'Bow_Golden', 'Sword_big_Golden', 'Sword', 'Book2_Closed', 'Book3_Closed',
+       'Book4_Closed', 'Book1_Open', 'Crystal1', 'Crystal2', 'Gold_Ingots', 'Chest_Closed', 'Chest_Ingots', 'Crown2',
+       'Coin_Star', 'Parchment', 'Potion4_Filled', 'Potion6_Filled', 'Necklace1']
 CHARACTERS = [('adventurer', 'Adventurer'), ('king', 'King'), ('suit', 'Suit'), ('swat', 'Swat')]
 SILHOUETTE_OF = 'Adventurer'
 

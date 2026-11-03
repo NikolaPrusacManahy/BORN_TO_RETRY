@@ -3,7 +3,20 @@
 // are the dungeon kit's (kit_…, public/models/dungeon/kit.glb) and the lobby's own (lobby_…, public/models/menu/
 // lobby.glb: tools/blender/build_lobby_kit.py). Some of the packs' small things come huge (a book 1.2 m across): they're
 // scaled to life here. Pure data.
-import { ALTAR_H, ALTARS, CARD_STAND } from './spots';
+// Update 0.3.21 — the manor (MD/LOBBY_MANOR_PLAN.md): in the great hall, the gate's guard (the horses, tall candelabra),
+// standing banners down the carpet, the altars (each its sign on it) and the Fate Cards' table along the east wall, the
+// crystal's pedestal and tall candelabra on its dais; the galleries' pedestals (galleries.ts: the weapons', the items')
+// with a carpet from the hall's arch past them; the dining hall and the library (roomFurniture.ts); upstairs in the
+// bestiary, a row of plinths for each floor's enemies (the floors with none of their own yet: four bare plinths), its
+// boss's big plinth by the far wall, a wide carpet down the entrance aisle; in the cards gallery, a carpet down its
+// middle between two lines of tall candelabra.
+import { collection } from '../../sim/lobby/collection';
+import { ITEM_STANDS, WEAPON_STANDS } from './galleries';
+import { rowOf, ROWS } from './hallTrim';
+import { HEARTH, roomFurniture } from './roomFurniture';
+import { ALTAR_H, ALTARS, CARD_STAND, CRYSTAL_DAIS, WING } from './spots';
+
+export { HEARTH };
 
 export interface Prop {
   piece: string;
@@ -18,104 +31,64 @@ export interface Prop {
 }
 
 const list: Prop[] = [];
-const put = (piece: string, x: number, y: number, z: number, rot = 0, s = 1, solid?: [number, number, number]) =>
-  list.push({ piece, x, y, z, rot, s: [s, s, s], solid });
-const putS = (piece: string, x: number, y: number, z: number, rot: number, s: [number, number, number], solid?: [number, number, number]) =>
-  list.push({ piece, x, y, z, rot, s, solid });
+const put = (piece: string, x: number, y: number, z: number, rot = 0, s: number | [number, number, number] = 1, solid?: [number, number, number]) =>
+  list.push({ piece, x, y, z, rot, s: typeof s === 'number' ? [s, s, s] : s, solid });
 
-const EAST = Math.PI / 2;
 const WEST = -Math.PI / 2;
-const NORTH = Math.PI;
-/** A table's top (m). */
-const TOP = 0.85;
 
-// The gate's guard: two rearing horses, two tall candelabra, a standing banner in each corner by it.
+/** A bestiary plinth (the small pedestal made a plinth: its top, m), and a boss's (the big one). */
+export const PLINTH = { scale: 0.42, top: 2.31 * 0.42, boss: 0.6, bossTop: 2.19 * 0.6 } as const;
+/** A gallery's pedestal (its top, m): its exhibit turns over it (engine/lobby/galleryView.ts). */
+export const PEDESTAL = { scale: 0.5, top: 2.31 * 0.5 } as const;
+/** The cards gallery's tall candelabra (their flames light it: hallDressing.ts). */
+export const CARD_ROOM_CANDLES: readonly { x: number; z: number }[] = [-14, -4, 6].flatMap((z) => [20, 28].map((x) => ({ x, z })));
+
+// The gate's guard: two rearing horses, two tall candelabra.
 for (const k of [-1, 1]) {
   put('lobby_p1_Statue_Horse', k * 8.6, 0, -19, 0, 1, [1.8, 5.9, 3.4]);
   put('kit_p2_Candelabrum_tall', k * 4, 0, -20.6, 0, 1.25, [0.7, 2.3, 0.7]);
-  put('lobby_p1_Banner', k * 12.2, 0, -21.3, 0, 1.25, [0.4, 4.7, 0.4]);
 }
 
-// Standing banners lining the carpet up to the gate.
-for (const k of [-1, 1]) for (const z of [-16, -9.5, -3]) put('lobby_p1_Banner', k * 2.7, 0, z, 0, 1.1, [0.4, 4.2, 0.4]);
+// Standing banners lining the carpet: up to the gate, and on from the crystal's dais towards the paintings.
+for (const k of [-1, 1]) for (const z of [-16, -9.5, 10.5, 15]) put('lobby_p1_Banner', k * 2.7, 0, z, 0, 1.1, [0.4, 4.2, 0.4]);
 
-// The difficulties: an altar each, its sign over it on the wall (hallDressing.ts), and what it stands for on it.
+// The difficulties: an altar each along the east wall, its sign over it on the wall (hallTrim.ts), what it stands for
+// on it.
 const SIGNS = ['lobby_r_Heart', 'lobby_r_Sword_big', 'lobby_r_Skull2'];
-const SIGN_SCALE = [0.55, 0.55, 0.55];
 ALTARS.forEach((a, i) => {
-  putS('lobby_p1_Pedestal2', a.x, 0, a.z, EAST, [0.62, 0.5, 0.62], [1.1, ALTAR_H, 1.1]);
-  put(SIGNS[i], a.x, ALTAR_H, a.z, EAST, SIGN_SCALE[i]);
+  put('lobby_p1_Pedestal2', a.x, 0, a.z, WEST, [0.62, 0.5, 0.62], [1.1, ALTAR_H, 1.1]);
+  put(SIGNS[i], a.x, ALTAR_H, a.z, WEST, 0.55);
 });
 
-// Update 0.2.17 — the Fate Cards' stand, past the last altar: a small table, a candle at each end (its card floats over
+// Update 0.2.17 — the Fate Cards' stand, after the altars: a small table, a candle at each end (its card floats over
 // it: engine/lobby/fateStand.ts).
 put('lobby_p1_Table_Small', CARD_STAND.x, 0, CARD_STAND.z, 0, 1, [1.3, 0.85, 1.98]);
-for (const dz of [-0.72, 0.72]) put('lobby_p2_Candle', CARD_STAND.x + 0.2, 0.85, CARD_STAND.z + dz, 0, 0.35);
+for (const dz of [-0.72, 0.72]) put('lobby_p2_Candle', CARD_STAND.x - 0.2, 0.85, CARD_STAND.z + dz, 0, 0.35);
 
-// Dark columns up to the roof's beams, framing the two side areas.
-for (const x of [-12, 12]) for (const z of [-14, 10]) putS('kit_p1_Column', x, 0, z, 0, [1.3, 2.415, 1.3], [1.7, 9.8, 1.7]);
+// The crystal's dais: its pedestal in the middle of the top step (the crystal floats over it: engine/lobby/
+// crystalView.ts), a tall candelabrum at each corner of the lower step.
+const c = CRYSTAL_DAIS;
+put('lobby_p1_Pedestal2', c.x, 2 * c.step, c.z, 0, [0.62, 0.5, 0.62], [1.1, ALTAR_H, 1.1]);
+for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) put('kit_p2_Candelabrum_tall', c.x + dx * (c.outer - 0.55), c.step, c.z + dz * (c.outer - 0.55), 0, 1.1, [0.7, 2, 0.7]);
 
-// Two feast tables either side of the carpet, three long tables end to end, chairs down both sides and at the head.
-const SEATS = [2.6, 5.9, 9.2];
-for (const k of [-1, 1]) {
-  const x = k * 6.2;
-  SEATS.forEach((z, i) => {
-    put('lobby_p1_Table_Big', x, 0, z, 0, 1, [1.6, TOP, 3.3]);
-    for (const dz of [-0.8, 0.8]) {
-      // A little out of line, as people left them; one on each table pushed back.
-      const back = i === 1 && dz > 0 ? 0.35 : 0;
-      put('lobby_p1_Chair', x - 1.2 - back, 0, z + dz, EAST + ((i * 3 + dz * 5) % 2) * 0.08, 1, [0.6, 1.1, 0.6]);
-      put('lobby_p1_Chair', x + 1.2, 0, z + dz, WEST - ((i + 1) % 2) * 0.1, 1, [0.6, 1.1, 0.6]);
-    }
-    // The feast: a candelabrum in the middle, cups, meat, coins; a book on the last.
-    put('lobby_p2_Candelabrum', x, TOP, z, 0, 0.55);
-    put('lobby_r_Chalice', x - 0.42, TOP, z - 0.9, 0, 0.3);
-    put('lobby_r_Chalice', x + 0.45, TOP, z + 0.7, 0, 0.3);
-    put('lobby_r_ChickenLeg', x + 0.35, TOP, z - 0.55, 0.6 + i, 0.3);
-    put('lobby_p1_Coin_Pile', x - 0.4, TOP, z + 0.95, i, 2.2);
-    if (i === 2) put('lobby_p2_Book_Open', x - 0.2, TOP, z + 1.2, 0.3, 0.3);
-  });
-  put('lobby_p1_Chair', x, 0, 0.2, 0, 1.08, [0.6, 1.1, 0.6]);
+roomFurniture(put);
+
+// The galleries: a pedestal for each exhibit, a carpet from the hall's arch along the front of each.
+for (const s of [...WEAPON_STANDS, ...ITEM_STANDS]) put('lobby_p1_Pedestal2', s.x, 0, s.z, 0, PEDESTAL.scale, [0.85, PEDESTAL.top, 0.85]);
+for (const s of [-1, 1]) for (let k = 0; k < 3; k++) put('kit_p2_Carpet', s * (WING.x0 + 2.6 + k * 5.1), 0.005, -4.4, Math.PI / 2, [1.15, 0.15, 0.95]);
+
+// Upstairs, the bestiary: each floor's row of plinths from the entrance aisle out (four bare ones where a floor has none
+// of its own yet), its boss's plinth by the far wall; a wide carpet down the aisle.
+for (const shelf of collection()) {
+  const r = rowOf(shelf.floor - 1);
+  const n = Math.max(4, shelf.enemies.length);
+  for (let j = 0; j < n; j++) put('lobby_p1_Pedestal2', r.side * (ROWS.start + j * ROWS.step), WING.upper, r.z, 0, PLINTH.scale, [0.7, PLINTH.top, 0.7]);
+  if (shelf.boss) put('lobby_p1_Pedestal', r.side * ROWS.boss, WING.upper, r.z, 0, PLINTH.boss, [1.15, PLINTH.bossTop, 1.15]);
 }
+for (let k = 0; k < 6; k++) put('kit_p2_Carpet', -(WING.x0 + 2.4), WING.upper + 0.005, WING.z0 + 2.95 + k * 5.15, 0, [1.3, 0.15, 0.96]);
 
-// The credits: a tall candelabrum either side of the boards.
-for (const k of [-1, 1]) put('kit_p2_Candelabrum_tall', k * 8.3, 0, 21, 0, 1.25, [0.7, 2.3, 0.7]);
-
-// North-west corner: stores. Crates (one on another), barrels, a bucket.
-put('kit_p1_Crate', -13.6, 0, -20.5, 0, 1, [1.4, 1.31, 1.4]);
-put('kit_p1_Crate', -13.6, 1.31, -20.5, 0.4, 0.8);
-put('kit_p1_Crate', -10.4, 0, -20.8, 0.2, 1, [1.4, 1.31, 1.4]);
-put('kit_p1_Barrel', -13.9, 0, -18.2, 0, 1, [1, 1.35, 1]);
-put('kit_p1_Barrel2', -12.7, 0, -17.6, 0.7, 1, [1, 1.35, 1]);
-put('kit_p1_Bucket', -11.4, 0, -18.9, 0.5);
-
-// North-east corner: the treasure. A gold chest spilling coins, bags of coin, barrels.
-put('lobby_p1_Chest_Gold', 13.4, 0, -20.4, WEST, 1, [1.6, 0.9, 1.2]);
-for (const [x, z, r] of [[12.2, -20.6, 0], [12.5, -19.5, 1], [13.2, -18.9, 2], [11.9, -19.9, 3]]) put('lobby_p1_Coin_Pile', x, 0, z, r, 3);
-put('lobby_p1_Bag_Coins', 12.1, 0, -18.8, 0.4, 2);
-put('lobby_p1_Bag_Standing', 14.1, 0, -18.7, 0, 2.5);
-put('kit_p1_Barrel2', 14, 0, -16.9, 0, 1, [1, 1.35, 1]);
-
-// South-west corner: a reading table with books and a candle.
-put('lobby_p1_Table_Small', -12.4, 0, 18, 0, 1, [1.3, TOP, 2]);
-put('lobby_p1_Chair', -13.6, 0, 18.3, EAST, 1, [0.6, 1.1, 0.6]);
-put('lobby_p1_Chair', -11.2, 0, 17.4, WEST + 0.3, 1, [0.6, 1.1, 0.6]);
-put('lobby_p2_Book_Open', -12.5, TOP, 17.6, 0.2, 0.3);
-put('lobby_p2_Book3', -12.2, TOP, 18.6, NORTH + 0.4, 0.28);
-put('lobby_r_Book1_Closed', -12.7, TOP, 18.8, 0.9, 0.35);
-put('lobby_r_Scroll', -12.1, TOP, 17.1, 1.2, 0.3);
-put('lobby_p2_Candle', -12.75, TOP, 17.2, 0, 0.45);
-put('kit_p1_Chest', -14, 0, 20.8, 0, 1, [1, 0.9, 0.8]);
-
-// South-east corner: the hearth, ringed with stones, two chairs to it, barrels by the wall.
-put('kit_p1_Woodfire', 11.8, 0, 17.6, 0, 1.6, [1.2, 1.2, 1.2]);
-for (let i = 0; i < 9; i++) {
-  const a = (i / 9) * Math.PI * 2;
-  put(i % 2 ? 'kit_p2_Rock1' : 'kit_p2_Rock3', 11.8 + Math.cos(a) * 1.05, 0, 17.6 + Math.sin(a) * 1.05, a * 2, 0.28);
-}
-put('lobby_p1_Chair', 9.6, 0, 17, EAST - 0.4, 1, [0.6, 1.1, 0.6]);
-put('lobby_p1_Chair', 11.4, 0, 20, NORTH + 0.2, 1, [0.6, 1.1, 0.6]);
-put('kit_p1_Barrel', 14, 0, 20.8, 0, 1, [1, 1.35, 1]);
-put('kit_p1_Barrel2', 14.1, 0, 19.4, 0.5, 1, [1, 1.35, 1]);
+// The cards gallery: a carpet down its middle, tall candelabra either side of it.
+for (let k = 0; k < 5; k++) put('kit_p2_Carpet', 24, WING.upper + 0.005, WING.z0 + 4.2 + k * 5.4, 0, [1.5, 0.15, 1]);
+for (const c of CARD_ROOM_CANDLES) put('kit_p2_Candelabrum_tall', c.x, WING.upper, c.z, 0, 1.2, [0.7, 2.2, 0.7]);
 
 export const FURNITURE: readonly Prop[] = list;

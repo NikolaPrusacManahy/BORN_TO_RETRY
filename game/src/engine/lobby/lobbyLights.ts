@@ -2,11 +2,13 @@
 // from high above (its shadows cover the whole hall), a light under each chandelier, the hearth's fire, the wall
 // torches nearest you (a few lights move from torch to torch, as the dungeon's do), and a glow on your difficulty's
 // altar and on the playable character. Flames flicker, each a little out of step.
+// Update 0.3.21 — the manor (MD/LOBBY_MANOR_PLAN.md): more torches to move between (its rooms and the bestiary too), the
+// characters' dais on the west wall and the altars on the east, the crystal's cold glow, pulsing as it turns.
 import * as THREE from 'three';
 import { LOBBY_LIGHT } from '../../tuning/lobbyLight';
 import { lightNearest } from '../torchLights';
 import type { HallDressing } from '../../world/lobby/hallDressing';
-import { ALTARS, FIGURES, DAIS } from '../../world/lobby/spots';
+import { ALTARS, CRYSTAL_DAIS, CRYSTAL_Y, DAIS, FIGURES } from '../../world/lobby/spots';
 
 const FILL_TOP = 0xffe6c8;
 const FILL_BOTTOM = 0x5a4636;
@@ -16,8 +18,9 @@ const KEY_DIR = new THREE.Vector3(-0.12, 1, 0.18).normalize();
 const SHADOW_REACH = 30;
 const FLAME = 0xff9a48;
 const CANDLES = 0xffc27a;
+const CRYSTAL = 0x8fd8ff;
 /** How many torches have a light, and how often they move to the nearest (s). */
-const TORCH_LIGHTS = 6;
+const TORCH_LIGHTS = 8;
 const RELIGHT = 0.25;
 
 /** A flame's flicker (0.7–1), out of step by `seed`. */
@@ -31,6 +34,7 @@ export class LobbyLights {
   private readonly hearth = new THREE.PointLight(FLAME, 1, 9, 1.6);
   private readonly chosen = new THREE.PointLight(CANDLES, 1, 7, 1.6);
   private readonly figure = new THREE.PointLight(CANDLES, 1, 7, 1.6);
+  private readonly crystal = new THREE.PointLight(CRYSTAL, 1, 14, 1.5);
   private relight = 0;
 
   constructor(
@@ -54,7 +58,8 @@ export class LobbyLights {
     });
     for (let i = 0; i < TORCH_LIGHTS; i++) this.torches.push(new THREE.PointLight(FLAME, 1, 14, 1.6));
     this.hearth.position.set(d.hearth.x, d.hearth.y + 0.4, d.hearth.z);
-    group.add(this.fill, k, k.target, this.hearth, this.chosen, this.figure, ...this.chandeliers, ...this.torches);
+    this.crystal.position.set(CRYSTAL_DAIS.x, CRYSTAL_Y, CRYSTAL_DAIS.z);
+    group.add(this.fill, k, k.target, this.hearth, this.chosen, this.figure, this.crystal, ...this.chandeliers, ...this.torches);
   }
 
   /** `at`: the camera (the torches near it get the lights); `altar`, `figure`: your difficulty's altar and your
@@ -68,12 +73,13 @@ export class LobbyLights {
     this.torches.forEach((l, i) => (l.intensity = v.torches * flicker(time, 1 + i * 6)));
     this.hearth.intensity = v.torches * 1.6 * flicker(time, 40);
     const f = FIGURES[figure];
-    this.figure.position.set(f.x - 1.6, DAIS.h + 2.8, f.z);
+    this.figure.position.set(f.x + 1.6, DAIS.h + 2.8, f.z);
+    this.crystal.intensity = v.crystal * (0.85 + 0.15 * Math.sin(time * 1.6));
     this.figure.intensity = v.chosen;
     const a = ALTARS[altar];
     // The glow follows your choice across the altars.
     const k = 1 - Math.exp(-8 * dt);
-    this.chosen.position.x += (a.x + 1.5 - this.chosen.position.x) * k;
+    this.chosen.position.x += (a.x - 1.5 - this.chosen.position.x) * k;
     this.chosen.position.y = 3;
     this.chosen.position.z += (a.z - this.chosen.position.z) * k;
     this.chosen.intensity = v.chosen;
@@ -86,6 +92,6 @@ export class LobbyLights {
   /** Straight to your difficulty's altar (no glide), as you come in. */
   place(altar: number) {
     const a = ALTARS[altar];
-    this.chosen.position.set(a.x + 1.5, 3, a.z);
+    this.chosen.position.set(a.x - 1.5, 3, a.z);
   }
 }

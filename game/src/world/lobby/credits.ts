@@ -5,6 +5,8 @@
 // board is gone (their licences don't ask for it on screen).
 // Update 0.3.19 — the fights' music (the designer: "Yes, on the board"): Polarnyne's Izakaya Funes' Metal Pack (its
 // licence asks for a credit) and Intersonic Sound's Replica.
+// Update 0.3.21 — the packs since: the Pirate Kit (floor 6), the Ultimate Space Kit (floor 8); two packs a line. The
+// boards hang upstairs now, in the bestiary.
 
 export interface CreditBoard {
   title: string;
@@ -14,7 +16,7 @@ export interface CreditBoard {
 export const CREDITS: readonly CreditBoard[] = [
   {
     title: 'MODELS',
-    lines: ['Quaternius (CC0)', 'Modular Dungeon Pack', 'Ultimate Nature Pack', 'Ultimate RPG Pack', 'Ultimate Monsters', 'Characters: Adventurer, King, Suit, Swat', 'Guns: Pistol'],
+    lines: ['Quaternius (CC0)', 'Modular Dungeon Pack · Ultimate Nature Pack', 'Ultimate RPG Pack · Ultimate Monsters', 'Pirate Kit · Ultimate Space Kit', 'Characters: Adventurer, King, Suit, Swat', 'Guns: Pistol'],
   },
   {
     title: 'SOUND',

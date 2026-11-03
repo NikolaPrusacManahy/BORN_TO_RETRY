@@ -14,6 +14,8 @@
 # Update 0.2.23 — floor 2's: ash beds (`ash` cells), the boss room's charred pieces (the look's `burnt`).
 # Update 0.3.13 — the boxes made straight into the scene, sharing one cube and a material a colour (floor 8 has
 # thousands).
+# Update 0.3.21 — the manor: the fill's colour under its roof (`fill`), top-down cuts at more than one height (`cuts`:
+# under the roof, under the upper floors), and lit `glow` boxes (the windows' daylight).
 import argparse
 import json
 import math
@@ -69,7 +71,8 @@ def game_boxes(boxes):
         dark = sum(b['color']) == 0
         if dark not in cubes:
             cubes[dark] = cube_mesh('BoxInside' if dark else 'BoxCube', dark)
-        key = (tuple(b['color']), dark)
+        glow = bool(b.get('glow'))
+        key = (tuple(b['color']), dark, glow)
         mat = mats.get(key)
         if mat is None:
             mat = bpy.data.materials.new(f'Box{len(mats)}')
@@ -77,6 +80,10 @@ def game_boxes(boxes):
             col = (*b['color'], 1)
             bsdf = mat.node_tree.nodes['Principled BSDF']
             bsdf.inputs['Base Color'].default_value = col
+            if glow:
+                # Update 0.3.21 — lit from inside (a window's daylight).
+                bsdf.inputs['Emission Color'].default_value = col
+                bsdf.inputs['Emission Strength'].default_value = 2.5
             if dark:
                 # The dark: drawn from the inside only, as the game does (its near side never hides what's in it).
                 bsdf.inputs['Roughness'].default_value = 1
@@ -144,7 +151,7 @@ def interior(scene, data):
         scene.world = bpy.data.worlds.new('W')
     scene.world.use_nodes = True
     bg = scene.world.node_tree.nodes['Background']
-    bg.inputs['Color'].default_value = (0.42, 0.34, 0.26, 1)
+    bg.inputs['Color'].default_value = (*data.get('fill', (0.42, 0.34, 0.26)), 1)
     bg.inputs['Strength'].default_value = 1.0
     key = bpy.data.objects.new('Key', bpy.data.lights.new('Key', 'SUN'))
     key.data.energy = 1.6
@@ -307,7 +314,7 @@ def main():
         bpy.data.objects.remove(o, do_unlink=True)
     for kit in args.kit:
         bpy.ops.import_scene.gltf(filepath=os.path.abspath(kit))
-    protos = {o.name: o for o in bpy.data.objects if o.name.startswith(('kit_', 'lobby_', 'Char_')) and o.type == 'MESH'}
+    protos = {o.name: o for o in bpy.data.objects if o.name.startswith(('kit_', 'lobby_', 'Char_', 'item_')) and o.type == 'MESH'}
     for o in protos.values():
         o.hide_render = True
     for p in data['pieces']:
@@ -416,12 +423,13 @@ def main():
     cam.data.type = 'ORTHO'
     cam.data.ortho_scale = span * 1.05
     # (Under a roof: seen from just under it.)
-    cam.data.clip_start = 110.5 if data.get('interior') else 0.05
     cam.location = to_blender(cx, 120, cz)
     cam.rotation_euler = (0, 0, 0)
     scene.render.resolution_y = args.width
-    scene.render.filepath = os.path.join(args.out, 'overview.png')
-    bpy.ops.render.render(write_still=True)
+    for i, cut in enumerate(data.get('cuts', [9.5 if data.get('interior') else 120])):
+        cam.data.clip_start = 120 - cut if cut < 120 else 0.05
+        scene.render.filepath = os.path.join(args.out, 'overview.png' if i == 0 else f'overview{i + 1}.png')
+        bpy.ops.render.render(write_still=True)
     scene.render.resolution_y = round(args.width * 9 / 16)
     cam.data.clip_start = 0.05
     for c in data['cams']:

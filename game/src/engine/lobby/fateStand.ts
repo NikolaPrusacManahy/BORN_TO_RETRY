@@ -79,18 +79,22 @@ export class FateStand {
   private k = 1;
   private spin = 0;
 
-  constructor(on: boolean) {
+  /** Update 0.3.21 — `facing`: the way the room is from its stand (its turn; π/2: east). */
+  constructor(
+    on: boolean,
+    private readonly facing = Math.PI / 2,
+  ) {
     this.k = on ? 1 : 0;
     this.faces = [true, false].map((front) => new THREE.MeshBasicMaterial({ map: faceTexture(front), side: THREE.FrontSide }));
     const front = new THREE.Mesh(this.geo, this.faces[0]);
     const back = new THREE.Mesh(this.geo, this.faces[1]);
     back.rotation.y = Math.PI;
     this.card.add(front, back);
-    // It faces the room (east, +x).
-    this.card.rotation.y = Math.PI / 2;
+    // It faces the room.
+    this.card.rotation.y = facing;
     this.group.add(this.card, this.light);
     this.group.position.set(CARD_STAND.x, CARD_FLOAT, CARD_STAND.z);
-    this.light.position.set(0.6, 0, 0);
+    this.light.position.set(0.6 * Math.sin(facing), 0, 0.6 * Math.cos(facing));
   }
 
   /** Each frame: `on`, Fate Cards are on. */
@@ -99,7 +103,7 @@ export class FateStand {
     // On, it turns; off, it settles back to the room (π: its back showing).
     if (on) this.spin += TURN * dt;
     else this.spin += (Math.round(this.spin / (2 * Math.PI) - 0.5) * 2 * Math.PI + Math.PI - this.spin) * (1 - Math.exp(-EASE * dt));
-    this.card.rotation.y = Math.PI / 2 + this.spin;
+    this.card.rotation.y = this.facing + this.spin;
     this.card.position.y = Math.sin(time * 1.4) * BOB * this.k;
     const shade = 0.35 + 0.65 * this.k;
     for (const m of this.faces) m.color.setScalar(shade);

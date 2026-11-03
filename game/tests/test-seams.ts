@@ -9,7 +9,7 @@ import { CORE_INSET, dress } from '../src/world/dungeon/dressing';
 import { CELL, cellAt, cellX, cellZ, GRID, planFloor } from '../src/world/dungeon/floorPlan';
 import type { ArenaBox } from '../src/world/arena';
 import type { Cell } from '../src/world/dungeon/rooms';
-import { HALL } from '../src/world/lobby/spots';
+import { GATE, HALL, WING } from '../src/world/lobby/spots';
 import { dressHall } from '../src/world/lobby/hallDressing';
 
 const within = (b: ArenaBox, x: number, y: number, z: number) => Math.abs(x - b.x) <= b.w / 2 && Math.abs(y - b.y) <= b.h / 2 && Math.abs(z - b.z) <= b.d / 2;
@@ -74,10 +74,17 @@ for (const floor of [1, 2, 3, 4]) {
 
 section('Seams — the lobby');
 {
+  // (Update 0.3.21 — the manor: behind every outer wall, the hall's and the wings', it's solid all round.)
   const d = dressHall();
-  const { halfW: w, halfD: d0 } = HALL;
+  const { halfW: w, halfD: hd } = HALL;
   const spots: [number, number][] = [];
-  for (let t = -0.9; t <= 0.9; t += 0.3) spots.push([-w - 0.03, t * d0], [w + 0.03, t * d0], [t * w, d0 + 0.03], [t * w, -d0 - 0.03]);
-  const open = spots.filter(([x, z]) => !solidAt(d.cores, x, -0.3, z));
-  check('behind the hall’s walls, under the floor, it’s solid all round', open.length === 0, `${open.length} open`);
+  const e = 0.25;
+  // (The north wall's, but for the gateway: the way through the gate.)
+  for (let x = -WING.x1 + 1; x < WING.x1; x += 2) if (Math.abs(x) > GATE.halfW + 0.3) spots.push([x, -hd - e]);
+  for (let x = -w + 1; x < w; x += 2) spots.push([x, hd + e]);
+  for (let z = WING.z0 + 1; z < WING.z1; z += 2) spots.push([-WING.x1 - e, z], [WING.x1 + e, z]);
+  for (let x = WING.x0 + 1; x < WING.x1; x += 2) spots.push([-x, WING.z1 + e], [x, WING.z1 + e]);
+  for (let z = WING.z1 + 1; z < hd; z += 2) spots.push([-w - e, z], [w + e, z]);
+  const open = spots.filter(([x, z]) => !solidAt(d.cores, x, 1, z));
+  check('behind the manor’s outer walls (the hall’s and the wings’), it’s solid all round', open.length === 0, `${open.length} open: ${open.slice(0, 4).join('; ')}`);
 }

@@ -5,7 +5,6 @@
 /** Each move's mark (an SVG path). */
 export const MARK: Record<string, string> = {
   Dash: 'M10 32h28M26 18l14 14-14 14M38 18l14 14-14 14',
-  Slide: 'M8 44h34c8 0 12-6 12-14M44 22l10 8-10 8M14 34l6-8',
   Slam: 'M32 6v32M20 26l12 14 12-14M8 54h48M14 46l-6 8M50 46l6 8',
   Fists: 'M18 28h28v18a8 8 0 0 1-8 8H26a8 8 0 0 1-8-8zM18 28v-4a4 4 0 0 1 8 0v4M26 24a4 4 0 0 1 8 0v4M34 24a4 4 0 0 1 8 0v4M42 26a4 4 0 0 1 4 2',
   Weapons: 'M46 8h10v10L30 44l-10-10zM18 36l10 10M10 54l10-10M14 40l10 10',
