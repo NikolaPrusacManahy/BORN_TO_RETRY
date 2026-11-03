@@ -26,13 +26,15 @@ MONSTERS = {
         },
     },
     # Update 0.3.34 — floor 8's boss, Yokai : Okami (MD/FLOOR8_SHRINE_PLAN.md): the Lycan repainted white with red
-    # markings (okami_paint.py), no weapon (the designer: "no sword"): its stance the sword's (the designer: "the same pose
-    # with the katana but just no katana"); its claws, its leaps, its fire's spells, its roar.
+    # markings (okami_paint.py), no weapon (the designer: "no sword"). Update 0.3.35 (the designer: "why does the boss
+    # still do the fighter stancing and the hits??? he has human animations?") — the library's most beast-like clips in
+    # place of its fighting ones: hunched (Zombie_Idle_Loop), prowling, running feral, its claws and its bite; its jumps,
+    # its roar (MonsterTransformation), its death.
     'okami': {
         'glb': 'Lycan.glb', 'paint': True, 'out': 'public/models/enemies/okami.glb', 'drop': ['Icosphere'],
         'clips': {
-            'UAL1': ['Sword_Idle', 'Walk_Loop', 'Jog_Fwd_Loop', 'Sprint_Loop', 'Death01', 'Hit_Chest', 'Crouch_Idle_Loop', 'Jump_Start@0=Jump_Crouch', 'Jump_Start+Jump_Loop=Jump_Air', 'Jump_Land', 'Spell_Double_Enter', 'Spell_Double_Idle_Loop', 'Spell_Simple_Enter', 'Spell_Simple_Idle_Loop', 'Spell_Simple_Shoot'],
-            'UAL2': ['MonsterTransformation', 'Zombie_Scratch', 'Melee_Combo', 'Melee_Hook', 'Melee_Uppercut', 'Hit_Knockback', 'NinjaJump_Start', 'NinjaJump_Double', 'NinjaJump_Land', 'Sword_GroundPound', 'OverhandThrow', 'Sword_Dash'],
+            'UAL1': ['Death01', 'Jump_Start@0=Jump_Crouch', 'Jump_Start+Jump_Loop=Jump_Air', 'Jump_Land'],
+            'UAL2': ['Zombie_Idle_Loop', 'Zombie_Walk_Fwd_Loop', 'Zombie_Run_Fwd_Loop', 'Zombie_Scratch', 'Zombie_Bite', 'MonsterTransformation'],
         },
     },
 }

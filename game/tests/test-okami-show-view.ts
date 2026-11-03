@@ -109,8 +109,8 @@ section('Yokai : Okami — its fire, its rope, its shide');
   let paper = 0;
   root.traverse((o) => {
     if (!(o instanceof THREE.Mesh) || !(o.parent instanceof THREE.Bone)) return;
-    const m = o.material as THREE.Material & { color?: THREE.Color; blending?: THREE.Blending };
-    if (m.blending === THREE.AdditiveBlending) fire++;
+    const m = o.material as THREE.Material & { color?: THREE.Color; vertexColors?: boolean };
+    if (m.vertexColors) fire++;
     else if (m.color && m.color.getHex() === 0xbca064) rope++;
     else paper++;
   });
@@ -118,12 +118,39 @@ section('Yokai : Okami — its fire, its rope, its shide');
   root.updateMatrixWorld(true);
   const box = new THREE.Box3();
   root.traverse((o) => {
-    if (o instanceof THREE.Mesh && (o.material as THREE.MeshBasicMaterial).blending === THREE.AdditiveBlending) box.expandByObject(o);
+    if (o instanceof THREE.Mesh && (o.material as THREE.MeshBasicMaterial).vertexColors) box.expandByObject(o);
   });
   check(`its fire on its bones (${fire} tongues), its rope (two strands), its two shide`, fire > 50 && rope === 2 && paper === 2);
   fx.update(combat, (i) => (i === slot ? root : null), DT);
   let again = 0;
   root.traverse((o) => (again += o instanceof THREE.Mesh && o.parent instanceof THREE.Bone ? 1 : 0));
   check('dressed once (not again each frame)', again === fire + rope + paper && !box.isEmpty());
+  // (Update 0.3.35 — the designer: its rope a great ring round it; "he is a bit floating isn't he?")
+  const ropeBox = new THREE.Box3();
+  root.traverse((o) => {
+    if (o instanceof THREE.Mesh && o.parent instanceof THREE.Bone && (o.material as THREE.MeshStandardMaterial).color?.getHex() === 0xbca064) ropeBox.expandByObject(o);
+  });
+  const arms = new THREE.Box3().setFromObject(root);
+  const ropeWide = Math.max(ropeBox.max.x - ropeBox.min.x, ropeBox.max.z - ropeBox.min.z);
+  check(`its rope round its neck (${ropeWide.toFixed(2)} m across), not out to its arms (${(arms.max.x - arms.min.x).toFixed(2)})`, ropeWide < 0.8 && ropeWide > 0.25);
+  // Its feet on the ground while it prowls: the view sets it too high, its feet come down to where it stands.
+  const mixer = new THREE.AnimationMixer(root);
+  const walk = glb.animations.find((c) => c.name === 'Zombie_Walk_Fwd_Loop')!;
+  mixer.clipAction(walk).play();
+  const e = combat.enemies[slot];
+  let worst = 0;
+  for (let k = 0; k < 120; k++) {
+    mixer.update(1 / 60);
+    root.position.set(0, 0.6, 0);
+    fx.update(combat, (i) => (i === slot ? root : null), 1 / 60);
+    root.updateMatrixWorld(true);
+    let low = Infinity;
+    for (const n of ['ball_l', 'ball_r', 'ball_leaf_l', 'ball_leaf_r', 'foot_l', 'foot_r']) {
+      const bone = root.getObjectByName(n);
+      if (bone) low = Math.min(low, bone.getWorldPosition(new THREE.Vector3()).y);
+    }
+    if (k > 40) worst = Math.max(worst, Math.abs(low - e.pos.y));
+  }
+  check(`its feet kept on the ground as it prowls (within ${worst.toFixed(2)} m, its soles under them)`, worst < 0.2);
   fx.dispose();
 }

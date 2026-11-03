@@ -11,6 +11,7 @@ import { FOES_SHRINE } from '../../tuning/foesShrine';
 import { FOES_SHRINE_B } from '../../tuning/foesShrineB';
 import { auraTexture } from '../keyLooks';
 import { OkamiFx } from './okamiFx';
+import { OkamiMovesFx } from './okamiMovesFx';
 
 /** A cloud's billows, how big (m) and how high they go (m); it thickens over this long and thins over this (s). Each
  *  scatter's spikes. A cut's line this long (m) and wide. */
@@ -47,9 +48,11 @@ export class ShrineFx {
   private readonly glints: THREE.Sprite[] = [];
   private time = 0;
   private readonly okami = new OkamiFx();
+  private readonly okamiMoves = new OkamiMovesFx();
 
   constructor(scene: THREE.Scene) {
     scene.add(this.group);
+    this.group.add(this.okamiMoves.group);
     const ball = new THREE.SphereGeometry(0.16, 10, 8);
     const bombMat = new THREE.MeshStandardMaterial({ color: 0x3a3430, roughness: 0.8 });
     const spike = new THREE.TetrahedronGeometry(0.08, 0);
@@ -105,6 +108,7 @@ export class ShrineFx {
   update(state: CombatState, dt: number, rootOf?: (i: number) => THREE.Object3D | null) {
     this.time += dt;
     if (rootOf) this.okami.update(state, rootOf, dt);
+    if (rootOf) this.okamiMoves.update(state, rootOf, dt);
     const smoke = state.ground.smoke;
     smoke.bombs.forEach((b, i) => {
       this.bombs[i].visible = b.alive;
@@ -164,5 +168,6 @@ export class ShrineFx {
     this.group.removeFromParent();
     for (const s of this.stuff) s.dispose();
     this.okami.dispose();
+    this.okamiMoves.dispose();
   }
 }

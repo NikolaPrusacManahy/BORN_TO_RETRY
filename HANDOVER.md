@@ -2,7 +2,20 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.34: floor 8's boss, Yokai : Okami, and its show)
+## Next up (2026-11-03, Update 0.3.35: Yokai : Okami's moves)
+- **The designer**: "Now make his moves". Spec `MD_UPDATES/U0335_OKAMI_MOVES.md`.
+- **Its picker:** `sim/enemies/okami.ts` chooses by your distance, never three times running.
+- **Its moves:**
+  - `okamiMoves.ts`: the four leaps, the blue fireball (a `kitsune` bomb), the fire dash and its burning line, the roar
+    of fire.
+  - `okamiDevastation.ts`: the teleport, the 7 s charge, the ring your hits drive back, the `sun` bomb over the whole
+    arena.
+- **How they're drawn:** `engine/shrine/okamiMovesFx.ts`.
+- Checked by tests (`test-okami-moves.ts`); **unseen in the game**.
+- **Next:** the designer plays floor 8's boss. Its rage and frenzy are not built yet (the plan's first idea: a petal
+  storm with shadow clones, its markings blazing).
+
+## Before (2026-11-03, Update 0.3.34: floor 8's boss, Yokai : Okami, and its show)
 - **The designer**: "Call it "Yokai : Okami" and yes build it", its moves, then its intro. Spec
   `MD_UPDATES/U0334_OKAMI.md`; the plan `MD/FLOOR8_SHRINE_PLAN.md`.
 - **Its model:** `ual_bake.py okami` paints it (`tools/okami_paint.py`) and bakes 27 Library clips. Its fire, rope and

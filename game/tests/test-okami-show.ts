@@ -56,6 +56,10 @@ section('Yokai : Okami — its place');
   const want = [...Object.values(look.clips), ...Object.values(look.moveClips ?? {}).map((m) => m[0])];
   const missing = want.filter((c) => !clips.has(c));
   check(`its model: the Lycan repainted, every clip it plays in it (${clips.size} baked), no sword`, missing.length === 0 && !json.nodes.some((n) => n.name === 'Weapon'), missing.join(', '));
+  // (Update 0.3.35 — the designer: "why does the boss still do the fighter stancing and the hits??? he has human
+  // animations?": the library's beast-like clips only, none of its fighters'.)
+  const human = want.filter((c) => /^(Sword_|Melee_|Punch_|Spell_|Hit_|Walk_Loop|Jog_|Crouch_|OverhandThrow|Kick)/.test(c));
+  check('a beast’s clips: hunched, prowling, its claws and bite; none of a fighter’s stances, punches or flinches', human.length === 0 && want.includes('Zombie_Idle_Loop') && want.includes('Zombie_Bite'), human.join(', '));
 }
 
 section('Yokai : Okami — its arena');

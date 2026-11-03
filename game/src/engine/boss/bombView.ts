@@ -33,6 +33,8 @@ const ICE_BLOCK = 0.85;
 /** Update 0.3.29 — Tidebreaker's boulder's size (m; in its hand too: moon/tideFx.ts) and its moon rock's grey. */
 export const BOULDER = 1.35;
 export const MOON_ROCK = 0x8e9096;
+/** Update 0.3.35 — Okami's blue fireball's size (m). */
+const KITSUNE = 1.4;
 
 export class BombView {
   readonly group = new THREE.Group();
@@ -51,6 +53,8 @@ export class BombView {
   private readonly sparkMat = new THREE.MeshBasicMaterial({ color: 0xffc040, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
   private readonly rockGeo = new THREE.IcosahedronGeometry(1, 1);
   private readonly rockMat = new THREE.MeshStandardMaterial({ color: MOON_ROCK, roughness: 1, flatShading: true });
+  /** Update 0.3.35 — Yokai : Okami's blue fireball (its massive one is drawn with it: shrine/okamiMovesFx.ts). */
+  private readonly kitsuneMat = new THREE.MeshStandardMaterial({ color: 0x0a1a40, emissive: 0x48b0ff, emissiveIntensity: 3.4 });
   private readonly shown: Shown[] = [];
   private readonly mats: THREE.Material[] = [];
   private time = 0;
@@ -75,13 +79,13 @@ export class BombView {
       const s = this.shown[i];
       s.ball.visible = s.ring.visible = s.fill.visible = b.alive;
       // (Update 0.3.30 — the designer: no mark where Tidebreaker's hurled pillar will land.)
-      if (b.look === 'pillar') s.ring.visible = s.fill.visible = false;
+      if (b.look === 'pillar' || b.look === 'sun') s.ring.visible = s.fill.visible = false;
       s.spark.visible = b.alive && b.look === 'powder';
       if (!b.alive) continue;
       // (Update 0.3.29 — a hurled pillar is drawn by the floor's view: pillarEvents.ts.)
-      s.ball.visible = b.look !== 'bones' && b.look !== 'geyser' && b.look !== 'pillar';
-      s.ball.material = b.look === 'poison' ? this.poisonMat : b.look === 'bubble' ? this.bubbleMat : b.look === 'powder' ? this.powderMat : b.look === 'mine' ? this.mineMat : b.look === 'rime' ? this.rimeMat : b.look === 'iceBlock' ? this.iceMat : b.look === 'boulder' ? this.rockMat : this.ballMat;
-      const frosty = b.look === 'rime' || b.look === 'iceBlock';
+      s.ball.visible = b.look !== 'bones' && b.look !== 'geyser' && b.look !== 'pillar' && b.look !== 'sun';
+      s.ball.material = b.look === 'poison' ? this.poisonMat : b.look === 'bubble' ? this.bubbleMat : b.look === 'powder' ? this.powderMat : b.look === 'mine' ? this.mineMat : b.look === 'rime' ? this.rimeMat : b.look === 'iceBlock' ? this.iceMat : b.look === 'boulder' ? this.rockMat : b.look === 'kitsune' ? this.kitsuneMat : this.ballMat;
+      const frosty = b.look === 'rime' || b.look === 'iceBlock' || b.look === 'kitsune';
       s.ball.geometry = b.look === 'iceBlock' ? this.boxGeo : b.look === 'boulder' ? this.rockGeo : this.ballGeo;
       const tumbles = b.look === 'iceBlock' || b.look === 'boulder';
       s.ball.rotation.set(tumbles ? b.t * 5 : 0, tumbles ? b.t * 3 : 0, 0);
@@ -93,7 +97,7 @@ export class BombView {
       const k = Math.min(1, b.t / (b.fall + (powder ? b.fuse : 0)));
       const flicker = 0.85 + 0.15 * Math.sin(this.time * 40 + i);
       s.ball.position.copy(b.pos);
-      s.ball.scale.setScalar(powder ? BALL * POWDER : b.look === 'rime' ? BALL * RIME * flicker : b.look === 'iceBlock' ? ICE_BLOCK : b.look === 'boulder' ? BOULDER : BALL * flicker);
+      s.ball.scale.setScalar(powder ? BALL * POWDER : b.look === 'rime' ? BALL * RIME * flicker : b.look === 'iceBlock' ? ICE_BLOCK : b.look === 'boulder' ? BOULDER : b.look === 'kitsune' ? KITSUNE * flicker : BALL * flicker);
       if (powder) {
         s.spark.position.set(b.pos.x, b.pos.y + FUSE, b.pos.z);
         s.spark.scale.setScalar(SPARK * (0.6 + 0.8 * Math.abs(Math.sin(this.time * 37 + i * 1.3))));
@@ -127,6 +131,7 @@ export class BombView {
     this.iceMat.dispose();
     this.rockGeo.dispose();
     this.rockMat.dispose();
+    this.kitsuneMat.dispose();
     for (const m of this.mats) m.dispose();
   }
 }

@@ -246,8 +246,17 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
     5. The other islands merge with the arena as mounds you walk up.
     6. Its leap in slow motion (0.56×) with its name.
     7. Its destroying landing, its monster transformation and scream, then back to your eyes.
-  - **Its fight:** its claws for now; its five moves are next (`MD/FLOOR8_SHRINE_PLAN.md`).
-- **Next:** Okami's five moves, then its rage and frenzy; then the run goes on past floor 7.
+  - **Its moves (0.3.35; spec `MD_UPDATES/U0335_OKAMI_MOVES.md`):** every pause it picks one by how far you are, never one
+    three times running.
+    - **Up close:** its claws (a swipe), its bite, or its roar of fire (a cone of flame, 26).
+    - **Its clips are a beast's** (the designer: "he has human animations?"): the Library's Zombie set (hunched,
+      prowling, running feral, claws, bite) and its monster roar, none of its fighters'.
+    - **Further off:** its four leaps (each down where you are: 22, a shockwave), its blue fireball (charged, hurled,
+      32 in its blast) or its fire dash (its line shown, through you once, 26; the line burning after).
+    - **Its devastation**, first at 75% of its health, then every 40 s: in the middle, charging 7 s, a ring of fire
+      filling to the walls that your hits drive back. Full at the end: its massive fireball, 70 everywhere. Broken: it
+      reels 3 s.
+- **Next:** Okami's rage and frenzy (when the designer wants them); then the run goes on past floor 7.
 
 ### Floor 8 — the Moon (floor 9 since Update 0.3.25) (Update 0.3.17; the plan `MD/FLOOR8_MOON_PLAN.md`; spec `MD_UPDATES/U0317_THE_MOON.md`)
 - The designer: "BIG REWORK of FLOOR 8": a sci-fi moon floor (the Ultimate Space Kit, `ASSETS/QUATERNIUS/FLOOR-8`).

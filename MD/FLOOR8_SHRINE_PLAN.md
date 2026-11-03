@@ -4,7 +4,7 @@
 > bosses as planned; **its boss is on hold** (Makami below is a redesign to be agreed; a stand-in meanwhile).
 >
 > **Built:** the level (0.3.32), its enemies and mini bosses (0.3.33, `MD_UPDATES/U0333_SHRINE_FIGHTERS.md`), its boss's
-> model and its show (0.3.34, `MD_UPDATES/U0334_OKAMI.md`). As
+> model and its show (0.3.34, `MD_UPDATES/U0334_OKAMI.md`), its five moves (0.3.35, `MD_UPDATES/U0335_OKAMI_MOVES.md`). As
 > built, the Archers are the perchers; the Kunoichi runs the walls and leaps from the floor instead of waiting in
 > trees.
 
@@ -164,7 +164,7 @@ help, the red markings".
 1. **Its model and its intro, with the arena of islands it leaves** (built, 0.3.34). The model is the look test's (the
    Lycan repainted by `tools/okami_paint.py`, its clips baked on), with its flames, rope and shide made in code. It is
    floor 8's boss in place of the stand-in, fighting with its claws only until its moves come.
-2. **Its five moves**, then its rage and frenzy.
+2. **Its five moves** (built, 0.3.35), then its rage and frenzy.
 
 ## Order of work
 1. **The level:** the look, the sakura (code-made blossom cut-outs), the petals, the code-made pieces (torii,

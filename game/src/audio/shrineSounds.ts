@@ -7,6 +7,9 @@
 // Update 0.3.34 — Yokai : Okami: its growl, its claws; its show's: the rooms blowing at once (a great boom, a long
 // rumble), the walls grinding out, the islands' rush of wind, its coming down in fire, each island crashing in (its own
 // the hardest), the temples slamming down, its leap and its landing. Heard wherever you are (its show is all round you).
+// Update 0.3.35 — its moves: each leap's rush and thump, its blue fireball's hum as it swells, its throw and its burst;
+// its fire dash's line crackling, its dash, the line roaring up; its roar of fire; its devastation: gone and back in
+// fire, its charge's rising drone, broken (a gasp), its massive fireball's throw and its blast.
 import type { CombatEvent } from '../sim/combat/state';
 import type { AudioEngine } from './audio';
 import { kegBoom } from './soundLayers';
@@ -167,6 +170,60 @@ export function playShrine(a: AudioEngine, kind: CombatEvent, value: number, far
       tone(a, { from: 180, to: 62, dur: 1.9, gain: 0.42, type: 'sawtooth' });
       tone(a, { from: 420, to: 140, dur: 1.5, gain: 0.14, type: 'square', delay: 0.05 });
       noise(a, { dur: 1.8, gain: 0.32, filter: 'bandpass', from: 520, to: 170, q: 0.8 });
+      return true;
+    case 'okamiLeapUp':
+      whoosh(a, Math.max(0.6, far), 1.6, 1.6);
+      return true;
+    case 'okamiLeapLand':
+      thud(a, Math.max(0.7, far), 2.8);
+      noise(a, { dur: 0.6, gain: 0.22 * Math.max(0.6, far), filter: 'lowpass', from: 700, to: 90 });
+      return true;
+    case 'okamiFireballCharge':
+      tone(a, { from: 180, to: 520, dur: 1.5, gain: 0.12 * Math.max(0.6, far), type: 'sine' });
+      noise(a, { dur: 1.5, gain: 0.08 * Math.max(0.6, far), filter: 'bandpass', from: 900, to: 2600, q: 1.2 });
+      return true;
+    case 'okamiFireballThrow':
+      noise(a, { dur: 0.5, gain: 0.22 * Math.max(0.6, far), filter: 'bandpass', from: 400, to: 1600, q: 0.8 });
+      return true;
+    case 'kitsuneBlast':
+      kegBoom(a);
+      tone(a, { from: 300, to: 80, dur: 0.5, gain: 0.26 * Math.max(0.6, far), type: 'sine' });
+      return true;
+    case 'okamiDashWarn':
+      noise(a, { dur: 0.8, gain: 0.12 * Math.max(0.6, far), filter: 'highpass', from: 2000, to: 900 });
+      return true;
+    case 'okamiDash':
+      whoosh(a, 1, 2, 2.4);
+      return true;
+    case 'okamiBurn':
+      noise(a, { dur: 1.4, gain: 0.24 * Math.max(0.6, far), filter: 'bandpass', from: 300, to: 1100, q: 0.6 });
+      return true;
+    case 'okamiBurnYou':
+      noise(a, { dur: 0.15, gain: 0.14, filter: 'highpass', from: 2400, to: 1200 });
+      return true;
+    case 'okamiBreath':
+      tone(a, { from: 150, to: 60, dur: 1.2, gain: 0.3 * Math.max(0.6, far), type: 'sawtooth' });
+      noise(a, { dur: 1.3, gain: 0.3 * Math.max(0.6, far), filter: 'bandpass', from: 350, to: 1400, q: 0.6 });
+      return true;
+    case 'okamiVanish':
+    case 'okamiAppear':
+      noise(a, { dur: 0.4, gain: 0.22, filter: 'bandpass', from: 500, to: 2000, q: 0.8 });
+      return true;
+    case 'okamiCharge':
+      tone(a, { from: 40, to: 120, dur: 7, gain: 0.22, type: 'sawtooth' });
+      noise(a, { dur: 7, gain: 0.1, filter: 'bandpass', from: 200, to: 900, q: 0.7 });
+      return true;
+    case 'okamiChargeBroken':
+      tone(a, { from: 220, to: 70, dur: 0.6, gain: 0.26, type: 'square' });
+      return true;
+    case 'okamiHurl':
+      whoosh(a, 1, 2.4, 3);
+      return true;
+    case 'sunBlast':
+      kegBoom(a);
+      kegBoom(a);
+      thud(a, 1, 4);
+      noise(a, { dur: 3, gain: 0.34, filter: 'lowpass', from: 900, to: 50 });
       return true;
     default:
       return false;

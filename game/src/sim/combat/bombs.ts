@@ -43,7 +43,9 @@ export interface Bomb {
   by: Cause | null;
   /** Update 0.2.3 — a fireball, or a skeleton (the Bone King's). */
   /** (Update 0.2.10 — 'bubble': floor 5's Big Glub's; it pops, 'bubblePop'. 'geyser': the Drowned King's.) */
-  look: 'fire' | 'bones' | 'poison' | 'bubble' | 'geyser' | 'powder' | 'mine' | 'rime' | 'iceBlock' | 'boulder' | 'pillar';
+  /** (Update 0.3.35 — 'kitsune': Yokai : Okami's blue fireball, thrown low and fast; 'sun': its massive fireball, hurled
+   *  high and down onto the whole arena.) */
+  look: 'fire' | 'bones' | 'poison' | 'bubble' | 'geyser' | 'powder' | 'mine' | 'rime' | 'iceBlock' | 'boulder' | 'pillar' | 'kitsune' | 'sun';
   /** Update 0.3.15 — landed, it burns this long before it goes (s). */
   fuse: number;
 }
@@ -51,8 +53,10 @@ export interface Bomb {
 export const BOMB_POOL = 12;
 /** How high its arc rises over the straight line (m). */
 const ARC = 3;
-/** Update 0.3.29 — a boulder's or a pillar's arc (m). */
+/** Update 0.3.29 — a boulder's or a pillar's arc (m). Update 0.3.35 — Okami's blue fireball's, its massive one's. */
 const HIGH_ARC = 7;
+const KITSUNE_ARC = 1;
+const SUN_ARC = 26;
 /** A geyser throws you up this fast (m/s); a blast, this. */
 const GEYSER_UP = 11;
 const BLAST_UP = 6;
@@ -93,7 +97,7 @@ export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQue
     b.t += dt;
     const k = Math.min(1, b.t / b.fall);
     b.pos.lerpVectors(b.from, b.to, k);
-    b.pos.y += b.look === 'mine' ? 0 : Math.sin(Math.PI * k) * (b.look === 'boulder' || b.look === 'pillar' ? HIGH_ARC : ARC);
+    b.pos.y += b.look === 'mine' ? 0 : Math.sin(Math.PI * k) * (b.look === 'boulder' || b.look === 'pillar' ? HIGH_ARC : b.look === 'kitsune' ? KITSUNE_ARC : b.look === 'sun' ? SUN_ARC : ARC);
     // (A mine you come near pops a moment later.)
     if (b.look === 'mine' && k >= 1 && Math.hypot(player.pos.x - b.to.x, player.pos.z - b.to.z) < FOES_MOON.v.mineNear) b.fuse = Math.min(b.fuse, b.t - b.fall + MINE_SNAP);
     if (k < 1 || b.t < b.fall + b.fuse) continue;
@@ -104,7 +108,7 @@ export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQue
     }
     const frosty = b.look === 'rime' || b.look === 'iceBlock';
     if (frosty && frost) addRime(frost, b.to.x, b.to.z, FOES_NORSE.v.rimeSize * (b.look === 'rime' ? 1 : BLOCK_RIME), FOES_NORSE.v.rimeLast);
-    events.push(b.look === 'bones' ? 'boneCrash' : b.look === 'bubble' ? 'bubblePop' : b.look === 'geyser' ? 'geyserBurst' : b.look === 'powder' ? 'powderBlast' : b.look === 'mine' ? 'mineBlast' : b.look === 'rime' ? 'rimeBurst' : b.look === 'iceBlock' ? 'iceBlockShatter' : b.look === 'boulder' ? 'boulderSmash' : b.look === 'pillar' ? 'pillarCrash' : 'bombBlast', b.radius, b.to.x, b.to.y, b.to.z);
+    events.push(b.look === 'bones' ? 'boneCrash' : b.look === 'bubble' ? 'bubblePop' : b.look === 'geyser' ? 'geyserBurst' : b.look === 'powder' ? 'powderBlast' : b.look === 'mine' ? 'mineBlast' : b.look === 'rime' ? 'rimeBurst' : b.look === 'iceBlock' ? 'iceBlockShatter' : b.look === 'boulder' ? 'boulderSmash' : b.look === 'pillar' ? 'pillarCrash' : b.look === 'kitsune' ? 'kitsuneBlast' : b.look === 'sun' ? 'sunBlast' : 'bombBlast', b.radius, b.to.x, b.to.y, b.to.z);
     const dx = player.pos.x - b.to.x;
     const dz = player.pos.z - b.to.z;
     const d = Math.hypot(dx, dz);

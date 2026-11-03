@@ -4,8 +4,13 @@
 // straw, twisted) round its neck on its mane with two shide (paper zigzags) hanging from it in front; its tail swaying
 // (the library has no tail: its clips leave it still). Each tongue of fire flickers, stretching and swaying. All of it
 // rides its bones (set where it rests in its bind pose: the model's own space), so every clip carries it. Made in code.
+// Update 0.3.35 (the designer, having played it: "he is a bit floating isn't he?", and its rope a great ring round it, its
+// fire white against the sky) — its feet kept on the ground whatever its clip (each frame, its lowest foot down to
+// where it stands, unless it's in the air); its rope sized by its neck and chest alone (as it rests its arms are out:
+// they'd made it huge); its fire drawn over what's behind it (not added to it: the sky turned it white).
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
+import { ARRIVE, LEAP } from '../../sim/enemies/okamiShared';
 
 /** A tongue's rings and sides; how fast it flickers (rad/s) and how much (its length's share), how far it sways (rad);
  *  its tail's sway (rad) and speed. */
@@ -17,12 +22,16 @@ const SWAY = 0.16;
 const TAIL_SWAY = 0.16;
 const TAIL_SPEED = 1.7;
 /** Its fire's colours, root to tip (the tip black: unseen, as its blending adds). */
-const RAMP: readonly [number, THREE.Color][] = [
-  [0, new THREE.Color(1, 0.72, 0.22)],
-  [0.3, new THREE.Color(1, 0.36, 0.04)],
-  [0.65, new THREE.Color(0.85, 0.11, 0.02)],
-  [1, new THREE.Color(0, 0, 0)],
+const RAMP: readonly [number, THREE.Color, number][] = [
+  [0, new THREE.Color(1, 0.78, 0.3), 0.95],
+  [0.3, new THREE.Color(1, 0.42, 0.06), 0.9],
+  [0.65, new THREE.Color(0.88, 0.14, 0.03), 0.65],
+  [1, new THREE.Color(0.6, 0.05, 0.02), 0],
 ];
+/** Its feet: these bones; the sole this far under the lowest as it rests (the model's own units); its feet settle
+ *  this fast (1/s). In the air (its leaps, its coming down) they're let be. */
+const FEET = ['ball_l', 'ball_r', 'ball_leaf_l', 'ball_leaf_r', 'foot_l', 'foot_r'];
+const SETTLE = 14;
 
 interface Tongue {
   obj: THREE.Mesh;
@@ -33,6 +42,10 @@ interface Tongue {
 interface Dress {
   tongues: Tongue[];
   tail: { bone: THREE.Bone; rest: THREE.Quaternion }[];
+  /** Its feet's bones, its sole under them (m, at its size), how far it's lifted now (m). */
+  feet: THREE.Object3D[];
+  sole: number;
+  lift: number;
 }
 
 /** A tongue of fire along +y (1 long), bending an S toward +z, thinning to its tip; its colours run root to tip. */
@@ -44,15 +57,17 @@ function tongueGeo(bend: number): THREE.BufferGeometry {
   for (let i = 0; i <= RINGS; i++) {
     const t = i / RINGS;
     const k = RAMP.findIndex(([at]) => at >= t);
-    const [a0, c0] = RAMP[Math.max(0, k - 1)];
-    const [a1, c1] = RAMP[Math.max(0, k)];
-    c.copy(c0).lerp(c1, a1 > a0 ? (t - a0) / (a1 - a0) : 0);
+    const [a0, c0, o0] = RAMP[Math.max(0, k - 1)];
+    const [a1, c1, o1] = RAMP[Math.max(0, k)];
+    const u = a1 > a0 ? (t - a0) / (a1 - a0) : 0;
+    c.copy(c0).lerp(c1, u);
+    const alpha = o0 + (o1 - o0) * u;
     const w = (1 - t) ** 0.8 * (0.55 + 0.45 * Math.sin(Math.min(1, t * 3) * (Math.PI / 2)));
     const z = bend * Math.sin(t * Math.PI * 1.3);
     for (let s = 0; s < SIDES; s++) {
       const a = (s / SIDES) * Math.PI * 2;
       pos.push(Math.cos(a) * w, t, z + Math.sin(a) * w * 0.55);
-      col.push(c.r, c.g, c.b);
+      col.push(c.r, c.g, c.b, alpha);
     }
   }
   for (let i = 0; i < RINGS; i++) {
@@ -64,7 +79,7 @@ function tongueGeo(bend: number): THREE.BufferGeometry {
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 4));
   g.setIndex(idx);
   return g;
 }
@@ -78,7 +93,7 @@ const Z = new THREE.Vector3(0, 0, 1);
 export class OkamiFx {
   private readonly dressed = new WeakMap<THREE.Object3D, Dress>();
   private readonly geos = [tongueGeo(0.18), tongueGeo(-0.14), tongueGeo(0.3)];
-  private readonly fire = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false });
+  private readonly fire = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
   private readonly straw = new THREE.MeshStandardMaterial({ color: 0xbca064, roughness: 0.9 });
   private readonly paper = new THREE.MeshStandardMaterial({ color: 0xf4f2ea, roughness: 0.8, side: THREE.DoubleSide });
   private readonly stuff: { dispose(): void }[] = [...this.geos, this.fire, this.straw, this.paper];
@@ -96,12 +111,13 @@ export class OkamiFx {
         this.dressed.set(root, dress);
       }
       this.animate(dress);
+      this.ground(root, dress, e, dt);
     });
   }
 
   /** Its fire, its rope, its shide onto its bones; its tail's bones as they rest. */
   private dress(root: THREE.Object3D): Dress {
-    const dress: Dress = { tongues: [], tail: [] };
+    const dress: Dress = { tongues: [], tail: [], feet: [], sole: 0, lift: 0 };
     let skinned: THREE.SkinnedMesh | null = null;
     root.traverse((o) => {
       if (!skinned && o instanceof THREE.SkinnedMesh) skinned = o;
@@ -168,6 +184,16 @@ export class OkamiFx {
     // Its eyes burning, a wisp back from each.
     for (const sd of [-1, 1]) tongue('Head', new THREE.Vector3(0.075 * sd, 1.71, 0.72), new THREE.Vector3(sd * 0.25, 0.5, -1), new THREE.Vector3(0, 1, 0), 0.16, 0.025);
     this.rope(mesh, joint, onto);
+    // Its feet, and its sole under them as it rests (the lowest of its body below the lowest of them).
+    let footLow = Infinity;
+    for (const n of FEET) {
+      const i = index(n);
+      if (i < 0) continue;
+      dress.feet.push(bones[i]);
+      footLow = Math.min(footLow, joint(n).y);
+    }
+    mesh.geometry.computeBoundingBox();
+    dress.sole = Number.isFinite(footLow) ? Math.max(0, footLow - (mesh.geometry.boundingBox?.min.y ?? footLow)) : 0;
     // Its tail as it rests, to sway from.
     for (let k = 1; k <= 6; k++) {
       const b = bones[index(`Tail_${k}`)];
@@ -181,10 +207,17 @@ export class OkamiFx {
     const neck = joint('neck_01');
     const centre = neck.clone().lerp(joint('spine_03'), 0.5);
     const axis = joint('Head').sub(neck).normalize().add(new THREE.Vector3(0, 1.2, 0)).normalize();
-    // (Its body there: the vertices about the rope's ring, the most of them inside it.)
+    // (Its body there: its neck's and chest's vertices about the rope's ring, the most of them inside it; as it rests its
+    // arms are out, so they're left out.)
     const p = mesh.geometry.attributes.position;
+    const si = mesh.geometry.attributes.skinIndex;
+    const sw = mesh.geometry.attributes.skinWeight;
+    const own = new Set(['neck_01', 'spine_03', 'Head'].map((n) => mesh.skeleton.bones.findIndex((b) => b.name === n)));
     const near: number[] = [];
     for (let k = 0; k < p.count; k++) {
+      let best = 0;
+      for (let j = 1; j < 4; j++) if (sw.getComponent(k, j) > sw.getComponent(k, best)) best = j;
+      if (!own.has(si.getComponent(k, best))) continue;
       v.fromBufferAttribute(p, k).sub(centre);
       const along = v.dot(axis);
       if (Math.abs(along) < 0.06) near.push(v.addScaledVector(axis, -along).length());
@@ -229,6 +262,21 @@ export class OkamiFx {
       this.stuff.push(geo);
       onto('spine_03', new THREE.Mesh(geo, this.paper), new THREE.Matrix4());
     }
+  }
+
+  /** Its lowest foot down onto where it stands (eased), unless it's in the air. */
+  private ground(root: THREE.Object3D, d: Dress, e: { pos: THREE.Vector3; phase: string; move: number }, dt: number) {
+    if (!d.feet.length) return;
+    const air = e.phase === 'leap' || e.phase === 'dead' || (e.phase === 'intro' && (e.move === ARRIVE || e.move === LEAP));
+    let want = 0;
+    if (!air) {
+      root.updateMatrixWorld(true);
+      let low = Infinity;
+      for (const f of d.feet) low = Math.min(low, f.getWorldPosition(v).y);
+      want = e.pos.y - (low - d.sole * root.scale.y);
+    }
+    d.lift += (want - d.lift) * Math.min(1, dt * SETTLE);
+    root.position.y += d.lift;
   }
 
   /** Each tongue flickering (stretching, swaying); its tail swaying. */

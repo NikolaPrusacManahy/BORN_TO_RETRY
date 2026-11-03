@@ -1,6 +1,8 @@
 // Update 0.3.33 — floor 8's martial artists, felt (out of combatFeedback.ts's chain, as depthsFeedback.ts is): sparks off
 // a block or a blade, a jolt when a blow lands on you (harder for a kick, a counter, a cut), a leap's landing and the
 // Sensei's slam shaking the view nearby, a smoke bomb's burst.
+// Update 0.3.35 — Yokai : Okami's: each leap's landing, its blue fireball's burst, its fire dash, its roar of fire, its
+// coming back in fire, its massive fireball's blast (the hardest of all, wherever you are).
 import type * as THREE from 'three';
 import type { CombatEvent } from '../../sim/combat/state';
 import { FEEDBACK } from '../../tuning/combat';
@@ -42,6 +44,25 @@ export function shrineFeedback(f: FeedbackParts, kind: CombatEvent, value: numbe
       return true;
     case 'kiPalm':
       f.rig.shake.add(fb.shakeJab * near(12));
+      return true;
+    case 'okamiLeapLand':
+      f.chunks.spawn(at, UP, 12, 1.1);
+      f.rig.shake.add(fb.shakeHeavy * 1.1 * near(18));
+      return true;
+    case 'kitsuneBlast':
+      f.sparks.spawn(at, UP, 18, 1.2);
+      f.rig.shake.add(fb.shakeHeavy * 0.8 * near(14));
+      return true;
+    case 'okamiDash':
+    case 'okamiBreath':
+      f.rig.shake.add(fb.shakeJab * 1.5 * near(20));
+      return true;
+    case 'okamiAppear':
+      f.sparks.spawn(at, UP, 20, 1.4);
+      return true;
+    case 'sunBlast':
+      f.chunks.spawn(at, UP, 24, 2);
+      f.rig.shake.add(fb.shakeHeavy * 2.5);
       return true;
     default:
       void value;

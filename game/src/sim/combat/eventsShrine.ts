@@ -63,4 +63,24 @@ export type ShrineEvent =
   | 'templeFall'
   | 'okamiLeap'
   | 'okamiLand'
-  | 'okamiRoar';
+  | 'okamiRoar'
+  // Update 0.3.35 — its moves: each leap's going up and its landing (value: its shockwave's reach); its blue fireball
+  // swelling, thrown, bursting (value: its reach); its fire dash's line (value: its length; x, z its start), its dash,
+  // its line bursting into flame (value: its length), it burning you; its roar of fire; its devastation: gone in fire,
+  // in the middle, charging (value: the arena's half), broken, its massive fireball hurled, bursting (value: its reach).
+  | 'okamiLeapUp'
+  | 'okamiLeapLand'
+  | 'okamiFireballCharge'
+  | 'okamiFireballThrow'
+  | 'kitsuneBlast'
+  | 'okamiDashWarn'
+  | 'okamiDash'
+  | 'okamiBurn'
+  | 'okamiBurnYou'
+  | 'okamiBreath'
+  | 'okamiVanish'
+  | 'okamiAppear'
+  | 'okamiCharge'
+  | 'okamiChargeBroken'
+  | 'okamiHurl'
+  | 'sunBlast';
