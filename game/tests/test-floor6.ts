@@ -29,6 +29,7 @@ import { dress } from '../src/world/dungeon/dressing';
 import { CELL, cellAt, GRID, planFloor } from '../src/world/dungeon/floorPlan';
 import { FIGHT_ROOMS, onFloor } from '../src/world/dungeon/rooms';
 import { styleOf } from '../src/world/dungeon/styles';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const v = COVE_KNOBS.v;
 /** What you can't walk through in a cove room's drawing. */
@@ -36,11 +37,11 @@ const BLOCKED = new Set(['#', 'C', 'b', 'B', 'L', 'p', 'P', 'U', '*', 'Z', 'z', 
 
 section('Floor 6 — Skull Cove: its look and its rooms');
 {
-  const s = styleOf(6);
-  check('floor 6 is Skull Cove: sand everywhere, still sea in its pits (no poison, no glow), not under water', s.id === 'cove' && !!s.sandFloor && !!s.pit?.calm && !s.pit.poisons && s.under === undefined && styleOf(5).id === 'drowned' && styleOf(7).id === 'frozen');
-  check('floor 2’s sludge still poisons', !!styleOf(2).pit?.poisons);
-  const six = FIGHT_ROOMS.filter((t) => onFloor(t, 6));
-  check('its own nine rooms, and only its own (the Sunken Grove’s are gone)', six.length === 9 && six.every((t) => COVE_ROOMS.includes(t)) && COVE_ROOMS.every((t) => !onFloor(t, 5) && !onFloor(t, 7)), six.map((t) => t.id).join(', '));
+  const s = styleOf(FLOOR.cove);
+  check('floor 6 is Skull Cove: sand everywhere, still sea in its pits (no poison, no glow), not under water', s.id === 'cove' && !!s.sandFloor && !!s.pit?.calm && !s.pit.poisons && s.under === undefined && styleOf(FLOOR.temple).id === 'drowned' && styleOf(FLOOR.frozen).id === 'frozen');
+  check('floor 2’s sludge still poisons', !!styleOf(FLOOR.garden).pit?.poisons);
+  const six = FIGHT_ROOMS.filter((t) => onFloor(t, FLOOR.cove));
+  check('its own nine rooms, and only its own (the Sunken Grove’s are gone)', six.length === 9 && six.every((t) => COVE_ROOMS.includes(t)) && COVE_ROOMS.every((t) => !onFloor(t, FLOOR.cove - 1) && !onFloor(t, FLOOR.cove + 1)), six.map((t) => t.id).join(', '));
   check('every one 28 cells square', COVE_ROOMS.every((t) => t.rows.length === 28 && t.rows.every((r) => r.length === 28)));
   // Every door, every spawn and every chest spot joined.
   const cut = COVE_ROOMS.filter((t) => {
@@ -69,7 +70,7 @@ section('Floor 6 — Skull Cove: its look and its rooms');
   check('each set piece (wreck, boat, house, outcrop, bones) is drawn as a rectangle', ragged.length === 0, ragged.map((t) => t.id).join(', '));
   let bad = '';
   for (let seed = 1; seed <= 20; seed++) {
-    const plan = planFloor(seed * 17, 6);
+    const plan = planFloor(seed * 17, FLOOR.cove);
     const off = plan.rooms.filter((r) => r.kind === 'fight' && !COVE_ROOMS.includes(r.layout.template));
     if (off.length) bad = `seed ${seed * 17}: ${off.map((r) => r.layout.template.id).join(', ')}`;
   }
@@ -87,7 +88,7 @@ function rect(rows: string[], r: number, c: number, ch: string): boolean {
   return rows[r + h]?.slice(c, c + w).indexOf(ch) === -1 && rows.slice(r, r + h).every((row) => row[c + w] !== ch);
 }
 
-const plan = planFloor(41, 6);
+const plan = planFloor(41, FLOOR.cove);
 const level = buildDungeon(plan);
 section('Floor 6 — the floor');
 {
@@ -100,7 +101,7 @@ section('Floor 6 — the floor');
   const fit = fitPiece(wreck, 0);
   check(`a wreck’s deck is a platform at ${DECK} m, its ship sat so its deck is there`, !!deck && near(deck.h, DECK, 1e-9) && near(fit.y + 2.6 * fit.s, DECK, 1e-9));
   const d = dress(plan);
-  const paved = d.pieces.filter((p) => p.piece === styleOf(6).floor && p.y < 0.5);
+  const paved = d.pieces.filter((p) => p.piece === styleOf(FLOOR.cove).floor && p.y < 0.5);
   check('sand underfoot, no paving (but on the ledges)', paved.length === 0 && d.sand.length > 2000, `${d.sand.length} sand cells`);
   const palms = d.pieces.filter((p) => p.piece.startsWith('kit_pf_Environment_PalmTree'));
   check('the Pirate Kit’s palms', palms.length > 0 && palms.every((p) => cellAt(plan, Math.floor(p.x / CELL + GRID / 2), Math.floor(p.z / CELL + GRID / 2)) === 'palm'));
@@ -190,7 +191,7 @@ section('Floor 6 — powder kegs');
 
 section('Floor 6 — its fish retired');
 {
-  const roster = rosterOf(6);
+  const roster = rosterOf(FLOOR.cove);
   check('its enemies are its crew now (test-floor6-crew.ts): its fish retired', roster.length > 0 && roster.every((k) => !(KINDS6 as readonly string[]).includes(k)), roster.join(', '));
-  check('its boss is its own now, the Big Shark (test-floor6-boss.ts): the Old Whale is retired', bossOf(6) === 'bigShark' && [1, 2, 3, 4, 5, 6, 7, 8].every((f) => bossOf(f) !== 'whale'));
+  check('its boss is its own now, the Big Shark (test-floor6-boss.ts): the Old Whale is retired', bossOf(FLOOR.cove) === 'bigShark' && [1, 2, 3, 4, 5, 6, 7, 8].every((f) => bossOf(f) !== 'whale'));
 }

@@ -15,6 +15,7 @@ import { maxHpOf } from '../src/sim/player/health';
 import { FOES6 } from '../src/tuning/foes6';
 import { SWIM } from '../src/tuning/swim';
 import { Vector3 } from 'three';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const v = FOES6.v;
 const mid = new Vector3();
@@ -24,9 +25,9 @@ section('The Sunken Grove’s fish (retired from floor 6)');
 {
   // (Update 0.3.16 — floor 6's kinds hold its new boss too, the Big Shark: not one of the retired fish.)
   const roster = KINDS6.filter((k) => k !== 'whale' && k !== 'bigShark');
-  const five = rosterOf(5);
+  const five = rosterOf(FLOOR.temple);
   check(`seven: ${roster.join(', ')}; none of floor 5’s; none on any floor now`, roster.length === 7 && roster.every((k) => !five.includes(k)) && [1, 2, 3, 4, 5, 6, 7, 8].every((f) => roster.every((k) => !rosterOf(f).includes(k))));
-  check('the Manta Ray and the Shark still mini bosses; no floor’s percher or boss of theirs', percherOf(6) !== 'drownedPrince' && MINI_BOSSES.includes('mantaRay') && MINI_BOSSES.includes('shark') && bossOf(6) !== 'whale');
+  check('the Manta Ray and the Shark still mini bosses; no floor’s percher or boss of theirs', percherOf(FLOOR.cove) !== 'drownedPrince' && MINI_BOSSES.includes('mantaRay') && MINI_BOSSES.includes('shark') && bossOf(FLOOR.cove) !== 'whale');
   const fish = roster.filter((k) => SWIMS.has(k));
   check(`every fish swims faster than you (${SWIM.v.speed} m/s)`, fish.length === 6 && fish.every((k) => ENEMY_STATS[k]().speed > SWIM.v.speed), fish.map((k) => `${k} ${ENEMY_STATS[k]().speed}`).join(', '));
   check('each with its name', roster.every((k) => !!CAUSE_NAMES[k]));

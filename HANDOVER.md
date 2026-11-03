@@ -2,7 +2,18 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.24: floors load faster)
+## Next up (2026-11-03, Update 0.3.25: the floors reordered)
+- **The designer**: "Floor 7 is an easier Floor than 4, 5 and 6": 1 The Dungeon, 2 The Venom Garden, 3 The Bone Keep,
+  4 Frozen Depths, 5 the Drowned Temple, 6 the Desert, 7 Skull Cove, 8 Shrine Dimension (a Japan floor, to come), 9 the
+  Moon, 10 Hell on Earth. Spec `MD_UPDATES/U0325_FLOOR_ORDER.md`.
+- One table says which floor each place is (`world/dungeon/floorOrder.ts`); looks, rooms, rosters, perchers, bosses,
+  boss rooms and names follow it. A floor's number still sets its rooms' and enemies' count.
+- The run ends at Skull Cove (7). Frozen Depths' boss still stands in (the Velociraptor, the Desert's too). The Lab:
+  floors 1–7 and 9. **Next: floor 8, the Shrine Dimension** (a Japan floor: the More-enemies folder's ninjas and
+  kimonos fit it), and the Frost Roc.
+- Older notes below (and the code's dated comments) keep the floor numbers they had when written.
+
+## Before (2026-11-03, Update 0.3.24: floors load faster)
 - The designer, asked whether to load only each floor's own enemies: "Yes, do it" (spec
   `MD_UPDATES/U0324_FASTER_FLOORS.md`). A dungeon floor loads only the enemy models it can bring in
   (`sim/dungeon/floorKinds.ts`: its rooms' waves, its boss and whom it calls, hives' Wasps, what they become or let out):

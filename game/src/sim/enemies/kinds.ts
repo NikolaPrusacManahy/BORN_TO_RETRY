@@ -30,6 +30,7 @@
 // the Barrow Maid, the Völva; the Berserker and Haugbui (mini bosses). Their numbers are kindsNorse.ts's.
 import { BOSS } from '../../tuning/boss';
 import { blank, DOOM_AFTER, doomTime, EnemyStats, fill, SizeClass } from './kindStats';
+import { Realm, realmOf } from '../../world/dungeon/floorOrder';
 import { CACHE5, RADIUS5, STATS5 } from './kinds5';
 import { CACHE6, RADIUS6, STATS6 } from './kinds6';
 import { CACHE_COVE, RADIUS_COVE, STATS_COVE } from './kindsCove';
@@ -267,7 +268,14 @@ export const ENEMY_STATS: Record<EnemyKind, () => EnemyStats> = {
  *  Update 0.2.10 — floor 5's the Drowned King. Update 0.2.11 — floor 6's the Old Whale (and the floors past it). */
 // (Update 0.3.11 — floor 7's: the Velociraptor stands in till the Frost Roc is made. Update 0.3.14 — floor 6 reworked:
 // the Old Whale retired, the Velociraptor stands in till the Big Shark is made.)
-export const bossOf = (floor: number): EnemyKind => (floor <= 1 ? 'demon' : floor === 2 ? 'dragon' : floor === 3 ? 'boneKing' : floor === 4 ? 'dino' : floor === 5 ? 'drownedKing' : floor === 6 ? 'bigShark' : 'dino');
+// (Update 0.3.25 — by its place, the floors reordered (world/dungeon/floorOrder.ts): the Desert's is the Velociraptor,
+// which stands in for Frozen Depths', the Moon's and the places not built yet.)
+const BOSSES: Readonly<Record<Realm, EnemyKind>> = { dungeon: 'demon', garden: 'dragon', keep: 'boneKing', frozen: 'dino', temple: 'drownedKing', desert: 'dino', cove: 'bigShark', shrine: 'dino', moon: 'dino', hell: 'dino' };
+/** The places whose boss is their own (the others' stands in). */
+const OWN_BOSS: ReadonlySet<Realm> = new Set<Realm>(['dungeon', 'garden', 'keep', 'temple', 'desert', 'cove']);
+export const bossOf = (floor: number): EnemyKind => BOSSES[realmOf(floor)];
+/** Update 0.3.25 — floor `floor`'s boss if it's its own (null: another floor's stands in). */
+export const ownBossOf = (floor: number): EnemyKind | null => (OWN_BOSS.has(realmOf(floor)) ? bossOf(floor) : null);
 
 /** Update 0.0.18 — the mini bosses (the designer): a room with one has a chest, and the first killed drops its key. */
 export const MINI_BOSSES: readonly EnemyKind[] = ['brute', 'spider', 'blueDemon', 'ninja', 'cactoroBig', 'skullOrc', 'bigMushnub', 'deepOne', 'bogBrute', 'mantaRay', 'shark', 'mako', 'captain', 'beeShip', 'beeMech', 'berserker', 'haugbui'];

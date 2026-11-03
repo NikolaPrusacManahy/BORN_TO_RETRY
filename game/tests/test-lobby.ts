@@ -34,6 +34,7 @@ import { isWeapon } from '../src/sim/items/itemInfo';
 import { ITEM_KINDS } from '../src/sim/items/items';
 import { WEAPON_KINDS } from '../src/sim/weapons/catalog';
 import { CARD_SIZE, cardSlots, ITEM_STANDS, WEAPON_STANDS } from '../src/world/lobby/galleries';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 section('Lobby — the roster and the difficulties');
 {
@@ -145,10 +146,11 @@ section('Lobby — the bestiary’s list');
   const shelves = collection();
   const all = shelves.flatMap((f) => f.enemies);
   check('ten floors; every enemy once, on the floor it first comes to', shelves.length === 10 && new Set(all).size === all.length && shelves[0].enemies.join() === 'grunt,spitter,brute,leaper,stinger,wraith');
-  check('each floor’s boss with it (its own: floors 1 to 6)', shelves.slice(0, 6).map((f) => f.boss).join() === 'demon,dragon,boneKing,dino,drownedKing,bigShark' && shelves.slice(6).every((f) => f.boss === null));
-  check('a body’s second self beside it: the Headless Crewman, Barbara out of her mech', shelves[5].enemies.indexOf('headless') === shelves[5].enemies.indexOf('crewman') + 1 && shelves[7].enemies.indexOf('beeNaut') === shelves[7].enemies.indexOf('beeMech') + 1);
+  // (Update 0.3.25 — the floors reordered: Frozen Depths' boss a stand-in, the Desert's the Velociraptor.)
+  check('each floor’s boss with it (its own: floors 1 to 7 but Frozen Depths)', shelves.slice(0, 7).map((f) => f.boss ?? '-').join() === 'demon,dragon,boneKing,-,drownedKing,dino,bigShark' && shelves.slice(7).every((f) => f.boss === null));
+  check('a body’s second self beside it: the Headless Crewman, Barbara out of her mech', shelves[FLOOR.cove - 1].enemies.indexOf('headless') === shelves[FLOOR.cove - 1].enemies.indexOf('crewman') + 1 && shelves[FLOOR.moon - 1].enemies.indexOf('beeNaut') === shelves[FLOOR.moon - 1].enemies.indexOf('beeMech') + 1);
   // (Update 0.3.22 — floor 7 has its warband.)
-  check('floors 9 and 10 have none of their own yet (their rooms send stand-ins); floor 7 its warband', [9, 10].every((f) => shelves[f - 1].enemies.length === 0) && shelves[6].enemies.join() === 'raider,axeThrower,draugr,barrowMaid,volva,berserker,haugbui');
+  check('the Shrine Dimension (8) and Hell on Earth (10) have none of their own yet; Frozen Depths (4) its warband', [FLOOR.shrine, FLOOR.hell].every((f) => shelves[f - 1].enemies.length === 0) && shelves[FLOOR.frozen - 1].enemies.join() === 'raider,axeThrower,draugr,barrowMaid,volva,berserker,haugbui');
   check('no floor has more than a row holds (ten)', shelves.every((f) => f.enemies.length <= 10));
 }
 
@@ -326,7 +328,7 @@ section('Lobby — the boards and the credits');
   const altars = d.boards.filter((b) => b.kind === 'difficulty').map((b) => boardLines(b, 'weakling', 'Joseph')[0]);
   check('each altar’s board, yours lit', altars.map((l) => `${l.text}:${l.tone}`).join() === 'WEAKLING EXPERIENCE:gold,THE REAL EXPERIENCE:dim,ARE YOU EVEN HUMAN?:dim');
   const paintings = d.boards.filter((b) => b.kind === 'floor');
-  check('ten paintings, floors 1 to 10 left to right as you face them (east to west), each its name', paintings.map((b) => boardLines(b, 'real', '')[0].text).join() === '1,2,3,4,5,6,7,8,9,10' && paintings.every((b, i) => i === 0 || b.x < paintings[i - 1].x) && boardLines(paintings[5], 'real', '')[1].text === 'SKULL COVE');
+  check('ten paintings, floors 1 to 10 left to right as you face them (east to west), each its name', paintings.map((b) => boardLines(b, 'real', '')[0].text).join() === '1,2,3,4,5,6,7,8,9,10' && paintings.every((b, i) => i === 0 || b.x < paintings[i - 1].x) && boardLines(paintings[FLOOR.cove - 1], 'real', '')[1].text === 'SKULL COVE' && boardLines(paintings[FLOOR.shrine - 1], 'real', '')[1].text === 'SHRINE DIMENSION' && boardLines(paintings[9], 'real', '')[1].text === 'HELL ON EARTH');
   const rows = d.boards.filter((b) => b.kind === 'row').map((b) => boardLines(b, 'real', ''));
   check('each bestiary row its floor’s number and name; COMING SOON where it has none yet', rows[0][0].text === '1 · THE DUNGEON' && rows.filter((l) => l[1]?.text === 'COMING SOON').length === 2);
   // (Update 0.2.12 — the designer: no fonts or code credited.)

@@ -18,6 +18,7 @@ import { FOES_MOON } from '../src/tuning/foesMoon';
 import { FOES_MOON_B } from '../src/tuning/foesMoonB';
 import { LOOKS } from '../src/engine/enemyLooks';
 import { causeName } from '../src/screens/deathText';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const v = FOES_MOON.v;
 const b = FOES_MOON_B.v;
@@ -26,9 +27,9 @@ const FAMILY: Partial<Record<EnemyKind, number>> = { gunner: 0, strafer: 0, flan
 
 section('Floor 8 — the Moon’s crew');
 {
-  const roster = rosterOf(8);
+  const roster = rosterOf(FLOOR.moon);
   check('its roster: the astronauts Flamingo, Fox and Frog, their three tiny ships, the Bee’s ship and the Bee’s mech', roster.length === 8 && CREW.every((k) => roster.includes(k)), roster.join(', '));
-  check('none of them on any other floor', CREW.every((k) => ![1, 2, 3, 4, 5, 6, 7, 9].some((f) => rosterOf(f).includes(k))));
+  check('none of them on any other floor', CREW.every((k) => ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].some((f) => f !== FLOOR.moon && rosterOf(f).includes(k))));
   check('the Bee’s ship and mech are its mini bosses; the Bee astronaut is never sent (a broken mech becomes her)', MINI_BOSSES.includes('beeShip') && MINI_BOSSES.includes('beeMech') && !roster.includes('beeNaut') && ENEMY_KINDS.includes('beeNaut'));
   // (The designer: "do not make enemies tankier NEVER".)
   const earlier = [1, 2, 3, 4, 5, 6].flatMap((f) => [...rosterOf(f)]).filter((k) => !MINI_BOSSES.includes(k) && !ENEMY_STATS[k]().boss);
@@ -63,7 +64,7 @@ section('Floor 8 — the rooms: the roles split');
   let shipsOver = 0;
   let layersOver = 0;
   for (let seed = 1; seed <= 30; seed++) {
-    for (const r of planFloor(seed, 8).rooms) {
+    for (const r of planFloor(seed, FLOOR.moon).rooms) {
       for (const w of r.waves) {
         const reg = w.filter((k) => FAMILY[k] !== undefined);
         if (reg.length === 0) continue;

@@ -21,6 +21,7 @@ A first-person action roguelike. You start every run with your bare hands, tear 
 | Platform | Desktop browser; Steam later via Electron |
 | Art | Quaternius low-poly (CC0): dark ruins, fog, rim light. **The dungeon is in daylight (Update 0.0.13, the designer: it was far too dark to play): open to the sky, sunlit, a pale haze.** |
 | Run | **7 floors** (Update 0.2.2, the designer: "we stop at floor 7, not floor 10"), each a way of fight rooms and a boss: 5 fight rooms on floors 1–2, 6 on 3–4, 7 on 5–6, 8 on floor 7. Floor 7's way down ends the run: "Run complete — Survived". |
+| Floors' order | **Update 0.3.25** (the designer: "Floor 7 is an easier Floor than 4, 5 and 6"): 1 The Dungeon, 2 The Venom Garden, 3 The Bone Keep, **4 Frozen Depths** (was 7), 5 The Drowned Temple, **6 The Desert** (was 4), **7 Skull Cove** (was 6), **8 Shrine Dimension** (a Japan floor, to come), **9 The Moon** (was 8), **10 Hell on Earth** (the Forge's rooms meanwhile). The run ends at Skull Cove's way down (floor 7) for now. A floor's number is how deep it is (its rooms and enemies' count); its place (`world/dungeon/floorOrder.ts`) is its look, rooms, enemies and boss. The sections below keep the numbers they had when written. Spec `MD_UPDATES/U0325_FLOOR_ORDER.md`. |
 | Carries over between runs | Character unlocks and stats only. Money resets. |
 
 ---
@@ -168,7 +169,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   right fist punches the shot (half a second on screen with the freeze). **4 s** after a parry that lands; **0.5 s**
   after a press that caught nothing.
 
-### Floor 6 — Skull Cove, reworked (Update 0.3.14; the plan `MD/FLOOR6_PIRATE_PLAN.md`; spec `MD_UPDATES/U0314_SKULL_COVE.md`)
+### Floor 6 — Skull Cove, reworked (floor 7 since Update 0.3.25) (Update 0.3.14; the plan `MD/FLOOR6_PIRATE_PLAN.md`; spec `MD_UPDATES/U0314_SKULL_COVE.md`)
 - The designer reworked floor 6: a pirate floor (the Pirate Kit), its boss the Big Shark fought under water, new
   enemies. The Sunken Grove (0.2.11), its fish and the Old Whale are out of the game.
 - Sand everywhere; **the sea** in channels and pools (fall in: hurt and back; a body knocked in sinks, as over any
@@ -200,7 +201,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   punch its throat, or it's one shot. Its tail, its teeth stuck in a wall, its frenzy below half. 1800 health. Dead,
   the arena drains. **(placeholder numbers, F1 → Big Shark)**
 
-### Floor 8 — the Moon (Update 0.3.17; the plan `MD/FLOOR8_MOON_PLAN.md`; spec `MD_UPDATES/U0317_THE_MOON.md`)
+### Floor 8 — the Moon (floor 9 since Update 0.3.25) (Update 0.3.17; the plan `MD/FLOOR8_MOON_PLAN.md`; spec `MD_UPDATES/U0317_THE_MOON.md`)
 - The designer: "BIG REWORK of FLOOR 8": a sci-fi moon floor (the Ultimate Space Kit, `ASSETS/QUATERNIUS/FLOOR-8`).
 - A black space sky of stars with the Earth large in it, a ringed planet, the sun; bright all the same (a hard white
   sun on pale grey moon dust). Moon base modules, domes, rovers, solar panels, boulders, craters (meteorites in the big
@@ -215,7 +216,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   1 s), broken, Barbara climbs out and fights on foot. Its boss next: the Frog, Fox and Flamingo mechs together.
   **(placeholder numbers, F1 → Moon crew, Moon mini bosses)**
 
-### The Forge (Update 0.3.13; spec `MD_UPDATES/U0313_THE_FORGE.md`; Update 0.3.17 — out of floor 8, kept on floor 10)
+### The Forge (Update 0.3.13; spec `MD_UPDATES/U0313_THE_FORGE.md`; Update 0.3.17 — out of floor 8, kept on floor 10; Update 0.3.25 — floor 10 is Hell on Earth, its rooms meanwhile)
 - The designer: every floor's level first ("I want all designs to be done first"), then the enemies.
 - Floor 3's stone sooty grey under a pale smoky sky, warmed by lava pits again (wider), swords on the walls,
   workbenches with glowing ore, embers rising. **Presses** (crusher cells side by side, one hammer): hang, clank (a shadow spreads), drop, rest
@@ -224,7 +225,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   presses and vents go in waves. All of it holds still while an execution holds the world. Nine rooms of its own;
   stand-in enemies and boss. **(placeholder numbers, F1 → The Forge)**
 
-### Floor 7 — Frozen Depths (Update 0.3.11; the plan for floors 7–10: `MD/FLOORS_7_10_PLAN.md`; spec `MD_UPDATES/U0311_FROZEN_DEPTHS.md`)
+### Floor 7 — Frozen Depths (floor 4 since Update 0.3.25) (Update 0.3.11; the plan for floors 7–10: `MD/FLOORS_7_10_PLAN.md`; spec `MD_UPDATES/U0311_FROZEN_DEPTHS.md`)
 - The run is **10 floors** (players polled: at least 10); for now it ends at floor 6's way down, moving on as each floor
   is done.
 - Floor 3's stone frosted under a winter sky; snowy trees in beds of snow; snowy rocks for cover; ice-blue crystals;

@@ -4,10 +4,12 @@
 // Rabbits pop out of their burrows (o); Skull Wraiths blink from crystal to crystal (x); a Ninja has long open lines
 // to be seen in; the Dragonlings keep the ramparts and towers (keepRooms.ts). Stone tombs (b) are the low cover. Lava
 // stays under the bone bridges. Drawn as quarters like the others (fightRooms.ts). Floor 3's only.
+// (Update 0.3.25 — its floor is floorOrder.ts's: the floors were reordered.)
 import type { RoomTemplate } from './rooms';
 import { quarter } from './fightRooms';
+import { FLOOR } from './floorOrder';
 
-const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 3, until: 3 });
+const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: FLOOR.keep, until: FLOOR.keep });
 
 export const BONE_ROOMS: readonly RoomTemplate[] = [
   // A pit of fire in the middle, a causeway across it, walls standing in it to wall-run; graves round it. (Update

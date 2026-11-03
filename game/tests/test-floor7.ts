@@ -28,6 +28,7 @@ import { FROZEN_ROOMS } from '../src/world/dungeon/frozenRooms';
 import { CELL, cellAt, GRID, planFloor } from '../src/world/dungeon/floorPlan';
 import { FIGHT_ROOMS, onFloor } from '../src/world/dungeon/rooms';
 import { styleOf } from '../src/world/dungeon/styles';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const v = FROZEN_KNOBS.v;
 /** The cell a point is in. */
@@ -36,12 +37,12 @@ const rowOf = (z: number) => Math.floor(z / CELL + GRID / 2);
 
 section('Floor 7 — Frozen Depths: its look and rooms');
 {
-  check('floor 7 is Frozen Depths (floor 6 Skull Cove)', styleOf(7).id === 'frozen' && styleOf(6).id === 'cove' && !styleOf(7).under);
-  const seven = FIGHT_ROOMS.filter((t) => onFloor(t, 7));
-  check(`its own nine rooms, and only its own`, seven.length === 9 && seven.every((t) => FROZEN_ROOMS.includes(t)) && FROZEN_ROOMS.every((t) => !onFloor(t, 6) && !onFloor(t, 8)), seven.map((t) => t.id).join(', '));
+  check('floor 7 is Frozen Depths (floor 6 Skull Cove)', styleOf(FLOOR.frozen).id === 'frozen' && styleOf(FLOOR.cove).id === 'cove' && !styleOf(FLOOR.frozen).under);
+  const seven = FIGHT_ROOMS.filter((t) => onFloor(t, FLOOR.frozen));
+  check(`its own nine rooms, and only its own`, seven.length === 9 && seven.every((t) => FROZEN_ROOMS.includes(t)) && FROZEN_ROOMS.every((t) => !onFloor(t, FLOOR.frozen - 1) && !onFloor(t, FLOOR.frozen + 1)), seven.map((t) => t.id).join(', '));
   check('every one has ice in it', FROZEN_ROOMS.every((t) => t.rows.join('').includes('I')));
 }
-const plan = planFloor(41, 7);
+const plan = planFloor(41, FLOOR.frozen);
 const level = buildDungeon(plan);
 {
   check('the floor has its sheets of ice and its icicles', level.ice.length > 0 && level.icicles.length > 20, `${level.ice.length} sheets, ${level.icicles.length} icicles`);
@@ -50,7 +51,7 @@ const level = buildDungeon(plan);
   const trees = dressing.pieces.filter((p) => FROZEN.trees.includes(p.piece));
   const onBed = trees.every((p) => cellAt(plan, colOf(p.x), rowOf(p.z)) === 'pine');
   check('every snowy tree grows out of a bed of snow, never paving', trees.length > 0 && onBed, `${trees.length} trees`);
-  const paved = dressing.pieces.filter((p) => p.piece === styleOf(7).floor && ['pine', 'snow'].includes(cellAt(plan, colOf(p.x), rowOf(p.z))));
+  const paved = dressing.pieces.filter((p) => p.piece === styleOf(FLOOR.frozen).floor && ['pine', 'snow'].includes(cellAt(plan, colOf(p.x), rowOf(p.z))));
   check('no paving under the snow', paved.length === 0);
   const pine = trees[0];
   check('a tree’s trunk is solid', !!pine && level.arena.boxes.some((b) => b.kind === 'block' && Math.abs(b.x - pine.x) < 0.01 && Math.abs(b.z - pine.z) < 0.01));
@@ -129,7 +130,7 @@ section('Floor 7 — icicles');
 
 section('Floor 7 — stand-ins');
 {
-  const roster = rosterOf(7);
+  const roster = rosterOf(FLOOR.frozen);
   check('its enemies stand in from the dry floors (none of floor 6’s)', roster.length > 0 && roster.every((k) => !(KINDS6 as readonly string[]).includes(k)), roster.join(', '));
-  check('its boss stands in (the Velociraptor)', bossOf(7) === 'dino');
+  check('its boss stands in (the Velociraptor)', bossOf(FLOOR.frozen) === 'dino');
 }

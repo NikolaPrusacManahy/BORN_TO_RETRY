@@ -24,6 +24,7 @@ import { priceOf } from '../src/sim/items/items';
 import { poisonPlayer, updateHealth } from '../src/sim/player/health';
 import { createPlayer, PlayerState } from '../src/sim/player/state';
 import { FOES2 } from '../src/tuning/foes2';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const v = FOES2.v;
 const events = new EventQueue<CombatEvent>(256, 'none');
@@ -172,12 +173,12 @@ section('Floor 2 — mini bosses and the roster');
     landHit(c, hit, 1e6, 0, 0, 1, 'hitJab', 1);
     check(`killed, the ${kind} drops the room’s key`, c.keyDrops === 0 && c.drops.some((d) => d.alive && (d.kind === 'key' || d.kind === 'whiteKey' || d.kind === 'goldKey')));
   }
-  const one = rosterOf(1);
-  const two = rosterOf(2);
+  const one = rosterOf(FLOOR.dungeon);
+  const two = rosterOf(FLOOR.garden);
   check('floor 1 sends its own (the Yeti, none of floor 2’s)', one.includes('brute') && !one.includes('slime') && !one.includes('spider'));
   check('floor 2: floor 1’s small ones and the six new, no Yeti', ['grunt', 'spitter', 'leaper', 'stinger', 'wraith', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon'].every((k) => two.includes(k as Enemy['kind'])) && !two.includes('brute'));
   // Update 0.1.18 (the designer: for floor 3 cut the Grunt, the Leaper and the Blue Demon).
-  const three = rosterOf(3);
+  const three = rosterOf(FLOOR.keep);
   // (Update 0.1.19 — and its own: the Skeleton, the Mushnub, the Ninja.)
   // (Update 0.2.7 — the designer swapped four: the Stinger for the Dragonling, the Wraith for the Skull Wraith, the Snake
   // for the White Rabbit, the Spider for the Big Mushnub.)
@@ -187,7 +188,7 @@ section('Floor 2 — mini bosses and the roster');
   check('floor 3: floor 2’s without the Grunt, the Leaper, the Blue Demon, the Spitter and the Wasp, four swapped, and its own three', three.join() === [...two.filter((k) => !cut3.includes(k)).map((k) => SWAP[k] ?? k), 'skeleton', 'mushnub', 'ninja'].join(), three.join());
   // (Update 0.2.4 — floor 4 has its own: test-floor4.ts.)
   // (Update 0.2.10 — and floor 5 has its own: test-floor5.ts.)
-  check('floor 4 has its own, and floor 5 its own', rosterOf(4) !== three && rosterOf(5) !== rosterOf(4));
+  check('floor 4 has its own, and floor 5 its own', rosterOf(FLOOR.desert) !== three && rosterOf(FLOOR.temple) !== rosterOf(FLOOR.desert));
   let cut = '';
   let spiders = 0;
   for (let seed = 1; seed <= 20; seed++) {

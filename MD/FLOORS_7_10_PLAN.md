@@ -1,5 +1,7 @@
 # Floors 7–10 — the plan (draft, 2026-11-02)
 
+> Update 0.3.25 — the floors reordered (`MD_UPDATES/U0325_FLOOR_ORDER.md`): Frozen Depths is floor 4, the Moon 9, Hell on Earth 10 (the Forge's), the Shrine Dimension 8. The numbers below are the old ones.
+
 The designer polled players: half want 10 floors, half more than 10 — "people want at least 10". The run goes back to
 **10 floors** (it was cut to 7 on 2026-10-30). This is Claude's plan for the four new floors, to be agreed before
 building. Each floor is built as floor 6 was: **the level and its look first, then its enemies, then its boss**, each

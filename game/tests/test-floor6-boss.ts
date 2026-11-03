@@ -28,13 +28,14 @@ import { OPEN_ARENA } from './fakes/enemyWorld';
 import { buildDungeon } from '../src/world/dungeon/assemble';
 import { dress } from '../src/world/dungeon/dressing';
 import { planFloor } from '../src/world/dungeon/floorPlan';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const v = BIG_SHARK.v;
 const free = () => undefined;
 
 section('Floor 6 — the Big Shark');
 {
-  check('it’s floor 6’s boss: THE BIG SHARK', bossOf(6) === 'bigShark' && BOSS_NAMES.bigShark === 'THE BIG SHARK' && ENEMY_STATS.bigShark().boss && causeName('bigShark') === 'The Big Shark');
+  check('it’s floor 6’s boss: THE BIG SHARK', bossOf(FLOOR.cove) === 'bigShark' && BOSS_NAMES.bigShark === 'THE BIG SHARK' && ENEMY_STATS.bigShark().boss && causeName('bigShark') === 'The Big Shark');
   check(`never tankier: ${v.bigHp} health, no more than the floor before’s boss (the Drowned King’s ${ENEMY_STATS.drownedKing().hp})`, ENEMY_STATS.bigShark().hp <= ENEMY_STATS.drownedKing().hp);
   const look = LOOKS.bigShark!;
   const b = readFileSync(`public${look.url}`);
@@ -44,7 +45,7 @@ section('Floor 6 — the Big Shark');
 
 section('Floor 6 — the Big Shark’s arena');
 {
-  const plan = planFloor(3, 6);
+  const plan = planFloor(3, FLOOR.cove);
   const level = buildDungeon(plan);
   const r = plan.rooms.find((x) => x.kind === 'boss')!;
   const room = level.rooms.find((x) => x.kind === 'boss')!;
@@ -201,7 +202,7 @@ section('Floor 6 — the Big Shark: its tail, its frenzy');
 
 section('Floor 6 — the Big Shark: open water, off the walls, its feint');
 {
-  const plan = planFloor(3, 6);
+  const plan = planFloor(3, FLOOR.cove);
   const level = buildDungeon(plan);
   const room = level.rooms.find((x) => x.kind === 'boss')!;
   const [mx, mz, half] = [(room.min.x + room.max.x) / 2, (room.min.z + room.max.z) / 2, (room.max.x - room.min.x) * 0.3];

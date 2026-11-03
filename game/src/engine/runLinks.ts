@@ -9,11 +9,13 @@ import type { CharacterId } from '../sim/characters';
 import type { Difficulty } from '../sim/lobby/difficulty';
 import type { Level } from './level';
 import type { DealView } from './fateView';
+import { FLOOR } from '../world/dungeon/floorOrder';
 
 /** Update 0.2.2 — the run's last floor: taking its way down ends the run. Update 0.2.12 — the alpha's (the designer:
  *  "allow room 1 to 5 only, don't include 6 yet"): floor 5's way down wins it. Update 0.3.11 — floor 6 is in (the plan
  *  for floors 7–10, MD/FLOORS_7_10_PLAN.md: the game's run is 10 floors now; it ends at each one as it's done). */
-export const LAST_FLOOR = 6;
+// (Update 0.3.25 — the floors reordered: Skull Cove's way down, floor 7 now, with Frozen Depths in at 4.)
+export const LAST_FLOOR = FLOOR.cove;
 export const endsRun = (floor: number) => floor >= LAST_FLOOR;
 
 /** Update 0.1.14 — what the death screen shows. */

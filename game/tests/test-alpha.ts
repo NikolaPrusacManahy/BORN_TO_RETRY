@@ -21,11 +21,13 @@ import { GUN } from '../src/tuning/gun';
 import { WEAPONS } from '../src/tuning/weapons';
 import { buildDungeon } from '../src/world/dungeon/assemble';
 import { planFloor } from '../src/world/dungeon/floorPlan';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 section('Alpha — floors 1 to 5, the Pistol, the Grimoire');
 {
   // (Update 0.3.11 — floor 6 is in.)
-  check('floor 6’s way down ends the run: no floor 7 yet', LAST_FLOOR === 6 && endsRun(6) && !endsRun(5));
+  // (Update 0.3.25 — the floors reordered: Skull Cove floor 7, Frozen Depths in at 4.)
+  check('Skull Cove’s way down ends the run (floor 7): no floor 8 yet', LAST_FLOOR === 7 && LAST_FLOOR === FLOOR.cove && endsRun(7) && !endsRun(6));
   check(`the Pistol: ${GUN.v.pistolRounds} rounds, uncommon (in uncommon chests)`, GUN.v.pistolRounds === 60 && WEAPON_STATS.pistol().uses === 60 && rarityOf('pistol') === 'uncommon');
   const c = createCombat(buildDungeon(planFloor(3, 1)).arena);
   const p = createPlayer(0, 0, 0, 0);

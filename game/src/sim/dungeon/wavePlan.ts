@@ -24,45 +24,49 @@ import type { Rng } from '../../core/rng';
 import { ENEMY_KINDS, EnemyKind, MINI_BOSSES } from '../enemies/kinds';
 import { ROOMS } from '../../tuning/rooms';
 import { FOES_COVE } from '../../tuning/foesCove';
+import { Realm, realmOf } from '../../world/dungeon/floorOrder';
 
 export const COST: Record<EnemyKind, number> = { grunt: 1, spitter: 2, brute: 4, leaper: 2, stinger: 2, wraith: 3, demon: 99, slime: 1, frog: 2, snake: 1, wasp: 2, spider: 4, blueDemon: 4, dragon: 99, skeleton: 1, mushnub: 1, ninja: 4, boneKing: 99, tribal: 2, cactoro: 2, cactoroBig: 4, hywirl: 2, dino: 99, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 1, maskTribal: 2, skullOrc: 4, dragonling: 2, skullWraith: 3, rabbit: 1, bigMushnub: 4, snapper: 2, urchin: 2, jelly: 2, glub: 2, bigGlub: 3, squidle: 2, spawnling: 1, deepOne: 4, bogBrute: 4, drownedKing: 99, clownfish: 1, tuna: 2, angelfish: 2, dolphin: 2, drownedPrince: 3, mantaRay: 4, shark: 4, whale: 99, corsair: 2, shanty: 2, bomber: 2, crewman: 2, headless: 2, gull: 1, bat: 1, tentacle: 3, mako: 4, captain: 4, bigShark: 99, gunner: 2, flanker: 2, hopper: 2, strafer: 2, diver: 1, mineLayer: 2, beeShip: 4, beeMech: 4, beeNaut: 2, raider: 2, axeThrower: 2, draugr: 1, barrowMaid: 1, volva: 2, berserker: 4, haugbui: 4 };
 /** How often each kind is picked, and the first room (on floor 1) it comes in. **(placeholders)** The Demon is never
  *  bought: it's the boss room's. */
 const WEIGHT: Record<EnemyKind, number> = { grunt: 4, spitter: 2, brute: 1, leaper: 1.5, stinger: 2, wraith: 1, demon: 0, slime: 2, frog: 1.5, snake: 2, wasp: 1.5, spider: 0.6, blueDemon: 0.6, dragon: 0, skeleton: 3, mushnub: 3, ninja: 0.6, boneKing: 0, tribal: 2.5, cactoro: 2.5, cactoroBig: 0.6, hywirl: 1.8, dino: 0, dinoBlob: 2, lizard: 2, greenBlob: 2, blobling: 0, maskTribal: 1.2, skullOrc: 0.6, dragonling: 2, skullWraith: 1, rabbit: 2, bigMushnub: 0.6, snapper: 2.5, urchin: 2, jelly: 1.5, glub: 2, bigGlub: 0.8, squidle: 1.8, spawnling: 3, deepOne: 0.6, bogBrute: 0.6, drownedKing: 0, clownfish: 3, tuna: 2, angelfish: 2, dolphin: 1.8, drownedPrince: 0.8, mantaRay: 0.6, shark: 0.6, whale: 0, corsair: 2.5, shanty: 1, bomber: 1.8, crewman: 2.5, headless: 0, gull: 0.9, bat: 0.5, tentacle: 0.9, mako: 0.6, captain: 0.6, bigShark: 0, gunner: 2.4, flanker: 2.4, hopper: 2, strafer: 1.6, diver: 1.8, mineLayer: 1.2, beeShip: 0.6, beeMech: 0.6, beeNaut: 0, raider: 2.6, axeThrower: 1.8, draugr: 0.7, barrowMaid: 0.7, volva: 1, berserker: 0.6, haugbui: 0.6 };
 const FROM: Record<EnemyKind, number> = { grunt: 1, spitter: 1, brute: 3, leaper: 2, stinger: 2, wraith: 3, demon: Infinity, slime: 1, frog: 1, snake: 1, wasp: 1, spider: 1, blueDemon: 1, dragon: Infinity, skeleton: 1, mushnub: 1, ninja: 1, boneKing: Infinity, tribal: 1, cactoro: 1, cactoroBig: 1, hywirl: 1, dino: Infinity, dinoBlob: 1, lizard: 1, greenBlob: 1, blobling: Infinity, maskTribal: 1, skullOrc: 1, dragonling: 1, skullWraith: 1, rabbit: 1, bigMushnub: 1, snapper: 1, urchin: 1, jelly: 1, glub: 1, bigGlub: 1, squidle: 1, spawnling: 1, deepOne: 1, bogBrute: 1, drownedKing: Infinity, clownfish: 1, tuna: 1, angelfish: 1, dolphin: 1, drownedPrince: 1, mantaRay: 1, shark: 1, whale: Infinity, corsair: 1, shanty: 1, bomber: 1, crewman: 1, headless: Infinity, gull: 1, bat: 1, tentacle: 1, mako: 1, captain: 1, bigShark: Infinity, gunner: 1, flanker: 1, hopper: 1, strafer: 1, diver: 1, mineLayer: 1, beeShip: 1, beeMech: 1, beeNaut: Infinity, raider: 1, axeThrower: 1, draugr: 1, barrowMaid: 1, volva: 1, berserker: 1, haugbui: 1 };
-/** Each floor's enemies (index: the floor; past the last, the last's). */
-const ROSTER: readonly (readonly EnemyKind[])[] = [
-  [],
-  ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith'],
-  ['grunt', 'spitter', 'leaper', 'stinger', 'wraith', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon'],
+/** Update 0.3.11 — a floor not built yet sends stand-ins from the dry floors. */
+const STAND_INS: readonly EnemyKind[] = ['skeleton', 'rabbit', 'leaper', 'tribal', 'dinoBlob', 'skullWraith', 'dragonling', 'brute', 'ninja'];
+/** Each floor's enemies. Update 0.3.25 — by its place (world/dungeon/floorOrder.ts: the floors reordered; the numbers
+ *  in the notes below are the floors as they were then). */
+const ROSTER: Readonly<Record<Realm, readonly EnemyKind[]>> = {
+  dungeon: ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith'],
+  garden: ['grunt', 'spitter', 'leaper', 'stinger', 'wraith', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon'],
   // Update 0.2.7 (the designer): the Stinger, the Wraith, the Snake and the Spider give way to the Dragonling, the Skull
   // Wraith, the White Rabbit and the Big Mushnub; then "Scrap the spitters from that floor and put the Dragoling in that
   // position", "Scrap the wasp".
-  ['dragonling', 'skullWraith', 'slime', 'frog', 'rabbit', 'bigMushnub', 'skeleton', 'mushnub', 'ninja'],
+  keep: ['dragonling', 'skullWraith', 'slime', 'frog', 'rabbit', 'bigMushnub', 'skeleton', 'mushnub', 'ninja'],
   // Update 0.2.4 — floor 4, the desert (the designer's list).
-  ['tribal', 'cactoro', 'dinoBlob', 'lizard', 'greenBlob', 'hywirl', 'wasp', 'maskTribal', 'cactoroBig', 'skullOrc'],
+  desert: ['tribal', 'cactoro', 'dinoBlob', 'lizard', 'greenBlob', 'hywirl', 'wasp', 'maskTribal', 'cactoroBig', 'skullOrc'],
   // Update 0.2.10 — floor 5, the Drowned Temple (Claude's proposal as accepted): none of the floors before it.
-  ['snapper', 'urchin', 'jelly', 'glub', 'bigGlub', 'squidle', 'spawnling', 'deepOne', 'bogBrute'],
+  temple: ['snapper', 'urchin', 'jelly', 'glub', 'bigGlub', 'squidle', 'spawnling', 'deepOne', 'bogBrute'],
   // Update 0.2.11 — floor 6, the Sunken Grove (the designer's fish; "no porting floor 5 monster", but a smaller Drowned
   // King, the percher). Update 0.3.14 — floor 6 reworked, Skull Cove (dry, a pirate floor): its fish retired. Update
   // 0.3.15 — its pirate crew (MD/FLOOR6_PIRATE_PLAN.md): none of the floors before it (the Headless Crewman isn't
   // bought: a Cursed Crewman's body becomes one); its fliers come in flocks and its Tentacles only by the sea (crewWaves).
-  ['corsair', 'shanty', 'bomber', 'crewman', 'gull', 'bat', 'tentacle', 'mako', 'captain'],
+  cove: ['corsair', 'shanty', 'bomber', 'crewman', 'gull', 'bat', 'tentacle', 'mako', 'captain'],
   // Update 0.3.11 — floor 7, Frozen Depths: **stand-ins** from the dry floors till its own are designed (the plan for
   // floors 7–10: its level first, then its enemies). Update 0.3.22 — its own, the frozen warband (MD/FLOOR7_WARBAND_PLAN.md;
   // the designer: "Go with it"): none of the floors before it; at most two Völvas a room, the dead out of the snow
   // (warbandWaves.ts, dungeon/lairs.ts).
-  ['raider', 'axeThrower', 'draugr', 'barrowMaid', 'volva', 'berserker', 'haugbui'],
+  frozen: ['raider', 'axeThrower', 'draugr', 'barrowMaid', 'volva', 'berserker', 'haugbui'],
   // Update 0.3.18 — floor 8, the Moon (the designer: "Normal enemies -> 3 spaceships and the astronaut Flamingo, frog,
   // fox"; "Mini boss - One spaceship and Bee mech"): the astronauts on foot, their tiny ships, the Bee's ship and mech
   // (the Bee astronaut isn't bought: a broken mech becomes her); its rooms' roles split (moonWaves).
-  ['gunner', 'flanker', 'hopper', 'strafer', 'diver', 'mineLayer', 'beeShip', 'beeMech'],
-  // (Floors 9 and on, unbuilt: floor 7's stand-ins.)
-  ['skeleton', 'rabbit', 'leaper', 'tribal', 'dinoBlob', 'skullWraith', 'dragonling', 'brute', 'ninja'],
-];
+  moon: ['gunner', 'flanker', 'hopper', 'strafer', 'diver', 'mineLayer', 'beeShip', 'beeMech'],
+  // (The places not built yet, the Shrine Dimension and Hell on Earth: stand-ins from the dry floors.)
+  shrine: STAND_INS,
+  hell: STAND_INS,
+};
 
-/** The enemies floor `floor` sends. */
-export const rosterOf = (floor: number) => ROSTER[Math.max(1, Math.min(floor, ROSTER.length - 1))];
+/** The enemies floor `floor` sends (past the last, the last's). */
+export const rosterOf = (floor: number) => ROSTER[realmOf(floor)];
 
 /** Update 0.1.1 — how many enemies the fight room `depth` rooms along floor `floor` sends. Update 0.1.16 — the floor's
  *  share steps up every `floorsApart` floors (floor 2 the first, with 2 apart). */
@@ -135,8 +139,9 @@ function addMinis(plan: EnemyKind[][], floor: number, rng: Rng) {
  *  Dragonling has their place (a flier: it comes in their stead in a perch room's waves, from its spawns, not a perch). */
 // Update 0.2.10 — floor 5's Big Glubs (fliers hanging over the perches). Update 0.2.11 — floor 6's Drowned Princes.
 // (Update 0.3.14 — floor 6 a stand-in's, as floor 7's. Update 0.3.15 — Skull Cove's rooms have no perches; were there
-// one, its Bomber. Update 0.3.22 — floor 7's, its Axe Thrower.)
-export const percherOf = (floor: number): EnemyKind => (floor === 7 ? 'axeThrower' : floor >= 7 ? 'tribal' : floor === 6 ? 'bomber' : floor === 5 ? 'bigGlub' : floor === 4 ? 'tribal' : floor === 3 ? 'dragonling' : 'spitter');
+// one, its Bomber. Update 0.3.22 — floor 7's, its Axe Thrower. Update 0.3.25 — by its place: floorOrder.ts.)
+const PERCHERS: Readonly<Record<Realm, EnemyKind>> = { dungeon: 'spitter', garden: 'spitter', keep: 'dragonling', frozen: 'axeThrower', temple: 'bigGlub', desert: 'tribal', cove: 'bomber', shrine: 'tribal', moon: 'tribal', hell: 'tribal' };
+export const percherOf = (floor: number): EnemyKind => PERCHERS[realmOf(floor)];
 
 /** Update 0.0.21 — spitters to stand on a room's perches, in every wave of a room with them. **(placeholder)** */
 export const PERCHED = 2;

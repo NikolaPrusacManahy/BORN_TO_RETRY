@@ -17,6 +17,7 @@ import { Run } from './run';
 import type { Levels, RunCallbacks } from './runLinks';
 import type { Difficulty } from '../sim/lobby/difficulty';
 import { createRenderer } from './renderer';
+import { FLOOR } from '../world/dungeon/floorOrder';
 
 /** 'menu': a menu scene, idle; 'intro': Start pressed, the gate opening; 'play': a level (the lobby, a run, the Lab). */
 export type GameMode = 'menu' | 'intro' | 'play';
@@ -129,7 +130,9 @@ export abstract class GameBase {
    *  Bone King's (floor 3). Update 0.2.4 — or the Dino's (floor 4). Update 0.2.10 — or the Drowned King's (floor 5).
    *  Update 0.3.16 — or the Big Shark's (floor 6). */
   labBoss(kind: 'demon' | 'dragon' | 'boneKing' | 'dino' | 'drownedKing' | 'whale' | 'bigShark') {
-    if (this.lab) this.covered(() => this.newRun(bossRoomLevel(newSeed(), kind === 'demon' ? 1 : kind === 'dragon' ? 2 : kind === 'boneKing' ? 3 : kind === 'dino' ? 4 : kind === 'drownedKing' ? 5 : 6)));
+    // (Update 0.3.25 — on its floor as the floors are ordered now: floorOrder.ts.)
+    const at = kind === 'demon' ? FLOOR.dungeon : kind === 'dragon' ? FLOOR.garden : kind === 'boneKing' ? FLOOR.keep : kind === 'dino' ? FLOOR.desert : kind === 'drownedKing' ? FLOOR.temple : FLOOR.cove;
+    if (this.lab) this.covered(() => this.newRun(bossRoomLevel(newSeed(), at)));
   }
 
   /** Update 0.0.20 — floor `floor` (1–3) from the Lab, from its start. Update 0.3.11 — up to 7 (past the run's end:

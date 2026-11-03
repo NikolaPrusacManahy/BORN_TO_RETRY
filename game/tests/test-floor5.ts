@@ -14,20 +14,21 @@ import { DROWNED_ROOMS } from '../src/world/dungeon/drownedRooms';
 import { DESERT_ROOMS } from '../src/world/dungeon/desertRooms';
 import { planFloor } from '../src/world/dungeon/floorPlan';
 import { styleOf } from '../src/world/dungeon/styles';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 section('Floor 5 — the Drowned Temple: its look and its rooms');
 {
-  const s = styleOf(5);
+  const s = styleOf(FLOOR.temple);
   // (Update 0.2.11 — floor 6 has its own: test-floor6.ts.)
-  check('floor 5 is the Drowned Temple: floor 3’s stone recoloured, a grey-green sky, water', s.id === 'drowned' && !!s.tint && !!s.floorTint && s.sky !== undefined && s.water !== undefined && styleOf(6).id !== 'drowned' && styleOf(4).id === 'sand');
+  check('floor 5 is the Drowned Temple: floor 3’s stone recoloured, a grey-green sky, water', s.id === 'drowned' && !!s.tint && !!s.floorTint && s.sky !== undefined && s.water !== undefined && styleOf(FLOOR.cove).id !== 'drowned' && styleOf(FLOOR.desert).id === 'sand');
   const ids = DROWNED_ROOMS.map((r) => r.id);
   check(`${ids.length} rooms of its own, each different: ${ids.join(', ')}`, ids.length >= 10 && new Set(ids).size === ids.length && DROWNED_ROOMS.every((r) => r.from === 5 && r.until === 5));
   let bad = '';
   for (let seed = 1; seed <= 40; seed++) {
-    const fights = planFloor(seed * 17, 5).rooms.filter((r) => r.kind === 'fight').map((r) => r.layout.template.id);
+    const fights = planFloor(seed * 17, FLOOR.temple).rooms.filter((r) => r.kind === 'fight').map((r) => r.layout.template.id);
     if (!fights.every((id) => ids.includes(id))) bad ||= `seed ${seed * 17}: ${fights.filter((id) => !ids.includes(id))}`;
     else if (new Set(fights).size !== fights.length) bad ||= `seed ${seed * 17}: a room twice`;
-    const four = planFloor(seed * 17, 4).rooms.filter((r) => r.kind === 'fight').map((r) => r.layout.template.id);
+    const four = planFloor(seed * 17, FLOOR.desert).rooms.filter((r) => r.kind === 'fight').map((r) => r.layout.template.id);
     if (!four.every((id) => DESERT_ROOMS.some((t) => t.id === id))) bad ||= `seed ${seed * 17}: floor 4 has ${four}`;
   }
   check('40 floor 5s: only its rooms, none twice; floor 4 keeps the desert’s', !bad, bad);
@@ -36,7 +37,7 @@ section('Floor 5 — the Drowned Temple: its look and its rooms');
   let pads = 0;
   let padsOut = 0;
   for (const seed of [5, 77, 903]) {
-    const d = dress(planFloor(seed, 5));
+    const d = dress(planFloor(seed, FLOOR.temple));
     const beds = new Set(d.sand.map((c) => `${c.x},${c.z}`));
     const tiles = new Set(d.pieces.filter((p) => p.piece === d.style.floor && p.y < 0).map((p) => `${p.x},${p.z}`));
     for (const p of d.pieces) {
@@ -44,7 +45,7 @@ section('Floor 5 — the Drowned Temple: its look and its rooms');
       willows++;
       if (!beds.has(`${p.x},${p.z}`) || tiles.has(`${p.x},${p.z}`)) wrong ||= `seed ${seed}: ${p.piece} at ${p.x}, ${p.z}`;
     }
-    const level = buildDungeon(planFloor(seed, 5));
+    const level = buildDungeon(planFloor(seed, FLOOR.temple));
     for (const f of d.floats) {
       pads++;
       if (!level.tide.some((b) => Math.abs(f.x - b.x) <= b.w / 2 && Math.abs(f.z - b.z) <= b.d / 2)) padsOut++;
@@ -52,7 +53,7 @@ section('Floor 5 — the Drowned Temple: its look and its rooms');
   }
   check(`every willow stands in a bed of mud, none on paving (${willows})`, willows > 10 && !wrong, wrong);
   check(`lily pads float only where the tide floods (${pads})`, pads > 20 && padsOut === 0, `${padsOut} outside`);
-  check('the desert has none', dress(planFloor(5, 4)).floats.length === 0 && buildDungeon(planFloor(5, 4)).tide.length === 0);
+  check('the desert has none', dress(planFloor(5, FLOOR.desert)).floats.length === 0 && buildDungeon(planFloor(5, FLOOR.desert)).tide.length === 0);
 }
 
 section('Floor 5 — the tide');
@@ -73,7 +74,7 @@ section('Floor 5 — the tide');
     events.clear();
   }
   check('a horn as the water starts to rise, once a cycle; once as it drains', horns === 3 && drains === 3, `${horns} horns, ${drains} drains`);
-  const level = buildDungeon(planFloor(7, 5));
+  const level = buildDungeon(planFloor(7, FLOOR.temple));
   const fights = level.rooms.filter((r) => r.kind === 'fight');
   check('every fight room floods (the challenge room too); the start room, the shop, the boss room and the corridors don’t', level.tide.length === fights.length && fights.length >= 7);
   const room = level.tide[0];
@@ -93,7 +94,7 @@ section('Floor 5 — no pits');
   // (The designer: "remove those water pits you added, no need for them".)
   let pits = '';
   for (let seed = 1; seed <= 40; seed++) {
-    const level = buildDungeon(planFloor(seed * 13, 5));
+    const level = buildDungeon(planFloor(seed * 13, FLOOR.temple));
     const n = level.arena.boxes.filter((b) => b.kind === 'lava').length + dress(level.plan).lava.length;
     if (n > 0) pits ||= `seed ${seed * 13}: ${n}`;
   }

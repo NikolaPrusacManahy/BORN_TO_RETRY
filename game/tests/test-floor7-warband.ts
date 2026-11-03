@@ -27,6 +27,7 @@ import { FROZEN_KNOBS } from '../src/tuning/frozen';
 import { LOOKS } from '../src/engine/enemyLooks';
 import { causeName } from '../src/screens/deathText';
 import { boxAt } from '../src/world/arena';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const v = FOES_NORSE.v;
 const b = FOES_NORSE_B.v;
@@ -36,9 +37,9 @@ const slick = (m: ReturnType<typeof crew>) => addRime(m.c.ground.frost, 0, 0, 80
 
 section('Floor 7 — the frozen warband');
 {
-  const roster = rosterOf(7);
+  const roster = rosterOf(FLOOR.frozen);
   check('its roster: the Raider, the Axe Thrower, the Draugr and the Barrow Maid, the Völva, the Berserker and Haugbui', roster.join() === WARBAND.join(), roster.join(', '));
-  check('none of them on any other floor', WARBAND.every((k) => ![1, 2, 3, 4, 5, 6, 8, 9, 10].some((f) => rosterOf(f).includes(k))));
+  check('none of them on any other floor', WARBAND.every((k) => ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].some((f) => f !== FLOOR.frozen && rosterOf(f).includes(k))));
   check('the Berserker and Haugbui are its mini bosses', MINI_BOSSES.includes('berserker') && MINI_BOSSES.includes('haugbui') && WARBAND.filter((k) => MINI_BOSSES.includes(k)).length === 2);
   // (The designer: "do not make enemies tankier NEVER".)
   const earlier = [1, 2, 3, 4, 5, 6].flatMap((f) => [...rosterOf(f)]).filter((k) => !MINI_BOSSES.includes(k) && !ENEMY_STATS[k]().boss);
@@ -68,7 +69,7 @@ section('Floor 7 — its rooms');
   let uneven = 0;
   let rooms = 0;
   for (let seed = 1; seed <= 30; seed++) {
-    for (const r of planFloor(seed, 7).rooms) {
+    for (const r of planFloor(seed, FLOOR.frozen).rooms) {
       if (r.kind !== 'fight') continue;
       const all = r.waves.flat();
       if (all.filter((k) => k === 'volva').length > VOLVA_MAX) over++;
@@ -81,7 +82,7 @@ section('Floor 7 — its rooms');
   }
   check(`no more than ${VOLVA_MAX} Völvas in a room`, over === 0, `${over}`);
   check('the dead come as men and women in turn, a few in each room', uneven === 0 && dead / rooms > 2 && dead / rooms < 7, `${uneven} uneven; ${(dead / rooms).toFixed(1)} a room`);
-  const plan = planFloor(7, 7);
+  const plan = planFloor(7, FLOOR.frozen);
   const bare = plan.rooms.filter((r) => r.kind === 'fight' && lairsOf(r).barrows.length === 0).map((r) => r.layout.template.id);
   check('every fight room has beds of snow for them to rise from (or ice to come up through)', bare.length === 0, bare.join(', '));
 }

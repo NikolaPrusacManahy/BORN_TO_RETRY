@@ -29,6 +29,7 @@ import { MOON_KIT } from '../src/world/dungeon/moon';
 import { MOON_ROOMS } from '../src/world/dungeon/moonRooms';
 import { FIGHT_ROOMS, onFloor, RoomTemplate } from '../src/world/dungeon/rooms';
 import { styleOf } from '../src/world/dungeon/styles';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const v = MOON.v;
 /** What you can't walk through: walls, cover, ledges, set pieces, alien trees. */
@@ -51,12 +52,13 @@ const lum = (hex: number) => (((hex >> 16) & 255) + ((hex >> 8) & 255) + (hex & 
 
 section('Floor 8 — the Moon: its look and rooms');
 {
-  const look = styleOf(8);
-  check('floor 8 is the Moon (floor 7 Frozen Depths, the Forge past it)', look.id === 'moon' && styleOf(7).id === 'frozen' && styleOf(9).id === 'forge');
+  const look = styleOf(FLOOR.moon);
+  // (Update 0.3.25 — the floors reordered: the Moon floor 9, the Forge's rooms Hell on Earth's, floor 10.)
+  check('floor 8 is the Moon (floor 7 Frozen Depths, the Forge past it)', look.id === 'moon' && styleOf(FLOOR.frozen).id === 'frozen' && styleOf(FLOOR.hell).id === 'forge');
   check('in space: a black sky; moon gravity; moon dust on every floor cell', look.space === true && lum(look.sky!) < 0.05 && look.lowGravity === true && look.sandFloor === true);
   check('bright all the same: a white sun and a white sky light; the haze pale, not black', look.sun === 0xffffff && look.skyLight === 0xffffff && lum(look.haze!) > 0.6);
-  const eight = FIGHT_ROOMS.filter((t) => onFloor(t, 8));
-  check('its own nine rooms, and only its own', eight.length === 9 && eight.every((t) => MOON_ROOMS.includes(t)) && MOON_ROOMS.every((t) => !onFloor(t, 7) && !onFloor(t, 9)), eight.map((t) => t.id).join(', '));
+  const eight = FIGHT_ROOMS.filter((t) => onFloor(t, FLOOR.moon));
+  check('its own nine rooms, and only its own', eight.length === 9 && eight.every((t) => MOON_ROOMS.includes(t)) && MOON_ROOMS.every((t) => !onFloor(t, FLOOR.moon - 1) && !onFloor(t, FLOOR.moon + 1)), eight.map((t) => t.id).join(', '));
   check('every one 28 cells square', MOON_ROOMS.every((t) => t.rows.length === 28 && t.rows.every((r) => r.length === 28)));
   const doors = [`0,14`, `27,14`, `14,0`, `14,27`];
   const cut = MOON_ROOMS.filter((t) => {
@@ -82,7 +84,7 @@ section('Floor 8 — the floor laid out');
   let meteorites = 0;
   const kinds = new Set<string>();
   for (let seed = 1; seed <= 8; seed++) {
-    const plan = planFloor(seed, 8);
+    const plan = planFloor(seed, FLOOR.moon);
     const level = buildDungeon(plan);
     const d = dress(plan);
     torches += d.torches.length + d.pieces.filter((p) => /Torch/.test(p.piece)).length;
@@ -165,7 +167,7 @@ section('Floor 8 — moon gravity');
     return t;
   };
   check('a body knocked into the air falls slower', fall(v.gravity) > fall(1) * 1.2, `${fall(1).toFixed(2)} s → ${fall(v.gravity).toFixed(2)} s`);
-  check('only on the moon', [1, 2, 3, 4, 5, 6, 7, 9].every((n) => !styleOf(n).lowGravity));
+  check('only on the moon', [1, 2, 3, 4, 5, 6, 7, 8, 10].every((n) => n !== FLOOR.moon && !styleOf(n).lowGravity));
 }
 
 section('Floor 8 — meteor showers');
@@ -204,7 +206,7 @@ section('Floor 8 — meteor showers');
 
 section('Floor 8 — its crew (Update 0.3.18: test-floor8-crew.ts); its boss still stands in');
 {
-  const roster = rosterOf(8);
+  const roster = rosterOf(FLOOR.moon);
   check('its own enemies (none of floor 6’s)', roster.includes('gunner') && roster.every((k) => !(KINDS6 as readonly string[]).includes(k)), roster.join(', '));
-  check('its boss stands in (the Velociraptor) till the three mechs are made', bossOf(8) === 'dino');
+  check('its boss stands in (the Velociraptor) till the three mechs are made', bossOf(FLOOR.moon) === 'dino');
 }

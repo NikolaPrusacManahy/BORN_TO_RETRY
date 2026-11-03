@@ -16,6 +16,7 @@ import { BOSS_NAMES } from '../src/engine/boss/bossShow';
 import { CAUSE_NAMES } from '../src/screens/deathText';
 import { DROWNED } from '../src/tuning/drowned';
 import { TIDE as TIDE_KNOBS } from '../src/tuning/tide';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const v = DROWNED.v;
 
@@ -23,7 +24,7 @@ section('Drowned King — the boss of floor 5');
 {
   const s = ENEMY_STATS.drownedKing();
   check(`a boss, ${s.height} m, never flinches, ${s.hp} health; stunned, hits do more`, s.boss && s.stagger === Infinity && s.height === v.kingHeight && s.hp === v.kingHp && s.stunned > 1);
-  check('floor 5’s boss (not floor 6’s); not a mini boss', bossOf(5) === 'drownedKing' && bossOf(6) !== 'drownedKing' && !MINI_BOSSES.includes('drownedKing'));
+  check('floor 5’s boss (not floor 6’s); not a mini boss', bossOf(FLOOR.temple) === 'drownedKing' && bossOf(FLOOR.cove) !== 'drownedKing' && !MINI_BOSSES.includes('drownedKing'));
   check(`its name, its death’s, ${v.kingCoins} coins in its chest`, BOSS_NAMES.drownedKing === 'THE DROWNED KING' && CAUSE_NAMES.drownedKing === 'The Drowned King' && bossCoins('drownedKing') === v.kingCoins);
   const f = fight(new Vector3(0, 0, -12), 0, 0);
   const r = run(f, v.diveWindup + 0.1);

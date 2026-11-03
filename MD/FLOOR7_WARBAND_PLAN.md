@@ -1,5 +1,7 @@
 # Floor 7's enemies — the Frozen Warband (2026-11-03; built as 0.3.22: `MD_UPDATES/U0322_FROZEN_WARBAND.md`)
 
+> Update 0.3.25 — Frozen Depths is floor 4 now (`MD_UPDATES/U0325_FLOOR_ORDER.md`).
+
 The designer: "I have more enemies models in More enemies folder; let's sort things out for Floor 7; look in folder and
 find enemies that would go together and if you can't match them with floor 7, we change floor 7 design with something
 that would match, no hesitation, if it does not fit we change". Claude's plan; the designer: "Go with it". Changed as

@@ -4,10 +4,12 @@
 // for the Tribals to throw from (perches, U), pits of burning sand (L: the lava pits' rules), pillars and spikes. Floor
 // cells always join every door; quicksand counts as floor (you can always wade through). Drawn as quarters like the
 // others (fightRooms.ts). From floor 4 on. Update 0.2.10 — floor 4's only (floor 5 has its own: drownedRooms.ts).
+// (Update 0.3.25 — its floor is floorOrder.ts's: the floors were reordered.)
 import type { RoomTemplate } from './rooms';
 import { quarter } from './fightRooms';
+import { FLOOR } from './floorOrder';
 
-const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 4, until: 4 });
+const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: FLOOR.desert, until: FLOOR.desert });
 
 export const DESERT_ROOMS: readonly RoomTemplate[] = [
   // A pool of quicksand in the middle (24 m), palms round its shore: fight on the sand's edge or wade.

@@ -1,5 +1,7 @@
 # Floor 6 reworked — Skull Cove, a pirate floor (draft, 2026-11-02)
 
+> Update 0.3.25 — Skull Cove is floor 7 now (`MD_UPDATES/U0325_FLOOR_ORDER.md`).
+
 The designer: "time to rework floor 6 entirely": a new `ASSETS/QUATERNIUS/FLOOR-6` (Quaternius's Pirate Kit, one
 texture atlas); the boss is the Big Shark and you fight it under water; the rest of floor 6 isn't under water any more,
 it's a pirate floor; its mini boss is the big shark; 1 or 2 flying enemies we haven't used; enemies new and

@@ -27,6 +27,7 @@ import { cellUnder, Forge, FORGE, noForge, PressSpot } from '../src/world/dungeo
 import { FORGE_ROOMS } from '../src/world/dungeon/forgeRooms';
 import { BELT_WAY, FIGHT_ROOMS, layOut, onFloor, RoomTemplate } from '../src/world/dungeon/rooms';
 import { styleOf } from '../src/world/dungeon/styles';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const v = FORGE_KNOBS.v;
 /** What you can't walk through in a room's drawing. */
@@ -49,7 +50,7 @@ function reached(t: RoomTemplate): Set<string> {
 
 section('The Forge (floor 10) — The Forge: its look and rooms');
 {
-  check('The Forge is floor 10’s now (floor 8 the Moon, floor 7 Frozen Depths)', styleOf(10).id === 'forge' && styleOf(8).id === 'moon' && styleOf(7).id === 'frozen' && !styleOf(10).under);
+  check('The Forge is floor 10’s now (floor 8 the Moon, floor 7 Frozen Depths)', styleOf(FLOOR.hell).id === 'forge' && styleOf(FLOOR.moon).id === 'moon' && styleOf(FLOOR.frozen).id === 'frozen' && !styleOf(FLOOR.hell).under);
   const eight = FIGHT_ROOMS.filter((t) => onFloor(t, 10));
   check('its own nine rooms, and only its own; none on floor 8', eight.length === 9 && eight.every((t) => FORGE_ROOMS.includes(t)) && FORGE_ROOMS.every((t) => !onFloor(t, 8) && !onFloor(t, 9)), eight.map((t) => t.id).join(', '));
   check('every one 28 cells square', FORGE_ROOMS.every((t) => t.rows.length === 28 && t.rows.every((r) => r.length === 28)));
@@ -78,7 +79,7 @@ section('The Forge (floor 10) — The Forge: its look and rooms');
   check('a belt’s arrows', BELT_WAY['>'].join() === '1,0' && BELT_WAY.A.join() === '0,-1');
 }
 
-const plan = planFloor(41, 10);
+const plan = planFloor(41, FLOOR.hell);
 const level = buildDungeon(plan);
 section('The Forge (floor 10) — the floor');
 {
@@ -89,7 +90,7 @@ section('The Forge (floor 10) — the floor');
   check('a press’s hammer covers its crusher cells; a vent its own', f.presses.every((p) => cellUnder(plan, p.x - p.w / 2 + 1, p.z - p.d / 2 + 1) === 'crusher') && f.vents.every((x) => cellUnder(plan, x.x, x.z) === 'vent'));
   const dressing = dress(plan);
   check('workbenches with their tables', dressing.pieces.some((p) => p.piece === FORGE.table));
-  check('no machinery on another floor (floor 8’s Moon has none)', [7, 8].every((n) => buildDungeon(planFloor(41, n)).forge.presses.length === 0 && buildDungeon(planFloor(41, n)).forge.belts.length === 0));
+  check('no machinery on another floor (floor 8’s Moon has none)', [FLOOR.frozen, FLOOR.moon].every((n) => buildDungeon(planFloor(41, n)).forge.presses.length === 0 && buildDungeon(planFloor(41, n)).forge.belts.length === 0));
   check('lava again', level.arena.boxes.some((b) => b.kind === 'lava'));
   // (The designer: "Floor 8 is frozen and crashes the entire GAME": the ore came into the kit with shape keys, and an
   // instanced piece with morph targets threw on every frame. Every piece's shape keys come off in the export.)
@@ -188,8 +189,8 @@ section('The Forge (floor 10) — fire vents and belts');
 
 section('The Forge (floor 10) — stand-ins');
 {
-  const roster = rosterOf(10);
+  const roster = rosterOf(FLOOR.hell);
   check('its enemies stand in from the dry floors (none of floor 6’s)', roster.length > 0 && roster.every((k) => !(KINDS6 as readonly string[]).includes(k)), roster.join(', '));
-  check('its boss stands in (the Velociraptor)', bossOf(10) === 'dino');
+  check('its boss stands in (the Velociraptor)', bossOf(FLOOR.hell) === 'dino');
   check('“A press”, “A fire vent” on the death screen', causeName('crusher') === 'A press' && causeName('vent') === 'A fire vent');
 }

@@ -21,6 +21,7 @@ import { FOES4 } from '../src/tuning/foes4';
 import { Arena, boxAt } from '../src/world/arena';
 import { buildDungeon } from '../src/world/dungeon/assemble';
 import { planFloor } from '../src/world/dungeon/floorPlan';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const v = FOES4.v;
 const ROOM: Arena = {
@@ -85,7 +86,7 @@ section('Cactoro — up long enough to hit');
 
 section('Keys — a won room’s keys are yours');
 {
-  const level = buildDungeon(planFloor(4242, 4));
+  const level = buildDungeon(planFloor(4242, FLOOR.desert));
   const i = level.rooms.findIndex((r) => r.kind === 'fight' && !r.challenge && r.chest >= 0 && !r.challenge);
   const room = level.rooms[i];
   const run = createDungeonRun(level);

@@ -107,7 +107,7 @@ section('Floors — one more room every 2 floors; the run ends after floor 7');
   }
   check(`${floors} floors: the start, that many fight rooms, the boss; off the way the shop and one challenge room`, !bad, bad);
   // (Update 0.2.12 — the alpha's: floors 1–5, the designer: "don't include 6 yet".)
-  check(`floor ${LAST_FLOOR} is the last: its way down ends the run (floor 5’s doesn’t)`, LAST_FLOOR === 6 && endsRun(6) && !endsRun(5));
+  check(`floor ${LAST_FLOOR} is the last: its way down ends the run (floor 6’s doesn’t)`, LAST_FLOOR === 7 && endsRun(7) && !endsRun(6));
   const screen = (won: boolean) => renderToStaticMarkup(createElement(DeathScreen, { info: { by: won ? null : 'skeleton', floor: won ? 7 : 3, time: 1234, kills: 321, won }, onRetry: () => {}, onMenu: () => {} }));
   const win = screen(true);
   const lose = screen(false);

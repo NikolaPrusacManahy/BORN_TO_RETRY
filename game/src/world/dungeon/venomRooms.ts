@@ -4,10 +4,12 @@
 // slow you, dash out); snakes hunt in tall grass (G); Blue Demons charge between stout pillars. Earth beds (,) with
 // flowers and trees (R) everywhere, never on paving. Sludge (L) is the floor's lava (it poisons too). Drawn as quarters
 // like the others (fightRooms.ts). Floor 2's only.
+// (Update 0.3.25 — its floor is floorOrder.ts's: the floors were reordered.)
 import type { RoomTemplate } from './rooms';
 import { quarter } from './fightRooms';
+import { FLOOR } from './floorOrder';
 
-const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 2, until: 2 });
+const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: FLOOR.garden, until: FLOOR.garden });
 
 export const VENOM_ROOMS: readonly RoomTemplate[] = [
   // Four pools of sludge in the middle between two stone causeways, earth banks round them for the frogs.

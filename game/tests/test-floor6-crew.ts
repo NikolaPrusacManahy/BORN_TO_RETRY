@@ -18,17 +18,18 @@ import { LOOKS } from '../src/engine/enemyLooks';
 import { bloodOf } from '../src/engine/bloodLooks';
 import { EXEC_LOOKS } from '../src/engine/exec/looks';
 import type { EnemyKind } from '../src/sim/enemies/kinds';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const v = FOES_COVE.v;
 const CREW: EnemyKind[] = ['corsair', 'shanty', 'bomber', 'crewman', 'headless', 'gull', 'bat', 'tentacle', 'mako', 'captain'];
 
 section('Floor 6 — the crew');
 {
-  const roster = rosterOf(6);
+  const roster = rosterOf(FLOOR.cove);
   check('its roster is the crew: the Corsair, the Shanty Man, the Bomber, the Cursed Crewman, the Gull, the Bats, the Tentacle, Mako, Barbarossa', roster.length === 9 && roster.every((k) => CREW.includes(k)), roster.join(', '));
-  const before = [1, 2, 3, 4, 5, 7].flatMap((f) => [...rosterOf(f)]);
+  const before = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter((f) => f !== FLOOR.cove).flatMap((f) => [...rosterOf(f)]);
   check('none of them on any other floor', CREW.every((k) => !before.includes(k)));
-  check('Mako and Barbarossa are its mini bosses; its boss the Big Shark (0.3.16)', MINI_BOSSES.includes('mako') && MINI_BOSSES.includes('captain') && bossOf(6) === 'bigShark');
+  check('Mako and Barbarossa are its mini bosses; its boss the Big Shark (0.3.16)', MINI_BOSSES.includes('mako') && MINI_BOSSES.includes('captain') && bossOf(FLOOR.cove) === 'bigShark');
   check('the crew are enemy kinds', CREW.every((k) => ENEMY_KINDS.includes(k)));
   // (The designer: "do not make enemies tankier NEVER".)
   const earlier = [1, 2, 3, 4, 5].flatMap((f) => [...rosterOf(f)]).filter((k) => !MINI_BOSSES.includes(k) && !ENEMY_STATS[k]().boss);
@@ -52,7 +53,7 @@ section('Floor 6 — the crew');
   let perches = 0;
   let most = 0;
   for (let seed = 1; seed <= 40; seed++) {
-    for (const r of planFloor(seed, 6).rooms) {
+    for (const r of planFloor(seed, FLOOR.cove).rooms) {
       perches += r.layout.perches.length;
       most = Math.max(most, r.waves.flat().filter((k) => k === 'shanty').length);
       const sea = r.layout.cells.includes('lava');
@@ -65,7 +66,7 @@ section('Floor 6 — the crew');
     }
   }
   check(`its waves: the Gulls in pairs, the Bats in swarms of ${v.batSwarm}, a Tentacle only in a room with sea, at most ${SHANTY_MAX} Shanty Men a room`, odd === '' && tentacles > 0 && most <= SHANTY_MAX, odd || `${tentacles} Tentacles, at most ${most} Shanty Men`);
-  check('its rooms have no perches (were there one: a Bomber’s)', perches === 0 && percherOf(6) === 'bomber' && percherOf(7) === 'axeThrower');
+  check('its rooms have no perches (were there one: a Bomber’s)', perches === 0 && percherOf(FLOOR.cove) === 'bomber' && percherOf(FLOOR.frozen) === 'axeThrower');
   const crowd = crewWaves([['shanty', 'shanty', 'corsair'], ['shanty', 'shanty', 'shanty']], true).flat();
   check(`no more than ${SHANTY_MAX} Shanty Men in a room (the designer), the rest Corsairs`, crowd.filter((k) => k === 'shanty').length === SHANTY_MAX && crowd.length === 6);
   const w = crewWaves([['corsair', 'crewman', 'gull', 'tentacle', 'bat']], false)[0];

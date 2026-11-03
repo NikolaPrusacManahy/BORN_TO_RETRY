@@ -4,10 +4,12 @@
 // of snow, n a bed of snow (stumps, rocks, bushes now and then); crystal clusters (x), snowy rocks for low cover (b).
 // Trees grow out of snow, never out of paving. Icicles hang along every fight room's walls (frozen.ts). Floor cells
 // always join every door. Drawn as quarters like the others (fightRooms.ts). Floor 7 only.
+// (Update 0.3.25 — its floor is floorOrder.ts's: the floors were reordered.)
 import type { RoomTemplate } from './rooms';
 import { quarter } from './fightRooms';
+import { FLOOR } from './floorOrder';
 
-const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 7, until: 7 });
+const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: FLOOR.frozen, until: FLOOR.frozen });
 
 export const FROZEN_ROOMS: readonly RoomTemplate[] = [
   // A frozen pond in the middle (a rink 28 m across), pines in snow round it.

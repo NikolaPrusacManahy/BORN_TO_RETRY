@@ -25,13 +25,14 @@ import { cellAt, colAt, planFloor, rowAt } from '../src/world/dungeon/floorPlan'
 import { bossRoomOf, FIGHT_ROOMS, onFloor } from '../src/world/dungeon/rooms';
 import { styleOf, VENOM } from '../src/world/dungeon/styles';
 import { VENOM_ROOMS } from '../src/world/dungeon/venomRooms';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const HIVE_ROOMS = ['hive hall', 'overgrown cloister', 'sludge gauntlet'];
 
 /** A floor 2 with a room that has hives (the first seed from `from`). */
 function hiveFloor(from = 1): DungeonLevel {
   for (let seed = from; seed < from + 200; seed++) {
-    const plan = planFloor(seed, 2);
+    const plan = planFloor(seed, FLOOR.garden);
     if (plan.rooms.some((r) => HIVE_ROOMS.includes(r.layout.template.id))) return buildDungeon(plan);
   }
   throw new Error('no floor 2 with hives');
@@ -39,12 +40,12 @@ function hiveFloor(from = 1): DungeonLevel {
 
 section('Venom Garden — the floor');
 {
-  check('floor 2 is the Venom Garden: mossy brick, earth beds, sludge in its pits, bushes for low cover', styleOf(2) === VENOM && VENOM.pit !== undefined && VENOM.low === 'kit_n_Bush_1' && styleOf(1).id === 'brick' && styleOf(4).id === 'sand');
+  check('floor 2 is the Venom Garden: mossy brick, earth beds, sludge in its pits, bushes for low cover', styleOf(FLOOR.garden) === VENOM && VENOM.pit !== undefined && VENOM.low === 'kit_n_Bush_1' && styleOf(FLOOR.dungeon).id === 'brick' && styleOf(FLOOR.desert).id === 'sand');
   const on = (f: number) => FIGHT_ROOMS.filter((t) => onFloor(t, f)).map((t) => t.id);
   const venom = VENOM_ROOMS.map((t) => t.id);
   check('nine rooms of its own, and only those (floor 1 and 3 have none of them)', venom.length === 9 && on(2).every((id) => venom.includes(id)) && on(2).length === 9 && !on(1).some((id) => venom.includes(id)) && !on(3).some((id) => venom.includes(id)));
   check('no lava rooms on floors 1–2', !on(1).includes('lava lake') && !on(2).includes('lava lake') && !on(2).includes('bone bridges'));
-  check('its boss room is the Scorched Grove; the others keep theirs', bossRoomOf(2).id === 'scorched grove' && bossRoomOf(1).id === 'boss' && bossRoomOf(4).id === 'boss');
+  check('its boss room is the Scorched Grove; the others keep theirs', bossRoomOf(FLOOR.garden).id === 'scorched grove' && bossRoomOf(FLOOR.dungeon).id === 'boss' && bossRoomOf(FLOOR.desert).id === 'boss');
   const living = new Set([...VENOM_PIECES.plants, ...VENOM_PIECES.tall, ...VENOM_PIECES.trees]);
   const charred = new Set([...VENOM_PIECES.burnt, ...VENOM_PIECES.ash]);
   let bad = '';
@@ -52,7 +53,7 @@ section('Venom Garden — the floor');
   let grass = 0;
   let scorchOut = 0;
   for (let seed = 1; seed <= 24 && !bad; seed++) {
-    const plan = planFloor(seed, 2);
+    const plan = planFloor(seed, FLOOR.garden);
     const look = dress(plan);
     const bossRoom = plan.rooms.find((r) => r.kind === 'boss')!;
     const inBoss = (x: number, z: number) => {
@@ -91,7 +92,7 @@ section('Venom Garden — webs and sludge');
 {
   let level: DungeonLevel | null = null;
   for (let seed = 1; seed < 200 && !level; seed++) {
-    const plan = planFloor(seed, 2);
+    const plan = planFloor(seed, FLOOR.garden);
     if (plan.rooms.some((r) => r.layout.template.id === 'web cellar')) level = buildDungeon(plan);
   }
   const webs = level!.webs;
@@ -103,7 +104,7 @@ section('Venom Garden — webs and sludge');
   p.pos.set(level!.arena.playerStart.x, 0, level!.arena.playerStart.z);
   check('nor off it', webSlow(p, webs) === 1);
   // Falling into the sludge: burnt as by lava, sent back, and poisoned.
-  const pitted = buildDungeon(planFloor(2, 2));
+  const pitted = buildDungeon(planFloor(2, FLOOR.garden));
   const pits = lavaOf(pitted.arena);
   const run = createDungeonRun(pitted);
   const combat = createCombat(pitted.arena, false);
@@ -111,7 +112,7 @@ section('Venom Garden — webs and sludge');
   const start = pitted.arena.playerStart;
   const back = lavaStep(q, pits, start, run, combat);
   check('sludge burns you, sends you back and poisons you', back && q.poison === GARDEN.v.sludgePoison && q.poisonBy === 'lava' && q.hp < 100);
-  const lava3 = buildDungeon(planFloor(2, 3));
+  const lava3 = buildDungeon(planFloor(2, FLOOR.keep));
   const pits3 = lavaOf(lava3.arena);
   const r = createPlayer(pits3[0]?.x ?? 0, pits3[0]?.y ?? 0, pits3[0]?.z ?? 0, 0);
   lavaStep(r, pits3, lava3.arena.playerStart, createDungeonRun(lava3), createCombat(lava3.arena, false));

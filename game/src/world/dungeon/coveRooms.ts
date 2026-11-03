@@ -6,10 +6,12 @@
 // the sand (high cover), M a house, r a rock outcrop, X giant bones (2×2 a skull, bigger an arch of ribs to walk
 // under). Sand everywhere else. (The cannons are gone: the designer, "they are far far unmanagable on fast gameplay".) Floor cells always join every door. Drawn
 // as quarters like the others (fightRooms.ts). Floor 6 only.
+// (Update 0.3.25 — its floor is floorOrder.ts's: the floors were reordered.)
 import type { RoomTemplate } from './rooms';
 import { quarter } from './fightRooms';
+import { FLOOR } from './floorOrder';
 
-const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 6, until: 6 });
+const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: FLOOR.cove, until: FLOOR.cove });
 
 export const COVE_ROOMS: readonly RoomTemplate[] = [
   // A harbour: the sea in a basin, boardwalks crossing it in a grid (a knock off them is a long way down).

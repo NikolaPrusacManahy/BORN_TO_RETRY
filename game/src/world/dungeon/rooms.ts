@@ -47,6 +47,7 @@ import { FROZEN_ROOMS } from './frozenRooms';
 import { FORGE_ROOMS } from './forgeRooms';
 import { COVE_ROOMS, SHARK_ROOM } from './coveRooms';
 import { MOON_ROOMS } from './moonRooms';
+import { realmOf } from './floorOrder';
 
 /** Every fight room (Update 0.0.20: the lava rooms too, from their floor on; Update 0.0.21: floor 3's). */
 export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...VENOM_ROOMS, ...BONE_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS, ...COVE_ROOMS, ...FROZEN_ROOMS, ...FORGE_ROOMS, ...MOON_ROOMS];
@@ -163,8 +164,12 @@ export const BOSS_ROOM: RoomTemplate = {
 };
 
 /** Update 0.2.23 — floor `floor`'s boss room: floor 2's is scorched (venomRooms.ts), floor 3's the Throne Hall
- *  (boneRooms.ts, Update 0.2.24), floor 6's the Shark's Graveyard (coveRooms.ts, Update 0.3.16), the rest the one above. */
-export const bossRoomOf = (floor: number): RoomTemplate => (floor === 2 ? SCORCHED_ROOM : floor === 3 ? THRONE_ROOM : floor === 6 ? SHARK_ROOM : BOSS_ROOM);
+ *  (boneRooms.ts, Update 0.2.24), floor 6's the Shark's Graveyard (coveRooms.ts, Update 0.3.16), the rest the one above.
+ *  (Update 0.3.25 — by its place, floorOrder.ts: the Venom Garden's, the Bone Keep's, Skull Cove's.) */
+export const bossRoomOf = (floor: number): RoomTemplate => {
+  const r = realmOf(floor);
+  return r === 'garden' ? SCORCHED_ROOM : r === 'keep' ? THRONE_ROOM : r === 'cove' ? SHARK_ROOM : BOSS_ROOM;
+};
 
 /** Update 0.0.13 — the shop (the designer: a room with five floor tiles, each showing something to buy). */
 export const SHOP_ROOM: RoomTemplate = {

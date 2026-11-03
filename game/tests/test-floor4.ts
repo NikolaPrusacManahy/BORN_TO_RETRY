@@ -32,6 +32,7 @@ import { dress } from '../src/world/dungeon/dressing';
 import { DESERT_ROOMS } from '../src/world/dungeon/desertRooms';
 import { planFloor } from '../src/world/dungeon/floorPlan';
 import { styleOf } from '../src/world/dungeon/styles';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const v = FOES4.v;
 const ROOM: Arena = {
@@ -76,15 +77,15 @@ const face = (p: PlayerState, x: number, z: number) => (p.yaw = Math.atan2(-(x -
 
 section('Floor 4 — the desert: its look, its rooms, its sand');
 {
-  const s = styleOf(4);
+  const s = styleOf(FLOOR.desert);
   // (Update 0.2.10 — floor 5 on is the Drowned Temple: test-floor5.ts.)
-  check('floor 4 is the desert: the stone pieces in sandstone, a warm sky and sun, sand', s.id === 'sand' && !!s.tint && !!s.floorTint && s.sky !== undefined && styleOf(5).id !== 'sand' && styleOf(3).id === 'bone');
+  check('floor 4 is the desert: the stone pieces in sandstone, a warm sky and sun, sand', s.id === 'sand' && !!s.tint && !!s.floorTint && s.sky !== undefined && styleOf(FLOOR.temple).id !== 'sand' && styleOf(FLOOR.keep).id === 'bone');
   const ids = DESERT_ROOMS.map((r) => r.id);
-  check(`${ids.length} rooms of its own (at least 10), each different: ${ids.join(', ')}`, ids.length >= 10 && new Set(ids).size === ids.length && DESERT_ROOMS.every((r) => r.from === 4));
+  check(`${ids.length} rooms of its own (at least 10), each different: ${ids.join(', ')}`, ids.length >= 10 && new Set(ids).size === ids.length && DESERT_ROOMS.every((r) => r.from === FLOOR.desert));
   let bad = '';
   let floors = 0;
   for (let seed = 1; seed <= 40; seed++) {
-    const plan = planFloor(seed * 17, 4);
+    const plan = planFloor(seed * 17, FLOOR.desert);
     floors++;
     const fights = plan.rooms.filter((r) => r.kind === 'fight').map((r) => r.layout.template.id);
     if (!fights.every((id) => ids.includes(id))) bad ||= `seed ${seed * 17}: ${fights.filter((id) => !ids.includes(id))}`;
@@ -95,7 +96,7 @@ section('Floor 4 — the desert: its look, its rooms, its sand');
   let props = 0;
   let wrong = '';
   for (const seed of [5, 77, 903]) {
-    const d = dress(planFloor(seed, 4));
+    const d = dress(planFloor(seed, FLOOR.desert));
     const sand = new Set(d.sand.map((c) => `${c.x},${c.z}`));
     const tiles = new Set(d.pieces.filter((p) => p.piece === d.style.floor && p.y < 0).map((p) => `${p.x},${p.z}`));
     for (const p of d.pieces) {
@@ -107,8 +108,8 @@ section('Floor 4 — the desert: its look, its rooms, its sand');
   }
   check(`every palm and cactus stands in a bed of sand, none on paving (${props})`, props > 20 && !wrong, wrong);
   // Quicksand: slow.
-  let level = buildDungeon(planFloor(1, 4));
-  for (let seed = 2; level.sand.length === 0 && seed < 60; seed++) level = buildDungeon(planFloor(seed, 4));
+  let level = buildDungeon(planFloor(1, FLOOR.desert));
+  for (let seed = 2; level.sand.length === 0 && seed < 60; seed++) level = buildDungeon(planFloor(seed, FLOOR.desert));
   const q = level.sand[0];
   const p = createPlayer(q.x, 0, q.z, 0);
   // (Out of it: the start room, which has none.)
@@ -118,7 +119,7 @@ section('Floor 4 — the desert: its look, its rooms, its sand');
 
 section('Floor 4 — its enemies and its boss (the designer’s list)');
 {
-  const four = rosterOf(4);
+  const four = rosterOf(FLOOR.desert);
   // (Update 0.2.4, the designer's third list: none of the floors before it but the Wasp.)
   const want: EnemyKind[] = ['tribal', 'cactoro', 'dinoBlob', 'lizard', 'greenBlob', 'hywirl', 'wasp', 'maskTribal', 'cactoroBig', 'skullOrc'];
   check('small: Tribal, Cactoro, Dino, Lizard, Green Blob; flying: Hywirl, Wasp, Flying Tribal; mini bosses: big Cactoro, Skull Orc', want.every((k) => four.includes(k)) && four.length === want.length);
@@ -126,10 +127,10 @@ section('Floor 4 — its enemies and its boss (the designer’s list)');
   check('none of the floors before it but the Wasp', four.filter((k) => before.has(k)).join() === 'wasp');
   check('the big Cactoro and the Skull Orc are mini bosses (their rooms have chests, they carry the keys)', MINI_BOSSES.includes('cactoroBig') && MINI_BOSSES.includes('skullOrc'));
   // (Update 0.2.10 — floor 5's is the Drowned King: test-floor5.ts.)
-  check('its boss is the Dino; 15 coins in its chest', bossOf(4) === 'dino' && bossOf(5) !== 'dino' && bossCoins('dino') === 15);
-  check('its perches hold Tribals (they throw from above)', percherOf(4) === 'tribal' && percherOf(2) === 'spitter');
+  check('its boss is the Dino; 15 coins in its chest', bossOf(FLOOR.desert) === 'dino' && bossOf(FLOOR.temple) !== 'dino' && bossCoins('dino') === 15);
+  check('its perches hold Tribals (they throw from above)', percherOf(FLOOR.desert) === 'tribal' && percherOf(FLOOR.garden) === 'spitter');
   let ok = true;
-  for (let s = 1; s <= 40; s++) ok &&= planWaves(4, 4, createRng(s)).flat().every((k) => four.includes(k));
+  for (let s = 1; s <= 40; s++) ok &&= planWaves(4, FLOOR.desert, createRng(s)).flat().every((k) => four.includes(k));
   check('every room’s waves come from its roster', ok);
 }
 

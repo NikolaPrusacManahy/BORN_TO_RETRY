@@ -5,13 +5,13 @@
 // own are designed; floors 8 to 10's are still to come). Floors that bring none of their own yet (7, 9, 10: their
 // rooms send stand-ins) show bare plinths: coming soon. Pure.
 // Update 0.3.22 — floor 7 has its own, its frozen warband (its boss still floor 4's): only floors 9 and 10 bare now.
+// Update 0.3.25 — the floors reordered (world/dungeon/floorOrder.ts): a floor's boss if it's its own (kinds.ts
+// ownBossOf); the Shrine Dimension (8) and Hell on Earth (10) bare.
 import { rosterOf } from '../dungeon/wavePlan';
-import { bossOf, EnemyKind } from '../enemies/kinds';
+import { EnemyKind, ownBossOf } from '../enemies/kinds';
 
 /** The floors shown (the run's ten). */
 export const FLOOR_COUNT = 10;
-/** Floors up to this one have bosses of their own. */
-const OWN_BOSSES = 6;
 /** A body that becomes another when it breaks: shown beside it. */
 const SECOND: Partial<Record<EnemyKind, EnemyKind>> = { crewman: 'headless', beeMech: 'beeNaut' };
 
@@ -37,7 +37,7 @@ export function collection(): FloorShelf[] {
         enemies.push(second);
       }
     }
-    out.push({ floor, enemies, boss: floor <= OWN_BOSSES ? bossOf(floor) : null });
+    out.push({ floor, enemies, boss: ownBossOf(floor) });
   }
   return out;
 }

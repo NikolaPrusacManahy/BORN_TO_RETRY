@@ -6,10 +6,12 @@
 // Drawn as quarters like the others (fightRooms.ts).
 // Update 0.2.24 — the Bone Keep (boneRooms.ts): the ramparts and the towers stay (the Dragonlings' perches), dressed
 // as the rest of the floor; the keep and the bridgeworks are retired.
+// (Update 0.3.25 — its floor is floorOrder.ts's: the floors were reordered.)
 import type { RoomTemplate } from './rooms';
 import { quarter } from './fightRooms';
+import { FLOOR } from './floorOrder';
 
-const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 3, until: 3 });
+const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: FLOOR.keep, until: FLOOR.keep });
 
 export const KEEP_ROOMS: readonly RoomTemplate[] = [
   // Ramparts along the walls (4 m wide, 2.5 m up) with spitters on them; an open middle with columns; steps and pads up

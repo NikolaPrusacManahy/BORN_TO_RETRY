@@ -6,10 +6,12 @@
 // middle of the landing site is the lander), d a geodesic dome, u a parked rover, s solar panels, q a boulder. Meteor
 // rooms (`meteors`) have meteors falling while they fight (sim/dungeon/meteors.ts). Floor cells always join every
 // door. Drawn as quarters like the others (fightRooms.ts). Floor 8 only.
+// (Update 0.3.25 — its floor is floorOrder.ts's: the floors were reordered.)
 import type { RoomTemplate } from './rooms';
 import { quarter } from './fightRooms';
+import { FLOOR } from './floorOrder';
 
-const room = (id: string, rows: string[], meteors = false): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 8, until: 8, meteors });
+const room = (id: string, rows: string[], meteors = false): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: FLOOR.moon, until: FLOOR.moon, meteors });
 
 export const MOON_ROOMS: readonly RoomTemplate[] = [
   // The lander in the middle, landing pads round it, a rover parked, crates of rock for cover.

@@ -3,10 +3,12 @@
 // a clock, so each room has its dry high ground (ledges p, terraces and towers P, perches U for the Big Glubs). No pits
 // (the designer: "remove those water pits"). Willows (W) stand in beds of mud. Floor cells always join every door.
 // Drawn as quarters like the others (fightRooms.ts). Floor 5's only (Update 0.2.11: floor 6 has its own, sunkenRooms.ts).
+// (Update 0.3.25 — its floor is floorOrder.ts's: the floors were reordered.)
 import type { RoomTemplate } from './rooms';
 import { quarter } from './fightRooms';
+import { FLOOR } from './floorOrder';
 
-const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: 5, until: 5 });
+const room = (id: string, rows: string[]): RoomTemplate => ({ id, kind: 'fight', rows: quarter(rows), from: FLOOR.temple, until: FLOOR.temple });
 
 export const DROWNED_ROOMS: readonly RoomTemplate[] = [
   // A temple's nave: three rows of columns down a floor that floods, dry aisles raised along both walls.

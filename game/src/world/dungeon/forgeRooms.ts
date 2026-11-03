@@ -6,7 +6,9 @@
 // Drawn as quarters like the others, mirrored right and down (`mirrored`: a belt's arrow turns with the mirror), or
 // turned round the middle (`pinwheel`: each quarter the last turned a quarter, so belts can run in a ring). Floor 8
 // only. Update 0.3.17 — retired from floor 8 (the Moon took it): on floor 10, unbuilt, kept for its echo rooms.
+// (Update 0.3.25 — its floor is floorOrder.ts's: the floors were reordered.)
 import type { RoomTemplate } from './rooms';
+import { FLOOR } from './floorOrder';
 
 /** A belt's arrow mirrored left–right, and up–down. */
 const FLIP_X: Record<string, string> = { '>': '<', '<': '>' };
@@ -40,7 +42,7 @@ export function pinwheel(rows: string[]): string[] {
   return out.map((r) => r.join(''));
 }
 
-const room = (id: string, rows: string[], turned = false): RoomTemplate => ({ id, kind: 'fight', rows: turned ? pinwheel(rows) : mirrored(rows), from: 10, until: 10 });
+const room = (id: string, rows: string[], turned = false): RoomTemplate => ({ id, kind: 'fight', rows: turned ? pinwheel(rows) : mirrored(rows), from: FLOOR.hell, until: FLOOR.hell });
 
 export const FORGE_ROOMS: readonly RoomTemplate[] = [
   // Presses in rows, slamming one after another; a pool of molten metal in the middle.

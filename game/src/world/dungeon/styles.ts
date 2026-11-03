@@ -30,6 +30,7 @@
 // with ingots and glowing ore, barrels and buckets about. The look's types moved to styleTypes.ts.
 
 import type { DungeonStyle } from './styleTypes';
+import { Realm, realmOf } from './floorOrder';
 
 export type { DungeonStyle, PitLook, StyleId } from './styleTypes';
 
@@ -281,5 +282,7 @@ export const MOON_LOOK: DungeonStyle = {
 
 /** Floor `floor`'s look: floor 1 brick, floor 2 the Venom Garden (Update 0.2.23), floor 3 the Bone Keep (Update 0.2.24), floor 4 the desert, floor 5 the Drowned Temple, floor 6
  *  the Sunken Grove (Update 0.3.14 — now Skull Cove), floor 7 Frozen Depths (Update 0.3.11), floor 8 The Forge (Update
- *  0.3.13; Update 0.3.17 — the Moon; the Forge's on past it, unbuilt floors). */
-export const styleOf = (floor: number): DungeonStyle => (floor >= 9 ? FORGE_LOOK : floor === 8 ? MOON_LOOK : floor === 7 ? FROZEN_LOOK : floor === 6 ? COVE_LOOK : floor === 5 ? DROWNED : floor === 4 ? SAND : floor === 3 ? BONE : floor === 2 ? VENOM : BRICK);
+ *  0.3.13; Update 0.3.17 — the Moon; the Forge's on past it, unbuilt floors). Update 0.3.25 — by its place
+ *  (floorOrder.ts: the floors reordered); the Shrine Dimension, unbuilt, brick meanwhile; Hell on Earth the Forge's. */
+const LOOKS: Readonly<Record<Realm, DungeonStyle>> = { dungeon: BRICK, garden: VENOM, keep: BONE, frozen: FROZEN_LOOK, temple: DROWNED, desert: SAND, cove: COVE_LOOK, shrine: BRICK, moon: MOON_LOOK, hell: FORGE_LOOK };
+export const styleOf = (floor: number): DungeonStyle => LOOKS[realmOf(floor)];

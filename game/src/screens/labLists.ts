@@ -11,7 +11,8 @@ import { rosterOf } from '../sim/dungeon/wavePlan';
 import { BUILD_CARDS } from '../sim/cards/builds';
 import { CARD, CARD_KINDS, CardKind, familyOf } from '../sim/cards/cards';
 import { RARITIES } from '../sim/dungeon/loot';
-import { bossOf, EnemyKind, MINI_BOSSES } from '../sim/enemies/kinds';
+import { EnemyKind, MINI_BOSSES, ownBossOf } from '../sim/enemies/kinds';
+import { FLOOR, REALMS, UNBUILT } from '../world/dungeon/floorOrder';
 import type { DropKind } from '../sim/items/drops';
 import type { LabCommand } from '../sim/lab/labCommands';
 import type { WeaponKind } from '../sim/weapons/catalog';
@@ -102,8 +103,10 @@ export interface LabFloor {
   boss: LabBoss | null;
 }
 
-/** The floors the panel offers (Update 0.3.11 — 7 too; Update 0.3.13 — 8). */
-export const LAB_FLOOR_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8];
+/** The floors the panel offers (Update 0.3.11 — 7 too; Update 0.3.13 — 8). Update 0.3.25 — the floors reordered
+ *  (world/dungeon/floorOrder.ts): every built one (not the Shrine Dimension yet; nor Hell on Earth, the Forge's rooms and
+ *  stand-ins, as before). */
+export const LAB_FLOOR_NUMBERS = REALMS.filter((r) => !UNBUILT.has(r) && r !== 'hell').map((r) => FLOOR[r]);
 
 export const LAB_FLOORS: readonly LabFloor[] = (() => {
   const seen = new Set<EnemyKind>();
@@ -111,8 +114,10 @@ export const LAB_FLOORS: readonly LabFloor[] = (() => {
   return LAB_FLOOR_NUMBERS.map((floor) => {
     const fresh = rosterOf(floor).filter((k) => !seen.has(k));
     for (const k of fresh) seen.add(k);
-    const boss = bosses.has(bossOf(floor)) ? null : (bossOf(floor) as LabBoss);
-    bosses.add(bossOf(floor));
+    // (Update 0.3.25 — under the floor it's its own boss on: the Velociraptor the Desert's, not Frozen Depths'.)
+    const own = ownBossOf(floor);
+    const boss = own && !bosses.has(own) ? (own as LabBoss) : null;
+    if (own) bosses.add(own);
     return { floor, enemies: [...fresh.filter((k) => !isMini(k)), ...fresh.filter(isMini)], boss };
   });
 })();

@@ -10,13 +10,14 @@ import { rosterOf } from '../src/sim/dungeon/wavePlan';
 import { ENEMY_KINDS, bossOf } from '../src/sim/enemies/kinds';
 import { buildDungeon } from '../src/world/dungeon/assemble';
 import { planFloor } from '../src/world/dungeon/floorPlan';
+import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 section('Floor kinds — each floor loads what it can bring in');
 {
   let missing = '';
   let most = 0;
-  // (Floors 9 and 10 have no rooms yet.)
-  for (let floor = 1; floor <= 8; floor++) {
+  // (The Shrine Dimension has no rooms yet; Hell on Earth the Forge's.)
+  for (const floor of [1, 2, 3, 4, 5, 6, 7, 9, 10]) {
     for (let seed = 1; seed <= 4; seed++) {
       const run = createDungeonRun(buildDungeon(planFloor(seed, floor)));
       const kinds = new Set(floorKinds(run));
@@ -32,15 +33,15 @@ section('Floor kinds — each floor loads what it can bring in');
   }
   check('every kind its rooms send, its boss and whom it calls, its hives’ Wasps, and what they become or let out', missing === '', missing);
   check(`a floor loads ${most} kinds at most (of ${ENEMY_KINDS.length})`, most <= 16, `${most}`);
-  const six = new Set(floorKinds(createDungeonRun(buildDungeon(planFloor(2, 6)))));
-  const eight = new Set(floorKinds(createDungeonRun(buildDungeon(planFloor(2, 8)))));
+  const six = new Set(floorKinds(createDungeonRun(buildDungeon(planFloor(2, FLOOR.cove)))));
+  const eight = new Set(floorKinds(createDungeonRun(buildDungeon(planFloor(2, FLOOR.moon)))));
   check('the Cursed Crewman brings his headless self, the Bee mech Barbara', (!six.has('crewman') || six.has('headless')) && (!eight.has('beeMech') || eight.has('beeNaut')));
-  check('floor 7 loads its warband, no one else’s', [...new Set(floorKinds(createDungeonRun(buildDungeon(planFloor(3, 7)))))].every((k) => rosterOf(7).includes(k) || k === bossOf(7)));
+  check('floor 7 loads its warband, no one else’s', [...new Set(floorKinds(createDungeonRun(buildDungeon(planFloor(3, FLOOR.frozen)))))].every((k) => rosterOf(FLOOR.frozen).includes(k) || k === bossOf(FLOOR.frozen)));
 }
 
 section('Floor kinds — the Lab and the lobby');
 {
-  check('the Lab loads every enemy (any can be called up there)', levelKinds(true, createDungeonRun(buildDungeon(planFloor(1, 3))), false).length === ENEMY_KINDS.length && levelKinds(true, null, false).length === ENEMY_KINDS.length);
+  check('the Lab loads every enemy (any can be called up there)', levelKinds(true, createDungeonRun(buildDungeon(planFloor(1, FLOOR.keep))), false).length === ENEMY_KINDS.length && levelKinds(true, null, false).length === ENEMY_KINDS.length);
   check('the lobby none', levelKinds(false, null, true).length === 0);
   // (What an enemy lets out at runtime: every kind spawned by another's moves is in BRINGS.)
   const dir = new URL('../src/sim/enemies/', import.meta.url);

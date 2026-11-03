@@ -1,5 +1,7 @@
 # Floor 8 reworked — the Moon (draft, 2026-11-02)
 
+> Update 0.3.25 — the Moon is floor 9 now (`MD_UPDATES/U0325_FLOOR_ORDER.md`).
+
 The designer: "BIG REWORK of FLOOR 8": a sci-fi moon floor, a space sky with the planet Earth seen from afar; the mechs
 (Bee, Flamingo, Frog and Fox) are mini bosses, each with its own twist; the little spaceships are floating monsters,
 tiny, about a wasp's size; moon gravity; moon-themed levels; the boss is the massive alien monster from the Bestiary
