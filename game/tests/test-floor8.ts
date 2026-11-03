@@ -161,7 +161,7 @@ section('Floor 8 — moon gravity');
     e.pos.y = 3;
     let t = 0;
     while (e.pos.y > 0 && t < 5) {
-      beginTick(e, c.nav.small, DT, false, g);
+      beginTick(e, c.nav.small, DT, g);
       t += DT;
     }
     return t;

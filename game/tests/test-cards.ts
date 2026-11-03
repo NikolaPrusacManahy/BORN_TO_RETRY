@@ -61,10 +61,15 @@ function openBossChest(floor: number, last = false, carry: CardKind[] = []) {
   return { c, p, chest };
 }
 
-/** A chest of the Lab's kind opened with `key` (`gold`: a gold chest), its fight seeded `seed`. */
-function openChest(seed: number, key: 'key' | 'whiteKey' | 'goldKey' | null, gold = false) {
+/** A chest of the Lab's kind opened with `key` (`gold`: a gold chest; `deal`: a challenge room's, you carrying
+ *  `carry`, each as II where it can be), its fight seeded `seed`. */
+function openChest(seed: number, key: 'key' | 'whiteKey' | 'goldKey' | null, gold = false, deal = false, carry: CardKind[] = []) {
   const c = createCombat(OPEN_ARENA);
   c.rng = createRng(seed);
+  for (const k of carry) {
+    c.items.cards.add(k);
+    c.items.twice.add(k);
+  }
   const p = createPlayer(0, 0, 1.2, 0);
   p.grounded = true;
   if (key) {
@@ -72,7 +77,7 @@ function openChest(seed: number, key: 'key' | 'whiteKey' | 'goldKey' | null, gol
     c.items.keyPick = key;
   }
   const t = emptyTreasure();
-  const chest: Chest = { spot: { room: -1, x: 0, z: 0, rot: 0, fx: 0, fz: 1, rises: false, boss: false, gate: -1, gold }, state: 'shut', t: 0, rolls: [c.rng(), c.rng(), c.rng()], key: null, loot: null, given: false, boss: null, cards: false };
+  const chest: Chest = { spot: { room: -1, x: 0, z: 0, rot: 0, fx: 0, fz: 1, rises: false, boss: false, gate: -1, gold }, state: 'shut', t: 0, rolls: [c.rng(), c.rng(), c.rng()], key: null, loot: null, given: false, boss: null, cards: deal, challenge: deal };
   t.chests.push(chest);
   stepTreasure(t, p, c, true, false, () => false, DT);
   for (let k = 0; k < ticks(ITEMS.v.chestTime + DT); k++) stepTreasure(t, p, c, false, false, () => false, DT);
@@ -92,21 +97,26 @@ section('Fate Cards — the cards');
   check('a Traitor Card says its price; no other does', CARD_KINDS.every((k) => (familyOf(k) === 'traitor') === (CARD[k].cost?.().length ?? 0) > 5));
 }
 
-section('Fate Cards — a boss’s chest deals');
+section('Fate Cards — a challenge room’s chest deals');
 {
-  const { c, chest } = openBossChest(1);
+  const { c, chest } = openChest(1, 'key', false, true);
   const cards = c.deal?.cards ?? [];
-  check(`opened: it deals ${CARDS.v.dealt}, all different`, cards.length === CARDS.v.dealt && new Set(cards).size === cards.length, cards.join(' '));
-  check('its coins and heart still come (no key)', chest.state === 'open' && c.drops.some((d) => d.alive && d.manual && d.kind === 'heart') && !c.drops.some((d) => d.alive && d.kind === 'key'));
+  check(`opened: it deals ${CARDS.v.dealt}, all different, and gives its loot`, cards.length === CARDS.v.dealt && new Set(cards).size === cards.length && (!!chest.loot?.item || (chest.loot?.coins ?? 0) > 0), cards.join(' '));
   const p = createPlayer(0, 0, 0, 0);
   const kind = cards[1];
   const taken = pickCard(c, p, 1);
   check('taking one: it’s yours for the run, the deal’s over', taken === kind && c.items.cards.has(kind) && p.cards === c.items.cards && c.deal === null);
-  check('the run’s last boss deals none (the run ends there)', openBossChest(5, true).c.deal === null);
   const most = [...all()].filter((k) => k !== 'pogo' && k !== 'hoarder' && familyOf(k) === 'fate');
-  const two = openBossChest(2, false, most).c.deal?.cards ?? [];
+  const two = openChest(2, 'key', false, true, most).c.deal?.cards ?? [];
   check('only cards you don’t carry (or as II)', two.length === 2 && two.includes('pogo') && two.includes('hoarder'));
-  check('carrying every one (as II where it can be), no deal', openBossChest(3, false, [...all()]).c.deal === null);
+  const none = openChest(3, 'key', false, true, [...all()]);
+  check('carrying every one (as II where it can be): no deal, its loot instead', none.c.deal === null && (!!none.chest.loot?.item || (none.chest.loot?.coins ?? 0) > 0));
+  // Update 0.3.27 — the designer: "no more Card drops in chests that are not a challenge room chest", then "Boss chest
+  // gives cards too".
+  const boss = openBossChest(1);
+  const bossDeal = boss.c.deal?.cards ?? [];
+  check(`a boss’s chest deals too (${CARDS.v.dealt}), with its coins and heart (no key)`, bossDeal.length === CARDS.v.dealt && boss.chest.state === 'open' && boss.c.drops.some((d) => d.alive && d.manual && d.kind === 'heart') && !boss.c.drops.some((d) => d.alive && d.kind === 'key'));
+  check('the run’s last boss deals none (the run ends there)', openBossChest(5, true).c.deal === null);
 }
 
 section('Fate Cards — a challenge room’s chest always deals (Update 0.2.25: with its loot)');
@@ -115,7 +125,7 @@ section('Fate Cards — a challenge room’s chest always deals (Update 0.2.25: 
   const run = createDungeonRun(level);
   const chests = run.treasure.chests;
   const i = level.rooms.findIndex((r) => r.challenge);
-  check('a challenge room’s chest and the boss’s always deal; a fight room’s doesn’t always', chests[level.rooms[i].chest].cards && chests.filter((ch) => ch.boss).every((ch) => ch.cards) && chests.some((ch) => !ch.cards));
+  check('a challenge room’s chest deals (and glows red), and the boss’s; no other does', chests[level.rooms[i].chest].cards && chests[level.rooms[i].chest].challenge && chests.every((ch) => ch.cards === (ch.challenge || !!ch.boss)) && chests.filter((ch) => ch.challenge).length === 1 && chests.some((ch) => ch.boss && ch.cards));
   // Update 0.2.17 — each card its own roll by the chests' odds: no key, no big fight changes them.
   const counts = RARITIES.map(() => 0);
   let high = 0;
@@ -134,48 +144,20 @@ section('Fate Cards — a challenge room’s chest always deals (Update 0.2.25: 
   check('an epic in a deal doesn’t make the rest epic', high > 30 && allHigh / high < 0.1, `${allHigh} of ${high}`);
 }
 
-section('Fate Cards — a keyed chest, by luck');
+section('Fate Cards — no other chest deals (Update 0.3.27)');
 {
   let dealt = 0;
-  let clean = true;
   let items = 0;
-  const N = 400;
+  const N = 200;
   for (let seed = 1; seed <= N; seed++) {
     const { c, chest } = openChest(seed, 'key');
     if (c.deal) dealt++;
-    // (Update 0.2.25 — the designer: "players get the normal loot in there and the card is like a bonus": every one
-    // gives its loot, dealt or not.)
     if (chest.loot?.item || (chest.loot?.coins ?? 0) > 0) items++;
-    else clean = false;
   }
-  check(`about ${Math.round(CARDS.v.dealChance * 100)}% deal Fate Cards as a bonus`, Math.abs(dealt / N - CARDS.v.dealChance) < 0.06, `${dealt} of ${N}`);
-  check('every one gives its loot, dealt or not', items === N && clean);
+  check('a chest opened with a key never deals now; every one gives its loot', dealt === 0 && items === N, `${dealt} dealt, ${items} of ${N} gave`);
   let goldNever = true;
   for (let seed = 1; seed <= 100; seed++) goldNever &&= openChest(seed, null, true).c.deal === null;
   check('a gold chest never deals', goldNever);
-  // Every card carried: the luck finds nothing to deal, and the chest gives its loot.
-  let fallback = true;
-  for (let seed = 1; seed <= 60; seed++) {
-    const c0 = openChest(seed, 'key');
-    if (!c0.c.deal) continue;
-    const { c, chest } = (() => {
-      const r = createCombat(OPEN_ARENA);
-      r.rng = createRng(seed);
-      r.items.cards = all();
-      r.items.twice = all();
-      r.items.keys = 1;
-      const p = createPlayer(0, 0, 1.2, 0);
-      p.grounded = true;
-      const t = emptyTreasure();
-      const ch: Chest = { spot: { room: -1, x: 0, z: 0, rot: 0, fx: 0, fz: 1, rises: false, boss: false, gate: -1, gold: false }, state: 'shut', t: 0, rolls: [r.rng(), r.rng(), r.rng()], key: null, loot: null, given: false, boss: null, cards: false };
-      t.chests.push(ch);
-      stepTreasure(t, p, r, true, false, () => false, DT);
-      for (let k = 0; k < ticks(ITEMS.v.chestTime + DT); k++) stepTreasure(t, p, r, false, false, () => false, DT);
-      return { c: r, chest: ch };
-    })();
-    fallback &&= c.deal === null && !!chest.loot && (chest.loot.item !== null || chest.loot.coins > 0);
-  }
-  check('nothing left to deal: its loot instead', fallback);
   // Update 0.2.25 — a challenge room's chest: its loot and a deal, every time.
   let both = true;
   for (let seed = 1; seed <= 40; seed++) {
@@ -185,7 +167,7 @@ section('Fate Cards — a keyed chest, by luck');
     const q = createPlayer(0, 0, 1.2, 0);
     q.grounded = true;
     const t = emptyTreasure();
-    const ch: Chest = { spot: { room: -1, x: 0, z: 0, rot: 0, fx: 0, fz: 1, rises: false, boss: false, gate: -1, gold: false }, state: 'shut', t: 0, rolls: [r.rng(), r.rng(), r.rng()], key: null, loot: null, given: false, boss: null, cards: true };
+    const ch: Chest = { spot: { room: -1, x: 0, z: 0, rot: 0, fx: 0, fz: 1, rises: false, boss: false, gate: -1, gold: false }, state: 'shut', t: 0, rolls: [r.rng(), r.rng(), r.rng()], key: null, loot: null, given: false, boss: null, cards: true, challenge: true };
     t.chests.push(ch);
     stepTreasure(t, q, r, true, false, () => false, DT);
     for (let k = 0; k < ticks(ITEMS.v.chestTime + DT); k++) stepTreasure(t, q, r, false, false, () => false, DT);
@@ -218,7 +200,7 @@ section('Fate Cards — off (the lobby’s stand)');
     const q = createPlayer(0, 0, 1.2, 0);
     q.grounded = true;
     const t = emptyTreasure();
-    const ch: Chest = { spot: { room: -1, x: 0, z: 0, rot: 0, fx: 0, fz: 1, rises: false, boss: false, gate: -1, gold: false }, state: 'shut', t: 0, rolls: [r.rng(), r.rng(), r.rng()], key: null, loot: null, given: false, boss: null, cards: true };
+    const ch: Chest = { spot: { room: -1, x: 0, z: 0, rot: 0, fx: 0, fz: 1, rises: false, boss: false, gate: -1, gold: false }, state: 'shut', t: 0, rolls: [r.rng(), r.rng(), r.rng()], key: null, loot: null, given: false, boss: null, cards: true, challenge: true };
     t.chests.push(ch);
     stepTreasure(t, q, r, true, false, () => false, DT);
     for (let k = 0; k < ticks(ITEMS.v.chestTime + DT); k++) stepTreasure(t, q, r, false, false, () => false, DT);

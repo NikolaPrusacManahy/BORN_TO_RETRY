@@ -16,7 +16,7 @@ import { createPlayer } from '../src/sim/player/state';
 import { BOSS } from '../src/tuning/boss';
 import { CINEMA } from '../src/tuning/cinema';
 import { buildDungeon } from '../src/world/dungeon/assemble';
-import { planFloor } from '../src/world/dungeon/floorPlan';
+import { pathFights, planFloor } from '../src/world/dungeon/floorPlan';
 
 const v = BOSS.v;
 
@@ -25,7 +25,7 @@ section('Boss room');
   const level = buildDungeon(planFloor(4242, 1));
   const b = level.boss;
   const room = level.rooms[b.room];
-  check('the way ends in the boss room', room.kind === 'boss' && room.depth === 6);
+  check('the way ends in the boss room', room.kind === 'boss' && room.depth === pathFights(1) + 1);
   const startArea = (b.start.max.x - b.start.min.x) * (b.start.max.z - b.start.min.z);
   const endArea = (b.end.max.x - b.end.min.x) * (b.end.max.z - b.end.min.z);
   check(`you walk into a smaller room (${Math.round(startArea)} m²) that grows (${Math.round(endArea)} m²)`, startArea < endArea * 0.5);

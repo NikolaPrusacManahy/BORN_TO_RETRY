@@ -3,13 +3,13 @@
 // back across the ice, its belly slide (into a wall it's stunned), its leap that lands where you stood and freezes the
 // floor round it, its sweeping frost breath (it chills you, it leaves rime); raging, it calls the dead up. Its health
 // in the bosses' range (the Velociraptor's 1800, the Drowned King's 2000). Times in seconds, distances in metres, speeds
-// in m/s. **(placeholders)**
+// in m/s. **(placeholders)** (Update 0.3.27 — the designer: "make them 50% faster in speed, 70% speed increase on the blue enemies … they are very slow") — its walk ×1.5; its slide no further on ice.
 import { group, knob } from './schema';
 
 export const FROST_ROC = group('frostRoc', 'Frost Roc', {
   rocHp: knob(1700, 100, 8000, 50, 'Frost Roc health', 'Damage to kill it.'),
   rocHeight: knob(6, 2, 12, 0.25, 'Frost Roc height', 'How tall it stands.'),
-  rocSpeed: knob(3.2, 0.5, 10, 0.1, 'Frost Roc speed', 'How fast it waddles at you.'),
+  rocSpeed: knob(4.8, 0.5, 10, 0.1, 'Frost Roc speed', 'How fast it waddles at you.'),
   rocTurn: knob(2.4, 0.5, 8, 0.1, 'Frost Roc turn', 'How fast it turns to you (rad/s).'),
   rocPause: knob(1.3, 0.2, 5, 0.05, 'Frost Roc pause', 'Between its moves.'),
   rocNear: knob(5.5, 2, 12, 0.25, 'Frost Roc near', 'Closer than this it swipes or gusts.'),
@@ -26,8 +26,7 @@ export const FROST_ROC = group('frostRoc', 'Frost Roc', {
   gustReach: knob(18, 4, 40, 0.5, 'Gust reach', 'Its gust reaches this far.'),
   slideWindup: knob(0.9, 0.1, 3, 0.05, 'Belly slide warning', 'It crouches this long (a scrape).'),
   slideSpeed: knob(18, 4, 40, 0.5, 'Belly slide speed', 'It throws itself at where you stood this fast.'),
-  slidePast: knob(5, 0, 20, 0.5, 'Belly slide past', 'On stone it stops this far past where you stood…'),
-  slideIce: knob(14, 2, 40, 0.5, 'Belly slide past on ice', '…on ice or rime, this far: it can’t stop or turn.'),
+  slidePast: knob(5, 0, 20, 0.5, 'Belly slide past', 'It stops this far past where you stood (on ice too: Update 0.3.27).'),
   slideDamage: knob(30, 1, 80, 1, 'Belly slide hit', 'Sliding into you.'),
   slideStun: knob(2.5, 0.3, 6, 0.1, 'Belly slide stun', 'Into a wall fast, it’s stunned this long (your hits do more).'),
   leapWindup: knob(0.8, 0.1, 3, 0.05, 'Leap warning', 'It crouches this long.'),

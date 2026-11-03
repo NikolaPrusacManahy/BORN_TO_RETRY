@@ -87,10 +87,13 @@ section('Executions — the Skeleton’s telekinesis');
   check('one lying in pieces can’t', execTarget(c, p, 0) === -1);
 }
 
-section('Floors — one more room every 2 floors; the run ends after floor 7');
+section('Floors — 4 rooms on the way, one more every 4 floors (Update 0.3.27); the run ends after floor 7');
 {
-  const want = [5, 5, 6, 6, 7, 7, 8];
-  check(`fight rooms on the way, floors 1–7: ${want.join(', ')}`, want.every((n, f) => pathFights(f + 1) === n));
+  // (Update 0.3.27 — the designer: "there is only 4 main room, 1 challenge room, 1 shop, boss room"; "the amount of
+  // room needed to pass increases by 1 every 4 floors, starting by floor 4 - 8, and remain the same until 10".)
+  const all = [4, 4, 4, 5, 5, 5, 5, 6, 6, 6];
+  const want = all.slice(0, 7);
+  check(`fight rooms on the way, floors 1–10: ${all.join(', ')}`, all.every((n, f) => pathFights(f + 1) === n));
   let bad = '';
   let floors = 0;
   for (let seed = 1; seed <= 60; seed++) {

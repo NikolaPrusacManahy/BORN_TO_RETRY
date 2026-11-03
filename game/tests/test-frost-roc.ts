@@ -66,11 +66,11 @@ section('Frost Roc — its moves');
   };
   const stone = way(false);
   const ice = way(true);
-  check(`step aside: on stone it stops ${v.slidePast} m past where you stood, on ice ${v.slideIce} m`, near(stone, 12 + v.slidePast, 1.5) && near(ice, 12 + v.slideIce, 2), `${stone.toFixed(1)}, ${ice.toFixed(1)} m`);
+  // (Update 0.3.27 — the designer: "Do not make the enemies in Frozen Depths slide on ice at all".)
+  check(`step aside: it stops ${v.slidePast} m past where you stood, on ice too`, near(stone, 12 + v.slidePast, 1.5) && near(ice, 12 + v.slidePast, 1.5), `${stone.toFixed(1)}, ${ice.toFixed(1)} m`);
   const w = crew('frostRoc', [at(0, 0, 10)], [boxAt(-4, 0, -5, 8, 4, 1, 'wall')]);
   w.e.move = SLIDE;
   setPhase(w.e, 'windup');
-  addRime(w.c.ground.frost, 0, 0, 80, 99);
   until(w, () => w.e.phase === 'charge', 2);
   w.p.pos.set(12, 0, 0);
   const crash = until(w, () => w.e.phase !== 'charge', 4);

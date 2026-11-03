@@ -68,12 +68,11 @@ const ROSTER: Readonly<Record<Realm, readonly EnemyKind[]>> = {
 /** The enemies floor `floor` sends (past the last, the last's). */
 export const rosterOf = (floor: number) => ROSTER[realmOf(floor)];
 
-/** Update 0.1.1 — how many enemies the fight room `depth` rooms along floor `floor` sends. Update 0.1.16 — the floor's
- *  share steps up every `floorsApart` floors (floor 2 the first, with 2 apart). */
-export function roomCount(depth: number, floor: number): number {
+/** Update 0.1.1 — how many enemies the fight room `depth` rooms along the way sends. Update 0.1.16 — the floor's share
+ *  stepped up every few floors. Update 0.3.27 — no more (the designer): 8, then 2 more each room along, every floor. */
+export function roomCount(depth: number): number {
   const v = ROOMS.v;
-  const steps = Math.floor(Math.max(1, floor) / Math.max(1, Math.round(v.floorsApart)));
-  return v.baseCount + v.perRoom * Math.max(0, depth - 1) + v.perFloor * steps;
+  return v.baseCount + v.perRoom * Math.max(0, depth - 1);
 }
 
 const isBig = (k: EnemyKind) => MINI_BOSSES.includes(k);
@@ -105,7 +104,7 @@ export function buyWave(count: number, depth: number, floor: number, rng: Rng, b
  *  furthest from you). `challenge`: a challenge room's. */
 export function planWaves(depth: number, floor: number, rng: Rng, challenge = false): EnemyKind[][] {
   const v = ROOMS.v;
-  const n = roomCount(depth, floor) + (challenge ? Math.round(v.challengeExtra) : 0);
+  const n = roomCount(depth) + (challenge ? Math.round(v.challengeExtra) : 0);
   const waves = n >= 18 ? 3 : 2;
   let bigs = 0;
   const plan = Array.from({ length: waves }, (_, w) => {

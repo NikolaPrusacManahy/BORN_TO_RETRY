@@ -74,4 +74,11 @@ section('HUD controls — the badges and their keys');
   const slots = bottom('theme-17-slots.css', '.rb-slots');
   const ammo = bottom('theme-28-gun.css', '.rb-ammo');
   check('bottom right: the controls, the weapon slots a row above (their keys clear of them), the bullets above those', ctls >= 0 && slots >= ctls + 58 + 40 && ammo >= slots + 64 + 40, `${ctls} / ${slots} / ${ammo}`);
+  // Update 0.3.27 — the designer: "the UI when we have 5 dashes, little tweaking please".
+  const exec = Number(/\.rb-hud-exec \{[^}]*width: (\d+)px/.exec(css('theme-21-exec.css'))?.[1] ?? -1);
+  const pip = /\.rb-hud-pip \{\s*width: min\((\d+)px, calc\(\((\d+)px - (\d+)px \* \(var\(--n\) - 1\)\) \/ var\(--n\)\)\);/.exec(css('theme-03-hud.css'));
+  const [most, share, gap] = (pip ?? []).slice(1).map(Number);
+  const row = (n: number) => n * Math.min(most, (share - gap * (n - 1)) / n) + gap * (n - 1);
+  const rows = [3, 4, 5, 6].map(row);
+  check(`the dash charges never run wider than the Execution meter over them (${exec}px): 3 as before, 5 narrower (${rows.map((r) => r.toFixed(0)).join(', ')} px)`, !!pip && hud.includes("'--n': s.dashMax") && share === exec && rows.every((r) => r <= exec + 0.5) && Math.abs(rows[0] - 300) < 0.5);
 }

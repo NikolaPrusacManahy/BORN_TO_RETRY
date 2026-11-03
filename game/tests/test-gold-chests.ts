@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { check, section } from './harness';
 import { DT, ticks } from './fakes/flatWorld';
 import { createRng } from '../src/core/rng';
+import { AURA_GOLD, AURA_RED } from '../src/engine/chestAura';
 import { ChestShot } from '../src/engine/chestShot';
 import { TreasureView } from '../src/engine/treasureView';
 import { createCombat } from '../src/sim/combat/state';
@@ -162,12 +163,18 @@ section('Chests — a keyed chest’s gold aura');
     const root = view.group.children.find((o) => o instanceof THREE.Group && Math.abs(o.position.x - s.x) < 0.1 && Math.abs(o.position.z - s.z) < 0.1)!;
     return root.children.find((o) => o.children.some((k) => k instanceof THREE.Sprite))!;
   };
-  const keyed = t.chests.map((ch, i) => ({ ch, i })).filter(({ ch }) => !keyless(ch));
+  const keyed = t.chests.map((ch, i) => ({ ch, i })).filter(({ ch }) => !keyless(ch) && !ch.challenge);
   const free = t.chests.map((ch, i) => ({ ch, i })).filter(({ ch }) => keyless(ch));
+  const hard = t.chests.map((ch, i) => ({ ch, i })).filter(({ ch }) => ch.challenge);
   check(`shut, every chest a key opens glows; a gold chest and the boss’s don’t (${keyed.length} and ${free.length})`, keyed.length > 0 && free.length > 0 && keyed.every(({ i }) => auraOf(i).visible) && free.every(({ i }) => !auraOf(i).visible));
-  const sprite = auraOf(keyed[0].i).children.find((k) => k instanceof THREE.Sprite) as THREE.Sprite;
-  const glow = sprite.material;
-  check('soft gold, a little (the halo never more than 0.6 strong)', glow.color.getHex() === 0xffd23a && glow.opacity > 0.2 && glow.opacity <= 0.6, `${glow.opacity}`);
+  const haloOf = (i: number) => (auraOf(i).children.find((k) => k instanceof THREE.Sprite) as THREE.Sprite).material;
+  const glow = haloOf(keyed[0].i);
+  // (Update 0.3.27 — the designer: "Make Gold aura and red aura on chest better visually, more visible and impressive":
+  // stronger, and a column of light, rings across the floor and motes.)
+  const parts = auraOf(keyed[0].i).children;
+  check('gold, and strong now: a halo, a column of light, rings running out, motes rising', glow.color.getHex() === AURA_GOLD && glow.opacity > 0.5 && parts.some((k) => k instanceof THREE.Points) && parts.filter((k) => k instanceof THREE.Mesh).length >= 4, `${glow.opacity}`);
+  // (Update 0.3.27 — the designer: "challenge room chest have now a Red aura on them".)
+  check(`a challenge room’s chest glows red (${hard.length})`, hard.length === 1 && auraOf(hard[0].i).visible && haloOf(hard[0].i).color.getHex() === AURA_RED);
   check('it casts no shadow', !auraOf(keyed[0].i).children.some((k) => k.castShadow));
   keyed[0].ch.state = 'opening';
   keyed[0].ch.t = ITEMS.v.chestTime * 0.7;

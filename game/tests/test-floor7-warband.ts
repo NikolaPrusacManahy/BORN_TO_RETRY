@@ -108,14 +108,15 @@ section('Floor 7 — the Raider');
   };
   const stone = way(false);
   const ice = way(true);
-  check(`step aside and he slides by: on stone he stops ${v.slideStone} m past where you stood, on ice he carries on ${v.slideIce} m past`, near(stone, 12 + v.slideStone, 1) && near(ice, 12 + v.slideIce, 1.5), `${stone.toFixed(1)} m, ${ice.toFixed(1)} m`);
-  const w = crew('raider', [at(0, 0, 9)], [boxAt(-3, 0, -3.5, 6, 3, 1, 'wall')]);
-  slick(w);
+  // (Update 0.3.27 — the designer: "Do not make the enemies in Frozen Depths slide on ice at all".)
+  check(`step aside and he slides by: he stops ${v.slideStone} m past where you stood, on ice too`, near(stone, 12 + v.slideStone, 1) && near(ice, 12 + v.slideStone, 1), `${stone.toFixed(1)} m, ${ice.toFixed(1)} m`);
+  // (Your back to a wall: he meets it fast.)
+  const w = crew('raider', [at(0, 0, 9)], [boxAt(-3, 0, -1.6, 6, 3, 1, 'wall')]);
   ready(w.e);
   until(w, () => w.e.phase === 'charge', 2);
   w.p.pos.set(9, 0, 0);
   const dz = until(w, () => w.e.phase !== 'charge', 4);
-  check(`on ice into a wall, he’s dazed (${v.slideDazed} s)`, dz.includes('raiderDazed') && w.e.phase === 'stun');
+  check(`into a wall fast, he’s dazed (${v.slideDazed} s)`, dz.includes('raiderDazed') && w.e.phase === 'stun');
 }
 
 section('Floor 7 — the Axe Thrower');
@@ -222,7 +223,7 @@ section('Floor 7 — the Berserker (mini boss)');
     run(d, 0.8);
     return d.e.pos.z - z0;
   };
-  check('on ice his spin drifts faster', drift(true) > drift(false) * 1.4, `${drift(false).toFixed(1)} m, ${drift(true).toFixed(1)} m`);
+  check('on ice his spin drifts no faster (Update 0.3.27: no sliding on ice)', near(drift(true), drift(false), 0.2), `${drift(false).toFixed(1)} m, ${drift(true).toFixed(1)} m`);
 }
 
 section('Floor 7 — Haugbui (mini boss)');

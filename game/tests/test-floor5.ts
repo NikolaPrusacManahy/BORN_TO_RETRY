@@ -12,7 +12,7 @@ import { buildDungeon } from '../src/world/dungeon/assemble';
 import { dress } from '../src/world/dungeon/dressing';
 import { DROWNED_ROOMS } from '../src/world/dungeon/drownedRooms';
 import { DESERT_ROOMS } from '../src/world/dungeon/desertRooms';
-import { planFloor } from '../src/world/dungeon/floorPlan';
+import { pathFights, planFloor } from '../src/world/dungeon/floorPlan';
 import { styleOf } from '../src/world/dungeon/styles';
 import { FLOOR } from '../src/world/dungeon/floorOrder';
 
@@ -76,7 +76,7 @@ section('Floor 5 — the tide');
   check('a horn as the water starts to rise, once a cycle; once as it drains', horns === 3 && drains === 3, `${horns} horns, ${drains} drains`);
   const level = buildDungeon(planFloor(7, FLOOR.temple));
   const fights = level.rooms.filter((r) => r.kind === 'fight');
-  check('every fight room floods (the challenge room too); the start room, the shop, the boss room and the corridors don’t', level.tide.length === fights.length && fights.length >= 7);
+  check('every fight room floods (the challenge room too); the start room, the shop, the boss room and the corridors don’t', level.tide.length === fights.length && fights.length === pathFights(FLOOR.temple) + 1);
   const room = level.tide[0];
   const high = { t: v.low + v.rise + 1, level: v.depth };
   const low = { t: 0, level: 0 };

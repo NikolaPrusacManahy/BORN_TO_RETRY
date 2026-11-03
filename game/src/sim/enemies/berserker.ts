@@ -1,13 +1,11 @@
 // Update 0.3.22 — floor 7's Berserker, a mini boss (the More-enemies pack's horned Viking, big, a double axe, his eyes red;
 // MD/FLOOR7_WARBAND_PLAN.md). With his turn and you in sight he roars (Spin warning) and goes berserk: he spins with his
-// axe out for Spin for, drifting at you (Spin drift; on ice or rime faster, and his drift turns slowly: he skids wide),
+// axe out for Spin for, drifting at you (Spin drift; Update 0.3.27 — no faster on ice, no skid: the designer),
 // catching you within Spin reach (Spin hit, now and then: never parried, a mini boss's blow). Then he's dizzy (Dizzy: a
 // stun, your hits worth more). Below Berserker rage of his health he spins twice before he's dizzy. Otherwise, up close,
 // his chop (brawler.ts). Only a hard hit staggers him (out of a roar or a spin too). Pure.
 import { FOES_NORSE_B } from '../../tuning/foesNorseB';
-import { onRime } from '../combat/frost';
 import { meleeHit } from '../combat/meleeParry';
-import { onIce } from '../dungeon/quicksand';
 import type { PlayerState } from '../player/state';
 import { brawl, Brawl } from './brawler';
 import { Enemy, EnemyWorld, inLine, setPhase, turn, walk, yawTo } from './enemy';
@@ -32,7 +30,6 @@ export const ROAR = 1;
  *  you once each this long at most (s), throwing you this hard (m/s); he goes berserk from this far at most (m). */
 const SPIN_TURN = 14;
 const DRIFT_TURN = 5;
-const SKID_TURN = 1.2;
 const HIT_EVERY = 0.45;
 const THROW = 9;
 const BERSERK_FROM = 12;
@@ -78,12 +75,11 @@ function startSpin(e: Enemy, index: number, player: PlayerState, w: EnemyWorld) 
 
 function spin(e: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number) {
   const v = FOES_NORSE_B.v;
-  const slick = onIce(e.pos.x, e.pos.y, e.pos.z, w.ground?.ice) || onRime(w.ground?.frost, e.pos.x, e.pos.y, e.pos.z);
-  // His drift turns after you (slowly on ice), and carries him.
+  // His drift turns after you, and carries him (Update 0.3.27 — on ice as on stone: no more skid).
   const want = Math.atan2(player.pos.x - e.pos.x, player.pos.z - e.pos.z);
-  const now = turn(Math.atan2(e.aim.x, e.aim.z), want, (slick ? SKID_TURN : DRIFT_TURN) * dt);
+  const now = turn(Math.atan2(e.aim.x, e.aim.z), want, DRIFT_TURN * dt);
   e.aim.set(Math.sin(now), 0, Math.cos(now));
-  walk(e, e.aim.x, e.aim.z, (slick ? v.spinIce : v.spinSpeed) * dt, w.nav.large);
+  walk(e, e.aim.x, e.aim.z, v.spinSpeed * dt, w.nav.large);
   e.facing += SPIN_TURN * dt;
   e.near = Math.max(0, e.near - dt);
   const reach = v.spinReach + ENEMY_STATS.berserker().radius;

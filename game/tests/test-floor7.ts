@@ -76,16 +76,17 @@ section('Floor 7 — the ice');
   };
   check('stopping from a run on ice takes you far further', stop(v.iceGrip) > stop(1) * 5, `${stop(1).toFixed(2)} m on stone, ${stop(v.iceGrip).toFixed(2)} m on ice`);
   // A knocked enemy across ice.
-  const slide = (slick: boolean) => {
+  // (Update 0.3.27 — the designer: "Do not make the enemies in Frozen Depths slide on ice at all": as on stone.)
+  const slide = () => {
     const enemies = createEnemies();
     const i = spawnEnemy(enemies, 'grunt', new Vector3(0, 0, 0), 0);
     const e = enemies[i];
     e.vel.set(6, 0, 0);
     const nav = buildNavGrid(OPEN_ARENA, 0.45);
-    for (let k = 0; k < ticks(3); k++) fly(e, nav, 0.45, DT, slick);
+    for (let k = 0; k < ticks(3); k++) fly(e, nav, 0.45, DT);
     return e.pos.x;
   };
-  check('a body knocked across ice slides far further', slide(true) > slide(false) * 3, `${slide(false).toFixed(2)} m on stone, ${slide(true).toFixed(2)} m on ice`);
+  check('a body knocked across ice slides no further than on stone (6 m/s: under a metre)', slide() < 1, `${slide().toFixed(2)} m`);
   check('a body on a sheet is on ice; off it, not', onIce(sheet.x, 0, sheet.z, level.ice) && !onIce(9999, 0, 9999, level.ice) && !onIce(sheet.x, 2, sheet.z, level.ice));
 }
 

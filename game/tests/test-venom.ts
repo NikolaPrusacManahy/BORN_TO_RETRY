@@ -192,4 +192,27 @@ section('Venom Garden — hives');
     combat.events.clear();
   }
   check('in a hive room, the fight brings wasps out of its hives', run.rooms[room].state === 'fighting' && outs > 0, `${outs}`);
+  // Update 0.3.27 — the designer: the count "would loop back to 2 after killing the last enemy and spawns them again …
+  // 3 times". Its own all sent and dead, the hives' wasps still flying: they're the last; once they're dead, it's won.
+  const rr = run.rooms[room];
+  const fromHive = (i: number) => combat.hives.some((h) => h.out.includes(i));
+  for (let k = 0; k < ticks(120) && rr.sent < rr.total; k++) {
+    combat.enemies.forEach((e, i) => !fromHive(i) && (e.alive = false));
+    stepRooms(run, p, combat, rng, DT);
+  }
+  combat.enemies.forEach((e, i) => !fromHive(i) && (e.alive = false));
+  const flying = combat.enemies.filter((e, i) => fromHive(i) && isLive(e)).length;
+  combat.events.clear();
+  let more = 0;
+  let wasLeft = 0;
+  for (let k = 0; k < ticks(GARDEN.v.hiveGap * 3) && rr.state === 'fighting'; k++) {
+    if (k === ticks(1)) {
+      wasLeft = combat.enemies.filter(isLive).length;
+      combat.enemies.forEach((e) => (e.alive = false));
+    }
+    stepRooms(run, p, combat, rng, DT);
+    for (let e = 0; e < combat.events.length; e++) if (combat.events.at(e).kind === 'hiveOut') more++;
+    combat.events.clear();
+  }
+  check('its own all down, the hives let no more out: their wasps are the last, then the room is won', rr.sent === rr.total && flying > 0 && more === 0 && wasLeft === flying && rr.state !== 'fighting', `${flying} flying, ${more} more, ${wasLeft} left, ${rr.state}`);
 }

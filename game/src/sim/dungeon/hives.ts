@@ -4,6 +4,8 @@
 // it or throw at it (jump to reach it) and at Hive health it falls, and lets out no more. Its wasps are the room's
 // enemies like the rest: the room is won once its own are all sent and every wasp is dead (a full hive stays quiet
 // then). Pure.
+// Update 0.3.27 (the designer: the count "would loop back to 2 after killing the last enemy and spawns them again … 3
+// times") — the hives let wasps out only while the room's own are still coming or fighting (roomLoop.ts).
 import { Vector3 } from 'three';
 import type { HiveSpot } from '../../world/dungeon/garden';
 import { GARDEN } from '../../tuning/garden';
@@ -55,10 +57,16 @@ export function armHives(hives: Hive[], room: number) {
   }
 }
 
-/** One tick of room `room`'s fight: its hives let their wasps out. */
-export function stepHives(state: CombatState, room: number, player: PlayerState, dt: number) {
+/** The hives' wasps flying now. */
+export function flyingWasps(state: CombatState): number {
   let flying = 0;
   for (const h of state.hives) for (const i of h.out) if (state.enemies[i].kind === 'wasp' && isLive(state.enemies[i])) flying++;
+  return flying;
+}
+
+/** One tick of room `room`'s fight: its hives let their wasps out. */
+export function stepHives(state: CombatState, room: number, player: PlayerState, dt: number) {
+  let flying = flyingWasps(state);
   for (const h of state.hives) {
     if (h.room !== room || h.broken || h.left <= 0) continue;
     h.timer -= dt;

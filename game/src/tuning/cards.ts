@@ -1,10 +1,9 @@
 // Update 0.2.15 — the Scars. Update 0.2.16 — Fate Cards (the designer: "scars are turned into "Fate cards""): how often
 // a chest deals them ("25% is fine"), how many, and each card's numbers (all placeholders but the 25%). Update 0.2.18 —
-// wave 2's (the designer: "just build wave 2").
+// wave 2's (the designer: "just build wave 2"). Update 0.3.27 — the deal chance gone: a challenge room's chest only deals.
 import { group, knob } from './schema';
 
 export const CARDS = group('cards', 'Fate Cards', {
-  dealChance: knob(0.25, 0, 1, 0.05, 'Deal chance', 'Chance a chest you open with a key deals Fate Cards as well as its loot (a boss’s and a challenge room’s always do).'),
   dealt: knob(3, 1, 5, 1, 'Cards dealt', 'How many you choose from.'),
   bumpKnock: knob(1, 0, 4, 0.1, 'Bump knock', 'Shoulder Charge and Bowling: how hard an enemy is thrown, as a heavy punch’s knock.'),
   craterGrowth: knob(2, 1, 4, 0.1, 'Crater', 'Crater: the slam’s ring grows this much faster with height, to this much wider.'),

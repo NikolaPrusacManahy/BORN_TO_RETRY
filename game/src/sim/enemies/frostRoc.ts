@@ -3,7 +3,7 @@
 // never one move three times running) and warns. Close: its swipe (Swipe reach, in front), or its gust: its wings
 // beat (Gust for) and you're blown back across the floor (on ice you can't hold), and half the time its belly slide
 // follows. Between: its frost breath (it sweeps across you, chilling you, leaving rime), its belly slide (at where you
-// stood, past it; on ice or rime it can't stop: into a wall fast and it's stunned, your hits worth more), now and then
+// stood, past it: into a wall fast and it's stunned, your hits worth more; Update 0.3.27, on ice as on stone), now and then
 // its gust or its leap. Far: its leap (up and down where you stood: its landing hurts round it, jump it, and freezes the
 // floor) or its slide. Below Frost Roc rage it rages: a roar, quicker in everything, and it calls the dead up out of the
 // snow (sim/dungeon/bossRoom.ts). Its death show is the Demon's. Enemy.move: its move; .near: its slide's speed; .shots:
@@ -12,8 +12,7 @@
 import { Vector3 } from 'three';
 import { FROST_ROC } from '../../tuning/frostRoc';
 import { FOES_NORSE } from '../../tuning/foesNorse';
-import { addRime, chillYou, onRime } from '../combat/frost';
-import { onIce } from '../dungeon/quicksand';
+import { addRime, chillYou } from '../combat/frost';
 import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
 import { chaseDir, freeSpotNear } from './chase';
@@ -217,8 +216,8 @@ function breathe(d: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
 /** Its belly slide: on along its way, slowing as the ground lets it; into you once; a wall stops it, stunned. */
 function slide(d: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number) {
   const v = FROST_ROC.v;
-  const slick = onIce(d.pos.x, d.pos.y, d.pos.z, w.ground?.ice) || onRime(w.ground?.frost, d.pos.x, d.pos.y, d.pos.z);
-  const brake = (v.slideSpeed * v.slideSpeed) / (2 * (d.shots + (slick ? v.slideIce : v.slidePast)));
+  // (Update 0.3.27 — on ice as on stone.)
+  const brake = (v.slideSpeed * v.slideSpeed) / (2 * (d.shots + v.slidePast));
   const step = d.near * dt;
   const x = d.pos.x;
   const z = d.pos.z;

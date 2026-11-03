@@ -11,7 +11,7 @@ import { ITEMS } from '../src/tuning/items';
 
 function rising(): Treasure {
   const spot: ChestSpot = { room: 0, x: 10, z: 5, rot: 0, fx: 0, fz: 1, rises: true, boss: false, gate: -1, gold: false };
-  const chest = { spot, state: 'rising', t: 0, rolls: [0, 0, 0], key: null, loot: null, given: false, boss: null, cards: false } as Treasure['chests'][number];
+  const chest = { spot, state: 'rising', t: 0, rolls: [0, 0, 0], key: null, loot: null, given: false, boss: null, cards: false, challenge: false } as Treasure['chests'][number];
   return { shop: -1, offers: [], chests: [chest], choosing: -1 };
 }
 

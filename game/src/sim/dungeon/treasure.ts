@@ -18,6 +18,8 @@
 // a boss's chest (not the run's last) and a challenge room's always deal them; a chest opened with a key deals them
 // instead of its item one time in four (the designer: "if you are lucky … 25% is fine"). Fortune's Favour (a card)
 // rolls a chest's rarity twice; Haggler (a card) makes the shop cheaper (`offerPrice`).
+// Update 0.3.27 (the designer: "no more Card drops in chests that are not a challenge room chest", then "Boss chest gives cards too") —
+// a challenge room's chest (its aura red) and the boss's only: no more by luck.
 // Update 0.2.20 — the shop's Fate Card (sim/cards/shopCard.ts; the designer: "the shop has only one fate card. floating
 // near, cost 100"); the gold in a chest halved (the designer: "reduce the amount of gold in chest by x2": Chest gold).
 // Update 0.2.25 (the designer: "players get the normal loot in there and the card is like a bonus that can proc"; "in
@@ -37,7 +39,6 @@ import { BOSS_LOOT, bossCoins } from './bossRoom';
 import { coinsFor } from '../items/bonuses';
 import type { EnemyKind } from '../enemies/kinds';
 import { Vector3 } from 'three';
-import { CARDS } from '../../tuning/cards';
 import { holds, shopFactor } from '../cards/cards';
 import { startDeal } from '../cards/deal';
 import { buyCard, placeCard, ShopCard } from '../cards/shopCard';
@@ -68,8 +69,11 @@ export interface Chest {
   given: boolean;
   /** Update 0.2.0 — a boss's chest: which boss (no key opens it; its loot is the boss's); null: a key opens it. */
   boss: EnemyKind | null;
-  /** Update 0.2.16 — it always deals Fate Cards (a boss's, a challenge room's); else a keyed one may, by luck. */
+  /** Update 0.2.16 — it always deals Fate Cards (a boss's, a challenge room's); else a keyed one may, by luck. Update
+   *  0.3.27 — no more by luck: a boss's and a challenge room's only. */
   cards: boolean;
+  /** Update 0.3.27 — a challenge room's (its aura red: engine/treasureFx.ts). */
+  challenge: boolean;
 }
 
 export interface Treasure {
@@ -118,7 +122,7 @@ export function createTreasure(level: DungeonLevel, rng: Rng, boss: EnemyKind = 
   const kinds = shuffle([...SHOP_ALWAYS, ...drawn.map((k) => (k === 'key' ? keyFor(rng()) : k))], rng);
   const floor = level.plan?.level ?? 1;
   const offers = shop ? shop.tiles.slice(0, SHOP_TILES).map((t, i) => ({ kind: kinds[i], price: priceOf(kinds[i], floor), sold: false, x: t.x, z: t.z })) : [];
-  const chests = level.chests.map((spot): Chest => ({ spot, state: spot.rises ? 'buried' : 'shut', t: 0, rolls: [rng(), rng(), rng()], key: null, loot: null, given: false, boss: spot.boss ? boss : null, cards: spot.boss ? bossCards : !!level.rooms[spot.room]?.challenge }));
+  const chests = level.chests.map((spot): Chest => ({ spot, state: spot.rises ? 'buried' : 'shut', t: 0, rolls: [rng(), rng(), rng()], key: null, loot: null, given: false, boss: spot.boss ? boss : null, cards: spot.boss ? bossCards : !!level.rooms[spot.room]?.challenge, challenge: !spot.boss && !!level.rooms[spot.room]?.challenge }));
   // (Update 0.2.20 — the card's roll last: the rest roll as they did.)
   const card = shop ? placeCard(shop, rng()) : null;
   return { shop: shop ? shop.index : -1, offers, chests, choosing: -1, card };
@@ -251,9 +255,8 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
  *  loot, never instead of it (a boss's chest did so already). */
 function giveLoot(c: Chest, i: number, state: CombatState) {
   c.given = true;
-  // (Update 0.2.17 — not when Fate Cards are off: the lobby's stand.)
-  const lucky = state.fate && !c.cards && !c.boss && !c.spot.gold && state.rng() < CARDS.v.dealChance;
-  if (state.fate && (c.cards || lucky)) startDeal(state, i);
+  // (Update 0.2.17 — not when Fate Cards are off: the lobby's stand. Update 0.3.27 — no more by luck.)
+  if (state.fate && c.cards) startDeal(state, i);
   const loot = c.loot!;
   state.events.push('chestRarity', RARITIES.indexOf(loot.rarity), c.spot.x, 0.8, c.spot.z);
   // (No item flies to you: it waits.)

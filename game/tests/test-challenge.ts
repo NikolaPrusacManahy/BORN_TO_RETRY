@@ -43,7 +43,7 @@ section('Challenge rooms — one on every floor, off the way');
       const r = ch[0];
       rooms++;
       const minis = r.waves.flat().filter((k) => MINI_BOSSES.includes(k));
-      const want = roomCount(r.depth, floor) + ROOMS.v.challengeExtra;
+      const want = roomCount(r.depth) + ROOMS.v.challengeExtra;
       if (r.kind !== 'fight' || r.index < pathFights(floor) + 2) bad ||= `seed ${seed * 31} floor ${floor}: not a fight room off the way`;
       else if (!r.chest) bad ||= `seed ${seed * 31} floor ${floor}: no chest`;
       else if (r.waves.flat().length !== want) bad ||= `seed ${seed * 31} floor ${floor}: ${r.waves.flat().length} enemies, not ${want}`;

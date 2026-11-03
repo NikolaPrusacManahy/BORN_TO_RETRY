@@ -2,14 +2,25 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.26: floor 4's boss, the Frost Roc)
+## Next up (2026-11-03, Update 0.3.27: the rooms' new rules, the chests, Frozen Depths, the dash bars)
+- **The designer's list**; spec `MD_UPDATES/U0327_ROOMS_CHESTS_FROZEN.md`.
+- Fixed floor 2's count looping back (the hives kept letting wasps out after the room's own were dead).
+- Rooms: 8, 10, 12 … a room on every floor; 4 fight rooms on the way on floors 1–3, 5 on 4–7, 6 on 8–10.
+- Fate Cards only from a challenge room's chest and the boss's (the designer: "Boss chest gives cards too"); no lucky
+  deals. The challenge chest's aura red; both auras far bigger (`engine/chestAura.ts`).
+- Frozen Depths: no enemy slides on ice (the Raider, the Berserker, the Roc, knocked bodies); speeds ×1.5, the Draugr,
+  Barrow Maid and Haugbui ×1.7. The dash bars share the Execution meter's width past three.
+- Checked by tests; **unseen in the game**. **Next: floor 8, the Shrine Dimension.**
+
+## Before (2026-11-03, Update 0.3.26: floor 4's boss, the Frost Roc)
 - **The designer**: "before we move to floor 8, we need floor 4 boss" → "Birb, the Frost Roc". Spec
   `MD_UPDATES/U0326_FROST_ROC.md`. Ultimate Monsters' Birb (moved to `used_monster/Boss`; the blob Birb recycled),
   huge: swipe, gust (blows you back), belly slide (stunned by a wall; far on ice), leap (lands where you stood, rime),
   sweeping frost breath (chill, rime); raging below half, it calls Draugr. `sim/enemies/frostRoc.ts`, its own clip per
   move (`Look.moveClips`, new in enemiesView.ts), its floor marks (`engine/norse/rocFx.ts`).
 - Fixed: since 0.3.22 a boss's entrance played its rise clip (the Bone King assembling as it rose); it stands again.
-- Checked by tests (`test-frost-roc.ts`); **unseen in the game**. **Next: floor 8, the Shrine Dimension.**
+- Checked by tests (`test-frost-roc.ts`); unseen in the game. Next (as it stood): floor 8; 0.3.27 went to the
+  designer's list first.
 
 ## Before (2026-11-03, Update 0.3.25: the floors reordered)
 - **The designer**: "Floor 7 is an easier Floor than 4, 5 and 6": 1 The Dungeon, 2 The Venom Garden, 3 The Bone Keep,

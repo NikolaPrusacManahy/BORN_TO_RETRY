@@ -47,7 +47,7 @@ import { createTreasure, raiseChest, Treasure } from './treasure';
 import { rewardDone, startReward, takeKeys } from './reward';
 import { CHEST_D, CHEST_W } from '../../world/dungeon/assemble';
 import { Checkpoint, doorSpot } from './checkpoint';
-import { armHives, stepHives } from './hives';
+import { armHives, flyingWasps, stepHives } from './hives';
 import { createIcicles, Icicle, stepIcicles } from './icicles';
 import { createMachinery, Machinery, stepMachinery } from './machinery';
 import { createPowder, Powder, stepPowder } from './powder';
@@ -183,9 +183,10 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
       ev.push('gatesOpen', i, (room.min.x + room.max.x) / 2, 1, (room.min.z + room.max.z) / 2);
     }
     if (rr.state !== 'fighting') continue;
-    stepHives(combat, i, player, dt);
     let live = 0;
     for (const e of combat.enemies) if (isLive(e)) live++;
+    // (Update 0.3.27 — its hives only while its own are still coming or fighting: once they're down, no more wasps.)
+    if (rr.sent < rr.total || live > flyingWasps(combat)) stepHives(combat, i, player, dt);
     rr.delay -= dt;
     if (rr.sent < rr.total) {
       // Keep the field full: the opening (its first wave, at least Enemies on field), then one at a time.

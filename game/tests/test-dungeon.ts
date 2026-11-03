@@ -230,12 +230,10 @@ section('Dungeon — the room loop');
 }
 {
   // Update 0.1.1 (the designer: floor 1 starts at 8 and then 11; floor 2 at 11 then 14, and so on) — counts, not budgets.
-  check('floor 1: 8, 11, 14, 17, 20 enemies along the way', [1, 2, 3, 4, 5].map((d) => roomCount(d, 1)).join() === '8,11,14,17,20');
-  // Update 0.1.16 (the designer: "2 more enemies every 2 floors, starting with floor 2"; it was 3 more every floor).
-  check('floor 2 starts at 10, then 13; floor 3 the same as floor 2', roomCount(1, 2) === 10 && roomCount(2, 2) === 13 && roomCount(1, 3) === 10);
-  const firsts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((f) => roomCount(1, f)).join();
-  check(`floors 1 to 10 start at ${firsts.replace(/,/g, ', ')}`, firsts === '8,10,10,12,12,14,14,16,16,18');
-  check(`floor 10’s last fight room: ${roomCount(5, 10)}`, roomCount(5, 10) === 30);
+  // Update 0.1.16 (the designer: "2 more enemies every 2 floors, starting with floor 2"). Update 0.3.27 (the designer:
+  // "we do not increases the amount of enemies in each room every 2 floors anymore, start with 8 and each rooms
+  // increases the count by 2") — the same on every floor.
+  check('every floor: 8, 10, 12, 14, 16, 18 enemies along the way', [1, 2, 3, 4, 5, 6].map((d) => roomCount(d)).join() === '8,10,12,14,16,18');
   let off = '';
   let bigs = 0;
   for (let seed = 1; seed <= 12; seed++) {
@@ -244,7 +242,7 @@ section('Dungeon — the room loop');
         if (r.kind !== 'fight') continue;
         const n = r.waves.flat().length;
         // (Update 0.1.20 — a challenge room: Challenge: more enemies on top.)
-        const want = roomCount(r.depth, floor) + (r.challenge ? ROOMS.v.challengeExtra : 0);
+        const want = roomCount(r.depth) + (r.challenge ? ROOMS.v.challengeExtra : 0);
         if (n !== want) off ||= `seed ${seed} floor ${floor} room ${r.index}: ${n}, not ${want}`;
         bigs = Math.max(bigs, r.waves.flat().filter((k) => MINI_BOSSES.includes(k)).length);
       }

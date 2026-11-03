@@ -10,9 +10,10 @@ import { ENEMY_STATS, flies } from './kinds';
 /** A falling body's gravity (m/s²). */
 const FALL = 25;
 
-/** Returns false if it has nothing more to do this tick (a body lying there, or a free slot). Update 0.3.11 — `slick`:
- *  on ice (its knock slides far). Update 0.3.17 — `gravity`: its share of the usual (the moon's). */
-export function beginTick(e: Enemy, nav: NavGrid, dt: number, slick = false, gravity = 1): boolean {
+/** Returns false if it has nothing more to do this tick (a body lying there, or a free slot). Update 0.3.17 —
+ *  `gravity`: its share of the usual (the moon's). (Update 0.3.11's `slick`, its knock sliding far on ice, went in
+ *  0.3.27.) */
+export function beginTick(e: Enemy, nav: NavGrid, dt: number, gravity = 1): boolean {
   if (!e.alive) return false;
   e.prev.copy(e.pos);
   // Frozen: nothing moves on (not even its time, so an attack waits), until the ice wears off.
@@ -36,7 +37,7 @@ export function beginTick(e: Enemy, nav: NavGrid, dt: number, slick = false, gra
       e.vel.y -= FALL * gravity * dt;
       e.pos.y = Math.max(e.perch, e.pos.y + e.vel.y * dt);
     }
-    if (e.perch <= 0 && !ENEMY_STATS[e.kind]().boss) fly(e, nav, radiusOf(e), dt, slick);
+    if (e.perch <= 0 && !ENEMY_STATS[e.kind]().boss) fly(e, nav, radiusOf(e), dt);
     if (e.t >= ENEMY_STATS[e.kind]().deathTime) e.alive = false;
     return false;
   }
@@ -49,6 +50,6 @@ export function beginTick(e: Enemy, nav: NavGrid, dt: number, slick = false, gra
   // Perched: hits don't slide it off its ledge.
   if (e.perch > 0) e.vel.set(0, 0, 0);
   if (grounded(e)) pushOutOfWalls(nav, e.pos, radiusOf(e));
-  fly(e, nav, radiusOf(e), dt, slick);
+  fly(e, nav, radiusOf(e), dt);
   return true;
 }

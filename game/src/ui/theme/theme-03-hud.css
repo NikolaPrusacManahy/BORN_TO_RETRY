@@ -55,3 +55,14 @@
   right: 100%;
   margin-right: 16px;
 }
+
+/* Update 0.3.27 (the designer: "the UI when we have 5 dashes, little tweaking please") — more than three charges share
+   the Execution meter's width over them (300px: theme-21-exec.css), each narrower, so the row never runs past it or its
+   key's cap into the health on the left. Hud.tsx gives the count (--n). */
+.rb-hud-dash {
+  --n: 3;
+}
+
+.rb-hud-pip {
+  width: min(92px, calc((300px - 12px * (var(--n) - 1)) / var(--n)));
+}

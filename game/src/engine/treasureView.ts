@@ -17,7 +17,8 @@ import { ITEM_KINDS, ItemKind } from '../sim/items/items';
 import { DROP_KINDS, DropKind } from '../sim/items/drops';
 import { ITEMS } from '../tuning/items';
 import { itemLooks } from './keyLooks';
-import { ChestAura, ChestGlows, DropsView } from './treasureFx';
+import { ChestGlows, DropsView } from './treasureFx';
+import { ChestAura } from './chestAura';
 import { ShopCardView } from './shopCardView';
 
 export const ITEMS_URL = '/models/items/items.glb';
@@ -203,10 +204,11 @@ export class TreasureView {
       const k = c.state === 'open' ? 1 : c.state === 'opening' ? c.t / ITEMS.v.chestTime : 0;
       body.lid.rotation.x = -lidAngle(k);
       if (c.state === 'opening') this.lip(body, k);
-      // Update 0.2.1 — a chest a key opens glows while shut: coming up with it, fading as its lid lifts.
+      // Update 0.2.1 — a chest a key opens glows while shut: coming up with it, fading as its lid lifts. Update 0.3.27 —
+      // a challenge room's red.
       const up = c.state === 'rising' ? Math.min(1, c.t / ITEMS.v.chestRise) : 1;
       const glow = c.state === 'shut' ? 1 : c.state === 'rising' ? up : c.state === 'opening' ? Math.max(0, 1 - k / LID_UP) : 0;
-      body.aura.set(keyless(c) ? 0 : glow, this.time);
+      body.aura.set(keyless(c) && !c.challenge ? 0 : glow, this.time, c.challenge);
     }
     for (const kind of ITEM_KINDS) {
       const f = this.flyers[kind];

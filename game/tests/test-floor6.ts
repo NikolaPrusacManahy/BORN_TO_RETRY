@@ -93,8 +93,9 @@ const level = buildDungeon(plan);
 section('Floor 6 — the floor');
 {
   const cove = level.cove;
-  const kinds = new Set(cove.pieces.map((p) => p.kind));
-  check('its kegs and set pieces (wrecks, boats, houses, outcrops, bones)', cove.kegs.length >= 12 && ['wreck', 'boat', 'house', 'outcrop', 'bones'].every((k) => kinds.has(k as never)), `${cove.kegs.length} kegs, ${cove.pieces.length} pieces`);
+  // (Update 0.3.27 — fewer rooms a floor: its houses' room may not come up on one, so two floors.)
+  const kinds = new Set([...cove.pieces, ...buildDungeon(planFloor(7, FLOOR.cove)).cove.pieces].map((p) => p.kind));
+  check('its kegs and set pieces (wrecks, boats, houses, outcrops, bones; over two floors)', cove.kegs.length >= 12 && ['wreck', 'boat', 'house', 'outcrop', 'bones'].every((k) => kinds.has(k as never)), `${cove.kegs.length} kegs, ${cove.pieces.length} pieces`);
   check('every keg is a block in the world (until it blows up)', cove.kegs.every((k) => level.arena.boxes.includes(k.box)));
   const wreck = cove.pieces.find((p) => p.kind === 'wreck')!;
   const deck = level.arena.boxes.find((b) => b.kind === 'block' && near(b.x, wreck.x, 1e-6) && near(b.z, wreck.z, 1e-6));

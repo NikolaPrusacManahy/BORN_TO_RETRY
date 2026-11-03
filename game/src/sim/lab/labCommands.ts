@@ -73,7 +73,7 @@ export function runLab(cmd: LabCommand, state: CombatState, player: PlayerState,
     case 'chest': {
       ahead(AHEAD.chest);
       // Its front (where you kneel) faces you.
-      const chest: Chest = { spot: { room: -1, x: at.x, z: at.z, rot: Math.atan2(-fx, -fz), fx: -fx, fz: -fz, rises: false, boss: false, gate: -1, gold: false }, state: 'shut', t: 0, rolls: [state.rng(), state.rng(), state.rng()], key: null, loot: null, given: false, boss: null, cards: false };
+      const chest: Chest = { spot: { room: -1, x: at.x, z: at.z, rot: Math.atan2(-fx, -fz), fx: -fx, fz: -fz, rises: false, boss: false, gate: -1, gold: false }, state: 'shut', t: 0, rolls: [state.rng(), state.rng(), state.rng()], key: null, loot: null, given: false, boss: null, cards: false, challenge: false };
       if (treasure.chests.length >= LAB_CHESTS) treasure.chests.shift();
       treasure.chests.push(chest);
       state.events.push('itemDrop', -1, at.x, 0.5, at.z);

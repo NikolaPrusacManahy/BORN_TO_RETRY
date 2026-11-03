@@ -2,12 +2,13 @@
 // Raider's slide, the Axe Thrower's two axes, the Draugr rising from the snow, the Völva's rime and her raising of the
 // dead; the chill their frost puts in you and the ice her rime leaves. Their health in the floors before's range (the
 // designer: "do not make enemies tankier NEVER"). Times in seconds, distances in metres, speeds in m/s.
+// (Update 0.3.27 — the designer: "make them 50% faster in speed, 70% speed increase on the blue enemies … they are very slow") — every speed ×1.5, the frozen dead's ×1.7 (2.6 → 4.4); no sliding on ice.
 // **(placeholders)**
 import { group, knob } from './schema';
 
 export const FOES_NORSE = group('foesNorse', 'Frozen warband', {
   raiderHp: knob(40, 5, 400, 5, 'Raider health', 'The Viking with the small axe: he slides at you across the ice.'),
-  raiderSpeed: knob(4.6, 0.5, 12, 0.1, 'Raider speed', 'How fast he runs.'),
+  raiderSpeed: knob(6.9, 0.5, 12, 0.1, 'Raider speed', 'How fast he runs.'),
   raiderReach: knob(2.3, 0.5, 5, 0.1, 'Raider reach', 'His chop reaches this far.'),
   raiderWindup: knob(0.55, 0.1, 2, 0.05, 'Raider wind-up', 'His chop’s warning.'),
   raiderDamage: knob(16, 1, 60, 1, 'Raider chop', 'His chop, to you.'),
@@ -15,13 +16,12 @@ export const FOES_NORSE = group('foesNorse', 'Frozen warband', {
   slideTo: knob(12, 4, 30, 0.5, 'Slide to', '…and no further than this.'),
   slideCrouch: knob(0.5, 0.1, 2, 0.05, 'Slide crouch', 'He crouches this long first (his boots scrape).'),
   slideSpeed: knob(14, 4, 30, 0.5, 'Slide speed', 'He kicks off this fast, straight at where you stood.'),
-  slideStone: knob(1.5, 0, 6, 0.25, 'Slide past on stone', 'On stone he stops this far past where you stood.'),
-  slideIce: knob(10, 2, 30, 0.5, 'Slide past on ice', 'On ice he carries on this far past it: he can’t stop or turn.'),
+  slideStone: knob(1.5, 0, 6, 0.25, 'Slide past', 'He stops this far past where you stood (on ice too: Update 0.3.27).'),
   slideDamage: knob(18, 1, 60, 1, 'Slide hit', 'Sliding into you, axe first.'),
   slideDazed: knob(1.5, 0.2, 5, 0.1, 'Slide dazed', 'Into a wall fast, he’s dazed this long.'),
   slideEvery: knob(4.5, 1, 15, 0.25, 'Slide every', 'Between his slides.'),
   throwerHp: knob(30, 5, 400, 5, 'Axe Thrower health', 'The Viking woman: two axes at once, a V at you.'),
-  throwerSpeed: knob(4, 0.5, 12, 0.1, 'Axe Thrower speed', 'How fast she walks.'),
+  throwerSpeed: knob(6, 0.5, 12, 0.1, 'Axe Thrower speed', 'How fast she walks.'),
   throwerNear: knob(6, 2, 15, 0.5, 'Axe Thrower keeps off', 'She stays at least this far from you.'),
   throwerFar: knob(16, 6, 30, 0.5, 'Axe Thrower range', 'She throws from no further than this.'),
   throwerWindup: knob(0.6, 0.1, 2, 0.05, 'Axe Thrower wind-up', 'Her arm back this long before the axes fly.'),
@@ -34,7 +34,7 @@ export const FOES_NORSE = group('foesNorse', 'Frozen warband', {
   rollEvery: knob(3, 0.5, 10, 0.25, 'Roll every', 'Between rolls (meanwhile she shoves you).'),
   throwerShove: knob(8, 1, 40, 1, 'Axe Thrower shove', 'Cornered, her shove.'),
   draugrHp: knob(20, 5, 400, 5, 'Draugr health', 'The frozen dead: weak alone, bad in a crowd.'),
-  draugrSpeed: knob(2.6, 0.5, 10, 0.1, 'Draugr speed', 'How fast they shamble.'),
+  draugrSpeed: knob(4.4, 0.5, 10, 0.1, 'Draugr speed', 'How fast they shamble (the Barrow Maid too).'),
   draugrReach: knob(1.9, 0.5, 4, 0.1, 'Draugr reach', 'Their grasp reaches this far.'),
   draugrWindup: knob(0.6, 0.1, 2, 0.05, 'Draugr wind-up', 'Their grasp’s warning.'),
   draugrDamage: knob(10, 1, 50, 1, 'Draugr frostbite', 'Their touch, to you (and you’re chilled).'),
@@ -45,7 +45,7 @@ export const FOES_NORSE = group('foesNorse', 'Frozen warband', {
   chillMax: knob(3, 1, 6, 1, 'Chill most', 'Chills stack this many times at most.'),
   chillFor: knob(3, 0.5, 10, 0.25, 'Chill for', 'Chilled this long (each new chill starts it again).'),
   volvaHp: knob(26, 5, 400, 5, 'Völva health', 'The seeress: she freezes the floor and raises the fallen dead.'),
-  volvaSpeed: knob(3.2, 0.5, 10, 0.1, 'Völva speed', 'How fast she walks.'),
+  volvaSpeed: knob(4.8, 0.5, 10, 0.1, 'Völva speed', 'How fast she walks.'),
   volvaNear: knob(8, 3, 20, 0.5, 'Völva keeps off', 'She stays at least this far from you.'),
   volvaFar: knob(18, 6, 30, 0.5, 'Völva range', 'She casts from no further than this.'),
   volvaCast: knob(0.8, 0.2, 3, 0.05, 'Völva cast', 'Her hand glows this long before the rime bolt.'),

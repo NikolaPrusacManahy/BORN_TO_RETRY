@@ -3,11 +3,10 @@
 // sliding straight at where you stood, axe first (Slide speed), once into you (Slide hit: it can be parried). On stone
 // he stops Slide past on stone past where you stood; on ice, or the Völva's rime, he carries on Slide past on ice: he
 // can't stop or turn, so step aside and he goes by. Into a wall fast, he's dazed (Slide dazed: hits flinch him out of nothing, he just stands).
-// Up close, his chop (brawler.ts). A hit flinches him out of a crouch. Pure.
+// Up close, his chop (brawler.ts). A hit flinches him out of a crouch. Update 0.3.27 (the designer: "Do not make the enemies in Frozen Depths slide on ice at all") — on
+// ice he stops as on stone. Pure.
 import { FOES_NORSE } from '../../tuning/foesNorse';
-import { onRime } from '../combat/frost';
 import { meleeHit } from '../combat/meleeParry';
-import { onIce } from '../dungeon/quicksand';
 import type { PlayerState } from '../player/state';
 import { brawl, Brawl } from './brawler';
 import { Enemy, EnemyWorld, inLine, setPhase, turn, walk, yawTo } from './enemy';
@@ -71,9 +70,8 @@ export function updateRaider(e: Enemy, index: number, player: PlayerState, w: En
 /** Sliding: on along his way, slowing as the ground lets him; once into you; a wall stops him. */
 function slide(e: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number) {
   const v = FOES_NORSE.v;
-  const slick = onIce(e.pos.x, e.pos.y, e.pos.z, w.ground?.ice) || onRime(w.ground?.frost, e.pos.x, e.pos.y, e.pos.z);
-  // (It slows so a slide from Slide speed carries past where you stood as far as this ground lets it.)
-  const brake = (v.slideSpeed * v.slideSpeed) / (2 * (e.shots + (slick ? v.slideIce : v.slideStone)));
+  // (It slows so a slide from Slide speed carries Slide past on stone past where you stood: Update 0.3.27, on ice too.)
+  const brake = (v.slideSpeed * v.slideSpeed) / (2 * (e.shots + v.slideStone));
   const step = e.near * dt;
   const x = e.pos.x;
   const z = e.pos.z;

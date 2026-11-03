@@ -1,6 +1,6 @@
 // Update 0.0.12 — a floor of the dungeon, laid out from the run's seed (the designer: every run a bit different, the
 // way Soul Knight's levels are). Rooms sit on a 5 × 5 board of slots: from the start room (bottom row) a winding path
-// of five fight rooms leads to the way down, and side rooms branch off it. Each room is a hand-made layout
+// of fight rooms leads to the way down, and side rooms branch off it. Each room is a hand-made layout
 // (rooms.ts), varied per run; neighbours are joined by corridors through doors in the middle of their walls.
 // Everything is stamped onto one grid of 2 m cells (the kit's module). Pure and seeded: the same seed, the same floor.
 // Update 0.0.13 — rooms twice the size: each column of the board is as wide as its widest room and each row as tall as
@@ -15,8 +15,8 @@
 // own seed so the rest of the floor is as it was.
 // Update 0.2.0 (the designer: "always 1 challenge room in each floor"; "if a room leads nowhere … it should be a
 // challenge room") — no plain fight room off the way any more: the one dead-end fight room is the challenge room.
-// Update 0.2.2 (the designer: "every 2 floors, an additional room is added") — the fight rooms on the way: 5 on floors
-// 1–2, 6 on 3–4, 7 on 5–6, 8 on 7 (`pathFights`, Rooms knobs).
+// Update 0.2.2 — one more fight room on the way every 2 floors. Update 0.3.27 (the designer: "there is only 4 main
+// room, 1 challenge room, 1 shop, boss room") — 4 on floors 1–3, 5 on 4–7, 6 on 8–10 (`pathFights`, Rooms knobs).
 // Update 0.2.11 — a floor may have a challenge room of its own (`RoomTemplate.challenge`: floor 6's drowned heart):
 // always its challenge room, never on the way.
 import { createRng, Rng } from '../../core/rng';
@@ -35,9 +35,9 @@ export const MAX_ROOM = 36;
 const GAP = 6;
 const MARGIN = 4;
 export const GRID = SLOTS * (MAX_ROOM + GAP) + MARGIN * 2;
-/** Fight rooms on the way from the start to the way down on floor `level` (Update 0.2.2: one more every Rooms apart
- *  floors; at most 8, as the board holds them). */
-export const pathFights = (level: number) => Math.min(8, Math.round(ROOMS.v.wayRooms) + Math.floor((Math.max(1, level) - 1) / Math.max(1, Math.round(ROOMS.v.wayRoomsApart))));
+/** Fight rooms on the way from the start to the way down on floor `level`: one more every Rooms apart floors, at most
+ *  8 (the board holds that many). Update 0.3.27 — 4, one more from floor 4, one more from floor 8. */
+export const pathFights = (level: number) => Math.min(8, Math.round(ROOMS.v.wayRooms) + Math.floor(Math.max(1, level) / Math.max(1, Math.round(ROOMS.v.wayRoomsApart))));
 /** Chance of a second chest on the floor. */
 const SECOND_CHEST = 0.35;
 
