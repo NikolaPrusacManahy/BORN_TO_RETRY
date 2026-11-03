@@ -5,6 +5,8 @@
 // Update 0.2.4 — a Lizard's poison glob: a green ball. Update 0.3.15 — the Bomber's powder bomb: a small black ball, its
 // fuse spitting sparks; its ring fills over its flight and its fuse together (batted back, over its short flight).
 // Update 0.3.18 — floor 8's mine: a small steel ball floating down, its light blinking red, faster as its fuse runs.
+// Update 0.3.22 — floor 7's: the Völva's rime bolt (a small ball of glowing frost) and Haugbui's block of ice (a pale
+// cube, tumbling); their rings ice-blue.
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
 import { BOMB_POOL } from '../../sim/combat/bombs';
@@ -25,6 +27,9 @@ interface Shown {
 const POWDER = 0.4;
 const FUSE = 0.24;
 const SPARK = 0.13;
+/** Update 0.3.22 — a rime bolt's size against a fireball's; a block of ice's side (m). */
+const RIME = 0.38;
+const ICE_BLOCK = 0.85;
 
 export class BombView {
   readonly group = new THREE.Group();
@@ -37,6 +42,9 @@ export class BombView {
   private readonly bubbleMat = new THREE.MeshStandardMaterial({ color: 0x9ff0ff, emissive: 0x2a9ab8, emissiveIntensity: 0.8, transparent: true, opacity: 0.6, roughness: 0.1 });
   private readonly powderMat = new THREE.MeshStandardMaterial({ color: 0x161616, roughness: 0.55, metalness: 0.3 });
   private readonly mineMat = new THREE.MeshStandardMaterial({ color: 0x4a5048, roughness: 0.4, metalness: 0.6, emissive: 0xff2010, emissiveIntensity: 0 });
+  private readonly boxGeo = new THREE.BoxGeometry(1, 1, 1);
+  private readonly rimeMat = new THREE.MeshStandardMaterial({ color: 0xbfefff, emissive: 0x5ac8ff, emissiveIntensity: 1.8, roughness: 0.2 });
+  private readonly iceMat = new THREE.MeshStandardMaterial({ color: 0xcff4ff, emissive: 0x2a7aa0, emissiveIntensity: 0.5, roughness: 0.08, transparent: true, opacity: 0.88 });
   private readonly sparkMat = new THREE.MeshBasicMaterial({ color: 0xffc040, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
   private readonly shown: Shown[] = [];
   private readonly mats: THREE.Material[] = [];
@@ -64,14 +72,19 @@ export class BombView {
       s.spark.visible = b.alive && b.look === 'powder';
       if (!b.alive) continue;
       s.ball.visible = b.look !== 'bones' && b.look !== 'geyser';
-      s.ball.material = b.look === 'poison' ? this.poisonMat : b.look === 'bubble' ? this.bubbleMat : b.look === 'powder' ? this.powderMat : b.look === 'mine' ? this.mineMat : this.ballMat;
+      s.ball.material = b.look === 'poison' ? this.poisonMat : b.look === 'bubble' ? this.bubbleMat : b.look === 'powder' ? this.powderMat : b.look === 'mine' ? this.mineMat : b.look === 'rime' ? this.rimeMat : b.look === 'iceBlock' ? this.iceMat : this.ballMat;
+      const frosty = b.look === 'rime' || b.look === 'iceBlock';
+      s.ball.geometry = b.look === 'iceBlock' ? this.boxGeo : this.ballGeo;
+      s.ball.rotation.set(b.look === 'iceBlock' ? b.t * 5 : 0, b.look === 'iceBlock' ? b.t * 3 : 0, 0);
+      (s.ring.material as THREE.MeshBasicMaterial).color.setHex(frosty ? 0x7fdcff : 0xff2a10);
+      (s.fill.material as THREE.MeshBasicMaterial).color.setHex(frosty ? 0x9fe4ff : 0xff6a20);
       const powder = b.look === 'powder' || b.look === 'mine';
       // (A mine's light: blinking faster as its fuse runs out.)
       if (b.look === 'mine') this.mineMat.emissiveIntensity = Math.sin(this.time * (8 + 22 * Math.min(1, Math.max(0, (b.t - b.fall) / Math.max(0.1, b.fuse))))) > 0 ? 2.5 : 0;
       const k = Math.min(1, b.t / (b.fall + (powder ? b.fuse : 0)));
       const flicker = 0.85 + 0.15 * Math.sin(this.time * 40 + i);
       s.ball.position.copy(b.pos);
-      s.ball.scale.setScalar(powder ? BALL * POWDER : BALL * flicker);
+      s.ball.scale.setScalar(powder ? BALL * POWDER : b.look === 'rime' ? BALL * RIME * flicker : b.look === 'iceBlock' ? ICE_BLOCK : BALL * flicker);
       if (powder) {
         s.spark.position.set(b.pos.x, b.pos.y + FUSE, b.pos.z);
         s.spark.scale.setScalar(SPARK * (0.6 + 0.8 * Math.abs(Math.sin(this.time * 37 + i * 1.3))));
@@ -100,6 +113,9 @@ export class BombView {
     this.bubbleMat.dispose();
     this.powderMat.dispose();
     this.sparkMat.dispose();
+    this.boxGeo.dispose();
+    this.rimeMat.dispose();
+    this.iceMat.dispose();
     for (const m of this.mats) m.dispose();
   }
 }

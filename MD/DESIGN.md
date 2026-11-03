@@ -230,8 +230,18 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 - Floor 3's stone frosted under a winter sky; snowy trees in beds of snow; snowy rocks for cover; ice-blue crystals;
   falling snow. **Ice:** your grip on it is 15% of stone's (what you start keeps going); a body knocked across it slides
   far. **Icicles** along the fight rooms' walls: they shake as you come under them (a creak, a shadow), fall after
-  0.7 s, 20 to whatever's within 1.1 m. Nine rooms of its own. Its enemies and its boss (the Frost Roc) are next; dry-land
-  stand-ins meanwhile. **(placeholder numbers, F1 → Frozen Depths)**
+  0.7 s, 20 to whatever's within 1.1 m. Nine rooms of its own. Its boss (the Frost Roc) is next; floor 4's Velociraptor
+  stands in meanwhile. **(placeholder numbers, F1 → Frozen Depths)**
+- **Its warband** (Update 0.3.22, the designer: "find enemies that would go together … Go with it"; plan
+  `MD/FLOOR7_WARBAND_PLAN.md`, spec `MD_UPDATES/U0322_FROZEN_WARBAND.md`): a Viking warband frozen under the sea's ice
+  that won't stay dead (the More-enemies pack's people; eyes lit ice-blue, the dead frost-blue). The **Raider** slides
+  at where you stood, axe first (past it on ice: he can't stop; dazed into a wall); the **Axe Thrower** throws two axes
+  in a V (one at you, one where you're going: change your way) and rolls away; the **Draugr** and **Barrow Maids** rise
+  out of the snow (or the ice) as you pass, their grasp chilling you (10% slower, up to three); the **Völva** lobs rime
+  that freezes the floor where it lands and chants a fallen Draugr back up (hit her to stop it; two a room at most).
+  Mini bosses: the **Berserker** (roar, a spin that skids wide on ice, dizzy after; two spins below half health) and
+  **Haugbui** (a stomp that throws you and ices the floor round him; blocks of ice torn from the floor and hurled).
+  **Rime** is ice while it lasts (8 s). Never tankier. **(placeholder numbers, F1 → Frozen warband)**
 
 ### Parrying melee blows (Update 0.3.10, the designer: "Allow parries melee attacks, not mini bosses"; spec `MD_UPDATES/U0310_MELEE_PARRY_PILLARS.md`)
 - An ordinary enemy's melee blow landing while the parry window is open: no harm; your fist punches back (the parry's

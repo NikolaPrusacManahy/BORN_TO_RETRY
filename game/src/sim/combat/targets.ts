@@ -50,8 +50,8 @@ export interface Orb {
   by: Cause | null;
   /** Update 0.2.4 — a glowing orb, a Tribal's spear or a Cactoro's spine (how it's drawn). */
   /** (Update 0.2.10 — 'water': floor 5's Glubs' bolts. Update 0.3.18 — floor 8's: 'laser', a blaster bolt; 'missile',
-   *  the Bee mech's.) */
-  look: 'fire' | 'spear' | 'spine' | 'carrot' | 'water' | 'laser' | 'missile';
+   *  the Bee mech's. Update 0.3.22 — 'axe': floor 7's Axe Thrower's, spinning.) */
+  look: 'fire' | 'spear' | 'spine' | 'carrot' | 'water' | 'laser' | 'missile' | 'axe';
   /** Update 0.3.18 — it turns after you this fast (rad/s; 0: straight: the Bee mech's missiles home). */
   home: number;
   /** Update 0.3.3 — punched back (parry.ts): it hits enemies, not you. */

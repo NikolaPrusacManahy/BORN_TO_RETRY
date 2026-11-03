@@ -38,6 +38,11 @@ import { FOES_MOON } from '../tuning/foesMoon';
 import { FOES_MOON_B } from '../tuning/foesMoonB';
 import { BURST } from '../sim/enemies/gunner';
 import { BOMBING } from '../sim/enemies/beeShip';
+import { FOES_NORSE } from '../tuning/foesNorse';
+import { FOES_NORSE_B } from '../tuning/foesNorseB';
+import { SLIDE } from '../sim/enemies/raider';
+import { ROAR } from '../sim/enemies/berserker';
+import { HURL, STOMP } from '../sim/enemies/haugbui';
 
 /** Update 0.3.15 — the Corsair's: her hook's twirl, her axe dragged in (at once), her axe. */
 const corsairWindup = (move: number) => (move === HOOK_TWIRL ? FOES_COVE.v.hookTwirl : move === 4 ? FOES_COVE.v.hookStrike : FOES_COVE.v.corsairWindup);
@@ -70,6 +75,8 @@ const FLIER = { idle: 'Flying_Idle', move: 'Fast_Flying', attack: 'Punch', hit: 
 const BIG = { idle: 'Idle', move: 'Walk', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' };
 /** Update 0.3.15 — the Pirate Kit's characters' clips. */
 const PIRATE = { idle: 'Idle', move: 'Run', attack: 'Sword', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' };
+/** Update 0.3.22 — the More-enemies pack's people's clips (floor 7's warband: export_people.py; 24 fps). */
+const PEOPLE = { idle: 'Idle', move: 'Run', attack: 'SwordSlash', hit: 'RecieveHit', death: 'Death', air: 'Jump' };
 /** Update 0.2.11 — floor 6's fish have one clip, their swim: everything is it (their wind-ups beat it faster; the rest
  *  is turned in code: fishPose.ts). */
 const swimming = (clip: string) => ({ idle: clip, move: clip, attack: clip, hit: clip, death: clip, air: clip });
@@ -181,6 +188,17 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
   beeShip: { url: '/models/enemies/ship_bee.glb', clips: STILL, lands: 0, windup: (move) => (move === BOMBING ? FOES_MOON_B.v.bombLine : 0.6), glow: [1, 0.85, 0.2], turn: -Math.PI / 2, posed: true },
   beeMech: { url: '/models/enemies/mech_bee.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Kick', hit: 'Jump_Landing', death: 'Death', air: 'Jump' }, lands: 15 / 30, windup: () => 0.5, glow: [1, 0.85, 0.2], posed: true },
   beeNaut: { url: '/models/enemies/astronaut_bee.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Run_Gun_Shoot' }, lands: 17 / 30, windup: () => 0.28, glow: [1, 0.85, 0.2], posed: true },
+  // Update 0.3.22 — floor 7's warband (export_people.py; recoloured, their eyes lit: norseLooks.ts). The axes land at
+  // 13/24 of the SwordSlash (the Raider's crouch raises his, his slide swings it; the Thrower's throw), the dead's grasp
+  // and Haugbui's blows at 9/24 of a Punch, the Völva's bolt at 5/24 of her shot. The Thrower rolls (Roll), the dead rise
+  // (StandUp), the Völva chants arms up (Victory), the Berserker spins his axe out (SwordSlash) and reels dizzy (Defeat).
+  raider: { url: '/models/enemies/raider.glb', clips: { ...PEOPLE, air: 'SwordSlash' }, lands: 13 / 24, windup: (move) => (move === SLIDE ? FOES_NORSE.v.slideCrouch : FOES_NORSE.v.raiderWindup), glow: [0.45, 0.85, 1], posed: true },
+  axeThrower: { url: '/models/enemies/axe_thrower.glb', clips: { ...PEOPLE, air: 'Roll' }, lands: 13 / 24, windup: (move) => (move === 1 ? FOES_NORSE.v.throwerWindup : 0.35), glow: [0.55, 0.9, 1], posed: true },
+  draugr: { url: '/models/enemies/draugr.glb', clips: { ...PEOPLE, move: 'Walk', attack: 'Punch', rise: 'StandUp' }, lands: 9 / 24, windup: () => FOES_NORSE.v.draugrWindup, glow: [0.5, 0.9, 1], posed: true },
+  barrowMaid: { url: '/models/enemies/barrow_maid.glb', clips: { ...PEOPLE, move: 'Walk', attack: 'Punch', rise: 'StandUp' }, lands: 9 / 24, windup: () => FOES_NORSE.v.draugrWindup, glow: [0.5, 0.9, 1], posed: true },
+  volva: { url: '/models/enemies/volva.glb', clips: { ...PEOPLE, move: 'Walk', attack: 'Shoot_OneHanded', air: 'Victory' }, lands: 5 / 24, windup: (move) => (move === 1 ? FOES_NORSE.v.volvaCast : 0.4), glow: [0.6, 0.95, 1], posed: true },
+  berserker: { url: '/models/enemies/berserker.glb', clips: { ...PEOPLE, hit: 'Defeat', air: 'SwordSlash' }, lands: 13 / 24, windup: (move) => (move === ROAR ? FOES_NORSE_B.v.spinWarn : FOES_NORSE_B.v.berserkerWindup), glow: [1, 0.25, 0.1], posed: true },
+  haugbui: { url: '/models/enemies/draugr.glb', clips: { ...PEOPLE, move: 'Walk', attack: 'Punch', rise: 'StandUp' }, lands: 9 / 24, windup: (move) => (move === STOMP ? FOES_NORSE_B.v.stompWindup : move === HURL ? FOES_NORSE_B.v.hurlWindup : FOES_NORSE_B.v.haugbuiWindup), glow: [0.4, 0.75, 1], posed: true },
 };
 
 /** The role a phase plays; once its attack is over, a recovering enemy stands. */
@@ -211,8 +229,10 @@ export function roleFor(phase: EnemyPhase, attackOver: boolean): Role {
     case 'stun':
       return 'hit';
     case 'roar':
-    case 'intro':
       return 'idle';
+    // (Update 0.3.22 — floor 7's dead rising out of the snow: its rise clip, if it has one.)
+    case 'intro':
+      return 'rise';
     // Update 0.1.19 — a Skeleton in pieces (enemiesView.ts: rising once it rebuilds).
     case 'rebuild':
       return 'death';

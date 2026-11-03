@@ -268,7 +268,8 @@ function send(run: DungeonRun, i: number, player: PlayerState, combat: CombatSta
     const lair = lairFor(room, kind);
     let slot: number;
     // (Update 0.2.10 — and floor 5's Big Glubs: they hang over their perches.)
-    if ((kind === 'spitter' || kind === 'tribal' || kind === 'bigGlub') && perches.length > 0) {
+    // (Update 0.3.22 — and floor 7's Axe Throwers.)
+    if ((kind === 'spitter' || kind === 'tribal' || kind === 'bigGlub' || kind === 'axeThrower') && perches.length > 0) {
       slot = spawnAt(combat.enemies, kind, perches, player, rng, combat.events);
       if (slot >= 0) combat.enemies[slot].perch = combat.enemies[slot].pos.y;
     } else if (kind === 'dragonling' && perches.length > 0) {

@@ -2,6 +2,7 @@
 // out of its open graves (lying in pieces, then rising as a fallen one rebuilds: its own revive still to come), its
 // Mushnubs come out of its mushroom beds and its White Rabbits out of their burrows, instead of at the room's spawn
 // spots. A lair no one stands on first. Pure.
+// Update 0.3.22 — floor 7's Draugr and Barrow Maids come up out of its beds of snow (they bury themselves: draugr.ts).
 import type { Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import type { DungeonRoom } from '../../world/dungeon/assemble';
@@ -19,7 +20,7 @@ const TAKEN = 1.2;
 /** The lairs `kind` comes out of in `room` (null: none, it comes in as the rest do). */
 export function lairFor(room: DungeonRoom, kind: EnemyKind): Spot[] | null {
   const l = room.lairs;
-  const spots = kind === 'skeleton' ? l.graves : kind === 'mushnub' ? l.shrooms : kind === 'rabbit' ? l.burrows : null;
+  const spots = kind === 'skeleton' ? l.graves : kind === 'mushnub' ? l.shrooms : kind === 'rabbit' ? l.burrows : kind === 'draugr' || kind === 'barrowMaid' ? l.barrows : null;
   return spots && spots.length > 0 ? spots : null;
 }
 

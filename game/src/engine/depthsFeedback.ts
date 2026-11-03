@@ -5,6 +5,8 @@
 // Tentacle bursting out and grabbing you, slamming you down (sand and a jolt), the sea round it, Mako's sand, Barbarossa's shot striking, his hook catching you.
 // Update 0.3.17 — floor 8's meteor striking (moon dust and rock flung, a hard jolt the nearer). Update 0.3.18 — its
 // crew's: a mine popping, a Leaper's and the Bee mech's landings, Barbara bursting out of her broken mech.
+// Update 0.3.22 — floor 7's warband's: the dead rising out of the snow, a rime bolt bursting, a block of ice
+// shattering, Haugbui's stomp, a Raider into a wall.
 import * as THREE from 'three';
 import type { CombatEvent } from '../sim/combat/state';
 import { FEEDBACK } from '../tuning/combat';
@@ -17,8 +19,21 @@ export function depthsFeedback(f: FeedbackParts, kind: CombatEvent, value: numbe
   const fb = FEEDBACK.v;
   switch (kind) {
     case 'icicleShatter':
+    case 'iceBlockShatter':
       f.sparks.spawn(at, UP, 26, 1.2);
       f.rig.shake.add(fb.shakeJab * near(8));
+      return true;
+    case 'draugrRise':
+    case 'rimeBurst':
+      f.sparks.spawn(at, UP, kind === 'draugrRise' ? 30 : 18, 1);
+      return true;
+    case 'haugbuiStomp':
+      f.chunks.spawn(at, UP, 10, 1.2);
+      f.sparks.spawn(at, UP, 30, 1.4);
+      f.rig.shake.add(fb.shakeHeavy * near(14));
+      return true;
+    case 'raiderDazed':
+      f.rig.shake.add(fb.shakeJab * 0.5 * near(8));
       return true;
     case 'pressSlam':
       f.sparks.spawn(at, UP, 16, 1);

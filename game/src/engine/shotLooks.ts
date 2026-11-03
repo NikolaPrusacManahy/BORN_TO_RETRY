@@ -6,17 +6,18 @@
 // tumbling). And what each leaves behind it and where it lands (shotsView.ts). Pure data and meshes.
 // Update 0.3.18 — floor 8's: a blaster bolt (a pink-white streak, glowing) and the Bee mech's missile (a steel body,
 // its nose cone, its exhaust glowing and smoking behind it).
+// Update 0.3.22 — floor 7's Axe Thrower's axe (a hand axe, spinning flat: a wooden haft, a steel head).
 import * as THREE from 'three';
 import type { Orb } from '../sim/combat/targets';
 
-export type ShotStyle = 'fire' | 'blueFire' | 'acid' | 'water' | 'spear' | 'spine' | 'feather' | 'carrot' | 'laser' | 'missile';
+export type ShotStyle = 'fire' | 'blueFire' | 'acid' | 'water' | 'spear' | 'spine' | 'feather' | 'carrot' | 'laser' | 'missile' | 'axe';
 
 /** A shot's style: by who fired it, then by its look. */
 export function shotStyle(o: Orb): ShotStyle {
   if (o.by === 'blueDemon') return 'blueFire';
   if (o.by === 'spitter') return 'acid';
   if (o.by === 'maskTribal') return 'feather';
-  if (o.look === 'laser' || o.look === 'missile') return o.look;
+  if (o.look === 'laser' || o.look === 'missile' || o.look === 'axe') return o.look;
   return o.look === 'water' ? 'water' : o.look === 'spear' ? 'spear' : o.look === 'spine' ? 'spine' : o.look === 'carrot' ? 'carrot' : 'fire';
 }
 
@@ -45,6 +46,7 @@ export const TRAILS: Record<ShotStyle, ShotTrail> = {
   carrot: { rate: 0, color: 0, falls: true, burst: 8, burstColor: 0xff7418, flash: null },
   laser: { rate: 0, color: 0, falls: false, burst: 10, burstColor: 0xff8ad0, flash: 0xff8ad0 },
   missile: { rate: 40, color: 0xd8d2cc, falls: false, burst: 20, burstColor: 0xff8a30, flash: 0xffa040 },
+  axe: { rate: 0, color: 0, falls: true, burst: 6, burstColor: 0xb8c0c8, flash: null },
 };
 
 /** Every style's meshes for one shot's slot (each hidden but its own: shotsView.ts shows one). Geometries and
@@ -113,7 +115,17 @@ export class ShotMeshes {
     jet.scale.set(0.08, 0.14, 0.08);
     jet.position.y = -0.27;
     missile.add(body, nose, jet);
+    // Lying flat (it spins about y): its haft along x, its head at the far end, out to one side.
+    const axe = new THREE.Group();
+    const haft = new THREE.Mesh(kit.rod, kit.wood);
+    haft.scale.set(0.03, 0.6, 0.03);
+    haft.rotation.z = Math.PI / 2;
+    const head = new THREE.Mesh(kit.box, kit.steel);
+    head.scale.set(0.09, 0.05, 0.24);
+    head.position.set(0.26, 0, 0.07);
+    axe.add(haft, head);
     this.parts = {
+      axe,
       laser,
       missile,
       fire: fireball(kit.fireCore, kit.fireInner, kit.fireOuter, this.flame),
@@ -142,6 +154,7 @@ export class ShotKit {
   readonly rod = new THREE.CylinderGeometry(1, 1, 1, 6);
   /** A cone 1 tall along +y, its point at the top. */
   readonly cone = new THREE.ConeGeometry(1, 1, 7);
+  readonly box = new THREE.BoxGeometry(1, 1, 1);
   /** A feather's vane: a thin diamond in the plane. */
   readonly leaf = new THREE.ShapeGeometry(new THREE.Shape([new THREE.Vector2(0, -0.5), new THREE.Vector2(0.5, 0), new THREE.Vector2(0, 0.5), new THREE.Vector2(-0.5, 0)]));
   private readonly glow = (color: number, opacity: number) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });

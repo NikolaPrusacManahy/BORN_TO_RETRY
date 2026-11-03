@@ -5,6 +5,7 @@
 // attack needs its turn (tokens.ts: `armed`, given by the caller). Pure.
 // Update 0.3.10 — its melee blow can be parried (combat/meleeParry.ts). Update 0.3.15 — a big one (floor 6's Mako,
 // Barbarossa) walks the big bodies' grid: on the small one it ran into gaps too narrow for it.
+// Update 0.3.22 — what else a blow that lands does (`onHit`: floor 7's Draugr chill you).
 import { Vector3 } from 'three';
 import { meleeHit } from '../combat/meleeParry';
 import type { PlayerState } from '../player/state';
@@ -28,6 +29,7 @@ export interface Brawl {
   shove: number;
   windupEvent: CombatEvent;
   strikeEvent: CombatEvent;
+  onHit?: (player: PlayerState, w: EnemyWorld, e: Enemy) => void;
 }
 
 const way = new Vector3();
@@ -83,6 +85,7 @@ function strike(e: Enemy, index: number, player: PlayerState, dist: number, towa
   const off = Math.abs(Math.atan2(Math.sin(toward - e.facing), Math.cos(toward - e.facing)));
   if (dist > b.reach() || off > (b.arc * Math.PI) / 180 || !inLine(e, player, w.nav.small, s.height * 0.75)) return;
   if (!meleeHit(player, w, e, index, b.damage())) return;
+  b.onHit?.(player, w, e);
   const len = Math.max(dist, 1e-3);
   player.vel.x += ((player.pos.x - e.pos.x) / len) * b.shove;
   player.vel.z += ((player.pos.z - e.pos.z) / len) * b.shove;

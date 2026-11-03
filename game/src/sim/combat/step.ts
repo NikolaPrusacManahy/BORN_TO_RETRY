@@ -72,6 +72,7 @@ import { splinter, tickPowers } from '../cards/cardPowers';
 import { staticStep, tremors } from '../cards/buildPowers';
 import { holds } from '../cards/cards';
 import { CARDS } from '../../tuning/cards';
+import { stepFrost } from './frost';
 
 /** Update 0.1.12 — seconds with no enemy you could execute before a new one stings again. */
 const EXEC_QUIET = 0.75;
@@ -282,7 +283,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   if (state.storm > 0) state.storm = state.enemies.some((e) => e.kind === 'dino' && isLive(e)) ? Math.max(0, state.storm - dt) : 0;
   stepFlood(state, dt);
   updateQuakes(state.quakes, player, events, dt);
-  updateBombs(state.bombs, player, events, dt, state.puddles);
+  updateBombs(state.bombs, player, events, dt, state.puddles, state.ground.frost);
+  stepFrost(state.ground.frost, dt);
   updatePuddles(state.puddles, player, dt);
   updateWaves(state.waves, state.enemies, spawns, player, state.rng, events, dt);
   updateThrown(state, world, player, dt);

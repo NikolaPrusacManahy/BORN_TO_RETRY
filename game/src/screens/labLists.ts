@@ -6,6 +6,7 @@
 // stand-ins come from the floors before, so its column is empty till its own enemies are made.
 // Update 0.3.13 — and floor 8: the floors with nothing of their own to list yet (7, 8) are buttons to play them (in
 // the panel's bottom row); the rest a column each, three to a page. Update 0.3.15 — floor 6 has its crew: a column again.
+// Update 0.3.22 — floor 7 its warband: a column too (none left only to play).
 import { rosterOf } from '../sim/dungeon/wavePlan';
 import { BUILD_CARDS } from '../sim/cards/builds';
 import { CARD, CARD_KINDS, CardKind, familyOf } from '../sim/cards/cards';
@@ -76,6 +77,14 @@ const NAMES: Partial<Record<EnemyKind, string>> = {
   mako: 'Mako',
   captain: 'Barbarossa',
   bigShark: 'Big Shark',
+  // (Update 0.3.22 — floor 7's warband.)
+  raider: 'Raider',
+  axeThrower: 'Axe Thrower',
+  draugr: 'Draugr',
+  barrowMaid: 'Barrow Maid',
+  volva: 'Völva',
+  berserker: 'Berserker',
+  haugbui: 'Haugbui',
   demon: 'Demon',
   dragon: 'Dragon',
   boneKing: 'Bone King',

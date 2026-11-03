@@ -147,7 +147,8 @@ section('Lobby — the bestiary’s list');
   check('ten floors; every enemy once, on the floor it first comes to', shelves.length === 10 && new Set(all).size === all.length && shelves[0].enemies.join() === 'grunt,spitter,brute,leaper,stinger,wraith');
   check('each floor’s boss with it (its own: floors 1 to 6)', shelves.slice(0, 6).map((f) => f.boss).join() === 'demon,dragon,boneKing,dino,drownedKing,bigShark' && shelves.slice(6).every((f) => f.boss === null));
   check('a body’s second self beside it: the Headless Crewman, Barbara out of her mech', shelves[5].enemies.indexOf('headless') === shelves[5].enemies.indexOf('crewman') + 1 && shelves[7].enemies.indexOf('beeNaut') === shelves[7].enemies.indexOf('beeMech') + 1);
-  check('floors 7, 9 and 10 have none of their own yet (their rooms send stand-ins)', [7, 9, 10].every((f) => shelves[f - 1].enemies.length === 0));
+  // (Update 0.3.22 — floor 7 has its warband.)
+  check('floors 9 and 10 have none of their own yet (their rooms send stand-ins); floor 7 its warband', [9, 10].every((f) => shelves[f - 1].enemies.length === 0) && shelves[6].enemies.join() === 'raider,axeThrower,draugr,barrowMaid,volva,berserker,haugbui');
   check('no floor has more than a row holds (ten)', shelves.every((f) => f.enemies.length <= 10));
 }
 
@@ -327,7 +328,7 @@ section('Lobby — the boards and the credits');
   const paintings = d.boards.filter((b) => b.kind === 'floor');
   check('ten paintings, floors 1 to 10 left to right as you face them (east to west), each its name', paintings.map((b) => boardLines(b, 'real', '')[0].text).join() === '1,2,3,4,5,6,7,8,9,10' && paintings.every((b, i) => i === 0 || b.x < paintings[i - 1].x) && boardLines(paintings[5], 'real', '')[1].text === 'SKULL COVE');
   const rows = d.boards.filter((b) => b.kind === 'row').map((b) => boardLines(b, 'real', ''));
-  check('each bestiary row its floor’s number and name; COMING SOON where it has none yet', rows[0][0].text === '1 · THE DUNGEON' && rows.filter((l) => l[1]?.text === 'COMING SOON').length === 3);
+  check('each bestiary row its floor’s number and name; COMING SOON where it has none yet', rows[0][0].text === '1 · THE DUNGEON' && rows.filter((l) => l[1]?.text === 'COMING SOON').length === 2);
   // (Update 0.2.12 — the designer: no fonts or code credited.)
   // (Update 0.3.19 — and the fights' music: Polarnyne's pack asks for a credit.)
   check('credits: models, sound and music (no fonts or code)', CREDITS.map((c) => c.title).join() === 'MODELS,SOUND,MUSIC' && CREDITS[2].lines.includes('Polarnyne'));

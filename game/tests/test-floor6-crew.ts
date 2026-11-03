@@ -65,7 +65,7 @@ section('Floor 6 — the crew');
     }
   }
   check(`its waves: the Gulls in pairs, the Bats in swarms of ${v.batSwarm}, a Tentacle only in a room with sea, at most ${SHANTY_MAX} Shanty Men a room`, odd === '' && tentacles > 0 && most <= SHANTY_MAX, odd || `${tentacles} Tentacles, at most ${most} Shanty Men`);
-  check('its rooms have no perches (were there one: a Bomber’s)', perches === 0 && percherOf(6) === 'bomber' && percherOf(7) === 'tribal');
+  check('its rooms have no perches (were there one: a Bomber’s)', perches === 0 && percherOf(6) === 'bomber' && percherOf(7) === 'axeThrower');
   const crowd = crewWaves([['shanty', 'shanty', 'corsair'], ['shanty', 'shanty', 'shanty']], true).flat();
   check(`no more than ${SHANTY_MAX} Shanty Men in a room (the designer), the rest Corsairs`, crowd.filter((k) => k === 'shanty').length === SHANTY_MAX && crowd.length === 6);
   const w = crewWaves([['corsair', 'crewman', 'gull', 'tentacle', 'bat']], false)[0];

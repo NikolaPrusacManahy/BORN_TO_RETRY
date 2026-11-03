@@ -30,7 +30,8 @@ temple (8), under that the ground gives way to an abyss (9), and at the bottom, 
 - **Hazards:** icicles over some rooms that fall where you stand (a shadow warns first); snow drifts that slow you.
 - **Rooms (8–10 layouts):** frozen courtyards with trees, an ice-lake hall (all ice), a crystal cavern, a snowed-in
   chapel, narrow ice bridges over a frozen drop.
-- **Enemies (proposal, from the unused models):** Goleling (a small ice golem: slow, hits hard, armoured from the
+- **Enemies:** (Update 0.3.22 — the frozen warband instead: `MD/FLOOR7_WARBAND_PLAN.md`.) Was (proposal, from the unused
+  models): Goleling (a small ice golem: slow, hits hard, armoured from the
   front), Bat (a swarm flier that dives), Alpaking (a flier that spits frost: frosted, you're slower), Pigeon (a
   harasser that steals your coins?), Goleling Evolved (mini boss: a big golem whose stomp freezes the floor round it).
 - **Boss: the Frost Roc** (Birb, the big one): wing gusts that push you across the ice, dives, a freezing breath that

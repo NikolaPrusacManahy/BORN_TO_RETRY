@@ -85,6 +85,14 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   captain: 'Captain Barbarossa',
   bigShark: 'The Big Shark',
   keg: 'A powder keg',
+  // Update 0.3.22 — floor 7's warband.
+  raider: 'A Raider',
+  axeThrower: 'An Axe Thrower',
+  draugr: 'A Draugr',
+  barrowMaid: 'A Barrow Maid',
+  volva: 'The Völva',
+  berserker: 'The Berserker',
+  haugbui: 'Haugbui',
 };
 
 export const causeName = (by: Cause | null) => (by ? CAUSE_NAMES[by] : 'Unknown');

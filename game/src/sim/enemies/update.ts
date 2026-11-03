@@ -17,6 +17,7 @@ import { updateFlow } from './chase';
 import { Enemy, EnemyWorld, isLive } from './enemy';
 import { beginTick } from './tick';
 import { onIce } from '../dungeon/quicksand';
+import { onRime } from '../combat/frost';
 import { separateEnemies } from './bodies';
 import { dealTokens, wait, waits } from './tokens';
 import { fanOut, spreadSlots } from './spread';
@@ -84,6 +85,12 @@ import { updateHopper } from './hopper';
 import { updateDiver, updateMineLayer, updateStrafer } from './ships';
 import { updateBeeShip } from './beeShip';
 import { updateBeeMech, updateBeeNaut } from './beeMech';
+import { updateRaider } from './raider';
+import { updateAxeThrower } from './axeThrower';
+import { updateDraugr } from './draugr';
+import { updateVolva } from './volva';
+import { updateBerserker } from './berserker';
+import { updateHaugbui } from './haugbui';
 import { FOES_COVE } from '../../tuning/foesCove';
 
 export type Update = (e: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number, world: CollisionWorld) => void;
@@ -164,6 +171,14 @@ const UPDATE: Record<EnemyKind, Update> = {
   beeShip: updateBeeShip,
   beeMech: updateBeeMech,
   beeNaut: updateBeeNaut,
+  // Update 0.3.22 — floor 7's warband, Frozen Depths.
+  raider: updateRaider,
+  axeThrower: updateAxeThrower,
+  draugr: updateDraugr,
+  barrowMaid: updateDraugr,
+  volva: updateVolva,
+  berserker: updateBerserker,
+  haugbui: updateHaugbui,
 };
 /** A dead boss's show, each tick until its slot frees. Update 0.2.4 — and a Green Blob splitting as it dies.
  *  Update 0.2.11 — and a dead fish floating up. Update 0.3.15 — a Gull dropping your coins, a Tentacle sinking. */
@@ -189,10 +204,10 @@ export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWor
     const e = enemies[i];
     // (Update 0.1.1 — one held in an execution is placed by it.)
     // (Update 0.3.11 — on floor 7's ice a knocked body slides far. Update 0.3.15 — quickened by floor 6's Shanty Man's
-    // song, its time runs faster: shanty.ts.)
+    // song, its time runs faster: shanty.ts. Update 0.3.22 — and on floor 7's warband's rime as on its ice.)
     const edt = e.hype > 0 ? dt * FOES_COVE.v.shantyHype : dt;
     e.hype = Math.max(0, e.hype - dt);
-    if (beginTick(e, w.nav[ENEMY_STATS[e.kind]().size], edt, onIce(e.pos.x, e.pos.y, e.pos.z, w.ground?.ice ?? []), w.gravity) && e.phase !== 'held') {
+    if (beginTick(e, w.nav[ENEMY_STATS[e.kind]().size], edt, onIce(e.pos.x, e.pos.y, e.pos.z, w.ground?.ice ?? []) || onRime(w.ground?.frost, e.pos.x, e.pos.y, e.pos.z), w.gravity) && e.phase !== 'held') {
       if (waits(e, player)) wait(e, player, w, edt);
       else UPDATE[e.kind](e, i, player, w, edt, world);
       fanOut(e, player, w, edt);

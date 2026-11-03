@@ -4,6 +4,7 @@
 // Bee mech) with its second self after it; and the floor's boss, if it has its own (floor 7 borrows floor 4's till its
 // own are designed; floors 8 to 10's are still to come). Floors that bring none of their own yet (7, 9, 10: their
 // rooms send stand-ins) show bare plinths: coming soon. Pure.
+// Update 0.3.22 — floor 7 has its own, its frozen warband (its boss still floor 4's): only floors 9 and 10 bare now.
 import { rosterOf } from '../dungeon/wavePlan';
 import { bossOf, EnemyKind } from '../enemies/kinds';
 

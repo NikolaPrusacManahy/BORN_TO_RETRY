@@ -10,6 +10,8 @@
 // ('powderBlast': enemies and powder kegs in it too, dungeon/powder.ts, where a punch bats one back).
 // Update 0.3.18 — floor 8's Mine-layer's mines (`look` 'mine'): floated down, it sits blinking its `fuse`, then pops
 // ('mineBlast'); you coming within Mine near of it pops it at once (a moment later).
+// Update 0.3.22 — floor 7's Völva's rime bolts (`look` 'rime': 'rimeBurst', chilling you, and a patch of rime where it
+// lands) and Haugbui's blocks of ice ('iceBlock': 'iceBlockShatter', a smaller patch): combat/frost.ts.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { damagePlayer } from '../player/health';
@@ -17,6 +19,8 @@ import type { Cause, PlayerState } from '../player/state';
 import type { CombatEvent } from './state';
 import { addPuddle, Puddle } from './puddles';
 import { FOES_MOON } from '../../tuning/foesMoon';
+import { FOES_NORSE } from '../../tuning/foesNorse';
+import { addRime, chillYou, Frost } from './frost';
 
 /** Update 0.3.18 — a mine you come near pops this long after (s). */
 const MINE_SNAP = 0.25;
@@ -37,7 +41,7 @@ export interface Bomb {
   by: Cause | null;
   /** Update 0.2.3 — a fireball, or a skeleton (the Bone King's). */
   /** (Update 0.2.10 — 'bubble': floor 5's Big Glub's; it pops, 'bubblePop'. 'geyser': the Drowned King's.) */
-  look: 'fire' | 'bones' | 'poison' | 'bubble' | 'geyser' | 'powder' | 'mine';
+  look: 'fire' | 'bones' | 'poison' | 'bubble' | 'geyser' | 'powder' | 'mine' | 'rime' | 'iceBlock';
   /** Update 0.3.15 — landed, it burns this long before it goes (s). */
   fuse: number;
 }
@@ -48,6 +52,8 @@ const ARC = 3;
 /** A geyser throws you up this fast (m/s); a blast, this. */
 const GEYSER_UP = 11;
 const BLAST_UP = 6;
+/** Update 0.3.22 — a block of ice leaves rime this share of a bolt's across. */
+const BLOCK_RIME = 0.85;
 
 export function createBombs(): Bomb[] {
   return Array.from({ length: BOMB_POOL }, () => ({ alive: false, from: new Vector3(), to: new Vector3(), pos: new Vector3(), t: 0, fall: 1, radius: 1, damage: 0, shove: 0, by: null, look: 'fire' as Bomb['look'], fuse: 0 }));
@@ -77,7 +83,7 @@ export function clearBombs(bombs: Bomb[]) {
 }
 
 /** Each bomb falls; landing, it bursts ('bombBlast', value = its radius). */
-export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQueue<CombatEvent>, dt: number, puddles: Puddle[] = []) {
+export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQueue<CombatEvent>, dt: number, puddles: Puddle[] = [], frost?: Frost) {
   for (const b of bombs) {
     if (!b.alive) continue;
     b.t += dt;
@@ -92,11 +98,14 @@ export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQue
       addPuddle(puddles, b.to.x, b.to.y, b.to.z, events);
       continue;
     }
-    events.push(b.look === 'bones' ? 'boneCrash' : b.look === 'bubble' ? 'bubblePop' : b.look === 'geyser' ? 'geyserBurst' : b.look === 'powder' ? 'powderBlast' : b.look === 'mine' ? 'mineBlast' : 'bombBlast', b.radius, b.to.x, b.to.y, b.to.z);
+    const frosty = b.look === 'rime' || b.look === 'iceBlock';
+    if (frosty && frost) addRime(frost, b.to.x, b.to.z, FOES_NORSE.v.rimeSize * (b.look === 'rime' ? 1 : BLOCK_RIME), FOES_NORSE.v.rimeLast);
+    events.push(b.look === 'bones' ? 'boneCrash' : b.look === 'bubble' ? 'bubblePop' : b.look === 'geyser' ? 'geyserBurst' : b.look === 'powder' ? 'powderBlast' : b.look === 'mine' ? 'mineBlast' : b.look === 'rime' ? 'rimeBurst' : b.look === 'iceBlock' ? 'iceBlockShatter' : 'bombBlast', b.radius, b.to.x, b.to.y, b.to.z);
     const dx = player.pos.x - b.to.x;
     const dz = player.pos.z - b.to.z;
     const d = Math.hypot(dx, dz);
     if (d > b.radius || player.pos.y - b.to.y > b.radius * 0.8 || !damagePlayer(player, b.damage, b.by)) continue;
+    if (b.look === 'rime' && frost) chillYou(frost, events, player.pos.x, player.pos.y + 1, player.pos.z);
     const nx = d > 1e-3 ? dx / d : 1;
     const nz = d > 1e-3 ? dz / d : 0;
     player.vel.x += nx * b.shove;

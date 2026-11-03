@@ -22,6 +22,7 @@
 import { createRng, Rng } from '../../core/rng';
 import type { EnemyKind } from '../../sim/enemies/kinds';
 import { crewWaves, hasYeti, moonWaves, perchWaves, percherOf, planWaves } from '../../sim/dungeon/wavePlan';
+import { warbandWaves } from '../../sim/dungeon/warbandWaves';
 import { bossRoomOf, Cell, FIGHT_ROOMS, layOut, onFloor, RoomKind, RoomLayout, SHOP_ROOM, START_ROOM } from './rooms';
 import { NO_WAY_OUT, stampWayOut, WayOut } from './wayOut';
 import { ROOMS } from '../../tuning/rooms';
@@ -178,7 +179,7 @@ export function planFloor(seed: number, level: number): FloorPlan {
   const own = createRng(seed * 4513 + level * 389);
   // (Off a fight room on the way; with no room there, off any room but the boss's.)
   if (!sideRoom('fight', 2, n, own, true) && !sideRoom('fight', 1, n, own, true)) sideRoom('fight', 0, Infinity, own, true, ['fight', 'shop', 'start']);
-  for (const r of rooms) if (r.kind === 'fight') r.waves = moonWaves(crewWaves(perchWaves(planWaves(r.depth, level, createRng(seed * 7717 + level * 131 + r.index * 17), r.challenge), r.layout.perches.length, percherOf(level)), r.layout.cells.includes('lava')));
+  for (const r of rooms) if (r.kind === 'fight') r.waves = warbandWaves(moonWaves(crewWaves(perchWaves(planWaves(r.depth, level, createRng(seed * 7717 + level * 131 + r.index * 17), r.challenge), r.layout.perches.length, percherOf(level)), r.layout.cells.includes('lava'))));
   placeChests(rooms, rng, own);
   for (const [a, b] of links) {
     const [sa, sb] = sideTo(rooms[a].slot, rooms[b].slot);

@@ -16,6 +16,8 @@ import { FOES3 } from '../../tuning/foes3';
 import { FOES3B } from '../../tuning/foes3b';
 import { FOES5 } from '../../tuning/foes5';
 import { FOES5B } from '../../tuning/foes5b';
+import { FOES_NORSE } from '../../tuning/foesNorse';
+import { FOES_NORSE_B } from '../../tuning/foesNorseB';
 import type { PlayerState } from '../player/state';
 import { ENEMY_POOL, Enemy, EnemyPhase, EnemyWorld, isLive } from './enemy';
 import { ENEMY_STATS, EnemyKind } from './kinds';
@@ -108,10 +110,19 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   beeShip: null,
   beeMech: null,
   beeNaut: null,
+  // Update 0.3.22 — floor 7's warband: the Raider's slide and the dead's grasp as close blows; the Thrower's axes and the
+  // Völva's bolts as shots; the mini bosses as heavies (one at a time).
+  raider: 'melee',
+  axeThrower: 'ranged',
+  draugr: 'melee',
+  barrowMaid: 'melee',
+  volva: 'ranged',
+  berserker: 'heavy',
+  haugbui: 'heavy',
 };
 
 /** Kinds whose attack waits for its cooldown: they take a token only once it's ready (a token isn't held idle). */
-const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon', 'dragonling', 'skullWraith', 'glub', 'squidle', 'clownfish', 'tuna', 'angelfish', 'dolphin', 'mantaRay', 'shark', 'bomber', 'captain', 'gunner', 'strafer', 'diver', 'hopper']);
+const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon', 'dragonling', 'skullWraith', 'glub', 'squidle', 'clownfish', 'tuna', 'angelfish', 'dolphin', 'mantaRay', 'shark', 'bomber', 'captain', 'gunner', 'strafer', 'diver', 'hopper', 'axeThrower', 'volva']);
 
 /** How far a close fighter's attack reaches (m): waiting, it keeps out of it. */
 const REACH: Partial<Record<EnemyKind, () => number>> = {
@@ -136,6 +147,12 @@ const REACH: Partial<Record<EnemyKind, () => number>> = {
   captain: () => FOES_COVE_B.v.captainReach,
   // Update 0.3.18 — floor 8's Flanker waits its turn out of its punches' reach.
   flanker: () => FLANK_REACH,
+  // Update 0.3.22 — floor 7's.
+  raider: () => FOES_NORSE.v.raiderReach,
+  draugr: () => FOES_NORSE.v.draugrReach,
+  barrowMaid: () => FOES_NORSE.v.draugrReach,
+  berserker: () => FOES_NORSE_B.v.berserkerReach,
+  haugbui: () => FOES_NORSE_B.v.haugbuiReach,
 };
 
 /** The phases an attack holds its token through: the run-in, the wind-up, a leap, a dive, a charge (Update 0.3.15 — and

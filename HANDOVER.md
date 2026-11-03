@@ -2,7 +2,23 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.21: the lobby, a manor)
+## Next up (2026-11-03, Update 0.3.22: floor 7's enemies, the frozen warband)
+- **The designer**: "I have more enemies models in More enemies folder; let's sort things out for Floor 7 … if it does
+  not fit we change". The folder (`ASSETS/QUATERNIUS/More-enemies`) is 52 Quaternius people on one rig; its Vikings and
+  zombies fit Frozen Depths as it is, so its level stays. The plan `MD/FLOOR7_WARBAND_PLAN.md` ("Go with it"), spec
+  `MD_UPDATES/U0322_FROZEN_WARBAND.md`.
+- **The warband**: the Raider (his slide), the Axe Thrower (two axes in a V, her roll), the Draugr and Barrow Maids
+  (buried in the snow, rising; their grasp chills you), the Völva (rime bolts that ice the floor; she raises the dead);
+  mini bosses the Berserker (spins, dizzy) and Haugbui (stomp, blocks of ice). Rime and the chill: `sim/combat/frost.ts`.
+  Models by `tools/blender/export_people.py` (the RPG pack's axes in their fists); recolours and lit eyes in code
+  (`engine/norse/norseLooks.ts`). Floor 7's boss still stands in (the Velociraptor) till the Frost Roc.
+- Checked by tests (`test-floor7-warband.ts`) and pose renders; **unseen in the game** (their size, the recolours under
+  the floor's light, slides and spins on the ice, the rime, the rising dead, the sounds).
+- **Next:** floor 7's boss, the Frost Roc; then the manor's statues and paintings, floor 8's boss.
+- The rest of the folder: ninjas and kimonos, knights, goblins, soldiers, cowboys, pirates (later floors); townsfolk and
+  the Cow and Pug aren't enemies.
+
+## Before (2026-11-03, Update 0.3.21: the lobby, a manor)
 - **The plan's update 1** (`MD/LOBBY_MANOR_PLAN.md`; spec `MD_UPDATES/U0321_MANOR_LOBBY.md`). The designer first gave a
   blueprint for a new lobby (built sci-fi, not kept), then: "come back to the old one but you visually upgrade it? like
   it looks like an explorable manor and we have databse of enemies still like upstairs". The old hall made a manor in
@@ -21,8 +37,8 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   and Blender renders (`tools/lobby-shots.ts`); **unseen in the game** (the light in the rooms, the crystal's glow,
   the windows, the exhibits turning, the painted cards).
 - Floors 1, 3 and 4's names are placeholders (`world/dungeon/floorNames.ts`: THE DUNGEON, THE BONE KEEP, THE DESERT).
-- **Next:** 0.3.22, the bestiary (kills remembered, each enemy's statue on its plinth); 0.3.23, the floor paintings
-  (playable); then floor 8's boss (0.3.24).
+- **Next** (as it stood): the bestiary (kills remembered, each enemy's statue on its plinth); the floor paintings
+  (playable); then floor 8's boss. (0.3.22 went to floor 7's warband.)
 
 ## Before (2026-11-02, Update 0.3.20: the controls on the HUD; no slide)
 - **The designer's UI change** (spec `MD_UPDATES/U0320_HUD_CONTROLS.md`): bottom right, the controls "like in the game

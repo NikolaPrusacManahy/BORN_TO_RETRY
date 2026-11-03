@@ -46,7 +46,8 @@ candelabra) and the Ultimate RPG Pack (armour, weapons, books, scrolls, potions,
 1. **0.3.21 — the manor**: its kit (`build_lobby_kit.py`), the great hall and its stations, the galleries (weapons,
    items, cards) and the rooms behind them, the stairs and landings, the bestiary with its plinths (empty yet), the
    paintings (frames and plaques, not yet playable), the credits upstairs, the light.
-2. **0.3.22 — the bestiary**: every kill remembered (saved); each enemy's statue on its plinth, black until killed.
-3. **0.3.23 — the floor selector**: the floors you've beaten remembered (saved); each painting of its floor (rendered
-   from its own rooms); E at a beaten floor's starts a run there, fresh; its boss beaten, back to the lobby.
-4. Then floor 8's boss (the three mechs): 0.3.24.
+2. **The bestiary** (after floor 7's warband, 0.3.22, and its boss): every kill remembered (saved); each enemy's statue
+   on its plinth, black until killed.
+3. **The floor selector**: the floors you've beaten remembered (saved); each painting of its floor (rendered from its
+   own rooms); E at a beaten floor's starts a run there, fresh; its boss beaten, back to the lobby.
+4. Then floor 8's boss (the three mechs).

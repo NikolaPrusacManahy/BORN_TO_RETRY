@@ -83,6 +83,7 @@ import './test-launch';
 import './test-pin';
 import './test-pillar';
 import './test-floor7';
+import './test-floor7-warband';
 import './test-floor8';
 import './test-forge';
 import './test-floor8-crew';

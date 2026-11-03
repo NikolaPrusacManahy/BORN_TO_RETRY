@@ -44,6 +44,8 @@ import { PIN_GRIP } from './exec/pinLook';
 import { PINNABLE } from '../sim/enemies/flight';
 import { moveOf } from '../sim/combat/execution';
 import { submerged } from '../sim/enemies/drownedKingMoves';
+import { ownMaterials } from './norse/norseLooks';
+import { FOES_NORSE } from '../tuning/foesNorse';
 
 interface Body {
   root: THREE.Object3D;
@@ -146,14 +148,8 @@ export class EnemiesView {
       root.userData.pinGrip = PINNABLE.has(kind) ? gripFrom(PIN_GRIP, model) : null;
       root.userData.still = stillOf(kind, root);
       root.visible = false;
-      const mats: THREE.MeshStandardMaterial[] = [];
-      root.traverse((o) => {
-        if (!(o instanceof THREE.Mesh)) return;
-        o.castShadow = true;
-        o.frustumCulled = false; // animated bodies leave their bind-pose bounds
-        o.material = (o.material as THREE.MeshStandardMaterial).clone();
-        mats.push(o.material as THREE.MeshStandardMaterial);
-      });
+      // (Update 0.3.22 — each its own materials; floor 7's warband recoloured, their eyes lit: norse/norseLooks.ts.)
+      const mats = ownMaterials(kind, root);
       const mixer = new THREE.AnimationMixer(root);
       const actions = {} as Record<Role, THREE.AnimationAction>;
       for (const role of ROLES) {
@@ -188,8 +184,8 @@ export class EnemiesView {
       if (!e.alive || !b || !look) continue;
       // A slime that burst is gone (one killed dies as the others do); so is the Bone King once its bones burst.
       // (Update 0.2.10 — and floor 5's under the water: drownedFx.ts shows their fins.)
-      // (Update 0.3.15 — Mako in the sand, a Tentacle sunk under the sea.)
-      const buried = ((e.kind === 'cactoro' || e.kind === 'cactoroBig' || e.kind === 'mako') && e.pos.y < -1) || (e.kind === 'tentacle' && e.pos.y < -5) || submerged(e);
+      // (Update 0.3.15 — Mako in the sand, a Tentacle sunk under the sea. Update 0.3.22 — floor 7's dead in the snow.)
+      const buried = ((e.kind === 'cactoro' || e.kind === 'cactoroBig' || e.kind === 'mako') && e.pos.y < -1) || (e.kind === 'tentacle' && e.pos.y < -5) || ((e.kind === 'draugr' || e.kind === 'barrowMaid') && e.pos.y < -1.5) || submerged(e);
       b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing' || e.kind === 'whale') && e.phase === 'dead' && e.struck) && !buried;
       if (!b.root.visible) continue;
       const windup = look.windup(e.move);
@@ -233,7 +229,7 @@ export class EnemiesView {
       if (dash) want = 'move';
       if (want !== b.role || (again && ONCE.includes(want))) this.play(b, want);
       attack.timeScale = look.lands / windup;
-      b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? BONE_KING.v.kingRise : FOES3.v.skeletonRise);
+      b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? BONE_KING.v.kingRise : e.phase === 'intro' ? FOES_NORSE.v.riseTime : FOES3.v.skeletonRise);
       b.actions.move.timeScale = e.phase === 'held' ? 3 : dash ? 2 : flies(e.kind) ? 1 : Math.min(PACE_HIGH, Math.max(PACE_LOW, slot.pace / full));
       const ice = e.frozen > 0 ? 1 : 0;
       if (!ice && !b.root.userData.kept && !(e.pinned > 0 && e.t > PIN_POSE)) b.mixer.update(dt);

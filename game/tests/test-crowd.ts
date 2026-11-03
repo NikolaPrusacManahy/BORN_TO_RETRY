@@ -133,8 +133,8 @@ section('Crowd — bosses need no turn');
   // (Update 0.2.7 — the Skull Wraith fights as the Wraith does: wraith.ts. Update 0.2.10 — the Spawnling is the
   // Squidle's: squidle.ts.)
   // (Update 0.2.11 — floor 6's: reefFish.ts, rammers.ts, manta.ts.)
-  // (Update 0.3.18 — floor 8's tiny ships: ships.ts.)
-  const FILES: Record<string, string> = { skullWraith: 'wraith', spawnling: 'squidle', clownfish: 'reefFish', angelfish: 'reefFish', tuna: 'rammers', dolphin: 'rammers', mantaRay: 'manta', strafer: 'ships', diver: 'ships' };
+  // (Update 0.3.18 — floor 8's tiny ships: ships.ts. Update 0.3.22 — floor 7's Barrow Maid is the Draugr's: draugr.ts.)
+  const FILES: Record<string, string> = { skullWraith: 'wraith', spawnling: 'squidle', clownfish: 'reefFish', angelfish: 'reefFish', tuna: 'rammers', dolphin: 'rammers', mantaRay: 'manta', strafer: 'ships', diver: 'ships', barrowMaid: 'draugr' };
   const file = (k: string) => FILES[k] ?? k;
   const silent = plain.filter((k) => !readFileSync(new URL(`../src/sim/enemies/${file(k)}.ts`, import.meta.url), 'utf-8').includes('armed('));
   check(`every other kind’s attack waits for its turn (${plain.length} kinds)`, silent.length === 0, silent.join(', '));
