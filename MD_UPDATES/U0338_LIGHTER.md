@@ -45,7 +45,7 @@ That sounds so heavy for what it is supposed to be", then "Build fixes 1–3".
   you come back to the menu from a run, and while the portcullis rises. A run's shadows are still drawn every frame
   (things move).
 
-## Not done (the designer's choice: fixes 1–3 first)
+## Not done (the designer's choice: fixes 1–3 first; built in 0.3.39, `U0339_FAR_PIECES.md`)
 4. **A simpler floor tile and wall in the distance.** Floor 1's stone tile alone is 1,176 triangles, used 5,466 times
    (6.4 million triangles), and the wall about 1,670. Lower-detail copies made in Blender would be swapped in past
    about 15 m. This needs before-and-after renders for the designer to approve the look.

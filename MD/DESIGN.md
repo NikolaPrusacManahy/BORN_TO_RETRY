@@ -153,7 +153,8 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   a floor's pieces are drawn square by square (30 m), so what's out of view or out of the sun's shadow box isn't drawn
   (about a third of a floor, not all of it). Graphics has **Frame rate** (30–240 fps or Unlimited; 144 at first); the
   menus and the pause menu at 60 at most. The menus' scenes merged by look (the gate 653 meshes → 20), their shadows
-  drawn once.
+  drawn once. **Update 0.3.39** (spec `MD_UPDATES/U0339_FAR_PIECES.md`): a square more than 15 m off draws floor 1's
+  tile, wall and cap as far copies, each stone its box (1,176 → 144 triangles a tile); floor 1 in view 5.7 → 1.8 million.
 
 ### The rush (Update 0.3.1, the designer: "like Doom or Ultrakill"; spec `MD_UPDATES/U031_EXECUTIONS_AND_RUSH.md`)
 - Executions hold you where you grabbed the enemy (in the air too) till you let go. A freeze on every hit (jab 25 ms,

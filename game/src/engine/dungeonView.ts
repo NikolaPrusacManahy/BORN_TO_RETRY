@@ -29,7 +29,7 @@
 // Update 0.3.31 — the Moon's rooms blown away in Tidebreaker's show, the meteor (moon/tideShowView.ts); its haze pushed
 // out for the show's wide shots.
 import * as THREE from 'three';
-import { placeByArea } from './floorPieces';
+import { FloorAreas, placeByArea } from './floorPieces';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { portalOpen, wallsOpen } from '../sim/dungeon/bossRoom';
 import type { DungeonRun } from '../sim/dungeon/roomLoop';
@@ -59,6 +59,8 @@ import type { Pillar } from '../sim/combat/pillars';
 import { showViewOf, type ShowView, wideOf, WIDE_HAZE } from './boss/showViews';
 
 export const KIT_URL = '/models/dungeon/kit.glb';
+/** Update 0.3.39 — the heaviest pieces again, lighter, for far off (tools/blender/kit_far.py). */
+export const KIT_FAR_URL = '/models/dungeon/kit_far.glb';
 /** The sky (the background and the haze), and the sky light's colours above and from the ground. */
 const SKY = 0xc8d8e8;
 const SKY_LIGHT = 0xe8f0ff;
@@ -93,6 +95,8 @@ export class DungeonView implements ArenaView {
   private readonly motes: MotesView;
   private readonly glows: DungeonGlows;
   readonly breaks = new PillarBreaks();
+  /** Update 0.3.39 — the squares drawing far copies far off. */
+  private areas: FloorAreas | null = null;
   private readonly depths: DepthsView;
   private readonly tide: ShowView | null;
   /** Update 0.3.31 — has the floor been blown away here (Tidebreaker's show; Update 0.3.34, Okami's)? */
@@ -142,10 +146,11 @@ export class DungeonView implements ArenaView {
     this.under = underwaterOf(level, this.dressing.sand);
     if (this.under) this.group.add(this.under.group);
     this.group.add(this.shell.group, this.portal.group, this.lava.group, roomSigns(level.plan, this.mats, this.geos));
+    // (Update 0.3.39 — and the far kit; without it, the real pieces all the way.)
+    const loader = new GLTFLoader();
     this.loaded = loadKit
-      ? new GLTFLoader()
-          .loadAsync(KIT_URL)
-          .then((gltf) => this.build(gltf.scene))
+      ? Promise.all([loader.loadAsync(KIT_URL), loader.loadAsync(KIT_FAR_URL).catch(() => null)])
+          .then(([gltf, far]) => this.build(gltf.scene, far?.scene))
           .catch((err) => console.error('dungeon kit failed to load', err))
       : Promise.resolve();
   }
@@ -156,15 +161,16 @@ export class DungeonView implements ArenaView {
     this.breaks.break(i, p);
   }
 
-  /** Every placement as instances of its kit piece; the gates' bars as their own meshes. */
-  build(kit: THREE.Object3D) {
+  /** Every placement as instances of its kit piece (`far`: the far kit's far off); the gates' bars as their own meshes. */
+  build(kit: THREE.Object3D, far?: THREE.Object3D) {
     kit.updateMatrixWorld(true);
     // (Update 0.3.38 — square by square, so what's out of view isn't drawn: floorPieces.ts. Update 0.0.13 — in the sun
     // everything takes shadows; the floor tiles cast none, they're flat and most of the pieces.)
-    const missing = placeByArea(this.group, kit, this.dressing.pieces, (src, name) => this.material(src, name), (name) => name !== KIT.floor, (p, inst, i) => {
+    const { missing, areas } = placeByArea(this.group, kit, this.dressing.pieces, (src, name) => this.material(src, name), (name) => name !== KIT.floor, (p, inst, i, isFar) => {
       const pillar = this.pillarOf(p);
-      if (pillar >= 0) this.breaks.add(pillar, inst, i);
-    });
+      if (pillar >= 0) this.breaks.add(pillar, inst, i, isFar);
+    }, far);
+    this.areas = areas;
     for (const name of missing) console.warn(`dungeon kit: no ${name}`);
     const style = this.dressing.style;
     const bars = kit.getObjectByName(style.bars);
@@ -205,6 +211,7 @@ export class DungeonView implements ArenaView {
   update(dt: number, run: DungeonRun, at: THREE.Vector3, flood = 0, kicks = 0) {
     const shut = run.shut;
     this.daylight(at, wideOf(run.boss));
+    this.areas?.update(at);
     this.under?.update(dt, at, kicks);
     const b = run.boss;
     this.shell.set(wallsOpen(b));

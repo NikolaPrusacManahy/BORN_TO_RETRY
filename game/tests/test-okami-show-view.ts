@@ -23,6 +23,8 @@ import type { ShrineSky } from '../src/engine/shrine/shrineSky';
 import { OkamiFx } from '../src/engine/shrine/okamiFx';
 
 const kit = await parseUntextured(new URL('../public/models/dungeon/kit.glb', import.meta.url));
+// (Update 0.3.39 — and the far kit, as the game loads it: the far copies go with the rooms too.)
+const far = await parseUntextured(new URL('../public/models/dungeon/kit_far.glb', import.meta.url));
 const level = buildDungeon(planFloor(31, FLOOR.shrine));
 const arena = level.okami!;
 
@@ -30,7 +32,7 @@ section('Yokai : Okami’s show — drawn');
 {
   const scene = new THREE.Scene();
   const view = new DungeonView(scene, level, false);
-  view.build(kit.scene);
+  view.build(kit.scene, far.scene);
   type Inside = { placed: THREE.Group[]; temples: THREE.Object3D[]; flying: { obj: THREE.Group }[] | null };
   const show = (view as unknown as { tide: OkamiShowView }).tide as unknown as Inside;
   const sky = (view as unknown as { depths: { sky: ShrineSky } }).depths.sky;

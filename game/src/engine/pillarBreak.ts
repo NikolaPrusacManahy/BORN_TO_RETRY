@@ -88,16 +88,17 @@ export function splitAt(g: THREE.BufferGeometry, cut: number, x: number, z: numb
 
 export class PillarBreaks {
   readonly group = new THREE.Group();
-  private readonly pieces = new Map<number, { mesh: THREE.InstancedMesh; index: number }[]>();
+  private readonly pieces = new Map<number, { mesh: THREE.InstancedMesh; index: number; copy: boolean }[]>();
   private readonly falling: Falling[] = [];
   private readonly geos: THREE.BufferGeometry[] = [];
   private readonly mats: THREE.Material[] = [];
 
-  /** Instance `index` of `mesh` stands in pillar `i`'s cell. */
-  add(i: number, mesh: THREE.InstancedMesh, index: number) {
+  /** Instance `index` of `mesh` stands in pillar `i`'s cell. Update 0.3.39 — `copy`: a far copy of a piece (floorPieces.ts):
+   *  hidden with it, no stone of its own. */
+  add(i: number, mesh: THREE.InstancedMesh, index: number, copy = false) {
     let list = this.pieces.get(i);
     if (!list) this.pieces.set(i, (list = []));
-    list.push({ mesh, index });
+    list.push({ mesh, index, copy });
   }
 
   /** Pillar `i` (`p`) breaks. */
@@ -134,10 +135,11 @@ export class PillarBreaks {
     top.position.set(p.x, cut, p.z);
     let reach = 0.3;
     let stone: THREE.Color | null = null;
-    for (const { mesh, index } of refs) {
+    for (const { mesh, index, copy } of refs) {
       mesh.getMatrixAt(index, m);
       mesh.setMatrixAt(index, HIDDEN);
       mesh.instanceMatrix.needsUpdate = true;
+      if (copy) continue;
       const g = (mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone()).applyMatrix4(m);
       const [below, above, r] = splitAt(g, cut, p.x, p.z);
       g.dispose();

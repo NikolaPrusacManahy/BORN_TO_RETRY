@@ -2,7 +2,15 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.38: lighter to run)
+## Next up (2026-11-03, Update 0.3.39: far off, the heaviest pieces lighter)
+- **The designer**: "it works, next" (fix 4). Spec `MD_UPDATES/U0339_FAR_PIECES.md`.
+- **The far pieces:** `tools/blender/kit_far.py` makes `public/models/dungeon/kit_far.glb` from the kit (each stone of
+  floor 1's tile, wall and cap as its box). Run it again if those pieces ever change in `kit.glb`.
+- **In the game:** `floorPieces.ts` gives each square far copies, and `FloorAreas.update` swaps them past 15 m (back
+  within 12 m). Pillars hide far copies (`pillarBreak.ts` `copy`).
+- **Next:** the designer walks floor 1 to see whether the swap shows.
+
+## Before (2026-11-03, Update 0.3.38: lighter to run)
 - **The designer**: "when I boot up the game my PC go full fan speed", then "Build fixes 1–3". Spec
   `MD_UPDATES/U0338_LIGHTER.md` (what was wrong, counted from the scenes).
 - **The fixes:**

@@ -21,6 +21,8 @@ import { AREA } from '../src/engine/floorPieces';
 import { CampScene } from '../src/engine/menu/campScene';
 import { mergeStatic } from '../src/engine/menu/mergeStatic';
 import { MenuScene } from '../src/engine/menu/menuScene';
+import { PillarBreaks } from '../src/engine/pillarBreak';
+import type { Pillar } from '../src/sim/combat/pillars';
 
 const trisOf = (o: THREE.Mesh) => ((o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3) * (o instanceof THREE.InstancedMesh ? o.count : 1);
 const meshesIn = (root: THREE.Object3D) => {
@@ -94,6 +96,81 @@ section('Lighter — a floor drawn square by square');
   check(`in squares of ${AREA} m, not one mesh a floor wide`, small);
   check(`from where you start, at most ${(seenShare * 100).toFixed(0)}% of a floor in view (all of it, before)`, seenShare < 0.5);
   check(`the sun’s shadows: at most ${(shadowShare * 100).toFixed(0)}% of a floor’s walls drawn in them (all of them, before)`, shadowShare < 0.3);
+}
+
+section('Lighter — far off, the heaviest pieces lighter');
+{
+  // Update 0.3.39 — floor 1's tile, wall and cap, each stone its box (kit_far.glb), in a square past FAR_FROM.
+  const kit = await parseUntextured(new URL('../public/models/dungeon/kit.glb', import.meta.url));
+  const far = await parseUntextured(new URL('../public/models/dungeon/kit_far.glb', import.meta.url));
+  kit.scene.updateMatrixWorld(true);
+  const lighter = ['kit_p1_Floor_Modular', 'kit_p1_Wall_Modular', 'kit_p1_WallCover_Modular'].map((n) => {
+    let a = 0;
+    let b = 0;
+    kit.scene.getObjectByName(n)?.traverse((o) => (a += o instanceof THREE.Mesh ? trisOf(o) : 0));
+    far.scene.getObjectByName(n)?.traverse((o) => (b += o instanceof THREE.Mesh ? trisOf(o) : 0));
+    return [n, a, b] as const;
+  });
+  check(`its tile, wall and cap far off: ${lighter.map(([, a, b]) => `${a} → ${b}`).join(', ')} triangles`, lighter.every(([, a, b]) => b > 0 && b * 4 < a));
+  const level = buildDungeon(planFloor(31, 1));
+  const scene = new THREE.Scene();
+  const view = new DungeonView(scene, level, false);
+  view.build(kit.scene, far.scene);
+  scene.updateMatrixWorld(true);
+  const all = meshesIn(view.group).filter((o): o is THREE.InstancedMesh => o instanceof THREE.InstancedMesh && o.name.includes('@'));
+  const nears = all.filter((o) => !o.name.endsWith(' far'));
+  const fars = all.filter((o) => o.name.endsWith(' far'));
+  const byName = new Map(nears.map((n) => [n.name, n]));
+  const nearOf = (f: THREE.InstancedMesh) => byName.get(f.name.replace(' far', ''));
+  const paired = fars.every((f) => nearOf(f)?.count === f.count);
+  check(`a far copy for each of their squares, as many pieces in each (${fars.length} far beside ${nears.length})`, fars.length > 0 && paired);
+  const run = createDungeonRun(level);
+  const s = level.arena.playerStart;
+  const eye = new THREE.Vector3(s.x, 1.6, s.z);
+  view.update(DT, run, eye);
+  const here = all.filter((o) => o.visible && o.boundingSphere!.center.distanceTo(eye) < 10);
+  const farAway = all.filter((o) => o.boundingSphere!.center.distanceTo(eye) > 80);
+  const hasFar = new Set(fars.map((f) => f.name.replace(' far', '')));
+  const drawnRight = (o: THREE.InstancedMesh) => (o.name.endsWith(' far') ? o.visible : !hasFar.has(o.name) || !o.visible);
+  check('where you are, the real pieces; far away, the far ones', here.length > 0 && here.every((o) => !o.name.endsWith(' far')) && farAway.length > 0 && farAway.every(drawnRight));
+  // What's drawn from where you start, looking each way: before and now.
+  const fr = new THREE.Frustum();
+  const pm = new THREE.Matrix4();
+  const cam = new THREE.PerspectiveCamera(verticalFov(100, 16 / 9), 16 / 9, 0.05, 400);
+  let before = 0;
+  let now = 0;
+  for (let k = 0; k < 4; k++) {
+    cam.position.copy(eye);
+    cam.rotation.set(0, (k * Math.PI) / 2, 0, 'YXZ');
+    cam.updateMatrixWorld(true);
+    fr.setFromProjectionMatrix(pm.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
+    for (const o of nears) if (fr.intersectsObject(o)) before += trisOf(o);
+    for (const o of all) if (o.visible && fr.intersectsObject(o)) now += trisOf(o);
+  }
+  check(`floor 1 from where you start: ${(before / 4e6).toFixed(2)} million triangles in view, now ${(now / 4e6).toFixed(2)} million`, now < before * 0.6);
+  // Coming back near: the real pieces again (a square's far copies hidden, its own shown).
+  const square = fars[0];
+  const back = square.boundingSphere!.center;
+  view.update(DT, run, new THREE.Vector3(back.x, 1.6, back.z));
+  check('walk up to a far square: its real pieces again', !square.visible && nearOf(square)!.visible);
+  view.dispose();
+  // A pillar broken: its pieces' far copies hidden with them, no stone of their own (the stump and the top: the real
+  // pieces').
+  const near = nears.find((o) => o.name.startsWith('kit_p1_Wall_Modular@'))!;
+  const copy = fars.find((o) => o.name === `${near.name} far`)!;
+  const one = new PillarBreaks();
+  const both = new PillarBreaks();
+  one.add(0, near, 0);
+  both.add(0, near.clone(), 0);
+  both.add(0, copy, 0, true);
+  const at = new THREE.Vector3().setFromMatrixPosition(new THREE.Matrix4().fromArray(near.instanceMatrix.array, 0));
+  const pillar = { x: at.x, z: at.z, half: 1, h: 4.9, box: -1, lie: { x: at.x + 3, z: at.z, yaw: 0 } } as unknown as Pillar;
+  one.break(0, pillar);
+  both.break(0, pillar);
+  const pieces = (b: PillarBreaks) => meshesIn(b.group).length;
+  const hidden = new THREE.Matrix4();
+  copy.getMatrixAt(0, hidden);
+  check('a pillar broken: its far copies hidden with it, no stone of their own', hidden.elements.slice(0, 11).every((x) => x === 0) && pieces(both) === pieces(one) && pieces(one) > 0);
 }
 
 section('Lighter — the frame-rate cap');

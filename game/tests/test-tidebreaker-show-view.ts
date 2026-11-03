@@ -31,6 +31,8 @@ import { LIGHT } from '../src/tuning/light';
 import type { Shot } from '../src/engine/boss/cinema';
 
 const kit = await parseUntextured(new URL('../public/models/dungeon/kit.glb', import.meta.url));
+// (Update 0.3.39 — and the far kit, as the game loads it.)
+const far = await parseUntextured(new URL('../public/models/dungeon/kit_far.glb', import.meta.url));
 const level = buildDungeon(planFloor(31, FLOOR.moon));
 const room = level.rooms[level.boss.room];
 const end = level.boss.end;
@@ -45,7 +47,7 @@ section('Tidebreaker’s show — the floor blown away');
 {
   const scene = new THREE.Scene();
   const view = new DungeonView(scene, level, false);
-  view.build(kit.scene);
+  view.build(kit.scene, far.scene);
   const show = (view as unknown as { tide: TideShowView }).tide;
   // Every instance the floor's view draws itself (its kit's pieces, their cores, the slab): kept or to go.
   const meshes = view.group.children.filter((o): o is THREE.InstancedMesh => o instanceof THREE.InstancedMesh);
