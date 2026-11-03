@@ -1,8 +1,8 @@
 // Update 0.3.29 — the Moon's boss, Tidebreaker, drawn: a pillar it tears out (the floor's pieces cut, the stump left,
 // the rest in its anchor hand along the hand's forward axis, gripped near its end), hurled (tumbling along its bomb's
-// flight) and gone when it smashes; its anchor set aside while it holds one; its shell turned over as it rolls; the
-// boulder in its hand; where its leap lands.
+// flight) and gone when it smashes; the boulder in its hand; where its leap lands. (Update 0.3.30 — no weapon, no roll.)
 import * as THREE from 'three';
+import { readFileSync } from 'node:fs';
 import { check, near, section } from './harness';
 import { PillarBreaks } from '../src/engine/pillarBreak';
 import { holdPillars, pillarEvents } from '../src/engine/pillarEvents';
@@ -10,7 +10,10 @@ import { TideFx } from '../src/engine/moon/tideFx';
 import { createCombat } from '../src/sim/combat/state';
 import { spawnEnemy, setPhase } from '../src/sim/enemies/enemy';
 import { PILLAR_CUT, type Pillar } from '../src/sim/combat/pillars';
-import { LEAP, ROLL, THROW, tideWindup } from '../src/sim/enemies/tidebreaker';
+import { LEAP, SMASH, SWING, THROW, tideWindup } from '../src/sim/enemies/tidebreaker';
+import { BombView } from '../src/engine/boss/bombView';
+import { DemonFx } from '../src/engine/boss/demonFx';
+import { startQuake } from '../src/sim/combat/quakes';
 import { OPEN_ARENA } from './fakes/enemyWorld';
 import type { Level, LevelView } from '../src/engine/level';
 import type { ArenaBox } from '../src/world/arena';
@@ -85,24 +88,15 @@ section('Tidebreaker — a pillar torn out, held, hurled');
   check('its holder gone (killed with it in its hands): it smashes', !held.visible);
 }
 
-section('Tidebreaker — its shell, its anchor, its boulder, its leap');
+section('Tidebreaker — no weapon; its boulder, its leap');
 {
   const w = world();
   const fx = new TideFx(new THREE.Scene());
-  w.e.deeds = 1;
-  fx.update(w.c, () => w.root, 1 / 60);
-  const set = !w.anchor.visible;
-  w.e.deeds = 0;
-  fx.update(w.c, () => w.root, 1 / 60);
-  check('its anchor set aside while a pillar’s in its hands', set && w.anchor.visible);
-  w.e.move = ROLL;
-  setPhase(w.e, 'charge');
-  w.e.near = 15;
-  fx.update(w.c, () => w.root, 0.1);
-  const turned = w.root.quaternion.angleTo(new THREE.Quaternion());
-  check('rolling, its body turned over round its middle (as fast as it rolls)', turned > 0.3 && w.root.position.y > 0.1, `${turned.toFixed(2)} rad`);
-  w.root.quaternion.identity();
-  w.root.position.set(0, 0, 0);
+  // (Update 0.3.30 — the designer: "remove the weapons he has".)
+  const glb = readFileSync('public/models/enemies/tidebreaker.glb');
+  const json = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString()) as { nodes: { name?: string; mesh?: number; children?: number[] }[]; animations: { name: string }[] };
+  const drawn = json.nodes.flatMap((n) => n.children ?? []).filter((c) => json.nodes[c].mesh !== undefined).map((c) => json.nodes[c].name);
+  check('no weapon: only its body drawn; its jump the three Jump clips (Jump_Start into Jump_Loop, Jump_Land)', drawn.join() === 'Tidebreaker_Body' && ['Jump_Crouch', 'Jump_Air', 'Jump_Land'].every((k) => json.animations.some((x) => x.name === k)) && !json.animations.some((x) => x.name.startsWith('NinjaJump')));
   w.e.move = THROW;
   setPhase(w.e, 'windup');
   w.e.t = tideWindup(THROW) * 0.3;
@@ -118,4 +112,47 @@ section('Tidebreaker — its shell, its anchor, its boulder, its leap');
   fx.update(w.c, () => w.root, 1 / 60);
   const ring = fx.group.children.find((o) => o instanceof THREE.Mesh && o.geometry instanceof THREE.RingGeometry)!;
   check('leaping: a ring where it’ll land', ring.visible && near(ring.position.x, 7, 1e-6) && near(ring.position.z, -4, 1e-6));
+}
+
+section('Tidebreaker — no marks before its pillar flies; its own impacts');
+{
+  const w = world();
+  const scene = new THREE.Scene();
+  const fx = new TideFx(scene);
+  const fan = () => fx.group.children.find((o) => o instanceof THREE.Mesh && o.geometry instanceof THREE.CircleGeometry)!;
+  w.e.move = SWING;
+  setPhase(w.e, 'windup');
+  fx.update(w.c, () => w.root, 1 / 60);
+  const noSwingFan = !fan().visible;
+  w.e.move = SMASH;
+  fx.update(w.c, () => w.root, 1 / 60);
+  check('no fan before its pillar’s swing (the designer: "remove those"); its smash keeps its own', noSwingFan && fan().visible);
+  const bv = new BombView(scene);
+  const b = w.c.bombs[0];
+  b.alive = true;
+  b.look = 'pillar';
+  b.radius = 4;
+  bv.update(w.c, 1 / 60);
+  const marks = bv.group.children.filter((o) => o.visible).length;
+  b.look = 'boulder';
+  bv.update(w.c, 1 / 60);
+  check('nor a mark where its pillar will land (its boulder keeps one)', marks === 0 && bv.group.children.filter((o) => o.visible).length >= 2, `${marks}`);
+  // Its landing: its own impact, not the bosses'.
+  const land = world();
+  const lx = new TideFx(new THREE.Scene());
+  land.c.events.push('tideLand', 18, 4, 0, -6);
+  lx.update(land.c, () => land.root, 1 / 60);
+  const impacts = (lx as unknown as { impacts: { showing: { craters: number; dust: number; rocks: number; walls: number } } }).impacts;
+  const now = impacts.showing;
+  check('landing, its own impact: a crater cracked into the dust, dust rising, rock flung out', now.craters === 1 && now.dust >= 10 && now.rocks >= 12, JSON.stringify(now));
+  land.c.events.clear();
+  for (let i = 0; i < 60 * 6; i++) lx.update(land.c, () => land.root, 1 / 60);
+  check('the rock falls and settles, the dust goes; the crater stays a while', impacts.showing.rocks === 0 && impacts.showing.dust === 0 && impacts.showing.craters === 1);
+  startQuake(land.c.quakes, 0, 0, 0, 17, 18, 14, 0.6, 'tidebreaker');
+  land.c.quakes[0].r = 6;
+  lx.update(land.c, () => land.root, 1 / 60);
+  const df = new DemonFx(new THREE.Scene());
+  df.update(land.c, 1 / 60);
+  const bands = df.group.children.filter((o) => o.visible).length;
+  check('its shockwaves are walls of dust rolling out (its own, not the bosses’ band of light)', impacts.showing.walls === 1 && bands === 0, `${impacts.showing.walls} walls, ${bands} bands`);
 }

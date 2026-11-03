@@ -5,13 +5,12 @@
 // warns. Close: its anchor's smash (a shockwave runs out along the floor: jump it), a combo of swings (raging, a
 // finisher that smashes too), its uppercut when you're right in front (it throws you high: the moon lets you float down).
 // Further: its moon leap (down where you stood, a ring warning: its landing hurts round it, rings out and shakes rock
-// down), the boulder it rips out of the ground and hurls, its shell roll (it bounces off the walls back at you, smashing
-// through pillars, then reels, dizzy), and a pillar torn out of the floor, swung at you and hurled (tideWreck.ts).
+// down), the boulder it rips out of the ground and hurls, and a pillar torn out of the floor, swung at you and hurled
+// (tideWreck.ts). (Update 0.3.30 — its shell roll gone: the designer: "remove the spinning attack" (its shell roll).)
 // Below Tidebreaker rage it roars and rages: quicker, its quakes (rings, one after another, every pillar near snapping,
 // rock shaken down all round) and rock falling near you; below its frenzy, quicker still. Its death is the bosses' show.
-// Enemy.move: its move; .stage: 0, raging 1, frenzied 2; .near: its roll's speed; .shots: its roll's bounces, the
-// pillar it goes for, its quake's rings; .deeds: the pillar in its hands (+1; 0: none); .blink: till rock comes down
-// again (raging); .strafe: the same move picked in a row; .aim: its roll's way, the pillar's place, where it lands. Pure.
+// Enemy.move: its move; .stage: 0, raging 1, frenzied 2; .shots: the pillar it goes for, its quake's rings; .deeds: the pillar in its hands (+1; 0: none); .blink: till rock comes down
+// again (raging); .strafe: the same move picked in a row; .aim: the pillar's place, where it lands. Pure.
 import { Vector3 } from 'three';
 import { TIDEBREAKER } from '../../tuning/tidebreaker';
 import { BOSS } from '../../tuning/boss';
@@ -23,15 +22,15 @@ import { chaseDir } from './chase';
 import { throwYou } from './dinoMoves';
 import { Enemy, EnemyWorld, radiusOf, setPhase, turn, walk, yawTo } from './enemy';
 import { ENEMY_STATS } from './kinds';
-import { callRocks, fly, hurl, leapAt, roll, startRoll } from './tideMoves';
+import { callRocks, fly, hurl, leapAt } from './tideMoves';
 import { approach, goForPillar, quake, ripPillar, startQuakeMove } from './tideWreck';
-import { COMBO, COMBO_C, COMBO_D, HURL, LEAP, offAngle, OVER, paceOf, PILLAR, QUAKE, RING_SPEED, ROAR, ROLL, SMASH, SWING, THROW, UPPERCUT, warn, wrecks } from './tideShared';
+import { COMBO, COMBO_C, COMBO_D, HURL, LEAP, offAngle, OVER, paceOf, PILLAR, QUAKE, RING_SPEED, ROAR, SMASH, SWING, THROW, UPPERCUT, warn, wrecks } from './tideShared';
 
-export { COMBO, COMBO_C, COMBO_D, HURL, LEAP, PILLAR, QUAKE, ROAR, ROLL, SMASH, SWING, THROW, UPPERCUT } from './tideShared';
+export { COMBO, COMBO_C, COMBO_D, HURL, LEAP, PILLAR, QUAKE, ROAR, SMASH, SWING, THROW, UPPERCUT } from './tideShared';
 /** What it picks from, and how likely each is close, further and far (a pillar, the uppercut and its quakes only when
- *  they can be). **(placeholders)** */
-const PICKS = [SMASH, COMBO, UPPERCUT, LEAP, THROW, ROLL, PILLAR, QUAKE];
-const ODDS = { near: [0.35, 0.3, 0.2, 0, 0, 0.05, 0, 0.2], mid: [0, 0, 0, 0.15, 0.25, 0.25, 0.25, 0.15], far: [0, 0, 0, 0.4, 0.25, 0.15, 0.2, 0.05] };
+ *  they can be; Update 0.3.30 — raging, its quake far likelier: the place should come down). **(placeholders)** */
+const PICKS = [SMASH, COMBO, UPPERCUT, LEAP, THROW, PILLAR, QUAKE];
+const ODDS = { near: [0.32, 0.25, 0.2, 0, 0, 0, 0.25], mid: [0, 0, 0, 0.2, 0.25, 0.25, 0.3], far: [0, 0, 0, 0.4, 0.25, 0.2, 0.15] };
 /** Its roar's warning (s); the arc its blows reach either side (rad); it stops walking this far from you (m); thrown by
  *  its blows (m/s along, up). */
 const ROAR_WARN = 0.7;
@@ -39,14 +38,15 @@ const ARC = 1.05;
 const STAND_OFF = 2;
 const THROWN = { smash: [14, 7], swing: [11, 5], swingPillar: [19, 9] } as const;
 /** After these moves it stands longer (s: its clip plays out). */
-const RECOVER: Partial<Record<number, number>> = { [LEAP]: 1.1, [ROAR]: 1.6, [QUAKE]: 0.5 };
+const RECOVER: Partial<Record<number, number>> = { [LEAP]: 1.2, [ROAR]: 1.6, [QUAKE]: 0.5 };
 
 const way = new Vector3();
 
 /** The warning before `move` (s). */
 export function tideWindup(move: number): number {
   const v = TIDEBREAKER.v;
-  return [v.smashWindup, v.comboWindup, v.comboNext, v.comboNext * 2, v.uppercutWindup, v.leapWindup, v.throwWindup, v.hurlWindup, v.rollWindup, v.pillarWindup, v.swingWindup, v.quakeWindup, ROAR_WARN][move] ?? v.smashWindup;
+  const by: Partial<Record<number, number>> = { [SMASH]: v.smashWindup, [COMBO]: v.comboWindup, [COMBO_C]: v.comboNext, [COMBO_D]: v.comboNext * 2, [UPPERCUT]: v.uppercutWindup, [LEAP]: v.leapWindup, [THROW]: v.throwWindup, [HURL]: v.hurlWindup, [PILLAR]: v.pillarWindup, [SWING]: v.swingWindup, [QUAKE]: v.quakeWindup, [ROAR]: ROAR_WARN };
+  return by[move] ?? v.smashWindup;
 }
 
 /** Its next move for where you are (seeded). */
@@ -105,20 +105,20 @@ export function updateTidebreaker(d: Enemy, index: number, player: PlayerState, 
       break;
     }
     case 'windup':
-      // (Aiming a leap, a roll or a throw it turns slower: a dash aside beats it. Tearing out a pillar, it faces it.)
-      d.facing = turn(d.facing, d.move === PILLAR ? pillarYaw(d, w) : toward, v.tideTurn * (d.move === LEAP || d.move === ROLL || d.move === HURL ? 0.6 : 1.4) * dt);
+      // (Aiming a leap or a throw it turns slower: a dash aside beats it. Tearing out a pillar, it faces it.)
+      d.facing = turn(d.facing, d.move === PILLAR ? pillarYaw(d, w) : toward, v.tideTurn * (d.move === LEAP || d.move === HURL ? 0.6 : 1.4) * dt);
       if (d.t >= tideWindup(d.move) / paceOf(d)) unleash(d, index, player, w, dist);
       break;
     case 'charge':
-      if (d.move === ROLL) roll(d, index, player, w, dt);
-      else if (d.move === PILLAR) approach(d, w, dt);
+      if (d.move === PILLAR) approach(d, w, dt);
       else if (d.move === QUAKE) quake(d, w);
       break;
     case 'leap':
       fly(d, player, w);
       break;
     case 'stun':
-      if (d.t >= v.dizzy) {
+      // (Stunned by anything: it reels, then it's back at you.)
+      if (d.t >= v.stunFor) {
         setPhase(d, 'chase');
         d.cooldown = v.tidePause * 0.4;
       }
@@ -168,8 +168,6 @@ function unleash(d: Enemy, index: number, player: PlayerState, w: EnemyWorld, di
     case HURL:
       hurl(d, player, w);
       return setPhase(d, 'recover');
-    case ROLL:
-      return startRoll(d, index, player, w);
     case PILLAR:
       return ripPillar(d, w);
     case SWING:

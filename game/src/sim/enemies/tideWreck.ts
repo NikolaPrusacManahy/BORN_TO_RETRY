@@ -54,7 +54,8 @@ export function approach(d: Enemy, w: EnemyWorld, dt: number) {
   }
   way.normalize();
   d.facing = turn(d.facing, Math.atan2(-way.x, -way.z), TIDEBREAKER.v.tideTurn * 1.5 * dt);
-  walk(d, way.x, way.z, TIDEBREAKER.v.tideSpeed * 1.3 * paceOf(d) * dt, w.nav.large);
+  // (Update 0.3.30 — the designer: "make him run x2 faster".)
+  walk(d, way.x, way.z, TIDEBREAKER.v.tideSpeed * TIDEBREAKER.v.pillarRun * paceOf(d) * dt, w.nav.large);
 }
 
 /** Its pillar torn out of the floor: in its hands, and swung at you next (one snapped meanwhile: it stands). */

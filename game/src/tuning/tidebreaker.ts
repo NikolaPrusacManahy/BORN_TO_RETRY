@@ -1,9 +1,11 @@
 // Update 0.3.29 — the Moon's boss, Tidebreaker (the designer: "Alien as Moon boss"; "It's the last boss before the last
 // boss, make sure it is intense and full destructions, maybe they can grab a pillar … can shake the whole place"): the
 // Bestiary pack's big alien, its anchor in hand. Its anchor's smash and combo, its uppercut, its moon leap, the boulder
-// it rips up and throws, its shell roll, the pillars it tears out to swing and hurl; raging, its quakes and the rock
+// it rips up and throws, the pillars it tears out to swing and hurl; raging, its quakes and the rock
 // they bring down; frenzied, quicker still. Its health in the bosses' range (the Drowned King's 2000 at most; the
 // designer: "do not make enemies tankier NEVER"). Times in seconds, distances in metres, speeds in m/s. **(placeholders)**
+// Update 0.3.30 (the designer, having seen it) — no weapon (its fists); no shell roll ("remove the spinning attack" (its shell roll)); it runs to a
+// pillar twice as fast.
 import { group, knob } from './schema';
 
 export const TIDEBREAKER = group('tidebreaker', 'Tidebreaker', {
@@ -13,15 +15,15 @@ export const TIDEBREAKER = group('tidebreaker', 'Tidebreaker', {
   tideTurn: knob(2.2, 0.5, 8, 0.1, 'Tidebreaker turn', 'How fast it turns to you (rad/s).'),
   tidePause: knob(1.1, 0.2, 5, 0.05, 'Tidebreaker pause', 'Between its moves.'),
   tideNear: knob(6.5, 2, 14, 0.25, 'Tidebreaker near', 'Closer than this it swings its anchor.'),
-  tideFar: knob(16, 6, 30, 0.5, 'Tidebreaker far', 'Further than this it leaps, throws or rolls.'),
+  tideFar: knob(16, 6, 30, 0.5, 'Tidebreaker far', 'Further than this it leaps or throws.'),
   tideRecover: knob(0.8, 0.1, 4, 0.05, 'Tidebreaker recover', 'It stands this long after a move.'),
   rageAt: knob(0.55, 0, 1, 0.05, 'Tidebreaker rage', 'Below this share of its health it rages: its quakes, the rock falling.'),
   frenzyAt: knob(0.22, 0, 1, 0.02, 'Tidebreaker frenzy', 'Below this share, frenzied: quicker still, more rock, more bounces.'),
   ragePace: knob(1.25, 1, 3, 0.05, 'Rage pace', 'Raging, its pauses and warnings this much quicker.'),
   frenzyPace: knob(1.5, 1, 3, 0.05, 'Frenzy pace', 'Frenzied, this much quicker.'),
-  smashWindup: knob(0.9, 0.1, 3, 0.05, 'Smash warning', 'Its anchor raised this long.'),
-  smashReach: knob(6.5, 1, 14, 0.25, 'Smash reach', 'Its anchor reaches this far, in front.'),
-  smashDamage: knob(30, 1, 80, 1, 'Smash hit', 'Its anchor, to you.'),
+  smashWindup: knob(0.9, 0.1, 3, 0.05, 'Smash warning', 'Its fist raised this long.'),
+  smashReach: knob(6.5, 1, 14, 0.25, 'Smash reach', 'Its smash reaches this far, in front.'),
+  smashDamage: knob(30, 1, 80, 1, 'Smash hit', 'Its smash, to you.'),
   smashRing: knob(12, 2, 30, 0.5, 'Smash shockwave', 'Its smash sends a ring along the floor this far (jump it).'),
   ringDamage: knob(14, 0, 60, 1, 'Shockwave hit', 'A ring rolling under you on the ground.'),
   comboWindup: knob(0.65, 0.1, 3, 0.05, 'Combo warning', 'Before its first swing.'),
@@ -43,13 +45,9 @@ export const TIDEBREAKER = group('tidebreaker', 'Tidebreaker', {
   boulderFall: knob(1.4, 0.3, 4, 0.05, 'Boulder flight', 'The boulder is in the air this long (where it lands shows).'),
   boulderReach: knob(3.8, 1, 10, 0.25, 'Boulder reach', 'Where it smashes, it hurts this far round.'),
   boulderDamage: knob(26, 1, 80, 1, 'Boulder hit', 'Caught where it smashes.'),
-  rollWindup: knob(0.8, 0.1, 3, 0.05, 'Roll warning', 'It curls into its shell this long.'),
-  rollSpeed: knob(15, 4, 40, 0.5, 'Roll speed', 'It rolls at you this fast.'),
-  rollBounces: knob(3, 0, 8, 1, 'Roll bounces', 'Off this many walls, each time back at you (frenzied, two more).'),
-  rollDamage: knob(26, 1, 80, 1, 'Roll hit', 'Rolled into, each pass.'),
-  rollFor: knob(7, 1, 15, 0.5, 'Roll for', 'It rolls this long at most.'),
-  dizzy: knob(2.6, 0.3, 8, 0.1, 'Dizzy', 'Uncurled after its roll it reels this long: your hits do more.'),
+  stunFor: knob(2.6, 0.3, 8, 0.1, 'Stunned', 'Stunned, it reels this long: your hits do more.'),
   pillarReach: knob(22, 4, 60, 1, 'Pillar reach', 'A pillar this near it, it may go and tear it out.'),
+  pillarRun: knob(2.6, 1, 6, 0.1, 'Pillar run', 'It runs to a pillar this many times as fast as it walks.'),
   pillarWindup: knob(1.2, 0.2, 4, 0.05, 'Pillar rip', 'It kneels and tears the pillar out this long.'),
   swingWindup: knob(0.9, 0.1, 3, 0.05, 'Pillar swing warning', 'The pillar raised this long.'),
   swingReach: knob(9.5, 2, 20, 0.25, 'Pillar swing reach', 'Its pillar reaches this far, in front.'),
@@ -57,7 +55,7 @@ export const TIDEBREAKER = group('tidebreaker', 'Tidebreaker', {
   pillarFall: knob(1.3, 0.3, 4, 0.05, 'Pillar flight', 'The pillar it hurls is in the air this long.'),
   pillarReachHit: knob(4.8, 1, 12, 0.25, 'Pillar smash reach', 'Where the hurled pillar smashes, it hurts this far round.'),
   pillarDamage: knob(32, 1, 90, 1, 'Pillar smash hit', 'Caught where it smashes.'),
-  quakeWindup: knob(1.1, 0.2, 4, 0.05, 'Quake warning', 'Its anchor raised high this long.'),
+  quakeWindup: knob(1.1, 0.2, 4, 0.05, 'Quake warning', 'Its fists raised high this long.'),
   quakeRings: knob(3, 1, 6, 1, 'Quake rings', 'Rings it sends out, one after another (jump each).'),
   quakeReach: knob(26, 4, 60, 1, 'Quake reach', 'Each ring rolls out this far.'),
   quakeRocks: knob(10, 0, 30, 1, 'Quake rock', 'Rock shaken down round the room by each quake.'),

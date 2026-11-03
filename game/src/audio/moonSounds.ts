@@ -5,8 +5,8 @@
 // thump, a ram, a mine's drop (a bleep), a salvo's whoosh, a mech's landing, Barbara climbing out (a hatch). A mine's
 // and a bomb's blast are a keg's, smaller.
 // Update 0.3.29 — and its boss, Tidebreaker: its growl warning a move, its anchor's whoosh and its smash (a crack and a
-// deep thud), its leap and its landing, stone tearing as it rips up a boulder or a pillar, its shell grinding as it
-// rolls and cracking off a wall, a pillar smashing, its quake's rumble, its roar.
+// deep thud), its leap and its landing, stone tearing as it rips up a boulder or a pillar, a pillar smashing, its quake's
+// rumble, its roar.
 import type { CombatEvent } from '../sim/combat/state';
 import type { AudioEngine } from './audio';
 import { kegBoom } from './soundLayers';
@@ -138,18 +138,6 @@ export function playMoon(a: AudioEngine, kind: CombatEvent, _value: number, far:
     case 'tideRip':
     case 'pillarGrab':
       stone(a, Math.max(0.5, far), 1.6);
-      return true;
-    case 'tideRoll':
-    case 'tideCurl':
-      noise(a, { dur: 1.4, gain: 0.26 * far, filter: 'lowpass', from: 300, to: 160 });
-      return true;
-    case 'tideBounce':
-    case 'tideCrash':
-      stone(a, far, 1.2);
-      thump(a, far, 1.5);
-      return true;
-    case 'tideDizzy':
-      tone(a, { from: 300, to: 180, dur: 0.9, gain: 0.12 * far, type: 'triangle' });
       return true;
     case 'boulderSmash':
     case 'pillarCrash':

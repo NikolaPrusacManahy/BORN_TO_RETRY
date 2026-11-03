@@ -70,8 +70,9 @@ export interface Look {
   posed?: boolean;
   /** Update 0.3.26 — clips of their own for a phase and a move (`phase:move`; the Frost Roc's), over its role's; `true`:
    *  played once and held. A wind-up's is played through its warning; (Update 0.3.29) a number: only up to that share of
-   *  it (where its blow lands: the rest follows in the next phase, the same clip carrying on). */
-  moveClips?: Readonly<Record<string, readonly [string, boolean?, number?]>>;
+   *  it (where its blow lands: the rest follows in the next phase, the same clip carrying on); (Update 0.3.30) a second
+   *  number: played this much faster out of a warning. */
+  moveClips?: Readonly<Record<string, readonly [string, boolean?, number?, number?]>>;
 }
 
 /** Update 0.0.18 — a newer-pack monster's clips (`<Name>_Idle`, …); `move` and `air` name their own. */

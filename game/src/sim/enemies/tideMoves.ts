@@ -1,30 +1,26 @@
 // Update 0.3.29 — Tidebreaker's moves across the room (tidebreaker.ts): its moon leap (up and down where you stood; its
 // landing hurts round it on the ground, sends a ring out, snaps the pillars near and shakes rock down near you), its
-// hurl (the boulder it ripped up, or the pillar in its hands: lobbed high where you'll be, smashing where it lands), its
-// shell roll (at you, through the pillars in its way, off the walls back at you, once into you each pass; then it
-// reels, dizzy) and the rock it calls down (the meteors' fall brings it: sim/dungeon/meteors.ts). Pure.
+// hurl (the boulder it ripped up, or the pillar in its hands: lobbed high where you'll be, smashing where it lands) and
+// the rock it calls down (the meteors' fall brings it: sim/dungeon/meteors.ts). (Update 0.3.30 — its shell roll gone:
+// the designer: "remove the spinning attack" (its shell roll).) Pure.
 import { Vector3 } from 'three';
 import { TIDEBREAKER } from '../../tuning/tidebreaker';
 import { BOSS } from '../../tuning/boss';
 import { dropBomb } from '../combat/bombs';
 import { startQuake } from '../combat/quakes';
-import { breakAround, snapPillar } from '../combat/pillars';
+import { breakAround } from '../combat/pillars';
 import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
 import { freeSpotNear } from './chase';
 import { throwYou } from './dinoMoves';
 import { Enemy, EnemyWorld, radiusOf, setPhase, walk, yawTo } from './enemy';
-import { OVER, paceOf, RING_SPEED, wrecks } from './tideShared';
+import { paceOf, RING_SPEED, wrecks } from './tideShared';
 
-/** Thrown by its landing and its roll (m/s along, up); its hurl leaves this high on it (share of its height), aims
- *  this long ahead of you (s); a pillar this near its shell's path is smashed (m past its side); slower than this share
- *  of its speed it's met a wall. */
+/** Thrown by its landing (m/s along, up); its hurl leaves this high on it (share of its height), aims this long ahead of
+ *  you (s). */
 const LAND_THROW = [11, 9] as const;
-const ROLL_THROW = [17, 8] as const;
 const HAND = 0.85;
 const LEAD = 0.45;
-const CLIP = 0.6;
-const STOPPED = 0.5;
 /** Its leap's landing snaps pillars this far out (m, past its body). */
 const SNAPS = 2.5;
 
@@ -89,60 +85,4 @@ export function hurl(d: Enemy, player: PlayerState, w: EnemyWorld) {
   else dropBomb(w.bombs, from, spot, fall, v.boulderReach, v.boulderDamage, 12, 'tidebreaker', 'boulder');
   d.deeds = 0;
   w.events.push('tideHurl', pillar, spot.x, 0, spot.z);
-}
-
-/** Curled in its shell, off at you. */
-export function startRoll(d: Enemy, index: number, player: PlayerState, w: EnemyWorld) {
-  d.aim.set(player.pos.x - d.pos.x, 0, player.pos.z - d.pos.z).normalize();
-  d.facing = yawTo(d, player.pos.x, player.pos.z);
-  d.near = TIDEBREAKER.v.rollSpeed * paceOf(d);
-  d.shots = 0;
-  d.struck = false;
-  setPhase(d, 'charge');
-  w.events.push('tideRoll', index, d.pos.x, d.pos.y + 1, d.pos.z);
-}
-
-/** Rolling: on along its way, through the pillars in it; into you once a pass; off a wall back at you, till its
- *  bounces are spent (or it's rolled its time): then it reels, dizzy. */
-export function roll(d: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number) {
-  const v = TIDEBREAKER.v;
-  const r = radiusOf(d);
-  const world = wrecks(w);
-  if (world) {
-    world.pillars.forEach((p, i) => {
-      if (p.broken) return;
-      const ax = p.x - d.pos.x;
-      const az = p.z - d.pos.z;
-      const along = ax * d.aim.x + az * d.aim.z;
-      if (along < 0 || along > r + p.half + CLIP + d.near * dt || Math.abs(ax * d.aim.z - az * d.aim.x) > r + p.half) return;
-      snapPillar(world, i, Math.atan2(-d.aim.x, -d.aim.z));
-      w.events.push('tideCrash', index, p.x, 1.5, p.z);
-    });
-  }
-  const step = d.near * dt;
-  const x = d.pos.x;
-  const z = d.pos.z;
-  walk(d, d.aim.x, d.aim.z, step, w.nav.large);
-  d.facing = Math.atan2(-d.aim.x, -d.aim.z);
-  const moved = Math.hypot(d.pos.x - x, d.pos.z - z);
-  const dist = Math.hypot(player.pos.x - d.pos.x, player.pos.z - d.pos.z);
-  if (!d.struck && !player.dead && dist <= r + 0.8 && player.pos.y - d.pos.y < OVER) {
-    d.struck = true;
-    if (damagePlayer(player, v.rollDamage, 'tidebreaker')) throwYou(player, d, d.aim.x, d.aim.z, 1, ROLL_THROW[0], ROLL_THROW[1]);
-  }
-  const bounces = Math.round(v.rollBounces) + (d.stage >= 2 ? 2 : 0);
-  if (moved < step * STOPPED || d.t >= v.rollFor) {
-    if (d.shots >= bounces || d.t >= v.rollFor) {
-      setPhase(d, 'stun');
-      w.events.push('tideDizzy', index, d.pos.x, d.pos.y + v.tideHeight, d.pos.z);
-      return;
-    }
-    // Off the wall, back at you.
-    d.shots++;
-    d.struck = false;
-    d.aim.set(player.pos.x - d.pos.x, 0, player.pos.z - d.pos.z);
-    if (d.aim.lengthSq() < 1e-6) d.aim.set(-d.aim.z || 1, 0, d.aim.x);
-    d.aim.normalize();
-    w.events.push('tideBounce', index, d.pos.x, d.pos.y + 1, d.pos.z);
-  }
 }

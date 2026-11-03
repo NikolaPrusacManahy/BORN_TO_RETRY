@@ -2,7 +2,8 @@
 # (ASSETS/QUATERNIUS/High-quality-enemies: the same 65 bones, its own rest pose and bone lengths) and writes its GLB for
 # the game: each bone's turn carried over in world space from its rest (its own rest kept), the pelvis's bob scaled to
 # its leg, its weapon hand's fingers held closed (a grip clip's), its textures at 1024 px (its colour variant's), every
-# clip under its own name; a still pose taken from a clip at a moment (`clip@0.4`) when a move needs one held.
+# clip under its own name; a still pose taken from a clip at a moment (`clip@0.4`) when a move needs one held; clips
+# played one after the other as one (`a+b`); pieces of the model left out (`drop`: its weapon).
 #   python tools/ual_bake.py tidebreaker
 import io, json, os, struct, sys
 import numpy as np
@@ -12,13 +13,16 @@ FPS = 30
 SIZE = 1024
 
 MONSTERS = {
-    # The Moon's boss (the designer: "Alien as Moon boss"): blue (its second colour), its anchor in its right hand.
+    # The Moon's boss (the designer: "Alien as Moon boss"): blue (its second colour). Update 0.3.30 (the designer:
+    # "remove the weapons he has"): no anchor, its fist closed; its jump the three Jump clips (its crouch Jump_Start's
+    # first moment, then Jump_Start and Jump_Loop as one in the air, then Jump_Land); no shell roll ("remove the
+    # spinning attack").
     'tidebreaker': {
         'glb': 'Tidebreaker.glb', 'color': 'Variations/T_Tidebreaker_BaseColor_2.png', 'out': 'public/models/enemies/tidebreaker.glb',
-        'grip': ('r', 'UAL1', 'Sword_Idle'),
+        'grip': ('r', 'UAL1', 'Sword_Idle'), 'drop': ['Tidebreaker_Anchor'],
         'clips': {
-            'UAL1': ['Idle_Loop', 'Walk_Loop', 'Jog_Fwd_Loop', 'Death01', 'PickUp_Kneeling', 'Roll', 'Idle_Tired_Loop', 'Roll@0.42=Shell'],
-            'UAL2': ['Sword_Heavy_A', 'Sword_Heavy_A_Rec', 'Sword_Heavy_B', 'Sword_Heavy_B_Rec', 'Sword_Heavy_C', 'Sword_Heavy_C_Rec', 'Sword_Heavy_D', 'Melee_Uppercut', 'NinjaJump_Start', 'NinjaJump_Idle_Loop', 'NinjaJump_Land', 'OverhandThrow', 'Sword_GroundPound', 'MonsterTransformation', 'Walk_Carry_Loop', 'Hit_Knockback'],
+            'UAL1': ['Idle_Loop', 'Walk_Loop', 'Jog_Fwd_Loop', 'Death01', 'PickUp_Kneeling', 'Jump_Start@0=Jump_Crouch', 'Jump_Start+Jump_Loop=Jump_Air', 'Jump_Land'],
+            'UAL2': ['Sword_Heavy_A', 'Sword_Heavy_A_Rec', 'Sword_Heavy_B', 'Sword_Heavy_B_Rec', 'Sword_Heavy_C', 'Sword_Heavy_C_Rec', 'Sword_Heavy_D', 'Melee_Uppercut', 'OverhandThrow', 'Sword_GroundPound', 'MonsterTransformation', 'Walk_Carry_Loop', 'Hit_Knockback'],
         },
     },
 }
@@ -222,15 +226,21 @@ def bake(key):
     for libname, names in cfg['clips'].items():
         uj, ubin, ur = lib(libname)
         for spec in names:
-            src, at, dst = spec, None, spec
-            if '=' in spec:
-                src, dst = spec.split('=')
-            if '@' in src:
-                src, frac = src.split('@'); at = float(frac)
-            t, rot, pel = clip_of(uj, ubin, ur, src, at)
-            if at is not None:
-                t = t - t[0]
-            tracks = retarget(br, ur, rot, pel, len(t))
+            src, dst = spec.split('=') if '=' in spec else (spec, spec)
+            t, tracks = None, None
+            # (One after the other: each after the last, a frame on.)
+            for part in src.split('+'):
+                at = None
+                if '@' in part:
+                    part, frac = part.split('@'); at = float(frac)
+                pt, rot, pel = clip_of(uj, ubin, ur, part, at)
+                pt = pt - pt[0]
+                pk = retarget(br, ur, rot, pel, len(pt))
+                if t is None:
+                    t, tracks = pt, pk
+                else:
+                    t = np.concatenate([t, pt + t[-1] + 1 / FPS])
+                    tracks = {k: np.concatenate([np.asarray(tracks[k]), np.asarray(pk[k])]) for k in tracks}
             for node, q in grip.items():
                 tracks[(node, 'rotation')] = np.broadcast_to(q, (len(t), 4))
             anims.append((dst, t, tracks))
@@ -279,6 +289,13 @@ def bake(key):
             samplers.append({'input': ti, 'output': add(vals, 'VEC4' if path == 'rotation' else 'VEC3'), 'interpolation': 'LINEAR'})
             channels.append({'sampler': len(samplers) - 1, 'target': {'node': node, 'path': path}})
         bj['animations'].append({'name': name, 'samplers': samplers, 'channels': channels})
+    # Pieces left out (its weapon): out of the scene.
+    gone = {i for i, n in enumerate(bj['nodes']) if n.get('name') in cfg.get('drop', [])}
+    for n in bj['nodes']:
+        if 'children' in n:
+            n['children'] = [c for c in n['children'] if c not in gone]
+    for sc in bj['scenes']:
+        sc['nodes'] = [c for c in sc['nodes'] if c not in gone]
     path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), cfg['out'])
     write_glb(path, bj, out)
     print('%s: %d clips, %.1f MB -> %s' % (key, len(anims), os.path.getsize(path) / 1e6, cfg['out']))

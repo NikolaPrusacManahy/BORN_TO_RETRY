@@ -74,6 +74,8 @@ export class BombView {
       const b = state.bombs[i];
       const s = this.shown[i];
       s.ball.visible = s.ring.visible = s.fill.visible = b.alive;
+      // (Update 0.3.30 — the designer: no mark where Tidebreaker's hurled pillar will land.)
+      if (b.look === 'pillar') s.ring.visible = s.fill.visible = false;
       s.spark.visible = b.alive && b.look === 'powder';
       if (!b.alive) continue;
       // (Update 0.3.29 — a hurled pillar is drawn by the floor's view: pillarEvents.ts.)

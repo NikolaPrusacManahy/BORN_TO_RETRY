@@ -13,7 +13,7 @@ export const UPPERCUT = 4;
 export const LEAP = 5;
 export const THROW = 6;
 export const HURL = 7;
-export const ROLL = 8;
+// (8 was its shell roll: gone in Update 0.3.30, the designer: "remove the spinning attack" (its shell roll).)
 export const PILLAR = 9;
 export const SWING = 10;
 export const QUAKE = 11;

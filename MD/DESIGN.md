@@ -227,7 +227,11 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   ripped out of the floor and hurled, its shell roll (through the pillars, off the walls back at you, then dizzy), and a
   pillar torn out, swung down at you and hurled. Raging (55%): its quakes (three rings, every pillar near snapping, rock
   all round), rock falling near you; frenzied (22%): quicker still. The whole place shakes. 1900 health.
-  **(placeholder numbers, F1 → Tidebreaker)**
+  **(placeholder numbers, F1 → Tidebreaker)** **Update 0.3.30 (the designer, having seen it; `MD_UPDATES/U0330_TIDEBREAKER_SEEN.md`):**
+  no weapon (its fists); no shell roll ("remove the spinning attack"); its jump the three Jump clips (crouch,
+  Jump_Start into Jump_Loop, Jump_Land); its own impact (a crater cracked into the dust, dust rising, rock flung out)
+  and shockwaves (walls of dust); its run to a pillar twice as fast; no fan or mark before its pillar flies; raging,
+  its quake far likelier.
 
 ### The Forge (Update 0.3.13; spec `MD_UPDATES/U0313_THE_FORGE.md`; Update 0.3.17 — out of floor 8, kept on floor 10; Update 0.3.25 — floor 10 is Hell on Earth, its rooms meanwhile)
 - The designer: every floor's level first ("I want all designs to be done first"), then the enemies.

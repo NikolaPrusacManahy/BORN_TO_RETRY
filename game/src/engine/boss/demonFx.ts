@@ -98,7 +98,8 @@ export class DemonFx {
     for (let i = 0; i < state.quakes.length; i++) {
       const q = state.quakes[i];
       const fx = this.quakes[i];
-      fx.band.visible = fx.floor.visible = q.alive && q.r > 0.1;
+      // (Update 0.3.29 — not Tidebreaker's: moon/tideFx.ts draws its own.)
+      fx.band.visible = fx.floor.visible = q.alive && q.r > 0.1 && q.by !== 'tidebreaker';
       if (!fx.band.visible) continue;
       const fade = 1 - q.r / q.reach;
       fx.band.position.set(q.x, q.y, q.z);

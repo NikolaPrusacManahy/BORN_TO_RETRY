@@ -2,15 +2,14 @@
 // boss, make sure it is intense and full destructions, maybe they can grab a pillar … can shake the whole place"): it's
 // the Moon's own, in the bosses' range, named, its model and every clip; each move (its smash and its shockwave, its
 // combo and finisher, its uppercut throwing you high, its leap landing where you stood, ringing out, snapping pillars and
-// shaking rock down, its boulder ripped up and hurled, its shell roll bouncing off the walls and smashing through pillars,
-// dizzy after, a pillar torn out, swung and hurled, its quake's rings snapping every pillar near and bringing rock down);
+// shaking rock down, its boulder ripped up and hurled, a pillar torn out, swung and hurled (Update 0.3.30 — no shell roll), its quake's rings snapping every pillar near and bringing rock down);
 // its rage and frenzy; its rock falling as meteors do, sparing it.
 import { readFileSync } from 'node:fs';
 import { check, near, section } from './harness';
 import { at, crew, run, until } from './fakes/crewMeet';
 import { bossOf, ENEMY_STATS, ownBossOf } from '../src/sim/enemies/kinds';
 import { setPhase, spawnEnemy } from '../src/sim/enemies/enemy';
-import { COMBO, HURL, LEAP, QUAKE, ROLL, SMASH, THROW, UPPERCUT } from '../src/sim/enemies/tidebreaker';
+import { COMBO, HURL, LEAP, QUAKE, SMASH, THROW, UPPERCUT } from '../src/sim/enemies/tidebreaker';
 import { goForPillar } from '../src/sim/enemies/tideWreck';
 import { bossCoins } from '../src/sim/dungeon/bossRoom';
 import { stepMeteors } from '../src/sim/dungeon/meteors';
@@ -93,25 +92,6 @@ section('Tidebreaker — across the room');
   check(`smashing where it lands (${v.boulderDamage})`, rb.includes('boulderSmash') && lost(t) === v.boulderDamage, `${lost(t)}`);
 }
 
-section('Tidebreaker — its shell');
-{
-  // (You stand aside: it rolls past, off the walls and back.)
-  const m = pillared(14, ROLL, [[0, 4]]);
-  const seen: string[] = [];
-  const blows: number[] = [];
-  for (let i = 0; i < ticks(v.rollFor + v.rollWindup + 1) && m.e.phase !== 'stun'; i++) {
-    const before = m.p.hp;
-    seen.push(...run(m, DT).seen);
-    if (m.p.hp < before) blows.push(before - m.p.hp);
-    m.p.hp = maxHpOf(m.p);
-  }
-  check(`curled, it rolls at you (${v.rollSpeed} m/s), into you once a pass (${v.rollDamage})`, seen.includes('tideRoll') && blows.length >= 1 && blows.length <= Math.round(v.rollBounces) + 1 && blows.every((b) => b === v.rollDamage), blows.join(', '));
-  check(`off the walls back at you (${v.rollBounces} bounces), then dizzy`, count(seen, 'tideBounce') === Math.round(v.rollBounces) && seen.includes('tideDizzy') && m.e.phase === 'stun', `${count(seen, 'tideBounce')}`);
-  check('it smashes through a pillar in its way', m.c.pillars[0].broken && seen.includes('tideCrash'));
-  const d = run(m, v.dizzy + 0.1).seen;
-  check(`dizzy ${v.dizzy} s (your hits do more), then back at you`, m.e.phase !== 'stun' && d.length >= 0 && ENEMY_STATS.tidebreaker().stunned > 1);
-}
-
 section('Tidebreaker — a pillar torn out');
 {
   const m = pillared(10, SMASH, [[0, -7]]);
@@ -150,13 +130,17 @@ section('Tidebreaker — its quake, its rage');
   const f = until(r, () => r.e.stage === 2 && r.e.phase === 'recover', 12, () => r.p.pos.set(0, 0, 0));
   check('below its frenzy: another roar, frenzied', f.includes('tideRoar') && r.e.stage === 2);
   const pk = crew('tidebreaker', [at(0, 0, -9)], [], 7);
+  let rolled = false;
   const seen = run(pk, 60, (i) => {
+    rolled ||= pk.e.move === 8;
     pk.p.pos.set(0, 0, i % 900 < 450 ? -4 : 20);
     pk.p.vel.set(0, 0, 0);
     pk.p.hp = maxHpOf(pk.p);
   }).seen;
-  const kinds = new Set(seen.filter((k) => ['tideSmash', 'tideSwing', 'tideUppercut', 'tideLeap', 'tideRip', 'tideRoll'].includes(k)));
+  const kinds = new Set(seen.filter((k) => ['tideSmash', 'tideSwing', 'tideUppercut', 'tideLeap', 'tideRip', 'pillarGrab'].includes(k)));
   check('it keeps warning and moving, picking among its moves by where you are', count(seen, 'tideWindup') >= 10 && kinds.size >= 4, `${count(seen, 'tideWindup')} warnings; ${[...kinds].join(', ')}`);
+  // (Update 0.3.30 — the designer: "remove the spinning attack": its shell roll.)
+  check('it never curls up to roll (its shell roll gone, its clips too)', !rolled && !Object.values(LOOKS.tidebreaker!.moveClips ?? {}).some(([c]) => c === 'Shell' || c === 'Roll'));
 }
 
 section('Tidebreaker — its rock falls as meteors do');
@@ -213,5 +197,5 @@ section('Tidebreaker — in its arena, the place comes down');
   }
   const broken = inRoom.filter((q) => q.broken).length;
   check(`its arena’s ${inRoom.length} pillars: it tears them down (${broken}), one torn out and hurled`, inRoom.length === 12 && broken >= 5 && seen.has('pillarGrab') && seen.has('pillarCrash'), `${broken} broken; ${[...seen].filter((k) => k.startsWith('pillar')).join(', ')}`);
-  check('raging, its quakes and rock (it keeps fighting the whole while, in its room)', seen.has('tideQuake') && seen.has('tideRoar') && rocks >= 10 && ok && e.pos.x > room.min.x && e.pos.x < room.max.x && e.pos.z > room.min.z && e.pos.z < room.max.z, `${rocks} rock`);
+  check('raging, its quakes and rock (it keeps fighting the whole while, in its room)', seen.has('tideQuake') && seen.has('tideRoar') && rocks >= 10 && ok && e.pos.x > room.min.x && e.pos.x < room.max.x && e.pos.z > room.min.z && e.pos.z < room.max.z, `${rocks} rock; quake ${seen.has('tideQuake')}, roar ${seen.has('tideRoar')}, ok ${ok}`);
 }

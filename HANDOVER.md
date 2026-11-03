@@ -2,7 +2,13 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.29: the Moon's boss, Tidebreaker)
+## Next up (2026-11-03, Update 0.3.30: Tidebreaker, seen)
+- **The designer**, having seen it: no weapon; its jump the three Jump clips; its own landing impact (not "the recycled
+  version of every boss"); its pillar run ×2; no arc or landing mark before its pillar flies; then no shell roll
+  ("remove the spinning attack, everything else looks great"). Spec `MD_UPDATES/U0330_TIDEBREAKER_SEEN.md`. Its impacts and dust-wall shockwaves: `engine/moon/tideImpact.ts`.
+- Checked by tests and Blender renders; the new impact is three.js-only: **unseen in the game**. **Next: Hellwarden.**
+
+## Before (2026-11-03, Update 0.3.29: the Moon's boss, Tidebreaker)
 - **The designer**: "Alien as Moon boss"; "It's the last boss before the last boss, make sure it is intense and full
   destructions, maybe they can grab a pillar … can shake the whole place". Spec `MD_UPDATES/U0329_TIDEBREAKER.md`.
 - The Bestiary pack's alien, animated with the Universal Animation Library: `game/tools/ual_bake.py` (new; bake again
@@ -10,8 +16,8 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   `sim/enemies/tidebreaker.ts`, `tideShared.ts`, `tideMoves.ts`, `tideWreck.ts`; its arena `MOON_BOSS_ROOM`
   (moonRooms.ts, twelve pillars). Pillars torn out, held, hurled: `engine/pillarEvents.ts` (out of run.ts),
   `pillarBreak.ts` (`uproot`); its rock falls as meteors (`ground.rocks`, meteors.ts).
-- Checked by tests and Blender renders; **unseen in the game**. **Next: Hellwarden, Hell's boss** (floor 10; metal
-  that isn't black without an environment map, the sword arm held in walks).
+- Checked by tests and Blender renders; unseen in the game. Next (as it stood): Hellwarden; 0.3.30 went to the
+  designer's notes on it first.
 
 ## Before (2026-11-03, Update 0.3.28: the Moon's four mechs, mini bosses all)
 - **The designer**: "Mechs as minibosses … just add the remaning 3 as identical functions as bee mech". Spec
