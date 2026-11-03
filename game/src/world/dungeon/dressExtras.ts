@@ -24,7 +24,7 @@ export interface SandCell {
 
 /** The cells that are sand, not paving. */
 // (Update 0.3.11 — and floor 7's snow: its trees' beds, and beds of snow.)
-export const SANDY: ReadonlySet<Cell> = new Set<Cell>(['sand', 'palm', 'cactus', 'willow', 'snag', 'weed', 'bed', 'grass', 'tree', 'grave', 'shroom', 'burrow', 'pine', 'snow', 'flora', 'alienTree']);
+export const SANDY: ReadonlySet<Cell> = new Set<Cell>(['sand', 'palm', 'cactus', 'willow', 'snag', 'weed', 'bed', 'grass', 'tree', 'grave', 'shroom', 'burrow', 'pine', 'snow', 'flora', 'alienTree', 'sakura', 'maple', 'jpine', 'bamboo', 'moss', 'gravel', 'dojo', 'dummy', 'rack']);
 
 /** The desert's pieces (export_dungeon_kit.py's Nature pack ones), and their sizes in the game (the pack's palms are
  *  4–4.5 m, its cacti 1–2 m: scaled up to the rooms). */

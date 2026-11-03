@@ -1,7 +1,7 @@
 // Update 0.3.13 — what a floor's look is (moved out of styles.ts, which had reached its size; no change): its pieces, its
 // colours, its sky and sun, and what it has of its own. Pure data.
 
-export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned' | 'sunken' | 'venom' | 'bone' | 'frozen' | 'forge' | 'cove' | 'moon';
+export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned' | 'sunken' | 'venom' | 'bone' | 'frozen' | 'forge' | 'cove' | 'moon' | 'shrine';
 type Scale = [number, number, number];
 
 export interface DungeonStyle {
@@ -81,6 +81,10 @@ export interface DungeonStyle {
   space?: boolean;
   haze?: number;
   lowGravity?: boolean;
+  /** Update 0.3.32 — materials (names before any ".001") whose texture's alpha cuts them out (floor 8's leaves:
+   *  engine/kitMaterial.ts), and the piece on the walls in place of the torches (no flame of its own). */
+  cutout?: string[];
+  torch?: string;
 }
 
 /** Update 0.2.23 — a pit's look: its dark base, the glow's two colours it drifts between, how bright. */

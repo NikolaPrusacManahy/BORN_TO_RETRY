@@ -36,6 +36,10 @@
 // Update 0.3.17 — floor 8 reworked, the Moon (moonRooms.ts; the Forge's rooms retired from it): c a crater (floor, its
 // dish drawn), f a greenhouse bed (alien plants in soil), y an alien tree in it (its trunk a block), and set pieces drawn
 // as rectangles of one letter: O a moon base module, d a geodesic dome, u a parked rover, s solar panels, q a boulder.
+// Update 0.3.32 — floor 8, the Shrine Dimension (shrineRooms.ts): a a sakura, e a maple, j a pine (each in a bed of
+// earth), + a bed of moss, i bamboo, l a stone lantern, % a small shrine, ! a training dummy, | a weapon rack, N raked
+// gravel, : a dojo's planks; L its ponds and = its bridges; set pieces drawn as rectangles of one letter: t a torii,
+// @ the shrine hall, $ a pagoda, & a bell tower.
 import type { Rng } from '../../core/rng';
 import { FIGHT_ROOMS as FIRST_ROOMS, quarter } from './fightRooms';
 import { KEEP_ROOMS } from './keepRooms';
@@ -47,15 +51,16 @@ import { FROZEN_ROOMS } from './frozenRooms';
 import { FORGE_ROOMS } from './forgeRooms';
 import { COVE_ROOMS, SHARK_ROOM } from './coveRooms';
 import { MOON_BOSS_ROOM, MOON_ROOMS } from './moonRooms';
+import { SHRINE_BOSS_ROOM, SHRINE_ROOMS } from './shrineRooms';
 import { realmOf } from './floorOrder';
 
 /** Every fight room (Update 0.0.20: the lava rooms too, from their floor on; Update 0.0.21: floor 3's). */
-export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...VENOM_ROOMS, ...BONE_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS, ...COVE_ROOMS, ...FROZEN_ROOMS, ...FORGE_ROOMS, ...MOON_ROOMS];
+export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...VENOM_ROOMS, ...BONE_ROOMS, ...KEEP_ROOMS, ...DESERT_ROOMS, ...DROWNED_ROOMS, ...COVE_ROOMS, ...FROZEN_ROOMS, ...FORGE_ROOMS, ...MOON_ROOMS, ...SHRINE_ROOMS];
 
 /** Update 0.0.21 — the rooms floor `floor` has. */
 export const onFloor = (t: RoomTemplate, floor: number) => (t.from ?? 1) <= floor && floor <= (t.until ?? Infinity);
 
-export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed' | 'bed' | 'grass' | 'tree' | 'web' | 'grave' | 'shroom' | 'burrow' | 'crystal' | 'ice' | 'pine' | 'snow' | 'crusher' | 'vent' | 'belt' | 'bench' | 'boardwalk' | 'keg' | 'wreck' | 'boat' | 'house' | 'outcrop' | 'bones' | 'crater' | 'flora' | 'alienTree' | 'module' | 'dome' | 'rover' | 'solar' | 'boulder';
+export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed' | 'bed' | 'grass' | 'tree' | 'web' | 'grave' | 'shroom' | 'burrow' | 'crystal' | 'ice' | 'pine' | 'snow' | 'crusher' | 'vent' | 'belt' | 'bench' | 'boardwalk' | 'keg' | 'wreck' | 'boat' | 'house' | 'outcrop' | 'bones' | 'crater' | 'flora' | 'alienTree' | 'module' | 'dome' | 'rover' | 'solar' | 'boulder' | 'sakura' | 'maple' | 'jpine' | 'bamboo' | 'lantern' | 'torii' | 'gravel' | 'dojo' | 'hall' | 'pagoda' | 'bell' | 'hokora' | 'moss' | 'dummy' | 'rack';
 export type RoomKind = 'start' | 'fight' | 'boss' | 'shop';
 
 export interface RoomTemplate {
@@ -127,6 +132,21 @@ const CHAR: Record<string, Cell> = {
   u: 'rover',
   s: 'solar',
   q: 'boulder',
+  a: 'sakura',
+  e: 'maple',
+  j: 'jpine',
+  i: 'bamboo',
+  l: 'lantern',
+  t: 'torii',
+  N: 'gravel',
+  ':': 'dojo',
+  '@': 'hall',
+  $: 'pagoda',
+  '&': 'bell',
+  '%': 'hokora',
+  '+': 'moss',
+  '!': 'dummy',
+  '|': 'rack',
 };
 
 /** Update 0.3.13 — a belt's way (dx, dz on the grid: +z is south). */
@@ -166,10 +186,10 @@ export const BOSS_ROOM: RoomTemplate = {
 /** Update 0.2.23 — floor `floor`'s boss room: floor 2's is scorched (venomRooms.ts), floor 3's the Throne Hall
  *  (boneRooms.ts, Update 0.2.24), floor 6's the Shark's Graveyard (coveRooms.ts, Update 0.3.16), the rest the one above.
  *  (Update 0.3.25 — by its place, floorOrder.ts: the Venom Garden's, the Bone Keep's, Skull Cove's.) Update 0.3.29 — the
- *  Moon's, Tidebreaker's shattered crater (moonRooms.ts). */
+ *  Moon's, Tidebreaker's shattered crater (moonRooms.ts). Update 0.3.32 — the Shrine Dimension's Great Shrine. */
 export const bossRoomOf = (floor: number): RoomTemplate => {
   const r = realmOf(floor);
-  return r === 'garden' ? SCORCHED_ROOM : r === 'keep' ? THRONE_ROOM : r === 'cove' ? SHARK_ROOM : r === 'moon' ? MOON_BOSS_ROOM : BOSS_ROOM;
+  return r === 'garden' ? SCORCHED_ROOM : r === 'keep' ? THRONE_ROOM : r === 'cove' ? SHARK_ROOM : r === 'moon' ? MOON_BOSS_ROOM : r === 'shrine' ? SHRINE_BOSS_ROOM : BOSS_ROOM;
 };
 
 /** Update 0.0.13 — the shop (the designer: a room with five floor tiles, each showing something to buy). */

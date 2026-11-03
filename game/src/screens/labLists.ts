@@ -125,8 +125,8 @@ export interface LabFloor {
 }
 
 /** The floors the panel offers (Update 0.3.11 — 7 too; Update 0.3.13 — 8). Update 0.3.25 — the floors reordered
- *  (world/dungeon/floorOrder.ts): every built one (not the Shrine Dimension yet; nor Hell on Earth, the Forge's rooms and
- *  stand-ins, as before). */
+ *  (world/dungeon/floorOrder.ts): every built one (not Hell on Earth, the Forge's rooms and stand-ins, as before; Update
+ *  0.3.32 — the Shrine Dimension too). */
 export const LAB_FLOOR_NUMBERS = REALMS.filter((r) => !UNBUILT.has(r) && r !== 'hell').map((r) => FLOOR[r]);
 
 export const LAB_FLOORS: readonly LabFloor[] = (() => {

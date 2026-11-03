@@ -201,6 +201,23 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   punch its throat, or it's one shot. Its tail, its teeth stuck in a wall, its frenzy below half. 1800 health. Dead,
   the arena drains. **(placeholder numbers, F1 → Big Shark)**
 
+### Floor 8 — the Shrine Dimension (Update 0.3.32; the plan `MD/FLOOR8_SHRINE_PLAN.md`; spec `MD_UPDATES/U0332_SHRINE_LEVEL.md`)
+- The designer: "Japan theme … karate or martial art enemies … Sakura trees and a shrine and this kind of thing, loads
+  of sakura leaves"; the plan agreed ("go with that, without the Wolf yet, I will redesign him after").
+- **Its level (0.3.32):** pale castle stone and grey paving under a soft spring sky, a pale pink haze; islands of rock
+  floating far off all round, a pagoda, torii, the shrine hall and sakura on them.
+  - **Sakura everywhere:** More_nature's Tree set, its blossom cut-outs made in code, in beds of earth. A carpet of
+    fallen petals under each; petals falling everywhere, tumbling, in gusts.
+  - **Pieces made in code:** vermilion torii over every doorway and across its paths; stone lanterns; red paper
+    lanterns on the walls in place of torches; bamboo; maples; pines; small shrines; the shrine hall; a pagoda; a bell
+    tower; raked gravel; a dojo's planks, dummies and racks; ponds (deep: what falls in drowns) under red railed
+    bridges.
+  - **Nine rooms:** the torii path, the sakura grove, the zen garden, the koi pond, the bamboo forest, the dojo, the
+    lantern steps, the pagoda court, the tea garden. Its boss room is the Great Shrine.
+  - Playable in the Lab (a new floor). Its enemies stand in (the dry floors') and its boss too (the Velociraptor)
+    **till its own come**; the run still ends at floor 7.
+- **Next:** its martial artists (the plan's six and two mini bosses); its boss is on hold (the designer will redesign it).
+
 ### Floor 8 — the Moon (floor 9 since Update 0.3.25) (Update 0.3.17; the plan `MD/FLOOR8_MOON_PLAN.md`; spec `MD_UPDATES/U0317_THE_MOON.md`)
 - The designer: "BIG REWORK of FLOOR 8": a sci-fi moon floor (the Ultimate Space Kit, `ASSETS/QUATERNIUS/FLOOR-8`).
 - A black space sky of stars with the Earth large in it, a ringed planet, the sun; bright all the same (a hard white

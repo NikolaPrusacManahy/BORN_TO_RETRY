@@ -27,6 +27,9 @@
 # base, rocks, alien plants, rovers, a crate, the planets for the sky. Like the Pirate Kit's, one 32 px palette
 # (Atlas_Moon.png), one material.
 #       ... --moon <ASSETS/QUATERNIUS/FLOOR-8>
+# Update 0.3.32 — and floor 8's, the Shrine Dimension: its own pieces made in code (shrine_pieces.py: kit_js_<piece>)
+# and More_nature's sakura, pines and maples (kit_mn_<tree>; `--shrine`).
+#       ... --shrine <ASSETS/QUATERNIUS/More_nature>
 import argparse
 import math
 import os
@@ -93,6 +96,7 @@ def parse_args():
     p.add_argument('--rpg', default=None)
     p.add_argument('--pirate', default=None)
     p.add_argument('--moon', default=None)
+    p.add_argument('--shrine', default=None)
     return p.parse_args(argv)
 
 
@@ -150,6 +154,11 @@ def main():
                 o.data.transform(Matrix.Rotation(-math.pi / 2, 4, 'Z'))
             o.name = f'kit_{prefix}_{name}'
             o.data.name = o.name
+            bpy.context.scene.collection.objects.link(o)
+            pieces.append(o)
+    if args.shrine:
+        from shrine_pieces import shrine_kit
+        for o in shrine_kit(args.shrine):
             bpy.context.scene.collection.objects.link(o)
             pieces.append(o)
     one_atlas([o for o in pieces if o.name.startswith('kit_pf_')], 'Atlas_Pirate')

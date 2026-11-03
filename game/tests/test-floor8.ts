@@ -104,7 +104,7 @@ section('Floor 8 — the floor laid out');
     }
   }
   check('every piece the floor uses is in the dungeon kit', [...used].every((p) => inKit.has(p)), [...used].filter((p) => !inKit.has(p)).join(', '));
-  check('the Space Kit’s pieces share one palette, one material (Atlas_Moon), as the Pirate Kit’s do', kit.materials.filter((m) => m.name.startsWith('Atlas')).map((m) => m.name).sort().join() === 'Atlas_Moon,Atlas_Pirate' && kit.images?.length === 2);
+  check('the Space Kit’s pieces share one palette, one material (Atlas_Moon), as the Pirate Kit’s do', kit.materials.filter((m) => m.name.startsWith('Atlas')).map((m) => m.name).sort().join() === 'Atlas_Moon,Atlas_Pirate' && (kit.images ?? []).filter((i) => !['Sakura', 'PineNeedle', 'MapleLeaf'].includes((i as { name?: string }).name ?? '')).length === 2);
   check('the moon base, domes, rovers, solar panels and boulders, as set pieces', ['module', 'dome', 'rover', 'solar', 'boulder'].every((k) => kinds.has(k)), [...kinds].join(', '));
   check('the landing site’s lander; big craters with their meteorites', landers > 0 && meteorites > 0, `${landers} landers, ${meteorites} meteorites`);
   check('alien plants only in the greenhouse’s beds (nothing grows on bare dust)', plants > 0 && offBeds === 0, `${plants} plants, ${offBeds} off their beds`);

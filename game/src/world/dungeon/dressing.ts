@@ -168,10 +168,10 @@ export function dress(plan: FloorPlan): Dressing {
             const byGate = Math.hypot(x - plan.wayOut.doorX, z - plan.wayOut.doorZ) < GATE_TORCHES;
             // (Update 0.2.11 — none under water; 0.3.16 — nor on the Big Shark's tall walls; 0.3.17 — nor in space.)
             if (room >= 0 && K.under === undefined && !K.space && rows <= ROWS && (col * 3 + row * 5) % 7 === 0 && !nearDoor(col + dc, row + dr) && !byGate) {
-              const tx = x + dc * (CELL / 2 + TORCH_REACH);
-              const tz = z + dr * (CELL / 2 + TORCH_REACH);
-              put(KIT.torch, tx, TORCH_Y, tz, FACING[side] - Math.PI / 2);
-              torches.push({ x: x + dc * (CELL / 2 + 0.95), y: TORCH_Y + 1.2, z: z + dr * (CELL / 2 + 0.95) });
+              // (Update 0.3.32 — or the look's own, with no flame: floor 8's paper lanterns, hung as its decor is.)
+              const reach = K.torch ? K.decorOut : TORCH_REACH;
+              put(K.torch ?? KIT.torch, x + dc * (CELL / 2 + reach), K.torch ? K.decorY : TORCH_Y, z + dr * (CELL / 2 + reach), FACING[side] - (K.torch ? 0 : Math.PI / 2));
+              if (!K.torch) torches.push({ x: x + dc * (CELL / 2 + 0.95), y: TORCH_Y + 1.2, z: z + dr * (CELL / 2 + 0.95) });
             } else if (room >= 0 && (col * 7 + row * 3) % 23 === 0) {
               put(K.decor, x + dc * (CELL / 2 + K.decorOut), K.decorY, z + dr * (CELL / 2 + K.decorOut), FACING[side], ...(K.decorScale ?? [1, 1, 1]));
             }
@@ -276,10 +276,11 @@ export function dress(plan: FloorPlan): Dressing {
     put(K.cap, ax, outRows * WALL_PIECE, az, FACING[inward]);
     // (Update 0.2.11 — none under water; 0.3.16 — nor in the Big Shark's arena; 0.3.17 — nor in space.)
     if (K.under !== undefined || tall || K.space) continue;
-    const tx = ns ? gx + k * 1.6 * CELL : gx - ox * (CELL / 2 + TORCH_REACH);
-    const tz = ns ? gz - oz * (CELL / 2 + TORCH_REACH) : gz + k * 1.6 * CELL;
-    put(KIT.torch, tx, TORCH_Y, tz, FACING[inward] - Math.PI / 2);
-    torches.push({ x: ns ? tx : gx - ox * (CELL / 2 + 0.95), y: TORCH_Y + 1.2, z: ns ? gz - oz * (CELL / 2 + 0.95) : tz });
+    const reach = K.torch ? K.decorOut : TORCH_REACH;
+    const tx = ns ? gx + k * 1.6 * CELL : gx - ox * (CELL / 2 + reach);
+    const tz = ns ? gz - oz * (CELL / 2 + reach) : gz + k * 1.6 * CELL;
+    put(K.torch ?? KIT.torch, tx, K.torch ? K.decorY : TORCH_Y, tz, FACING[inward] - (K.torch ? 0 : Math.PI / 2));
+    if (!K.torch) torches.push({ x: ns ? tx : gx - ox * (CELL / 2 + 0.95), y: TORCH_Y + 1.2, z: ns ? gz - oz * (CELL / 2 + 0.95) : tz });
   }
   return { pieces, gates, torches, cores: coresOf(plan), lava, style: K, sand, floats, marks };
 }

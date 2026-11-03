@@ -1,4 +1,5 @@
 // Update 0.3.31 (out of dungeonView.ts, which had reached its size) — a kit piece's material as a floor's look has it.
+// Update 0.3.32 — leaves cut out of their textures (floor 8's sakura, pines and maples: the look's `cutout`).
 import * as THREE from 'three';
 import { SEAWEED } from '../world/dungeon/dressExtras';
 import { TALL_GRASS } from '../world/dungeon/gardenDressing';
@@ -17,6 +18,12 @@ export function kitMaterial(src: THREE.MeshStandardMaterial, piece: string, look
   mat.metalness = 0;
   under?.patch(mat, SEAWEED.has(piece));
   if (look.id === 'venom' && TALL_GRASS.has(piece)) grassPatch(mat);
+  if (look.cutout?.includes(base)) {
+    mat.transparent = false;
+    mat.alphaTest = 0.5;
+    mat.depthWrite = true;
+    mat.side = THREE.DoubleSide;
+  }
   if (/fire|candle/i.test(src.name) || look.glow?.includes(base)) {
     mat.emissive.copy(src.color);
     mat.emissiveIntensity = 2.2;

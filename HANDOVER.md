@@ -2,7 +2,20 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.31: Tidebreaker's show)
+## Next up (2026-11-03, Update 0.3.32: floor 8, the Shrine Dimension's level)
+- **The designer**: "floor 8 - Japan theme"; the plan `MD/FLOOR8_SHRINE_PLAN.md` agreed ("go with that, without the Wolf
+  yet, I will redesign him after"). Spec `MD_UPDATES/U0332_SHRINE_LEVEL.md`.
+- Its code:
+  - World: `world/dungeon/shrine.ts`, `shrineRooms.ts`, `shrineStyle.ts`.
+  - Kit: `tools/blender/shrine_pieces.py` (`export_dungeon_kit.py --shrine "<ASSETS>/QUATERNIUS/More_nature"`, with the
+    other packs' flags as before).
+  - Sky: `engine/shrine/shrineSky.ts`.
+- Playable in the Lab (a new floor); stand-in enemies and boss; the run still ends at floor 7.
+- Checked by tests and Blender renders; **unseen in the game**.
+- **Next:** its enemies. Step 1 is retargeting UAL onto the More-enemies people's 23-bone rig (renders checked), then
+  the six fighters and the two mini bosses. Its boss is on hold.
+
+## Before (2026-11-03, Update 0.3.31: Tidebreaker's show)
 - **The designer**: "Intro cinematic for the boss * All previous rooms explode and all of space * The boss room is x2
   bigger than a normal boss room, you see it expanding * A shot of the earth shakes and explode * A meteor is coming from
   the earth exploding … revealing the boss doing the monster transformation animation as the whole place shakes and name
@@ -10,8 +23,9 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
 - Its beats `sim/dungeon/tideShow.ts`; its shots `engine/boss/tideCinema.ts`; the rooms flung away
   `engine/moon/floorBlast.ts`; the fireballs and the meteor `moon/tideShowView.ts`; the sky `moon/skyShow.ts`. The board
   holds one room twice a boss room's side (`floorPlan.ts` `BIG_ROOM`; the world's middle where it was).
-- Checked by tests on the real kit (every piece out of the arena gone, each shot framed); **unseen in the game.**
-  **Next: Hellwarden.**
+- Checked by tests on the real kit (every piece out of the arena gone, each shot framed); unseen in the game. The designer
+  then: "this intro looks sick", every boss to get one as good (8 to go). Next (as it stood): Hellwarden; 0.3.32 went to
+  floor 8 first.
 
 ## Before (2026-11-03, Update 0.3.30: Tidebreaker, seen)
 - **The designer**, having seen it: no weapon; its jump the three Jump clips; its own landing impact (not "the recycled

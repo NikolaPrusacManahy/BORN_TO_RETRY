@@ -13,6 +13,7 @@
 // vents' grates, some jetting; the belts), and looks into its rooms.
 // Update 0.3.14 — floor 6's powder kegs (dark red-brown blocks), and looks into its rooms.
 // Update 0.3.17 — and floor 8's moon rooms (its set pieces, craters, beds: the kit's own pieces).
+// Update 0.3.32 — and floor 8's Shrine Dimension: looks into each of its rooms and its boss room.
 //   npx tsx tools/dungeon-shots.ts <out folder> [seed] [floor]
 //   blender --background --python tools/blender/render_dungeon.py -- --json <out folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <out folder>
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -117,8 +118,8 @@ level.forge.vents.forEach((v, i) => {
 });
 for (const b of level.forge.belts) block(b.x, 0.025, b.z, b.dx ? 2 : 1.7, 0.03, b.dz ? 2 : 1.7, [0.24, 0.22, 0.21]);
 for (const k of level.cove.kegs) block(k.x, 0.65, k.z, 1.3, 1.3, 1.3, [0.35, 0.12, 0.06]);
-if (d.style.id === 'frozen' || d.style.id === 'forge' || d.style.id === 'cove') {
-  for (const r of level.rooms.filter((x) => x.kind === 'fight').slice(0, 9)) {
+if (d.style.id === 'frozen' || d.style.id === 'forge' || d.style.id === 'cove' || d.style.id === 'shrine') {
+  for (const r of level.rooms.filter((x) => x.kind === 'fight' || (d.style.id === 'shrine' && x.kind === 'boss')).slice(0, 10)) {
     const id = level.plan.rooms[r.index].layout.template.id.replace(/ /g, '-');
     const m = { x: (r.min.x + r.max.x) / 2, z: (r.min.z + r.max.z) / 2 };
     cams.push({ name: `${id}-eye`, at: [r.min.x + 4, 1.6, r.min.z + 4], to: [m.x, 0.6, m.z] });

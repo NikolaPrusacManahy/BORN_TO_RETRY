@@ -111,7 +111,9 @@ section('Floor 6 — the floor');
   const names = new Set([...kit.nodes.map((n) => n.name), ...kit.meshes.map((m) => m.name)]);
   const missing = [...new Set(d.pieces.map((p) => p.piece))].filter((p) => !names.has(p));
   // (Update 0.3.17 — one palette a textured pack: the Pirate Kit's, and floor 8's Space Kit's.)
-  check('every piece floor 6 is dressed with is in the kit (with the Pirate Kit’s one palette)', missing.length === 0 && kit.images?.length === 2 && kit.images.some((i) => i.name === 'Atlas_Pirate'), missing.join(', '));
+  // (Update 0.3.32 — the kit's other images: the Space Kit's palette, floor 8's three leaf cut-outs.)
+  const palettes = (kit.images ?? []).filter((i) => !['Sakura', 'PineNeedle', 'MapleLeaf'].includes(i.name ?? ''));
+  check('every piece floor 6 is dressed with is in the kit (with the Pirate Kit’s one palette)', missing.length === 0 && palettes.length === 2 && palettes.some((i) => i.name === 'Atlas_Pirate'), missing.join(', '));
 }
 
 section('Floor 6 — the sea');

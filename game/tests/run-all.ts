@@ -92,6 +92,7 @@ import './test-tidebreaker-view';
 import './test-tidebreaker-show';
 import './test-tidebreaker-show-view';
 import './test-floor8';
+import './test-shrine';
 import './test-forge';
 import './test-floor8-crew';
 import './test-music';

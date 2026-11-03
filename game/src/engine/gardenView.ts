@@ -4,6 +4,8 @@
 // Update 0.2.24 — floor 3's (world/dungeon/keepDressing.ts): open graves (a dark hole, its earth heaped round it),
 // burrows (a round dark hole in a ring of dug earth), and beds of glowing mushrooms (made in code: a pale stalk and a
 // cap that glows violet).
+// Update 0.3.32 — floor 8's (world/dungeon/shrine.ts): a carpet of fallen sakura petals under each sakura, thickest by
+// its trunk, thinning out (made in code: pale and deep pinks, each petal a little oval at its own turn).
 import * as THREE from 'three';
 import type { Mark } from '../world/dungeon/gardenDressing';
 import type { Marks } from '../world/dungeon/ownDressing';
@@ -28,6 +30,30 @@ function canvasTexture(draw: (g: CanvasRenderingContext2D) => void): THREE.Textu
   draw(c.getContext('2d')!);
   return new THREE.CanvasTexture(c);
 }
+
+/** Update 0.3.32 — fallen petals: hundreds of little ovals, thickest in the middle, none at the edge. */
+const petalTexture = () =>
+  canvasTexture((g) => {
+    const mid = TEX / 2;
+    let seed = 11;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) & 0xffff) / 0xffff;
+    const pinks = ['#ffd3e1', '#f7a9c4', '#ffe6ee', '#f28fb2', '#fbc0d3'];
+    for (let i = 0; i < 900; i++) {
+      // (More near the middle: the radius's square root skewed in.)
+      const r = mid * 0.92 * rnd() ** 0.9;
+      if (rnd() > 1 - (r / mid) ** 1.6) continue;
+      const a = rnd() * Math.PI * 2;
+      g.save();
+      g.translate(mid + Math.cos(a) * r, mid + Math.sin(a) * r);
+      g.rotate(rnd() * Math.PI);
+      g.fillStyle = pinks[Math.floor(rnd() * pinks.length)];
+      g.globalAlpha = 0.85;
+      g.beginPath();
+      g.ellipse(0, 0, 3.2, 2, 0, 0, Math.PI * 2);
+      g.fill();
+      g.restore();
+    }
+  });
 
 /** A web: spokes out from the middle and a spiral round it, pale, on nothing. */
 const webTexture = () =>
@@ -102,6 +128,7 @@ export class GardenView {
   private readonly geos: THREE.BufferGeometry[] = [];
 
   constructor(marks: Marks) {
+    this.marks(marks.petals, petalTexture, 0.045);
     this.marks(marks.webs, webTexture, 0.035);
     this.marks(marks.scorch, scorchTexture, 0.025);
     this.marks(marks.graves, graveTexture, 0.03);

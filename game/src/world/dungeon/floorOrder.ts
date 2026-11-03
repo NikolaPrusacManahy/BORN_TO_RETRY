@@ -16,5 +16,6 @@ export const REALMS: readonly Realm[] = (Object.keys(FLOOR) as Realm[]).sort((a,
 /** Floor `floor`'s place (past the last, the last's). */
 export const realmOf = (floor: number): Realm => REALMS[Math.max(1, Math.min(Math.round(floor), REALMS.length)) - 1];
 
-/** Places not built yet (no rooms of their own): their floors can't be played. */
-export const UNBUILT: ReadonlySet<Realm> = new Set<Realm>(['shrine']);
+/** Places not built yet (no rooms of their own): their floors can't be played. (Update 0.3.32 — the Shrine Dimension
+ *  built: none.) */
+export const UNBUILT: ReadonlySet<Realm> = new Set<Realm>([]);

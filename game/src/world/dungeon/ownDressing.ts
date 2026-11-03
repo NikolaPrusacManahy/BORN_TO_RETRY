@@ -3,9 +3,10 @@
 // floor (engine/gardenView.ts draws them). Update 0.3.11 — and floor 7's snow (frozen.ts). Update 0.3.13 — and floor
 // 8's workbenches (forge.ts); its presses, vents and belts are paving here (engine/forgeView.ts draws them). Update
 // 0.3.14 — and floor 6's cove (cove.ts: its set pieces, boardwalks, boats and treasure; its kegs are the view's).
-// Update 0.3.17 — and floor 8's moon (moon.ts: its set pieces, meteorites, greenhouse beds, dishes). Pure.
+// Update 0.3.17 — and floor 8's moon (moon.ts: its set pieces, meteorites, greenhouse beds, dishes). Update 0.3.32 —
+// and floor 8's Shrine Dimension (shrine.ts: its trees, beds, bamboo, lanterns, set pieces, bridges; its petals). Pure.
 import type { Rng } from '../../core/rng';
-import type { FloorPlan } from './floorPlan';
+import { colAt, FloorPlan, rowAt } from './floorPlan';
 import type { Put, SandCell } from './dressExtras';
 import { dressBed, dressGarden, dressWeb, Mark } from './gardenDressing';
 import { dressCrystal, dressKeep, dressLair } from './keepDressing';
@@ -13,6 +14,7 @@ import { dressFrozen } from './frozen';
 import { dressBench } from './forge';
 import { dressCove } from './cove';
 import { dressFlora, dressMoon } from './moon';
+import { dressShrine, dressShrineCell } from './shrine';
 import type { Cell } from './rooms';
 import type { DungeonStyle } from './styles';
 
@@ -24,12 +26,15 @@ export interface Marks {
   graves: Mark[];
   burrows: Mark[];
   shrooms: Mark[];
+  /** Update 0.3.32 — the carpets of petals under floor 8's sakura. */
+  petals: Mark[];
 }
 
-export const noMarks = (): Marks => ({ webs: [], scorch: [], graves: [], burrows: [], shrooms: [] });
+export const noMarks = (): Marks => ({ webs: [], scorch: [], graves: [], burrows: [], shrooms: [], petals: [] });
 
 /** A cell only some floors have (`boss`: in the boss room). False: not one of them. */
 export function dressOwnCell(c: Cell, x: number, z: number, boss: boolean, rng: Rng, put: Put, sand: SandCell[], marks: Marks): boolean {
+  if (dressShrineCell(c, x, z, colAt(x), rowAt(z), boss, rng, put, sand, marks.petals)) return true;
   switch (c) {
     case 'bed':
     case 'grass':
@@ -86,4 +91,5 @@ export function dressOwnRooms(K: DungeonStyle, plan: FloorPlan, inRoom: Int16Arr
   if (K.id === 'bone') dressKeep(plan, inRoom, nearDoor, rng, put);
   if (K.id === 'cove') dressCove(plan, rng, put);
   if (K.id === 'moon') dressMoon(plan, rng, put);
+  if (K.id === 'shrine') dressShrine(plan, rng, put);
 }
