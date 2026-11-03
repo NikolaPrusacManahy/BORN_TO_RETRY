@@ -87,6 +87,8 @@ import './test-floor7-warband';
 import './test-loading';
 import './test-floor-kinds';
 import './test-frost-roc';
+import './test-tidebreaker';
+import './test-tidebreaker-view';
 import './test-floor8';
 import './test-forge';
 import './test-floor8-crew';

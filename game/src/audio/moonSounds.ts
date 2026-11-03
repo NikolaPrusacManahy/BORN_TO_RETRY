@@ -4,6 +4,9 @@
 // ship's bombing line (an alarm), the Bee mech's jets (a roar up). Their blows: blaster pew-pews, punches, a landing's
 // thump, a ram, a mine's drop (a bleep), a salvo's whoosh, a mech's landing, Barbara climbing out (a hatch). A mine's
 // and a bomb's blast are a keg's, smaller.
+// Update 0.3.29 — and its boss, Tidebreaker: its growl warning a move, its anchor's whoosh and its smash (a crack and a
+// deep thud), its leap and its landing, stone tearing as it rips up a boulder or a pillar, its shell grinding as it
+// rolls and cracking off a wall, a pillar smashing, its quake's rumble, its roar.
 import type { CombatEvent } from '../sim/combat/state';
 import type { AudioEngine } from './audio';
 import { kegBoom } from './soundLayers';
@@ -17,6 +20,15 @@ function thump(a: AudioEngine, far: number, big = 1) {
   tone(a, { from: 95 / big, to: 34, dur: 0.32 * big, gain: 0.42 * far });
   noise(a, { dur: 0.3 * big, gain: 0.22 * far, filter: 'lowpass', from: 900, to: 120 });
 }
+
+/** Update 0.3.29 — stone cracking and breaking (`big`: heavier). */
+function stone(a: AudioEngine, far: number, big = 1) {
+  noise(a, { dur: 0.35 * big, gain: 0.32 * far, filter: 'highpass', from: 900, to: 300 });
+  tone(a, { from: 70 / big, to: 30, dur: 0.45 * big, gain: 0.4 * far });
+}
+
+/** Update 0.3.29 — an anchor's (or a pillar's) whoosh through the air. */
+const whoosh = (a: AudioEngine, far: number, long = 1) => noise(a, { dur: 0.28 * long, gain: 0.24 * far, filter: 'bandpass', from: 500, to: 1600, q: 1.1 });
 
 /** Returns false for events it doesn't know. */
 export function playMoon(a: AudioEngine, kind: CombatEvent, _value: number, far: number): boolean {
@@ -95,6 +107,62 @@ export function playMoon(a: AudioEngine, kind: CombatEvent, _value: number, far:
     case 'beeEject':
       tone(a, { from: 600, to: 200, dur: 0.25, gain: 0.2 * far, type: 'square' });
       noise(a, { dur: 0.4, gain: 0.2 * far, filter: 'highpass', from: 1500, to: 4000, delay: 0.1 });
+      return true;
+    // (Update 0.3.29 — Tidebreaker.)
+    case 'tideWindup':
+      tone(a, { from: 85, to: 58, dur: 0.45, gain: 0.3 * Math.max(0.5, far), type: 'sawtooth' });
+      return true;
+    case 'tideSwing':
+    case 'tideHurl':
+      whoosh(a, far);
+      return true;
+    case 'pillarSwing':
+      whoosh(a, far, 1.8);
+      thump(a, far, 2);
+      return true;
+    case 'tideUppercut':
+      whoosh(a, far);
+      thump(a, far, 0.8);
+      return true;
+    case 'tideSmash':
+      stone(a, far);
+      thump(a, far, 2);
+      return true;
+    case 'tideLeap':
+      noise(a, { dur: 0.6, gain: 0.26 * far, filter: 'lowpass', from: 1600, to: 200 });
+      return true;
+    case 'tideLand':
+      thump(a, Math.max(0.6, far), 2.6);
+      stone(a, far, 1.5);
+      return true;
+    case 'tideRip':
+    case 'pillarGrab':
+      stone(a, Math.max(0.5, far), 1.6);
+      return true;
+    case 'tideRoll':
+    case 'tideCurl':
+      noise(a, { dur: 1.4, gain: 0.26 * far, filter: 'lowpass', from: 300, to: 160 });
+      return true;
+    case 'tideBounce':
+    case 'tideCrash':
+      stone(a, far, 1.2);
+      thump(a, far, 1.5);
+      return true;
+    case 'tideDizzy':
+      tone(a, { from: 300, to: 180, dur: 0.9, gain: 0.12 * far, type: 'triangle' });
+      return true;
+    case 'boulderSmash':
+    case 'pillarCrash':
+      kegBoom(a);
+      stone(a, far, 1.8);
+      return true;
+    case 'tideQuake':
+      noise(a, { dur: _value > 0 ? 2.4 : 0.8, gain: 0.4 * Math.max(0.6, far), filter: 'lowpass', from: 220, to: 60 });
+      thump(a, Math.max(0.6, far), 2.8);
+      return true;
+    case 'tideRoar':
+      tone(a, { from: 160, to: 60, dur: 1.6, gain: 0.4 * Math.max(0.6, far), type: 'sawtooth' });
+      noise(a, { dur: 1.4, gain: 0.3 * Math.max(0.6, far), filter: 'bandpass', from: 400, to: 160, q: 0.8 });
       return true;
     default:
       return false;

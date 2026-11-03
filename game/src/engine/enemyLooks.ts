@@ -44,6 +44,7 @@ import { SLIDE } from '../sim/enemies/raider';
 import { ROAR } from '../sim/enemies/berserker';
 import { HURL, STOMP } from '../sim/enemies/haugbui';
 import { BREATH, GUST, LEAP, ROAR as ROC_ROAR, rocWindup, SLIDE as BELLY, SWIPE } from '../sim/enemies/frostRoc';
+import { TIDE_LOOK } from './moon/tideLook';
 
 /** Update 0.3.15 — the Corsair's: her hook's twirl, her axe dragged in (at once), her axe. */
 const corsairWindup = (move: number) => (move === HOOK_TWIRL ? FOES_COVE.v.hookTwirl : move === 4 ? FOES_COVE.v.hookStrike : FOES_COVE.v.corsairWindup);
@@ -59,8 +60,8 @@ export interface Look {
   clips: Record<Exclude<Role, 'rise'>, string> & { rise?: string };
   /** Seconds into its attack clip when the blow lands (export_monster.py measured it), and the wind-up it fits. */
   lands: number;
-  /** `move`: the move it winds up (Enemy.move). */
-  windup: (move: number) => number;
+  /** `move`: the move it winds up (Enemy.move); (Update 0.3.29) `stage`: its stage (a boss's rage quickens it). */
+  windup: (move: number, stage?: number) => number;
   /** The wind-up's glow (r, g, b at full). */
   glow: [number, number, number];
   /** Update 0.0.18 — a model that doesn't face +z: its turn (rad). */
@@ -68,8 +69,9 @@ export interface Look {
   /** Update 0.0.19 — measured from its skinned body (the newer pack's meshes are stored turned). */
   posed?: boolean;
   /** Update 0.3.26 — clips of their own for a phase and a move (`phase:move`; the Frost Roc's), over its role's; `true`:
-   *  played once and held. A wind-up's is played through its warning. */
-  moveClips?: Readonly<Record<string, readonly [string, boolean?]>>;
+   *  played once and held. A wind-up's is played through its warning; (Update 0.3.29) a number: only up to that share of
+   *  it (where its blow lands: the rest follows in the next phase, the same clip carrying on). */
+  moveClips?: Readonly<Record<string, readonly [string, boolean?, number?]>>;
 }
 
 /** Update 0.0.18 — a newer-pack monster's clips (`<Name>_Idle`, …); `move` and `air` name their own. */
@@ -224,6 +226,7 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
     glow: [0.5, 0.85, 1],
     moveClips: { [`windup:${SWIPE}`]: ['Weapon', true], [`windup:${GUST}`]: ['Punch', true], [`breath:${GUST}`]: ['Punch'], [`windup:${BELLY}`]: ['Duck', true], [`charge:${BELLY}`]: ['Duck', true], [`windup:${LEAP}`]: ['Duck', true], [`leap:${LEAP}`]: ['Jump_Idle'], [`recover:${LEAP}`]: ['Jump_Land', true], [`windup:${BREATH}`]: ['Yes', true], [`breath:${BREATH}`]: ['No'], [`windup:${ROC_ROAR}`]: ['Wave', true] },
   },
+  tidebreaker: TIDE_LOOK,
   haugbui: { url: '/models/enemies/draugr.glb', clips: { ...PEOPLE, move: 'Walk', attack: 'Punch', rise: 'StandUp' }, lands: 9 / 24, windup: (move) => (move === STOMP ? FOES_NORSE_B.v.stompWindup : move === HURL ? FOES_NORSE_B.v.hurlWindup : FOES_NORSE_B.v.haugbuiWindup), glow: [0.4, 0.75, 1], posed: true },
 };
 

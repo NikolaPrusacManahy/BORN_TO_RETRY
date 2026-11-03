@@ -7,6 +7,7 @@
 // rooms (`meteors`) have meteors falling while they fight (sim/dungeon/meteors.ts). Floor cells always join every
 // door. Drawn as quarters like the others (fightRooms.ts). Floor 8 only.
 // (Update 0.3.25 — its floor is floorOrder.ts's: the floors were reordered.)
+// Update 0.3.29 — its boss room, Tidebreaker's (`MOON_BOSS_ROOM`): pillars for it to tear down.
 import type { RoomTemplate } from './rooms';
 import { quarter } from './fightRooms';
 import { FLOOR } from './floorOrder';
@@ -168,3 +169,29 @@ export const MOON_ROOMS: readonly RoomTemplate[] = [
     '..........cc..',
   ], true),
 ];
+
+/** Update 0.3.29 — Tidebreaker's arena (the designer: "full destructions, maybe they can grab a pillar"): twelve stone
+ *  pillars in two rings (four round its middle, eight further out) for it to tear out, roll through and quake down;
+ *  moon rock and high cover to get behind, landing pads to get over its rings; its middle (where it rises) and its
+ *  doorways' middles kept clear. */
+export const MOON_BOSS_ROOM: RoomTemplate = {
+  id: 'the shattered crater',
+  kind: 'boss',
+  rows: quarter([
+    '...............',
+    '..........E....',
+    '...............',
+    '...........C...',
+    '...............',
+    '..b.........B..',
+    '...............',
+    '...............',
+    '.E.............',
+    '...J......C..J.',
+    '...............',
+    '...C...........',
+    '..B............',
+    '...............',
+    '...............',
+  ]),
+};

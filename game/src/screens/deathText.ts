@@ -74,6 +74,8 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   foxNaut: 'Rae the Fox',
   frogMech: 'The Frog Mech',
   frogNaut: 'Finn the Frog',
+  // Update 0.3.29 — the Moon's boss.
+  tidebreaker: 'Tidebreaker',
   icicle: 'An icicle',
   meteor: 'A meteor',
   crusher: 'A press',

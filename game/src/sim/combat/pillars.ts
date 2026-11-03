@@ -8,10 +8,18 @@
 // break) and its upper half's where it lies: you stand on the one and bump into the other (engine/run.ts swaps the
 // colliders; the floor's own box is left as it was, for the next run on it), enemies walk round it (their grids keep
 // it). A body pinned to a pillar hangs against its stone. Pure.
+// Update 0.3.29 — the Moon's boss, Tidebreaker (the designer: "full destructions, maybe they can grab a pillar"): a pillar
+// torn out whole (its stump left, the rest in its hands: `uprootPillar`), every pillar near a quake or a landing snapped
+// away from it (`breakAround`), one its shell rolls into; anything with the pillars, the walk grids and the events can.
 import type { Vector3 } from 'three';
 import type { Arena, ArenaBox } from '../../world/arena';
-import { addWall } from '../../world/navGrid';
+import { addWall, freeAt } from '../../world/navGrid';
 import type { CombatState } from './state';
+
+/** What breaking a pillar works with (the fight's state; an enemy's world with them). */
+export type PillarWorld = Pick<CombatState, 'pillars' | 'nav' | 'flow' | 'events'>;
+/** The pillars an enemy's world has (none but in the fight's). */
+export const pillarsIn = (w: object): Pillar[] => (w as Partial<PillarWorld>).pillars ?? [];
 
 export interface Pillar {
   /** Its middle on the floor, half its side (m), its height (m), its box (the floor's). */
@@ -59,7 +67,7 @@ export function onStone(p: Pillar, at: Vector3) {
 
 /** Pillar `i` broken, its upper half falling along `yaw` with `room` m of floor before a wall: where it lies (along that
  *  way, or across it with no room), the stump's box as high as the break, the upper half's box, the walk grids. */
-export function breakPillar(state: CombatState, i: number, yaw: number, room: number) {
+export function breakPillar(state: PillarWorld, i: number, yaw: number, room: number) {
   const p = state.pillars[i];
   p.broken = true;
   p.yaw = yaw;
@@ -82,4 +90,47 @@ export function breakPillar(state: CombatState, i: number, yaw: number, room: nu
   addWall(state.nav.large, f);
   state.flow.small.target = state.flow.large.target = -1;
   state.events.push('pillarBreak', i, p.x, cut, p.z);
+}
+
+/** Update 0.3.29 — pillar `i` torn out whole: its stump left as high as a break's, the rest carried off (no top lies). */
+export function uprootPillar(state: PillarWorld, i: number) {
+  const p = state.pillars[i];
+  p.broken = true;
+  p.stump = p.box ? { ...p.box, y: (p.h * PILLAR_CUT) / 2, h: p.h * PILLAR_CUT } : null;
+  p.top = null;
+  state.events.push('pillarGrab', i, p.x, p.h * PILLAR_CUT, p.z);
+}
+
+/** The nearest pillar standing within `max` of (x, z) (−1: none). */
+export function standingNear(state: Pick<PillarWorld, 'pillars'>, x: number, z: number, max: number): number {
+  let best = -1;
+  let bd = max;
+  state.pillars.forEach((p, i) => {
+    const d = Math.hypot(p.x - x, p.z - z);
+    if (!p.broken && d <= bd) [best, bd] = [i, d];
+  });
+  return best;
+}
+
+/** Floor along `yaw`'s fall (−sin, −cos) from (x, z) before a wall, up to `max` (m). */
+export function floorAhead(state: Pick<PillarWorld, 'nav'>, x: number, z: number, yaw: number, max = 8): number {
+  const dx = -Math.sin(yaw);
+  const dz = -Math.cos(yaw);
+  let d = STONE + GAP;
+  while (d < max && freeAt(state.nav.small, x + dx * d, z + dz * d)) d += 0.5;
+  return d;
+}
+
+/** Pillar `i` snapped, falling along `yaw` (as far as the floor lets it). */
+export const snapPillar = (state: PillarWorld, i: number, yaw: number) => breakPillar(state, i, yaw, floorAhead(state, state.pillars[i].x, state.pillars[i].z, yaw));
+
+/** Every pillar standing within `r` of (x, z) snapped, each falling away from it; how many. */
+export function breakAround(state: PillarWorld, x: number, z: number, r: number): number {
+  let n = 0;
+  state.pillars.forEach((p, i) => {
+    if (p.broken || Math.hypot(p.x - x, p.z - z) > r) return;
+    snapPillar(state, i, Math.atan2(-(p.x - x), -(p.z - z)));
+    n++;
+  });
+  return n;
 }

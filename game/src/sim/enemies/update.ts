@@ -83,6 +83,7 @@ import { updateHopper } from './hopper';
 import { updateDiver, updateMineLayer, updateStrafer } from './ships';
 import { updateBeeShip } from './beeShip';
 import { updateBeeMech, updateBeeNaut } from './beeMech';
+import { updateTidebreaker } from './tidebreaker';
 import { updateRaider } from './raider';
 import { updateAxeThrower } from './axeThrower';
 import { updateDraugr } from './draugr';
@@ -176,6 +177,7 @@ const UPDATE: Record<EnemyKind, Update> = {
   foxNaut: updateBeeNaut,
   frogMech: updateBeeMech,
   frogNaut: updateBeeNaut,
+  tidebreaker: updateTidebreaker,
   // Update 0.3.22 — floor 7's warband, Frozen Depths.
   raider: updateRaider,
   axeThrower: updateAxeThrower,
@@ -189,7 +191,7 @@ const UPDATE: Record<EnemyKind, Update> = {
 };
 /** A dead boss's show, each tick until its slot frees. Update 0.2.4 — and a Green Blob splitting as it dies.
  *  Update 0.2.11 — and a dead fish floating up. Update 0.3.15 — a Gull dropping your coins, a Tentacle sinking. */
-const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld, dt: number) => void>> = { demon: doomDemon, dragon: doomDemon, boneKing: doomKing, dino: doomDemon, drownedKing: doomDemon, greenBlob: splitBlob, bigMushnub: splitMushnub, clownfish: floatUp, tuna: floatUp, angelfish: floatUp, dolphin: floatUp, mantaRay: floatUp, shark: floatUp, whale: doomDemon, gull: gullDrops, tentacle: tentacleSinks, bigShark: doomDemon, frostRoc: doomDemon };
+const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld, dt: number) => void>> = { demon: doomDemon, dragon: doomDemon, boneKing: doomKing, dino: doomDemon, drownedKing: doomDemon, greenBlob: splitBlob, bigMushnub: splitMushnub, clownfish: floatUp, tuna: floatUp, angelfish: floatUp, dolphin: floatUp, mantaRay: floatUp, shark: floatUp, whale: doomDemon, gull: gullDrops, tentacle: tentacleSinks, bigShark: doomDemon, frostRoc: doomDemon, tidebreaker: doomDemon };
 
 export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWorld, world: CollisionWorld, dt: number) {
   let any = false;

@@ -56,6 +56,7 @@ import { applyMoveEvents } from './moveFeedback';
 import { fillDebug } from './overlayFeed';
 import { RunBase } from './runBase';
 import { canSlam } from '../sim/player/slam';
+import { holdPillars, pillarEvents } from './pillarEvents';
 import { endsRun } from './runLinks';
 import { skullOf } from '../sim/combat/grab';
 import { jawsOf } from '../sim/combat/pin';
@@ -211,17 +212,10 @@ export class Run extends RunBase {
     const tv = this.treasureView;
     tv.update(this.combat, this.camera.position, gameDt);
     this.arms.chest.update(tv.reach.k, tv.reach.left, tv.reach.right, this.camera, this.arms.camera);
-    // (Update 0.3.9 — a pillar the pillar finisher broke: the floor's view breaks it. Update 0.3.10 — and its collision.
-    // Update 0.3.14 — a powder keg blown up: its block out of the world.)
-    for (let i = 0; i < this.combat.events.length; i++) {
-      const e = this.combat.events.at(i);
-      if (e.kind === 'kegBlast' && this.level.dungeon) this.level.physics.swap(this.level.dungeon.level.cove.kegs[e.value].box, []);
-      if (e.kind !== 'pillarBreak') continue;
-      const pillar = this.combat.pillars[e.value];
-      if (pillar.box && pillar.stump && pillar.top) this.level.physics.swap(pillar.box, [pillar.stump, pillar.top]);
-      this.view.breakPillar?.(e.value, pillar);
-    }
+    // (A pillar broken or torn out, a keg blown up: their collision and the floor's view. Update 0.3.29 — pillarEvents.ts.)
+    pillarEvents(this.combat, this.level, this.view);
     this.combatScene.update(this.combat, this.camera.position, this.chest, gameDt, this.clock.alpha);
+    holdPillars(this.combat, this.view, this.combatScene.rootOf, gameDt);
     this.combatScene.realFrame(real, !p.grounded, this.hits.hurts, frozen || this.combat.exec.active);
     followHeld(this.combat, this.look, this.arms, this.camera, real);
     followJaws(this.combat, this.arms, this.camera, this.look.yaw, p.pos, this.combatScene.rootOf);

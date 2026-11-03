@@ -103,6 +103,7 @@ over the walkers; at most two Gunners shooting at once and the close fighters ta
 floors'). (The mini bosses as other floors': a room with one has the chest.)
 
 ## The boss: the three mechs together (Frog, Fox and Flamingo)
+> Update 0.3.29 — its boss is built: Tidebreaker (`MD_UPDATES/U0329_TIDEBREAKER.md`).
 > Update 0.3.28 — not built: the designer made the Bestiary pack's Tidebreaker the Moon's boss ("Alien as Moon boss"),
 > and the three mechs mini bosses, the Bee mech's in everything but their looks (`MD_UPDATES/U0328_MOON_MECHS.md`).
 

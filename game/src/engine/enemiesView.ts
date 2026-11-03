@@ -186,9 +186,9 @@ export class EnemiesView {
       // (Update 0.2.10 — and floor 5's under the water: drownedFx.ts shows their fins.)
       // (Update 0.3.15 — Mako in the sand, a Tentacle sunk under the sea. Update 0.3.22 — floor 7's dead in the snow.)
       const buried = ((e.kind === 'cactoro' || e.kind === 'cactoroBig' || e.kind === 'mako') && e.pos.y < -1) || (e.kind === 'tentacle' && e.pos.y < -5) || ((e.kind === 'draugr' || e.kind === 'barrowMaid') && e.pos.y < -1.5) || submerged(e);
-      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing' || e.kind === 'whale' || e.kind === 'frostRoc') && e.phase === 'dead' && e.struck) && !buried;
+      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing' || e.kind === 'whale' || e.kind === 'frostRoc' || e.kind === 'tidebreaker') && e.phase === 'dead' && e.struck) && !buried;
       if (!b.root.visible) continue;
-      const windup = look.windup(e.move);
+      const windup = look.windup(e.move, e.stage);
       const king = e.kind === 'boneKing';
       const glow = e.phase === 'windup' ? Math.min(1, e.t / windup) : e.phase === 'blast' ? Math.min(1, e.t / BONE_KING.v.blastCharge) : 0;
       const swell = e.kind === 'slime' ? 1 + 0.35 * glow : 1;
@@ -228,10 +228,10 @@ export class EnemiesView {
       // (Update 0.2.10 — and the Drowned King its surf.)
       const dash = ((e.kind === 'dino' || e.kind === 'drownedKing') && e.phase === 'charge') || (SWIMS.has(e.kind) && (e.phase === 'charge' || e.phase === 'dive' || e.phase === 'leap'));
       if (dash) want = 'move';
-      // (Update 0.3.26 — a move with a clip of its own, the Frost Roc's: its warning's played through the warning.)
-      const own = look.moveClips?.[`${e.phase}:${e.move}`]?.[0];
+      // (Update 0.3.26 — a move's own clip, played through its warning; Update 0.3.29 — or up to its blow, `mine[2]`.)
+      const mine = look.moveClips?.[`${e.phase}:${e.move}`], own = mine?.[0];
       if ((own ?? want) !== b.role || (again && (own !== undefined || ONCE.includes(want)))) this.play(b, own ?? want);
-      if (own) b.extra[own].timeScale = e.phase === 'windup' ? b.extra[own].getClip().duration / Math.max(0.1, windup) : 1;
+      if (own) b.extra[own].timeScale = e.phase === 'windup' ? (b.extra[own].getClip().duration * (mine?.[2] ?? 1)) / Math.max(0.1, windup) : 1;
       attack.timeScale = look.lands / windup;
       b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? BONE_KING.v.kingRise : e.phase === 'intro' ? FOES_NORSE.v.riseTime : FOES3.v.skeletonRise);
       b.actions.move.timeScale = e.phase === 'held' ? 3 : dash ? 2 : flies(e.kind) ? 1 : Math.min(PACE_HIGH, Math.max(PACE_LOW, slot.pace / full));

@@ -25,12 +25,13 @@ import { Cinema, Shot } from './cinema';
 import { SharkCinema } from './sharkCinema';
 import { sharkSlow } from '../../sim/dungeon/sharkShow';
 import { BIG_SHARK } from '../../tuning/bigShark';
+import { TIDEBREAKER } from '../../tuning/tidebreaker';
 import { bossIn } from './demonView';
 
 /** The boss's name card. **(placeholder names)** */
 export const BOSS_NAME = 'THE DEMON';
 /** Update 0.0.18 — each boss's name. */
-export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { demon: BOSS_NAME, dragon: 'THE DRAGON', boneKing: 'THE BONE KING', dino: 'THE VELOCIRAPTOR', drownedKing: 'THE DROWNED KING', whale: 'THE OLD WHALE', bigShark: 'THE BIG SHARK', frostRoc: 'THE FROST ROC' };
+export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { demon: BOSS_NAME, dragon: 'THE DRAGON', boneKing: 'THE BONE KING', dino: 'THE VELOCIRAPTOR', drownedKing: 'THE DROWNED KING', whale: 'THE OLD WHALE', bigShark: 'THE BIG SHARK', frostRoc: 'THE FROST ROC', tidebreaker: 'TIDEBREAKER' };
 
 /** Update 0.2.3 — a boss bar's mark: where it rages (the Demon, the Dragon), or the Bone King's final blast (its second
  *  life only). */
@@ -44,6 +45,8 @@ function markOf(boss: Enemy): number {
   if (boss.kind === 'whale') return boss.stage > 0 ? -1 : WHALE.v.phase2At;
   // (Update 0.3.16 — the Big Shark: where it frenzies.)
   if (boss.kind === 'bigShark') return boss.stage > 0 ? -1 : BIG_SHARK.v.frenzyAt;
+  // (Update 0.3.29 — Tidebreaker: where it rages, then where it's frenzied.)
+  if (boss.kind === 'tidebreaker') return boss.stage >= 2 ? -1 : boss.stage > 0 ? TIDEBREAKER.v.frenzyAt : TIDEBREAKER.v.rageAt;
   return boss.kind === 'dragon' ? DRAGON.v.rageAt : BOSS.v.rageAt;
 }
 export const bossTitle = (floor: number) => `Warden of Floor ${floor}`;

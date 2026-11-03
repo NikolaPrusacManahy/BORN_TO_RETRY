@@ -96,7 +96,7 @@ export class DungeonView implements ArenaView {
   private readonly garden: GardenView;
   private readonly motes: MotesView;
   private readonly glows: DungeonGlows;
-  private readonly breaks = new PillarBreaks();
+  readonly breaks = new PillarBreaks();
   private readonly depths: DepthsView;
 
   constructor(

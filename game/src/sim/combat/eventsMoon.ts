@@ -33,4 +33,28 @@ export type MoonEvent =
   | 'beeMechUp'
   | 'beeMissiles'
   | 'beeMechLand'
-  | 'beeEject';
+  | 'beeEject'
+  // Update 0.3.29 — the Moon's boss, Tidebreaker: a move warned (value: its move), each blow landing (its anchor's
+  // smash, a combo swing, its uppercut), its leap up and its landing (value: the ring's reach), a boulder ripped up
+  // and hurled, its shell curling, rolling, bouncing off a wall and smashing through a pillar, dizzy, its quake (value:
+  // its rings), its roar (rage, frenzy); a pillar torn out (value: which pillar) and swung; a hurled boulder or pillar
+  // smashing (value: its reach).
+  | 'tideWindup'
+  | 'tideSmash'
+  | 'tideSwing'
+  | 'tideUppercut'
+  | 'tideLeap'
+  | 'tideLand'
+  | 'tideRip'
+  | 'tideHurl'
+  | 'tideCurl'
+  | 'tideRoll'
+  | 'tideBounce'
+  | 'tideCrash'
+  | 'tideDizzy'
+  | 'tideQuake'
+  | 'tideRoar'
+  | 'pillarGrab'
+  | 'pillarSwing'
+  | 'boulderSmash'
+  | 'pillarCrash';

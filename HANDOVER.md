@@ -2,7 +2,18 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.28: the Moon's four mechs, mini bosses all)
+## Next up (2026-11-03, Update 0.3.29: the Moon's boss, Tidebreaker)
+- **The designer**: "Alien as Moon boss"; "It's the last boss before the last boss, make sure it is intense and full
+  destructions, maybe they can grab a pillar … can shake the whole place". Spec `MD_UPDATES/U0329_TIDEBREAKER.md`.
+- The Bestiary pack's alien, animated with the Universal Animation Library: `game/tools/ual_bake.py` (new; bake again
+  with `python tools/ual_bake.py tidebreaker`; Hellwarden gets its own entry there next). Its code:
+  `sim/enemies/tidebreaker.ts`, `tideShared.ts`, `tideMoves.ts`, `tideWreck.ts`; its arena `MOON_BOSS_ROOM`
+  (moonRooms.ts, twelve pillars). Pillars torn out, held, hurled: `engine/pillarEvents.ts` (out of run.ts),
+  `pillarBreak.ts` (`uproot`); its rock falls as meteors (`ground.rocks`, meteors.ts).
+- Checked by tests and Blender renders; **unseen in the game**. **Next: Hellwarden, Hell's boss** (floor 10; metal
+  that isn't black without an environment map, the sword arm held in walks).
+
+## Before (2026-11-03, Update 0.3.28: the Moon's four mechs, mini bosses all)
 - **The designer**: "Mechs as minibosses … just add the remaning 3 as identical functions as bee mech". Spec
   `MD_UPDATES/U0328_MOON_MECHS.md`. The Flamingo's, the Fox's and the Frog's mechs, the Bee mech's in everything but
   their looks; broken, their pilots climb out and fight as Barbara. The Lab's mini bosses two to a row; the Moon's
@@ -11,7 +22,7 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   Hellwarden, Imp, Lycan, Puglin, two Skeletons; no clips) animated with the Universal Animation Library (`ASSETS/
   QUATERNIUS/ULA 1`, `ULA 2`: 120 + 134 clips, the same 65-bone skeleton). A retarget script (in the session's
   scratchpad: `ual_bake.py`, each bone's turn carried from its rest pose; the pelvis's bob scaled to the leg) bakes
-  clips into a monster's own GLB; tested on both bosses. **Next: Tidebreaker, the Moon's boss** (its moves: smash,
+  clips into a monster's own GLB; tested on both bosses. Next (as it stood): Tidebreaker, the Moon's boss (its moves: smash,
   combo, uppercut, moon leap, boulder throw, shell roll, rage with meteors), then **Hellwarden, Hell's** (sword chains,
   heavies, dash slash, guard and counter; at half, fire wave, plunge, Imps). To do with them: their textures to 1024 px,
   the sword or club arm held in walks (`Sword_Idle` mixed in), metal that isn't black without an environment map.

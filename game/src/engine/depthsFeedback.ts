@@ -7,6 +7,9 @@
 // crew's: a mine popping, a Leaper's and the Bee mech's landings, Barbara bursting out of her broken mech.
 // Update 0.3.22 — floor 7's warband's: the dead rising out of the snow, a rime bolt bursting, a block of ice
 // shattering, Haugbui's stomp, a Raider into a wall.
+// Update 0.3.29 — the Moon's boss, Tidebreaker's (the designer: "can shake the whole place"): its quakes, its landings
+// and its roar shake the view anywhere in its arena; its smash, its pillar swung and hurled, its boulder, its shell's
+// bounces and the pillars it tears out or rolls through fling rock.
 import * as THREE from 'three';
 import type { CombatEvent } from '../sim/combat/state';
 import { FEEDBACK } from '../tuning/combat';
@@ -44,6 +47,38 @@ export function depthsFeedback(f: FeedbackParts, kind: CombatEvent, value: numbe
       return true;
     case 'rocRoar':
       f.rig.shake.add(fb.shakeHeavy * 0.6 * near(24));
+      return true;
+    case 'tideQuake':
+      f.chunks.spawn(at, UP, value > 0 ? 26 : 10, 1.8);
+      f.sparks.spawn(at, UP, value > 0 ? 50 : 20, 2);
+      f.rig.shake.add(fb.shakeHeavy * (value > 0 ? 2.2 : 1.3) * near(60));
+      return true;
+    case 'tideLand':
+    case 'pillarCrash':
+      f.chunks.spawn(at, UP, 24, 1.8);
+      f.sparks.spawn(at, UP, 44, 1.8);
+      f.rig.shake.add(fb.shakeHeavy * 1.7 * near(kind === 'tideLand' ? 45 : 28));
+      return true;
+    case 'tideRoar':
+      f.rig.shake.add(fb.shakeHeavy * 1.4 * near(60));
+      return true;
+    case 'tideSmash':
+    case 'boulderSmash':
+    case 'pillarSwing':
+      f.chunks.spawn(at, UP, 16, 1.5);
+      f.sparks.spawn(at, UP, 30, 1.5);
+      f.rig.shake.add(fb.shakeHeavy * 1.2 * near(22));
+      return true;
+    case 'tideBounce':
+    case 'tideCrash':
+    case 'pillarGrab':
+    case 'tideRip':
+      f.chunks.spawn(at, UP, 14, 1.4);
+      f.rig.shake.add(fb.shakeHeavy * 0.9 * near(20));
+      return true;
+    case 'tideSwing':
+    case 'tideUppercut':
+      f.rig.shake.add(fb.shakeJab * near(10));
       return true;
     case 'pressSlam':
       f.sparks.spawn(at, UP, 16, 1);

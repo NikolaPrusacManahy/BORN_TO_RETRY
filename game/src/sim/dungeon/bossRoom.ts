@@ -35,6 +35,7 @@ import type { ItemKind } from '../items/items';
 import type { PlayerState } from '../player/state';
 import { Vector3 } from 'three';
 import { FROST_ROC } from '../../tuning/frostRoc';
+import { TIDEBREAKER } from '../../tuning/tidebreaker';
 
 export type BossBeat = 'waiting' | 'intro' | 'fight' | 'dying' | 'loot' | 'open';
 
@@ -107,7 +108,7 @@ function callsOf(kind: EnemyKind): Calls | null {
 export const calledBy = (kind: EnemyKind): EnemyKind | null => callsOf(kind)?.kind ?? null;
 
 /** The coins a boss leaves (Update 0.2.0: in its chest). */
-export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : kind === 'whale' ? WHALE.v.whaleCoins : kind === 'bigShark' ? BIG_SHARK.v.bigCoins : kind === 'frostRoc' ? FROST_ROC.v.rocCoins : BOSS.v.demonCoins);
+export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : kind === 'whale' ? WHALE.v.whaleCoins : kind === 'bigShark' ? BIG_SHARK.v.bigCoins : kind === 'frostRoc' ? FROST_ROC.v.rocCoins : kind === 'tidebreaker' ? TIDEBREAKER.v.tideCoins : BOSS.v.demonCoins);
 
 /** The show's beats, in seconds from stepping in. */
 export interface IntroBeats {
@@ -208,6 +209,7 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
         if (b.kind === 'dino') ev.push('dinoRoar', b.slot, boss.pos.x, height * 0.85, boss.pos.z);
         if (b.kind === 'drownedKing') ev.push('drownedRoar', b.slot, boss.pos.x, height * 0.85, boss.pos.z);
         if (b.kind === 'frostRoc') ev.push('rocRoar', b.slot, boss.pos.x, height * 0.85, boss.pos.z);
+        if (b.kind === 'tidebreaker') ev.push('tideRoar', 0, boss.pos.x, height * 0.85, boss.pos.z);
       }
       if (b.t >= s.end) {
         boss.pos.y = 0;

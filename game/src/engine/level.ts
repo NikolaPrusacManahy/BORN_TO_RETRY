@@ -5,6 +5,7 @@
 // Update 0.2.9 — the lobby: one closed hall (world/lobby/) with its stations (sim/lobby/lobby.ts), where you choose your
 // difficulty and character and go through the main gate into a run.
 import type { Pillar } from '../sim/combat/pillars';
+import type { PillarBreaks } from './pillarBreak';
 import * as THREE from 'three';
 import { RapierWorld } from '../physics/rapierWorld';
 import { LAB_SEED } from '../sim/combat/state';
@@ -30,6 +31,8 @@ export interface LevelView extends ArenaView {
   frame?(dt: number, at: THREE.Vector3): void;
   /** Update 0.3.9 — pillar `i` (`p`) broken by the pillar finisher. */
   breakPillar?(i: number, p: Pillar): void;
+  /** Update 0.3.29 — the floor's pillars' pieces (one torn out by the Moon's boss: pillarEvents.ts). */
+  readonly breaks?: PillarBreaks;
 }
 
 export interface Level {

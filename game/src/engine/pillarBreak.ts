@@ -6,6 +6,8 @@
 // from the break (combatFeedback.ts). The lower half stays standing with broken stone on top; the upper half flies off the way the body was punched, tipping
 // over, and lies where it lands (along that way, or across it where the wall is too close) and stays there. Made in
 // code from the kit's own pieces. Update 0.3.10 — it lands where the rules say it lies (its collision is there).
+// Update 0.3.29 — the Moon's boss, Tidebreaker, tears one out (`uproot`): cut the same way, the stump left, the rest
+// handed over to be carried and hurled (engine/pillarEvents.ts) till it smashes (`shatter`).
 import * as THREE from 'three';
 import { Pillar, PILLAR_CUT } from '../sim/combat/pillars';
 
@@ -100,8 +102,31 @@ export class PillarBreaks {
 
   /** Pillar `i` (`p`) breaks. */
   break(i: number, p: Pillar) {
+    const cut = this.cut(i, p);
+    if (!cut) return;
+    // Where it lands: where the rules have it lie (the way it fell, or across it where the wall's too close).
+    const lie = new THREE.Vector3(-Math.sin(p.lie.yaw), 0, -Math.cos(p.lie.yaw));
+    const to = new THREE.Vector3(p.lie.x, cut.reach, p.lie.z);
+    this.falling.push({ pivot: cut.top, from: cut.top.position.clone(), to, turn: new THREE.Quaternion().setFromUnitVectors(UP, lie), t: 0 });
+  }
+
+  /** Update 0.3.29 — pillar `i` (`p`) torn out whole: its stump left standing, the rest (its snapped end at its origin,
+   *  running up +y) given back to be carried; null if it has no pieces. */
+  uproot(i: number, p: Pillar): THREE.Object3D | null {
+    return this.cut(i, p)?.top ?? null;
+  }
+
+  /** Update 0.3.29 — a carried pillar smashed to pieces: gone (the stone flying is combat feedback's). */
+  shatter(top: THREE.Object3D) {
+    top.visible = false;
+    top.removeFromParent();
+  }
+
+  /** Pillar `i`'s pieces taken out of the floor's meshes and cut where it snaps: its stump left there, its upper half's
+   *  group (at the cut) and how far its stone reaches there. */
+  private cut(i: number, p: Pillar): { top: THREE.Group; reach: number } | null {
     const refs = this.pieces.get(i);
-    if (!refs) return;
+    if (!refs) return null;
     this.pieces.delete(i);
     const cut = p.h * PILLAR_CUT;
     const low = new THREE.Group();
@@ -135,10 +160,7 @@ export class PillarBreaks {
     top.add(capTop);
     low.add(capLow);
     this.group.add(low, top);
-    // Where it lands: where the rules have it lie (the way it fell, or across it where the wall's too close).
-    const lie = new THREE.Vector3(-Math.sin(p.lie.yaw), 0, -Math.cos(p.lie.yaw));
-    const to = new THREE.Vector3(p.lie.x, reach, p.lie.z);
-    this.falling.push({ pivot: top, from: top.position.clone(), to, turn: new THREE.Quaternion().setFromUnitVectors(UP, lie), t: 0 });
+    return { top, reach };
   }
 
   private mesh(g: THREE.BufferGeometry, mat: THREE.Material) {

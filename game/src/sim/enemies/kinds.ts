@@ -270,9 +270,9 @@ export const ENEMY_STATS: Record<EnemyKind, () => EnemyStats> = {
 // the Old Whale retired, the Velociraptor stands in till the Big Shark is made.)
 // (Update 0.3.25 — by its place, the floors reordered (world/dungeon/floorOrder.ts): the Desert's is the Velociraptor,
 // which stands in for the Moon's and the places not built yet. Update 0.3.26 — Frozen Depths' the Frost Roc.)
-const BOSSES: Readonly<Record<Realm, EnemyKind>> = { dungeon: 'demon', garden: 'dragon', keep: 'boneKing', frozen: 'frostRoc', temple: 'drownedKing', desert: 'dino', cove: 'bigShark', shrine: 'dino', moon: 'dino', hell: 'dino' };
+const BOSSES: Readonly<Record<Realm, EnemyKind>> = { dungeon: 'demon', garden: 'dragon', keep: 'boneKing', frozen: 'frostRoc', temple: 'drownedKing', desert: 'dino', cove: 'bigShark', shrine: 'dino', moon: 'tidebreaker', hell: 'dino' };
 /** The places whose boss is their own (the others' stands in). */
-const OWN_BOSS: ReadonlySet<Realm> = new Set<Realm>(['dungeon', 'garden', 'keep', 'frozen', 'temple', 'desert', 'cove']);
+const OWN_BOSS: ReadonlySet<Realm> = new Set<Realm>(['dungeon', 'garden', 'keep', 'frozen', 'temple', 'desert', 'cove', 'moon']);
 export const bossOf = (floor: number): EnemyKind => BOSSES[realmOf(floor)];
 /** Update 0.3.25 — floor `floor`'s boss if it's its own (null: another floor's stands in). */
 export const ownBossOf = (floor: number): EnemyKind | null => (OWN_BOSS.has(realmOf(floor)) ? bossOf(floor) : null);

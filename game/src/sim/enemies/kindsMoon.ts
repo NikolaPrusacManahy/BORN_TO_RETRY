@@ -6,18 +6,21 @@
 // Update 0.3.28 (the designer: "Mechs as minibosses, they are all the same just different looks, Bee is already there, just add the remaning 3 as identical functions as bee mech") — the Flamingo's, the Fox's and the Frog's mechs, mini bosses
 // the same as the Bee's (its numbers, its moves: beeMech.ts), each its own look; broken, each its pilot climbs out and
 // fights as Barbara does (`PILOT_OF`).
+// Update 0.3.29 — its boss, Tidebreaker (tuning/tidebreaker.ts; tidebreaker.ts): the Bestiary pack's big alien.
 import { ENEMIES } from '../../tuning/enemies';
 import { FOES_MOON } from '../../tuning/foesMoon';
 import { FOES_MOON_B } from '../../tuning/foesMoonB';
-import { blank, EnemyStats, fill } from './kindStats';
+import { TIDEBREAKER } from '../../tuning/tidebreaker';
+import { BOSS } from '../../tuning/boss';
+import { blank, DOOM_AFTER, doomTime, EnemyStats, fill } from './kindStats';
 
-export type KindMoon = 'gunner' | 'flanker' | 'hopper' | 'strafer' | 'diver' | 'mineLayer' | 'beeShip' | 'beeMech' | 'beeNaut' | 'flamingoMech' | 'flamingoNaut' | 'foxMech' | 'foxNaut' | 'frogMech' | 'frogNaut';
-export const KINDS_MOON: readonly KindMoon[] = ['gunner', 'flanker', 'hopper', 'strafer', 'diver', 'mineLayer', 'beeShip', 'beeMech', 'beeNaut', 'flamingoMech', 'flamingoNaut', 'foxMech', 'foxNaut', 'frogMech', 'frogNaut'];
+export type KindMoon = 'gunner' | 'flanker' | 'hopper' | 'strafer' | 'diver' | 'mineLayer' | 'beeShip' | 'beeMech' | 'beeNaut' | 'flamingoMech' | 'flamingoNaut' | 'foxMech' | 'foxNaut' | 'frogMech' | 'frogNaut' | 'tidebreaker';
+export const KINDS_MOON: readonly KindMoon[] = ['gunner', 'flanker', 'hopper', 'strafer', 'diver', 'mineLayer', 'beeShip', 'beeMech', 'beeNaut', 'flamingoMech', 'flamingoNaut', 'foxMech', 'foxNaut', 'frogMech', 'frogNaut', 'tidebreaker'];
 /** The four mechs, all the Bee's; broken, each its pilot. */
 export const PILOT_OF: Readonly<Partial<Record<KindMoon, KindMoon>>> = { beeMech: 'beeNaut', flamingoMech: 'flamingoNaut', foxMech: 'foxNaut', frogMech: 'frogNaut' };
 
 /** Body radii (m). Not knobs: the walk grids are built for them. */
-export const RADIUS_MOON: Record<KindMoon, number> = { gunner: 0.45, flanker: 0.45, hopper: 0.5, strafer: 0.5, diver: 0.5, mineLayer: 0.55, beeShip: 1.3, beeMech: 1.2, beeNaut: 0.5, flamingoMech: 1.2, flamingoNaut: 0.5, foxMech: 1.2, foxNaut: 0.5, frogMech: 1.2, frogNaut: 0.5 };
+export const RADIUS_MOON: Record<KindMoon, number> = { gunner: 0.45, flanker: 0.45, hopper: 0.5, strafer: 0.5, diver: 0.5, mineLayer: 0.55, beeShip: 1.3, beeMech: 1.2, beeNaut: 0.5, flamingoMech: 1.2, flamingoNaut: 0.5, foxMech: 1.2, foxNaut: 0.5, frogMech: 1.2, frogNaut: 0.5, tidebreaker: 1.6 };
 
 export const CACHE_MOON: Record<KindMoon, EnemyStats> = {
   gunner: blank('small'),
@@ -35,6 +38,7 @@ export const CACHE_MOON: Record<KindMoon, EnemyStats> = {
   foxNaut: blank('small'),
   frogMech: blank('large'),
   frogNaut: blank('small'),
+  tidebreaker: blank('large', true),
 };
 
 /** A mini boss: only a hard hit staggers it, and it's dazed longer. */
@@ -66,4 +70,11 @@ export const STATS_MOON: Record<KindMoon, () => EnemyStats> = {
   foxNaut: () => naut('foxNaut'),
   frogMech: () => mech('frogMech'),
   frogNaut: () => naut('frogNaut'),
+  // (Update 0.3.29 — its boss: its death a boss's show.)
+  tidebreaker: () => {
+    const v = TIDEBREAKER.v;
+    const s = fill(CACHE_MOON.tidebreaker, v.tideHp, RADIUS_MOON.tidebreaker, v.tideHeight, v.tideSpeed, 0.05, Infinity, 0, doomTime() + DOOM_AFTER, 0);
+    s.stunned = BOSS.v.stunBonus;
+    return s;
+  },
 };

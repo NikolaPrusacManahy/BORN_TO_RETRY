@@ -4,6 +4,8 @@
 // you'll be (Meteor lead ahead); Meteor warning later it strikes: within Meteor reach you're hurt and thrown, any enemy
 // hurt harder and thrown. Its mark stays on the dust. The view draws the shadow, the falling rock and the marks
 // (engine/moon/meteorView.ts). Pure.
+// Update 0.3.29 — and the rock the Moon's boss, Tidebreaker, shakes down (combat.ground.rocks): in any room, each warned
+// as a meteor is, falling as one; a boss's own rock spares the bosses.
 import type { DungeonLevel } from '../../world/dungeon/assemble';
 import { MOON } from '../../tuning/moon';
 import type { CombatState } from '../combat/state';
@@ -19,6 +21,8 @@ export interface Meteor {
   z: number;
   t: number;
   room: number;
+  /** Update 0.3.29 — shaken down by a boss (it spares the bosses). */
+  boss?: boolean;
 }
 
 export interface Meteors {
@@ -56,19 +60,28 @@ export function stepMeteors(m: Meteors, room: number, fighting: boolean, player:
       combat.events.push('meteorWarn', 0, x, 0, z);
     }
   } else m.clock = Math.min(m.clock, v.meteorEvery * 0.5);
+  // (Update 0.3.29 — a boss's rock, when its time comes.)
+  const calls = combat.ground.rocks;
+  for (let i = calls.length - 1; i >= 0; i--) {
+    calls[i].delay -= dt;
+    if (calls[i].delay > 0) continue;
+    const [c] = calls.splice(i, 1);
+    m.falling.push({ x: c.x, z: c.z, t: 0, room, boss: true });
+    combat.events.push('meteorWarn', 0, c.x, 0, c.z);
+  }
   for (let i = m.falling.length - 1; i >= 0; i--) {
     const f = m.falling[i];
     f.t += dt;
     if (f.t < v.meteorWarn) continue;
     m.falling.splice(i, 1);
-    strike(f.x, f.z, player, combat);
+    strike(f.x, f.z, player, combat, !!f.boss);
     m.marks.push({ x: f.x, z: f.z });
     if (m.marks.length > MARKS) m.marks.shift();
   }
 }
 
 /** It strikes at (x, z): you and any enemy within reach hurt and thrown away from it. */
-function strike(x: number, z: number, player: PlayerState, combat: CombatState) {
+function strike(x: number, z: number, player: PlayerState, combat: CombatState, spare: boolean) {
   const v = MOON.v;
   combat.events.push('meteorStrike', 0, x, 0, z);
   const dx = player.pos.x - x;
@@ -85,7 +98,7 @@ function strike(x: number, z: number, player: PlayerState, combat: CombatState) 
     const ex = e.pos.x - x;
     const ez = e.pos.z - z;
     const ed = Math.hypot(ex, ez);
-    if (!isLive(e) || e.pos.y > ABOVE || ed > v.meteorReach + s.radius) return;
+    if (!isLive(e) || e.pos.y > ABOVE || ed > v.meteorReach + s.radius || (spare && s.boss)) return;
     hit.kind = 'enemy';
     hit.index = i;
     hit.point.set(e.pos.x, e.pos.y + s.height, e.pos.z);

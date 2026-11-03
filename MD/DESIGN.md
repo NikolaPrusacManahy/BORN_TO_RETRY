@@ -217,8 +217,17 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   **Update 0.3.28 (the designer: "Mechs as minibosses, they are all the same just different looks … just add the
   remaning 3 as identical functions as bee mech"; spec `MD_UPDATES/U0328_MOON_MECHS.md`):** the Flamingo's, the Fox's
   and the Frog's mechs are mini bosses too, the Bee mech's in everything but their looks; broken, Fernando, Rae and Finn
-  climb out and fight as Barbara. The four share the Bee mech's old share of the rooms. Its boss: the Bestiary pack's
-  Tidebreaker (the designer: "Alien as Moon boss"), to come.
+  climb out and fight as Barbara. The four share the Bee mech's old share of the rooms.
+- **Its boss, Tidebreaker** (Update 0.3.29, the designer: "Alien as Moon boss"; "It's the last boss before the last boss,
+  make sure it is intense and full destructions, maybe they can grab a pillar … can shake the whole place"; spec
+  `MD_UPDATES/U0329_TIDEBREAKER.md`): the Bestiary pack's big alien, blue, its anchor in hand (the Universal Animation
+  Library's clips: `tools/ual_bake.py`), 5.4 m, in its own arena, the shattered crater (twelve pillars). Close: its
+  anchor smash (a shockwave along the floor), a combo (raging, a finisher), its uppercut (throwing you high). Further:
+  its moon leap (a ring where it lands; landing it rings out, snaps the pillars beside it, shakes rock down), a boulder
+  ripped out of the floor and hurled, its shell roll (through the pillars, off the walls back at you, then dizzy), and a
+  pillar torn out, swung down at you and hurled. Raging (55%): its quakes (three rings, every pillar near snapping, rock
+  all round), rock falling near you; frenzied (22%): quicker still. The whole place shakes. 1900 health.
+  **(placeholder numbers, F1 → Tidebreaker)**
 
 ### The Forge (Update 0.3.13; spec `MD_UPDATES/U0313_THE_FORGE.md`; Update 0.3.17 — out of floor 8, kept on floor 10; Update 0.3.25 — floor 10 is Hell on Earth, its rooms meanwhile)
 - The designer: every floor's level first ("I want all designs to be done first"), then the enemies.

@@ -27,7 +27,7 @@ import { dress } from '../src/world/dungeon/dressing';
 import { cellX, cellZ, GRID, planFloor } from '../src/world/dungeon/floorPlan';
 import { MOON_KIT } from '../src/world/dungeon/moon';
 import { MOON_ROOMS } from '../src/world/dungeon/moonRooms';
-import { FIGHT_ROOMS, onFloor, RoomTemplate } from '../src/world/dungeon/rooms';
+import { bossRoomOf, FIGHT_ROOMS, onFloor, RoomTemplate } from '../src/world/dungeon/rooms';
 import { styleOf } from '../src/world/dungeon/styles';
 import { FLOOR } from '../src/world/dungeon/floorOrder';
 
@@ -208,5 +208,6 @@ section('Floor 8 — its crew (Update 0.3.18: test-floor8-crew.ts); its boss sti
 {
   const roster = rosterOf(FLOOR.moon);
   check('its own enemies (none of floor 6’s)', roster.includes('gunner') && roster.every((k) => !(KINDS6 as readonly string[]).includes(k)), roster.join(', '));
-  check('its boss stands in (the Velociraptor) till the three mechs are made', bossOf(FLOOR.moon) === 'dino');
+  // (Update 0.3.29 — its boss its own: Tidebreaker, test-tidebreaker.ts; the mechs mini bosses, 0.3.28.)
+  check('its boss is its own, Tidebreaker, in its shattered crater', bossOf(FLOOR.moon) === 'tidebreaker' && bossRoomOf(FLOOR.moon).id === 'the shattered crater' && bossRoomOf(FLOOR.moon).rows.join('').split('C').length - 1 === 12);
 }
