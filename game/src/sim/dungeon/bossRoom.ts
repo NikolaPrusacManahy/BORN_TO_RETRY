@@ -34,6 +34,7 @@ import { sharkWater, stepSharkIntro } from './sharkShow';
 import type { ItemKind } from '../items/items';
 import type { PlayerState } from '../player/state';
 import { Vector3 } from 'three';
+import { FROST_ROC } from '../../tuning/frostRoc';
 
 export type BossBeat = 'waiting' | 'intro' | 'fight' | 'dying' | 'loot' | 'open';
 
@@ -88,6 +89,13 @@ function callsOf(kind: EnemyKind): Calls | null {
     CALLS.every = Infinity;
     return CALLS;
   }
+  // (Update 0.3.26 — the Frost Roc raging calls the dead up out of the snow.)
+  if (kind === 'frostRoc') {
+    CALLS.kind = 'draugr';
+    CALLS.count = Math.round(FROST_ROC.v.calls);
+    CALLS.every = FROST_ROC.v.callEvery;
+    return CALLS;
+  }
   if (kind !== 'demon') return null;
   CALLS.kind = 'grunt';
   CALLS.count = BOSS.v.summonGrunts;
@@ -99,7 +107,7 @@ function callsOf(kind: EnemyKind): Calls | null {
 export const calledBy = (kind: EnemyKind): EnemyKind | null => callsOf(kind)?.kind ?? null;
 
 /** The coins a boss leaves (Update 0.2.0: in its chest). */
-export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : kind === 'whale' ? WHALE.v.whaleCoins : kind === 'bigShark' ? BIG_SHARK.v.bigCoins : BOSS.v.demonCoins);
+export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : kind === 'whale' ? WHALE.v.whaleCoins : kind === 'bigShark' ? BIG_SHARK.v.bigCoins : kind === 'frostRoc' ? FROST_ROC.v.rocCoins : BOSS.v.demonCoins);
 
 /** The show's beats, in seconds from stepping in. */
 export interface IntroBeats {
@@ -199,6 +207,7 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
         if (b.kind === 'boneKing') ev.push('kingRoar', b.slot, boss.pos.x, height * 0.85, boss.pos.z);
         if (b.kind === 'dino') ev.push('dinoRoar', b.slot, boss.pos.x, height * 0.85, boss.pos.z);
         if (b.kind === 'drownedKing') ev.push('drownedRoar', b.slot, boss.pos.x, height * 0.85, boss.pos.z);
+        if (b.kind === 'frostRoc') ev.push('rocRoar', b.slot, boss.pos.x, height * 0.85, boss.pos.z);
       }
       if (b.t >= s.end) {
         boss.pos.y = 0;

@@ -43,6 +43,7 @@ import { FOES_NORSE_B } from '../tuning/foesNorseB';
 import { SLIDE } from '../sim/enemies/raider';
 import { ROAR } from '../sim/enemies/berserker';
 import { HURL, STOMP } from '../sim/enemies/haugbui';
+import { BREATH, GUST, LEAP, ROAR as ROC_ROAR, rocWindup, SLIDE as BELLY, SWIPE } from '../sim/enemies/frostRoc';
 
 /** Update 0.3.15 — the Corsair's: her hook's twirl, her axe dragged in (at once), her axe. */
 const corsairWindup = (move: number) => (move === HOOK_TWIRL ? FOES_COVE.v.hookTwirl : move === 4 ? FOES_COVE.v.hookStrike : FOES_COVE.v.corsairWindup);
@@ -66,6 +67,9 @@ export interface Look {
   turn?: number;
   /** Update 0.0.19 — measured from its skinned body (the newer pack's meshes are stored turned). */
   posed?: boolean;
+  /** Update 0.3.26 — clips of their own for a phase and a move (`phase:move`; the Frost Roc's), over its role's; `true`:
+   *  played once and held. A wind-up's is played through its warning. */
+  moveClips?: Readonly<Record<string, readonly [string, boolean?]>>;
 }
 
 /** Update 0.0.18 — a newer-pack monster's clips (`<Name>_Idle`, …); `move` and `air` name their own. */
@@ -198,6 +202,17 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
   barrowMaid: { url: '/models/enemies/barrow_maid.glb', clips: { ...PEOPLE, move: 'Walk', attack: 'Punch', rise: 'StandUp' }, lands: 9 / 24, windup: () => FOES_NORSE.v.draugrWindup, glow: [0.5, 0.9, 1], posed: true },
   volva: { url: '/models/enemies/volva.glb', clips: { ...PEOPLE, move: 'Walk', attack: 'Shoot_OneHanded', air: 'Victory' }, lands: 5 / 24, windup: (move) => (move === 1 ? FOES_NORSE.v.volvaCast : 0.4), glow: [0.6, 0.95, 1], posed: true },
   berserker: { url: '/models/enemies/berserker.glb', clips: { ...PEOPLE, hit: 'Defeat', air: 'SwordSlash' }, lands: 13 / 24, windup: (move) => (move === ROAR ? FOES_NORSE_B.v.spinWarn : FOES_NORSE_B.v.berserkerWindup), glow: [1, 0.25, 0.1], posed: true },
+  // Update 0.3.26 — floor 4's boss, the Frost Roc (Ultimate Monsters' Birb: export_monster.py): its swipe its Weapon
+  // (lands 15/30), its gust its wings spread (Punch, beating), its belly slide and a leap's crouch Duck, up Jump_Idle,
+  // down Jump_Land, its breath rearing (Yes) and sweeping (No), its roar Wave.
+  frostRoc: {
+    url: '/models/enemies/frost_roc.glb',
+    clips: { idle: 'Idle', move: 'Walk', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' },
+    lands: 15 / 30,
+    windup: rocWindup,
+    glow: [0.5, 0.85, 1],
+    moveClips: { [`windup:${SWIPE}`]: ['Weapon', true], [`windup:${GUST}`]: ['Punch', true], [`breath:${GUST}`]: ['Punch'], [`windup:${BELLY}`]: ['Duck', true], [`charge:${BELLY}`]: ['Duck', true], [`windup:${LEAP}`]: ['Duck', true], [`leap:${LEAP}`]: ['Jump_Idle'], [`recover:${LEAP}`]: ['Jump_Land', true], [`windup:${BREATH}`]: ['Yes', true], [`breath:${BREATH}`]: ['No'], [`windup:${ROC_ROAR}`]: ['Wave', true] },
+  },
   haugbui: { url: '/models/enemies/draugr.glb', clips: { ...PEOPLE, move: 'Walk', attack: 'Punch', rise: 'StandUp' }, lands: 9 / 24, windup: (move) => (move === STOMP ? FOES_NORSE_B.v.stompWindup : move === HURL ? FOES_NORSE_B.v.hurlWindup : FOES_NORSE_B.v.haugbuiWindup), glow: [0.4, 0.75, 1], posed: true },
 };
 

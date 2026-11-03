@@ -182,7 +182,8 @@ section('Lab panel — a column a floor, the items by kind');
   // (Update 0.3.25 — under the floor it's its own boss on: a stand-in's floor has none.)
   check('each floor with its own boss (none while another’s stands in)', LAB_FLOORS.every((f) => f.boss === ownBossOf(f.floor) || (f.boss === null && ownBossOf(f.floor) === null)));
   // (Update 0.3.11 — the designer: "F8 command please": floor 7 to play from the Lab, past the run's end.)
-  check('Frozen Depths is in the panel (floor 4), its stand-in boss under the Desert (6); the Shrine Dimension (8) not yet, the Moon (9) is', LAB_FLOORS.some((f) => f.floor === FLOOR.frozen && f.boss === null) && LAB_FLOORS.find((f) => f.boss === 'dino')?.floor === FLOOR.desert && !LAB_FLOORS.some((f) => f.floor === FLOOR.shrine) && LAB_FLOORS.some((f) => f.floor === FLOOR.moon));
+  // (Update 0.3.26 — Frozen Depths' boss its own, the Frost Roc.)
+  check('Frozen Depths is in the panel (floor 4) with its Frost Roc, the Velociraptor under the Desert (6); the Shrine Dimension (8) not yet, the Moon (9) is', LAB_FLOORS.some((f) => f.floor === FLOOR.frozen && f.boss === 'frostRoc') && LAB_FLOORS.find((f) => f.boss === 'dino')?.floor === FLOOR.desert && !LAB_FLOORS.some((f) => f.floor === FLOOR.shrine) && LAB_FLOORS.some((f) => f.floor === FLOOR.moon));
   // (Update 0.3.13 — and floor 8: the floors with nothing of their own yet share New floors.)
   // (The designer: "always put a new floor there", "put page 1 & 2 instead of stacking them together".)
   // (Update 0.3.14 — and floor 6, reworked: its stand-ins and its boss's are other floors'. Update 0.3.15 — its crew

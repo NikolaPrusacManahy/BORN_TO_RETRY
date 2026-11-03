@@ -86,6 +86,7 @@ import './test-floor7';
 import './test-floor7-warband';
 import './test-loading';
 import './test-floor-kinds';
+import './test-frost-roc';
 import './test-floor8';
 import './test-forge';
 import './test-floor8-crew';

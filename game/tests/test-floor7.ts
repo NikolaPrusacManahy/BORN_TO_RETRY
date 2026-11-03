@@ -132,5 +132,6 @@ section('Floor 7 — stand-ins');
 {
   const roster = rosterOf(FLOOR.frozen);
   check('its enemies stand in from the dry floors (none of floor 6’s)', roster.length > 0 && roster.every((k) => !(KINDS6 as readonly string[]).includes(k)), roster.join(', '));
-  check('its boss stands in (the Velociraptor)', bossOf(FLOOR.frozen) === 'dino');
+  // (Update 0.3.26 — its own: the Frost Roc, test-frost-roc.ts.)
+  check('its boss is its own, the Frost Roc', bossOf(FLOOR.frozen) === 'frostRoc');
 }

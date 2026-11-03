@@ -115,6 +115,38 @@ export function playNorse(a: AudioEngine, kind: CombatEvent, _value: number, far
       iceShatter(a);
       chop(a, far, 1.2);
       return true;
+    // (Update 0.3.26 — the Frost Roc: its warnings a shrill cry, its gust a roar of wind, its slide a long scrape, its
+    // landing and a wall a deep thud, its breath a hiss of frost.)
+    case 'rocWindup':
+      tone(a, { from: 900, to: 1500, dur: 0.35, gain: 0.12 * Math.max(0.6, far), type: 'triangle' });
+      return true;
+    case 'rocRoar':
+      tone(a, { from: 700, to: 300, dur: 1.1, gain: 0.22 * Math.max(0.7, far), type: 'sawtooth' });
+      noise(a, { dur: 1.1, gain: 0.2 * far, filter: 'bandpass', from: 800, to: 300, q: 0.8 });
+      return true;
+    case 'rocSwipe':
+      chop(a, far, 1.8);
+      return true;
+    case 'rocGust':
+      noise(a, { dur: 1.6, gain: 0.3 * Math.max(0.6, far), filter: 'lowpass', from: 300, to: 1600 });
+      return true;
+    case 'rocSlide':
+      noise(a, { dur: 1.2, gain: 0.24 * far, filter: 'bandpass', from: 2800, to: 900, q: 0.8 });
+      return true;
+    case 'rocCrash':
+    case 'rocLand':
+      chop(a, far, 2.6);
+      iceShatter(a);
+      return true;
+    case 'rocLeap':
+      noise(a, { dur: 0.5, gain: 0.2 * far, filter: 'lowpass', from: 1200, to: 300 });
+      return true;
+    case 'rocBreath':
+      noise(a, { dur: 1.6, gain: 0.2 * far, filter: 'highpass', from: 2600, to: 5200 });
+      return true;
+    case 'rocBreathHit':
+      crunch(a, far, 0.2);
+      return true;
     default:
       return false;
   }

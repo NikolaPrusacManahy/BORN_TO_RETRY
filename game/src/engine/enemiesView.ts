@@ -26,7 +26,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import type { CombatState } from '../sim/combat/state';
-import { Enemy, ENEMY_POOL, EnemyPhase } from '../sim/enemies/enemy';
+import { ENEMY_POOL, EnemyPhase } from '../sim/enemies/enemy';
 import { ENEMY_KINDS, ENEMY_STATS, EnemyKind, flies } from '../sim/enemies/kinds';
 import { ENEMIES } from '../tuning/enemies';
 import { SWIMS } from '../sim/enemies/kinds6';
@@ -46,13 +46,16 @@ import { moveOf } from '../sim/combat/execution';
 import { submerged } from '../sim/enemies/drownedKingMoves';
 import { ownMaterials } from './norse/norseLooks';
 import { FOES_NORSE } from '../tuning/foesNorse';
+import { sinkOf } from './enemyPose';
 
 interface Body {
   root: THREE.Object3D;
   mixer: THREE.AnimationMixer;
   actions: Record<Role, THREE.AnimationAction>;
   mats: THREE.MeshStandardMaterial[];
-  role: Role | null;
+  /** Update 0.3.26 — its moves' own clips (Look.moveClips), and what's playing (a role, or one of those). */
+  extra: Record<string, THREE.AnimationAction>;
+  role: Role | string | null;
 }
 
 interface Slot {
@@ -76,20 +79,11 @@ const CREEP = 0.25;
 const PACE_LOW = 0.5;
 const PACE_HIGH = 1.4;
 
-/** Update 0.2.28 — how far a hit squashes a body (a share of its height); a dead one on the ground sinks into the
- *  floor over the last part of its time (its height, by then): not a boss's, a flier's or a fish's. */
-const SQUASH = 0.14;
-const SINK_FROM = 0.45;
+const SQUASH = 0.14; // (Update 0.2.28 — a hit squashes a body this share of its height; the dead sink: enemyPose.ts.)
 /** Update 0.3.8 — a pinned body: its clip stops this far in (s), and how white it flickers. */
 const PIN_POSE = 0.25;
 const FLICKER = 0.8;
-export function sinkOf(e: Enemy): number {
-  if (e.phase !== 'dead' || flies(e.kind) || SWIMS.has(e.kind)) return 0;
-  const s = ENEMY_STATS[e.kind]();
-  if (s.boss) return 0;
-  const k = Math.max(0, Math.min(1, (e.t - s.deathTime * SINK_FROM) / (s.deathTime * (1 - SINK_FROM))));
-  return k * k * s.height;
-}
+export { sinkOf };
 
 export class EnemiesView {
   readonly group = new THREE.Group();
@@ -161,8 +155,13 @@ export class EnemiesView {
         }
         actions[role] = a;
       }
+      const extra: Record<string, THREE.AnimationAction> = {};
+      for (const [name, once] of Object.values(look.moveClips ?? {})) { // (Update 0.3.26 — its moves' own clips.)
+        const a = (extra[name] ??= mixer.clipAction(find(name) ?? animations[0]));
+        if (once) [a.loop, a.clampWhenFinished] = [THREE.LoopOnce, true];
+      }
       this.group.add(root);
-      slot.bodies[kind] = { root, mixer, actions, mats, role: null };
+      slot.bodies[kind] = { root, mixer, actions, mats, extra, role: null };
     }
   }
 
@@ -187,7 +186,7 @@ export class EnemiesView {
       // (Update 0.2.10 — and floor 5's under the water: drownedFx.ts shows their fins.)
       // (Update 0.3.15 — Mako in the sand, a Tentacle sunk under the sea. Update 0.3.22 — floor 7's dead in the snow.)
       const buried = ((e.kind === 'cactoro' || e.kind === 'cactoroBig' || e.kind === 'mako') && e.pos.y < -1) || (e.kind === 'tentacle' && e.pos.y < -5) || ((e.kind === 'draugr' || e.kind === 'barrowMaid') && e.pos.y < -1.5) || submerged(e);
-      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing' || e.kind === 'whale') && e.phase === 'dead' && e.struck) && !buried;
+      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing' || e.kind === 'whale' || e.kind === 'frostRoc') && e.phase === 'dead' && e.struck) && !buried;
       if (!b.root.visible) continue;
       const windup = look.windup(e.move);
       const king = e.kind === 'boneKing';
@@ -210,6 +209,7 @@ export class EnemiesView {
       const again = slot.phase === e.phase && e.t < slot.t;
       // Update 0.1.2 — one standing in an execution stands still (one held thrashes).
       let want: Role = e.phase === 'held' && !moveOf(e.kind).held ? 'idle' : roleFor(e.phase, attack.time >= attack.getClip().duration - 0.01);
+      if (e.phase === 'intro' && ENEMY_STATS[e.kind]().boss) want = 'idle'; // (Update 0.3.26 — a boss's show stands.)
       // Update 0.1.19 — a Skeleton in pieces lies there, then rises as it rebuilds (its clip sped to fit the knob).
       if (e.phase === 'rebuild' && e.t >= (king ? BONE_KING.v.kingDown : FOES3.v.skeletonDown)) want = 'rise';
       // Update 0.3.8 — pinned to a wall: struck there and held so (its clip stops a moment in).
@@ -228,7 +228,10 @@ export class EnemiesView {
       // (Update 0.2.10 — and the Drowned King its surf.)
       const dash = ((e.kind === 'dino' || e.kind === 'drownedKing') && e.phase === 'charge') || (SWIMS.has(e.kind) && (e.phase === 'charge' || e.phase === 'dive' || e.phase === 'leap'));
       if (dash) want = 'move';
-      if (want !== b.role || (again && ONCE.includes(want))) this.play(b, want);
+      // (Update 0.3.26 — a move with a clip of its own, the Frost Roc's: its warning's played through the warning.)
+      const own = look.moveClips?.[`${e.phase}:${e.move}`]?.[0];
+      if ((own ?? want) !== b.role || (again && (own !== undefined || ONCE.includes(want)))) this.play(b, own ?? want);
+      if (own) b.extra[own].timeScale = e.phase === 'windup' ? b.extra[own].getClip().duration / Math.max(0.1, windup) : 1;
       attack.timeScale = look.lands / windup;
       b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? BONE_KING.v.kingRise : e.phase === 'intro' ? FOES_NORSE.v.riseTime : FOES3.v.skeletonRise);
       b.actions.move.timeScale = e.phase === 'held' ? 3 : dash ? 2 : flies(e.kind) ? 1 : Math.min(PACE_HIGH, Math.max(PACE_LOW, slot.pace / full));
@@ -261,11 +264,11 @@ export class EnemiesView {
     (ring.material as THREE.MeshBasicMaterial).opacity = 0.25 + 0.65 * k;
   }
 
-  private play(b: Body, role: Role) {
-    const next = b.actions[role];
-    if (b.role && b.role !== role) b.actions[b.role].fadeOut(FADE);
-    next.reset().setEffectiveWeight(1).fadeIn(b.role ? FADE : 0).play();
-    b.role = role;
+  private play(b: Body, key: Role | string) {
+    const of = (k: string) => b.actions[k as Role] ?? b.extra[k];
+    if (b.role && b.role !== key) of(b.role).fadeOut(FADE);
+    of(key).reset().setEffectiveWeight(1).fadeIn(b.role ? FADE : 0).play();
+    b.role = key;
   }
 
   /** Update 0.2.8 — the head bone of the body drawn for enemy slot `i` (null if none, or it has no 'Head'). */

@@ -35,6 +35,16 @@ export function depthsFeedback(f: FeedbackParts, kind: CombatEvent, value: numbe
     case 'raiderDazed':
       f.rig.shake.add(fb.shakeJab * 0.5 * near(8));
       return true;
+    // (Update 0.3.26 — the Frost Roc landing, crashing into a wall, roaring.)
+    case 'rocLand':
+    case 'rocCrash':
+      f.chunks.spawn(at, UP, 16, 1.4);
+      f.sparks.spawn(at, UP, 36, 1.6);
+      f.rig.shake.add(fb.shakeHeavy * 1.2 * near(18));
+      return true;
+    case 'rocRoar':
+      f.rig.shake.add(fb.shakeHeavy * 0.6 * near(24));
+      return true;
     case 'pressSlam':
       f.sparks.spawn(at, UP, 16, 1);
       f.rig.shake.add(fb.shakeJab * (0.3 + value / 10) * near(9));

@@ -11,7 +11,7 @@
 // Update 0.2.11 — floor 6's bubble columns, shadows, lanes, rings and jets (fishFx.ts). Update 0.3.15 — Skull Cove's
 // crew: the Corsair's hook, Barbarossa's aim, the Tentacle's shadow, Mako's fin (cove/crewFx.ts). Update 0.3.18 — and
 // floor 8's crew's lines on the ground (moon/crewMarks.ts). Update 0.3.22 — and floor 7's warband's rime, chants and
-// stomps (norse/warbandFx.ts).
+// stomps (norse/warbandFx.ts). Update 0.3.26 — and its boss's, the Frost Roc's leap, breath and gust (norse/rocFx.ts).
 // Update 0.2.23 — floor 2's wasps' hives (hivesView.ts), and its tall grass parting round you and the enemies.
 // Update 0.2.26 — blood (bloodFx.ts). Update 0.2.27 — the enemies' shots (shotsView.ts). Update 0.2.28 — your
 // blows' arcs, dust rings and the hammer's rocks (blowsFx.ts). Update 0.3.0 — the halos (halos.ts): each frame starts
@@ -40,6 +40,7 @@ import { FishFx } from './fishFx';
 import { CrewFx } from './cove/crewFx';
 import { CrewMarks } from './moon/crewMarks';
 import { WarbandFx } from './norse/warbandFx';
+import { RocFx } from './norse/rocFx';
 import { EnemiesView } from './enemiesView';
 import { ExecScene } from './exec/execScene';
 import { FireView } from './fireView';
@@ -89,6 +90,7 @@ export class CombatScene {
   private readonly crew: CrewFx;
   private readonly moonMarks: CrewMarks;
   private readonly warband: WarbandFx;
+  private readonly roc: RocFx;
   readonly raptor: RaptorFx;
   private readonly hives: HivesView;
   private readonly blood: BloodFx;
@@ -117,6 +119,7 @@ export class CombatScene {
     this.crew = new CrewFx(scene);
     this.moonMarks = new CrewMarks(scene);
     this.warband = new WarbandFx(scene);
+    this.roc = new RocFx(scene);
     this.raptor = new RaptorFx(scene);
     this.hives = new HivesView(scene, state);
     this.blood = new BloodFx(scene);
@@ -178,6 +181,7 @@ export class CombatScene {
     this.crew.update(state, playerChest, gameDt);
     this.moonMarks.update(state);
     this.warband.update(state, gameDt);
+    this.roc.update(state, gameDt);
     this.raptor.update(state, alpha, gameDt, (i) => this.enemies.headOf(i));
     this.waves.update(gameDt);
     this.coins.update(state.coins, gameDt);
@@ -207,6 +211,7 @@ export class CombatScene {
     this.crew.clear();
     this.moonMarks.clear();
     this.warband.clear();
+    this.roc.clear();
     this.fire.clear();
     this.knives.clear();
     this.cards.clear();
@@ -245,6 +250,7 @@ export class CombatScene {
     this.crew.dispose();
     this.moonMarks.dispose();
     this.warband.dispose();
+    this.roc.dispose();
     this.raptor.dispose();
     this.hives.dispose();
     this.blood.dispose();

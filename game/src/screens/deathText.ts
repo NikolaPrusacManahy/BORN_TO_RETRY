@@ -93,6 +93,7 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   volva: 'The Völva',
   berserker: 'The Berserker',
   haugbui: 'Haugbui',
+  frostRoc: 'The Frost Roc',
 };
 
 export const causeName = (by: Cause | null) => (by ? CAUSE_NAMES[by] : 'Unknown');

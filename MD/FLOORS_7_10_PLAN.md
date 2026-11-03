@@ -36,7 +36,7 @@ temple (8), under that the ground gives way to an abyss (9), and at the bottom, 
   models): Goleling (a small ice golem: slow, hits hard, armoured from the
   front), Bat (a swarm flier that dives), Alpaking (a flier that spits frost: frosted, you're slower), Pigeon (a
   harasser that steals your coins?), Goleling Evolved (mini boss: a big golem whose stomp freezes the floor round it).
-- **Boss: the Frost Roc** (Birb, the big one): wing gusts that push you across the ice, dives, a freezing breath that
+- **Boss: the Frost Roc** (Birb, the big one; built in Update 0.3.26 as a ground bird, `MD_UPDATES/U0326_FROST_ROC.md`): wing gusts that push you across the ice, dives, a freezing breath that
   turns the floor to ice under you.
 
 ## Floor 8 — The Forge

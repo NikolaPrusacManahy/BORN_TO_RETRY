@@ -119,6 +119,7 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   volva: 'ranged',
   berserker: 'heavy',
   haugbui: 'heavy',
+  frostRoc: null,
 };
 
 /** Kinds whose attack waits for its cooldown: they take a token only once it's ready (a token isn't held idle). */

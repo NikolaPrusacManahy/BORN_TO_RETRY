@@ -147,7 +147,7 @@ section('Lobby — the bestiary’s list');
   const all = shelves.flatMap((f) => f.enemies);
   check('ten floors; every enemy once, on the floor it first comes to', shelves.length === 10 && new Set(all).size === all.length && shelves[0].enemies.join() === 'grunt,spitter,brute,leaper,stinger,wraith');
   // (Update 0.3.25 — the floors reordered: Frozen Depths' boss a stand-in, the Desert's the Velociraptor.)
-  check('each floor’s boss with it (its own: floors 1 to 7 but Frozen Depths)', shelves.slice(0, 7).map((f) => f.boss ?? '-').join() === 'demon,dragon,boneKing,-,drownedKing,dino,bigShark' && shelves.slice(7).every((f) => f.boss === null));
+  check('each floor’s boss with it (its own: floors 1 to 7)', shelves.slice(0, 7).map((f) => f.boss ?? '-').join() === 'demon,dragon,boneKing,frostRoc,drownedKing,dino,bigShark' && shelves.slice(7).every((f) => f.boss === null));
   check('a body’s second self beside it: the Headless Crewman, Barbara out of her mech', shelves[FLOOR.cove - 1].enemies.indexOf('headless') === shelves[FLOOR.cove - 1].enemies.indexOf('crewman') + 1 && shelves[FLOOR.moon - 1].enemies.indexOf('beeNaut') === shelves[FLOOR.moon - 1].enemies.indexOf('beeMech') + 1);
   // (Update 0.3.22 — floor 7 has its warband.)
   check('the Shrine Dimension (8) and Hell on Earth (10) have none of their own yet; Frozen Depths (4) its warband', [FLOOR.shrine, FLOOR.hell].every((f) => shelves[f - 1].enemies.length === 0) && shelves[FLOOR.frozen - 1].enemies.join() === 'raider,axeThrower,draugr,barrowMaid,volva,berserker,haugbui');

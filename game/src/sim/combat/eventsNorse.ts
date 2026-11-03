@@ -42,4 +42,16 @@ export type NorseEvent =
   | 'haugbuiStomp'
   | 'haugbuiTear'
   | 'haugbuiHurl'
-  | 'iceBlockShatter';
+  | 'iceBlockShatter'
+  // Update 0.3.26 — the Frost Roc: a move warned (value: which), its swipe, its gust, its belly slide, into a wall
+  // (stunned), up in its leap, landing (value: its reach), its breath and it catching you, its roar.
+  | 'rocWindup'
+  | 'rocSwipe'
+  | 'rocGust'
+  | 'rocSlide'
+  | 'rocCrash'
+  | 'rocLeap'
+  | 'rocLand'
+  | 'rocBreath'
+  | 'rocBreathHit'
+  | 'rocRoar';

@@ -243,6 +243,11 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   Mini bosses: the **Berserker** (roar, a spin that skids wide on ice, dizzy after; two spins below half health) and
   **Haugbui** (a stomp that throws you and ices the floor round him; blocks of ice torn from the floor and hurled).
   **Rime** is ice while it lasts (8 s). Never tankier. **(placeholder numbers, F1 → Frozen warband)**
+- **Its boss, the Frost Roc** (Update 0.3.26, the designer: "Birb, the Frost Roc"; spec `MD_UPDATES/U0326_FROST_ROC.md`):
+  Ultimate Monsters' Birb, huge. Its swipe close; its gust that blows you back across the ice; its belly slide (past you,
+  far on ice; into a wall it's stunned); its leap that lands where you stood (a ring warns), hurting you there and
+  freezing the floor; its sweeping frost breath (it chills you, lays rime). Below half health it rages: quicker, and it
+  calls the dead up. 1700 health. **(placeholder numbers, F1 → Frost Roc)**
 
 ### Parrying melee blows (Update 0.3.10, the designer: "Allow parries melee attacks, not mini bosses"; spec `MD_UPDATES/U0310_MELEE_PARRY_PILLARS.md`)
 - An ordinary enemy's melee blow landing while the parry window is open: no harm; your fist punches back (the parry's

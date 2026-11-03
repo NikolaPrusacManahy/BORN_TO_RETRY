@@ -2,15 +2,24 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.25: the floors reordered)
+## Next up (2026-11-03, Update 0.3.26: floor 4's boss, the Frost Roc)
+- **The designer**: "before we move to floor 8, we need floor 4 boss" → "Birb, the Frost Roc". Spec
+  `MD_UPDATES/U0326_FROST_ROC.md`. Ultimate Monsters' Birb (moved to `used_monster/Boss`; the blob Birb recycled),
+  huge: swipe, gust (blows you back), belly slide (stunned by a wall; far on ice), leap (lands where you stood, rime),
+  sweeping frost breath (chill, rime); raging below half, it calls Draugr. `sim/enemies/frostRoc.ts`, its own clip per
+  move (`Look.moveClips`, new in enemiesView.ts), its floor marks (`engine/norse/rocFx.ts`).
+- Fixed: since 0.3.22 a boss's entrance played its rise clip (the Bone King assembling as it rose); it stands again.
+- Checked by tests (`test-frost-roc.ts`); **unseen in the game**. **Next: floor 8, the Shrine Dimension.**
+
+## Before (2026-11-03, Update 0.3.25: the floors reordered)
 - **The designer**: "Floor 7 is an easier Floor than 4, 5 and 6": 1 The Dungeon, 2 The Venom Garden, 3 The Bone Keep,
   4 Frozen Depths, 5 the Drowned Temple, 6 the Desert, 7 Skull Cove, 8 Shrine Dimension (a Japan floor, to come), 9 the
   Moon, 10 Hell on Earth. Spec `MD_UPDATES/U0325_FLOOR_ORDER.md`.
 - One table says which floor each place is (`world/dungeon/floorOrder.ts`); looks, rooms, rosters, perchers, bosses,
   boss rooms and names follow it. A floor's number still sets its rooms' and enemies' count.
 - The run ends at Skull Cove (7). Frozen Depths' boss still stands in (the Velociraptor, the Desert's too). The Lab:
-  floors 1–7 and 9. **Next: floor 8, the Shrine Dimension** (a Japan floor: the More-enemies folder's ninjas and
-  kimonos fit it), and the Frost Roc.
+  floors 1–7 and 9. Next (as it stood): floor 8, the Shrine Dimension (a Japan floor: the More-enemies folder's ninjas
+  and kimonos fit it); 0.3.26 went to the Frost Roc first.
 - Older notes below (and the code's dated comments) keep the floor numbers they had when written.
 
 ## Before (2026-11-03, Update 0.3.24: floors load faster)
