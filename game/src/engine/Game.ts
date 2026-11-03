@@ -15,7 +15,8 @@
 // scrap it"): the gate opens onto the lobby, a hall you walk round in first person (a level the run plays: its
 // stations choose your difficulty and character; its main gate starts the run, after the App's questions). The menu's
 // scenes moved to menu/menuScenes.ts, the run side (the run, its levels, the Lab) to gameBase.ts.
-import { LOADER_HIDES } from './runBase';
+// Update 0.3.23 — the lobby and every run built behind the loader (gameBase.ts `covered`; the designer: "add few loading
+// screens and give the game some time to load stuff").
 import { MAX_FRAME } from '../core/fixedStep';
 import { requestLock, releaseLock } from '../platform/pointerLock';
 import { FullscreenState, enterFullscreen, exitFullscreen, state as fullscreenState } from '../platform/fullscreen';
@@ -103,8 +104,11 @@ export class Game extends GameBase {
   }
 
   private throughTheGate() {
-    this.enterLobby();
-    this.cb.onIntroDone();
+    // (Update 0.3.23 — built behind the loader.)
+    this.covered(() => {
+      this.enterLobby();
+      this.cb.onIntroDone();
+    });
   }
 
   /** Update 0.2.9 — into the lobby, at its start. */
@@ -141,18 +145,19 @@ export class Game extends GameBase {
     if (!ROSTER.find((c) => c.id === character)?.available) return;
     this.runDifficulty = difficulty;
     this.runCards = cards;
-    this.mode = 'play';
-    this.newRun(this.inLab ? labLevel() : this.levels.fresh());
-    this.run?.holdFloorTitle(LOADER_HIDES);
-    this.input.clear();
-    this.cb.onRunStart(document.pointerLockElement === this.host);
+    this.covered(() => {
+      this.mode = 'play';
+      this.newRun(this.inLab ? labLevel() : this.levels.fresh());
+      this.input.clear();
+      this.cb.onRunStart(document.pointerLockElement === this.host);
+    });
   }
 
   /** F9 (dev): swap between the Feel Lab and a fresh dungeon run (not from the lobby). */
   toggleLab() {
     if (this.inLobby) return;
     this.inLab = !this.inLab;
-    if (this.mode === 'play') this.newRun(this.inLab ? labLevel() : this.levels.fresh());
+    if (this.mode === 'play') this.covered(() => this.newRun(this.inLab ? labLevel() : this.levels.fresh()));
   }
 
   /** Back to the main menu (the pause menu's Main menu): the mouse freed, the gate shut. */
@@ -203,6 +208,8 @@ export class Game extends GameBase {
     this.raf = requestAnimationFrame(this.frame);
     const real = Math.min(Math.max(0, (now - this.last) / 1000), MAX_FRAME);
     this.last = now;
+    // (Update 0.3.23 — the loader going up for a build: nothing runs under it meanwhile.)
+    if (this.covering) return;
     if (this.mode === 'play' && this.run) this.run.frame(real, this.input, this.settings, this.aspect, this.renderer, this.stats, this.debug);
     else this.menuFrame(real);
   };
@@ -217,6 +224,7 @@ export class Game extends GameBase {
   }
 
   dispose() {
+    this.gone = true;
     cancelAnimationFrame(this.raf);
     document.removeEventListener('pointerlockchange', this.onLockChange);
     window.removeEventListener('keydown', this.onEsc);

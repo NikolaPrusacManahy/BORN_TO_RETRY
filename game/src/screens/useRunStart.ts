@@ -3,13 +3,13 @@
 // the loader (RetryArrow.tsx) then shows bottom right while the level is built under the black, for at least LOAD_MIN,
 // and the black clears with it (the designer: "a little 1s loading screen after selecting a character").
 // Update 0.2.9 — the character select is gone: the lobby's main gate starts the run (on your difficulty).
+// Update 0.3.23 — the loader is the Game's now, for every level (engine/levelLoad.ts: up till the level's models are in,
+// at least its LOAD_MIN): here only the fade to black into it.
 import { MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
 import type { Game } from '../engine/Game';
 import type { CharacterId } from '../sim/characters';
 import type { Difficulty } from '../sim/lobby/difficulty';
 
-/** The loader shows at least this long once it's black (s). **(placeholder)** */
-export const LOAD_MIN = 1;
 /** The fade to black into a run (s). */
 export const RUN_FADE = 0.45;
 
@@ -18,21 +18,17 @@ export interface RunStart {
   busy: MutableRefObject<boolean>;
   /** The screen it was pressed on slides away. */
   starting: boolean;
-  /** The loader is up (until the black has cleared). */
-  loading: boolean;
   playSelected(id: CharacterId, difficulty: Difficulty, cards: boolean): void;
   startLab(): void;
   /** The Game is in the run (its onRunStart). */
   onRunStart(locked: boolean): void;
 }
 
-/** `enter`: into the run (the black clears, playing or paused); `fadeOut`: how long the black takes to clear (s). */
-export function useRunStart(getGame: () => Game | null, setBlack: (secs: number | null) => void, enter: (locked: boolean) => void, fadeOut: number): RunStart {
+/** `enter`: into the run (the black clears off it, playing or paused: the Game's loader holds the screen till it's
+ *  ready). */
+export function useRunStart(getGame: () => Game | null, setBlack: (secs: number | null) => void, enter: (locked: boolean) => void): RunStart {
   const [starting, setStarting] = useState(false);
-  const [loading, setLoading] = useState(false);
   const busy = useRef(false);
-  /** When the loader came up (ms; 0: no loader). */
-  const loadFrom = useRef(0);
   const timers = useRef<number[]>([]);
   const later = useCallback((secs: number, fn: () => void) => {
     timers.current.push(window.setTimeout(fn, secs * 1000));
@@ -53,37 +49,18 @@ export function useRunStart(getGame: () => Game | null, setBlack: (secs: number 
     [getGame, setBlack, later],
   );
 
-  const playSelected = useCallback(
-    (id: CharacterId, difficulty: Difficulty, cards: boolean) =>
-      begin((g) => {
-        loadFrom.current = performance.now();
-        setLoading(true);
-        // Built once the loader is on screen (it keeps turning while the level is built).
-        requestAnimationFrame(() => later(0, () => g.startRun(id, difficulty, cards)));
-      }),
-    [begin, later],
-  );
+  const playSelected = useCallback((id: CharacterId, difficulty: Difficulty, cards: boolean) => begin((g) => g.startRun(id, difficulty, cards)), [begin]);
 
   const startLab = useCallback(() => begin((g) => g.startLab()), [begin]);
 
   const onRunStart = useCallback(
     (locked: boolean) => {
-      const done = (lockedNow: boolean) => {
-        busy.current = false;
-        setStarting(false);
-        enter(lockedNow);
-      };
-      if (!loadFrom.current) return done(locked);
-      const left = Math.max(0, LOAD_MIN - (performance.now() - loadFrom.current) / 1000);
-      loadFrom.current = 0;
-      // (Esc meanwhile frees the mouse: then it's paused.)
-      later(left, () => {
-        done(document.pointerLockElement !== null);
-        later(fadeOut, () => setLoading(false));
-      });
+      busy.current = false;
+      setStarting(false);
+      enter(locked);
     },
-    [enter, later, fadeOut],
+    [enter],
   );
 
-  return { busy, starting, loading, playSelected, startLab, onRunStart };
+  return { busy, starting, playSelected, startLab, onRunStart };
 }

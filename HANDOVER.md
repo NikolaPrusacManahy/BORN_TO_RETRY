@@ -2,7 +2,18 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.22: floor 7's enemies, the frozen warband)
+## Next up (2026-11-03, Update 0.3.23: loading screens)
+- **The designer** ("before everything else, we need to add few loading screens and give the game some time to load
+  stuff": after Lab, after Start, a new floor, the Lab's level buttons). Spec `MD_UPDATES/U0323_LOADING_SCREENS.md`.
+- The loader (the retry arrow on black) now covers every way into a level and stays till it's ready: the level's views'
+  models loaded (`loaded` promises; the arms polled), its shaders compiled (`renderer.compileAsync`), a second at
+  least (`engine/levelLoad.ts`: `readyLevel`, `LevelLoader`). It's put up and painted before the (heavy, page-holding)
+  build: the Game's `covered` (gameBase.ts) and the run's `loadCovered` (runBase.ts). The world, and the floor's name,
+  wait under it (Run.frame: no time passes while `loading`).
+- Checked by tests (`test-loading.ts`); **unseen in the game** (how long each load takes now: every level still parses
+  all the enemy models, so floors may sit on the loader a few seconds; loading only a floor's own enemies would cut it).
+
+## Before (2026-11-03, Update 0.3.22: floor 7's enemies, the frozen warband)
 - **The designer**: "I have more enemies models in More enemies folder; let's sort things out for Floor 7 … if it does
   not fit we change". The folder (`ASSETS/QUATERNIUS/More-enemies`) is 52 Quaternius people on one rig; its Vikings and
   zombies fit Frozen Depths as it is, so its level stays. The plan `MD/FLOOR7_WARBAND_PLAN.md` ("Go with it"), spec

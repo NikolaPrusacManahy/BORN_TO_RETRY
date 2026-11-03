@@ -72,6 +72,7 @@ section('Style rank — held through an execution; the pause menu pauses');
   const src = (f: string) => readFileSync(new URL(`../src/${f}`, import.meta.url), 'utf-8');
   const run = src('engine/run.ts');
   check('the run holds the rank in an execution or a held world', run.includes('realFrame(real, !p.grounded, this.hits.hurts, frozen || this.combat.exec.active)'));
-  check('paused, the run’s time stops (the world, the show, the rank, the fade)', run.includes('const real = this.paused ? 0 : elapsed;') && !/elapsed/.test(run.replace('const real = this.paused ? 0 : elapsed;', '').replace(/frame\(elapsed/, '').replace('stats.push(elapsed', '')));
+  // (Update 0.3.23 — and while a level's made ready under the loader.)
+  check('paused, the run’s time stops (the world, the show, the rank, the fade)', run.includes('const real = this.paused || this.loading ? 0 : elapsed;') && !/elapsed/.test(run.replace('const real = this.paused || this.loading ? 0 : elapsed;', '').replace(/frame\(elapsed/, '').replace('stats.push(elapsed', '')));
   check('the pause menu (a run’s, the lobby’s) pauses the game; a new run keeps it', src('App.tsx').includes("getGame()?.setPaused(p === 'paused' || p === 'lobbyPaused')") && src('engine/gameBase.ts').includes('this.run.paused = this.paused;'));
 }

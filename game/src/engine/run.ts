@@ -147,15 +147,18 @@ export class Run extends RunBase {
   }
 
   frame(elapsed: number, input: Input, settings: Settings, aspect: number, renderer: THREE.WebGLRenderer, stats: FrameStats, debug: DebugInfo) {
-    // (Update 0.3.12 — paused, no time passes: the world, the show, the rank, the death's fade all wait; it's drawn.)
-    const real = this.paused ? 0 : elapsed;
+    // (Update 0.3.12 — paused, no time passes: the world, the show, the rank, the death's fade all wait; it's drawn.
+    // Update 0.3.23 — so too while the level's being made ready under the loader: nothing you press counts.)
+    const real = this.paused || this.loading ? 0 : elapsed;
+    if (this.loading) input.clearPressed();
+    this.loader.step();
     const p = this.player;
     const locked = input.locked;
     // Update 0.0.13 — kneeling at a chest, the view turns to it and the mouse waits (and during the boss room's show).
     const kneeling = p.kneel > 0;
     const grab = this.combat.grab;
     const pin = this.combat.pin;
-    const still = kneeling || this.show.locked || this.chestShot.locked || execHeld(this.combat.exec) || grab.on || pin.on;
+    const still = this.loading || kneeling || this.show.locked || this.chestShot.locked || execHeld(this.combat.exec) || grab.on || pin.on;
     const mouseDx = locked && !still ? input.mouseDX : 0;
     const mouseDy = locked && !still ? input.mouseDY : 0;
     if (locked && !still) this.look.apply(mouseDx, mouseDy, settings);
@@ -252,7 +255,7 @@ export class Run extends RunBase {
     setFloorMusic(d && combatMusicOn(d, p.dead) ? floorTrack(d) : null);
     this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d, this.look.yaw, this.show.hud, choosing ?? '');
     // Dead: once it's black, the death screen (the dungeon: Retry is a new run) or the lab's start. The way down: the
-    // next floor (Update 0.2.2: off the last, the run is won).
+    // next floor (Update 0.2.2: off the last, the run is won; Update 0.3.23: behind the loader).
     if (this.death.update(real)) {
       if (!d) this.restartHere();
       // (Update 0.2.12 — WEAKLING EXPERIENCE: back to the checkpoint, no death screen.)
@@ -260,7 +263,7 @@ export class Run extends RunBase {
       else this.tell(false);
     } else if (shot.descend) {
       if (d && endsRun(this.level.floor)) this.tell(true);
-      else this.load(this.levels.next(this.level), true);
+      else this.loadCovered(() => this.levels.next(this.level), true);
     }
   }
 

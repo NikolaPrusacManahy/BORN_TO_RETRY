@@ -141,6 +141,11 @@ export class CombatScene {
 
   /** Reads this frame's combat events (then clears them) and animates. `gameDt` stops during hit-stop; `alpha`: how
    *  far between the last two sim ticks this frame is (moving enemies are placed between them). */
+  /** Update 0.3.23 — its models in (the enemies, the bosses, the weapons): the loader waits for it (levelLoad.ts). */
+  get loaded(): Promise<unknown> {
+    return Promise.all([this.enemies.loaded, this.demon.loaded, this.dragon.loaded, this.king.loaded, this.weapons.loaded]);
+  }
+
   update(state: CombatState, listener: THREE.Vector3, playerChest: THREE.Vector3, gameDt: number, alpha: number) {
     HALOS.begin(this.camera);
     this.feedback.apply(state, listener);

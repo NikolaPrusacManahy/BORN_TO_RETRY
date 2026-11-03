@@ -20,6 +20,8 @@
 // Update 0.2.12 — the boot screens over the main menu first (CreditIntro.tsx: the studio's logo, the tips; the menu
 // waits for them).
 // Update 0.3.12 — the pause menu pauses the game (no time passes); the dev keys moved to screens/useDevKeys.ts.
+// Update 0.3.23 — the loader on black whenever a level's being made ready (the Game's onLoading: after Lab, after
+// Start, a new floor, the Lab's floors, a Retry), clearing once it is.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MenuView } from './engine/Game';
 import { CAMP_FADE } from './engine/menu/campScene';
@@ -69,6 +71,8 @@ export default function App() {
   const [menuView, setMenuView] = useState<MenuView>('gate');
   /** Update 0.1.14 — what the death screen shows. */
   const [death, setDeath] = useState<DeathInfo | null>(null);
+  /** Update 0.3.23 — a level is being made ready: the loader covers the screen. */
+  const [loading, setLoading] = useState(false);
   /** Going between the gate and the camp: the screen is fading to black. */
   const [switching, setSwitching] = useState(false);
   const switchTimer = useRef(0);
@@ -100,7 +104,7 @@ export default function App() {
     },
     [go],
   );
-  const run = useRunStart(getGame, setBlack, enterRun, FADE_OUT);
+  const run = useRunStart(getGame, setBlack, enterRun);
   /** Update 0.1.17 — the menus' music (useMusic.ts). */
   useMusic(phase, run.starting);
   /** Update 0.2.9 — the lobby's main gate and its questions (useLobbyGate.ts). */
@@ -235,6 +239,7 @@ export default function App() {
       onIntroDone={onIntroDone}
       onDeal={fate.onDeal}
       onInventory={fate.onInventory}
+      onLoading={setLoading}
       onRunStart={run.onRunStart}
       onDeath={() => setBlack(HEALTH.v.deathFade)}
       onRespawn={() => setBlack(null)}
@@ -270,8 +275,8 @@ export default function App() {
           onMainMenu={toMenu}
         />
       )}
-      <div className="rb-fade" style={{ opacity: black !== null ? 1 : 0, transitionDuration: `${black ?? FADE_OUT}s` }}>
-        {run.loading && <RunLoader />}
+      <div className="rb-fade" style={{ opacity: black !== null || loading ? 1 : 0, transitionDuration: loading ? '0s' : `${black ?? FADE_OUT}s` }}>
+        {loading && <RunLoader />}
       </div>
       {phase === 'dead' && death && !tuning && <DeathScreen info={death} onRetry={retry} onMenu={toMenu} />}
       {lab.panel(dev && !tuning)}

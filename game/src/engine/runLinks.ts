@@ -44,6 +44,8 @@ export interface RunCallbacks {
   onDeal(deal: DealView): void;
   /** Update 0.2.16 — TAB: show what you carry (`Game.inventory`). */
   onInventory(): void;
+  /** Update 0.3.23 — a level is being made ready (`true`: the loader up, the world waiting) or is ready (`false`). */
+  onLoading?(on: boolean): void;
 }
 
 /** Where the next level comes from (the Game makes them). */

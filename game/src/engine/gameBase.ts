@@ -2,6 +2,8 @@
 // renderer, input and sound a run plays with, the run itself and where its levels come from (the next floor, a death's
 // new run), and the Lab (dev builds: the main menu's Lab, its panel's commands, its boss rooms and floors, F9's swap).
 // Game.ts adds the menus, the lobby, the mouse lock and the frame loop.
+// Update 0.3.23 — every level built behind the loader (`covered`: the loader up and painted first, then the build; the
+// run keeps it up till the level's ready: levelLoad.ts): the Lab, its floors and boss rooms, the lobby, a run.
 import type * as THREE from 'three';
 import { FrameStats } from '../core/frameStats';
 import { Input } from '../input/input';
@@ -50,6 +52,9 @@ export abstract class GameBase {
   runDifficulty: Difficulty = 'real';
   /** Update 0.2.17 — the run deals Fate Cards (the lobby's stand; the Lab's always do). */
   runCards = true;
+  /** Update 0.3.23 — the loader's going up before a build: nothing else runs meanwhile; the game's gone (no build). */
+  protected covering = false;
+  protected gone = false;
   protected readonly levels: Levels = {
     fresh: () => (this.inLab ? labLevel() : dungeonLevel(newSeed(), 1)),
     next: (l: Level) => (this.inLab && l.bossRoom ? labLevel() : dungeonLevel(l.seed, l.floor + 1)),
@@ -72,13 +77,29 @@ export abstract class GameBase {
     return { master: s.volume, sfx: s.sfxVolume, music: s.musicVolume };
   }
 
+  /** Update 0.3.23 — the loader up and on screen (two frames), then `build` (a level's made: the run keeps the loader up
+   *  till it's ready). */
+  protected covered(build: () => void) {
+    if (this.covering) return;
+    this.covering = true;
+    this.cb.onLoading?.(true);
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        this.covering = false;
+        if (!this.gone) build();
+      }),
+    );
+  }
+
   /** Update 0.0.19 — into the Lab (the main menu's Lab, dev builds). Call once the screen is black. */
   startLab() {
-    this.inLab = true;
-    this.mode = 'play';
-    this.newRun(labLevel());
-    this.input.clear();
-    this.cb.onRunStart(document.pointerLockElement === this.host);
+    this.covered(() => {
+      this.inLab = true;
+      this.mode = 'play';
+      this.newRun(labLevel());
+      this.input.clear();
+      this.cb.onRunStart(document.pointerLockElement === this.host);
+    });
   }
 
   /** Update 0.0.19 — in the Lab (or one of its boss rooms). */
@@ -108,18 +129,18 @@ export abstract class GameBase {
    *  Bone King's (floor 3). Update 0.2.4 — or the Dino's (floor 4). Update 0.2.10 — or the Drowned King's (floor 5).
    *  Update 0.3.16 — or the Big Shark's (floor 6). */
   labBoss(kind: 'demon' | 'dragon' | 'boneKing' | 'dino' | 'drownedKing' | 'whale' | 'bigShark') {
-    if (this.lab) this.newRun(bossRoomLevel(newSeed(), kind === 'demon' ? 1 : kind === 'dragon' ? 2 : kind === 'boneKing' ? 3 : kind === 'dino' ? 4 : kind === 'drownedKing' ? 5 : 6));
+    if (this.lab) this.covered(() => this.newRun(bossRoomLevel(newSeed(), kind === 'demon' ? 1 : kind === 'dragon' ? 2 : kind === 'boneKing' ? 3 : kind === 'dino' ? 4 : kind === 'drownedKing' ? 5 : 6)));
   }
 
   /** Update 0.0.20 — floor `floor` (1–3) from the Lab, from its start. Update 0.3.11 — up to 7 (past the run's end:
    *  its way down wins, as the last floor's). */
   labFloor(floor: number) {
-    if (this.lab) this.newRun(dungeonLevel(newSeed(), floor));
+    if (this.lab) this.covered(() => this.newRun(dungeonLevel(newSeed(), floor)));
   }
 
   /** Update 0.0.19 — back to the Lab from a boss room (or a floor). */
   backToLab() {
-    if (this.lab) this.newRun(labLevel());
+    if (this.lab) this.covered(() => this.newRun(labLevel()));
   }
 
   setLabWaves(on: boolean) {

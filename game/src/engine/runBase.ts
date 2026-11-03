@@ -5,6 +5,8 @@
 // Update 0.1.14 — the time played since the run's start, and the death screen up (Restart, its Retry, is a new run).
 // Update 0.2.12 — the run plays by its difficulty (the designer): on WEAKLING EXPERIENCE a death sends you back to the
 // checkpoint (`respawn`); on ARE YOU EVEN HUMAN? there's nothing to find (`CombatState.bare`) and no shop.
+// Update 0.3.23 — every level made ready before it shows (levelLoad.ts): till then the world (the floor's name too)
+// waits and the App shows the loader (RunCallbacks.onLoading).
 import { groundOf } from '../sim/dungeon/ground';
 import * as THREE from 'three';
 import { FixedStep } from '../core/fixedStep';
@@ -38,15 +40,12 @@ import { Viewmodel } from './viewmodel/viewmodel';
 import { cancelCharges } from '../sim/weapons/kiCharge';
 import { pickCard, rerollDeal } from '../sim/cards/deal';
 import { DealView, dealView, InventoryView, inventoryView } from './fateView';
+import { LevelLoader, whenTrue } from './levelLoad';
 import type { Difficulty } from '../sim/lobby/difficulty';
 import { abandonAll } from '../sim/dungeon/checkpoint';
 import { maxHpOf } from '../sim/player/health';
 import { hpBonusOf } from '../sim/items/items';
 import { createHives } from '../sim/dungeon/hives';
-
-/** Update 0.2.8 (the designer: display "FLOOR 1" when they start playing) — a new run starts under the loader (at
- *  least its LOAD_MIN, 1 s) and its black clearing (0.5 s): its floor's name waits that long. */
-export const LOADER_HIDES = 1.5;
 
 export abstract class RunBase {
   protected readonly scene = new THREE.Scene();
@@ -87,6 +86,8 @@ export abstract class RunBase {
   hold = false;
   /** Update 0.3.12 — the pause menu is up: no time passes at all (Run.frame). */
   paused = false;
+  /** Update 0.3.23 — the loader (levelLoad.ts): while it's up the level's being made ready, no time passes. */
+  protected readonly loader = new LevelLoader((on) => this.cb.onLoading?.(on));
   /** Update 0.2.16 — a deal of Fate Cards is up (the world holds still till you've taken one and the screen's done). */
   protected dealing = false;
   protected show = new BossShow(null);
@@ -164,6 +165,23 @@ export abstract class RunBase {
     // (Update 0.2.20 — the shop's Fate Card, by what you carry down; then the shop and chests are drawn.)
     stockShop(this.treasure, this.combat);
     this.treasureView = new TreasureView(this.scene, this.treasure);
+    this.makeReady();
+  }
+
+  get loading(): boolean {
+    return this.loader.on;
+  }
+
+  /** Update 0.3.23 — into the level `next()` makes (the way down, a Retry, a Restart) behind the loader. */
+  protected loadCovered(next: () => Level, keep: boolean) {
+    this.loader.cover(() => this.load(next(), keep));
+  }
+
+  /** Update 0.3.23 — the loader up till the level's models are in and its shaders compiled. */
+  private makeReady() {
+    const view = (this.view as { loaded?: Promise<void> }).loaded;
+    const parts = [this.combatScene.loaded, this.treasureView.loaded, whenTrue(() => this.arms.loaded), ...(view ? [view] : [])];
+    this.loader.ready(parts, () => this.renderer.compileAsync?.(this.scene, this.camera));
   }
 
   /** Back to the level's start, standing still, full health; the targets back in place and whole. */
@@ -224,17 +242,12 @@ export abstract class RunBase {
     this.rig.reset();
   }
 
-  /** Update 0.2.8 — the floor's name waits `secs` (a new run's loader and its black still cover the screen: Game's
-   *  startRun, LOADER_HIDES). */
-  holdFloorTitle(secs: number) {
-    if (this.level.dungeon && !this.level.bossRoom) this.show.arrive(this.level.floor, secs);
-  }
-
   /** F3 and Restart: the lab from its start; a dungeon floor laid out again from its start. Update 0.1.14 — the
    *  death screen's Retry: a new run. */
   restart() {
-    if (this.told) this.load(this.levels.fresh(), false);
-    else if (this.level.dungeon) this.load(this.levels.again(this.level), false);
+    // (Update 0.3.23 — behind the loader.)
+    if (this.told) this.loadCovered(() => this.levels.fresh(), false);
+    else if (this.level.dungeon) this.loadCovered(() => this.levels.again(this.level), false);
     else this.restartHere();
   }
 
@@ -276,6 +289,8 @@ export abstract class RunBase {
   }
 
   dispose() {
+    // (A load still under way ends unheard.)
+    this.loader.drop();
     this.combatScene.dispose();
     this.view.dispose();
     this.treasureView.dispose();
