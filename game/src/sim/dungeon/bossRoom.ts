@@ -39,6 +39,8 @@ import type { PlayerState } from '../player/state';
 import { Vector3 } from 'three';
 import { FROST_ROC } from '../../tuning/frostRoc';
 import { TIDEBREAKER } from '../../tuning/tidebreaker';
+import { OKAMI } from '../../tuning/okami';
+import { stepOkamiIntro } from './okamiShow';
 
 export type BossBeat = 'waiting' | 'intro' | 'fight' | 'dying' | 'loot' | 'open';
 
@@ -111,7 +113,7 @@ function callsOf(kind: EnemyKind): Calls | null {
 export const calledBy = (kind: EnemyKind): EnemyKind | null => callsOf(kind)?.kind ?? null;
 
 /** The coins a boss leaves (Update 0.2.0: in its chest). */
-export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : kind === 'whale' ? WHALE.v.whaleCoins : kind === 'bigShark' ? BIG_SHARK.v.bigCoins : kind === 'frostRoc' ? FROST_ROC.v.rocCoins : kind === 'tidebreaker' ? TIDEBREAKER.v.tideCoins : BOSS.v.demonCoins);
+export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : kind === 'whale' ? WHALE.v.whaleCoins : kind === 'bigShark' ? BIG_SHARK.v.bigCoins : kind === 'frostRoc' ? FROST_ROC.v.rocCoins : kind === 'tidebreaker' ? TIDEBREAKER.v.tideCoins : kind === 'okami' ? OKAMI.v.okamiCoins : BOSS.v.demonCoins);
 
 export { inShow, introBeats, portalOpen, wallsOpen, type IntroBeats } from './bossBeats';
 
@@ -141,6 +143,11 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
       // (Update 0.3.31 — Tidebreaker's own show: tideShow.ts.)
       if (b.kind === 'tidebreaker' && level) {
         stepTideIntro(b, level, player, combat, dt);
+        break;
+      }
+      // (Update 0.3.34 — Yokai : Okami's: okamiShow.ts.)
+      if (b.kind === 'okami' && level) {
+        stepOkamiIntro(b, level, player, combat, dt);
         break;
       }
       const s = introBeats();

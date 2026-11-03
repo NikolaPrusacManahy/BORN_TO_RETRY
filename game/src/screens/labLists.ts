@@ -18,7 +18,7 @@ import type { DropKind } from '../sim/items/drops';
 import type { LabCommand } from '../sim/lab/labCommands';
 import type { WeaponKind } from '../sim/weapons/catalog';
 
-export type LabBoss = 'demon' | 'dragon' | 'boneKing' | 'dino' | 'drownedKing' | 'whale' | 'bigShark' | 'frostRoc' | 'tidebreaker';
+export type LabBoss = 'demon' | 'dragon' | 'boneKing' | 'dino' | 'drownedKing' | 'whale' | 'bigShark' | 'frostRoc' | 'tidebreaker' | 'okami';
 
 const NAMES: Partial<Record<EnemyKind, string>> = {
   grunt: 'Grunt',
@@ -116,6 +116,7 @@ const NAMES: Partial<Record<EnemyKind, string>> = {
   frogMech: 'Frog Mech',
   frogNaut: 'Finn',
   tidebreaker: 'Tidebreaker',
+  okami: 'Yokai : Okami',
   demon: 'Demon',
   dragon: 'Dragon',
   boneKing: 'Bone King',

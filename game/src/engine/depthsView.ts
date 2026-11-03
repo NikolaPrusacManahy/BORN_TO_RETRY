@@ -18,6 +18,7 @@ import { SharkArena } from './cove/sharkArena';
 import { MoonView } from './moon/moonView';
 import { showTime } from './moon/floorBlast';
 import { ShrineSky } from './shrine/shrineSky';
+import { islesTaken } from '../sim/dungeon/okamiShow';
 import { styleOf } from '../world/dungeon/styles';
 
 export class DepthsView {
@@ -55,6 +56,11 @@ export class DepthsView {
     this.shrine?.build(kit);
   }
 
+  /** Update 0.3.34 — floor 8's sky (its islands go to Okami's show). */
+  get sky(): ShrineSky | null {
+    return this.shrine;
+  }
+
   /** The view is under the boss arena's water. */
   get sunk(): boolean {
     return this.arena.sunk;
@@ -76,7 +82,7 @@ export class DepthsView {
     this.belts.update(mach.t);
     this.cove.update(run.powder, this.time);
     this.moon.update(dt, run.meteors, at, showTime(run.boss));
-    this.shrine?.update(dt, at);
+    this.shrine?.update(dt, at, islesTaken(run.boss));
   }
 
   dispose() {

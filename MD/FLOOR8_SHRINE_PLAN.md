@@ -1,9 +1,10 @@
 # Floor 8 — the Shrine Dimension (agreed, 2026-11-03)
 
 > The designer: "go with that, without the Wolf yet, I will redesign him after". The level, its enemies and its mini
-> bosses as planned; **its boss is on hold** (the Ōkami below is a first idea only; a stand-in meanwhile).
+> bosses as planned; **its boss is on hold** (Makami below is a redesign to be agreed; a stand-in meanwhile).
 >
-> **Built:** the level (0.3.32), its enemies and mini bosses (0.3.33, `MD_UPDATES/U0333_SHRINE_FIGHTERS.md`). As
+> **Built:** the level (0.3.32), its enemies and mini bosses (0.3.33, `MD_UPDATES/U0333_SHRINE_FIGHTERS.md`), its boss's
+> model and its show (0.3.34, `MD_UPDATES/U0334_OKAMI.md`). As
 > built, the Archers are the perchers; the Kunoichi runs the walls and leaps from the floor instead of waiting in
 > trees.
 
@@ -92,25 +93,78 @@ Harder means more AI: dodges, counters, ambushes (the designer: hardcore players
 - **The Shadow** (Ninja_Male, 1.5×, a katana): **splits into two shadow clones** (one hit kills a clone, and clones
   hit for half); only he carries the key. His dash slash crosses the room. 300.
 
-## Its boss: on hold (the designer will redesign it). First idea: Ōkami, the Shrine's Wolf (the Bestiary's Lycan)
-- **Who:** the shrine's guardian, a wolf god. The Lycan recoloured white with red markings, about 5 m tall (as
-  Tidebreaker is), a great katana. Its moves are UAL's, baked straight on (it's on the UAL skeleton, as Tidebreaker
-  was).
-- **Its moves:**
-  - Its katana: light and heavy combos, an aerial combo, a guard that turns your hits and counters.
-  - The **iai dash**: it sheathes, crouches, and is across the arena in a flash, slashing; a line on the floor warns
-    where.
-  - A **double-jump plunge**: its sword down into the floor, a ring of petals and stone thrown out.
-  - **Wall runs** round the arena's walls, then a leap at you.
-- **Rage (half health):** a **petal storm** fills the arena (hard to see, its shadow clones in it), and its blows leave
-  lines of blades. **Frenzy:** the torii beams come down, the bell cracks, the four great sakura burn.
-- **Its intro, at Tidebreaker's quality** (the designer's standard):
-  1. The shrine's bell tolls three times.
-  2. Every sakura on the floor sheds at once, the petals pouring through the rooms toward the arena in rivers (a
-     flying shot along them).
-  3. The petals whirl into a vortex in the arena's middle as the torii light up one after another.
-  4. It steps out of the vortex. In slow motion it draws its katana: one stroke, and the vortex is cut in two.
-  5. Its name on the right, as Tidebreaker's and the Big Shark's.
+## Its boss: Yokai : Okami (agreed 2026-11-03)
+The designer, on the look test: "Call it "Yokai : Okami" and yes build it", then its moves (below), and "Keep this,
+cause we need to intro done first and the arena shift after intro".
+
+The designer, with two pictures of the white wolf from Capcom's game *Ōkami*: "for the boss, we need to change it's
+colour a design a bit to match the real dog in the Japanese mythology, maybe adding flames and that white fur might
+help, the red markings".
+- **Ours, not Capcom's:** that wolf (Amaterasu) is Capcom's own character. A white wolf, red markings and flames are
+  all fine to use. Her particular look is not: the swirl and comma markings on her haunches, the cloud-curl tufts at
+  her joints, the flaming disc on her back, the ink-brush look. (Its name is the designer's: *ōkami* is Japanese for
+  wolf, and a *yōkai* is a spirit of folklore.)
+- **From the mythology:**
+  - Ōkuchi-no-Makami, the "great-mouthed true god", is the wolf worshipped at the Mitsumine and Musashi-Mitake
+    shrines. Pilgrims call it *Oinu-sama*, the honoured dog, and its charms guard homes **against fire** and thieves.
+    So it is the shrine's guardian and master of fire, and its flames are its own.
+  - Its markings follow kabuki's *kumadori*: red lines a hero's face is painted with.
+- **Who:** the Bestiary's Lycan, about 5 m tall (as Tidebreaker is). It has **no weapon** (the designer: "no sword"):
+  it fights with its claws, its fangs and its fire. Its moves are UAL's, baked straight on (it's on the UAL skeleton,
+  as Tidebreaker was).
+- **Its look:**
+  - **White fur:** the Lycan's texture repainted white and pale grey, with the dark mane turned silver-white.
+  - **Red markings:**
+    - kumadori lines sweeping up from its eyes over its brow and onto its ears;
+    - a line from each eye back along its cheek toward its jaw;
+    - its inner ears red;
+    - red bands on its forearms and thighs;
+    - a red line down its spine.
+    They glow like embers in its rage.
+  - **Flames, made in code:**
+    - a mane of fire from its shoulders along its spine;
+    - fire at its tail's tip;
+    - flames licking from its paws at each step;
+    - its eyes burning.
+  - **Its shrine:** a *shimenawa* (the sacred straw rope, as on the shrine hall) round its neck, with white paper
+    zigzags (*shide*) hanging from it.
+- **Its moves** (the designer's three, then two of Claude's; up close, its claws: swipes and a combo):
+  1. **Its devastation** (the designer: "teleport in the middle of the arena and he would charge up for 7 seconds -> the
+     whole arena will be hit -> if the circle is full -> then he would use his power to throw the massive fireball at the
+     arena and deal massive damage"):
+     - It vanishes in fire and is in the arena's middle, charging for 7 s.
+     - A ring of fire grows out from it across the floor toward the walls. Your hits on it drive the ring back.
+     - If the ring reaches the walls (the circle full), it hurls a massive fireball down on the arena: massive damage
+       everywhere in it.
+  2. **Four leaps** (the designer: "jumps on the map 4 times in a row, doing crater damage like the other boss but
+     consecutively"): four leaps one after another, each down where you are. Each has a ring on the floor where it'll
+     land, and a crater and shockwave when it does, as Tidebreaker's moon leap.
+  3. **The blue fireball** (the designer: "stance and charge a blue fireball and throw it at the enemy, big damage"): it
+     takes its stance, a blue fireball (*kitsune-bi*, fox fire) swelling between its claws, then hurls it at you. Big
+     damage, and a blast where it strikes.
+  4. **The fire dash** (Claude's): it drops low and a line of fire on the floor warns where. Then it's across the arena
+     in a flash, clawing through you, and the line bursts into flame behind it for a moment (it burns you there).
+  5. **Its roar of fire** (Claude's): it throws back its head and a wave of flame rolls out from its jaws over the
+     floor in front of it, a wide cone (side-step out of it, or get behind it).
+- **Rage (half health):** a **petal storm** fills the arena (hard to see, its shadow clones in it), and its claws leave
+  lines of fire on the floor. **Frenzy:** the torii beams come down, the bell cracks, the four great sakura burn.
+- **Its intro** (the designer's, at Tidebreaker's quality; the arena's shift is part of it):
+  1. The arena shakes. All the floor's other rooms are destroyed at once, and the arena expands (two camera angles).
+  2. The floating islands all move and regroup near the arena (two camera angles).
+  3. Okami lands on one island and sends it crashing onto the arena, where it stays embedded.
+  4. Three temples fall from the sky and block the exit gate, as a presentation (two camera angles). (Claude's
+     reading: the doorway you came in by, the way back to rooms that no longer exist. Only the wooden gate, the way
+     down, opens after the fight, as on the Moon.)
+  5. The remaining islands shift and merge with the arena. Crashed in, they become walkable ground, so the arena is
+     made of bits of island.
+  6. Okami jumps into the air: slow motion, and its name.
+  7. It lands, and the view goes back to your eyes.
+
+### Its order of work
+1. **Its model and its intro, with the arena of islands it leaves** (built, 0.3.34). The model is the look test's (the
+   Lycan repainted by `tools/okami_paint.py`, its clips baked on), with its flames, rope and shide made in code. It is
+   floor 8's boss in place of the stand-in, fighting with its claws only until its moves come.
+2. **Its five moves**, then its rage and frenzy.
 
 ## Order of work
 1. **The level:** the look, the sakura (code-made blossom cut-outs), the petals, the code-made pieces (torii,

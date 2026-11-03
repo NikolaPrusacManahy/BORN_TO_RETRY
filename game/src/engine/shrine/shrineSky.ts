@@ -4,11 +4,13 @@
 // under them. Round the view, out where the haze doesn't reach (as the Moon's sky is: moon/spaceSky.ts), high enough
 // to be seen over the walls; tinted toward the sky, as far things are. The islands' rock is made in code; what stands
 // on them is the kit's, once it's loaded.
+// Update 0.3.34 — Yokai : Okami's show takes them (engine/shrine/okamiShowView.ts: they come in to the arena): each
+// one's holder, its way and its size, and the near look of each far material; taken, they're gone from the sky.
 import * as THREE from 'three';
 import { auraTexture } from '../keyLooks';
 
 /** How far out they hang (m: inside the camera's 400). */
-const FAR = 300;
+export const FAR = 300;
 /** Each island: its way (yaw, degrees), how high (degrees up), its size (m across), what stands on it (kit pieces, each
  *  with where on the top: a share of its radius out, its turn) and how big they're drawn. */
 const ISLANDS: readonly { yaw: number; up: number; size: number; on: readonly [string, number, number, number][]; scale: number }[] = [
@@ -34,7 +36,10 @@ const dirOf = (yawDeg: number, upDeg: number) => {
 
 export class ShrineSky {
   readonly group = new THREE.Group();
-  private readonly islands: { holder: THREE.Group; y: number; phase: number }[] = [];
+  /** Each island: its holder (its top at its middle), its way from the view, its size (m across), how high it hangs. */
+  readonly islands: { holder: THREE.Group; dir: THREE.Vector3; size: number; y: number; phase: number }[] = [];
+  /** A far material's near look (the kit's own, or the rock's and the grass's untinted). */
+  private readonly nears = new Map<THREE.Material, THREE.Material>();
   private readonly stuff: { dispose(): void }[] = [];
   private readonly sky: THREE.Color;
   private time = 0;
@@ -47,6 +52,10 @@ export class ShrineSky {
     const rockMat = new THREE.MeshStandardMaterial({ color: this.far(new THREE.Color(0x8d8478)), roughness: 1, flatShading: true, fog: false });
     const topMat = new THREE.MeshStandardMaterial({ color: this.far(new THREE.Color(0x7f9c55)), roughness: 1, flatShading: true, fog: false });
     this.stuff.push(rockMat, topMat);
+    const nearRock = new THREE.MeshStandardMaterial({ color: 0x8d8478, roughness: 1, flatShading: true });
+    const nearTop = new THREE.MeshStandardMaterial({ color: 0x7f9c55, roughness: 1, flatShading: true });
+    this.stuff.push(nearRock, nearTop);
+    this.nears.set(rockMat, nearRock).set(topMat, nearTop);
     ISLANDS.forEach((isl, i) => {
       // Its rock: a jagged cone hanging point down; its top a disc of grass.
       const rock = new THREE.ConeGeometry(0.5, 0.9, 9, 3).rotateX(Math.PI).translate(0, -0.45, 0);
@@ -61,11 +70,12 @@ export class ShrineSky {
       const holder = new THREE.Group();
       holder.add(new THREE.Mesh(rock, rockMat), new THREE.Mesh(top, topMat));
       holder.scale.setScalar(isl.size);
-      const at = dirOf(isl.yaw, isl.up).multiplyScalar(FAR);
+      const dir = dirOf(isl.yaw, isl.up);
+      const at = dir.clone().multiplyScalar(FAR);
       holder.position.copy(at);
       holder.rotation.y = rnd() * Math.PI * 2;
       this.group.add(holder);
-      this.islands.push({ holder, y: at.y, phase: i * 1.7 });
+      this.islands.push({ holder, dir, size: isl.size, y: at.y, phase: i * 1.7 });
     });
     // Banks of cloud under them.
     const cloudMat = new THREE.SpriteMaterial({ map: auraTexture(), color: 0xffffff, transparent: true, opacity: 0.55, depthWrite: false, fog: false });
@@ -103,6 +113,7 @@ export class ShrineSky {
         }
         this.far(s.color);
         mats.set(m, (c = s));
+        this.nears.set(s, m);
         this.stuff.push(s);
       }
       return c;
@@ -128,11 +139,19 @@ export class ShrineSky {
     });
   }
 
-  /** `at`: the view (the sky stays round it). */
-  update(dt: number, at: THREE.Vector3) {
+  /** A far material as it looks near (itself if it has no near look). */
+  nearOf(m: THREE.Material): THREE.Material {
+    return this.nears.get(m) ?? m;
+  }
+
+  /** `at`: the view (the sky stays round it); `taken`: its islands are gone from it (Okami's show has them). */
+  update(dt: number, at: THREE.Vector3, taken = false) {
     this.time += dt;
     this.group.position.copy(at);
-    for (const isl of this.islands) isl.holder.position.y = isl.y + Math.sin(this.time * BOB_SPEED + isl.phase) * BOB;
+    for (const isl of this.islands) {
+      isl.holder.position.y = isl.y + Math.sin(this.time * BOB_SPEED + isl.phase) * BOB;
+      isl.holder.visible = !taken;
+    }
   }
 
   dispose() {

@@ -149,7 +149,8 @@ section('Lobby — the bestiary’s list');
   check('ten floors; every enemy once, on the floor it first comes to', shelves.length === 10 && new Set(all).size === all.length && shelves[0].enemies.join() === 'grunt,spitter,brute,leaper,stinger,wraith');
   // (Update 0.3.25 — the floors reordered: Frozen Depths' boss a stand-in, the Desert's the Velociraptor.)
   // (Update 0.3.29 — the Moon's, Tidebreaker.)
-  check('each floor’s boss with it (its own: floors 1 to 7, and the Moon)', shelves.slice(0, 7).map((f) => f.boss ?? '-').join() === 'demon,dragon,boneKing,frostRoc,drownedKing,dino,bigShark' && shelves[FLOOR.moon - 1].boss === 'tidebreaker' && [FLOOR.shrine, FLOOR.hell].every((f) => shelves[f - 1].boss === null));
+  // (Update 0.3.34 — the Shrine Dimension's, Yokai : Okami.)
+  check('each floor’s boss with it (its own: floors 1 to 9)', shelves.slice(0, 7).map((f) => f.boss ?? '-').join() === 'demon,dragon,boneKing,frostRoc,drownedKing,dino,bigShark' && shelves[FLOOR.shrine - 1].boss === 'okami' && shelves[FLOOR.moon - 1].boss === 'tidebreaker' && shelves[FLOOR.hell - 1].boss === null);
   check('a body’s second self beside it: the Headless Crewman, Barbara out of her mech', shelves[FLOOR.cove - 1].enemies.indexOf('headless') === shelves[FLOOR.cove - 1].enemies.indexOf('crewman') + 1 && shelves[FLOOR.moon - 1].enemies.indexOf('beeNaut') === shelves[FLOOR.moon - 1].enemies.indexOf('beeMech') + 1);
   // (Update 0.3.22 — floor 7 has its warband. Update 0.3.33 — floor 8 its martial artists.)
   check('Hell on Earth (10) has none of its own yet; Frozen Depths (4) its warband; the Shrine Dimension (8) its martial artists', shelves[FLOOR.hell - 1].enemies.length === 0 && shelves[FLOOR.frozen - 1].enemies.join() === 'raider,axeThrower,draugr,barrowMaid,volva,berserker,haugbui' && shelves[FLOOR.shrine - 1].enemies.join() === 'karateka,karateGirl,shinobi,kunoichi,sandNinja,sandNinjaF,archer,sensei,shadow', shelves[FLOOR.shrine - 1].enemies.join());

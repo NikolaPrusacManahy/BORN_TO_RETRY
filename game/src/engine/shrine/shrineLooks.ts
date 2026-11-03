@@ -15,6 +15,7 @@ import { CROUCH, KUNOICHI } from '../../sim/enemies/kunoichi';
 import { SAND } from '../../sim/enemies/sandNinja';
 import { SENSEI } from '../../sim/enemies/sensei';
 import { SHADOW } from '../../sim/enemies/shadow';
+import { OKAMI_LOOK } from './okamiLook';
 import {
   AIM, BACK, BACKFLIP, BLOCK, CALTROPS, COMBO, CROSS, CUT_SET, DASH, DASH_CUT, DODGE_L, DODGE_R, FLYING_KNEE, FOLDED, HEAVY_CUT, HOOK, JAB, KI, KICK, KNEE, KUNAI, LAND, LEAP,
   LONG_CUT, LOOSE, ROLL, SLAM, SLASH_A, SLASH_COMBO, SMOKE, SPLIT, STAFF, STAFF_COUNTER, STAFF_HEAVY, STRAFE_L, STRAFE_R, THROW, UPPERCUT, VOLLEY, WALLRUN_L, WALLRUN_R,
@@ -147,4 +148,5 @@ export const SHRINE_LOOKS: Record<KindShrine, Look> = {
   },
   shadow: shadowLook('/models/enemies/shadow.glb'),
   shadowClone: shadowLook('/models/enemies/shadow.glb'),
+  okami: OKAMI_LOOK,
 };

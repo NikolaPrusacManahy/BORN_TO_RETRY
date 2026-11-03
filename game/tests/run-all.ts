@@ -94,6 +94,8 @@ import './test-tidebreaker-show-view';
 import './test-floor8';
 import './test-shrine';
 import './test-shrine-fighters';
+import './test-okami-show';
+import './test-okami-show-view';
 import './test-forge';
 import './test-floor8-crew';
 import './test-music';

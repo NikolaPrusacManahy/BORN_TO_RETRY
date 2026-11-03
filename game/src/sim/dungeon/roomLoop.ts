@@ -55,6 +55,7 @@ import { createMeteors, Meteors, stepMeteors } from './meteors';
 import { sinkInPits } from './lava';
 import { lavaOf, type ArenaBox } from '../../world/arena';
 import { fromLair, lairFor } from './lairs';
+import { okamiGates } from './okamiShow';
 
 /** Update 0.2.0 — 'reward': a challenge room won, shut until its reward is taken. */
 export type RoomState = 'idle' | 'fighting' | 'reward' | 'cleared';
@@ -171,11 +172,14 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
         rr.state = 'cleared';
         raiseChest(run.treasure, room.chest, combat);
         run.shut[run.level.boss.gate] = false;
-        // (Update 0.3.31 — not Tidebreaker's: the rooms behind them blew up in its show, tideShow.ts.)
-        if (run.boss.kind !== 'tidebreaker') for (const g of room.gates) run.shut[g] = false;
+        // (Update 0.3.31 — not Tidebreaker's: the rooms behind them blew up in its show, tideShow.ts. Update 0.3.34 — nor
+        // Okami's: okamiShow.ts.)
+        if (run.boss.kind !== 'tidebreaker' && run.boss.kind !== 'okami') for (const g of room.gates) run.shut[g] = false;
         ev.push('woodGateOpen', i, run.level.boss.gateAt.x, 2, run.level.boss.gateAt.z);
         ev.push('gatesOpen', i, (room.min.x + room.max.x) / 2, 1, (room.min.z + room.max.z) / 2);
       }
+      // (Update 0.3.34 — Okami's islands and temples, in once its show's over.)
+      if (run.level.okami && run.boss.beat !== 'waiting' && run.boss.beat !== 'intro') for (const g of okamiGates(run.level.okami)) run.shut[g] = true;
       continue;
     }
     if (rr.state === 'reward' && rewardDone(run, i, player, combat)) {

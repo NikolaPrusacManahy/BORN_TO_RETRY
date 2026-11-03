@@ -3,12 +3,14 @@
 // end) and their caltrops (little steel spikes strewn across the floor); the Shadow's long cut's line along the floor
 // through you as he sets himself (pulsing as it comes); the Archer's glint as she draws (brighter as she looses). Drawn
 // from the fight's state each frame. Made in code.
+// Update 0.3.34 — and its boss, Yokai : Okami's fire, rope and shide (okamiFx.ts).
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
 import { CUT_SET, AIM } from '../../sim/enemies/shrineShared';
 import { FOES_SHRINE } from '../../tuning/foesShrine';
 import { FOES_SHRINE_B } from '../../tuning/foesShrineB';
 import { auraTexture } from '../keyLooks';
+import { OkamiFx } from './okamiFx';
 
 /** A cloud's billows, how big (m) and how high they go (m); it thickens over this long and thins over this (s). Each
  *  scatter's spikes. A cut's line this long (m) and wide. */
@@ -44,6 +46,7 @@ export class ShrineFx {
   private readonly cuts: THREE.Mesh[] = [];
   private readonly glints: THREE.Sprite[] = [];
   private time = 0;
+  private readonly okami = new OkamiFx();
 
   constructor(scene: THREE.Scene) {
     scene.add(this.group);
@@ -98,8 +101,10 @@ export class ShrineFx {
     }
   }
 
-  update(state: CombatState, dt: number) {
+  /** `rootOf`: each enemy's body (Okami's fire rides its bones). */
+  update(state: CombatState, dt: number, rootOf?: (i: number) => THREE.Object3D | null) {
     this.time += dt;
+    if (rootOf) this.okami.update(state, rootOf, dt);
     const smoke = state.ground.smoke;
     smoke.bombs.forEach((b, i) => {
       this.bombs[i].visible = b.alive;
@@ -158,5 +163,6 @@ export class ShrineFx {
   dispose() {
     this.group.removeFromParent();
     for (const s of this.stuff) s.dispose();
+    this.okami.dispose();
   }
 }

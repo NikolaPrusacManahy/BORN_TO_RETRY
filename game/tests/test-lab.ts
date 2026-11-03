@@ -185,7 +185,7 @@ section('Lab panel — a column a floor, the items by kind');
   // (Update 0.3.26 — Frozen Depths' boss its own, the Frost Roc.)
   // (Update 0.3.32 — the Shrine Dimension built; Update 0.3.33 — its martial artists: a column of its own, its boss still
   // another's.)
-  check('Frozen Depths is in the panel (floor 4) with its Frost Roc, the Velociraptor under the Desert (6); the Shrine Dimension (8) its fighters, the Moon (9) too', LAB_FLOORS.some((f) => f.floor === FLOOR.frozen && f.boss === 'frostRoc') && LAB_FLOORS.find((f) => f.boss === 'dino')?.floor === FLOOR.desert && LAB_FLOORS.some((f) => f.floor === FLOOR.shrine && f.enemies.includes('karateka') && f.boss === null) && LAB_FLOORS.some((f) => f.floor === FLOOR.moon));
+  check('Frozen Depths is in the panel (floor 4) with its Frost Roc, the Velociraptor under the Desert (6); the Shrine Dimension (8) its fighters and Okami, the Moon (9) too', LAB_FLOORS.some((f) => f.floor === FLOOR.frozen && f.boss === 'frostRoc') && LAB_FLOORS.find((f) => f.boss === 'dino')?.floor === FLOOR.desert && LAB_FLOORS.some((f) => f.floor === FLOOR.shrine && f.enemies.includes('karateka') && f.boss === 'okami') && LAB_FLOORS.some((f) => f.floor === FLOOR.moon));
   // (Update 0.3.13 — and floor 8: the floors with nothing of their own yet share New floors.)
   // (The designer: "always put a new floor there", "put page 1 & 2 instead of stacking them together".)
   // (Update 0.3.14 — and floor 6, reworked: its stand-ins and its boss's are other floors'. Update 0.3.15 — its crew

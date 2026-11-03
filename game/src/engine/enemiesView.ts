@@ -186,7 +186,7 @@ export class EnemiesView {
       // (Update 0.2.10 — and floor 5's under the water: drownedFx.ts shows their fins.)
       // (Update 0.3.15 — Mako in the sand, a Tentacle sunk under the sea. Update 0.3.22 — floor 7's dead in the snow.)
       const buried = ((e.kind === 'cactoro' || e.kind === 'cactoroBig' || e.kind === 'mako') && e.pos.y < -1) || (e.kind === 'tentacle' && e.pos.y < -5) || ((e.kind === 'draugr' || e.kind === 'barrowMaid') && e.pos.y < -1.5) || submerged(e);
-      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing' || e.kind === 'whale' || e.kind === 'frostRoc' || e.kind === 'tidebreaker') && e.phase === 'dead' && e.struck) && !buried;
+      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing' || e.kind === 'whale' || e.kind === 'frostRoc' || e.kind === 'tidebreaker' || e.kind === 'okami') && e.phase === 'dead' && e.struck) && !buried;
       if (!b.root.visible) continue;
       const windup = look.windup(e.move, e.stage);
       const king = e.kind === 'boneKing';

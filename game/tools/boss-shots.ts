@@ -6,6 +6,8 @@
 // Update 0.3.16 — floor 6's Big Shark: its arena flooded to its top, its show's own shots (the flood, over its shoulder,
 // ahead of its leap; the shark a block where it is then). `--beat=flood|shoulder|under|leap`: the shark placed at that
 // beat (its shots all four; the leap's by default).
+// Update 0.3.34 — floor 8's: the arena as Yokai : Okami's show leaves it (its islands: their terraces as boxes, what
+// stands on them; its temples), and its show's own shots.
 //   npx tsx tools/boss-shots.ts <out folder> [seed] [k] [floor] [--open] [--beat=under]
 //   blender --background --python tools/blender/render_dungeon.py -- --json <out folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <out folder> --day
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -20,6 +22,9 @@ import { bossOf, ENEMY_STATS } from '../src/sim/enemies/kinds';
 import { DROWNED } from '../src/tuning/drowned';
 import { BIG_SHARK } from '../src/tuning/bigShark';
 import { SharkCinema } from '../src/engine/boss/sharkCinema';
+import { OkamiCinema } from '../src/engine/shrine/okamiCinema';
+import { okamiBeats } from '../src/sim/dungeon/okamiShow';
+import { kitOf } from '../src/world/dungeon/okamiIsles';
 import { sharkAt, sharkBeats, sharkMark } from '../src/sim/dungeon/sharkShow';
 import { buildDungeon } from '../src/world/dungeon/assemble';
 import { dress, KIT, Placement } from '../src/world/dungeon/dressing';
@@ -118,6 +123,21 @@ if (kind === 'bigShark') {
   cams.splice(1, 2, ...(['flood', 'shoulder', 'under', 'leap'] as const).map((n) => ({ name: `shark-${n}`, ...at(when[n]) })));
   const mk = sharkAt(when[beat] ?? when.leap, b.portal, eye, sharkMark());
   Object.assign(demon, { x: mk.mid.x, y: mk.mid.y - ENEMY_STATS.bigShark().height / 2, z: mk.mid.z, yaw: mk.yaw, height: ENEMY_STATS.bigShark().height });
+}
+if (kind === 'okami' && level.okami) {
+  const o = level.okami;
+  for (const isle of o.isles) {
+    for (const bx of isle.boxes) if (bx.y === bx.h / 2) boxes.push({ m: new THREE.Matrix4().compose(p.set(bx.x, bx.y, bx.z), bx.quat ? q.set(...bx.quat) : q.identity(), s.set(bx.w, bx.h, bx.d)).toArray(), color: [0.42, 0.4, 0.36] });
+    if (isle.piece) pieces.push({ piece: kitOf(isle.piece.kind), x: isle.piece.x, y: isle.top, z: isle.piece.z, rot: isle.piece.turn, sx: isle.piece.s, sy: isle.piece.s, sz: isle.piece.s });
+    for (const t of isle.trees) pieces.push({ piece: t.name, x: t.x, y: isle.top, z: t.z, rot: t.turn, sx: 1, sy: 1, sz: 1 });
+  }
+  for (const t of o.temples) pieces.push({ piece: t.name, x: t.x, y: 0, z: t.z, rot: t.turn, sx: t.s, sy: t.s, sz: t.s });
+  const oc = new OkamiCinema(level);
+  oc.start(eye, new THREE.Vector3(-ex, 0, -ez));
+  const ob = okamiBeats();
+  const at = (name: string, t: number) => (oc.intro(t, eye, shot), { name, at: shot.pos.toArray(), to: shot.look.toArray() });
+  cams.splice(1, 2, at('okami-merge', (ob.mergeFrom + ob.mergeTo) / 2), at('okami-temples', ob.temple[2]), at('okami-crash', ob.crashTo - 0.2));
+  Object.assign(demon, { x: o.landing.x, z: o.landing.z, yaw: Math.atan2(-(o.safe.x - o.landing.x), -(o.safe.z - o.landing.z)) });
 }
 const extent = { min: { x: room.min.x - 8, z: room.min.z - 8 }, max: { x: room.max.x + 8, z: room.max.z + 8 } };
 const floors = level.arena.boxes.filter((x) => x.kind === 'floor').map((x) => ({ x: x.x, z: x.z, w: x.w, d: x.d }));

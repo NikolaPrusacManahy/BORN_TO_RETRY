@@ -2,7 +2,24 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.33: floor 8's martial artists)
+## Next up (2026-11-03, Update 0.3.34: floor 8's boss, Yokai : Okami, and its show)
+- **The designer**: "Call it "Yokai : Okami" and yes build it", its moves, then its intro. Spec
+  `MD_UPDATES/U0334_OKAMI.md`; the plan `MD/FLOOR8_SHRINE_PLAN.md`.
+- **Its model:** `ual_bake.py okami` paints it (`tools/okami_paint.py`) and bakes 27 Library clips. Its fire, rope and
+  shide ride its bones (`engine/shrine/okamiFx.ts`).
+- **Its show:**
+  - The beats are in `sim/dungeon/okamiShow.ts`.
+  - The view is `engine/shrine/okamiShowView.ts` (the islands come from `shrineSky.ts`; their arena look is
+    `isleMesh.ts`).
+  - The shots are `okamiCinema.ts`.
+- **Its arena:** `world/dungeon/okamiIsles.ts`. The islands' and temples' boxes are gates, made solid once the show is
+  over (`roomLoop.ts`).
+- **Its fight:** claws only (`sim/enemies/okami.ts`).
+- Checked by tests and Blender renders; **unseen in the game**.
+- **Next:** its five moves (the plan's list: the designer's devastation, four leaps and blue fireball; Claude's fire
+  dash and roar of fire), then its rage and frenzy.
+
+## Before (2026-11-03, Update 0.3.33: floor 8's martial artists)
 - **The designer**: "make sure enemies are indeed martial art experts, dashing, side steps, etc etc... something
   challeging. Make sure you match the proper animation, with 200+ animation SURELY you can do something about it".
   Spec `MD_UPDATES/U0333_SHRINE_FIGHTERS.md`.

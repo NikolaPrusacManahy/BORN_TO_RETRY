@@ -55,9 +55,7 @@ import { DungeonGlows } from './dungeonGlows';
 import { PillarBreaks } from './pillarBreak';
 import { DepthsView } from './depthsView';
 import type { Pillar } from '../sim/combat/pillars';
-import { bossOf } from '../sim/enemies/kinds';
-import { TideShowView } from './moon/tideShowView';
-import { tideWide, WIDE_HAZE } from './boss/tideCinema';
+import { showViewOf, type ShowView, wideOf, WIDE_HAZE } from './boss/showViews';
 
 export const KIT_URL = '/models/dungeon/kit.glb';
 /** The sky (the background and the haze), and the sky light's colours above and from the ground. */
@@ -101,8 +99,8 @@ export class DungeonView implements ArenaView {
   private readonly glows: DungeonGlows;
   readonly breaks = new PillarBreaks();
   private readonly depths: DepthsView;
-  private readonly tide: TideShowView | null;
-  /** Update 0.3.31 — has the floor been blown away here (Tidebreaker's show)? */
+  private readonly tide: ShowView | null;
+  /** Update 0.3.31 — has the floor been blown away here (Tidebreaker's show; Update 0.3.34, Okami's)? */
   readonly gone = (x: number, z: number) => this.tide?.gone(x, z) ?? false;
 
   constructor(
@@ -143,7 +141,7 @@ export class DungeonView implements ArenaView {
     this.glows = new DungeonGlows(this.dressing, level);
     this.water = new WaterView(level.tide, look.water ?? look.pit?.deep ?? 0, level.boss.end);
     this.depths = new DepthsView(level);
-    this.tide = bossOf(level.plan.level) === 'tidebreaker' ? new TideShowView(level) : null;
+    this.tide = showViewOf(level, this.depths);
     if (this.tide) this.group.add(this.tide.group);
     this.group.add(this.sand.group, this.water.group, this.garden.group, this.motes.group, this.breaks.group, this.depths.group);
     this.under = underwaterOf(level, this.dressing.sand);
@@ -224,7 +222,7 @@ export class DungeonView implements ArenaView {
     this.under?.patchAll(this.group);
     // (What the Moon's rooms take with them as they blow: all but the arena's own.)
     const keep = new Set<THREE.Object3D>([this.shell.group, this.portal.group, this.sky, this.sun, this.sun.target, this.motes.group, this.breaks.group, this.depths.group]);
-    this.tide?.take([...this.group.children.filter((o) => !keep.has(o) && o !== this.tide?.group), ...this.depths.craters]);
+    this.tide?.take([...this.group.children.filter((o) => !keep.has(o) && o !== this.tide?.group), ...this.depths.craters], kit, (src, piece) => this.material(src, piece));
   }
 
   /** The kit's flat colours (kitMaterial.ts). */
@@ -238,7 +236,7 @@ export class DungeonView implements ArenaView {
    *  lights. */
   update(dt: number, run: DungeonRun, at: THREE.Vector3, flood = 0, kicks = 0) {
     const shut = run.shut;
-    this.daylight(at, tideWide(run.boss));
+    this.daylight(at, wideOf(run.boss));
     this.under?.update(dt, at, kicks);
     const b = run.boss;
     this.shell.set(wallsOpen(b));
@@ -261,7 +259,7 @@ export class DungeonView implements ArenaView {
       this.bars[i].position.y = this.barsY[i];
       this.bars[i].visible = Math.abs(this.barsY[i] - style.barsHidden) > 0.01;
     }
-    this.tide?.update(b);
+    this.tide?.update(b, at);
   }
 
   /** The light knobs as they are now, and the sun's shadows kept round you. `wide`: the haze pushed out (0..1). */

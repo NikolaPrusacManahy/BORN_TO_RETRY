@@ -1,7 +1,7 @@
 // Update 0.3.31 — Tidebreaker's show drawn on the floor (sim/dungeon/tideShow.ts; the designer: "All previous rooms
 // explode … A meteor is coming from the earth exploding … lands on the arena with a massive explosion"): the floor's
-// other rooms blowing up (a fireball swelling out of each, a shock running along its floor, fire rising; its pieces
-// flung away: floorBlast.ts); the meteor out of the bursting Earth, burning, its trail behind it, down onto the
+// other rooms blowing up (a fireball swelling out of each, a shock running along its floor, fire rising: roomFires.ts;
+// its pieces flung away: floorBlast.ts); the meteor out of the bursting Earth, burning, its trail behind it, down onto the
 // arena's middle; and its landing: a white flash, a fireball, a shock ring racing out over the arena (its crater, dust
 // and rock: tideImpact.ts). Made in code; drawn from the show's time.
 import * as THREE from 'three';
@@ -10,6 +10,7 @@ import { blastOrder, tideBeats } from '../../sim/dungeon/tideShow';
 import type { DungeonLevel } from '../../world/dungeon/assemble';
 import { auraTexture } from '../keyLooks';
 import { FloorBlast, showTime } from './floorBlast';
+import { additive, RoomFires } from './roomFires';
 import { EARTH_DIR } from './spaceSky';
 
 /** The meteor leaves the Earth this long after it bursts (s), this far out along the way to it (m), and comes down
@@ -19,9 +20,6 @@ const FROM = 320;
 const FASTER = 1.7;
 const ROCK = 5;
 const TRAIL = 46;
-/** A room's fireball lasts this long (s), this many flames rising out of it. */
-const FIRE = 1.4;
-const FLAMES = 8;
 /** Its landing's flash and fireball (s; m across at their widest), its shock ring's reach (m). */
 const FLASH = 1;
 const FLASH_SIZE = 38;
@@ -44,29 +42,14 @@ export function meteorAt(t: number, mid: { x: number; z: number }, out: THREE.Ve
   return k;
 }
 
-/** (Both sides: the view inside its landing's flash sees white.) */
-const additive = (color: number) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, side: THREE.DoubleSide });
-
-interface Fire {
-  at: number;
-  x: number;
-  z: number;
-  half: number;
-  ball: THREE.Mesh;
-  shock: THREE.Mesh;
-  flames: THREE.Sprite[];
-}
-
 const at = new THREE.Vector3();
 const UP = new THREE.Vector3(0, 1, 0);
-const FIRE_HOT = new THREE.Color(0xffd27a);
-const FIRE_SMOKE = new THREE.Color(0x5a4a44);
 
 export class TideShowView {
   readonly group = new THREE.Group();
   private readonly blast: FloorBlast;
   private readonly stuff: { dispose(): void }[] = [];
-  private readonly fires: Fire[] = [];
+  private readonly fires: RoomFires;
   private readonly ballGeo = new THREE.IcosahedronGeometry(1, 2);
   private readonly ringGeo = new THREE.RingGeometry(0.85, 1, 64).rotateX(-Math.PI / 2);
   private readonly rock: THREE.Mesh;
@@ -80,29 +63,8 @@ export class TideShowView {
   constructor(private readonly level: DungeonLevel) {
     this.blast = new FloorBlast(level);
     this.stuff.push(this.ballGeo, this.ringGeo);
-    let seed = 4242;
-    const rnd = () => ((seed = (seed * 16807) % 2147483647) & 0xffff) / 0xffff;
-    for (const { room, at: when } of blastOrder(level)) {
-      const r = level.rooms[room];
-      const x = (r.min.x + r.max.x) / 2;
-      const z = (r.min.z + r.max.z) / 2;
-      const half = Math.max(r.max.x - r.min.x, r.max.z - r.min.z) / 2;
-      const ball = this.mesh(this.ballGeo, additive(0xffb35a));
-      const shock = this.mesh(this.ringGeo, additive(0xffe2b8));
-      ball.position.set(x, 2, z);
-      shock.position.set(x, 0.3, z);
-      const flames: THREE.Sprite[] = [];
-      for (let i = 0; i < FLAMES; i++) {
-        const mat = new THREE.SpriteMaterial({ map: auraTexture(), color: FIRE_HOT, transparent: true, opacity: 0, depthWrite: false, fog: false });
-        const f = new THREE.Sprite(mat);
-        f.position.set(x + (rnd() - 0.5) * half * 1.4, 0, z + (rnd() - 0.5) * half * 1.4);
-        f.visible = false;
-        this.stuff.push(mat);
-        this.group.add(f);
-        flames.push(f);
-      }
-      this.fires.push({ at: when, x, z, half, ball, shock, flames });
-    }
+    this.fires = new RoomFires(blastOrder(level), level, this.group);
+    this.stuff.push(this.fires);
     // The meteor: a burning rock, its glow, its trail (pointing back up its way), the white heat inside the trail.
     const rockGeo = new THREE.IcosahedronGeometry(ROCK, 1);
     const rockMat = new THREE.MeshStandardMaterial({ color: 0x4a2c1e, roughness: 1, flatShading: true, emissive: 0xff6a20, emissiveIntensity: 1.8, fog: false });
@@ -149,30 +111,9 @@ export class TideShowView {
   update(b: BossRun) {
     const t = showTime(b);
     this.blast.update(t);
-    for (const f of this.fires) this.fire(f, t - f.at);
+    this.fires.update(t);
     this.meteor(t);
     this.landing(t - tideBeats().impact);
-  }
-
-  /** A room's fireball `age` s after it blew. */
-  private fire(f: Fire, age: number) {
-    const on = age >= 0 && age < FIRE;
-    f.ball.visible = f.shock.visible = on;
-    for (const s of f.flames) s.visible = on;
-    if (!on) return;
-    const k = age / FIRE;
-    f.ball.scale.setScalar(f.half * (0.15 + 0.55 * smooth(age / 0.5)));
-    (f.ball.material as THREE.MeshBasicMaterial).opacity = 1 - smooth(age / (FIRE * 0.8));
-    f.shock.scale.setScalar(f.half * 1.5 * Math.min(1, age / 0.9) ** 0.6);
-    (f.shock.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 1 - age / 0.9);
-    f.flames.forEach((s, i) => {
-      const a = Math.max(0, age - i * 0.04);
-      s.position.y = 2 + a * (8 + i);
-      s.scale.setScalar(f.half * 0.22 * (0.6 + 1.4 * a));
-      const mat = s.material as THREE.SpriteMaterial;
-      mat.opacity = 0.9 * (1 - k);
-      mat.color.copy(FIRE_HOT).lerp(FIRE_SMOKE, smooth(k * 1.4));
-    });
   }
 
   /** The meteor, out of the Earth and down onto the arena. */

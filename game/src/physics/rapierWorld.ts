@@ -221,7 +221,10 @@ export class RapierWorld implements CollisionWorld {
   /** Update 0.0.12 — the dungeon's gates, open to start with. */
   addGates(boxes: readonly ArenaBox[]) {
     for (const b of boxes) {
-      const c = this.world.createCollider(RAPIER.ColliderDesc.cuboid(b.w / 2, b.h / 2, b.d / 2).setTranslation(b.x, b.y, b.z));
+      // (Update 0.3.34 — turned, as floor 8's islands' terraces are.)
+      const desc = RAPIER.ColliderDesc.cuboid(b.w / 2, b.h / 2, b.d / 2).setTranslation(b.x, b.y, b.z);
+      if (b.quat) desc.setRotation({ x: b.quat[0], y: b.quat[1], z: b.quat[2], w: b.quat[3] });
+      const c = this.world.createCollider(desc);
       c.setEnabled(false);
       this.gates.push(c);
       this.gateShut.push(false);

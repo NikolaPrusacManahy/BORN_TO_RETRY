@@ -4,6 +4,7 @@
 // blastOrder) its pieces are flung up and out from its middle, turning, and shrink away into space, the middle's first.
 // Drawn from the show's time (the same however the frames fall); gone for good after. Kept: the arena (and its walls,
 // its gates) and the dark past its wooden gate.
+// Update 0.3.34 — Yokai : Okami's show too (floor 8's: sim/dungeon/okamiShow.ts, all the rooms at once).
 import * as THREE from 'three';
 import type { BossRun } from '../../sim/dungeon/bossRoom';
 import { blastOrder } from '../../sim/dungeon/tideShow';
@@ -41,7 +42,7 @@ interface Room {
 
 /** The show's time for the floor (−1: not started; Infinity: over). */
 export function showTime(b: BossRun): number {
-  if (b.kind !== 'tidebreaker' || b.beat === 'waiting') return -1;
+  if ((b.kind !== 'tidebreaker' && b.kind !== 'okami') || b.beat === 'waiting') return -1;
   return b.beat === 'intro' ? b.t : Infinity;
 }
 
@@ -62,13 +63,14 @@ export class FloorBlast {
   private readonly meshes: THREE.InstancedMesh[] = [];
   private readonly dirty = new Set<THREE.InstancedMesh>();
 
-  constructor(private readonly level: DungeonLevel) {
+  /** `order`: each room and when it blows (Tidebreaker's by default). */
+  constructor(private readonly level: DungeonLevel, order = blastOrder(level)) {
     const rooms = level.rooms;
     for (const r of rooms) {
       const half = Math.max(r.max.x - r.min.x, r.max.z - r.min.z) / 2;
       this.rooms.push({ at: Infinity, cx: (r.min.x + r.max.x) / 2, cz: (r.min.z + r.max.z) / 2, half, idx: [], loose: [], base: null, from: null, fly: null, done: false });
     }
-    for (const { room, at } of blastOrder(level)) this.rooms[room].at = at;
+    for (const { room, at } of order) this.rooms[room].at = at;
   }
 
   /** The room a spot belongs to (−1: kept). */

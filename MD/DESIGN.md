@@ -214,7 +214,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
     bridges.
   - **Nine rooms:** the torii path, the sakura grove, the zen garden, the koi pond, the bamboo forest, the dojo, the
     lantern steps, the pagoda court, the tea garden. Its boss room is the Great Shrine.
-  - Playable in the Lab. Its boss stands in (the Velociraptor) **till its own comes**; the run still ends at floor 7.
+  - Playable in the Lab; the run still ends at floor 7.
 - **Its martial artists (0.3.33; spec `MD_UPDATES/U0333_SHRINE_FIGHTERS.md`).** The designer: "make sure enemies are
   indeed martial art experts, dashing, side steps … something challeging … match the proper animation".
   - **Their clips:** the Universal Animation Library's, retargeted onto the people's rig and baked into each model.
@@ -234,7 +234,20 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
     ring, a ki palm.
   - **The Shadow (300):** a long cut along a red line through you; clones at two thirds and one third of his health
     (one hit each, half his blows, gone when he falls); a leap; vanishes behind you.
-- **Next:** its boss, once the designer has redesigned it; then the run goes on past floor 7.
+- **Its boss, Yokai : Okami (0.3.34; spec `MD_UPDATES/U0334_OKAMI.md`).** The designer: "Call it "Yokai : Okami" and
+  yes build it".
+  - **Its look:** the Bestiary's Lycan, 5.2 m, no sword. White fur, our own red kabuki-style markings, ember eyes; a
+    fire mane down its spine, fire at its tail and paws; a straw shimenawa with two paper shide. 1850 health.
+  - **Its show (the designer's intro):**
+    1. The rooms are all destroyed at once and the arena grows to 120 m.
+    2. The sky's islands come in over it.
+    3. It comes down on its own, which crashes into the arena: far and wide, its shock wave blows everything away.
+    4. Three temples fall across the way you came in.
+    5. The other islands merge with the arena as mounds you walk up.
+    6. Its leap in slow motion (0.56×) with its name.
+    7. Its destroying landing, its monster transformation and scream, then back to your eyes.
+  - **Its fight:** its claws for now; its five moves are next (`MD/FLOOR8_SHRINE_PLAN.md`).
+- **Next:** Okami's five moves, then its rage and frenzy; then the run goes on past floor 7.
 
 ### Floor 8 — the Moon (floor 9 since Update 0.3.25) (Update 0.3.17; the plan `MD/FLOOR8_MOON_PLAN.md`; spec `MD_UPDATES/U0317_THE_MOON.md`)
 - The designer: "BIG REWORK of FLOOR 8": a sci-fi moon floor (the Ultimate Space Kit, `ASSETS/QUATERNIUS/FLOOR-8`).

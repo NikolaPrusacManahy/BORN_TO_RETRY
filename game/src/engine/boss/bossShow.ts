@@ -9,6 +9,8 @@
 // water, the run slowed mid-leap (sim/dungeon/sharkShow.ts).
 // Update 0.3.31 — the Moon's Tidebreaker its own (tideCinema.ts): its name on the right as it rises out of its meteor's
 // crater, the run slowed (sim/dungeon/tideShow.ts), the whole place shaking.
+// Update 0.3.34 — floor 8's Yokai : Okami its own (shrine/okamiCinema.ts): its name on the right as it leaps from its
+// island, the run slowed (sim/dungeon/okamiShow.ts).
 import * as THREE from 'three';
 import { BossBeat, introBeats } from '../../sim/dungeon/bossRoom';
 import type { DungeonRun } from '../../sim/dungeon/roomLoop';
@@ -28,6 +30,8 @@ import { SharkCinema } from './sharkCinema';
 import { sharkSlow } from '../../sim/dungeon/sharkShow';
 import { tideSlow } from '../../sim/dungeon/tideShow';
 import { TideCinema } from './tideCinema';
+import { OkamiCinema } from '../shrine/okamiCinema';
+import { okamiSlow } from '../../sim/dungeon/okamiShow';
 import { BIG_SHARK } from '../../tuning/bigShark';
 import { TIDEBREAKER } from '../../tuning/tidebreaker';
 import { bossIn } from './demonView';
@@ -35,7 +39,7 @@ import { bossIn } from './demonView';
 /** The boss's name card. **(placeholder names)** */
 export const BOSS_NAME = 'THE DEMON';
 /** Update 0.0.18 — each boss's name. */
-export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { demon: BOSS_NAME, dragon: 'THE DRAGON', boneKing: 'THE BONE KING', dino: 'THE VELOCIRAPTOR', drownedKing: 'THE DROWNED KING', whale: 'THE OLD WHALE', bigShark: 'THE BIG SHARK', frostRoc: 'THE FROST ROC', tidebreaker: 'TIDEBREAKER' };
+export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { demon: BOSS_NAME, dragon: 'THE DRAGON', boneKing: 'THE BONE KING', dino: 'THE VELOCIRAPTOR', drownedKing: 'THE DROWNED KING', whale: 'THE OLD WHALE', bigShark: 'THE BIG SHARK', frostRoc: 'THE FROST ROC', tidebreaker: 'TIDEBREAKER', okami: 'YOKAI : OKAMI' };
 
 /** Update 0.2.3 — a boss bar's mark: where it rages (the Demon, the Dragon), or the Bone King's final blast (its second
  *  life only). */
@@ -51,6 +55,8 @@ function markOf(boss: Enemy): number {
   if (boss.kind === 'bigShark') return boss.stage > 0 ? -1 : BIG_SHARK.v.frenzyAt;
   // (Update 0.3.29 — Tidebreaker: where it rages, then where it's frenzied.)
   if (boss.kind === 'tidebreaker') return boss.stage >= 2 ? -1 : boss.stage > 0 ? TIDEBREAKER.v.frenzyAt : TIDEBREAKER.v.rageAt;
+  // (Update 0.3.34 — Yokai : Okami: no rage yet.)
+  if (boss.kind === 'okami') return -1;
   return boss.kind === 'dragon' ? DRAGON.v.rageAt : BOSS.v.rageAt;
 }
 export const bossTitle = (floor: number) => `Warden of Floor ${floor}`;
@@ -79,6 +85,7 @@ export class BossShow {
   private readonly cinema: Cinema | null;
   private readonly shark: SharkCinema | null;
   private readonly tide: TideCinema | null;
+  private readonly okami: OkamiCinema | null;
   private beat: BossBeat = 'waiting';
   /** Real seconds of the death's slow motion left. */
   private slow = 0;
@@ -94,6 +101,7 @@ export class BossShow {
     this.cinema = run ? new Cinema(run.level.boss, run.boss.kind) : null;
     this.shark = run && run.boss.kind === 'bigShark' ? new SharkCinema(run.level.boss.portal) : null;
     this.tide = run && run.boss.kind === 'tidebreaker' ? new TideCinema(run.level) : null;
+    this.okami = run && run.boss.kind === 'okami' && run.level.okami ? new OkamiCinema(run.level) : null;
     if (run) {
       this.hud.bossTitle = bossTitle(run.level.plan.level);
       this.hud.bossName = BOSS_NAMES[run.boss.kind] ?? BOSS_NAME;
@@ -113,6 +121,7 @@ export class BossShow {
     // (Update 0.3.16 — and the Big Shark's leap, mid-show.)
     if (this.run && sharkSlow(this.run.boss) < 1) return sharkSlow(this.run.boss);
     if (this.run && tideSlow(this.run.boss) < 1) return tideSlow(this.run.boss);
+    if (this.run && okamiSlow(this.run.boss) < 1) return okamiSlow(this.run.boss);
     if (this.slow <= 0 || c.slowTime <= 0) return 1;
     const k = 1 - this.slow / c.slowTime;
     return c.slow + (1 - c.slow) * k * k;
@@ -154,9 +163,10 @@ export class BossShow {
       if (b.beat === 'intro') this.cinema.start(eye, dir);
       if (b.beat === 'intro') this.shark?.start(eye, dir, eye);
       if (b.beat === 'intro') this.tide?.start(eye, dir);
+      if (b.beat === 'intro') this.okami?.start(eye, dir);
       if (b.beat === 'fight' && this.beat === 'intro') {
-        look.yaw = (this.shark ?? this.tide ?? this.cinema).endYaw;
-        look.pitch = (this.shark ?? this.tide ?? this.cinema).endPitch;
+        look.yaw = (this.shark ?? this.tide ?? this.okami ?? this.cinema).endYaw;
+        look.pitch = (this.shark ?? this.tide ?? this.okami ?? this.cinema).endPitch;
       }
       if (b.beat === 'dying') this.slow = CINEMA.v.slowTime;
       this.beat = b.beat;
@@ -164,11 +174,12 @@ export class BossShow {
     if (b.beat === 'intro') {
       if (this.shark) this.shark.intro(b.t, eye, view);
       else if (this.tide) this.tide.intro(b.t, eye, view);
+      else if (this.okami) this.okami.intro(b.t, eye, view);
       else this.cinema.intro(b.t, view);
       out.cinematic = true;
       h.cine = true;
       const s = introBeats();
-      h.card = this.shark ? SharkCinema.named(b.t) : this.tide ? TideCinema.named(b.t) : b.t >= s.riseTo - CARD_EDGE && b.t < s.stanceTo + CARD_EDGE;
+      h.card = this.shark ? SharkCinema.named(b.t) : this.tide ? TideCinema.named(b.t) : this.okami ? OkamiCinema.named(b.t) : b.t >= s.riseTo - CARD_EDGE && b.t < s.stanceTo + CARD_EDGE;
     } else if (b.beat === 'open' && this.cinema.gateShot(b.t, eye, dir, view)) {
       out.cinematic = true;
       h.cine = true;
@@ -178,6 +189,7 @@ export class BossShow {
       camera.lookAt(view.look);
       if (b.beat === 'intro' && run.boss.kind === 'dragon') this.scream(camera, b.t);
       if (b.beat === 'intro') this.tide?.shake(camera, b.t);
+      if (b.beat === 'intro') this.okami?.shake(camera, b.t);
     }
     const boss = bossIn(combat);
     if ((b.beat === 'fight' || b.beat === 'dying') && boss) {

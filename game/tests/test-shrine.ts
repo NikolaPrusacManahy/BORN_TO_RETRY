@@ -33,7 +33,8 @@ section('Shrine Dimension — its rooms');
 {
   const own = FIGHT_ROOMS.filter((t) => onFloor(t, F));
   check(`its own nine rooms, and only its own (${own.map((t) => t.id).join(', ')})`, own.length === 9 && own.every((t) => SHRINE_ROOMS.includes(t)) && bossRoomOf(F) === SHRINE_BOSS_ROOM);
-  check('drawn whole: every room square, 28 cells a side (the boss room 30)', SHRINE_ROOMS.every((t) => t.rows.length === 28 && t.rows.every((r) => r.length === 28)) && SHRINE_BOSS_ROOM.rows.length === 30 && SHRINE_BOSS_ROOM.rows.every((r) => r.length === 30));
+  // (Update 0.3.34 — its boss room twice a boss room, Okami's arena: test-okami-show.ts.)
+  check('drawn whole: every room square, 28 cells a side (the boss room 60)', SHRINE_ROOMS.every((t) => t.rows.length === 28 && t.rows.every((r) => r.length === 28)) && SHRINE_BOSS_ROOM.rows.length === 60 && SHRINE_BOSS_ROOM.rows.every((r) => r.length === 60));
   check('floor 8 is built (playable)', !UNBUILT.has('shrine'));
 }
 
@@ -179,8 +180,8 @@ section('Shrine Dimension — its look');
 
 section('Shrine Dimension — to play');
 {
-  // (Update 0.3.33 — its martial artists: a column of its own in the Lab.)
-  check('in the Lab, a column of its own (its boss stands in till its own comes)', !LAB_NEW.includes(F) && LAB_FLOORS.some((f) => f.floor === F && f.enemies.length > 0 && f.boss === null));
+  // (Update 0.3.33 — its martial artists: a column of its own in the Lab. Update 0.3.34 — its boss, Yokai : Okami.)
+  check('in the Lab, a column of its own, its boss its own', !LAB_NEW.includes(F) && LAB_FLOORS.some((f) => f.floor === F && f.enemies.length > 0 && f.boss === 'okami'));
   check('the run still ends at Skull Cove (floor 7) till its enemies come', LAST_FLOOR === FLOOR.cove);
 }
 

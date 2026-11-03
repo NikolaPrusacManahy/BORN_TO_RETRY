@@ -48,4 +48,19 @@ export type ShrineEvent =
   | 'shadowCutWarn'
   | 'shadowCut'
   | 'shadowSplit'
-  | 'cloneFade';
+  | 'cloneFade'
+  // Update 0.3.34 — Yokai : Okami: its growl as it strikes, each claw's blow (x, y, z its claws); its show (okamiShow.ts):
+  // the rooms gone (value: the room; y its half-width), the arena growing (value: its stage), the islands coming in,
+  // it coming down out of the sky onto its island, an island crashing in (value: which; y its radius), a temple coming
+  // down (value: which), its leap, its landing (value: its ring's reach), its roar (its scream) after it.
+  | 'okamiGrowl'
+  | 'okamiClaw'
+  | 'okamiBlast'
+  | 'okamiGrow'
+  | 'okamiIsles'
+  | 'okamiArrive'
+  | 'isleCrash'
+  | 'templeFall'
+  | 'okamiLeap'
+  | 'okamiLand'
+  | 'okamiRoar';

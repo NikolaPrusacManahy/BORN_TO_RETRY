@@ -25,6 +25,16 @@ MONSTERS = {
             'UAL2': ['Sword_Heavy_A', 'Sword_Heavy_A_Rec', 'Sword_Heavy_B', 'Sword_Heavy_B_Rec', 'Sword_Heavy_C', 'Sword_Heavy_C_Rec', 'Sword_Heavy_D', 'Melee_Uppercut', 'OverhandThrow', 'Sword_GroundPound', 'MonsterTransformation', 'Walk_Carry_Loop', 'Hit_Knockback'],
         },
     },
+    # Update 0.3.34 — floor 8's boss, Yokai : Okami (MD/FLOOR8_SHRINE_PLAN.md): the Lycan repainted white with red
+    # markings (okami_paint.py), no weapon (the designer: "no sword"): its stance the sword's (the designer: "the same pose
+    # with the katana but just no katana"); its claws, its leaps, its fire's spells, its roar.
+    'okami': {
+        'glb': 'Lycan.glb', 'paint': True, 'out': 'public/models/enemies/okami.glb', 'drop': ['Icosphere'],
+        'clips': {
+            'UAL1': ['Sword_Idle', 'Walk_Loop', 'Jog_Fwd_Loop', 'Sprint_Loop', 'Death01', 'Hit_Chest', 'Crouch_Idle_Loop', 'Jump_Start@0=Jump_Crouch', 'Jump_Start+Jump_Loop=Jump_Air', 'Jump_Land', 'Spell_Double_Enter', 'Spell_Double_Idle_Loop', 'Spell_Simple_Enter', 'Spell_Simple_Idle_Loop', 'Spell_Simple_Shoot'],
+            'UAL2': ['MonsterTransformation', 'Zombie_Scratch', 'Melee_Combo', 'Melee_Hook', 'Melee_Uppercut', 'Hit_Knockback', 'NinjaJump_Start', 'NinjaJump_Double', 'NinjaJump_Land', 'Sword_GroundPound', 'OverhandThrow', 'Sword_Dash'],
+        },
+    },
 }
 FINGERS = ('thumb', 'index', 'middle', 'ring', 'pinky')
 
@@ -173,6 +183,9 @@ def retarget(br, ur, rot, pel, F):
     """The boss's tracks: each bone the same world turn from its rest as the library's; the pelvis's bob scaled."""
     tracks, gb = {}, {}
     for nm, kb in sorted(br.idx.items(), key=lambda kv: len(br.chain(kv[1]))):
+        # (A bone the library hasn't, the Lycan's tail: kept as it rests on its parent.)
+        if nm not in ur.idx:
+            continue
         ku = ur.idx[nm]
         g = qmul(qmul(ur.world(ku, rot), np.broadcast_to(qinv(ur.world(ku, {})[0]), (F, 4))), np.broadcast_to(br.world(kb, {})[0], (F, 4)))
         gb[kb] = g
@@ -185,13 +198,15 @@ def retarget(br, ur, rot, pel, F):
     return tracks
 
 
-def textures(j, binary, color):
-    """Every image at SIZE (the base colour its variant's), re-encoded: colour and ORM as JPEG, the normals PNG."""
+def textures(j, binary, color, emissive=None):
+    """Every image at SIZE (the base colour its variant's; the glow its own, if it has one), re-encoded: colour and ORM
+    as JPEG, the normals PNG."""
     out = bytearray()
     views = []
     for im in j['images']:
         name = im.get('name', '')
-        img = Image.open(color) if 'BaseColor' in name and color else Image.open(io.BytesIO(view_bytes(j, binary, im['bufferView'])))
+        own = color if 'BaseColor' in name else emissive if 'Emissive' in name else None
+        img = Image.open(own) if own else Image.open(io.BytesIO(view_bytes(j, binary, im['bufferView'])))
         img = img.convert('RGB').resize((SIZE, SIZE), Image.LANCZOS)
         buf = io.BytesIO()
         if 'Normal' in name:
@@ -216,12 +231,14 @@ def bake(key):
             uj, ubin = read_glb(libs[name]); loaded[name] = (uj, ubin, Rig(uj))
         return loaded[name]
 
-    # The weapon hand's fingers: the grip clip's first moment, retargeted, held in every clip.
-    side, gl, gc = cfg['grip']
-    uj, ubin, ur = lib(gl)
-    t, rot, pel = clip_of(uj, ubin, ur, gc)
-    grip_tracks = retarget(br, ur, rot, None, len(t))
-    grip = {node: q[0] for (node, path), q in grip_tracks.items() if bj['nodes'][node]['name'].startswith(FINGERS) and bj['nodes'][node]['name'].endswith('_' + side)}
+    # The weapon hand's fingers: the grip clip's first moment, retargeted, held in every clip (none: its own clips').
+    grip = {}
+    if cfg.get('grip'):
+        side, gl, gc = cfg['grip']
+        uj, ubin, ur = lib(gl)
+        t, rot, pel = clip_of(uj, ubin, ur, gc)
+        grip_tracks = retarget(br, ur, rot, None, len(t))
+        grip = {node: q[0] for (node, path), q in grip_tracks.items() if bj['nodes'][node]['name'].startswith(FINGERS) and bj['nodes'][node]['name'].endswith('_' + side)}
     anims = []
     for libname, names in cfg['clips'].items():
         uj, ubin, ur = lib(libname)
@@ -245,7 +262,18 @@ def bake(key):
                 tracks[(node, 'rotation')] = np.broadcast_to(q, (len(t), 4))
             anims.append((dst, t, tracks))
     # A fresh buffer: the boss's own views but its images, then the new images, then the clips.
-    images = textures(bj, bbin, os.path.join(bdir, 'Blends', cfg['color']) if cfg.get('color') else None)
+    color = os.path.join(bdir, 'Blends', cfg['color']) if cfg.get('color') else None
+    emissive = cfg.get('emissive')
+    # (Painted: its colour and glow made from its own, okami_paint.py.)
+    if cfg.get('paint'):
+        import tempfile
+        from okami_paint import paint
+        c, e = paint(os.path.join(bdir, 'Exports', 'GLB (Godot-Unreal)', cfg['glb']))
+        tmp = tempfile.mkdtemp()
+        color, emissive = os.path.join(tmp, 'color.png'), os.path.join(tmp, 'emissive.png')
+        Image.fromarray((np.clip(c, 0, 1) * 255).astype(np.uint8)).save(color)
+        Image.fromarray((np.clip(e, 0, 1) * 255).astype(np.uint8)).save(emissive)
+    images = textures(bj, bbin, color, emissive)
     image_views = {im['bufferView'] for im in bj['images']}
     out = bytearray()
     remap = {}
