@@ -28,11 +28,13 @@
 // Update 0.3.13 — floor 8 is The Forge (the plan): floor 3's stone sooty and warm under a smoky amber sky, lit by its
 // lava; its iron machinery is the forge's own (forge.ts, engine/forgeView.ts); swords hung on the walls, workbenches
 // with ingots and glowing ore, barrels and buckets about. The look's types moved to styleTypes.ts.
+// Update 0.3.43 — the Forge's look retired: its rooms are Hell's (hellStyle.ts).
 
 import type { DungeonStyle } from './styleTypes';
 import { Realm, realmOf } from './floorOrder';
 import { BRICK, STONE } from './baseStyles';
 import { SHRINE_LOOK } from './shrineStyle';
+import { HELL_LOOK } from './hellStyle';
 
 export type { DungeonStyle, PitLook, StyleId } from './styleTypes';
 
@@ -155,28 +157,6 @@ export const FROZEN_LOOK: DungeonStyle = {
   glow: ['Purple', 'Pink', 'Cyan'],
 };
 
-/** Update 0.3.13 — The Forge: floor 3's stone sooty grey (not the desert's sandstone), its iron dark, under a pale
- *  smoky sky, warmed from below by its lava. */
-export const FORGE_LOOK: DungeonStyle = {
-  ...STONE,
-  id: 'forge',
-  // (Swords on their wall mount, made big enough to read from across a room.)
-  decor: 'kit_p1_Sword_WallMount',
-  decorY: 2.6,
-  decorOut: 0.2,
-  decorScale: [1.8, 1.8, 1.8],
-  litter: ['kit_p1_Barrel', 'kit_p1_Bucket', 'kit_r_Gold_Ingots', 'kit_p2_Rock1', 'kit_p2_Rock4', 'kit_r_Mineral', 'kit_p1_Skull'],
-  core: [0.05, 0.048, 0.047],
-  tint: { RockLight: 0x77736f, Rock: 0x4f4c4a, Steel: 0x4c4947, DarkSteel: 0x393635, LightSteel: 0x8a8682, Bones: 0xd9d0c2, Wood: 0x5e4231, DarkWood: 0x3f2d22, DarkMetal: 0x35312f, Metal: 0x55504d, Grey_Floor: 0x7d7874, Fire: 0xff8a3a, Grey: 0x504b48, Pink: 0xff7a26 },
-  // (The paving a mid grey, lighter than the walls, so the iron's black and the lava's orange stand out on it.)
-  floorTint: { RockLight: 0x8f8a86, Rock: 0x6c6763 },
-  sky: 0xe6dcd2,
-  skyLight: 0xfff6ee,
-  ground: 0xc8774a,
-  sun: 0xfff0e0,
-  glow: ['Pink'],
-};
-
 /** Update 0.3.14 — Skull Cove: sand, the sea, weathered sea rock, a bright tropical sky. */
 export const COVE_LOOK: DungeonStyle = {
   ...STONE,
@@ -232,6 +212,7 @@ export const MOON_LOOK: DungeonStyle = {
  *  the Sunken Grove (Update 0.3.14 — now Skull Cove), floor 7 Frozen Depths (Update 0.3.11), floor 8 The Forge (Update
  *  0.3.13; Update 0.3.17 — the Moon; the Forge's on past it, unbuilt floors). Update 0.3.25 — by its place
  *  (floorOrder.ts: the floors reordered); the Shrine Dimension, unbuilt, brick meanwhile; Hell on Earth the Forge's.
- *  Update 0.3.32 — the Shrine Dimension's its own (shrineStyle.ts). */
-const LOOKS: Readonly<Record<Realm, DungeonStyle>> = { dungeon: BRICK, garden: VENOM, keep: BONE, frozen: FROZEN_LOOK, temple: DROWNED, desert: SAND, cove: COVE_LOOK, shrine: SHRINE_LOOK, moon: MOON_LOOK, hell: FORGE_LOOK };
+ *  Update 0.3.32 — the Shrine Dimension's its own (shrineStyle.ts). Update 0.3.43 — Hell on Earth its own (hellStyle.ts:
+ *  the Forge's rooms turned to Hell's; the Forge's own sooty look retired). */
+const LOOKS: Readonly<Record<Realm, DungeonStyle>> = { dungeon: BRICK, garden: VENOM, keep: BONE, frozen: FROZEN_LOOK, temple: DROWNED, desert: SAND, cove: COVE_LOOK, shrine: SHRINE_LOOK, moon: MOON_LOOK, hell: HELL_LOOK };
 export const styleOf = (floor: number): DungeonStyle => LOOKS[realmOf(floor)];

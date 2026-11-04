@@ -7,6 +7,8 @@
 // turned round the middle (`pinwheel`: each quarter the last turned a quarter, so belts can run in a ring). Floor 8
 // only. Update 0.3.17 — retired from floor 8 (the Moon took it): on floor 10, unbuilt, kept for its echo rooms.
 // (Update 0.3.25 — its floor is floorOrder.ts's: the floors were reordered.)
+// Update 0.3.43 — Hell's now (hellStyle.ts): R a burnt tree in a bed of ash in its open rooms; brimstone falling in
+// three of them while they fight (`meteors`: the Moon's meteors, burning; sim/dungeon/meteors.ts).
 import type { RoomTemplate } from './rooms';
 import { FLOOR } from './floorOrder';
 
@@ -42,10 +44,10 @@ export function pinwheel(rows: string[]): string[] {
   return out.map((r) => r.join(''));
 }
 
-const room = (id: string, rows: string[], turned = false): RoomTemplate => ({ id, kind: 'fight', rows: turned ? pinwheel(rows) : mirrored(rows), from: FLOOR.hell, until: FLOOR.hell });
+const room = (id: string, rows: string[], turned = false, meteors = false): RoomTemplate => ({ id, kind: 'fight', rows: turned ? pinwheel(rows) : mirrored(rows), from: FLOOR.hell, until: FLOOR.hell, meteors });
 
 export const FORGE_ROOMS: readonly RoomTemplate[] = [
-  // Presses in rows, slamming one after another; a pool of molten metal in the middle.
+  // Presses in rows, slamming one after another; a pool of molten metal in the middle. (0.3.43: burnt trees; brimstone.)
   room('smelting hall', [
     '..............',
     '.E.....T....E.',
@@ -55,14 +57,14 @@ export const FORGE_ROOMS: readonly RoomTemplate[] = [
     '..............',
     '.E....b.....E.',
     '..............',
-    '..HH..........',
+    '..HH...R......',
     '..HH......E...',
     '..............',
     '.E.......LLLLL',
     '.........LLLLL',
     '.........LLLLL',
-  ]),
-  // A ring of belts round the room, turning; benches and crates inside it, vents in its corners.
+  ], false, true),
+  // A ring of belts round the room, turning; benches and crates inside it, vents in its corners. (0.3.43: burnt trees.)
   room(
     'belt loop',
     [
@@ -75,7 +77,7 @@ export const FORGE_ROOMS: readonly RoomTemplate[] = [
       '...A..........',
       '...A...b......',
       '...A......E...',
-      '...A..........',
+      '...A...R......',
       '...A..b.......',
       '...A.....E....',
       '.E.A..........',
@@ -100,7 +102,7 @@ export const FORGE_ROOMS: readonly RoomTemplate[] = [
     '.ELLLL...E....',
     '..LLLL........',
   ]),
-  // The bellows: a field of fire vents going off in waves across the room.
+  // The bellows: a field of fire vents going off in waves across the room. (0.3.43: burnt trees among them.)
   room('bellows', [
     '..............',
     '.E.....T......',
@@ -110,7 +112,7 @@ export const FORGE_ROOMS: readonly RoomTemplate[] = [
     '.E....b.....E.',
     '..V..V..V..V..',
     '..............',
-    '..........b...',
+    '....R.....b...',
     '..V..V..V..V..',
     '.E............',
     '.......E......',
@@ -134,7 +136,7 @@ export const FORGE_ROOMS: readonly RoomTemplate[] = [
     '.E.......E....',
     '..............',
   ]),
-  // A workshop: rows of benches to fight round, vents between them, a small press or two.
+  // A workshop: rows of benches to fight round, vents between them, a small press or two. (0.3.43: brimstone.)
   room('workshop', [
     '..............',
     '.E.....T......',
@@ -150,8 +152,9 @@ export const FORGE_ROOMS: readonly RoomTemplate[] = [
     '..kk..E.......',
     '..............',
     '..............',
-  ]),
-  // One great press in the middle, slamming slow and wide; columns round it, lava in the corners.
+  ], false, true),
+  // One great press in the middle, slamming slow and wide; columns round it, lava in the corners. (0.3.43: burnt
+  // trees; brimstone.)
   room('great press', [
     '..............',
     '.E.....T......',
@@ -159,7 +162,7 @@ export const FORGE_ROOMS: readonly RoomTemplate[] = [
     '..LLL.....C...',
     '..LLL.........',
     '..LLL.....E...',
-    '..............',
+    '......R.......',
     '..C...........',
     '.......b......',
     '.E............',
@@ -167,7 +170,7 @@ export const FORGE_ROOMS: readonly RoomTemplate[] = [
     '..............',
     '....E.......HH',
     '............HH',
-  ]),
+  ], false, true),
   // The furnace: a pool of lava in the middle, a belt ring turning round it.
   room(
     'furnace',
@@ -189,7 +192,7 @@ export const FORGE_ROOMS: readonly RoomTemplate[] = [
     ],
     true,
   ),
-  // A gallery of single presses down a turning walk, vents between them.
+  // A gallery of single presses down a turning walk, vents between them. (0.3.43: burnt trees.)
   room(
     'press gallery',
     [
@@ -200,7 +203,7 @@ export const FORGE_ROOMS: readonly RoomTemplate[] = [
       '..............',
       '....V...V.....',
       '..H.......H...',
-      '..........E...',
+      '......R...E...',
       '.E..b.........',
       '..H...V...H...',
       '..............',

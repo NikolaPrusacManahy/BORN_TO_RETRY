@@ -319,6 +319,22 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   presses and vents go in waves. All of it holds still while an execution holds the world. Nine rooms of its own;
   stand-in enemies and boss. **(placeholder numbers, F1 → The Forge)**
 
+### Floor 10 — Hell on Earth: its look (Update 0.3.43; the plan `MD/FLOOR10_HELL_PLAN.md`; spec `MD_UPDATES/U0343_HELL_LOOK.md`)
+- The designer: "what do we design in floor 10? … a hell level?", then "Go with your mix", "Agreed, start". The
+  plan's first step: the Forge's rooms and machinery turned to Hell's (its enemies, echo rooms and Hellwarden next).
+- **Stone:** basalt walls, dark and a little glossy; red-brown paving; **seams of lava glowing** through both, hottest at
+  the walls' feet, breathing; some stone left whole. Iron dark, bones scorched, wood charred.
+- **Sky:** a furnace sky, bright orange at the walls' tops deepening to red overhead, a dull red sun, ash clouds
+  drifting, smoke rising beyond the walls. Still bright (the designer's rule): a warm strong sky light, the lava's
+  from below.
+- **Dressing:** heavy chains on the walls (swags and straight drops, over your head, never by doors, torches or
+  skulls); an iron brazier burning in each room's corners (solid); burnt trees in beds of ash in five rooms (solid
+  trunks, never on paving); skulls on the walls; bones, rocks and glowing ore along them; basalt boulders for cover;
+  embers and ash rising.
+- **Brimstone** in three rooms (smelting hall, workshop, great press; never the lava crossing) while they fight: about
+  every 4 s a burning rock is called down where you'll be, a ring of fire at its whole reach; 1.4 s later 18 to you
+  and thrown, 60 to an enemy. **(placeholder numbers, F1 → Hell (floor 10))**
+
 ### Floor 7 — Frozen Depths (floor 4 since Update 0.3.25) (Update 0.3.11; the plan for floors 7–10: `MD/FLOORS_7_10_PLAN.md`; spec `MD_UPDATES/U0311_FROZEN_DEPTHS.md`)
 - The run is **10 floors** (players polled: at least 10); for now it ends at floor 6's way down, moving on as each floor
   is done.

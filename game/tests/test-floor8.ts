@@ -54,7 +54,7 @@ section('Floor 8 — the Moon: its look and rooms');
 {
   const look = styleOf(FLOOR.moon);
   // (Update 0.3.25 — the floors reordered: the Moon floor 9, the Forge's rooms Hell on Earth's, floor 10.)
-  check('floor 8 is the Moon (floor 7 Frozen Depths, the Forge past it)', look.id === 'moon' && styleOf(FLOOR.frozen).id === 'frozen' && styleOf(FLOOR.hell).id === 'forge');
+  check('floor 8 is the Moon (floor 7 Frozen Depths, the Forge past it)', look.id === 'moon' && styleOf(FLOOR.frozen).id === 'frozen' && styleOf(FLOOR.hell).id === 'hell');
   check('in space: a black sky; moon gravity; moon dust on every floor cell', look.space === true && lum(look.sky!) < 0.05 && look.lowGravity === true && look.sandFloor === true);
   check('bright all the same: a white sun and a white sky light; the haze pale, not black', look.sun === 0xffffff && look.skyLight === 0xffffff && lum(look.haze!) > 0.6);
   const eight = FIGHT_ROOMS.filter((t) => onFloor(t, FLOOR.moon));
@@ -176,7 +176,7 @@ section('Floor 8 — meteor showers');
   c.rng = createRng(3);
   const p = createPlayer(0, 0, 0, 0);
   p.grounded = true;
-  const m: Meteors = { rooms: [true, false], clock: 0, falling: [], marks: [] };
+  const m: Meteors = { rooms: [true, false], clock: 0, falling: [], marks: [], hell: false };
   const seen: string[] = [];
   let warned = -1;
   let struck = -1;
@@ -196,7 +196,7 @@ section('Floor 8 — meteor showers');
   check(`an enemy near it hurt harder (${v.meteorFoeDamage}, or killed)`, hp - c.enemies[i].hp === v.meteorFoeDamage || c.enemies[i].hp <= 0, `${hp} → ${c.enemies[i].hp}`);
   check('its mark left on the dust', m.marks.length === 1);
   const quiet = (room: number, fighting: boolean) => {
-    const q: Meteors = { rooms: [true, false], clock: 0, falling: [], marks: [] };
+    const q: Meteors = { rooms: [true, false], clock: 0, falling: [], marks: [], hell: false };
     for (let k = 0; k < ticks(v.meteorEvery * 3); k++) stepMeteors(q, room, fighting, p, c, DT);
     return q.falling.length === 0 && q.marks.length === 0;
   };

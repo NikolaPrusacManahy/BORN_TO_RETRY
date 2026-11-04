@@ -16,6 +16,7 @@
 # thousands).
 # Update 0.3.21 — the manor: the fill's colour under its roof (`fill`), top-down cuts at more than one height (`cuts`:
 # under the roof, under the upper floors), and lit `glow` boxes (the windows' daylight).
+# Update 0.3.43 — floor 10's Hell (`hell`: hell_look.py): its chains and braziers, the lava in its stone, its sky.
 import argparse
 import json
 import math
@@ -28,6 +29,7 @@ from mathutils import Matrix, Vector
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from demon_at import demon_at  # noqa: E402 (Update 0.3.16 — the boss in its stance: demon_at.py)
+import hell_look  # noqa: E402
 
 
 def parse_args():
@@ -406,6 +408,7 @@ def main():
         for o in scene.objects:
             if o.type == 'LIGHT' and o.data.type == 'SUN' and style.get('sun') is not None:
                 o.data.color = srgb(style['sun'])
+        hell_look.apply(scene, data, style, os.path.dirname(os.path.abspath(args.json)))
     scene.render.resolution_x = args.width
     scene.render.resolution_y = round(args.width * 9 / 16)
     scene.render.image_settings.file_format = 'PNG'

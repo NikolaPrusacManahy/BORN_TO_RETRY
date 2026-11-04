@@ -4,7 +4,8 @@
 // 8's workbenches (forge.ts); its presses, vents and belts are paving here (engine/forgeView.ts draws them). Update
 // 0.3.14 — and floor 6's cove (cove.ts: its set pieces, boardwalks, boats and treasure; its kegs are the view's).
 // Update 0.3.17 — and floor 8's moon (moon.ts: its set pieces, meteorites, greenhouse beds, dishes). Update 0.3.32 —
-// and floor 8's Shrine Dimension (shrine.ts: its trees, beds, bamboo, lanterns, set pieces, bridges; its petals). Pure.
+// and floor 8's Shrine Dimension (shrine.ts: its trees, beds, bamboo, lanterns, set pieces, bridges; its petals).
+// Update 0.3.43 — and floor 10's Hell (hell.ts: the fires in its braziers). Pure.
 import type { Rng } from '../../core/rng';
 import { colAt, FloorPlan, rowAt } from './floorPlan';
 import type { Put, SandCell } from './dressExtras';
@@ -15,6 +16,7 @@ import { dressBench } from './forge';
 import { dressCove } from './cove';
 import { dressFlora, dressMoon } from './moon';
 import { dressShrine, dressShrineCell } from './shrine';
+import { dressHell } from './hell';
 import type { Cell } from './rooms';
 import type { DungeonStyle } from './styles';
 
@@ -92,4 +94,5 @@ export function dressOwnRooms(K: DungeonStyle, plan: FloorPlan, inRoom: Int16Arr
   if (K.id === 'cove') dressCove(plan, rng, put);
   if (K.id === 'moon') dressMoon(plan, rng, put);
   if (K.id === 'shrine') dressShrine(plan, rng, put);
+  if (K.id === 'hell') dressHell(plan, put);
 }

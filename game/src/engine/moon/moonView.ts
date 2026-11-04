@@ -3,11 +3,12 @@
 // (sim/dungeon/meteors.ts): a rock glowing as it comes down out of the sky on a slant, its shadow growing where it'll
 // strike, then a scorch mark left on the dust. Made in code (the meteor's rock a lumpy ball, its trail a cone).
 // Update 0.3.31 — its craters blown away with their rooms in Tidebreaker's show (floorBlast.ts); its sky torn apart.
+// Update 0.3.43 — and floor 10's brimstone, Hell's (sim/dungeon/meteors.ts): the rock black and burning, its trail
+// fire, a ring of fire glowing where it'll strike (not a shadow), its mark a scorch with embers in it.
 import * as THREE from 'three';
 import type { DungeonLevel } from '../../world/dungeon/assemble';
 import { styleOf } from '../../world/dungeon/styles';
-import { MARKS, Meteors } from '../../sim/dungeon/meteors';
-import { MOON } from '../../tuning/moon';
+import { MARKS, Meteors, rainOf } from '../../sim/dungeon/meteors';
 import { SpaceSky } from './spaceSky';
 
 /** A crater's rim: its profile (share of the half-width out, height in m at a 4 m crater) as a lathe turns it. */
@@ -43,6 +44,8 @@ export class MoonView {
   private readonly marks: THREE.InstancedMesh;
   /** Update 0.3.31 — the craters' rims and dishes (each room's blow away with it). */
   readonly craters: THREE.Object3D[] = [];
+  /** Update 0.3.43 — Hell's brimstone (its ring shows its whole reach from the first). */
+  private readonly hell: boolean;
 
   constructor(level: DungeonLevel) {
     const look = styleOf(level.plan.level);
@@ -70,18 +73,21 @@ export class MoonView {
       this.craters.push(rims, dishes);
     }
     // The meteors: a glowing rock, its trail, its shadow; their marks.
+    // (Update 0.3.43 — Hell's: black rock burning, a fire trail, a ring of fire where it'll strike, a scorch.)
+    const hell = (this.hell = look.id === 'hell');
     const rockGeo = new THREE.IcosahedronGeometry(ROCK, 0);
-    const rockMat = new THREE.MeshStandardMaterial({ color: 0x5a3a28, roughness: 1, emissive: 0xff7a2a, emissiveIntensity: 1.6 });
+    const rockMat = new THREE.MeshStandardMaterial({ color: hell ? 0x2a1c16 : 0x5a3a28, roughness: 1, emissive: hell ? 0xff5a14 : 0xff7a2a, emissiveIntensity: hell ? 2.2 : 1.6 });
     const trailGeo = new THREE.ConeGeometry(ROCK * 0.9, 1, 8, 1, true).translate(0, 0.5, 0);
-    const trailMat = new THREE.MeshBasicMaterial({ color: 0xffb46a, transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide });
-    const shadowGeo = new THREE.CircleGeometry(1, 24).rotateX(-Math.PI / 2);
-    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x1c1e24, transparent: true, opacity: 0.5, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
-    const markMat = new THREE.MeshBasicMaterial({ color: 0x3a3b40, transparent: true, opacity: 0.6, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
-    this.stuff.push(rockGeo, rockMat, trailGeo, trailMat, shadowGeo, shadowMat, markMat);
+    const trailMat = new THREE.MeshBasicMaterial({ color: hell ? 0xff8a3a : 0xffb46a, transparent: true, opacity: hell ? 0.7 : 0.55, depthWrite: false, side: THREE.DoubleSide, blending: hell ? THREE.AdditiveBlending : THREE.NormalBlending });
+    const shadowGeo = hell ? new THREE.RingGeometry(0.82, 1, 40).rotateX(-Math.PI / 2) : new THREE.CircleGeometry(1, 24).rotateX(-Math.PI / 2);
+    const markGeo = new THREE.CircleGeometry(1, 24).rotateX(-Math.PI / 2);
+    const shadowMat = new THREE.MeshBasicMaterial({ color: hell ? 0xff6a1e : 0x1c1e24, transparent: true, opacity: hell ? 0.85 : 0.5, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, blending: hell ? THREE.AdditiveBlending : THREE.NormalBlending, toneMapped: !hell });
+    const markMat = new THREE.MeshBasicMaterial({ color: hell ? 0x1a110d : 0x3a3b40, transparent: true, opacity: hell ? 0.75 : 0.6, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
+    this.stuff.push(rockGeo, rockMat, trailGeo, trailMat, shadowGeo, markGeo, shadowMat, markMat);
     this.rocks = new THREE.InstancedMesh(rockGeo, rockMat, FALLING);
     this.trails = new THREE.InstancedMesh(trailGeo, trailMat, FALLING);
     this.shadows = new THREE.InstancedMesh(shadowGeo, shadowMat, FALLING);
-    this.marks = new THREE.InstancedMesh(shadowGeo, markMat, MARKS);
+    this.marks = new THREE.InstancedMesh(markGeo, markMat, MARKS);
     for (const im of [this.rocks, this.trails, this.shadows, this.marks]) {
       for (let i = 0; i < im.count; i++) im.setMatrixAt(i, HIDDEN);
       im.frustumCulled = false;
@@ -97,7 +103,7 @@ export class MoonView {
   /** `at`: the view; `show`: Tidebreaker's show's time (floorBlast.ts showTime). */
   update(dt: number, meteors: Meteors, at: THREE.Vector3, show = -1) {
     this.sky?.update(dt, at, show);
-    const v = MOON.v;
+    const v = rainOf(meteors);
     for (let i = 0; i < FALLING; i++) {
       const f = meteors.falling[i];
       if (!f) {
@@ -106,13 +112,13 @@ export class MoonView {
         this.shadows.setMatrixAt(i, HIDDEN);
         continue;
       }
-      const k = Math.min(1, f.t / v.meteorWarn);
+      const k = Math.min(1, f.t / v.warn);
       // Down its slant, faster as it comes; its shadow darker and wider.
       const up = HIGH * (1 - k * k);
       pos.set(f.x, 0, f.z).addScaledVector(FROM, up);
       this.rocks.setMatrixAt(i, m.compose(pos, q.identity(), scale.setScalar(1)));
       this.trails.setMatrixAt(i, m.compose(pos, TRAIL_TURN, scale.set(1, TRAIL * (0.4 + k), 1)));
-      const r = v.meteorReach * (0.3 + 0.7 * k);
+      const r = v.reach * (this.hell ? 1 : 0.3 + 0.7 * k);
       this.shadows.setMatrixAt(i, m.compose(pos.set(f.x, 0.03, f.z), q.identity(), scale.set(r, 1, r)));
     }
     for (let i = 0; i < MARKS; i++) {

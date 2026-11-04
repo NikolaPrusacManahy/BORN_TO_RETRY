@@ -2,7 +2,7 @@
 // floor its own: dust in the light (floor 1), pollen (the Venom Garden), bone dust and a few violet sparks (the Bone
 // Keep), blown sand (the desert), seeds and spores (the Drowned Temple), bubbles rising (the Sunken Grove). They live
 // in a box round the camera and wrap round it as you move. None on Effects: low. Made in code. Update 0.3.11 — snow
-// falling (Frozen Depths). Update 0.3.13 — embers and ash rising (The Forge). Update 0.3.14 — sea spray and sand
+// falling (Frozen Depths). Update 0.3.13 — embers and ash rising (The Forge; Update 0.3.43 — Hell's, hotter). Update 0.3.14 — sea spray and sand
 // blown across (Skull Cove). Update 0.3.17 — moon dust hanging, barely sinking (no air to carry it: the Moon).
 // Update 0.3.32 — sakura petals (the Shrine Dimension; the designer: "loads of sakura leaves"): flat, tumbling,
 // drifting down on the wind in gusts, far more of them.
@@ -34,7 +34,8 @@ const LOOKS: Record<StyleId, MoteLook> = {
   drowned: { colors: [0xe8f0d8, 0xc8e0b0], size: 0.04, wind: [0.2, 0.05, 0.1], wander: 0.35 },
   sunken: { colors: [0xe0fbff, 0xbff0ff], size: 0.06, wind: [0.05, 0.7, 0.03], wander: 0.3 },
   frozen: { colors: [0xffffff, 0xf2f8ff, 0xe4f1ff], size: 0.06, wind: [0.35, -1.1, 0.15], wander: 0.35 },
-  forge: { colors: [0xffb24a, 0xff7a24, 0xffd890, 0x9a8f88], size: 0.04, wind: [0.2, 0.8, 0.1], wander: 0.5 },
+  // (Update 0.3.43 — Hell's: more of them hot, a few flakes of ash, rising faster.)
+  hell: { colors: [0xffb24a, 0xff6a1a, 0xffd890, 0xff8a30, 0x3a302c], size: 0.045, wind: [0.25, 1.1, 0.1], wander: 0.55 },
   cove: { colors: [0xffffff, 0xf4ecd6, 0xe0f4ff], size: 0.035, wind: [0.9, 0.05, 0.4], wander: 0.4 },
   moon: { colors: [0xe6e8ee, 0xcfd3dc], size: 0.03, wind: [0.02, -0.06, 0.02], wander: 0.08 },
   shrine: { colors: [0xffc3d6, 0xffd9e4, 0xf7a8c2, 0xffeef3], size: 0.075, wind: [0.8, -0.55, 0.35], wander: 0.7, petals: 900 },

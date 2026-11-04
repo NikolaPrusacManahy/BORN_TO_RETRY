@@ -31,6 +31,7 @@ import { columnBoxes } from './columns';
 import { IcicleSpot, iciclesOf } from './frozen';
 import { bossMid, bossStart } from './bossWalls';
 import { Forge, forgeOf } from './forge';
+import { Hell, hellOf } from './hell';
 import { Cove, coveOf } from './cove';
 import { Moon, moonOf } from './moon';
 import { isShrine, Shrine, shrineOf } from './shrine';
@@ -157,6 +158,8 @@ export interface DungeonLevel {
   /** Update 0.3.32 — floor 8's shrine: its set pieces and trees (shrine.ts). Update 0.3.34 — its arena's islands. */
   shrine: Shrine;
   okami: OkamiArena | null;
+  /** Update 0.3.43 — floor 10's Hell: its chains and braziers (hell.ts). */
+  hell: Hell;
 }
 
 /** Update 0.2.4 — a palm's trunk and a cactus: their blocks' sides and heights (m). */
@@ -228,6 +231,7 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
   const cove = coveOf(plan, boxes);
   const moon = moonOf(plan, boxes);
   const shrine = shrineOf(plan, boxes);
+  const hell = hellOf(plan, boxes);
   // Chests: a box the size of the model (one that rises: a gate, below).
   const chests: ChestSpot[] = [];
   for (const r of plan.rooms) {
@@ -295,5 +299,5 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
   // (Update 0.3.34 — floor 8's: the islands Okami's show leaves in its arena, and its temples; their boxes gates.)
   const okami = isShrine(plan) ? okamiArenaOf(boss, gates, br.arena) : null;
   const tide = styleOf(plan.level).water === undefined ? [] : rooms.filter((r) => r.kind === 'fight').map((r): ArenaBox => ({ x: (r.min.x + r.max.x) / 2, y: 0, z: (r.min.z + r.max.z) / 2, w: r.max.x - r.min.x, h: 0, d: r.max.z - r.min.z, kind: 'accent' }));
-  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests, boss, sand, tide, webs: websOf(plan), hives: hivesOf(plan), ice, icicles: iciclesOf(plan, styleOf(plan.level).id === 'frozen'), forge, cove, moon, shrine, okami };
+  return { plan, arena, gates, rooms, exit: { x: plan.exit.x, z: plan.exit.z, radius: CELL }, chests, boss, sand, tide, webs: websOf(plan), hives: hivesOf(plan), ice, icicles: iciclesOf(plan, styleOf(plan.level).id === 'frozen'), forge, cove, moon, shrine, okami, hell };
 }

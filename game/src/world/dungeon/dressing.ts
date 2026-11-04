@@ -227,7 +227,8 @@ export function dress(plan: FloorPlan): Dressing {
           break;
         default:
           // (Update 0.2.23 — the floors' own cells: ownDressing.ts.)
-          dressOwnCell(c, x, z, plan.rooms[inRoom[row * GRID + col]]?.kind === 'boss', rng, put, sand, marks);
+          // (Update 0.3.43 — Hell's beds all ash, its trees all burnt.)
+          dressOwnCell(c, x, z, plan.rooms[inRoom[row * GRID + col]]?.kind === 'boss' || !!K.ashBeds, rng, put, sand, marks);
           break;
       }
     }

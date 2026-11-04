@@ -14,6 +14,7 @@
 // Update 0.3.14 — floor 6's powder kegs (dark red-brown blocks), and looks into its rooms.
 // Update 0.3.17 — and floor 8's moon rooms (its set pieces, craters, beds: the kit's own pieces).
 // Update 0.3.32 — and floor 8's Shrine Dimension: looks into each of its rooms and its boss room.
+// Update 0.3.43 — and floor 10's Hell (hellShots.ts): its chains and braziers, its cracks, its sky; close looks at them.
 //   npx tsx tools/dungeon-shots.ts <out folder> [seed] [floor]
 //   blender --background --python tools/blender/render_dungeon.py -- --json <out folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <out folder>
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -30,6 +31,7 @@ import { BONE_ROOMS } from '../src/world/dungeon/boneRooms';
 import { MOON_ROOMS } from '../src/world/dungeon/moonRooms';
 import { FRAME_H, POST, POST_IN } from '../src/world/dungeon/forge';
 import { HAMMER, HAMMER_IN, pressAt } from '../src/sim/dungeon/machinery';
+import { hellShots } from './hellShots';
 
 const out = process.argv[2];
 if (!out) throw new Error('usage: npx tsx tools/dungeon-shots.ts <out folder> [seed] [floor]');
@@ -118,7 +120,7 @@ level.forge.vents.forEach((v, i) => {
 });
 for (const b of level.forge.belts) block(b.x, 0.025, b.z, b.dx ? 2 : 1.7, 0.03, b.dz ? 2 : 1.7, [0.24, 0.22, 0.21]);
 for (const k of level.cove.kegs) block(k.x, 0.65, k.z, 1.3, 1.3, 1.3, [0.35, 0.12, 0.06]);
-if (d.style.id === 'frozen' || d.style.id === 'forge' || d.style.id === 'cove' || d.style.id === 'shrine') {
+if (d.style.id === 'frozen' || d.style.id === 'hell' || d.style.id === 'cove' || d.style.id === 'shrine') {
   for (const r of level.rooms.filter((x) => x.kind === 'fight' || (d.style.id === 'shrine' && x.kind === 'boss')).slice(0, 10)) {
     const id = level.plan.rooms[r.index].layout.template.id.replace(/ /g, '-');
     const m = { x: (r.min.x + r.max.x) / 2, z: (r.min.z + r.max.z) / 2 };
@@ -135,6 +137,18 @@ if (wet) {
     cams.push({ name: `${id}-high`, at: [r.min.x + 3, 14, r.min.z + 3], to: [m.x, -1, m.z] });
   }
 }
+const hell = hellShots(level, d.style, out);
+if (hell) {
+  // (Lava glows in Hell; close looks at a brazier, a chain, a burnt tree, and up at the sky.)
+  for (const b of lava) if (b.color === pit) (b as { glow?: boolean }).glow = true;
+  const br = hell.braziers.find((b) => level.plan.rooms[b.room].kind === 'fight') ?? hell.braziers[0];
+  if (br) cams.push({ name: 'hell-brazier', at: [br.x + 3.2, 1.7, br.z + 3.2], to: [br.x, 0.9, br.z] });
+  const ch = level.hell.chains.find((c) => c.sag > 0);
+  if (ch) cams.push({ name: 'hell-chain', at: [(ch.ax + ch.bx) / 2 + ch.nx * 6, 2.4, (ch.az + ch.bz) / 2 + ch.nz * 6], to: [(ch.ax + ch.bx) / 2, 3.4, (ch.az + ch.bz) / 2] });
+  const tree = d.pieces.find((p) => p.piece.includes('_Dead_'));
+  if (tree) cams.push({ name: 'hell-tree', at: [tree.x + 5, 1.7, tree.z + 5], to: [tree.x, 2.2, tree.z] });
+  cams.push({ name: 'hell-sky', at: [s.x, 1.6, s.z], to: [s.x + fx * 10, 6, s.z + fz * 10] });
+}
 const extent = { min: { x: Math.min(...level.rooms.map((r) => r.min.x)) - 4, z: Math.min(...level.rooms.map((r) => r.min.z)) - 4 }, max: { x: Math.max(...level.rooms.map((r) => r.max.x)) + 4, z: Math.max(...level.rooms.map((r) => r.max.z)) + 4 } };
-writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ seed, floor, pieces, water, gates: d.gates, torches: d.torches, cores: d.cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, sand: d.sand, boxes: lava, slabY: lava.length ? -LAVA_DEPTH - 0.2 : -0.45, floors }));
+writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ seed, floor, pieces, water, gates: d.gates, torches: d.torches, cores: d.cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, sand: d.sand, boxes: lava, slabY: lava.length ? -LAVA_DEPTH - 0.2 : -0.45, floors, hell }));
 console.log(`seed ${seed} floor ${floor}: ${level.rooms.length} rooms (${level.plan.rooms.map((r) => r.layout.template.id).join(', ')}), ${d.pieces.length} pieces, ${level.arena.boxes.length} boxes`);

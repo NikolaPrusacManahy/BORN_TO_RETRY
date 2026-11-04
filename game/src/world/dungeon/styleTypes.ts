@@ -1,7 +1,7 @@
 // Update 0.3.13 — what a floor's look is (moved out of styles.ts, which had reached its size; no change): its pieces, its
 // colours, its sky and sun, and what it has of its own. Pure data.
 
-export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned' | 'sunken' | 'venom' | 'bone' | 'frozen' | 'forge' | 'cove' | 'moon' | 'shrine';
+export type StyleId = 'brick' | 'stone' | 'sand' | 'drowned' | 'sunken' | 'venom' | 'bone' | 'frozen' | 'hell' | 'cove' | 'moon' | 'shrine';
 type Scale = [number, number, number];
 
 export interface DungeonStyle {
@@ -85,6 +85,13 @@ export interface DungeonStyle {
    *  engine/kitMaterial.ts), and the piece on the walls in place of the torches (no flame of its own). */
   cutout?: string[];
   torch?: string;
+  /** Update 0.3.43 — floor 10's Hell: its beds always ash and its trees charred (not only in the boss room), glowing
+   *  seams of lava cracked through its stone (`cracks`: the materials, names before any ".001", and the glow's colour:
+   *  engine/hell/cracks.ts; how bright is tuning/hell.ts's), and its walls' stone glossy (`gloss`: those materials'
+   *  roughness off the floor tile). */
+  ashBeds?: boolean;
+  cracks?: { on: readonly string[]; color: number };
+  gloss?: Record<string, number>;
 }
 
 /** Update 0.2.23 — a pit's look: its dark base, the glow's two colours it drifts between, how bright. */

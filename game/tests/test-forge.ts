@@ -31,7 +31,7 @@ import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 const v = FORGE_KNOBS.v;
 /** What you can't walk through in a room's drawing. */
-const BLOCKED = new Set(['#', 'C', 'b', 'B', 'k', 'L', 'p', 'P', 'U']);
+const BLOCKED = new Set(['#', 'C', 'b', 'B', 'k', 'L', 'p', 'P', 'U', 'R']);
 
 /** Every walkable cell reached from the north door (the room's rows as drawn). */
 function reached(t: RoomTemplate): Set<string> {
@@ -50,7 +50,7 @@ function reached(t: RoomTemplate): Set<string> {
 
 section('The Forge (floor 10) — The Forge: its look and rooms');
 {
-  check('The Forge is floor 10’s now (floor 8 the Moon, floor 7 Frozen Depths)', styleOf(FLOOR.hell).id === 'forge' && styleOf(FLOOR.moon).id === 'moon' && styleOf(FLOOR.frozen).id === 'frozen' && !styleOf(FLOOR.hell).under);
+  check('The Forge is floor 10’s now (floor 8 the Moon, floor 7 Frozen Depths)', styleOf(FLOOR.hell).id === 'hell' && styleOf(FLOOR.moon).id === 'moon' && styleOf(FLOOR.frozen).id === 'frozen' && !styleOf(FLOOR.hell).under);
   const eight = FIGHT_ROOMS.filter((t) => onFloor(t, 10));
   check('its own nine rooms, and only its own; none on floor 8', eight.length === 9 && eight.every((t) => FORGE_ROOMS.includes(t)) && FORGE_ROOMS.every((t) => !onFloor(t, 8) && !onFloor(t, 9)), eight.map((t) => t.id).join(', '));
   check('every one 28 cells square', FORGE_ROOMS.every((t) => t.rows.length === 28 && t.rows.every((r) => r.length === 28)));

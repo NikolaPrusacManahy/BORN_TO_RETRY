@@ -5,6 +5,7 @@
 // under its water (cove/sharkArena.ts). Update 0.3.17 — and floor 8's moon (moon/moonView.ts: its sky, craters and
 // meteors). Update 0.3.31 — its sky torn apart in Tidebreaker's show; its craters blown away with their rooms.
 // Update 0.3.32 — and floor 8's, the Shrine Dimension's, sky (shrine/shrineSky.ts: islands floating all round).
+// Update 0.3.43 — and floor 10's, Hell's (hell/hellView.ts: its sky, chains, braziers, the lava in its stone).
 import * as THREE from 'three';
 import type { DungeonRun } from '../sim/dungeon/roomLoop';
 import type { DungeonLevel } from '../world/dungeon/assemble';
@@ -18,6 +19,7 @@ import { SharkArena } from './cove/sharkArena';
 import { MoonView } from './moon/moonView';
 import { showTime } from './moon/floorBlast';
 import { ShrineSky } from './shrine/shrineSky';
+import { HellView } from './hell/hellView';
 import { islesTaken } from '../sim/dungeon/okamiShow';
 import { styleOf } from '../world/dungeon/styles';
 
@@ -32,6 +34,7 @@ export class DepthsView {
   private readonly arena: SharkArena;
   private readonly moon: MoonView;
   private readonly shrine: ShrineSky | null;
+  readonly hell: HellView;
   private time = 0;
 
   constructor(level: DungeonLevel) {
@@ -46,6 +49,8 @@ export class DepthsView {
     const look = styleOf(level.plan.level);
     this.shrine = look.id === 'shrine' ? new ShrineSky(look.sky ?? 0xffffff) : null;
     if (this.shrine) this.group.add(this.shrine.group);
+    this.hell = new HellView(level);
+    this.group.add(this.hell.group);
     this.group.add(this.ice.group, this.icicles.group, this.presses.group, this.vents.group, this.belts.group, this.cove.group, this.arena.group, this.moon.group);
   }
 
@@ -83,6 +88,7 @@ export class DepthsView {
     this.cove.update(run.powder, this.time);
     this.moon.update(dt, run.meteors, at, showTime(run.boss));
     this.shrine?.update(dt, at, islesTaken(run.boss));
+    this.hell.update(dt, at);
   }
 
   dispose() {
@@ -96,5 +102,6 @@ export class DepthsView {
     this.arena.dispose();
     this.moon.dispose();
     this.shrine?.dispose();
+    this.hell.dispose();
   }
 }

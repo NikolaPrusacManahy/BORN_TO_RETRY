@@ -102,6 +102,7 @@ import './test-boss-skip';
 import './test-capture';
 import './test-perf';
 import './test-forge';
+import './test-hell';
 import './test-floor8-crew';
 import './test-music';
 import './test-hud-controls';

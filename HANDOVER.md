@@ -2,17 +2,22 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-04, after Update 0.3.42)
-- **Version 0.3.42** (The Swarm, floor 2's boss, first playable), built and copied to main, **not committed** until the
-  designer says "commit". 0.3.41 is committed (`61c67f3`); the designer pushes through GitHub Desktop.
+## Where things stand (2026-11-04, after Update 0.3.43)
+- **Version 0.3.43** (Hell's look on floor 10), built and copied to main, **not committed** until the designer says
+  "commit". 0.3.42 is committed (`1aae114`); the designer pushes through GitHub Desktop.
 - **The floors** (`world/dungeon/floorOrder.ts`): 1 the Dungeon, 2 the Venom Garden, 3 the Bone Keep, 4 Frozen Depths,
   5 the Drowned Temple, 6 the Desert, 7 Skull Cove, 8 the Shrine Dimension, 9 the Moon, 10 Hell on Earth (the Forge's
-  rooms meanwhile).
+  rooms in Hell's look since 0.3.43; stand-in enemies).
   - Floors 1–9 each have their own boss: floor 1's the Dragon since 0.3.41 (the Demon is gone); floor 2's The Swarm
     since 0.3.42. Floor 10's (Hellwarden) isn't built, and the Velociraptor stands in.
   - **A run ends at floor 7** (`LAST_FLOOR` in `engine/runLinks.ts`, moved only when the designer says). Floors 8–10
     play from the Lab (F8).
 - **Open work, as it stands:**
+  - **Floor 10, Hell on Earth** (`MD/FLOOR10_HELL_PLAN.md`, agreed: "Agreed, start"): its look done in 0.3.43. Next,
+    the plan's order: the Bestiary enemies (Imp, Puglin, Bone Axeman, Bone Guard), the rest of its roster (Cinder
+    Chicken, Brimstone Bee; the Demon back and Mushnub Evolved as mini bosses), hell-touched traits and echo rooms,
+    Hellwarden and its show. The plan's open questions (the Demon back? echo rooms a run? The Retrier? more packs?)
+    are still the designer's.
   - **The Swarm, the Venom Garden's boss** (the designer's spec `MD/the-knot-3d-boss.md`, named The Swarm; its reel
     read frame by frame in 0.3.42): first playable in 0.3.42 (the heap, the lash, worms or the eye taking blows, the
     death). Next, the spec's order: parryable lashes; Spew; the phases (roll and charge, worm rain from pillars,
@@ -30,7 +35,7 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
     - still on the shared portal intro: the Dragon (floor 1's now), The Swarm, the Bone King, the Velociraptor, the
       Drowned King and the Frost Roc (the Demon's gone);
     - Hellwarden gets one when it's built.
-  - **Hellwarden,** floor 10's boss: `MD/FLOORS_7_10_PLAN.md`; a Bestiary model animated with `tools/ual_bake.py`.
+  - **Hellwarden,** floor 10's boss: `MD/FLOOR10_HELL_PLAN.md`; a Bestiary model animated with `tools/ual_bake.py`.
   - **The trailer:** the capture kit is in (F7). `MD_UPDATES/U0337_CAPTURE_KIT.md` has its keys, how to film each kind
     of shot, and the 75 s plan. The designer records. The music is the designer's own tracks; no AI-made footage,
     music or art.
@@ -48,7 +53,20 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-04, Update 0.3.42: The Swarm, floor 2's boss, first playable)
+## Last update (2026-11-04, Update 0.3.43: Hell's look on floor 10)
+- **The designer**: "what do we design in floor 10? … a hell level?", "Go with your mix", then "Agreed, start". Plan
+  `MD/FLOOR10_HELL_PLAN.md`; spec `MD_UPDATES/U0343_HELL_LOOK.md`.
+- **The look:** `world/dungeon/hellStyle.ts` (the Forge's sooty look retired). Lava in the stone:
+  `engine/hell/cracks.ts`, a crack map made in code and a patch on the stone's shader (`kitMaterial.ts`).
+- **Its own:** the sky (`hell/hellSky.ts`); chains and braziers laid out by `world/dungeon/hell.ts` and drawn by
+  `hell/hellView.ts`; burnt trees in ash (`forgeRooms.ts` `R`, the look's `ashBeds`).
+- **Brimstone:** the Moon's meteors by Hell's knobs (`meteors.ts` `rainOf`, `tuning/hell.ts`) in three rooms.
+- **Checking it:** `tests/test-hell.ts`; Blender renders copying the look (`tools/hellShots.ts`,
+  `tools/blender/hell_look.py`, through `dungeon-shots.ts` and `render_dungeon.py --day`).
+- **The Lab:** floor 10 is a Floor 10 button in its bottom row (`labLists.ts` had left Hell out since 0.3.25).
+- **Next:** the designer plays floor 10 from the Lab; then its Bestiary enemies.
+
+## Before (2026-11-04, Update 0.3.42: The Swarm, floor 2's boss, first playable)
 - **The designer**: "try floor 2 Boss 'The Swarm'", with the reel (@NEENERDEV) of how its worms were built. Spec
   `MD_UPDATES/U0342_THE_SWARM.md`.
 - **Its worms:** `sim/enemies/swarmBody.ts` (Verlet beads, constraints, a dense grid round the heap, the eye, the floor,

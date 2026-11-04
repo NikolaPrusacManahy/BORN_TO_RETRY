@@ -147,7 +147,7 @@ section('Tidebreaker — its rock falls as meteors do');
 {
   const m = crew('tidebreaker', [at(1, 0, 1)]);
   m.c.ground.rocks.push({ x: 0, z: 0, delay: 0.3 });
-  const meteors = { rooms: [false], clock: 9, falling: [], marks: [] };
+  const meteors = { rooms: [false], clock: 9, falling: [], marks: [], hell: false };
   let warned = false;
   let struck = false;
   const hp = m.p.hp;
