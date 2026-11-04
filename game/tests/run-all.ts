@@ -3,6 +3,7 @@ import { summary } from './harness';
 import './test-core';
 import './test-tuning';
 import './test-bindings';
+import './test-fps-key';
 import './test-hud-scale';
 import './test-movement';
 import './test-dash';

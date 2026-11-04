@@ -8,6 +8,7 @@ import { Bindings, DEFAULT_BINDINGS, hydrateBindings } from '../input/bindings';
 import { CharacterId, ROSTER } from '../sim/characters';
 import { DEFAULT_DIFFICULTY, Difficulty, isDifficulty } from '../sim/lobby/difficulty';
 import { DEFAULT_FRAME_CAP, FRAME_CAPS } from '../core/framePacer';
+import { DEFAULT_FPS_KEY } from '../input/fpsKey';
 
 export interface Settings {
   /** Mouse sensitivity multiplier, 0.1 – 5. */
@@ -30,6 +31,9 @@ export interface Settings {
   effects: EffectsLevel;
   /** Update 0.3.38 — frames drawn a second at most (FRAME_CAPS; 0: no cap). */
   frameCap: number;
+  /** Update 0.3.45 — the key that shows the frame-rate counter (input/fpsKey.ts; F2), and whether it's showing. */
+  fpsKey: string;
+  showFps: boolean;
   bindings: Bindings;
 }
 
@@ -57,7 +61,7 @@ export const SENS_MAX = 5;
 export const UI_SIZE_MIN = 0.7;
 export const UI_SIZE_MAX = 1.4;
 
-export const DEFAULT_SETTINGS: Settings = { sensitivity: 1, invertY: false, fov: 100, volume: 0.8, sfxVolume: 1, musicVolume: 0.7, uiSize: 1, blood: 'on', glow: true, effects: 'high', frameCap: DEFAULT_FRAME_CAP, bindings: DEFAULT_BINDINGS };
+export const DEFAULT_SETTINGS: Settings = { sensitivity: 1, invertY: false, fov: 100, volume: 0.8, sfxVolume: 1, musicVolume: 0.7, uiSize: 1, blood: 'on', glow: true, effects: 'high', frameCap: DEFAULT_FRAME_CAP, fpsKey: DEFAULT_FPS_KEY, showFps: false, bindings: DEFAULT_BINDINGS };
 
 export function defaultSave(): SaveData {
   return { version: 1, settings: { ...DEFAULT_SETTINGS, bindings: { ...DEFAULT_BINDINGS } }, difficulty: DEFAULT_DIFFICULTY, character: DEFAULT_CHARACTER, cards: true };
@@ -92,6 +96,8 @@ export function hydrateSave(raw: unknown): SaveData {
       glow: typeof s.glow === 'boolean' ? s.glow : DEFAULT_SETTINGS.glow,
       effects: EFFECTS_LEVELS.includes(s.effects as EffectsLevel) ? (s.effects as EffectsLevel) : DEFAULT_SETTINGS.effects,
       frameCap: FRAME_CAPS.includes(s.frameCap as number) ? (s.frameCap as number) : DEFAULT_SETTINGS.frameCap,
+      fpsKey: typeof s.fpsKey === 'string' && /^[A-Za-z][A-Za-z0-9]{1,24}$/.test(s.fpsKey) ? s.fpsKey : DEFAULT_SETTINGS.fpsKey,
+      showFps: typeof s.showFps === 'boolean' ? s.showFps : DEFAULT_SETTINGS.showFps,
       bindings: hydrateBindings(s.bindings),
     },
   };

@@ -42,6 +42,8 @@ import { useRunStart } from './screens/useRunStart';
 import { RunLoader } from './screens/RetryArrow';
 import { useMusic } from './screens/useMusic';
 import { DebugOverlay } from './screens/DebugOverlay';
+import { FpsCounter } from './screens/FpsCounter';
+import { useFpsKey } from './screens/useFpsKey';
 import { CreditIntro } from './screens/CreditIntro';
 import { Settings, loadSave, writeSave } from './state/settings';
 import { setUiSize } from './ui/uiScale';
@@ -221,6 +223,9 @@ export default function App() {
     writeSave(next);
   };
 
+  // (Update 0.3.45 — the frame-rate counter's key: F2, or the one chosen in Graphics.)
+  useFpsKey(dev, save.settings, () => changeSettings({ ...save.settings, showFps: !save.settings.showFps }));
+
   const toggleFullscreen = async () => {
     const st = await getGame()?.toggleFullscreen();
     if (st) setFullscreen(st.fullscreen);
@@ -282,6 +287,7 @@ export default function App() {
       {lab.panel(dev && !tuning)}
       {dev && tuning && <TuningPanel onClose={() => setTuningOpen(false)} />}
       {dev && debug && <DebugOverlay getGame={getGame} />}
+      {save.settings.showFps && !onMenu && <FpsCounter getGame={getGame} />}
       {credits && <CreditIntro onDone={() => setCredits(false)} />}
     </GameView>
   );

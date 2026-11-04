@@ -1,0 +1,17 @@
+/* Update 0.3.45 — the frame-rate counter players can show (F2 by default): top left, small, over the game. */
+.rb-fps {
+  position: absolute;
+  z-index: 25;
+  top: 12px;
+  left: 16px;
+  padding: 3px 8px;
+  font-family: ui-monospace, 'Consolas', monospace;
+  font-size: 14px;
+  color: #e8f0dc;
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+
+.rb-fps:empty {
+  display: none;
+}

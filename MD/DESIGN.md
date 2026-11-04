@@ -157,7 +157,9 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   tile, wall and cap as far copies, each stone its box (1,176 → 144 triangles a tile); floor 1 in view 5.7 → 1.8 million.
   **Update 0.3.44** (spec `MD_UPDATES/U0344_LAB_SPEED.md`): floors started from the Lab ran at 60–72 fps (from the lobby,
   144): every enemy slot's hidden body of every kind was in the scene, and the Lab loads all 97 kinds (48,689 objects
-  walked a frame). A slot's body is in the scene now only while it shows it.
+  walked a frame). A slot's body is in the scene now only while it shows it. **Update 0.3.45** (spec
+  `MD_UPDATES/U0345_FPS_COUNTER.md`): a frame-rate counter players can show, top left (fps and the worst frame), on F2
+  by default; its key in Graphics → **Show FPS**, under Frame rate.
 
 ### The rush (Update 0.3.1, the designer: "like Doom or Ultrakill"; spec `MD_UPDATES/U031_EXECUTIONS_AND_RUSH.md`)
 - Executions hold you where you grabbed the enemy (in the air too) till you let go. A freeze on every hit (jab 25 ms,

@@ -3,16 +3,18 @@
 // Update 0.3.0 (the designer: "tidy up the settings for better navigation, not all settings in one page, a bit more
 // professional") — in pages (Options.tsx): General, Graphics, Audio; each row a label and its control, the choices of a
 // few as buttons side by side; each page can go back to its defaults. And Glow and Effects (Graphics).
-// Update 0.3.38 — and the frame-rate cap (Graphics: 30 fps … 240 fps, Unlimited).
+// Update 0.3.38 — and the frame-rate cap (Graphics: 30 fps … 240 fps, Unlimited). Update 0.3.45 — and under it, the key
+// that shows the frame-rate counter (FpsKeyRow.tsx).
 import { BLOOD_LEVELS, DEFAULT_SETTINGS, EFFECTS_LEVELS, FOV_MAX, FOV_MIN, SENS_MAX, SENS_MIN, Settings, UI_SIZE_MAX, UI_SIZE_MIN } from '../state/settings';
 import { capLabel, FRAME_CAPS } from '../core/framePacer';
+import { FpsKeyRow } from './FpsKeyRow';
 
 export type SettingsPage = 'general' | 'graphics' | 'audio';
 
 /** Each page's settings (what its Restore defaults puts back). */
 const ON_PAGE: Record<SettingsPage, (keyof Settings)[]> = {
   general: ['sensitivity', 'invertY', 'uiSize'],
-  graphics: ['fov', 'frameCap', 'glow', 'effects', 'blood'],
+  graphics: ['fov', 'frameCap', 'fpsKey', 'glow', 'effects', 'blood'],
   audio: ['volume', 'sfxVolume', 'musicVolume'],
 };
 
@@ -91,6 +93,7 @@ export function SettingsFields({ page, settings, fullscreen, onChange, onFullscr
           />
           <Slider label="Field of view" value={settings.fov} min={FOV_MIN} max={FOV_MAX} step={1} show={(v) => `${v}°`} onChange={(v) => set({ fov: v })} />
           <Slider label="Frame rate" value={FRAME_CAPS.indexOf(settings.frameCap)} min={0} max={FRAME_CAPS.length - 1} step={1} show={(i) => capLabel(FRAME_CAPS[i])} onChange={(i) => set({ frameCap: FRAME_CAPS[i] })} />
+          <FpsKeyRow value={settings.fpsKey} bindings={settings.bindings} onChange={(code) => set({ fpsKey: code })} />
           <Choice label="Glow" value={settings.glow} options={ON_OFF} onChange={(v) => set({ glow: v })} />
           <Choice label="Effects" value={settings.effects} options={EFFECTS_LEVELS.map((e) => [e, e === 'high' ? 'High' : 'Low'] as const)} onChange={(v) => set({ effects: v })} />
           <Choice label="Blood" value={settings.blood} options={BLOOD_LEVELS.map((b) => [b, b === 'on' ? 'On' : b === 'less' ? 'Less' : 'Off'] as const)} onChange={(v) => set({ blood: v })} />
