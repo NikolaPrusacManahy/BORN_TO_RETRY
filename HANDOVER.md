@@ -2,7 +2,43 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Next up (2026-11-03, Update 0.3.39: far off, the heaviest pieces lighter)
+## Where things stand (2026-11-04, after Update 0.3.39)
+- **Version 0.3.39**, committed on `main` (`b669bff`) and pushed to GitHub (the designer pushes through GitHub
+  Desktop). The code is all committed; this file's and `DEVELOPMENT.md`'s refresh (2026-11-04) may not be
+  yet (check `git status`).
+- **The floors** (`world/dungeon/floorOrder.ts`): 1 the Dungeon, 2 the Venom Garden, 3 the Bone Keep, 4 Frozen Depths,
+  5 the Drowned Temple, 6 the Desert, 7 Skull Cove, 8 the Shrine Dimension, 9 the Moon, 10 Hell on Earth (the Forge's
+  rooms meanwhile).
+  - Floors 1–9 each have their own boss; floor 10's (Hellwarden) isn't built, and the Velociraptor stands in.
+  - **A run ends at floor 7** (`LAST_FLOOR` in `engine/runLinks.ts`, moved only when the designer says). Floors 8–10
+    play from the Lab (F8).
+- **Open work, as it stands** (none started):
+  - **Okami's rage and frenzy:** not built. The plan's first idea, in `MD/FLOOR8_SHRINE_PLAN.md`, is a petal storm with
+    shadow clones, its markings blazing.
+  - **Boss intros at Tidebreaker's quality:**
+    - done for the Big Shark, Tidebreaker and Okami;
+    - still on the shared portal intro: the Demon, the Dragon, the Bone King, the Velociraptor, the Drowned King and
+      the Frost Roc;
+    - Hellwarden gets one when it's built.
+  - **Hellwarden,** floor 10's boss: `MD/FLOORS_7_10_PLAN.md`; a Bestiary model animated with `tools/ual_bake.py`.
+  - **The trailer:** the capture kit is in (F7). `MD_UPDATES/U0337_CAPTURE_KIT.md` has its keys, how to film each kind
+    of shot, and the 75 s plan. The designer records. The music is the designer's own tracks; no AI-made footage,
+    music or art.
+  - **Performance:** done for now (0.3.38–0.3.39); the designer's PC runs cool. If it heats up again, next would be a
+    smaller sun shadow map and a render-scale setting.
+- **How an update goes** (the rules are in `CLAUDE.md`):
+  1. Build it in the session's worktree.
+  2. Write its spec in `MD_UPDATES/` and bump `game/package.json`.
+  3. Update `MD/DESIGN.md`, this file and `DEVELOPMENT.md`.
+  4. Run `node verify.mjs` in the worktree's `game/`.
+  5. Copy it to main (`.claude/session-tools/copy_to_main.ps1 -Worktree <it>`), compare the two folders' changed
+     files, and run `node verify.mjs --quick` in main's `game/`.
+  6. Snapshot its files (`<scratchpad>/snapshots/<ver>/`) and write its message (`msg<ver>.txt`) before the next
+     update starts.
+  7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
+     then `git reset -q <hash>` in the worktree.
+
+## Last update (2026-11-03, Update 0.3.39: far off, the heaviest pieces lighter)
 - **The designer**: "it works, next" (fix 4). Spec `MD_UPDATES/U0339_FAR_PIECES.md`.
 - **The far pieces:** `tools/blender/kit_far.py` makes `public/models/dungeon/kit_far.glb` from the kit (each stone of
   floor 1's tile, wall and cap as its box). Run it again if those pieces ever change in `kit.glb`.

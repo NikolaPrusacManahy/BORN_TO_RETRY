@@ -14,6 +14,7 @@ The game is in `game/` (Vite + React 18 + TypeScript strict, Three.js, Rapier). 
 |---|---|
 | `core/fixedStep.ts` | The fixed-step clock: ticks per frame, the max-ticks cap, the interpolation alpha |
 | `core/frameStats.ts` | Frame-time ring buffer: FPS, worst and median frame |
+| `core/framePacer.ts` | Update 0.3.38 — the frame-rate cap: which of the browser's refreshes are drawn (Options' Frame rate; the menus and the pause menu at 60 at most); a cap at the screen's own rate (measured) or over it caps nothing |
 | `core/eventQueue.ts` | Fixed-size event queue (no garbage) for sim → camera/sound events |
 | `core/rng.ts` | Seeded RNG (mulberry32). All run randomness goes through it |
 | `platform/pointerLock.ts` | Pointer lock with raw input when offered |
@@ -137,6 +138,9 @@ Update 0.0.12: `slamHit.ts` (your ground slam's blast: every target in reach, ha
 | `engine/Game.ts` | The shell: renderer, input, sound, mouse lock, fullscreen, and the frame loop in three modes: `menu` (the gate scene), `intro` (Start pressed: the gate opening), `play` (the lab, run by `LabRun`). Update 0.2.9 — the run side (the renderer, input and sound a run uses, the run and its levels, the Lab) moved to `engine/gameBase.ts` (`GameBase`); the menu's scenes to `engine/menu/menuScenes.ts`; the gate opens onto the lobby (`enterLobby`), and the lobby's hooks: `holdLobby`, `backFromGate`, `openGate`, `startRun(character, difficulty)` |
 | `engine/run.ts` | The play loop (was labRun.ts): player, fists, targets, camera, arms; ticks, events, render, death and respawn. Update 0.0.12 — plays a level: the lab, or a dungeon floor with its room loop; the way down loads the next floor (health, coins and weapon kept), a death a new run. Update 0.1.14 — `Run extends RunBase` (`runBase.ts`: the level's parts, `load`, `restartHere`, `restart`, the Lab's commands); dead in the dungeon, once it's black, `onDeathScreen` (what killed you, the floor, the time played, your kills) and the world held still; `restart()` then starts a new run |
 | `engine/level.ts` | Update 0.0.12 — a level: arena, physics, how it's drawn, the room loop (dungeon); the lab and dungeon floors; a run's seed |
+| `engine/floorPieces.ts` | Update 0.3.38 — a floor's kit pieces instanced per 30 m square (`placeByArea`), so a square out of view or out of the sun's shadow box isn't drawn. Update 0.3.39 — `FloorAreas`: a square more than 15 m off draws the far kit's copies (`kit_far.glb`), back to the real pieces within 12 m |
+| `engine/capture/` | Update 0.3.37 — the capture kit for filming the trailer (dev builds; F7): `capture.ts` (its state and keys, one for the whole game; the view it takes over), `freeCam.ts`, `dolly.ts` (a Catmull-Rom glide through its points), `captureView.ts` (the page: the HUD hidden, the key card, a word for each change). `run.ts` asks it each frame |
+| `engine/menu/mergeStatic.ts` | Update 0.3.38 — a menu scene's still pieces merged by look (one mesh a material, mirrored pieces kept facing out); `menuScenes.ts` draws the menus' shadows once |
 | `engine/dungeonView.ts` | Update 0.0.12 — a dungeon floor drawn from the kit as instanced meshes; the gates' bars; pads; torch lights that follow you. Update 0.0.13 — day time: a sun whose shadows follow you, a sky light, a pale haze. Update 0.0.15 — the boss room's sliding walls, portal and wooden gate (`boss/`), following its show |
 | `engine/mapFeed.ts`, `screens/Minimap.tsx` | Update 0.0.12 — the minimap: known, visited and current rooms, corridors, you |
 | `engine/deathFlow.ts` | M1 step 8 — the death timing: slow motion, then respawn once the fade is black |
@@ -247,6 +251,7 @@ Update 0.0.12: `slamHit.ts` (your ground slam's blast: every target in reach, ha
 | `tools/view-shots.ts` (+ `view-shots-list.ts`), `tools/blender/render_view.py` | Update 0.0.10 — the first-person arms posed by the game's own code for a list of moments, rendered by Blender (no browser); prints each shot's wrist bend and where the sword's tip lands |
 | `tools/exec-shots.ts`, `tests/fakes/execRig.ts` | Update 0.1.1/0.1.2 — an execution played by the real rules and drawn by the real view code (EnemiesView with the real model, ExecScene, followHeld, the Viewmodel), written at its keys and blows as you see it and from the side, for `render_view.py`: `npx tsx tools/exec-shots.ts <out> [kinds…]`. The rig is shared with `test-executions.ts` and `test-exec-grip.ts` |
 | `tools/boss-shots.ts` | Update 0.0.15 — the boss room for a seed with its walls at k, the gate shut or open, the Demon in its stance, from the show's own shots; drawn by `render_dungeon.py --day --demon public/models/enemies/demon.glb` |
+| `tools/blender/kit_far.py` | Update 0.3.39 — the far kit (`public/models/dungeon/kit_far.glb`) from `kit.glb`: floor 1's tile, wall and wall cap, each stone its box; `--previews` renders them beside the real ones. Run it again if those pieces change |
 | `tools/contact_sheet.py` | Tiles preview renders into one labelled sheet to compare variants (Python 3 + Pillow) |
 
 ## Contracts
