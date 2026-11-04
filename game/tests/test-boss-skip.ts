@@ -55,7 +55,7 @@ section('Boss shows — skipped');
     if (kind === 'tidebreaker') ok &&= kept.includes('tideArrive');
     (ok ? done : bad).push(`${kind}${ok ? '' : ` (${run.boss.beat}, ${heard} events)`}`);
   }
-  check(`every boss’s show skipped straight into its fight, as its show leaves it (${done.join(', ')})`, bad.length === 0 && done.length >= 8, bad.join('; '));
+  check(`every boss’s show skipped straight into its fight, as its show leaves it (${done.join(', ')})`, bad.length === 0 && done.length >= 9, bad.join('; '));
 }
 
 section('Boss shows — the key to skip');

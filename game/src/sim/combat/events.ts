@@ -64,6 +64,13 @@ export type CombatEvent =
   // Update 0.0.15 — a boss's charge (the Demon's first: charge.ts; value = which enemy): off it runs, into you, into a
   // wall (stunned); a quake ring rolling under you (value = damage). (Update 0.3.41 — the Demon gone, with its warning,
   // leap, landing, volley and roar.)
+  // Update 0.3.42 — The Swarm (value = its slot): its worms wind up, whip, a lash bites you; a worm killed (where);
+  // its eye struck.
+  | 'swarmWindup'
+  | 'swarmLash'
+  | 'swarmBite'
+  | 'swarmGore'
+  | 'swarmEye'
   | 'demonCharge'
   | 'demonGore'
   | 'demonCrash'

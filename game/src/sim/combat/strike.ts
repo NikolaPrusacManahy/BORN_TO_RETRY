@@ -92,7 +92,8 @@ export function hitTarget(state: CombatState, t: TargetHit, damage: number, knoc
     case 'turret':
       return hitTurret(state.turrets[t.index], damage);
     case 'enemy':
-      return hitEnemy(state.enemies[t.index], damage, knock, dirX, dirZ, steady);
+      // (Update 0.3.42 — where it landed: The Swarm's worms or its eye.)
+      return hitEnemy(state.enemies[t.index], damage, knock, dirX, dirZ, steady, t.point);
     case 'hive':
       return hitHive(state, t.index, damage);
   }

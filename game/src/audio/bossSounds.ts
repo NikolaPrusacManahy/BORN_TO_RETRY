@@ -6,6 +6,7 @@
 // landing, volley and roar go.
 import type { CombatEvent } from '../sim/combat/state';
 import { CINEMA } from '../tuning/cinema';
+import { SWARM } from '../tuning/swarm';
 import type { AudioEngine } from './audio';
 import { noise, tone } from './synth';
 
@@ -25,6 +26,28 @@ export function playBoss(a: AudioEngine, kind: CombatEvent, _value: number, far:
     case 'demonGore':
       tone(a, { from: 130, to: 35, dur: 0.4, gain: 0.85 });
       noise(a, { dur: 0.3, gain: 0.6, filter: 'lowpass', from: 3000, to: 200 });
+      return true;
+    // Update 0.3.42 — The Swarm (placeholders): a wet rising hiss as its worms wind up, the whip, a lash's bite, a worm
+    // torn off, its eye struck.
+    case 'swarmWindup':
+      noise(a, { dur: SWARM.v.lashWindup, gain: 0.35 * loud, filter: 'bandpass', from: 300, to: 1400, q: 2.5 });
+      tone(a, { from: 110, to: 240, dur: SWARM.v.lashWindup, gain: 0.18 * loud, type: 'square' });
+      return true;
+    case 'swarmLash':
+      noise(a, { dur: 0.14, gain: 0.55 * loud, filter: 'highpass', from: 2500, to: 600 });
+      tone(a, { from: 900, to: 180, dur: 0.12, gain: 0.2 * loud, type: 'sawtooth' });
+      return true;
+    case 'swarmBite':
+      tone(a, { from: 170, to: 55, dur: 0.22, gain: 0.7 });
+      noise(a, { dur: 0.2, gain: 0.5, filter: 'lowpass', from: 2500, to: 200 });
+      return true;
+    case 'swarmGore':
+      noise(a, { dur: 0.26, gain: 0.5 * loud, filter: 'lowpass', from: 1400, to: 140 });
+      tone(a, { from: 140, to: 70, dur: 0.18, gain: 0.25 * loud });
+      return true;
+    case 'swarmEye':
+      tone(a, { from: 320, to: 70, dur: 0.35, gain: 0.45 * loud, type: 'sawtooth' });
+      noise(a, { dur: 0.3, gain: 0.4 * loud, filter: 'bandpass', from: 1800, to: 300, q: 1.5 });
       return true;
     case 'quakeHit':
       tone(a, { from: 100, to: 40, dur: 0.35, gain: 0.7 });

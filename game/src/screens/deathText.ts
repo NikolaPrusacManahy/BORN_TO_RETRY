@@ -15,6 +15,7 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   spider: 'Spider',
   blueDemon: 'Blue Demon',
   dragon: 'The Dragon',
+  swarm: 'The Swarm',
   skeleton: 'Skeleton',
   mushnub: 'Mushnub',
   ninja: 'Ninja',

@@ -131,9 +131,9 @@ export abstract class GameBase {
    *  gone, the Dragon's floor 1's). Update 0.2.3 — or the
    *  Bone King's (floor 3). Update 0.2.4 — or the Dino's (floor 4). Update 0.2.10 — or the Drowned King's (floor 5).
    *  Update 0.3.16 — or the Big Shark's (floor 6). */
-  labBoss(kind: 'dragon' | 'boneKing' | 'dino' | 'drownedKing' | 'whale' | 'bigShark' | 'frostRoc' | 'tidebreaker' | 'okami') {
+  labBoss(kind: 'dragon' | 'swarm' | 'boneKing' | 'dino' | 'drownedKing' | 'whale' | 'bigShark' | 'frostRoc' | 'tidebreaker' | 'okami') {
     // (Update 0.3.25 — on its floor as the floors are ordered now: floorOrder.ts.)
-    const at = kind === 'dragon' ? FLOOR.dungeon : kind === 'boneKing' ? FLOOR.keep : kind === 'dino' ? FLOOR.desert : kind === 'drownedKing' ? FLOOR.temple : kind === 'frostRoc' ? FLOOR.frozen : kind === 'tidebreaker' ? FLOOR.moon : kind === 'okami' ? FLOOR.shrine : FLOOR.cove;
+    const at = kind === 'dragon' ? FLOOR.dungeon : kind === 'swarm' ? FLOOR.garden : kind === 'boneKing' ? FLOOR.keep : kind === 'dino' ? FLOOR.desert : kind === 'drownedKing' ? FLOOR.temple : kind === 'frostRoc' ? FLOOR.frozen : kind === 'tidebreaker' ? FLOOR.moon : kind === 'okami' ? FLOOR.shrine : FLOOR.cove;
     if (this.lab) this.covered(() => this.newRun(bossRoomLevel(newSeed(), at)));
   }
 

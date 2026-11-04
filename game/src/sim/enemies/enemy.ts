@@ -18,6 +18,8 @@
 // Update 0.2.4 — under the sand ('burrow': the Cactoros), out of reach of every hit.
 // Update 0.3.7 — the start of its tick moved to tick.ts; its knock flies (flight.ts): it can hit a wall (`splat`).
 import { Vector3 } from 'three';
+import { createSwarmBody, type SwarmBody } from './swarmBody';
+import { swarmEyeHeight, swarmTakes } from './swarmHits';
 import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
 import type { CombatEvent } from '../combat/state';
@@ -95,6 +97,9 @@ export interface Enemy {
   pinned: number;
   /** Update 0.3.15 — quickened by floor 6's Shanty Man's song: seconds left (0: not; shanty.ts). */
   hype: number;
+  /** Update 0.3.42 — The Swarm's worms (swarmBody.ts): made the first time a slot holds one, seeded each time one
+   *  spawns there. */
+  swarm: SwarmBody | null;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -168,6 +173,7 @@ export function createEnemies(): Enemy[] {
     wall: new Vector3(),
     pinned: 0,
     hype: 0,
+    swarm: null,
   }));
 }
 
@@ -206,13 +212,16 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.blink = 0;
   e.deeds = 0;
   e.ward = 0;
+  // (Update 0.3.42 — The Swarm's worms seeded round it on its first tick.)
+  if (kind === 'swarm') (e.swarm ??= createSwarmBody()).seeded = false;
   return i;
 }
 
 /** Fighting (not dead, and in use). */
 export const isLive = (e: Enemy) => e.alive && e.phase !== 'dead';
 
-export const radiusOf = (e: Enemy) => ENEMY_STATS[e.kind]().radius;
+// (Update 0.3.42 — The Swarm's: as far as its heap reaches now, thinning as its worms die.)
+export const radiusOf = (e: Enemy) => (e.kind === 'swarm' && e.swarm?.seeded ? e.swarm.extent : ENEMY_STATS[e.kind]().radius);
 
 /** Walls push it: always a flier (on its own grid), a walker only on the ground (Update 0.3.15 — not one rooted in the sea,
  *  its floor below the ground's: floor 6's Tentacle, which the sea's edge pushed out of the water). */
@@ -220,6 +229,12 @@ export const grounded = (e: Enemy) => flies(e.kind) || (e.pos.y < OFF_GROUND && 
 
 /** The bottom and top of its hit capsule's axis. Update 0.2.11 — a fish's lies along it (its tail to its nose). */
 export function enemyAxis(e: Enemy, bottom: Vector3, top: Vector3) {
+  // (Update 0.3.42 — The Swarm: a ball round its eye, as far as its heap reaches.)
+  if (e.kind === 'swarm') {
+    bottom.set(e.pos.x, e.pos.y + swarmEyeHeight(), e.pos.z);
+    top.copy(bottom);
+    return;
+  }
   const s = ENEMY_STATS[e.kind]();
   const half = Math.max(0, fishLength(e.kind, s.height) / 2 - s.radius);
   bottom.set(e.pos.x + Math.sin(e.facing) * half, e.pos.y + s.radius, e.pos.z + Math.cos(e.facing) * half);
@@ -259,8 +274,16 @@ export const fallsApart = (e: Enemy) => (e.kind === 'skeleton' && e.phase !== 'r
 
 /** Damages an enemy pushed along (dirX, dirZ) (length 1). A hit at least as hard as its stagger flinches it
  *  (cancelling its attack; Update 0.2.18 — not `steady` damage: a bleed's or a burn's). Returns true if it died. */
-export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, dirZ: number, steady = false): boolean {
+export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, dirZ: number, steady = false, at: Vector3 | null = null): boolean {
   if (!isLive(e)) return false;
+  // Update 0.3.42 — The Swarm: a worm in the way takes the blow (its share of the bar if it dies), or through a gap
+  // its eye does (swarmHits.ts). `at`: where the blow landed (none: on the side it came from).
+  if (e.kind === 'swarm' && e.swarm?.seeded) {
+    damage = swarmTakes(e, e.swarm, damage, dirX, dirZ, at);
+    steady = true;
+    knock = 0;
+    if (damage <= 0) return false;
+  }
   // Update 0.2.3 — the Bone King rebuilding: nothing hurts it.
   if (e.kind === 'boneKing' && e.phase === 'rebuild') return false;
   const s = ENEMY_STATS[e.kind]();

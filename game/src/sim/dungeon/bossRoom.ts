@@ -20,6 +20,7 @@
 import type { Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
 import { DRAGON } from '../../tuning/dragon';
+import { SWARM } from '../../tuning/swarm';
 import { BONE_KING } from '../../tuning/boneKing';
 import { DINO } from '../../tuning/dino';
 import { DROWNED } from '../../tuning/drowned';
@@ -118,7 +119,7 @@ export const calledBy = (kind: EnemyKind): EnemyKind | null => callsOf(kind)?.ki
 const BOSS_COINS = 15;
 
 /** The coins a boss leaves (Update 0.2.0: in its chest). */
-export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : kind === 'whale' ? WHALE.v.whaleCoins : kind === 'bigShark' ? BIG_SHARK.v.bigCoins : kind === 'frostRoc' ? FROST_ROC.v.rocCoins : kind === 'tidebreaker' ? TIDEBREAKER.v.tideCoins : kind === 'okami' ? OKAMI.v.okamiCoins : BOSS_COINS);
+export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'swarm' ? SWARM.v.coins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : kind === 'whale' ? WHALE.v.whaleCoins : kind === 'bigShark' ? BIG_SHARK.v.bigCoins : kind === 'frostRoc' ? FROST_ROC.v.rocCoins : kind === 'tidebreaker' ? TIDEBREAKER.v.tideCoins : kind === 'okami' ? OKAMI.v.okamiCoins : BOSS_COINS);
 
 export { inShow, introBeats, portalOpen, wallsOpen, type IntroBeats } from './bossBeats';
 

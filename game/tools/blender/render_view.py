@@ -48,6 +48,9 @@ def add_mesh(m):
     me = bpy.data.meshes.new('shot')
     me.from_pydata(verts, [], faces)
     me.validate()
+    # (Update 0.3.42 — a mesh the game shades smooth (`smooth`: The Swarm's tubes) drawn smooth here too.)
+    if m.get('smooth'):
+        me.shade_smooth()
     o = bpy.data.objects.new('shot', me)
     o.data.materials.append(material(m['color']))
     bpy.context.scene.collection.objects.link(o)

@@ -40,7 +40,7 @@ import { bossIn } from './bossIn';
 // (Update 0.3.41 — the first boss's name, the Demon gone: the Dragon's.)
 export const BOSS_NAME = 'THE DRAGON';
 /** Update 0.0.18 — each boss's name. */
-export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { dragon: BOSS_NAME, boneKing: 'THE BONE KING', dino: 'THE VELOCIRAPTOR', drownedKing: 'THE DROWNED KING', whale: 'THE OLD WHALE', bigShark: 'THE BIG SHARK', frostRoc: 'THE FROST ROC', tidebreaker: 'TIDEBREAKER', okami: 'YOKAI : OKAMI' };
+export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { dragon: BOSS_NAME, swarm: 'THE SWARM', boneKing: 'THE BONE KING', dino: 'THE VELOCIRAPTOR', drownedKing: 'THE DROWNED KING', whale: 'THE OLD WHALE', bigShark: 'THE BIG SHARK', frostRoc: 'THE FROST ROC', tidebreaker: 'TIDEBREAKER', okami: 'YOKAI : OKAMI' };
 
 /** Update 0.2.3 — a boss bar's mark: where it rages (the Demon, the Dragon), or the Bone King's final blast (its second
  *  life only). */

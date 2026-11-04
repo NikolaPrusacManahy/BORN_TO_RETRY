@@ -149,15 +149,15 @@ section('Dragon — rage and death');
   check('killed, it rises, hangs, sinks and bursts', c.seen.includes('bossBurst') && f.d.struck);
 }
 
-section('Dragon — floor 2’s boss room');
+section('Dragon — floor 1’s boss room (Update 0.3.41; floor 2’s before)');
 {
   // (Update 0.2.3 — floor 3's is the Bone King now: test-bone-king.ts.)
-  check('floor 1’s boss is the Dragon (Update 0.3.41), standing in on floor 2 till the worm swarm', bossOf(1) === 'dragon' && ownBossOf(1) === 'dragon' && bossOf(2) === 'dragon' && ownBossOf(2) === null);
-  const level = buildDungeon(planFloor(4242, 2));
+  check('floor 1’s boss is the Dragon (Update 0.3.41); floor 2’s The Swarm (Update 0.3.42)', bossOf(1) === 'dragon' && ownBossOf(1) === 'dragon' && bossOf(2) === 'swarm' && ownBossOf(2) === 'swarm');
+  const level = buildDungeon(planFloor(4242, 1));
   const b = level.boss;
   const room = level.rooms[b.room];
   const run0 = createDungeonRun(level);
-  check('floor 2’s boss run is the Dragon’s', run0.boss.kind === 'dragon');
+  check('floor 1’s boss run is the Dragon’s', run0.boss.kind === 'dragon');
   const combat = createCombat(level.arena, false);
   const p = createPlayer(0, 0, 0, 0);
   p.grounded = true;

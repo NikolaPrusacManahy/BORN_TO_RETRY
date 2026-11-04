@@ -29,6 +29,11 @@ export function bloodDrops(kind: CombatEvent, value: number, a: BloodAmount): nu
     case 'kill':
     case 'wallSplat':
       return a.kill;
+    // (Update 0.3.42 — a worm torn off The Swarm: half a kill's; its eye struck: a hit's.)
+    case 'swarmGore':
+      return Math.round(a.kill / 2);
+    case 'swarmEye':
+      return a.hit(20);
     case 'execBlow':
       return Math.round(a.exec / 2);
     case 'execBurst':

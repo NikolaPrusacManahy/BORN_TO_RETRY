@@ -33,6 +33,7 @@ import { CombatFeedback } from './combatFeedback';
 import { Burst } from './fx/burst';
 import { BossFx } from './boss/bossFx';
 import { DragonView } from './boss/dragonView';
+import { SwarmView } from './swarm/swarmView';
 import { BombView } from './boss/bombView';
 import { KingView } from './boss/kingView';
 import { DesertFx } from './desertFx';
@@ -85,6 +86,8 @@ export class CombatScene {
   private readonly chunks: Burst;
   private readonly bossFx: BossFx;
   private readonly dragon: DragonView;
+  /** Update 0.3.42 — The Swarm's worms and eye. */
+  private readonly swarm: SwarmView;
   private readonly bombs: BombView;
   private readonly king: KingView;
   private readonly desert: DesertFx;
@@ -115,6 +118,7 @@ export class CombatScene {
     this.exec = new ExecScene(scene);
     this.bossFx = new BossFx(scene);
     this.dragon = new DragonView(scene);
+    this.swarm = new SwarmView(scene);
     this.bombs = new BombView(scene);
     this.king = new KingView(scene);
     this.desert = new DesertFx(scene);
@@ -178,6 +182,7 @@ export class CombatScene {
     this.exec.update(state, this.rootOf, gameDt);
     this.execMark.update(state, gameDt);
     this.dragon.update(state, listener, alpha, gameDt);
+    this.swarm.update(state, listener, alpha, gameDt);
     this.bombs.update(state, gameDt);
     this.king.update(state, gameDt, (i) => this.enemies.rootOf(i));
     this.desert.update(state, gameDt);
@@ -248,6 +253,7 @@ export class CombatScene {
     this.enemies.dispose();
     this.exec.dispose();
     this.dragon.dispose();
+    this.swarm.dispose();
     this.bombs.dispose();
     this.king.dispose();
     this.desert.dispose();

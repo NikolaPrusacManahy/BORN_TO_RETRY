@@ -152,7 +152,7 @@ section('Lab — a boss room on demand');
 {
   for (const [floor, kind] of [
     [1, 'dragon'],
-    [2, 'dragon'],
+    [2, 'swarm'],
   ] as const) {
     const level = buildDungeon(planFloor(777, floor));
     const room = level.rooms[level.boss.room];
@@ -213,8 +213,8 @@ section('Lab panel — a column a floor, the items by kind');
   // — seven floors to play; floor 7's stand-in boss is floor 4's, listed there. Update 0.3.13 — floors 7 and 8 in New
   // floors.)
   const said = (text: string) => count(`>${text}<`) + count(`>${text.replace(' ', ' <!-- -->')}<`);
-  // (Update 0.3.41 — the Dragon floor 1's; floor 2's own boss, the worm swarm, to come: no room for it yet.)
-  check('it opens on Enemies: five tabs, page 1 of 3 (floors 1–3, their own bosses with their rooms)', (html.match(/rb-lab-tab[ "]/g) ?? []).length === 5 && count('>Play<') === 3 && count('>Room<') === 2 && html.includes('>Dragon<') && html.includes('>Bone King<') && !html.includes('>Velociraptor<') && said('Page 1') === 1 && said('Page 2') === 1 && said('Page 3') === 1);
+  // (Update 0.3.41 — the Dragon floor 1's. Update 0.3.42 — floor 2's The Swarm.)
+  check('it opens on Enemies: five tabs, page 1 of 3 (floors 1–3, their own bosses with their rooms)', (html.match(/rb-lab-tab[ "]/g) ?? []).length === 5 && count('>Play<') === 3 && count('>Room<') === 3 && html.includes('>Dragon<') && html.includes('>The Swarm<') && html.includes('>Bone King<') && !html.includes('>Velociraptor<') && said('Page 1') === 1 && said('Page 2') === 1 && said('Page 3') === 1);
   // (Update 0.3.22 — floor 7 has its warband: no new floor left in the bottom row.)
   // (Update 0.3.32 — the Shrine Dimension there, till its enemies came: Update 0.3.33, a column.)
   check('no new floor in the bottom row (floors 7 and 8 columns)', said('Floor 7') === 0 && said('Floor 8') === 0);

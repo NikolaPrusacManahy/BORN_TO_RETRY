@@ -2,22 +2,21 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-04, after Update 0.3.41)
-- **Version 0.3.41** (the Dragon to floor 1, the Demon gone), built and copied to main, **not committed** until the
-  designer says "commit". 0.3.40 is committed (`7f6a8e4`; pushed by the designer through GitHub Desktop).
+## Where things stand (2026-11-04, after Update 0.3.42)
+- **Version 0.3.42** (The Swarm, floor 2's boss, first playable), built and copied to main, **not committed** until the
+  designer says "commit". 0.3.41 is committed (`61c67f3`); the designer pushes through GitHub Desktop.
 - **The floors** (`world/dungeon/floorOrder.ts`): 1 the Dungeon, 2 the Venom Garden, 3 the Bone Keep, 4 Frozen Depths,
   5 the Drowned Temple, 6 the Desert, 7 Skull Cove, 8 the Shrine Dimension, 9 the Moon, 10 Hell on Earth (the Forge's
   rooms meanwhile).
-  - Floors 1 and 3–9 each have their own boss (floor 1's the Dragon since 0.3.41; the Demon is gone). Floor 2's will
-    be the worm swarm (`MD/the-knot-3d-boss.md`, the designer's), the Dragon standing in. Floor 10's (Hellwarden) isn't
-    built, and the Velociraptor stands in.
+  - Floors 1–9 each have their own boss: floor 1's the Dragon since 0.3.41 (the Demon is gone); floor 2's The Swarm
+    since 0.3.42. Floor 10's (Hellwarden) isn't built, and the Velociraptor stands in.
   - **A run ends at floor 7** (`LAST_FLOOR` in `engine/runLinks.ts`, moved only when the designer says). Floors 8–10
     play from the Lab (F8).
 - **Open work, as it stands:**
-  - **The Knot, the Venom Garden's boss** (the designer's spec `MD/the-knot-3d-boss.md`, written for Unity: carried
-    over to this engine and to fists, as told to the designer): a heap of simulated worms round an eye. The designer may
-    send a reel of how its maker optimised it. About five updates: the worm sim and tubes; hits and deaths; Lash and
-    Spew; Charge, Worm Rain, Swallow and the phases; its show and death.
+  - **The Swarm, the Venom Garden's boss** (the designer's spec `MD/the-knot-3d-boss.md`, named The Swarm; its reel
+    read frame by frame in 0.3.42): first playable in 0.3.42 (the heap, the lash, worms or the eye taking blows, the
+    death). Next, the spec's order: parryable lashes; Spew; the phases (roll and charge, worm rain from pillars,
+    swallow); its own intro; real sounds.
   - **Executions reworked with the animation library** (started 0.3.40, the designer: "make stuff more accurate"):
     - the Orc's is done (its body's own clips, your claw on its face, the library's uppercut, the burst where you
       hold it), awaiting the designer's word on its renders and play;
@@ -28,8 +27,8 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
     shadow clones, its markings blazing.
   - **Boss intros at Tidebreaker's quality:**
     - done for the Big Shark, Tidebreaker and Okami;
-    - still on the shared portal intro: the Dragon (floor 1's now), the Bone King, the Velociraptor, the Drowned King
-      and the Frost Roc (the Demon's gone);
+    - still on the shared portal intro: the Dragon (floor 1's now), The Swarm, the Bone King, the Velociraptor, the
+      Drowned King and the Frost Roc (the Demon's gone);
     - Hellwarden gets one when it's built.
   - **Hellwarden,** floor 10's boss: `MD/FLOORS_7_10_PLAN.md`; a Bestiary model animated with `tools/ual_bake.py`.
   - **The trailer:** the capture kit is in (F7). `MD_UPDATES/U0337_CAPTURE_KIT.md` has its keys, how to film each kind
@@ -49,7 +48,20 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-04, Update 0.3.41: the Dragon to floor 1, the Demon gone)
+## Last update (2026-11-04, Update 0.3.42: The Swarm, floor 2's boss, first playable)
+- **The designer**: "try floor 2 Boss 'The Swarm'", with the reel (@NEENERDEV) of how its worms were built. Spec
+  `MD_UPDATES/U0342_THE_SWARM.md`.
+- **Its worms:** `sim/enemies/swarmBody.ts` (Verlet beads, constraints, a dense grid round the heap, the eye, the floor,
+  the walls near), stepped every other tick by `swarm.ts` (the boss: drift, lash, death). Blows: `swarmHits.ts`, through
+  `hitEnemy`'s new `at` (the landing point from `hitTarget`).
+- **The designer**, after the first renders: "make the worm models 2 times smaller and increase the amount". Now 220
+  thin worms (half as thick, 1.5 m long), only every other bead colliding; about 2.8 ms a frame in all (F1 → The Swarm →
+  Worms lowers it).
+- **Drawn:** `engine/swarm/swarmView.ts`, one mesh of capped tubes rebuilt each frame (0.9 ms), and the eye.
+- **Checking it:** `tests/test-swarm.ts`; renders from the game's own meshes (a scratch tool, like exec-shots).
+- **Next:** the designer plays it; then parryable lashes and Spew.
+
+## Before (2026-11-04, Update 0.3.41: the Dragon to floor 1, the Demon gone)
 - **The designer**: "take Boss 1 -> Remove it and take Boss 2 (dragon) to floor 1 boss. Make this new boss a floor 2
   boss", "Keep its strength". Spec `MD_UPDATES/U0341_BOSS_SWAP.md`.
 - **The bosses:** `kinds.ts` `BOSSES` (floor 1 and 2 the Dragon), `OWN_BOSS` (not the garden).

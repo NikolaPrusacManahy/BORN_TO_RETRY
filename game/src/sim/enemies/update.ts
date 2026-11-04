@@ -23,6 +23,7 @@ import { updateBrute } from './brute';
 import { doomBoss } from './bossDoom';
 import { updateBlueDemon } from './blueDemon';
 import { updateDragon } from './dragon';
+import { doomSwarm, updateSwarm } from './swarm';
 import { updateFrog } from './frog';
 import { updateSlime } from './slime';
 import { updateSnake } from './snake';
@@ -117,6 +118,7 @@ const UPDATE: Record<EnemyKind, Update> = {
   spider: updateSpider,
   blueDemon: updateBlueDemon,
   dragon: updateDragon,
+  swarm: updateSwarm,
   skeleton: updateSkeleton,
   mushnub: updateMushnub,
   ninja: updateNinja,
@@ -210,7 +212,7 @@ const UPDATE: Record<EnemyKind, Update> = {
 };
 /** A dead boss's show, each tick until its slot frees. Update 0.2.4 — and a Green Blob splitting as it dies.
  *  Update 0.2.11 — and a dead fish floating up. Update 0.3.15 — a Gull dropping your coins, a Tentacle sinking. */
-const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld, dt: number) => void>> = { dragon: doomBoss, boneKing: doomKing, dino: doomBoss, drownedKing: doomBoss, greenBlob: splitBlob, bigMushnub: splitMushnub, clownfish: floatUp, tuna: floatUp, angelfish: floatUp, dolphin: floatUp, mantaRay: floatUp, shark: floatUp, whale: doomBoss, gull: gullDrops, tentacle: tentacleSinks, bigShark: doomBoss, frostRoc: doomBoss, tidebreaker: doomBoss, okami: doomBoss };
+const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld, dt: number) => void>> = { dragon: doomBoss, swarm: doomSwarm, boneKing: doomKing, dino: doomBoss, drownedKing: doomBoss, greenBlob: splitBlob, bigMushnub: splitMushnub, clownfish: floatUp, tuna: floatUp, angelfish: floatUp, dolphin: floatUp, mantaRay: floatUp, shark: floatUp, whale: doomBoss, gull: gullDrops, tentacle: tentacleSinks, bigShark: doomBoss, frostRoc: doomBoss, tidebreaker: doomBoss, okami: doomBoss };
 
 export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWorld, world: CollisionWorld, dt: number) {
   let any = false;
