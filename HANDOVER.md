@@ -2,9 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-04, after Update 0.3.46)
-- **Version 0.3.46** (the Feedback box, for the playtest), built and copied to main, **not committed** until the designer
-  says "commit". 0.3.45 is committed (`823d3e8`); the designer pushes through GitHub Desktop.
+## Where things stand (2026-11-04, after Update 0.3.47)
+- **Version 0.3.47** (runs end at floor 9, for the public playtest build), built and copied to main, **not committed**
+  until the designer says "commit". 0.3.46 is committed (`cb01934`); the designer pushes through GitHub Desktop.
 - **A playtest with players is planned** (performance and feedback): the frame-rate counter (0.3.45, F2) and the Feedback
   box (0.3.46, pause menu) are for it.
 - **The floors** (`world/dungeon/floorOrder.ts`): 1 the Dungeon, 2 the Venom Garden, 3 the Bone Keep, 4 Frozen Depths,
@@ -12,8 +12,9 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   rooms in Hell's look since 0.3.43; stand-in enemies).
   - Floors 1–9 each have their own boss: floor 1's the Dragon since 0.3.41 (the Demon is gone); floor 2's The Swarm
     since 0.3.42. Floor 10's (Hellwarden) isn't built, and the Velociraptor stands in.
-  - **A run ends at floor 7** (`LAST_FLOOR` in `engine/runLinks.ts`, moved only when the designer says). Floors 8–10
-    play from the Lab (F8).
+  - **A run ends at floor 9** since 0.3.47, for the public playtest build (`LAST_FLOOR` in `engine/runLinks.ts`, moved
+    only when the designer says). Floor 10 plays only from the dev build's Lab (F8). The public build is hosted on
+    Netlify (the site's root, so the `/models/...` paths load).
 - **Open work, as it stands:**
   - **Floor 10, Hell on Earth** (`MD/FLOOR10_HELL_PLAN.md`, agreed: "Agreed, start"): its look done in 0.3.43. Next,
     the plan's order: the Bestiary enemies (Imp, Puglin, Bone Axeman, Bone Guard), the rest of its roster (Cinder
@@ -57,7 +58,14 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-04, Update 0.3.46: the Feedback box)
+## Last update (2026-11-04, Update 0.3.47: runs end at floor 9)
+- **The designer**, before the public build: "no access to floor 10, access of floor 1 to 9". Spec
+  `MD_UPDATES/U0347_FLOORS_1_TO_9.md`. `LAST_FLOOR` is the Moon's (floor 9); tests `test-alpha.ts`,
+  `test-floor3-executions.ts`.
+- **Hosting:** Netlify, at the site's root: the models' `/models/...` paths load there (a subfolder host such as itch.io
+  would need relative paths).
+
+## Before (2026-11-04, Update 0.3.46: the Feedback box)
 - **The designer**: "just simple": the average frame rate and the frame cap, glow and effects; feedback on cards, level
   design, enemies, difficulty; ideas; no PC specs, nothing about where they were. Spec `MD_UPDATES/U0346_FEEDBACK.md`.
 - **Built:** pause menu → Feedback (`screens/Feedback.tsx`): five fields, the game's line (`state/feedbackText.ts`; the

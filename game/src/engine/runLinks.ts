@@ -15,7 +15,9 @@ import { FLOOR } from '../world/dungeon/floorOrder';
  *  "allow room 1 to 5 only, don't include 6 yet"): floor 5's way down wins it. Update 0.3.11 — floor 6 is in (the plan
  *  for floors 7–10, MD/FLOORS_7_10_PLAN.md: the game's run is 10 floors now; it ends at each one as it's done). */
 // (Update 0.3.25 — the floors reordered: Skull Cove's way down, floor 7 now, with Frozen Depths in at 4.)
-export const LAST_FLOOR = FLOOR.cove;
+// (Update 0.3.47 — the designer, for the playtest's public build: "no access to floor 10, access of floor 1 to 9": the
+// Moon's way down, floor 9, after Tidebreaker. Hell on Earth, floor 10, is reached only from the dev build's Lab.)
+export const LAST_FLOOR = FLOOR.moon;
 export const endsRun = (floor: number) => floor >= LAST_FLOOR;
 
 /** Update 0.1.14 — what the death screen shows. */

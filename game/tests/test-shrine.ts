@@ -182,7 +182,8 @@ section('Shrine Dimension — to play');
 {
   // (Update 0.3.33 — its martial artists: a column of its own in the Lab. Update 0.3.34 — its boss, Yokai : Okami.)
   check('in the Lab, a column of its own, its boss its own', !LAB_NEW.includes(F) && LAB_FLOORS.some((f) => f.floor === F && f.enemies.length > 0 && f.boss === 'okami'));
-  check('the run still ends at Skull Cove (floor 7) till its enemies come', LAST_FLOOR === FLOOR.cove);
+  // (Update 0.3.47 — its enemies came (0.3.33); the public build's runs go on to floor 9.)
+  check('in a run, after Skull Cove (floor 7): the run goes on through it to the Moon (floor 9)', LAST_FLOOR === FLOOR.moon && FLOOR.shrine < LAST_FLOOR);
 }
 
 section('Shrine Dimension — its sky');

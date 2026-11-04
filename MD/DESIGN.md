@@ -20,7 +20,7 @@ A first-person action roguelike. You start every run with your bare hands, tear 
 | Players | Solo |
 | Platform | Desktop browser; Steam later via Electron |
 | Art | Quaternius low-poly (CC0): dark ruins, fog, rim light. **The dungeon is in daylight (Update 0.0.13, the designer: it was far too dark to play): open to the sky, sunlit, a pale haze.** |
-| Run | **7 floors** (Update 0.2.2, the designer: "we stop at floor 7, not floor 10"), each a way of fight rooms and a boss: 5 fight rooms on floors 1–2, 6 on 3–4, 7 on 5–6, 8 on floor 7. Floor 7's way down ends the run: "Run complete — Survived". |
+| Run | **9 floors** (Update 0.3.47, for the playtest's public build, the designer: "no access to floor 10, access of floor 1 to 9"; was 7 since Update 0.2.2), each a way of fight rooms and a boss. Floor 9's way down (the Moon's, after Tidebreaker) ends the run: "Run complete — Survived". Floor 10 (Hell on Earth) only from the dev build's Lab. |
 | Floors' order | **Update 0.3.25** (the designer: "Floor 7 is an easier Floor than 4, 5 and 6"): 1 The Dungeon, 2 The Venom Garden, 3 The Bone Keep, **4 Frozen Depths** (was 7), 5 The Drowned Temple, **6 The Desert** (was 4), **7 Skull Cove** (was 6), **8 Shrine Dimension** (a Japan floor, to come), **9 The Moon** (was 8), **10 Hell on Earth** (the Forge's rooms meanwhile). The run ends at Skull Cove's way down (floor 7) for now. A floor's number is how deep it is (its rooms and enemies' count); its place (`world/dungeon/floorOrder.ts`) is its look, rooms, enemies and boss. The sections below keep the numbers they had when written. Spec `MD_UPDATES/U0325_FLOOR_ORDER.md`. |
 | Carries over between runs | Character unlocks and stats only. Money resets. |
 
