@@ -28,7 +28,8 @@ const MAX_LEAN = 1;
 /** An open palm's middle is this far back from its knuckles (m). */
 const PALM = 0.05;
 const UP = new THREE.Vector3(0, 1, 0);
-const OPEN: Record<HandSub['mode'], number> = { guard: 0, rope: 0, fist: 0, palm: 1, chop: 1, slamUp: 0, slamDown: 0 };
+/** How open each hand is (1: flat; Update 0.3.40 — a claw half-way: its fingers curled over what it holds). */
+const OPEN: Record<HandSub['mode'], number> = { guard: 0, rope: 0, fist: 0, palm: 1, chop: 1, slamUp: 0, slamDown: 0, claw: 0.55 };
 /** Update 0.1.6 — a tail, a leg or an arm held: the fingers wrap something this thick (radius, m). */
 export const ROPE = 0.012;
 
@@ -38,6 +39,7 @@ const k = new THREE.Vector3();
 const r = new THREE.Vector3();
 const side2 = new THREE.Vector3();
 const way = new THREE.Vector3();
+const turn = new THREE.Vector3();
 const q = new THREE.Quaternion();
 const held = emptySword();
 const poseA = pose();
@@ -132,6 +134,13 @@ export class HeldGrip {
     held.grip.copy(holder.worldToLocal(camera.localToWorld(p)));
     holder.getWorldQuaternion(q).invert();
     way.transformDirection(camera.matrixWorld).applyQuaternion(q);
+    // (Update 0.3.40 — a key's own turn of the hand, carried as the way is.)
+    if (s.turned) {
+      turn.copy(s.turn).transformDirection(world.matrixWorldInverse);
+      turn.x *= scale;
+      turn.y *= scale;
+      turn.normalize().transformDirection(camera.matrixWorld).applyQuaternion(q);
+    }
     switch (s.mode) {
       case 'rope': {
         // Out of the thumb side towards its end; the fist points the way the arm reaches and leans in the grip to let it.
@@ -145,14 +154,16 @@ export class HeldGrip {
         rig.gripPose(held, out, side);
         return;
       }
-      case 'fist':
-        // Knuckles the way it punches, the back of the hand up.
+      case 'fist': {
+        // Knuckles the way it punches, the back of the hand up (Update 0.3.40 — or the key's way for it).
         out.fist.copy(held.grip);
         out.knuckles.copy(way);
-        out.back.copy(UP).addScaledVector(way, -way.y);
+        const back = s.turned ? turn : UP;
+        out.back.copy(back).addScaledVector(way, -back.dot(way));
         if (out.back.lengthSq() < 1e-4) out.back.set(0, 0, -1);
         out.back.normalize();
         return;
+      }
       case 'slamDown':
         // The slam's own fist, on the spot.
         out.fist.copy(held.grip);
@@ -169,13 +180,16 @@ export class HeldGrip {
         out.back.normalize();
         return;
       case 'palm':
-        // The palm faces the way; fingers up.
+      case 'claw': {
+        // The palm faces the way; fingers up (Update 0.3.40 — or the key's way for them, square to the palm's).
         out.back.copy(way).negate();
-        out.knuckles.copy(UP).addScaledVector(way, -way.y);
+        const along = s.turned ? turn : UP;
+        out.knuckles.copy(along).addScaledVector(way, -along.dot(way));
         if (out.knuckles.lengthSq() < 1e-4) out.knuckles.set(0, 0, 1);
         out.knuckles.normalize();
         out.fist.copy(held.grip).addScaledVector(out.knuckles, PALM);
         return;
+      }
     }
   }
 }

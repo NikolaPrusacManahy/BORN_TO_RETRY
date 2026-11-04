@@ -62,6 +62,21 @@ export function gripFrom(g: ExecLook['grip'], model: THREE.Object3D): Grip | nul
   return { tail: tip, axis: head.sub(tip).normalize(), line, face: g.face ? new THREE.Vector3(...g.face).normalize() : null };
 }
 
+/** Update 0.3.40 — a held body's grip as its own clip poses it now (into `out`; `g` its look's grip, `rest` its grip
+ *  at rest for the line and the face): a clip moves the head about the body's root, and it's that head your hand
+ *  holds and that body that hangs from it. Its root as the enemies' view left it this frame. */
+export function posedGrip(root: THREE.Object3D, g: NonNullable<ExecLook['grip']>, rest: Grip, out: Grip): Grip {
+  const tip = boneOf(root, g.at);
+  const to = boneOf(root, g.to);
+  if (!tip || !to) return rest;
+  root.updateMatrixWorld(true);
+  root.worldToLocal(tip.getWorldPosition(out.tail));
+  root.worldToLocal(to.getWorldPosition(out.axis)).sub(out.tail).normalize();
+  out.line = rest.line;
+  out.face = rest.face;
+  return out;
+}
+
 /** A body's still joints (`root`: its own clone, at rest) with their rest turns and places (the clip moves a tail's
  *  first joint as well as turning them). */
 export function stillOf(kind: EnemyKind, root: THREE.Object3D): Still {

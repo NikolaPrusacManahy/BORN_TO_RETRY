@@ -11,7 +11,7 @@ import { ENEMY_STATS } from '../../sim/enemies/kinds';
 import { EXECUTION } from '../../tuning/execution';
 import type { Side } from '../viewmodel/guard';
 import { boneOf } from './bones';
-import { fold, reachArm, Grip, holdStill, placeHeld, placeStood } from './body';
+import { fold, reachArm, Grip, holdStill, placeHeld, placeStood, posedGrip } from './body';
 import { Drawn, HandTarget, resetHands } from './hands';
 import { EXEC_LOOKS } from './looks';
 import { lookFor, piecesKey } from './pinLook';
@@ -53,6 +53,8 @@ export class ExecScene {
   private folded: string[] = [];
   private burst = false;
   private readonly kept = { pos: new THREE.Vector3(), quat: new THREE.Quaternion(), scale: new THREE.Vector3(), ok: false };
+  /** Update 0.3.40 — a held body's grip as its clip poses it (body.ts `posedGrip`). */
+  private readonly posed: Grip = { tail: new THREE.Vector3(), axis: new THREE.Vector3(0, -1, 0), line: null, face: null };
 
   constructor(scene: THREE.Object3D) {
     this.tongue = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 8).translate(0, 0.5, 0), new THREE.MeshStandardMaterial({ color: 0xe8607a, emissive: 0x501020, roughness: 0.5 }));
@@ -116,8 +118,11 @@ export class ExecScene {
     const move = moveFor(ex);
     const look = lookFor(ex);
     const scale = ENEMY_STATS[ex.kind]().height / (root.userData.height as number);
-    // (Update 0.3.8 — a pinned body is held by its head: pinLook.ts.)
-    const grip = (ex.pinned ? root.userData.pinGrip : root.userData.grip) as Grip | null;
+    // (Update 0.3.8 — a pinned body is held by its head: pinLook.ts. Update 0.3.40 — one playing its own clips hangs
+    // from its grip as they pose it.)
+    const rest = (ex.pinned ? root.userData.pinGrip : root.userData.grip) as Grip | null;
+    const g = look?.grip;
+    const grip = !ex.pinned && rest && g && root.userData.execClips ? posedGrip(root, g, rest, this.posed) : rest;
     if (move.held && grip) placeHeld(root, ex, scale, grip, root.rotation.y, root.userData.lowest as number);
     else if (!move.held) placeStood(root, ex, facing, root.rotation.y, ENEMY_STATS[ex.kind]().height);
     holdStill(root);
@@ -144,12 +149,21 @@ export class ExecScene {
     root.scale.copy(this.kept.scale);
   }
 
-  /** Every piece of it flies apart from its middle; the body's gone. */
+  /** Every piece of it flies apart from its middle; the body's gone. Update 0.3.40 — one held bursts where it was held
+   *  (it was drawn dropped to the floor for its last moment, a metre under your fist and out of view). */
   private burstAll(ex: Execution, root: THREE.Object3D) {
     const look = lookFor(ex);
     const specs = look?.pieces ?? [];
+    const held = moveFor(ex).held && this.kept.ok;
+    if (held) {
+      root.position.copy(this.kept.pos);
+      root.quaternion.copy(this.kept.quat);
+      root.scale.copy(this.kept.scale);
+      root.updateMatrixWorld(true);
+    }
     const all = this.pieces.of(piecesKey(ex), root, specs);
-    v.copy(root.position).addScaledVector(UP, ENEMY_STATS[ex.kind]().height * 0.5);
+    if (held) v.copy(ex.middle);
+    else v.copy(root.position).addScaledVector(UP, ENEMY_STATS[ex.kind]().height * 0.5);
     F.set(-Math.sin(ex.yaw), 0, -Math.cos(ex.yaw));
     all.forEach((p, i) => {
       if (!p.parts.length) return;

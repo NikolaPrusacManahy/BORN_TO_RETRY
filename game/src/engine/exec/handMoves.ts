@@ -21,7 +21,10 @@ type V3 = readonly [number, number, number];
 /** How a hand is: in its guard, round a line (a rope's grip), a fist, an open palm pressing, an open hand's edge
  *  chopping, or half of the ground slam's clasp: raised (posed in your view, not on the body) or smashed down onto its
  *  spot. */
-export type HandMode = 'guard' | 'rope' | 'fist' | 'palm' | 'chop' | 'slamUp' | 'slamDown';
+export type HandMode = 'guard' | 'rope' | 'fist' | 'palm' | 'chop' | 'slamUp' | 'slamDown' | 'claw';
+// Update 0.3.40 — 'claw' (the designer: the right hand lifting the Orc "looks absolutly crazy bad", a flat hand with
+// its fingers straight up): a hand clamped on something big and round (a face, a skull), its palm on it, its fingers
+// curled over it, the wrist straight.
 
 export interface HandAt {
   mode: HandMode;
@@ -37,6 +40,10 @@ export interface HandAt {
   way?: V3;
   /** Rope: this far further along it, in the arms' own view (m): the second fist. */
   slide?: number;
+  /** Update 0.3.40 — palm, claw: the way the fingers point (as `way`; none: up across your view, as the palm's were). */
+  fingers?: V3;
+  /** Update 0.3.40 — fist: the way the back of the hand faces (as `way`; none: up). An uppercut's faces what it hits. */
+  back?: V3;
   /** A tremble (m), and a circling (m, its radius) with the frog's whirl. */
   shake?: number;
   whirl?: number;
@@ -63,6 +70,11 @@ const chopUp = (x: number): HandAt => ({ mode: 'chop', me: [x, 1.95, 0.45], way:
 const chopOn = (on: string): HandAt => ({ mode: 'chop', on, off: [0, 0.06, 0], way: [0, -0.8, 0.6] });
 const chopThrough = (x: number, ahead: number): HandAt => ({ mode: 'chop', me: [x, 0.7, ahead], way: [0, -1, 0.3] });
 const UP: HandAt = { mode: 'slamUp' };
+/** Update 0.3.40 — its face in your claw: the palm on it, the fingers curled up over its brow, the wrist nearly straight
+ *  (fingers straight up bent it 60°; on along the forearm the hand only reached its jaw). */
+const CLAW_FACE: HandAt = { mode: 'claw', on: 'Head', off: [0, 0.2, 0.12], way: [0, -0.45, 0.9], fingers: [0, 0.9, 0.45] };
+/** Update 0.3.40 — an uppercut's fist dropped by the right hip: knuckles ahead, the palm up. */
+const UPPER_LOW: HandAt = { mode: 'fist', me: [0.25, 1.2, 0.45], way: [0, 0.2, 1], back: [0, -1, 0.2] };
 
 /** The ground slam's smash landing on bone `on` at `at` s: the clasped fists up from `from`, held, down onto it at `at`
  *  (eased in over the slam's own time), held a beat and back to the guard, as the slam's knobs say (read live). */
@@ -158,15 +170,21 @@ function barrage(): HandKey[] {
 export const HAND_MOVES: Partial<Record<EnemyKind, readonly HandKey[]>> = {
   snake: BY_LINE,
   // Its head in your right palm; tossed up; drawn back low and an uppercut into its belly as it comes down.
+  // Update 0.3.40 — its face in your claw (the palm on it, the fingers curled over its skull, the wrist straight: the
+  // palm pressed down on top of a head held up above your eye was a flat hand, fingers straight up); let go, the hand
+  // opens as it shoves it up.
   grunt: [
     { t: 0, L: G, R: G },
-    { t: 0.18, L: G, R: { mode: 'palm', on: 'Head', off: [0, 0.2, 0], way: [0, -1, 0] } },
-    { t: 0.45, L: G, R: { mode: 'palm', on: 'Head', off: [0, 0.2, 0], way: [0, -1, 0] } },
-    { t: 0.53, L: G, R: { mode: 'palm', me: [0.35, 2.15, 0.65], way: [0, 1, 0.2] } },
-    // (Up where you're looking: drawn back low, they'd be below the view and the arm would fill it.)
-    { t: 0.65, L: { mode: 'fist', me: [-0.32, 1.95, 0.5], way: [0.2, 0.6, 1] }, R: { mode: 'fist', me: [0.28, 1.82, 0.32], way: [0, 0.8, 0.6], shake: 0.008 } },
-    { t: 0.85, L: { mode: 'fist', me: [-0.32, 1.95, 0.5], way: [0.2, 0.6, 1] }, R: { mode: 'fist', on: 'Abdomen', off: [0, -0.15, 0.1] } },
-    { t: 1.0, L: { mode: 'fist', me: [-0.32, 1.95, 0.5], way: [0.2, 0.6, 1] }, R: { mode: 'fist', on: 'Abdomen', off: [0, -0.15, 0.1] } },
+    { t: 0.18, L: G, R: CLAW_FACE },
+    { t: 0.45, L: G, R: CLAW_FACE },
+    { t: 0.53, L: G, R: { mode: 'palm', me: [0.3, 2.2, 0.7], way: [0, 0.5, 1], fingers: [0, 1, -0.2] } },
+    // Update 0.3.40 — the uppercut as the animation library throws it (Melee_Uppercut, its left: mirrored): the fist
+    // dropped low by the hip, palm up, held a beat; then straight up into its belly, knuckles up, the palm towards you,
+    // the back of the hand to it; carried on up past it. The left stays in its guard.
+    { t: 0.63, L: G, R: UPPER_LOW },
+    { t: 0.71, L: G, R: UPPER_LOW },
+    { t: 0.85, L: G, R: { mode: 'fist', on: 'Abdomen', off: [0, -0.1, 0.12], way: [0, 1, 0.15], back: [0, 0, 1] } },
+    { t: 1.0, L: G, R: { mode: 'fist', me: [0.15, 2.45, 0.85], way: [0, 1, 0.1], back: [0, 0, 1] } },
     { t: 1.2, L: G, R: G },
   ],
   spitter: [

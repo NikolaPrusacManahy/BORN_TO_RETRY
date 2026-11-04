@@ -2,17 +2,22 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-04, after Update 0.3.39)
-- **Version 0.3.39**, committed on `main` (`b669bff`) and pushed to GitHub (the designer pushes through GitHub
-  Desktop). The code is all committed; this file's and `DEVELOPMENT.md`'s refresh (2026-11-04) may not be
-  yet (check `git status`).
+## Where things stand (2026-11-04, after Update 0.3.40)
+- **Version 0.3.40** (the Orc's execution reworked), built and copied to main, **not committed** until the designer
+  says "commit". 0.3.39 and the docs' refresh are committed (`2ff57d0`) and pushed.
 - **The floors** (`world/dungeon/floorOrder.ts`): 1 the Dungeon, 2 the Venom Garden, 3 the Bone Keep, 4 Frozen Depths,
   5 the Drowned Temple, 6 the Desert, 7 Skull Cove, 8 the Shrine Dimension, 9 the Moon, 10 Hell on Earth (the Forge's
   rooms meanwhile).
   - Floors 1–9 each have their own boss; floor 10's (Hellwarden) isn't built, and the Velociraptor stands in.
   - **A run ends at floor 7** (`LAST_FLOOR` in `engine/runLinks.ts`, moved only when the designer says). Floors 8–10
     play from the Lab (F8).
-- **Open work, as it stands** (none started):
+- **Open work, as it stands:**
+  - **Executions reworked with the animation library** (started 0.3.40, the designer: "make stuff more accurate"):
+    - the Orc's is done (its body's own clips, your claw on its face, the library's uppercut, the burst where you
+      hold it), awaiting the designer's word on its renders and play;
+    - next: the 27 others sharing its moves get the clips (`tools/ual_exec.py`; the Orc's rig: the Tribal, the pirates,
+      the astronauts; the people's: floor 4's warband, floor 8's fighters), each rendered and checked;
+    - then the other executions (the Ghost's 16, the old Yeti punch's 11), the same way.
   - **Okami's rage and frenzy:** not built. The plan's first idea, in `MD/FLOOR8_SHRINE_PLAN.md`, is a petal storm with
     shadow clones, its markings blazing.
   - **Boss intros at Tidebreaker's quality:**
@@ -38,7 +43,26 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-03, Update 0.3.39: far off, the heaviest pieces lighter)
+## Last update (2026-11-04, Update 0.3.40: the Orc's execution, reworked)
+- **The designer**: "I have that ULA 1 & 2 lib now … is there a way to rework stuff? like make stuff more accurate?",
+  "Yes, Orc's first", then "the right hand looks absolutly crazy bad when lifting the body". Spec
+  `MD_UPDATES/U0340_ORC_EXECUTION.md`.
+- **Its body:**
+  - The Orc plays its own `Exec_…` clips while held. They're baked into `orc.glb` from the library by
+    `tools/ual_exec.py`.
+  - The clips are scheduled in `exec/looks.ts` `clips` and played by `enemiesView.ts`.
+  - It hangs from its posed head (`body.ts` `posedGrip`).
+- **Your hands:**
+  - a `claw` on its face (`handMoves.ts` `CLAW_FACE`; keys can now give a palm's fingers' way and a fist's back's);
+  - the library's uppercut.
+- **The burst:** a held body bursts where you hold it (`execScene.ts` `burstAll`). Before, it was dropped to the floor
+  first, out of view.
+- **Checking it:**
+  - `tools/exec-shots.ts` (EXEC_AT for extra moments) → `render_view.py`, before and after;
+  - `tests/test-exec-orc.ts`.
+- **Next:** the designer plays it, then the other kinds sharing its moves get the clips.
+
+## Before (2026-11-03, Update 0.3.39: far off, the heaviest pieces lighter)
 - **The designer**: "it works, next" (fix 4). Spec `MD_UPDATES/U0339_FAR_PIECES.md`.
 - **The far pieces:** `tools/blender/kit_far.py` makes `public/models/dungeon/kit_far.glb` from the kit (each stone of
   floor 1's tile, wall and cap as its box). Run it again if those pieces ever change in `kit.glb`.

@@ -18,6 +18,10 @@ export interface HandSub {
   at: THREE.Vector3;
   way: THREE.Vector3;
   slide: number;
+  /** Update 0.3.40 — the hand's turn about its way, if its key gives one (`turned`): a palm's or claw's fingers' way, a
+   *  fist's back's (world, length 1). Else a palm's fingers are up across your view, a fist's back up. */
+  turn: THREE.Vector3;
+  turned: boolean;
 }
 export interface HandTarget {
   a: HandSub;
@@ -40,7 +44,7 @@ export interface Drawn {
 /** A tail-like grip is held this far in from its end (m), so its end shows. */
 const TIP = 0.08;
 
-const sub = (): HandSub => ({ mode: 'guard', at: new THREE.Vector3(), way: new THREE.Vector3(0, 0, -1), slide: 0 });
+const sub = (): HandSub => ({ mode: 'guard', at: new THREE.Vector3(), way: new THREE.Vector3(0, 0, -1), slide: 0, turn: new THREE.Vector3(0, 1, 0), turned: false });
 export const handTargets = (): Record<Side, HandTarget> => ({ L: { a: sub(), b: sub(), u: 0 }, R: { a: sub(), b: sub(), u: 0 } });
 
 const R = new THREE.Vector3();
@@ -102,6 +106,10 @@ function resolve(h: HandAt, slot: number, side: Side, t: number, ex: HandFrame, 
   out.mode = h.mode;
   out.slide = h.slide ?? 0;
   if (h.mode === 'guard' || h.mode === 'slamUp') return;
+  // (Update 0.3.40 — the hand's turn, as the key gives it: its fingers' way, or its back's.)
+  const f = h.mode === 'fist' ? h.back : h.fingers;
+  out.turned = !!f;
+  if (f) out.turn.set(0, 0, 0).addScaledVector(R, f[0]).addScaledVector(UP, f[1]).addScaledVector(F, f[2]).normalize();
   const onBody = !!h.on || (!!h.to && !h.way);
   if (onBody && (!held || !drawn.root || folded(drawn.root, h.on))) {
     if (store.ok[slot]) {
@@ -134,7 +142,7 @@ function resolve(h: HandAt, slot: number, side: Side, t: number, ex: HandFrame, 
   else if (h.to) {
     const bone = drawn.root ? boneOf(drawn.root, h.to) : null;
     if (bone) out.way.copy(bone.getWorldPosition(v)).sub(out.at).normalize();
-  } else if (h.mode === 'palm') out.way.copy(camRight).multiplyScalar(side === 'L' ? 1 : -1);
+  } else if (h.mode === 'palm' || h.mode === 'claw') out.way.copy(camRight).multiplyScalar(side === 'L' ? 1 : -1);
   else out.way.copy(out.at).sub(camera.getWorldPosition(v)).normalize();
   // Circling with what it whirls: towards it, round.
   if (h.whirl && h.to && drawn.root) {

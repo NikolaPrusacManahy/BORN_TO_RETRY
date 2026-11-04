@@ -80,7 +80,8 @@ export const EXEC_MOVES: Partial<Record<EnemyKind, ExecMove>> = {
     held: true,
     keys: [
       { t: 0, grip: null, dir: [0, -1, 0], look: null },
-      { t: 0.25, grip: [0.1, 2.05, 1.2], dir: [0, -1, 0.1], look: [0, 12] },
+      // (Update 0.3.40 — looking up a little more at it: its face in your claw sat at the top of the view.)
+      { t: 0.25, grip: [0.1, 2.05, 1.2], dir: [0, -1, 0.1], look: [0, 19] },
       { t: 0.45, grip: [0.05, 2.75, 1.25], dir: [0, -1, 0.15], look: [0, 30], snap: true },
       { t: 0.65, grip: [-0.6, 3.1, 1.4], dir: [0.8, 0.3, -0.5], look: [0, 42] },
       { t: 0.85, grip: [-0.95, 2.0, 1.15], dir: [1, 0.1, 0], look: [0, 28], snap: true },

@@ -100,7 +100,9 @@ for (const arg of kinds) {
   // Its moments: each key and blow (a few of a barrage), and after.
   const move = pin === 'pillar' ? PILLARED : pin === 'pin' ? PINNED : moveOf(kind);
   const beats = move.beats.length > 8 ? [move.beats[0], move.beats[15], move.beats[move.beats.length - 1]] : move.beats;
-  const at = [...new Set([0.08, ...move.keys.filter((k, i) => !k.glide || i % 5 === 0).map((k) => k.t), ...beats.map((b) => b.t + 0.01), move.endAt + 0.15, move.endAt + 0.45].filter((t) => t > 0).map((t) => +t.toFixed(2)))].sort((a, b) => a - b).slice(0, 14);
+  // (Update 0.3.40 — EXEC_AT=0.15,0.35,… adds moments of your own.)
+  const extra = (process.env.EXEC_AT ?? '').split(',').filter(Boolean).map(Number);
+  const at = [...new Set([0.08, ...move.keys.filter((k, i) => !k.glide || i % 5 === 0).map((k) => k.t), ...beats.map((b) => b.t + 0.01), move.endAt + 0.15, move.endAt + 0.45, ...extra].filter((t) => t > 0).map((t) => +t.toFixed(2)))].sort((a, b) => a - b).slice(0, 14 + extra.length);
   let next = 0;
   let t = 0;
   for (let k = 0; next < at.length && k < 4000; k++) {

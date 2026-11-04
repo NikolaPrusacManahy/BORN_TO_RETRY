@@ -40,6 +40,26 @@ export interface ExecLook {
   keep?: boolean;
   /** Update 0.2.2 — standing, it shakes this much (m) at `t` s in. */
   tremble?: (t: number) => number;
+  /** Update 0.3.40 — what its body does while it's held, in turn (a model with all of them only; else it thrashes as
+   *  before): its own `Exec_…` clips, baked from the animation library (tools/ual_exec.py). Held, it hangs from the
+   *  grip as the clip poses it (body.ts `posedGrip`). */
+  clips?: readonly ExecClip[];
+}
+
+/** Update 0.3.40 — a clip its body plays from `at` s in (at Execution speed 1), `speed` × its own, faded into over
+ *  `fade` s; played once, its last moment held. */
+export interface ExecClip {
+  at: number;
+  name: string;
+  speed?: number;
+  fade?: number;
+}
+
+/** Update 0.3.40 — the clip a body plays `t` s into its execution (null: none yet). */
+export function execClipAt(clips: readonly ExecClip[], t: number): ExecClip | null {
+  let now: ExecClip | null = null;
+  for (const c of clips) if (t >= c.at) now = c;
+  return now;
 }
 
 const ease = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
@@ -53,7 +73,22 @@ export const HUMANOID: (readonly string[])[] = [['Neck'], ['ShoulderL'], ['Shoul
 export const EXEC_LOOKS: Partial<Record<EnemyKind, ExecLook>> = {
   snake: { grip: { at: 'Tail3', to: 'Head', line: 'Tail2' }, still: ['Tail', 'Tail1', 'Tail2', 'Tail3'] },
   // Update 0.1.3 — held by its head (its body hanging, its front to you); it bursts.
-  grunt: { grip: { at: 'Head', to: 'Hips', face: [0, 0, 1] }, pieces: HUMANOID, burst: true },
+  // Update 0.3.40 (the designer: "make stuff more accurate", the animation library; the Orc's first) — it moves as a
+  // body does: it buckles as your palm takes its head and is drawn up arching, hangs kicking and clawing at your hand,
+  // flails as it's tossed, and curls round the uppercut (the Orc's model only so far: the others that share this
+  // thrash as before).
+  grunt: {
+    grip: { at: 'Head', to: 'Hips', face: [0, 0, 1] },
+    pieces: HUMANOID,
+    burst: true,
+    clips: [
+      { at: 0, name: 'Exec_Lift', speed: 1.6 },
+      { at: 0.3, name: 'Exec_Hang', fade: 0.1 },
+      { at: 0.5, name: 'Exec_Flail', speed: 1.3, fade: 0.08 },
+      // (Curled by the time the fist lands at 0.85: the hit's freeze holds the view's clips too.)
+      { at: 0.83, name: 'Exec_Fold', fade: 0.02 },
+    ],
+  },
   spitter: { grip: { at: 'Head', to: 'Head3', face: [0, 0, 1] }, pieces: [['Head'], ['Head2'], ['Head3']], burst: true },
   leaper: {
     still: ['ShoulderL', 'UpperArmL', 'LowerArmL', 'ShoulderR', 'UpperArmR', 'LowerArmR'],

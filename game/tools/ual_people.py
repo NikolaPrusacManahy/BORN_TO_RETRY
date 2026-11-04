@@ -123,11 +123,10 @@ def retarget(pr, ur, rot, pel, F, in_place):
     return tracks
 
 
-def bake(key, base):
-    cfg = FIGHTERS[key]
+def build_clips(pr, clips):
+    """Update 0.3.40 (shared with ual_exec.py) — the library's clips as theirs: `clips` {library: [spec…]}, each spec
+    as the header says. Returns [(name, times, tracks)]."""
     A = assets()
-    pj, pbin = read_glb(os.path.join(base, cfg['base'] + '.glb'))
-    pr = Rig(pj)
     libs = {'UAL1': os.path.join(A, 'ULA 1', 'Unreal-Godot', 'UAL1.glb'), 'UAL2': os.path.join(A, 'ULA 2', 'Unreal-Godot', 'UAL2.glb')}
     loaded = {}
 
@@ -138,7 +137,7 @@ def bake(key, base):
         return loaded[name]
 
     anims = []
-    for libname, names in cfg['clips'].items():
+    for libname, names in clips.items():
         uj, ubin, ur = lib(libname)
         for spec in names:
             src, dst = spec.split('=') if '=' in spec else (spec, spec)
@@ -160,18 +159,11 @@ def bake(key, base):
                     t = np.concatenate([t, pt + t[-1] + 1 / FPS])
                     tracks = {k: np.concatenate([np.asarray(tracks[k]), np.asarray(pk[k])]) for k in tracks}
             anims.append((dst, t, tracks))
-    # The weapon turned about the forearm (round the fist bone's own line, so its grip stays put).
-    turn = cfg.get('weapon_turn')
-    if turn:
-        a = np.radians(turn) / 2
-        qt = np.array([0, np.sin(a), 0, np.cos(a)])
-        for n in pj['nodes']:
-            if n.get('name') == 'Weapon':
-                n['rotation'] = list(qmul(qt, np.array(n.get('rotation', [0, 0, 0, 1.0]))))
-                n['translation'] = list(qrot(qt, np.array(n.get('translation', [0, 0, 0.0]))))
-    # Their own clips kept (by name), the rest dropped; the library's added.
-    keep = set(cfg.get('keep', []))
-    pj['animations'] = [a for a in pj.get('animations', []) if a['name'] in keep]
+    return anims
+
+
+def add_clips(pj, pbin, anims):
+    """Update 0.3.40 — `anims` written into the GLB's JSON and a copy of its binary (returned)."""
     out = bytearray(pbin)
 
     def add(arr, typ, mn=None, mx=None):
@@ -194,6 +186,27 @@ def bake(key, base):
             samplers.append({'input': ti, 'output': add(vals, 'VEC4' if path == 'rotation' else 'VEC3'), 'interpolation': 'LINEAR'})
             channels.append({'sampler': len(samplers) - 1, 'target': {'node': node, 'path': path}})
         pj['animations'].append({'name': name, 'samplers': samplers, 'channels': channels})
+    return out
+
+
+def bake(key, base):
+    cfg = FIGHTERS[key]
+    pj, pbin = read_glb(os.path.join(base, cfg['base'] + '.glb'))
+    pr = Rig(pj)
+    anims = build_clips(pr, cfg['clips'])
+    # The weapon turned about the forearm (round the fist bone's own line, so its grip stays put).
+    turn = cfg.get('weapon_turn')
+    if turn:
+        a = np.radians(turn) / 2
+        qt = np.array([0, np.sin(a), 0, np.cos(a)])
+        for n in pj['nodes']:
+            if n.get('name') == 'Weapon':
+                n['rotation'] = list(qmul(qt, np.array(n.get('rotation', [0, 0, 0, 1.0]))))
+                n['translation'] = list(qrot(qt, np.array(n.get('translation', [0, 0, 0.0]))))
+    # Their own clips kept (by name), the rest dropped; the library's added.
+    keep = set(cfg.get('keep', []))
+    pj['animations'] = [a for a in pj.get('animations', []) if a['name'] in keep]
+    out = add_clips(pj, pbin, anims)
     path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), cfg['out'])
     os.makedirs(os.path.dirname(path), exist_ok=True)
     write_glb(path, pj, out)

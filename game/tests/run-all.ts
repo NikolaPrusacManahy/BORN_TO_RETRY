@@ -106,6 +106,7 @@ import './test-music';
 import './test-hud-controls';
 import './test-style';
 import './test-exec-grip';
+import './test-exec-orc';
 import './test-executions';
 import './test-death';
 import './test-crowd';

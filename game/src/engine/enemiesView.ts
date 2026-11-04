@@ -40,6 +40,8 @@ import { posedBounds } from './bodyMeasure';
 import { clipOf, FADE, LOOKS, ONCE, Role, ROLES, roleFor } from './enemyLooks';
 import { TongueView } from './tongueView';
 import { gripFrom, gripOf, stillOf } from './exec/body';
+import { EXEC_LOOKS, execClipAt } from './exec/looks';
+import { EXECUTION } from '../tuning/execution';
 import { PIN_GRIP } from './exec/pinLook';
 import { PINNABLE } from '../sim/enemies/flight';
 import { moveOf } from '../sim/combat/execution';
@@ -47,6 +49,9 @@ import { submerged } from '../sim/enemies/drownedKingMoves';
 import { ownMaterials } from './norse/norseLooks';
 import { FOES_NORSE } from '../tuning/foesNorse';
 import { sinkOf } from './enemyPose';
+
+/** Update 0.3.40 — how long (s) a held body's next clip fades in, if its look doesn't say. */
+const EXEC_FADE = 0.06;
 
 interface Body {
   root: THREE.Object3D;
@@ -160,6 +165,15 @@ export class EnemiesView {
         const a = (extra[name] ??= mixer.clipAction(find(name) ?? animations[0]));
         if (once) [a.loop, a.clampWhenFinished] = [THREE.LoopOnce, true];
       }
+      // Update 0.3.40 — its execution's own clips (tools/ual_exec.py), if its model has them all.
+      const held = EXEC_LOOKS[kind]?.clips;
+      root.userData.execClips = !!held && held.every((c) => find(c.name));
+      if (root.userData.execClips) {
+        for (const c of held!) {
+          const a = (extra[c.name] ??= mixer.clipAction(find(c.name)!));
+          [a.loop, a.clampWhenFinished] = [THREE.LoopOnce, true];
+        }
+      }
       this.group.add(root);
       slot.bodies[kind] = { root, mixer, actions, mats, extra, role: null };
     }
@@ -229,9 +243,17 @@ export class EnemiesView {
       const dash = ((e.kind === 'dino' || e.kind === 'drownedKing') && e.phase === 'charge') || (SWIMS.has(e.kind) && (e.phase === 'charge' || e.phase === 'dive' || e.phase === 'leap'));
       if (dash) want = 'move';
       // (Update 0.3.26 — a move's own clip, played through its warning; Update 0.3.29 — or up to its blow, `mine[2]`.)
-      const mine = look.moveClips?.[`${e.phase}:${e.move}`], own = mine?.[0];
-      if ((own ?? want) !== b.role || (again && (own !== undefined || ONCE.includes(want)))) this.play(b, own ?? want);
-      if (own) b.extra[own].timeScale = e.phase === 'windup' ? (b.extra[own].getClip().duration * (mine?.[2] ?? 1)) / Math.max(0.1, windup) : (mine?.[3] ?? 1);
+      // Update 0.3.40 — held in an execution: its own clips in turn (exec/looks.ts `clips`), timed to it.
+      const ex = state.exec;
+      const held = e.phase === 'held' && b.root.userData.execClips && ex.active && ex.target === i && !ex.pinned ? execClipAt(EXEC_LOOKS[e.kind]!.clips!, ex.t) : null;
+      if (held) {
+        if (held.name !== b.role) this.play(b, held.name, held.fade ?? EXEC_FADE);
+        b.extra[held.name].timeScale = (held.speed ?? 1) * EXECUTION.v.speed;
+      } else {
+        const mine = look.moveClips?.[`${e.phase}:${e.move}`], own = mine?.[0];
+        if ((own ?? want) !== b.role || (again && (own !== undefined || ONCE.includes(want)))) this.play(b, own ?? want);
+        if (own) b.extra[own].timeScale = e.phase === 'windup' ? (b.extra[own].getClip().duration * (mine?.[2] ?? 1)) / Math.max(0.1, windup) : (mine?.[3] ?? 1);
+      }
       attack.timeScale = look.lands / windup;
       b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? BONE_KING.v.kingRise : e.phase === 'intro' ? FOES_NORSE.v.riseTime : FOES3.v.skeletonRise);
       b.actions.move.timeScale = e.phase === 'held' ? 3 : dash ? 2 : flies(e.kind) ? 1 : Math.min(PACE_HIGH, Math.max(PACE_LOW, slot.pace / full));
@@ -264,10 +286,10 @@ export class EnemiesView {
     (ring.material as THREE.MeshBasicMaterial).opacity = 0.25 + 0.65 * k;
   }
 
-  private play(b: Body, key: Role | string) {
+  private play(b: Body, key: Role | string, fade = FADE) {
     const of = (k: string) => b.actions[k as Role] ?? b.extra[k];
-    if (b.role && b.role !== key) of(b.role).fadeOut(FADE);
-    of(key).reset().setEffectiveWeight(1).fadeIn(b.role ? FADE : 0).play();
+    if (b.role && b.role !== key) of(b.role).fadeOut(fade);
+    of(key).reset().setEffectiveWeight(1).fadeIn(b.role ? fade : 0).play();
     b.role = key;
   }
 

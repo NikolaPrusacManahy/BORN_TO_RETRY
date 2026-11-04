@@ -228,7 +228,8 @@ export function stepExecution(state: CombatState, dt: number, player: PlayerStat
       b.copy(ex.middle);
       // (Update 0.2.2 — standing, where its feet are: lifted, it bursts where it hangs.)
       b.y = move.held ? ex.origin.y : ex.middle.y - height * 0.5;
-      finish(state, ex, b, 'execBurst', player);
+      // (Update 0.3.40 — one held is seen to burst where it's held, its blood from there: its body to the floor.)
+      finish(state, ex, b, 'execBurst', player, move.held ? ex.middle : b);
       return;
     }
     ex.thrown = true;
@@ -251,14 +252,14 @@ export function stepExecution(state: CombatState, dt: number, player: PlayerStat
 }
 
 /** It dies at `at` (your kill, but it doesn't fill the meter again), and what's beside it is hurt. Update 0.2.0 — it
- *  heals you (more for a mini boss). */
-function finish(state: CombatState, ex: Execution, at: Vector3, kind: 'execLand' | 'execBurst', player: PlayerState) {
+ *  heals you (more for a mini boss). Update 0.3.40 — `seen`: where it's seen to die (its event's place). */
+function finish(state: CombatState, ex: Execution, at: Vector3, kind: 'execLand' | 'execBurst', player: PlayerState, seen: Vector3 = at) {
   const v = EXECUTION.v;
   ex.active = false;
   const e = state.enemies[ex.target];
   e.pos.copy(at);
   e.prev.copy(e.pos);
-  state.events.push(kind, ex.target, at.x, at.y, at.z);
+  state.events.push(kind, ex.target, seen.x, seen.y, seen.z);
   F.set(-Math.sin(ex.aimYaw), 0, -Math.cos(ex.aimYaw));
   // (Update 0.3.9 — through a pillar into the wall: its blood on the wall.)
   if (ex.pillar >= 0) state.events.push('wallSplat', 12, at.x + F.x * 0.5, ex.land.y, at.z + F.z * 0.5);
