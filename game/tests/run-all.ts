@@ -43,6 +43,7 @@ import './test-credit';
 import './test-grunt';
 import './test-nav';
 import './test-enemies';
+import './test-lab-speed';
 import './test-money';
 import './test-dungeon';
 import './test-sword';

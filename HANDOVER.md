@@ -2,9 +2,10 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-04, after Update 0.3.43)
-- **Version 0.3.43** (Hell's look on floor 10), built and copied to main, **not committed** until the designer says
-  "commit". 0.3.42 is committed (`1aae114`); the designer pushes through GitHub Desktop.
+## Where things stand (2026-11-04, after Update 0.3.44)
+- **Version 0.3.44** (floors from the Lab at full speed), built and copied to main, **not committed** until the designer
+  says "commit". 0.3.43 is committed (`f6da297`); the designer pushes through GitHub Desktop (a push failed on the PC's
+  network earlier: a restart was advised).
 - **The floors** (`world/dungeon/floorOrder.ts`): 1 the Dungeon, 2 the Venom Garden, 3 the Bone Keep, 4 Frozen Depths,
   5 the Drowned Temple, 6 the Desert, 7 Skull Cove, 8 the Shrine Dimension, 9 the Moon, 10 Hell on Earth (the Forge's
   rooms in Hell's look since 0.3.43; stand-in enemies).
@@ -39,8 +40,10 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   - **The trailer:** the capture kit is in (F7). `MD_UPDATES/U0337_CAPTURE_KIT.md` has its keys, how to film each kind
     of shot, and the 75 s plan. The designer records. The music is the designer's own tracks; no AI-made footage,
     music or art.
-  - **Performance:** done for now (0.3.38–0.3.39); the designer's PC runs cool. If it heats up again, next would be a
-    smaller sun shadow map and a render-scale setting.
+  - **Performance:** 0.3.38–0.3.39, and 0.3.44's Lab fix. The designer's PC (an RX 6950 XT) draws a floor in 1–2 ms: a
+    slow floor there is something else than drawing. Test floors from the lobby as well as the Lab. A first 0.3.44 aimed
+    at the floors (far copies of the stone look, rooms behind walls not drawn, F2's card timer, Render scale and Shadows)
+    didn't help on that PC and is shelved, out of main.
 - **How an update goes** (the rules are in `CLAUDE.md`):
   1. Build it in the session's worktree.
   2. Write its spec in `MD_UPDATES/` and bump `game/package.json`.
@@ -53,7 +56,18 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-04, Update 0.3.43: Hell's look on floor 10)
+## Last update (2026-11-04, Update 0.3.44: floors from the Lab at full speed)
+- **The designer**: floors at 60–72 fps, floor 1 at 144; then found floor 1 from the lobby at 144 and from the Lab at 72.
+  Spec `MD_UPDATES/U0344_LAB_SPEED.md`.
+- **The cause:** every slot's hidden body of every kind loaded was in the scene, and three.js walks them all before each
+  frame; the Lab loads all 97 kinds (48,689 objects, about 16 ms a frame).
+- **The fix:** `engine/enemiesView.ts` keeps a body in the scene only while its slot shows it (35 objects walked with no
+  enemy out). Test: `tests/test-lab-speed.ts`.
+- **Shelved:** the first 0.3.44 (aimed at the floors on a wrong reading of F2), restored out of main on the designer's
+  word.
+- **Seen:** every floor from the Lab at 144 fps on the designer's PC.
+
+## Before (2026-11-04, Update 0.3.43: Hell's look on floor 10)
 - **The designer**: "what do we design in floor 10? … a hell level?", "Go with your mix", then "Agreed, start". Plan
   `MD/FLOOR10_HELL_PLAN.md`; spec `MD_UPDATES/U0343_HELL_LOOK.md`.
 - **The look:** `world/dungeon/hellStyle.ts` (the Forge's sooty look retired). Lava in the stone:

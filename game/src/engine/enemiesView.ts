@@ -22,6 +22,10 @@
 // once it bursts. The Lizard, camouflaged, is barely seen (Lizard seen) except while it spits.
 // Update 0.2.28 — a hit squashes a body a moment; the dead sink into the floor before they go (sinkOf).
 // Update 0.3.8 — a body pinned to a wall is struck there and held so, flickering white till it drops or you take it.
+// Update 0.3.44 (the designer: floors from the Lab at 60–72 fps, the same floor from the lobby at 144) — a slot's body is
+// in the scene only while the slot shows it. Every slot holds one hidden body of each kind loaded, and three.js walks
+// every object in the scene (bones too) before each frame, hidden or not: the Lab loads all 97 kinds, 16 slots × 2,775
+// objects = 44,400 walked a frame (about 13 ms; a floor's run, 3,000). Now the hidden ones wait outside the scene.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -174,8 +178,9 @@ export class EnemiesView {
           [a.loop, a.clampWhenFinished] = [THREE.LoopOnce, true];
         }
       }
-      this.group.add(root);
+      // (Update 0.3.44 — out of the scene till its slot shows it: update.)
       slot.bodies[kind] = { root, mixer, actions, mats, extra, role: null };
+      if (slot.kind === kind) this.group.add(root);
     }
   }
 
@@ -188,11 +193,16 @@ export class EnemiesView {
       // A slot shows the body of its enemy's kind (a slot can hold a grunt, later a brute).
       if (slot.kind !== (e.alive ? e.kind : null)) {
         const old = slot.kind ? slot.bodies[slot.kind] : undefined;
-        if (old) old.root.visible = false;
+        if (old) {
+          old.root.visible = false;
+          this.group.remove(old.root);
+        }
         slot.kind = e.alive ? e.kind : null;
         slot.phase = null;
       }
       const b = slot.kind ? slot.bodies[slot.kind] : undefined;
+      // (Update 0.3.44 — into the scene while its slot shows it; its model may have come since the slot took the kind.)
+      if (b && b.root.parent !== this.group) this.group.add(b.root);
       slot.ring.visible = false;
       const look = LOOKS[e.kind];
       if (!e.alive || !b || !look) continue;
