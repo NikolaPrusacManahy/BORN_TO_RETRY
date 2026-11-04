@@ -118,7 +118,7 @@ section('Chests — a room’s rises as it’s won');
 
 section('Chests — a boss’s gives 15 coins');
 {
-  check('the Demon’s and the Dragon’s chests: 15 coins', bossCoins('demon') === 15 && bossCoins('dragon') === 15);
+  check('the Dragon’s and the Bone King’s chests: 15 coins', bossCoins('dragon') === 15 && bossCoins('boneKing') === 15);
   const level = buildDungeon(planFloor(4242, 1));
   const run = createDungeonRun(level);
   const c = createCombat(level.arena, false);

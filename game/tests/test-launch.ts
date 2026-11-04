@@ -71,7 +71,7 @@ section('Launch — bodies flung');
   check('a Brute’s body (large) drops where it is', punch('jab', 'brute', 1).top === 0);
   // (A boss's body is placed by its death show.)
   const c = createCombat(OPEN_ARENA);
-  const boss = c.enemies[spawnEnemy(c.enemies, 'demon', new Vector3(0, 0, -3), 0)];
+  const boss = c.enemies[spawnEnemy(c.enemies, 'dragon', new Vector3(0, 0, -3), 0)];
   boss.phase = 'dead';
   launch(boss, 0, -1);
   check('a boss’s isn’t flung', boss.vel.lengthSq() === 0 && boss.pos.y === 0);

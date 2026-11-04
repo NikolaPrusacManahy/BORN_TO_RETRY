@@ -3,49 +3,16 @@
 // ring rolling out over the floor (jump it), and a fan of fire orbs; at half health it roars, calls grunts and gets
 // faster. Killed, it hangs in the air, sinks, flickers white and bursts. Placeholders.
 // Update 0.2.1 (the designer) — every boss's chest gives 15 coins.
+// Update 0.3.41 (the designer: "take Boss 1, remove it") — the Demon gone: what's left is what every boss shares (hits
+// on one stunned, the rage mark's default, a quake ring passing under your feet, the dead boss's show).
 import { group, knob } from './schema';
 
-export const BOSS = group('boss', 'Demon (boss)', {
-  demonHp: knob(1200, 100, 6000, 50, 'Demon health', 'Damage to kill it.'),
-  demonHeight: knob(6.5, 3, 10, 0.1, 'Demon size', 'Its model is scaled to this (m); its hit capsule follows.'),
-  demonSpeed: knob(4.5, 1, 12, 0.25, 'Demon walk', 'How fast it walks at you (m/s).'),
-  demonTurn: knob(2.6, 0.5, 8, 0.1, 'Demon turn', 'How fast it turns (rad/s).'),
-  demonPause: knob(1.1, 0.2, 4, 0.05, 'Demon pause', 'Seconds between its moves.'),
-  stunBonus: knob(1.5, 1, 4, 0.1, 'Stunned damage', 'Hits on it while it is stunned do this much more.'),
-  chargeWindup: knob(0.8, 0.3, 2, 0.05, 'Charge wind-up', 'The warning before it charges (s): it lowers its head and glows red.'),
-  chargeSpeed: knob(24, 8, 50, 1, 'Charge speed', 'm/s.'),
-  chargeRange: knob(46, 10, 80, 1, 'Charge length', 'Furthest it runs (m) when nothing stops it.'),
-  chargeDamage: knob(25, 1, 100, 1, 'Charge damage', 'To you, if it runs into you.'),
-  chargeShove: knob(16, 0, 40, 0.5, 'Charge shove', 'How hard it throws you (m/s).'),
-  chargeStun: knob(2.2, 0.5, 5, 0.1, 'Charge stun', 'Seconds it is stunned after running into a wall or a column: your opening.'),
-  leapWindup: knob(0.7, 0.3, 2, 0.05, 'Leap wind-up', 'The warning before it leaps (s): it crouches and glows orange.'),
-  leapAir: knob(1, 0.4, 2.5, 0.05, 'Leap flight', 'Seconds in the air.'),
-  leapArc: knob(9, 2, 20, 0.5, 'Leap height', 'How high the leap goes (m).'),
-  slamDamage: knob(30, 1, 100, 1, 'Landing damage', 'To you, close to where it lands.'),
-  slamReach: knob(5, 1, 12, 0.25, 'Landing reach', 'How close to its landing (m) the landing hurts.'),
-  slamShove: knob(14, 0, 40, 0.5, 'Landing shove', 'How hard the landing throws you (m/s).'),
-  quakeSpeed: knob(16, 4, 40, 0.5, 'Quake speed', 'How fast the quake ring rolls out (m/s).'),
-  quakeReach: knob(28, 5, 60, 1, 'Quake reach', 'How far it rolls (m).'),
-  quakeDamage: knob(15, 1, 100, 1, 'Quake damage', 'To you, on the ground as it rolls under you.'),
-  quakeClear: knob(0.6, 0.1, 2, 0.05, 'Quake clearance', 'Feet this far above the floor (m) and it passes under you.'),
-  leapRecover: knob(1, 0.2, 3, 0.05, 'Leap recovery', 'After landing, before it moves (s).'),
-  volleyWindup: knob(0.75, 0.3, 2, 0.05, 'Volley wind-up', 'The warning before its fire orbs fly (s): it raises its trident and glows.'),
-  volleyOrbs: knob(5, 1, 11, 1, 'Volley orbs', 'Orbs in a fan.'),
-  volleySpread: knob(12, 0, 40, 1, 'Volley spread', 'Degrees between the orbs.'),
-  volleySpeed: knob(14, 4, 40, 0.5, 'Volley orb speed', 'm/s.'),
-  volleyDamage: knob(12, 1, 100, 1, 'Volley orb damage', 'To you, per orb.'),
-  volleyRecover: knob(0.6, 0.1, 2, 0.05, 'Volley recovery', 'After a volley, before it moves (s).'),
-  rageAt: knob(0.5, 0, 1, 0.05, 'Rage at', 'Share of its health left when it roars and gets faster.'),
-  roarTime: knob(2, 0.5, 5, 0.1, 'Roar', 'Seconds it roars (it does nothing else).'),
-  rageWindup: knob(0.75, 0.3, 1, 0.05, 'Rage wind-ups', 'Its warnings take this share as long once it rages.'),
-  ragePause: knob(0.6, 0.2, 1, 0.05, 'Rage pauses', 'Its pauses take this share as long once it rages.'),
-  rageSpeed: knob(1.25, 1, 2, 0.05, 'Rage speed', 'Its walk and charge are this much faster once it rages.'),
-  summonGrunts: knob(4, 0, 8, 1, 'Summoned grunts', 'Grunts it calls when it roars, and again later.'),
-  summonEvery: knob(18, 5, 60, 1, 'Summon every', 'Seconds between calls once it rages (only when fewer than two are left).'),
-  demonCoins: knob(15, 0, 300, 5, 'Demon coins', 'Coins in its chest.'),
-  doomLift: knob(2.5, 0, 6, 0.1, 'Death lift', 'How high its body rises when it dies (m).'),
+export const BOSS = group('boss', 'Bosses', {
+  stunBonus: knob(1.5, 1, 4, 0.1, 'Stunned damage', 'Hits on a boss or a big one while it is stunned do this much more.'),
+  quakeClear: knob(0.6, 0.1, 2, 0.05, 'Quake clearance', 'Feet this far above the floor (m) and a quake ring passes under you.'),
+  rageAt: knob(0.5, 0, 1, 0.05, 'Rage at', 'Share of its health left when a boss rages (the bar’s mark), for those with no knob of their own.'),
+  doomLift: knob(2.5, 0, 6, 0.1, 'Death lift', 'How high a dead boss’s body rises (m).'),
   doomRise: knob(0.35, 0.1, 1.5, 0.05, 'Death rise', 'Seconds it takes to rise.'),
   doomHang: knob(0.9, 0, 3, 0.05, 'Death hang', 'Seconds it hangs frozen in the air.'),
   doomDrop: knob(2.2, 0.3, 5, 0.1, 'Death sink', 'Seconds it takes to sink to the ground, flickering, before it bursts.'),
-  labDemons: knob(0, 0, 1, 1, 'Lab demon', 'A demon in the Feel Lab waves (to try the fight).'),
 });

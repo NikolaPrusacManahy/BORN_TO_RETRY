@@ -36,7 +36,7 @@ const kinds = (c: CombatState) => {
 
 section('Fate Cards — Shoulder Charge');
 {
-  const bump = (card: CardKind | null, kind: 'grunt' | 'brute' | 'demon' = 'grunt') => {
+  const bump = (card: CardKind | null, kind: 'grunt' | 'brute' | 'dragon' = 'grunt') => {
     const c = createCombat(OPEN_ARENA);
     if (card) c.items.cards.add(card);
     const p = createPlayer(0, 0, 0, 0);
@@ -58,7 +58,7 @@ section('Fate Cards — Shoulder Charge');
   const plain = bump(null);
   check('without it, a dash does nothing to it', !plain.flinch && plain.thrown === 0 && plain.first === 0);
   const mini = bump('shoulderCharge', 'brute');
-  const boss = bump('shoulderCharge', 'demon');
+  const boss = bump('shoulderCharge', 'dragon');
   check('a mini boss or a boss is shoved but not staggered', !mini.flinch && mini.first === 1 && !boss.flinch);
 }
 
@@ -128,10 +128,10 @@ section('Fate Cards — Hair Trigger and Iron Knuckles');
   };
   check(`Hair Trigger: the parry stays open ${(1 / CARDS.v.hairTrigger).toFixed(1)}× as long`, near(opened(true), FISTS.v.parryWindow / CARDS.v.hairTrigger, 1e-9) && near(opened(false), FISTS.v.parryWindow, 1e-9));
   // (Any hit already staggers the rest: a mini boss is what a jab can't stagger.)
-  const jab = (card: boolean, kind: 'brute' | 'demon' = 'brute') => {
+  const jab = (card: boolean, kind: 'brute' | 'dragon' = 'brute') => {
     const c = createCombat(OPEN_ARENA);
     if (card) c.items.cards.add('ironKnuckles');
-    const s = spawnEnemy(c.enemies, kind, new Vector3(0, 0, kind === 'demon' ? -2.2 : -1.6), 0);
+    const s = spawnEnemy(c.enemies, kind, new Vector3(0, 0, kind === 'dragon' ? -2.3 : -1.6), 0);
     const e = c.enemies[s];
     e.hp = 9999;
     setPhase(e, 'windup');
@@ -147,7 +147,7 @@ section('Fate Cards — Hair Trigger and Iron Knuckles');
   const stalled = jab(true);
   check('Iron Knuckles: a jab on a mini boss winding up makes it start over', stalled.hit && stalled.phase === 'windup' && stalled.t < 0.05 && stalled.seen, `${stalled.phase} t ${stalled.t.toFixed(2)}`);
   check('without it, its windup goes on', jab(false).t >= 0.3);
-  check('a boss is never stalled', !jab(true, 'demon').seen);
+  check('a boss is never stalled', !jab(true, 'dragon').seen);
 }
 
 section('Fate Cards — Collector and Ricochet');

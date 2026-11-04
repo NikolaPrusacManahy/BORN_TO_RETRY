@@ -67,7 +67,7 @@ export interface Enemy {
   from: Vector3;
   aim: Vector3;
   struck: boolean;
-  /** Update 0.0.15 — a boss: the move it winds up (demon.ts), and its stage (0, then 1 once it rages). */
+  /** Update 0.0.15 — a boss: the move it winds up, and its stage (0, then 1 once it rages). */
   move: number;
   stage: number;
   /** Update 0.0.18 — shots fired in this burst (the Dragon's fireballs). */

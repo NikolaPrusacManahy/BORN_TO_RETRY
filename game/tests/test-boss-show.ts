@@ -1,6 +1,6 @@
 // Update 0.0.15 — the boss room's show as drawn (the designer: the view leaves your eyes, the walls slide back, the
 // boss rises out of a portal beside its name, the view glides back; killed, it hangs and bursts; a wooden gate onto
-// the dark). The Demon's model has every clip the game plays and is drawn at its size; the view's path starts and
+// the dark). (Update 0.3.41 — the Demon gone: its model's checks with it; the Dragon's are test-dragon's.) The view's path starts and
 // ends in your eyes (facing the boss), stays in the room and never jumps, and frames the boss left of the middle for
 // its name; the sliding walls fill the room's edges at first and are gone at the end; the wooden gate swings out, into
 // the dark; the run is held still during the show, slowed as the boss dies, and goes down once the dark is black.
@@ -12,7 +12,7 @@ import { OPEN_WORLD } from './fakes/enemyWorld';
 import { createRng } from '../src/core/rng';
 import { BossShow } from '../src/engine/boss/bossShow';
 import { Cinema, Shot } from '../src/engine/boss/cinema';
-import { DEMON_CLIPS, DemonView } from '../src/engine/boss/demonView';
+import { DRAGON_CLIPS, DragonView } from '../src/engine/boss/dragonView';
 import { Shell } from '../src/engine/boss/shell';
 import { WoodGate } from '../src/engine/boss/woodGate';
 import { Look } from '../src/engine/look';
@@ -23,38 +23,27 @@ import { hitEnemy, spawnEnemy } from '../src/sim/enemies/enemy';
 import { doomTime } from '../src/sim/enemies/kinds';
 import { updateEnemies } from '../src/sim/enemies/update';
 import { createPlayer } from '../src/sim/player/state';
-import { BOSS } from '../src/tuning/boss';
+import { DRAGON } from '../src/tuning/dragon';
 import { CINEMA } from '../src/tuning/cinema';
 import { buildDungeon } from '../src/world/dungeon/assemble';
 import { planFloor } from '../src/world/dungeon/floorPlan';
 
-section('Boss show — the Demon drawn');
+section('Boss show — the Dragon drawn (floor 1’s boss, Update 0.3.41)');
 {
-  const gltf = await parseUntextured(new URL('../public/models/enemies/demon.glb', import.meta.url));
+  const gltf = await parseUntextured(new URL('../public/models/enemies/dragon.glb', import.meta.url));
   const names = gltf.animations.map((a) => a.name.split('|').pop());
-  const missing = Object.values(DEMON_CLIPS).filter((c) => !names.includes(c));
-  check('demon.glb has every clip it plays', missing.length === 0, missing.join(', '));
+  const missing = Object.values(DRAGON_CLIPS).filter((c) => !names.includes(c));
+  check('dragon.glb has every clip it plays', missing.length === 0, missing.join(', '));
   const scene = new THREE.Scene();
-  const view = new DemonView(scene, false);
+  const view = new DragonView(scene, false);
   view.attach(gltf.scene, gltf.animations);
   const combat = createCombat({ name: 'x', boxes: [], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] }, false);
-  spawnEnemy(combat.enemies, 'demon', new THREE.Vector3(0, 0, -10), 0);
+  spawnEnemy(combat.enemies, 'dragon', new THREE.Vector3(0, 0, -10), 0);
   view.update(combat, new THREE.Vector3(0, 1.6, 0), 1, DT);
-  gltf.scene.updateMatrixWorld(true);
-  const box = new THREE.Box3();
-  gltf.scene.traverse((o) => {
-    if (o instanceof THREE.SkinnedMesh) {
-      o.geometry.computeBoundingBox();
-      box.union(o.geometry.boundingBox!.clone().applyMatrix4(o.matrixWorld));
-    }
-  });
-  check(`drawn ${BOSS.v.demonHeight} m tall, feet on the floor`, near(box.max.y - box.min.y, BOSS.v.demonHeight, 0.6) && near(box.min.y, 0, 0.3), `${(box.max.y - box.min.y).toFixed(2)} m, feet at ${box.min.y.toFixed(2)}`);
-  // (Update 0.0.18 — the aura is a group of its own inside the view: aura.ts.)
   let lit = false;
   view.group.traverse((o) => (lit ||= o instanceof THREE.PointLight && o.intensity > 0));
-  check('with its aura round it', view.group.visible && lit);
-  const e = combat.enemies[0];
-  hitEnemy(e, 1e6, 0, 0, 1);
+  check('drawn, with its aura round it', view.group.visible && lit);
+  hitEnemy(combat.enemies[0], 1e6, 0, 0, 1);
   const w = { ...combat };
   for (let i = 0; i < ticks(doomTime() + 0.05); i++) updateEnemies(combat.enemies, createPlayer(0, 0, 0, 0), w, OPEN_WORLD, DT);
   view.update(combat, new THREE.Vector3(0, 1.6, 0), 1, DT);
@@ -98,7 +87,7 @@ section('Boss show — the view');
   cam.position.copy(shot.pos);
   cam.lookAt(shot.look);
   cam.updateMatrixWorld(true);
-  const chest = new THREE.Vector3(b.portal.x, BOSS.v.demonHeight * 0.55, b.portal.z).project(cam);
+  const chest = new THREE.Vector3(b.portal.x, DRAGON.v.dragonHeight * 0.55, b.portal.z).project(cam);
   check('at its stance the boss stands left of the middle, in the shot', chest.x < -0.05 && chest.x > -0.8 && Math.abs(chest.y) < 0.8 && chest.z < 1, `${chest.x.toFixed(2)}, ${chest.y.toFixed(2)}`);
   // The gate shot looks at the gate, then hands the view back.
   const g = b.gateAt;

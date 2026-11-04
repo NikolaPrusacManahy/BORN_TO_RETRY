@@ -3,7 +3,7 @@
 // fireballs, holding the pose while the beam burns; it strikes with claws and wings, spinning for the tail; it reels
 // when stunned; its scream is the whole lunge), each warning glowing in its move's colour. Its aura (aura.ts) burns
 // gold, then red once it rages; its beam (beamView.ts) runs from its head to where the fire stops. Killed, its death
-// show is the Demon's (bossTint.ts, demonFx.ts). Clips run on game time.
+// show is every boss's (bossTint.ts, bossFx.ts). Clips run on game time.
 // Update 0.0.19 — measured from its skinned body (bodyMeasure.ts), as the newer pack's are.
 // Update 0.0.21 — up in the sky it flaps hard; its flame burst's charge glows white-hot (a lunge, as it screams).
 import * as THREE from 'three';
@@ -23,7 +23,7 @@ export const DRAGON_URL = '/models/enemies/dragon.glb';
 
 type Role = 'fly' | 'strike' | 'lunge' | 'reel' | 'down';
 /** Its clips (export_monster.py lists them). */
-const CLIPS: Record<Role, string> = { fly: 'Dragon_Flying', strike: 'Dragon_Attack', lunge: 'Dragon_Attack2', reel: 'Dragon_Hit', down: 'Dragon_Death' };
+export const DRAGON_CLIPS: Record<Role, string> = { fly: 'Dragon_Flying', strike: 'Dragon_Attack', lunge: 'Dragon_Attack2', reel: 'Dragon_Hit', down: 'Dragon_Death' };
 const ONCE: Role[] = ['strike', 'lunge', 'reel', 'down'];
 /** Seconds into its clips (24 fps): the strike lands (export_monster.py), the lunge has its head furthest out, the
  *  whole lunge (its scream), and its pose is held when it dies. */
@@ -94,14 +94,14 @@ export class DragonView {
       this.mats.push(o.material as THREE.MeshStandardMaterial);
     });
     const find = (name: string) => animations.find((a) => a.name === name || a.name.endsWith(`|${name}`)) ?? animations[0];
-    const box = posedBounds(model, find(CLIPS.fly), new THREE.Box3());
+    const box = posedBounds(model, find(DRAGON_CLIPS.fly), new THREE.Box3());
     if (!box.isEmpty()) {
       this.height = box.max.y - box.min.y;
       this.lowest = box.min.y;
     }
     this.mixer = new THREE.AnimationMixer(model);
-    for (const role of Object.keys(CLIPS) as Role[]) {
-      const a = this.mixer.clipAction(find(CLIPS[role]));
+    for (const role of Object.keys(DRAGON_CLIPS) as Role[]) {
+      const a = this.mixer.clipAction(find(DRAGON_CLIPS[role]));
       if (ONCE.includes(role)) {
         a.setLoop(THREE.LoopOnce, 1);
         a.clampWhenFinished = true;

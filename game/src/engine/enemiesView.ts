@@ -6,7 +6,7 @@
 // ground. Animations run on game time, so hit-stop freezes them.
 // Update 0.0.13 — the Leaper is the Ninja, the Stinger the Armabee, the Wraith the Ghost; a leap or a dive plays the
 // kind's 'air' clip; bodies are placed by their lowest point (the fliers' models float above their origin).
-// Update 0.0.15 — not the Demon: a boss is drawn by boss/demonView.ts (its aura, its death show).
+// Update 0.0.15 — not a boss: a boss is drawn by its own view (boss/dragonView.ts and the rest: its aura, its death show).
 // Update 0.0.17 — frozen (the snowflake bonus): its pose stops and it turns icy blue.
 // Update 0.0.18 — floor 2's (Ultimate Monsters' newer pack: clip names carry the monster's name, no hit clips, so a
 // flinch stands): the Slime swells as it winds up and is gone once it bursts; the Frog's tongue (tongueView.ts); the

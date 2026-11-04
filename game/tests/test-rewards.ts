@@ -155,7 +155,7 @@ section('The boss’s chest');
   const room = level.rooms[b.room];
   const chest = run.treasure.chests[room.chest];
   const g = b.gateAt;
-  check('it stands in front of the wooden gate, facing into the room', chest.boss === 'demon' && chest.spot.rises && near(Math.hypot(chest.spot.x - g.x, chest.spot.z - g.z), CELL / 2 + BOSS_CHEST_OUT, 1e-9) && chest.spot.fx === -g.ox && chest.spot.fz === -g.oz && chest.state === 'buried');
+  check('it stands in front of the wooden gate, facing into the room', chest.boss === 'dragon' && chest.spot.rises && near(Math.hypot(chest.spot.x - g.x, chest.spot.z - g.z), CELL / 2 + BOSS_CHEST_OUT, 1e-9) && chest.spot.fx === -g.ox && chest.spot.fz === -g.oz && chest.state === 'buried');
   const p = createPlayer((room.min.x + room.max.x) / 2, 0, (room.min.z + room.max.z) / 2, 0);
   p.grounded = true;
   // The boss is dead and the gate's wait is over.
@@ -237,7 +237,7 @@ section('The view goes to a rising chest and back');
   }
   check(`back in your eyes after ${ChestShot.duration().toFixed(1)} s, and you’re free`, !shot.locked && near(n * 0.05 + GLIDE + 0.21, ChestShot.duration(), 0.1));
   check('not twice for the same chest', !shot.update(0.05, t, cam));
-  const boss = { ...chest, boss: 'demon' } as Treasure['chests'][number];
+  const boss = { ...chest, boss: 'dragon' } as Treasure['chests'][number];
   check('not for the boss’s chest (the wooden gate’s shot shows it)', !new ChestShot().update(0.05, { ...t, chests: [boss] }, cam));
 }
 

@@ -61,17 +61,12 @@ export type CombatEvent =
   | 'stingerDive'
   | 'wraithWindup'
   | 'wraithCast'
-  // Update 0.0.15 — the Demon (value = which enemy, or the move for its warning: 0 charge, 1 leap, 2 volley): its
-  // warning, its charge running into you or into a wall (stunned), its leap and landing, its volley, its roar; a quake
-  // ring rolling under you (value = damage).
-  | 'demonWindup'
+  // Update 0.0.15 — a boss's charge (the Demon's first: charge.ts; value = which enemy): off it runs, into you, into a
+  // wall (stunned); a quake ring rolling under you (value = damage). (Update 0.3.41 — the Demon gone, with its warning,
+  // leap, landing, volley and roar.)
   | 'demonCharge'
   | 'demonGore'
   | 'demonCrash'
-  | 'demonLeap'
-  | 'demonSlam'
-  | 'demonVolley'
-  | 'demonRoar'
   | 'quakeHit'
   // Update 0.0.15 — the boss room (value = the boss's slot): its show starts, the boss rises out of the portal, it's
   // killed, its body bursts, what it leaves you (value = the item), the wooden gate swings open.

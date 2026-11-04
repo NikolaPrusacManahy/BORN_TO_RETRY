@@ -42,7 +42,7 @@ export class Cinema {
   /** Update 0.0.18 — `kind`: the boss (its height frames the shots). */
   constructor(
     private readonly layout: BossLayout,
-    private readonly kind: EnemyKind = 'demon',
+    private readonly kind: EnemyKind = 'dragon',
   ) {
     const e = layout.entrance;
     this.fwd.set(e === 'w' ? 1 : e === 'e' ? -1 : 0, 0, e === 'n' ? 1 : e === 's' ? -1 : 0);

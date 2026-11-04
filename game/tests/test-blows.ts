@@ -52,8 +52,8 @@ section('Blows — the dead sink');
   const w = c.enemies[spawnEnemy(c.enemies, 'wasp', new THREE.Vector3(), 0)];
   setPhase(w, 'dead');
   w.t = ENEMY_STATS.wasp().deathTime;
-  const d = c.enemies[spawnEnemy(c.enemies, 'demon', new THREE.Vector3(), 0)];
+  const d = c.enemies[spawnEnemy(c.enemies, 'dragon', new THREE.Vector3(), 0)];
   setPhase(d, 'dead');
-  d.t = ENEMY_STATS.demon().deathTime;
+  d.t = ENEMY_STATS.dragon().deathTime;
   check('not a flier, not a boss', sinkOf(w) === 0 && sinkOf(d) === 0);
 }

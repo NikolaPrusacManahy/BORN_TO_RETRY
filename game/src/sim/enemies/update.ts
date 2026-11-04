@@ -20,7 +20,7 @@ import { separateEnemies } from './bodies';
 import { dealTokens, wait, waits } from './tokens';
 import { fanOut, spreadSlots } from './spread';
 import { updateBrute } from './brute';
-import { doomDemon, updateDemon } from './demon';
+import { doomBoss } from './bossDoom';
 import { updateBlueDemon } from './blueDemon';
 import { updateDragon } from './dragon';
 import { updateFrog } from './frog';
@@ -110,7 +110,6 @@ const UPDATE: Record<EnemyKind, Update> = {
   leaper: updateLeaper,
   stinger: updateStinger,
   wraith: updateWraith,
-  demon: updateDemon,
   slime: updateSlime,
   frog: updateFrog,
   snake: updateSnake,
@@ -211,7 +210,7 @@ const UPDATE: Record<EnemyKind, Update> = {
 };
 /** A dead boss's show, each tick until its slot frees. Update 0.2.4 — and a Green Blob splitting as it dies.
  *  Update 0.2.11 — and a dead fish floating up. Update 0.3.15 — a Gull dropping your coins, a Tentacle sinking. */
-const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld, dt: number) => void>> = { demon: doomDemon, dragon: doomDemon, boneKing: doomKing, dino: doomDemon, drownedKing: doomDemon, greenBlob: splitBlob, bigMushnub: splitMushnub, clownfish: floatUp, tuna: floatUp, angelfish: floatUp, dolphin: floatUp, mantaRay: floatUp, shark: floatUp, whale: doomDemon, gull: gullDrops, tentacle: tentacleSinks, bigShark: doomDemon, frostRoc: doomDemon, tidebreaker: doomDemon, okami: doomDemon };
+const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld, dt: number) => void>> = { dragon: doomBoss, boneKing: doomKing, dino: doomBoss, drownedKing: doomBoss, greenBlob: splitBlob, bigMushnub: splitMushnub, clownfish: floatUp, tuna: floatUp, angelfish: floatUp, dolphin: floatUp, mantaRay: floatUp, shark: floatUp, whale: doomBoss, gull: gullDrops, tentacle: tentacleSinks, bigShark: doomBoss, frostRoc: doomBoss, tidebreaker: doomBoss, okami: doomBoss };
 
 export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWorld, world: CollisionWorld, dt: number) {
   let any = false;

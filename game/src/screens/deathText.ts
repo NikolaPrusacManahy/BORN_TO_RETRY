@@ -8,7 +8,6 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   leaper: 'Leaper',
   stinger: 'Stinger',
   wraith: 'Wraith',
-  demon: 'The Demon',
   slime: 'Slime',
   frog: 'Frog',
   snake: 'Snake',

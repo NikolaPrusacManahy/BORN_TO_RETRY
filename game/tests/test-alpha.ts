@@ -86,7 +86,7 @@ section('Alpha — checkpoints');
   check('respawning (WEAKLING), the fight you died in stops: its enemies gone, its gates open', a.run.rooms[a.i].state === 'idle' && a.c.enemies.every((e) => !e.alive) && a.level.rooms[a.i].gates.every((g) => !a.run.shut[g]));
   const bossRoom = a.level.rooms.findIndex((r) => r.kind === 'boss');
   a.run.boss.beat = 'fight';
-  a.run.boss.slot = spawnEnemy(a.c.enemies, 'demon', new Vector3(0, 0, 0), 0);
+  a.run.boss.slot = spawnEnemy(a.c.enemies, 'dragon', new Vector3(0, 0, 0), 0);
   a.run.rooms[bossRoom].state = 'fighting';
   for (const g of a.level.rooms[bossRoom].gates) a.run.shut[g] = true;
   resetBossFight(a.run, a.c);

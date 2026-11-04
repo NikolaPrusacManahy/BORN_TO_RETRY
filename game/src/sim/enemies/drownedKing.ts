@@ -13,7 +13,7 @@ import { DROWNED } from '../../tuning/drowned';
 import type { CombatEvent } from '../combat/state';
 import type { PlayerState } from '../player/state';
 import { chaseDir } from './chase';
-import { stepCharge } from './demonMoves';
+import { stepCharge } from './charge';
 import { BITE, cruise, DIVE, face, GEYSER, goUnder, LUNGE, RISE, rise, RISEN, ROAR, SPOUT, startJet, stepHunt, stepJet, stepUndertow, SURF, surface, TIDE, UNDERTOW } from './drownedKingMoves';
 import { bite, raiseTide, startSurf, steerSurf, stepGeysers, stepTide, surfSpec } from './drownedRisen';
 import { Enemy, EnemyWorld, radiusOf, setPhase, turn, walk, yawTo } from './enemy';

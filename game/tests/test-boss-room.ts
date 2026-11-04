@@ -13,12 +13,11 @@ import { updateEnemies } from '../src/sim/enemies/update';
 import { createDungeonRun, stepRooms } from '../src/sim/dungeon/roomLoop';
 import { inShow, introBeats, portalOpen, wallsOpen } from '../src/sim/dungeon/bossRoom';
 import { createPlayer } from '../src/sim/player/state';
-import { BOSS } from '../src/tuning/boss';
 import { CINEMA } from '../src/tuning/cinema';
+import { DRAGON } from '../src/tuning/dragon';
 import { buildDungeon } from '../src/world/dungeon/assemble';
 import { pathFights, planFloor } from '../src/world/dungeon/floorPlan';
 
-const v = BOSS.v;
 
 section('Boss room');
 {
@@ -64,19 +63,19 @@ section('Boss room');
   check('the walls slide back', wallsOpen(run0.boss) > 0.2 && wallsOpen(run0.boss) < 0.8);
   tick(s.riseFrom - (s.wallsFrom + s.wallsTo) / 2 + 0.05);
   const boss = combat.enemies[run0.boss.slot];
-  check('a portal opens in the middle and the boss rises out of it', run0.boss.slot >= 0 && boss.kind === 'demon' && boss.pos.y < 0 && portalOpen(run0.boss) > 0.5 && near(boss.pos.x, b.portal.x, 1e-6) && seen.includes('bossRise'));
+  check('a portal opens in the middle and the boss rises out of it', run0.boss.slot >= 0 && boss.kind === 'dragon' && boss.pos.y < 0 && portalOpen(run0.boss) > 0.5 && near(boss.pos.x, b.portal.x, 1e-6) && seen.includes('bossRise'));
   tick(s.riseTo - s.riseFrom);
   check('it stands on the floor, facing you, waiting', near(boss.pos.y, 0, 0.01) && boss.phase === 'intro');
-  check('no fighting during the show', !seen.includes('demonWindup'));
+  check('no fighting during the show', !seen.includes('dragonWindup'));
   tick(s.end - s.riseTo);
   check(`after ${s.end.toFixed(1)} s the show is over and the fight starts`, !inShow(run0.boss) && run0.boss.beat === 'fight' && boss.phase === 'chase' && wallsOpen(run0.boss) === 1);
-  // Half dead: it roars and calls grunts.
-  boss.hp = v.demonHp * v.rageAt - 1;
+  // Half dead: it rages (Update 0.3.41 — the Dragon, floor 1's boss now: it screams and calls no one).
+  boss.hp = DRAGON.v.dragonHp * DRAGON.v.rageAt - 1;
   tick(0.5, () => {
     p.hp = 100;
   });
   const grunts = combat.enemies.filter((e) => isLive(e) && e.kind === 'grunt').length;
-  check(`raging, it calls ${v.summonGrunts} grunts`, grunts === v.summonGrunts && seen.includes('demonRoar'));
+  check('raging, it screams and calls no one', grunts === 0 && seen.includes('dragonScream'));
   check('the gate stays shut meanwhile', run0.shut[b.gate]);
   const keys = combat.items.keys;
   const money = combat.money;

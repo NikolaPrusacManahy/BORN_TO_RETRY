@@ -7,7 +7,7 @@ import { FOES2 } from '../../tuning/foes2';
 import { fireOrb } from '../combat/orbs';
 import { AIM_HEIGHT } from '../combat/turret';
 import type { PlayerState } from '../player/state';
-import { ChargeSpec, startCharge, stepCharge } from './demonMoves';
+import { ChargeSpec, startCharge, stepCharge } from './charge';
 import { Enemy, EnemyWorld, setPhase, turn, yawTo } from './enemy';
 import { closeIn } from './moves';
 import { armed } from './tokens';

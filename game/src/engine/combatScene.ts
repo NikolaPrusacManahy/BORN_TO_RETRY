@@ -2,7 +2,8 @@
 // and the feedback that drives them from combat events. The Game owns one of these.
 // M2 — and the enemies (enemiesView.ts) and weapons on the ground, in flight and in hand (weaponsView.ts).
 // Update 0.0.12 — and shockwaves (slams).
-// Update 0.0.15 — and the Demon (boss/demonView.ts) and what its moves draw (boss/demonFx.ts).
+// Update 0.0.15 — and the Demon (boss/demonView.ts) and what its moves draw (boss/demonFx.ts). Update 0.3.41 — the Demon
+// gone: what bosses' moves draw (boss/bossFx.ts).
 // Update 0.0.18 — and the Dragon (boss/dragonView.ts). Update 0.0.21 — and its fire bombs (boss/bombView.ts).
 // Update 0.2.3 — and the Bone King's thrown skeletons, its jumps' landings and its blast's reach (boss/kingView.ts).
 // Update 0.2.4 — and floor 4's burrowers' sand and warnings, the Dino's pounce landing (desertFx.ts).
@@ -30,8 +31,7 @@ import { ENEMY_KINDS, EnemyKind } from '../sim/enemies/kinds';
 import type { CameraRig } from './cameraRig';
 import { CombatFeedback } from './combatFeedback';
 import { Burst } from './fx/burst';
-import { DemonFx } from './boss/demonFx';
-import { DemonView } from './boss/demonView';
+import { BossFx } from './boss/bossFx';
 import { DragonView } from './boss/dragonView';
 import { BombView } from './boss/bombView';
 import { KingView } from './boss/kingView';
@@ -83,8 +83,7 @@ export class CombatScene {
   readonly feedback: CombatFeedback;
   private readonly sparks: Burst;
   private readonly chunks: Burst;
-  private readonly demon: DemonView;
-  private readonly demonFx: DemonFx;
+  private readonly bossFx: BossFx;
   private readonly dragon: DragonView;
   private readonly bombs: BombView;
   private readonly king: KingView;
@@ -114,8 +113,7 @@ export class CombatScene {
     this.targets = new TargetsView(scene, state);
     this.enemies = new EnemiesView(scene, true, kinds);
     this.exec = new ExecScene(scene);
-    this.demon = new DemonView(scene);
-    this.demonFx = new DemonFx(scene);
+    this.bossFx = new BossFx(scene);
     this.dragon = new DragonView(scene);
     this.bombs = new BombView(scene);
     this.king = new KingView(scene);
@@ -156,7 +154,7 @@ export class CombatScene {
    *  far between the last two sim ticks this frame is (moving enemies are placed between them). */
   /** Update 0.3.23 — its models in (the enemies, the bosses, the weapons): the loader waits for it (levelLoad.ts). */
   get loaded(): Promise<unknown> {
-    return Promise.all([this.enemies.loaded, this.demon.loaded, this.dragon.loaded, this.king.loaded, this.weapons.loaded]);
+    return Promise.all([this.enemies.loaded, this.dragon.loaded, this.king.loaded, this.weapons.loaded]);
   }
 
   update(state: CombatState, listener: THREE.Vector3, playerChest: THREE.Vector3, gameDt: number, alpha: number) {
@@ -166,7 +164,7 @@ export class CombatScene {
     this.wallSplats.apply(state);
     this.blows.apply(state);
     this.execFx.apply(state);
-    this.demonFx.update(state, gameDt);
+    this.bossFx.update(state, gameDt);
     this.gun.update(state, gameDt);
     state.events.clear();
     this.targets.update(state, playerChest, gameDt);
@@ -179,7 +177,6 @@ export class CombatScene {
     this.enemies.update(state, alpha, gameDt);
     this.exec.update(state, this.rootOf, gameDt);
     this.execMark.update(state, gameDt);
-    this.demon.update(state, listener, alpha, gameDt);
     this.dragon.update(state, listener, alpha, gameDt);
     this.bombs.update(state, gameDt);
     this.king.update(state, gameDt, (i) => this.enemies.rootOf(i));
@@ -212,7 +209,7 @@ export class CombatScene {
     this.sparks.clear();
     this.chunks.clear();
     this.waves.clear();
-    this.demonFx.clear();
+    this.bossFx.clear();
     this.bombs.clear();
     this.king.clear();
     this.desert.clear();
@@ -250,7 +247,6 @@ export class CombatScene {
     this.targets.dispose();
     this.enemies.dispose();
     this.exec.dispose();
-    this.demon.dispose();
     this.dragon.dispose();
     this.bombs.dispose();
     this.king.dispose();
@@ -271,7 +267,7 @@ export class CombatScene {
     this.blows.dispose();
     HALOS.mesh.removeFromParent();
     this.execFx.dispose();
-    this.demonFx.dispose();
+    this.bossFx.dispose();
     this.waves.dispose();
     this.coins.dispose();
     this.weapons.dispose();

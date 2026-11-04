@@ -14,7 +14,7 @@ import { Vector3 } from 'three';
 import { DINO } from '../../tuning/dino';
 import type { PlayerState } from '../player/state';
 import { chaseDir } from './chase';
-import { startCharge, stepCharge } from './demonMoves';
+import { startCharge, stepCharge } from './charge';
 import { blitzHit, blitzSlashes, slashesDone, startBlitz, stepBlitz } from './dinoBlitz';
 import { screech, stalk, stormUp } from './dinoFrenzy';
 import { kickTurn, sandKick, scrapes, startWallRun, stepClimb, stepWallRun } from './dinoHunt';

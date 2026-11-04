@@ -10,7 +10,8 @@ import type { MoveEvent } from '../sim/player/state';
 /** A sound a clip can play: a combat event, a move event, the hammers' own swing and hit (the designer:
  *  the hammer had the blade's), the bosses' fire shot, the Snake's and Spider's bite, a punch's whoosh, or an execution's
  *  blows. */
-export type ClipSound = CombatEvent | MoveEvent | 'hammerSwing' | 'hammerHit' | 'fireShot' | 'bite' | 'jab' | 'blowPunch' | 'blowChop' | 'blowTear' | 'blowCrush';
+// (Update 0.3.41 — the Demon's roar and slam: clips the other bosses play, its own events gone with it.)
+export type ClipSound = CombatEvent | MoveEvent | 'demonRoar' | 'demonSlam' | 'hammerSwing' | 'hammerHit' | 'fireShot' | 'bite' | 'jab' | 'blowPunch' | 'blowChop' | 'blowTear' | 'blowCrush';
 
 export interface Mix {
   /** Its loudness (the clips peak at -3 dB). */

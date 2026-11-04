@@ -2,16 +2,22 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-04, after Update 0.3.40)
-- **Version 0.3.40** (the Orc's execution reworked), built and copied to main, **not committed** until the designer
-  says "commit". 0.3.39 and the docs' refresh are committed (`2ff57d0`) and pushed.
+## Where things stand (2026-11-04, after Update 0.3.41)
+- **Version 0.3.41** (the Dragon to floor 1, the Demon gone), built and copied to main, **not committed** until the
+  designer says "commit". 0.3.40 is committed (`7f6a8e4`; pushed by the designer through GitHub Desktop).
 - **The floors** (`world/dungeon/floorOrder.ts`): 1 the Dungeon, 2 the Venom Garden, 3 the Bone Keep, 4 Frozen Depths,
   5 the Drowned Temple, 6 the Desert, 7 Skull Cove, 8 the Shrine Dimension, 9 the Moon, 10 Hell on Earth (the Forge's
   rooms meanwhile).
-  - Floors 1–9 each have their own boss; floor 10's (Hellwarden) isn't built, and the Velociraptor stands in.
+  - Floors 1 and 3–9 each have their own boss (floor 1's the Dragon since 0.3.41; the Demon is gone). Floor 2's will
+    be the worm swarm (`MD/the-knot-3d-boss.md`, the designer's), the Dragon standing in. Floor 10's (Hellwarden) isn't
+    built, and the Velociraptor stands in.
   - **A run ends at floor 7** (`LAST_FLOOR` in `engine/runLinks.ts`, moved only when the designer says). Floors 8–10
     play from the Lab (F8).
 - **Open work, as it stands:**
+  - **The Knot, the Venom Garden's boss** (the designer's spec `MD/the-knot-3d-boss.md`, written for Unity: carried
+    over to this engine and to fists, as told to the designer): a heap of simulated worms round an eye. The designer may
+    send a reel of how its maker optimised it. About five updates: the worm sim and tubes; hits and deaths; Lash and
+    Spew; Charge, Worm Rain, Swallow and the phases; its show and death.
   - **Executions reworked with the animation library** (started 0.3.40, the designer: "make stuff more accurate"):
     - the Orc's is done (its body's own clips, your claw on its face, the library's uppercut, the burst where you
       hold it), awaiting the designer's word on its renders and play;
@@ -22,8 +28,8 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
     shadow clones, its markings blazing.
   - **Boss intros at Tidebreaker's quality:**
     - done for the Big Shark, Tidebreaker and Okami;
-    - still on the shared portal intro: the Demon, the Dragon, the Bone King, the Velociraptor, the Drowned King and
-      the Frost Roc;
+    - still on the shared portal intro: the Dragon (floor 1's now), the Bone King, the Velociraptor, the Drowned King
+      and the Frost Roc (the Demon's gone);
     - Hellwarden gets one when it's built.
   - **Hellwarden,** floor 10's boss: `MD/FLOORS_7_10_PLAN.md`; a Bestiary model animated with `tools/ual_bake.py`.
   - **The trailer:** the capture kit is in (F7). `MD_UPDATES/U0337_CAPTURE_KIT.md` has its keys, how to film each kind
@@ -43,7 +49,16 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-04, Update 0.3.40: the Orc's execution, reworked)
+## Last update (2026-11-04, Update 0.3.41: the Dragon to floor 1, the Demon gone)
+- **The designer**: "take Boss 1 -> Remove it and take Boss 2 (dragon) to floor 1 boss. Make this new boss a floor 2
+  boss", "Keep its strength". Spec `MD_UPDATES/U0341_BOSS_SWAP.md`.
+- **The bosses:** `kinds.ts` `BOSSES` (floor 1 and 2 the Dragon), `OWN_BOSS` (not the garden).
+- **What the Demon shared,** moved out before it went: the charge (`sim/enemies/charge.ts`), the death show
+  (`bossDoom.ts`), what bosses draw (`engine/boss/bossFx.ts`), the boss in play (`bossIn.ts`), the "Bosses" tuning
+  group. Its roar and slam clips stay (other bosses play them).
+- **Next:** the designer plays floor 1's boss; then The Knot.
+
+## Before (2026-11-04, Update 0.3.40: the Orc's execution, reworked)
 - **The designer**: "I have that ULA 1 & 2 lib now … is there a way to rework stuff? like make stuff more accurate?",
   "Yes, Orc's first", then "the right hand looks absolutly crazy bad when lifting the body". Spec
   `MD_UPDATES/U0340_ORC_EXECUTION.md`.

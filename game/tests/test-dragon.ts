@@ -16,7 +16,7 @@ import { introBeats } from '../src/sim/dungeon/bossRoom';
 import { createDungeonRun, stepRooms } from '../src/sim/dungeon/roomLoop';
 import { BREATH, BURST, CLAWS, FIREBALLS, TAIL, WING } from '../src/sim/enemies/dragonMoves';
 import { createEnemies, Enemy, EnemyWorld, hitEnemy, isLive, setPhase, spawnEnemy } from '../src/sim/enemies/enemy';
-import { bossOf, doomTime } from '../src/sim/enemies/kinds';
+import { bossOf, doomTime, ownBossOf } from '../src/sim/enemies/kinds';
 import { updateEnemies } from '../src/sim/enemies/update';
 import { createPlayer, PlayerState } from '../src/sim/player/state';
 import { DRAGON } from '../src/tuning/dragon';
@@ -152,7 +152,7 @@ section('Dragon — rage and death');
 section('Dragon — floor 2’s boss room');
 {
   // (Update 0.2.3 — floor 3's is the Bone King now: test-bone-king.ts.)
-  check('floor 1’s boss is the Demon, floor 2’s the Dragon', bossOf(1) === 'demon' && bossOf(2) === 'dragon');
+  check('floor 1’s boss is the Dragon (Update 0.3.41), standing in on floor 2 till the worm swarm', bossOf(1) === 'dragon' && ownBossOf(1) === 'dragon' && bossOf(2) === 'dragon' && ownBossOf(2) === null);
   const level = buildDungeon(planFloor(4242, 2));
   const b = level.boss;
   const room = level.rooms[b.room];

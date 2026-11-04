@@ -25,7 +25,7 @@ export function shotStyle(o: Orb): ShotStyle {
 }
 
 /** A fireball's size by who threw it (times the orbs' size). */
-export const fireScale = (o: Orb) => (o.by === 'dragon' ? 1.7 : o.by === 'demon' ? 1.35 : o.by === 'dragonling' ? 0.85 : o.by === 'sensei' ? 1.9 : 1);
+export const fireScale = (o: Orb) => (o.by === 'dragon' ? 1.7 : o.by === 'dragonling' ? 0.85 : o.by === 'sensei' ? 1.9 : 1);
 
 /** What a style leaves behind it (particles a second; their colour; whether they fall) and throws out where it lands
  *  (how many; their colour; a flash of fire). */

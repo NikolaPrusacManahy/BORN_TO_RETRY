@@ -10,7 +10,7 @@ import { startPin } from '../combat/pin';
 import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
 import { freeSpotNear } from './chase';
-import type { ChargeSpec } from './demonMoves';
+import type { ChargeSpec } from './charge';
 import { Enemy, EnemyWorld, radiusOf, setPhase, walk, yawTo } from './enemy';
 
 /** Which move (Enemy.move): the ones it picks (the sandstorm when its gap is over), then the ones that follow from

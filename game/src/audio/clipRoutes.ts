@@ -18,8 +18,8 @@ import { slamThud } from './moveSounds';
 /** Enemies' clips: quieter far off. */
 const FAR: ReadonlySet<CombatEvent> = new Set<CombatEvent>(['gruntWindup', 'gruntStrike', 'bruteSlam', 'itemDrop', 'freeze', 'bombBlast', 'wraithCast', 'blueFireball', 'spitterWindup', 'spit', 'bruteWindup', 'leaperWindup', 'leaperLand', 'stingerWindup', 'stingerDive', 'wraithWindup', 'slimeWindup', 'slimeBlast', 'frogWindup', 'frogTongue', 'snakeWindup', 'snakeBite', 'spiderBite', 'spiderWindup', 'waspWindup', 'execLand', 'execBurst']);
 /** A boss's: heard from across its room (never under 45%). */
-const BOSS: ReadonlySet<CombatEvent> = new Set<CombatEvent>(['dragonScream', 'demonSlam', 'demonCrash', 'dragonBreath', 'dragonFireball', 'demonVolley']);
-const FIRE_SHOTS: ReadonlySet<CombatEvent> = new Set<CombatEvent>(['dragonFireball', 'blueFireball', 'demonVolley']);
+const BOSS: ReadonlySet<CombatEvent> = new Set<CombatEvent>(['dragonScream', 'demonCrash', 'dragonBreath', 'dragonFireball']);
+const FIRE_SHOTS: ReadonlySet<CombatEvent> = new Set<CombatEvent>(['dragonFireball', 'blueFireball']);
 const HAMMERS: ReadonlySet<string> = new Set(['hammer', 'goldHammer']);
 /** Update 0.3.1 — a finisher's hit: the jab's, this much louder and lower. */
 export const FINISHER_LOUDER = 1.2;

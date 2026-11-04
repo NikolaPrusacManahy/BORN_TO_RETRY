@@ -4,17 +4,16 @@
 // of light when its body bursts. Pooled and updated in place.
 // Update 0.0.18 — the Dragon's too: its swoop's lane while it winds up its claws, and a ring as far as its wing or
 // its tail reaches while it winds those up; any boss's burst flashes.
+// Update 0.3.41 — the Demon gone (demonFx.ts → bossFx.ts): its charge's lane and its leap's landing ring with it; the
+// Dragon's, the quake rings and the burst's flash stay.
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
-import { windupOf } from '../../sim/enemies/demon';
-import { CHARGE } from '../../sim/enemies/demonMoves';
 import { dragonWindup } from '../../sim/enemies/dragon';
 import { BURST, CLAWS, TAIL, WING } from '../../sim/enemies/dragonMoves';
 import { RADIUS } from '../../sim/enemies/kinds';
 import { DRAGON } from '../../tuning/dragon';
 import { QUAKE_POOL } from '../../sim/combat/quakes';
-import { BOSS } from '../../tuning/boss';
-import { bossIn } from './demonView';
+import { bossIn } from './bossIn';
 
 /** The burst's flash: how long (s), how big it grows (m), how bright its light. */
 const FLASH = 0.6;
@@ -23,7 +22,7 @@ const FLASH_LIGHT = 400;
 
 const additive = (color: number) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
 
-export class DemonFx {
+export class BossFx {
   readonly group = new THREE.Group();
   private readonly lane: THREE.Mesh;
   private readonly landing: THREE.Mesh;
@@ -60,7 +59,6 @@ export class DemonFx {
   }
 
   update(state: CombatState, dt: number) {
-    const v = BOSS.v;
     for (let i = 0; i < state.events.length; i++) {
       const ev = state.events.at(i);
       if (ev.kind !== 'bossBurst') continue;
@@ -69,25 +67,15 @@ export class DemonFx {
       this.flashLight.position.set(ev.x, ev.y, ev.z);
     }
     const boss = bossIn(state);
-    const e = boss?.kind === 'demon' ? boss : null;
     const d = boss?.kind === 'dragon' ? boss : null;
     const dv = DRAGON.v;
-    // The charge's lane (the Dragon's swoop's), along the way it faces.
-    const charging = !!e && e.phase === 'windup' && e.move === CHARGE;
+    // The Dragon's swoop's lane, along the way it faces.
     const swooping = !!d && d.phase === 'windup' && d.move === CLAWS;
-    this.lane.visible = charging || swooping;
-    if (e && charging) this.showLane(e.pos, e.facing, e.t, Math.min(1, e.t / windupOf(e, CHARGE)), v.demonHeight * 0.5, v.chargeRange);
+    this.lane.visible = swooping;
     if (d && swooping) this.showLane(d.pos, d.facing, d.t, Math.min(1, d.t / dragonWindup(d, CLAWS)), dv.dragonHeight * 0.4, dv.clawRange);
-    // Where its leap lands; how far the Dragon's wing or tail will sweep.
-    const leaping = !!e && e.phase === 'leap';
+    // How far the Dragon's wing or tail will sweep.
     const swinging = !!d && d.phase === 'windup' && (d.move === WING || d.move === TAIL || d.move === BURST);
-    this.landing.visible = leaping || swinging;
-    if (e && leaping) {
-      const k = Math.min(1, e.t / v.leapAir);
-      this.landing.position.set(e.aim.x, e.aim.y + 0.06, e.aim.z);
-      this.landing.scale.setScalar(v.slamReach);
-      (this.landing.material as THREE.MeshBasicMaterial).opacity = 0.3 + 0.7 * k;
-    }
+    this.landing.visible = swinging;
     if (d && swinging) {
       const k = Math.min(1, d.t / dragonWindup(d, d.move));
       this.landing.position.set(d.pos.x, d.pos.y + 0.06, d.pos.z);

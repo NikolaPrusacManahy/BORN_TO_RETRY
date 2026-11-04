@@ -13,7 +13,7 @@ import { AIM_HEIGHT } from '../combat/turret';
 import { BODY } from '../player/body';
 import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
-import type { ChargeSpec } from './demonMoves';
+import type { ChargeSpec } from './charge';
 import { Enemy, EnemyWorld, hitEnemy, isLive, radiusOf, setPhase, turn, yawTo } from './enemy';
 import { ENEMY_STATS } from './kinds';
 

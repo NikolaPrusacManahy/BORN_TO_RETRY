@@ -23,7 +23,7 @@ import { createPlayer, PlayerState } from '../src/sim/player/state';
 import { SLOTS } from '../src/sim/weapons/slots';
 import { holding } from '../src/sim/weapons/weapons';
 import { BONUS } from '../src/tuning/bonus';
-import { BOSS } from '../src/tuning/boss';
+import { DRAGON } from '../src/tuning/dragon';
 import { FISTS, TARGETS } from '../src/tuning/combat';
 import { ENEMIES } from '../src/tuning/enemies';
 import { FOES } from '../src/tuning/foes';
@@ -52,7 +52,7 @@ const step = (c: CombatState, p: PlayerState, w: FlatWorld, intent: Partial<Comb
 
 section('Loadout — less gold');
 {
-  check('kills give half the coins they did', ENEMIES.v.gruntCoins === 1 && ENEMIES.v.spitterCoins === 2 && ENEMIES.v.bruteCoins === 5 && FOES.v.leaperCoins === 2 && FOES.v.stingerCoins === 1.5 && FOES.v.wraithCoins === 2.5 && BOSS.v.demonCoins === 15);
+  check('kills give half the coins they did', ENEMIES.v.gruntCoins === 1 && ENEMIES.v.spitterCoins === 2 && ENEMIES.v.bruteCoins === 5 && FOES.v.leaperCoins === 2 && FOES.v.stingerCoins === 1.5 && FOES.v.wraithCoins === 2.5 && DRAGON.v.dragonCoins === 15);
   const c = createCombat(bare);
   const rng = createRng(4);
   let sum = 0;
@@ -170,7 +170,7 @@ section('Loadout — kill bonuses');
   check('frozen, it stands still', e.pos.distanceTo(at) < 1e-6 && isLive(e));
   for (let i = 0; i < ticks(BONUS.v.frozen); i++) step(c, p, w);
   check('then it thaws and comes on', e.frozen === 0 && e.pos.distanceTo(at) > 0.2);
-  const d = spawnEnemy(c.enemies, 'demon', new Vector3(0, 0, 6), 0);
+  const d = spawnEnemy(c.enemies, 'dragon', new Vector3(0, 0, 6), 0);
   p.pos.set(0, 0, 8);
   p.yaw = Math.PI;
   step(c, p, w, { attackPressed: true, yaw: Math.PI });

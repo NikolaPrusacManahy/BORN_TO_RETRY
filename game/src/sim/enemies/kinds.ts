@@ -52,13 +52,13 @@ import { DINO } from '../../tuning/dino';
 export type { EnemyStats, SizeClass } from './kindStats';
 export { doomTime, DOOM_AFTER } from './kindStats';
 
-export type EnemyKind = 'grunt' | 'spitter' | 'brute' | 'leaper' | 'stinger' | 'wraith' | 'demon' | 'slime' | 'frog' | 'snake' | 'wasp' | 'spider' | 'blueDemon' | 'dragon' | 'skeleton' | 'mushnub' | 'ninja' | 'boneKing' | 'tribal' | 'cactoro' | 'cactoroBig' | 'hywirl' | 'dino' | 'dinoBlob' | 'lizard' | 'greenBlob' | 'blobling' | 'maskTribal' | 'skullOrc' | 'dragonling' | 'skullWraith' | 'rabbit' | 'bigMushnub' | 'snapper' | 'urchin' | 'jelly' | 'glub' | 'bigGlub' | 'squidle' | 'spawnling' | 'deepOne' | 'bogBrute' | 'drownedKing' | 'clownfish' | 'tuna' | 'angelfish' | 'dolphin' | 'drownedPrince' | 'mantaRay' | 'shark' | 'whale' | 'corsair' | 'shanty' | 'bomber' | 'crewman' | 'headless' | 'gull' | 'bat' | 'tentacle' | 'mako' | 'captain' | 'bigShark' | KindMoon | KindNorse | KindShrine;
+export type EnemyKind = 'grunt' | 'spitter' | 'brute' | 'leaper' | 'stinger' | 'wraith' | 'slime' | 'frog' | 'snake' | 'wasp' | 'spider' | 'blueDemon' | 'dragon' | 'skeleton' | 'mushnub' | 'ninja' | 'boneKing' | 'tribal' | 'cactoro' | 'cactoroBig' | 'hywirl' | 'dino' | 'dinoBlob' | 'lizard' | 'greenBlob' | 'blobling' | 'maskTribal' | 'skullOrc' | 'dragonling' | 'skullWraith' | 'rabbit' | 'bigMushnub' | 'snapper' | 'urchin' | 'jelly' | 'glub' | 'bigGlub' | 'squidle' | 'spawnling' | 'deepOne' | 'bogBrute' | 'drownedKing' | 'clownfish' | 'tuna' | 'angelfish' | 'dolphin' | 'drownedPrince' | 'mantaRay' | 'shark' | 'whale' | 'corsair' | 'shanty' | 'bomber' | 'crewman' | 'headless' | 'gull' | 'bat' | 'tentacle' | 'mako' | 'captain' | 'bigShark' | KindMoon | KindNorse | KindShrine;
 
-export const ENEMY_KINDS: readonly EnemyKind[] = ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith', 'demon', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon', 'dragon', 'skeleton', 'mushnub', 'ninja', 'boneKing', 'tribal', 'cactoro', 'cactoroBig', 'hywirl', 'dino', 'dinoBlob', 'lizard', 'greenBlob', 'blobling', 'maskTribal', 'skullOrc', 'dragonling', 'skullWraith', 'rabbit', 'bigMushnub', 'snapper', 'urchin', 'jelly', 'glub', 'bigGlub', 'squidle', 'spawnling', 'deepOne', 'bogBrute', 'drownedKing', 'clownfish', 'tuna', 'angelfish', 'dolphin', 'drownedPrince', 'mantaRay', 'shark', 'whale', 'corsair', 'shanty', 'bomber', 'crewman', 'headless', 'gull', 'bat', 'tentacle', 'mako', 'captain', 'bigShark', ...KINDS_MOON, ...KINDS_NORSE, ...KINDS_SHRINE];
+export const ENEMY_KINDS: readonly EnemyKind[] = ['grunt', 'spitter', 'brute', 'leaper', 'stinger', 'wraith', 'slime', 'frog', 'snake', 'wasp', 'spider', 'blueDemon', 'dragon', 'skeleton', 'mushnub', 'ninja', 'boneKing', 'tribal', 'cactoro', 'cactoroBig', 'hywirl', 'dino', 'dinoBlob', 'lizard', 'greenBlob', 'blobling', 'maskTribal', 'skullOrc', 'dragonling', 'skullWraith', 'rabbit', 'bigMushnub', 'snapper', 'urchin', 'jelly', 'glub', 'bigGlub', 'squidle', 'spawnling', 'deepOne', 'bogBrute', 'drownedKing', 'clownfish', 'tuna', 'angelfish', 'dolphin', 'drownedPrince', 'mantaRay', 'shark', 'whale', 'corsair', 'shanty', 'bomber', 'crewman', 'headless', 'gull', 'bat', 'tentacle', 'mako', 'captain', 'bigShark', ...KINDS_MOON, ...KINDS_NORSE, ...KINDS_SHRINE];
 export const SIZE_CLASSES: readonly SizeClass[] = ['small', 'large', 'air'];
 
 /** Body radii (m). Not knobs: the walk grids are built for them. */
-export const RADIUS: Record<EnemyKind, number> = { grunt: 0.45, spitter: 0.4, brute: 0.85, leaper: 0.45, stinger: 0.5, wraith: 0.55, demon: 1.7, slime: 0.5, frog: 0.55, snake: 0.4, wasp: 0.5, spider: 1.3, blueDemon: 0.85, dragon: 1.8, skeleton: 0.45, mushnub: 0.45, ninja: 0.45, boneKing: 1.5, tribal: 0.45, cactoro: 0.5, cactoroBig: 1.1, hywirl: 0.55, dino: 1.8, dinoBlob: 0.5, lizard: 0.5, greenBlob: 0.6, blobling: 0.4, maskTribal: 0.55, skullOrc: 1, dragonling: 0.55, skullWraith: 0.55, rabbit: 0.45, bigMushnub: 1.05, ...RADIUS5, ...RADIUS6, ...RADIUS_COVE, ...RADIUS_MOON, ...RADIUS_NORSE, ...RADIUS_SHRINE };
+export const RADIUS: Record<EnemyKind, number> = { grunt: 0.45, spitter: 0.4, brute: 0.85, leaper: 0.45, stinger: 0.5, wraith: 0.55, slime: 0.5, frog: 0.55, snake: 0.4, wasp: 0.5, spider: 1.3, blueDemon: 0.85, dragon: 1.8, skeleton: 0.45, mushnub: 0.45, ninja: 0.45, boneKing: 1.5, tribal: 0.45, cactoro: 0.5, cactoroBig: 1.1, hywirl: 0.55, dino: 1.8, dinoBlob: 0.5, lizard: 0.5, greenBlob: 0.6, blobling: 0.4, maskTribal: 0.55, skullOrc: 1, dragonling: 0.55, skullWraith: 0.55, rabbit: 0.45, bigMushnub: 1.05, ...RADIUS5, ...RADIUS6, ...RADIUS_COVE, ...RADIUS_MOON, ...RADIUS_NORSE, ...RADIUS_SHRINE };
 /** The grid each size class walks: blocked for this radius (a little less than the brute's, so 2 m gaps stay open:
  *  the push out of walls keeps its body clear anyway). */
 export const GRID_RADIUS: Record<SizeClass, number> = { small: 0.45, large: 0.65, air: 0.6 };
@@ -70,7 +70,6 @@ const CACHE: Record<EnemyKind, EnemyStats> = {
   leaper: blank('small'),
   stinger: blank('air'),
   wraith: blank('air'),
-  demon: blank('large', true),
   slime: blank('small'),
   frog: blank('small'),
   snake: blank('small'),
@@ -131,13 +130,6 @@ export const ENEMY_STATS: Record<EnemyKind, () => EnemyStats> = {
   wraith: () => {
     const v = FOES.v;
     return fill(CACHE.wraith, v.wraithHp, RADIUS.wraith, v.wraithHeight, v.wraithSpeed, v.wraithKnock, 0, v.wraithFlinch, 1.4, v.wraithCoins);
-  },
-  demon: () => {
-    const v = BOSS.v;
-    // Never flinches, barely slides; its coins burst out when its body does (bossRoom.ts), not on the killing hit.
-    const s = fill(CACHE.demon, v.demonHp, RADIUS.demon, v.demonHeight, v.demonSpeed, 0.05, Infinity, 0, doomTime() + DOOM_AFTER, 0);
-    s.stunned = v.stunBonus;
-    return s;
   },
   // Update 0.0.18 — floor 2's.
   slime: () => {
@@ -275,10 +267,12 @@ export const ENEMY_STATS: Record<EnemyKind, () => EnemyStats> = {
 // the Old Whale retired, the Velociraptor stands in till the Big Shark is made.)
 // (Update 0.3.25 — by its place, the floors reordered (world/dungeon/floorOrder.ts): the Desert's is the Velociraptor,
 // which stands in for the Moon's and the places not built yet. Update 0.3.26 — Frozen Depths' the Frost Roc.)
-const BOSSES: Readonly<Record<Realm, EnemyKind>> = { dungeon: 'demon', garden: 'dragon', keep: 'boneKing', frozen: 'frostRoc', temple: 'drownedKing', desert: 'dino', cove: 'bigShark', shrine: 'okami', moon: 'tidebreaker', hell: 'dino' };
+// (Update 0.3.41 — the designer: "take Boss 1, remove it and take Boss 2 (dragon) to floor 1 boss"; the Venom Garden's
+// to be the worm swarm, MD/the-knot-3d-boss.md: the Dragon stands in for it meanwhile.)
+const BOSSES: Readonly<Record<Realm, EnemyKind>> = { dungeon: 'dragon', garden: 'dragon', keep: 'boneKing', frozen: 'frostRoc', temple: 'drownedKing', desert: 'dino', cove: 'bigShark', shrine: 'okami', moon: 'tidebreaker', hell: 'dino' };
 /** The places whose boss is their own (the others' stands in). */
 // (Update 0.3.34 — the Shrine Dimension's its own, Yokai : Okami.)
-const OWN_BOSS: ReadonlySet<Realm> = new Set<Realm>(['dungeon', 'garden', 'keep', 'frozen', 'temple', 'desert', 'cove', 'shrine', 'moon']);
+const OWN_BOSS: ReadonlySet<Realm> = new Set<Realm>(['dungeon', 'keep', 'frozen', 'temple', 'desert', 'cove', 'shrine', 'moon']);
 export const bossOf = (floor: number): EnemyKind => BOSSES[realmOf(floor)];
 /** Update 0.3.25 — floor `floor`'s boss if it's its own (null: another floor's stands in). */
 export const ownBossOf = (floor: number): EnemyKind | null => (OWN_BOSS.has(realmOf(floor)) ? bossOf(floor) : null);

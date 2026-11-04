@@ -42,7 +42,6 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   skeleton: 'melee',
   mushnub: 'melee',
   ninja: 'heavy',
-  demon: null,
   dragon: null,
   boneKing: null,
   // Update 0.2.4 — floor 4's go their own ways (they don't wait their turn: that's what makes them hard).

@@ -3,7 +3,7 @@
 // draws a breath (the fireballs), it crouches to spring (the claws' swoop), it draws a wing back (the wing swing), it
 // coils (the tail swing: always, when you're behind it). The moves are in dragonMoves.ts. It never flinches; swoop it
 // into a wall or a column and it's stunned (hits do more). At Rage at of its health it screams (bossRoom.ts calls
-// wasps), then warns quicker, pauses less and flies faster. Its death show is the Demon's (demon.ts). Pure.
+// wasps), then warns quicker, pauses less and flies faster. Its death show is every boss's (bossDoom.ts). Pure.
 // Update 0.0.20 (the designer) — close to it, it strikes (wing, tail, claws) and pauses half as long; far off, it
 // breathes fire and throws fireballs; between, the swoop, the beam and fireballs. The beam charges 1.5 s, its line
 // aimed all the while (the view draws it as a warning).
@@ -13,7 +13,7 @@ import { Vector3 } from 'three';
 import { DRAGON } from '../../tuning/dragon';
 import type { PlayerState } from '../player/state';
 import { chaseDir } from './chase';
-import { stepCharge, startCharge } from './demonMoves';
+import { stepCharge, startCharge } from './charge';
 import { startSky, stepSky } from './dragonSky';
 import { aimBeam, BREATH, BURST, CLAWS, flameBurst, dragonMouth, dragonPace, dragonRecover, FIREBALLS, fireball, moreFireballs, startBreath, stepBreath, swoopSpec, TAIL, tailSwing, WING, wingSwing } from './dragonMoves';
 import { Enemy, EnemyWorld, setPhase, turn, walk, yawTo } from './enemy';

@@ -2,7 +2,7 @@
 // recycled version of every boss"): where it lands (and where its quake comes down) a flash, a crater cracked into the
 // moon dust that stays a while, a cloud of dust rising slowly in the low gravity, and rock flung out that falls and
 // settles; a smaller one where its smash, its boulder or its pillar hits. Its shockwaves (its quake rings) are walls
-// of dust rolling out over the floor, not the bosses' band of light (boss/demonFx.ts leaves them to this). Made in code.
+// of dust rolling out over the floor, not the bosses' band of light (boss/bossFx.ts leaves them to this). Made in code.
 // Update 0.3.31 — and its meteor's, in its show (the biggest).
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';

@@ -108,14 +108,14 @@ section('Fate Cards — uncommon: Bloodrush, Killing Spree, Cold Snap');
   cold.enemies[g].hp = 9999;
   slamImpact(cold, new Vector3(0, 0, 0), SLAM.v.minHeight);
   const boss = fight('coldSnap');
-  const b = spawnEnemy(boss.enemies, 'demon', new Vector3(0, 0, -2), 0);
+  const b = spawnEnemy(boss.enemies, 'dragon', new Vector3(0, 0, -2), 0);
   chill(boss, b);
   check(`Cold Snap: a slam freezes what it hits for ${CARDS.v.coldSnap} s (never a boss)`, cold.enemies[g].frozen === CARDS.v.coldSnap && boss.enemies[b].frozen === 0);
 }
 
 section('Fate Cards — rare: Mercy Kill, Updraft');
 {
-  const finish = (cards: CardKind[], kind: 'grunt' | 'demon' = 'grunt') => {
+  const finish = (cards: CardKind[], kind: 'grunt' | 'dragon' = 'grunt') => {
     const c = fight(...cards);
     const s = spawnEnemy(c.enemies, kind, new Vector3(0, 0, -2), 0);
     const e = c.enemies[s];
@@ -126,7 +126,7 @@ section('Fate Cards — rare: Mercy Kill, Updraft');
     const max = e.hp;
     return landHit(c, hit, max * (1 - CARDS.v.mercyKill) + 1, 0, 0, -1, 'hitJab', 1);
   };
-  check(`Mercy Kill: a hit leaving an enemy under ${Math.round(CARDS.v.mercyKill * 100)}% finishes it (never a boss)`, finish(['mercyKill']) && !finish([]) && !finish(['mercyKill'], 'demon'));
+  check(`Mercy Kill: a hit leaving an enemy under ${Math.round(CARDS.v.mercyKill * 100)}% finishes it (never a boss)`, finish(['mercyKill']) && !finish([]) && !finish(['mercyKill'], 'dragon'));
   const p = body('updraft');
   p.grounded = false;
   p.airJumps = 1;

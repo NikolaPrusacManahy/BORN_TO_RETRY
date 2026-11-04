@@ -21,7 +21,7 @@ const floors = (process.argv[2] ?? '3').split(',').map(Number);
 const secs = Number(process.argv[3] ?? 12);
 const DT = 1 / 60;
 const RANGED = new Set(['dragonling', 'skullWraith', 'frog', 'rabbit', 'spitter', 'wraith', 'stinger', 'wasp', 'tribal', 'hywirl', 'snapper', 'glub', 'bigGlub', 'squidle', 'deepOne']);
-const BOSSY = new Set(['dragon', 'demon', 'boneKing', 'dino', 'drownedKing', 'whale']);
+const BOSSY = new Set(['dragon', 'boneKing', 'dino', 'drownedKing', 'whale']);
 
 for (const floor of floors) {
   const kinds = rosterOf(floor).filter((k) => !BOSSY.has(k));

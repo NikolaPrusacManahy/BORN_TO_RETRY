@@ -19,7 +19,6 @@
 // you where it puts you), unheard; what its view keeps of it (Tidebreaker's crater) still told.
 import type { Rng } from '../../core/rng';
 import type { Spot } from '../../world/arena';
-import { BOSS } from '../../tuning/boss';
 import { DRAGON } from '../../tuning/dragon';
 import { BONE_KING } from '../../tuning/boneKing';
 import { DINO } from '../../tuning/dino';
@@ -73,11 +72,11 @@ const CALL_CLEAR = 8;
 /** After the show, a moment before its first move (s). */
 const FIRST_MOVE = 1;
 
-export function createBossRun(kind: EnemyKind = 'demon'): BossRun {
+export function createBossRun(kind: EnemyKind = 'dragon'): BossRun {
   return { kind, stance: false, beat: 'waiting', t: 0, slot: -1, summon: 0, calling: false, skip: false };
 }
 
-/** Update 0.0.18 — who a boss calls once it rages, how many and how often (s) (Update 0.0.21: only the Demon calls;
+/** Update 0.0.18 — who a boss calls once it rages, how many and how often (s) (Update 0.0.21: only the Demon called;
  *  Update 0.2.10: and the Drowned King, once: never again, `every` Infinity). */
 interface Calls {
   kind: EnemyKind;
@@ -107,18 +106,19 @@ function callsOf(kind: EnemyKind): Calls | null {
     CALLS.every = FROST_ROC.v.callEvery;
     return CALLS;
   }
-  if (kind !== 'demon') return null;
-  CALLS.kind = 'grunt';
-  CALLS.count = BOSS.v.summonGrunts;
-  CALLS.every = BOSS.v.summonEvery;
-  return CALLS;
+  // (Update 0.3.41 — the Demon's grunts gone with it.)
+  return null;
 }
 
 /** Update 0.3.24 — whom a boss calls (null: none): its floor loads their models too (floorKinds.ts). */
 export const calledBy = (kind: EnemyKind): EnemyKind | null => callsOf(kind)?.kind ?? null;
 
+/** Update 0.2.1 (the designer) — every boss's chest gives 15 coins (a boss with no knob of its own; Update 0.3.41 — the
+ *  Demon's knob gone with it). */
+const BOSS_COINS = 15;
+
 /** The coins a boss leaves (Update 0.2.0: in its chest). */
-export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : kind === 'whale' ? WHALE.v.whaleCoins : kind === 'bigShark' ? BIG_SHARK.v.bigCoins : kind === 'frostRoc' ? FROST_ROC.v.rocCoins : kind === 'tidebreaker' ? TIDEBREAKER.v.tideCoins : kind === 'okami' ? OKAMI.v.okamiCoins : BOSS.v.demonCoins);
+export const bossCoins = (kind: EnemyKind) => (kind === 'dragon' ? DRAGON.v.dragonCoins : kind === 'boneKing' ? BONE_KING.v.kingCoins : kind === 'dino' ? DINO.v.dinoCoins : kind === 'drownedKing' ? DROWNED.v.kingCoins : kind === 'whale' ? WHALE.v.whaleCoins : kind === 'bigShark' ? BIG_SHARK.v.bigCoins : kind === 'frostRoc' ? FROST_ROC.v.rocCoins : kind === 'tidebreaker' ? TIDEBREAKER.v.tideCoins : kind === 'okami' ? OKAMI.v.okamiCoins : BOSS_COINS);
 
 export { inShow, introBeats, portalOpen, wallsOpen, type IntroBeats } from './bossBeats';
 

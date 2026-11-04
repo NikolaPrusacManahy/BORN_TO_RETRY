@@ -126,9 +126,9 @@ section('Crowd — turns are given back');
 section('Crowd — bosses need no turn');
 {
   const enemies = createEnemies();
-  const d = spawnEnemy(enemies, 'demon', new Vector3(0, 0, -6), 0);
+  const d = spawnEnemy(enemies, 'dragon', new Vector3(0, 0, -6), 0);
   const g = spawnEnemy(enemies, 'dragon', new Vector3(6, 0, 0), 0);
-  check('the Demon and the Dragon may always attack', armed(enemies[d]) && armed(enemies[g]) && ROLE.demon === null && ROLE.dragon === null);
+  check('a boss may always attack', armed(enemies[d]) && armed(enemies[g]) && ROLE.dragon === null && ROLE.boneKing === null);
   const plain = ENEMY_KINDS.filter((k) => ROLE[k] !== null);
   // (Update 0.2.7 — the Skull Wraith fights as the Wraith does: wraith.ts. Update 0.2.10 — the Spawnling is the
   // Squidle's: squidle.ts.)
@@ -252,7 +252,7 @@ setKnob(LAB, 'god', 1);
   for (let k = 1; k < slots.length; k++) least = Math.min(least, slots[k] - slots[k - 1]);
   check(`16 in one spot: their angles still spread (none closer than ${((least * 180) / Math.PI).toFixed(0)}°)`, least > (10 * Math.PI) / 180);
   const boss = createEnemies();
-  const d = spawnEnemy(boss, 'demon', new Vector3(0, 0, -10), 0);
+  const d = spawnEnemy(boss, 'dragon', new Vector3(0, 0, -10), 0);
   spreadSlots(boss, p);
   check('bosses keep their own way (no angle)', Number.isNaN(boss[d].fan));
   const one = createEnemies();

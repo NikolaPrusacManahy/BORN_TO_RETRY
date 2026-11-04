@@ -205,13 +205,6 @@ export class CombatFeedback {
           this.f.chunks.spawn(at, back, 22, 1.2);
           this.f.rig.shake.add(0.55 * this.near(at, listener, 30));
           break;
-        case 'demonSlam':
-          this.f.chunks.spawn(at, UP, 26, 1.3);
-          this.f.rig.shake.add(0.7 * this.near(at, listener, 30));
-          break;
-        case 'demonRoar':
-          this.f.rig.shake.add(0.5);
-          break;
         case 'demonGore':
         case 'quakeHit':
           this.f.rig.shake.add(0.45);

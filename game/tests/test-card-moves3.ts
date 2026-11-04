@@ -26,7 +26,7 @@ const fight = (...cards: CardKind[]) => {
   return c;
 };
 /** A frozen (still) `kind` at (x, z) with `hp`. */
-const put = (c: Fight, x: number, z: number, hp = 9999, kind: 'grunt' | 'demon' = 'grunt') => {
+const put = (c: Fight, x: number, z: number, hp = 9999, kind: 'grunt' | 'dragon' = 'grunt') => {
   const s = spawnEnemy(c.enemies, kind, new Vector3(x, 0, z), 0);
   c.enemies[s].hp = hp;
   c.enemies[s].frozen = 999;
@@ -74,7 +74,7 @@ section('Fate Cards — wave 2: bleeds and burns');
   stepCombat(j, p, intent, new FlatWorld(), DT);
   check('Jagged Knuckles: a jab makes it bleed', j.powers.dots.some((d) => d.alive && d.slot === t && d.kind === 'bleed'));
   const boss = fight();
-  const b = put(boss, 0, -3, 9999, 'demon');
+  const b = put(boss, 0, -3, 9999, 'dragon');
   afflict(boss, b, 'burn', CARDS.v.burnDps, CARDS.v.burnFor);
   tick(boss, 1.01);
   check('a boss burns too', near(hurt(boss, b), CARDS.v.burnDps, 0.01));
@@ -165,7 +165,7 @@ section('Fate Cards — wave 2: blasts and rings (Powder Keg, Fire and Ice)');
   check('so does a thrown weapon where it breaks', hurt(w, wa) > 0);
   const f = fight('fireAndIce');
   const ring = put(f, 1, -3);
-  const boss = put(f, -1, -3, 9999, 'demon');
+  const boss = put(f, -1, -3, 9999, 'dragon');
   const at = new Vector3(0, 1, -3);
   bigHit(f, at, 39);
   const quiet = !f.powers.dots.some((d) => d.alive);

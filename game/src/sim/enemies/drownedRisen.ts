@@ -8,7 +8,7 @@ import { DROWNED } from '../../tuning/drowned';
 import { dropBomb } from '../combat/bombs';
 import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
-import type { ChargeSpec } from './demonMoves';
+import type { ChargeSpec } from './charge';
 import { throwYou } from './dinoMoves';
 import { Enemy, EnemyWorld, radiusOf, setPhase, yawTo } from './enemy';
 

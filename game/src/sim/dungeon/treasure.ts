@@ -115,7 +115,7 @@ function shuffle<T>(list: T[], rng: Rng): T[] {
 
 /** The shop's offers and the chests' rolls for a floor (seeded); `boss`: the floor's (its chest's loot). Update 0.2.15
  *  — `bossCards`: its chest deals Fate Cards (not on the run's last floor). */
-export function createTreasure(level: DungeonLevel, rng: Rng, boss: EnemyKind = 'demon', bossCards = true): Treasure {
+export function createTreasure(level: DungeonLevel, rng: Rng, boss: EnemyKind = 'dragon', bossCards = true): Treasure {
   const shop = level.rooms.find((r) => r.kind === 'shop');
   const drawn = shuffle([...SHOP_DRAWN], rng).slice(0, SHOP_TILES - SHOP_ALWAYS.length);
   // A key on offer is a normal, white or gold one.

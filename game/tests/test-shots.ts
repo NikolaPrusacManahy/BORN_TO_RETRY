@@ -18,7 +18,7 @@ section('Shots — their looks');
     fireOrb(c.orbs, new THREE.Vector3(), new THREE.Vector3(0, 0, 1), 10, 5, by, look);
     return shotStyle(c.orbs.find((o) => o.alive)!);
   };
-  check('fire for the Dragon, the Demon, a Dragonling and the Lab turret; the Blue Demon’s blue', style('dragon') === 'fire' && style('demon') === 'fire' && style('dragonling', 'fire') === 'fire' && style('turret') === 'fire' && style('blueDemon') === 'blueFire');
+  check('fire for the Dragon, a Dragonling and the Lab turret; the Blue Demon’s blue', style('dragon') === 'fire' && style('dragonling', 'fire') === 'fire' && style('turret') === 'fire' && style('blueDemon') === 'blueFire');
   check('the Spitter’s acid, the Glubs’ water', style('spitter') === 'acid' && style('glub', 'water') === 'water');
   check('a Tribal’s spear, a Cactoro’s thorn, a Mask Tribal’s feather, a Rabbit’s carrot', style('tribal', 'spear') === 'spear' && style('cactoroBig', 'spine') === 'spine' && style('maskTribal', 'spine') === 'feather' && style('rabbit', 'carrot') === 'carrot');
   check('fire and acid and water leave trails; fire flashes where it ends', TRAILS.fire.rate > 0 && TRAILS.acid.rate > 0 && TRAILS.water.rate > 0 && TRAILS.fire.flash !== null && TRAILS.acid.flash === null);
