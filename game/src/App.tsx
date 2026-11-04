@@ -278,6 +278,7 @@ export default function App() {
           }}
           onFullscreen={() => void toggleFullscreen()}
           onMainMenu={toMenu}
+          averageFps={() => getGame()?.stats.averageFps() ?? 0}
         />
       )}
       <div className="rb-fade" style={{ opacity: black !== null || loading ? 1 : 0, transitionDuration: loading ? '0s' : `${black ?? FADE_OUT}s` }}>

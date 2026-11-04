@@ -1,4 +1,6 @@
 // M1 — frame timing for the F2 overlay: the last 2 s of frame times, FPS and the worst frame.
+// Update 0.3.46 — and the average frame rate of all the play this session (the Feedback box): playing only, not paused,
+// not the menus or a loading screen.
 
 export const STATS_FRAMES = 480; // 2 s at 240 Hz
 
@@ -39,6 +41,21 @@ export class FrameStats {
     let w = 0;
     for (let i = 0; i < this.count; i++) w = Math.max(w, this.recent(i));
     return w;
+  }
+
+  /** Update 0.3.46 — play this session: its frames and time (ms). */
+  private playFrames = 0;
+  private playMs = 0;
+
+  /** A frame of play took `ms`. */
+  played(ms: number) {
+    this.playFrames++;
+    this.playMs += ms;
+  }
+
+  /** The average frame rate of the session's play (0: none yet). */
+  averageFps(): number {
+    return this.playMs > 0 ? (this.playFrames * 1000) / this.playMs : 0;
   }
 
   /** The median frame time (ms), the "normal" frame the hitch check compares against. */

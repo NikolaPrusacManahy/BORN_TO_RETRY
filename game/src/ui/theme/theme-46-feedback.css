@@ -1,0 +1,49 @@
+/* Update 0.3.46 — the Feedback box (the pause menu): a field a topic, the game's line, Back and Copy. */
+.rb-feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+}
+
+.rb-feedback-field {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  align-items: start;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.rb-feedback-field span {
+  padding-top: 6px;
+}
+
+.rb-feedback textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 2px solid #6e6669;
+  border-radius: 3px;
+  background: #241f21;
+  color: #ece6e8;
+  font: 14px/1.35 system-ui, sans-serif;
+  resize: vertical;
+}
+
+.rb-feedback textarea:focus {
+  outline: none;
+  border-color: var(--rb-brass);
+}
+
+.rb-feedback-stats {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--rb-dim);
+}
+
+.rb-feedback-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}

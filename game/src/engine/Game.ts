@@ -221,8 +221,11 @@ export class Game extends GameBase {
     // (Update 0.3.23 — the loader going up for a build: nothing runs under it meanwhile.)
     if (this.covering) return;
     this.renderer.shadowMap.autoUpdate = this.mode === 'play';
-    if (this.mode === 'play' && this.run) this.run.frame(real, this.input, this.settings, this.aspect, this.renderer, this.stats, this.debug);
-    else this.menuFrame(real);
+    if (this.mode === 'play' && this.run) {
+      this.run.frame(real, this.input, this.settings, this.aspect, this.renderer, this.stats, this.debug);
+      // (Update 0.3.46 — the session's average frame rate, for the Feedback box: playing, not paused.)
+      if (!this.paused && real > 0) this.stats.played(real * 1000);
+    } else this.menuFrame(real);
   };
 
   /** The main menu, the gate opening, and the settings camp. Nothing simulates. */

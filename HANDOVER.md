@@ -2,10 +2,11 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-04, after Update 0.3.45)
-- **Version 0.3.45** (a frame-rate counter players can show) and 0.3.44 (floors from the Lab at full speed), built and
-  copied to main, **not committed** until the designer says "commit". 0.3.43 is committed (`f6da297`); the designer pushes through GitHub Desktop (a push failed on the PC's
-  network earlier: a restart was advised).
+## Where things stand (2026-11-04, after Update 0.3.46)
+- **Version 0.3.46** (the Feedback box, for the playtest), built and copied to main, **not committed** until the designer
+  says "commit". 0.3.45 is committed (`823d3e8`); the designer pushes through GitHub Desktop.
+- **A playtest with players is planned** (performance and feedback): the frame-rate counter (0.3.45, F2) and the Feedback
+  box (0.3.46, pause menu) are for it.
 - **The floors** (`world/dungeon/floorOrder.ts`): 1 the Dungeon, 2 the Venom Garden, 3 the Bone Keep, 4 Frozen Depths,
   5 the Drowned Temple, 6 the Desert, 7 Skull Cove, 8 the Shrine Dimension, 9 the Moon, 10 Hell on Earth (the Forge's
   rooms in Hell's look since 0.3.43; stand-in enemies).
@@ -56,13 +57,18 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-04, Update 0.3.45: a frame-rate counter players can show)
+## Last update (2026-11-04, Update 0.3.46: the Feedback box)
+- **The designer**: "just simple": the average frame rate and the frame cap, glow and effects; feedback on cards, level
+  design, enemies, difficulty; ideas; no PC specs, nothing about where they were. Spec `MD_UPDATES/U0346_FEEDBACK.md`.
+- **Built:** pause menu → Feedback (`screens/Feedback.tsx`): five fields, the game's line (`state/feedbackText.ts`; the
+  average from `FrameStats.averageFps`, play only), Copy to paste into Discord. Nothing is sent anywhere.
+
+## Before (2026-11-04, Update 0.3.45: a frame-rate counter players can show)
 - **The designer**, planning a playtest with players: "in the Public build showing FPS is F2 by default, put the option
   to change the input in the graphics setting, just under the fps option". Spec `MD_UPDATES/U0345_FPS_COUNTER.md`.
 - **The counter** (`screens/FpsCounter.tsx`, top left): fps and the worst frame. Its key (`input/fpsKey.ts`, F2; any
   free key but Esc, the system's and the browser's) in Options → Graphics → Show FPS (`screens/FpsKeyRow.tsx`). In the
   dev build F2 stays the debug overlay.
-- **Next (talked about):** a "Copy performance report" button and a Feedback box for the playtest.
 
 ## Before (2026-11-04, Update 0.3.44: floors from the Lab at full speed)
 - **The designer**: floors at 60–72 fps, floor 1 at 144; then found floor 1 from the lobby at 144 and from the Lab at 72.
