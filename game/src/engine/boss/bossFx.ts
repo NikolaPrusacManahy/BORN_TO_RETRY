@@ -1,16 +1,12 @@
-// Update 0.0.15 — what the Demon's moves draw on the floor (every attack telegraphed: CLAUDE.md §5): while it winds up
-// a charge, a red lane along the way it will run, brighter as it comes; while it's in the air, a ring where it will land
-// as wide as its landing's reach; its quake rings rolling out (a glowing band as wide as they are far); and the flash
-// of light when its body bursts. Pooled and updated in place.
-// Update 0.0.18 — the Dragon's too: its swoop's lane while it winds up its claws, and a ring as far as its wing or
-// its tail reaches while it winds those up; any boss's burst flashes.
-// Update 0.3.41 — the Demon gone (demonFx.ts → bossFx.ts): its charge's lane and its leap's landing ring with it; the
-// Dragon's, the quake rings and the burst's flash stay.
+// Update 0.0.15 — what a boss's moves draw on the floor (every attack telegraphed: CLAUDE.md §5): its quake rings rolling
+// out (a glowing band as wide as they are far); and the flash of light when its body bursts. Pooled and updated in place.
+// Update 0.3.41 — the Demon gone (demonFx.ts → bossFx.ts).
+// Update 0.3.49 — the Dragon's Dive Bomb (the Boss Design Bible): its shadow growing on you, and a ring as far as its
+// landing reaches.
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
 import { dragonWindup } from '../../sim/enemies/dragon';
-import { BURST, CLAWS, TAIL, WING } from '../../sim/enemies/dragonMoves';
-import { RADIUS } from '../../sim/enemies/kinds';
+import { DIVE } from '../../sim/enemies/dragonMoves';
 import { DRAGON } from '../../tuning/dragon';
 import { QUAKE_POOL } from '../../sim/combat/quakes';
 import { bossIn } from './bossIn';
@@ -24,8 +20,8 @@ const additive = (color: number) => new THREE.MeshBasicMaterial({ color, transpa
 
 export class BossFx {
   readonly group = new THREE.Group();
-  private readonly lane: THREE.Mesh;
   private readonly landing: THREE.Mesh;
+  private readonly shadow: THREE.Mesh;
   private readonly quakes: { band: THREE.Mesh; floor: THREE.Mesh }[] = [];
   private readonly flash: THREE.Mesh;
   private readonly flashLight = new THREE.PointLight(0xffe0c0, 0, 60, 1.2);
@@ -35,26 +31,27 @@ export class BossFx {
 
   constructor(scene: THREE.Scene) {
     scene.add(this.group);
-    // The lane: 1 m long, from its feet forward (−z), scaled to the charge.
-    const lane = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2).translate(0, 0, -0.5);
     const ring = new THREE.RingGeometry(0.9, 1, 64).rotateX(-Math.PI / 2);
+    const disc = new THREE.CircleGeometry(1, 40).rotateX(-Math.PI / 2);
     const band = new THREE.CylinderGeometry(1, 1, 1, 72, 1, true).translate(0, 0.5, 0);
     const sphere = new THREE.SphereGeometry(1, 24, 16);
-    this.geos.push(lane, ring, band, sphere);
+    this.geos.push(ring, disc, band, sphere);
     const mat = (color: number) => {
       const m = additive(color);
       this.mats.push(m);
       return m;
     };
-    this.lane = new THREE.Mesh(lane, mat(0xff2010));
-    this.landing = new THREE.Mesh(ring, mat(0xff7a18));
+    const dark = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthWrite: false });
+    this.mats.push(dark);
+    this.landing = new THREE.Mesh(ring, mat(0xff4a18));
+    this.shadow = new THREE.Mesh(disc, dark);
     for (let i = 0; i < QUAKE_POOL; i++) {
       const q = { band: new THREE.Mesh(band, mat(0xff8a30)), floor: new THREE.Mesh(ring, mat(0xffb060)) };
       this.group.add(q.band, q.floor);
       this.quakes.push(q);
     }
     this.flash = new THREE.Mesh(sphere, mat(0xfff2e0));
-    this.group.add(this.lane, this.landing, this.flash, this.flashLight);
+    this.group.add(this.landing, this.shadow, this.flash, this.flashLight);
     for (const o of this.group.children) o.visible = false;
   }
 
@@ -68,18 +65,18 @@ export class BossFx {
     }
     const boss = bossIn(state);
     const d = boss?.kind === 'dragon' ? boss : null;
-    const dv = DRAGON.v;
-    // The Dragon's swoop's lane, along the way it faces.
-    const swooping = !!d && d.phase === 'windup' && d.move === CLAWS;
-    this.lane.visible = swooping;
-    if (d && swooping) this.showLane(d.pos, d.facing, d.t, Math.min(1, d.t / dragonWindup(d, CLAWS)), dv.dragonHeight * 0.4, dv.clawRange);
-    // How far the Dragon's wing or tail will sweep.
-    const swinging = !!d && d.phase === 'windup' && (d.move === WING || d.move === TAIL || d.move === BURST);
-    this.landing.visible = swinging;
-    if (d && swinging) {
-      const k = Math.min(1, d.t / dragonWindup(d, d.move));
-      this.landing.position.set(d.pos.x, d.pos.y + 0.06, d.pos.z);
-      this.landing.scale.setScalar((d.move === WING ? dv.wingReach : d.move === BURST ? dv.burstRadius : dv.tailReach) + RADIUS.dragon);
+    // The Dragon's dive: its shadow on you, growing as its tell runs; dark and full-sized as it falls.
+    const telling = !!d && d.phase === 'windup' && d.move === DIVE;
+    const falling = !!d && d.phase === 'dive' && d.move === DIVE;
+    this.landing.visible = this.shadow.visible = telling || falling;
+    if (d && (telling || falling)) {
+      const k = falling ? 1 : Math.min(1, d.t / dragonWindup(d, DIVE));
+      const r = DRAGON.v.diveRadius;
+      this.shadow.position.set(d.aim.x, 0.05, d.aim.z);
+      this.shadow.scale.setScalar(r * (0.3 + 0.7 * k));
+      (this.shadow.material as THREE.MeshBasicMaterial).opacity = 0.2 + 0.55 * k;
+      this.landing.position.set(d.aim.x, 0.07, d.aim.z);
+      this.landing.scale.setScalar(r);
       (this.landing.material as THREE.MeshBasicMaterial).opacity = 0.3 + 0.7 * k;
     }
     // The quake rings: a band of light as far out as each has rolled, fading as it goes.
@@ -107,14 +104,6 @@ export class BossFx {
       this.flashLight.intensity = FLASH_LIGHT * (1 - k) ** 2;
     } else this.flashLight.intensity = 0;
     this.flashLight.visible = this.flashLight.intensity > 0;
-  }
-
-  /** A lane `width` m wide and `length` m long from `pos` the way `facing` faces; brighter as `k` nears 1. */
-  private showLane(pos: THREE.Vector3, facing: number, t: number, k: number, width: number, length: number) {
-    this.lane.position.set(pos.x, 0.05, pos.z);
-    this.lane.rotation.y = facing;
-    this.lane.scale.set(width, 1, length);
-    (this.lane.material as THREE.MeshBasicMaterial).opacity = 0.15 + 0.45 * k * (0.75 + 0.25 * Math.sin(t * 30));
   }
 
   clear() {

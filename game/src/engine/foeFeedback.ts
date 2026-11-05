@@ -1,10 +1,9 @@
 // Update 0.0.18 — what you see of floor 2's enemies' blows: the slime's burst (a green ring as wide as it reaches, goo
 // thrown up), the spider's landing (a ring, dust, a jolt felt more the closer you are), a fireball or a sting leaving
 // (sparks), a bite (sparks). Called by combatFeedback.ts for the events it doesn't know.
-// The Dragon: its scream shakes the view; its beam rumbles; its wing sends a pale ring out in front and its tail a
-// violet one all round (dust thrown up); a fireball leaves in sparks; an enemy caught in the beam bursts.
-// Update 0.0.21 — its fire bombs bursting (a ring as wide as each, dust, a jolt felt more the closer), its flame burst
-// (a great ring of fire, a hard jolt).
+// The Dragon: its scream shakes the view; its fire rumbles; its wind sends a pale ring out; a fireball leaves in sparks.
+// Update 0.0.21 — its fire bombs bursting (a ring as wide as each, dust, a jolt felt more the closer), its blast (a great
+// ring of fire, a hard jolt).
 // Update 0.1.2 — an execution's are execFeedback.ts's.
 import * as THREE from 'three';
 import type { CombatEvent } from '../sim/combat/state';
@@ -43,14 +42,38 @@ export function foes2Feedback(f: FeedbackParts, kind: CombatEvent, value: number
       f.rig.shake.add(0.3 * near(30));
       break;
     case 'dragonWing':
-      f.waves.spawn(at, DRAGON.v.wingReach, 0xffe8a0);
+      f.waves.spawn(at, RADIUS.dragon + 4, 0xffe8a0);
       f.chunks.spawn(at, UP, 12, 1);
       f.rig.shake.add(0.35 * near(20));
       break;
     case 'dragonTail':
-      f.waves.spawn(at, DRAGON.v.tailReach + RADIUS.dragon, 0xb060ff);
       f.chunks.spawn(at, UP, 18, 1.1);
-      f.rig.shake.add(0.4 * near(20));
+      f.rig.shake.add(0.5 * near(24));
+      break;
+    // Update 0.3.49 — the Boss Design Bible's Dragon: rubble torn up; its dive hitting the floor; the ground shaking
+    // through its core's charge, harder as it goes; the core breaking.
+    case 'dragonRubble':
+      f.chunks.spawn(at, UP, 5, 0.7);
+      break;
+    case 'dragonSlam':
+      f.waves.spawn(at, DRAGON.v.diveRadius, 0xff7a20);
+      f.chunks.spawn(at, UP, 34, 1.4);
+      f.sparks.spawn(at, UP, 24, 1.4);
+      f.rig.shake.add(0.9 * near(30));
+      break;
+    case 'dragonCore':
+      f.waves.spawn(at, RADIUS.dragon + 6, 0xffa040);
+      f.sparks.spawn(at, back, 26, 1.4);
+      f.rig.shake.add(0.5);
+      break;
+    case 'dragonRumble':
+      f.rig.shake.add(0.14 + 0.26 * value);
+      break;
+    case 'dragonCoreBroken':
+      f.waves.spawn(at, RADIUS.dragon + 8, 0xfff0c0);
+      f.chunks.spawn(at, back, 28, 1.3);
+      f.sparks.spawn(at, back, 60, 2);
+      f.rig.shake.add(0.9);
       break;
     case 'bombBlast':
       f.waves.spawn(at, value, 0xff7a20);
@@ -59,14 +82,10 @@ export function foes2Feedback(f: FeedbackParts, kind: CombatEvent, value: number
       f.rig.shake.add(0.45 * near(18));
       break;
     case 'dragonBurst':
-      f.waves.spawn(at, DRAGON.v.burstRadius + RADIUS.dragon, 0xfff0c0);
-      f.chunks.spawn(at, UP, 30, 1.4);
-      f.sparks.spawn(at, UP, 40, 1.8);
-      f.rig.shake.add(0.8 * near(25));
-      break;
-    case 'burnt':
-      f.chunks.spawn(at, UP, 12, 1);
-      f.sparks.spawn(at, back, 14, 1.2);
+      f.waves.spawn(at, 34, 0xfff0c0);
+      f.chunks.spawn(at, UP, 40, 1.6);
+      f.sparks.spawn(at, UP, 60, 2.2);
+      f.rig.shake.add(1.3);
       break;
     case 'dragonFireball':
     case 'blueFireball':

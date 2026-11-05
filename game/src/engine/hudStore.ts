@@ -102,6 +102,10 @@ export interface HudState {
   execution: number;
   /** Update 0.2.3 — where the boss bar's mark is (share of its health; −1: none). */
   bossMark: number;
+  /** Update 0.3.49 — a boss's ultimate: the cue ('': none), the cancel's progress and its window left (0..1). */
+  ultCue: string;
+  ultFill: number;
+  ultLeft: number;
   /** Update 0.2.3 — held in the Bone King's hand: your hits (−1: not held), the hits to break free, the time left
    *  (0..1), how the last hold ended ('' once its flash is over), and your attack's key. */
   grabHits: number;
@@ -143,7 +147,7 @@ export interface HudStore {
 }
 
 export function createHudStore(): HudStore {
-  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, mag: -1, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, tealRings: 0, cards: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, skip: '', bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, chestHere: false, styleRank: -1, styleFill: 0, styleFeed: [], execution: 0, bossMark: -1, grabHits: -1, grabNeed: 0, grabLeft: 0, grabEnd: '', attackKey: '', jawCue: 0, leftKey: '', rightKey: '', ...createRaptorHud(), dashKey: '', slotKeys: '', ...createControlsHud() };
+  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, mag: -1, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, tealRings: 0, cards: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, skip: '', bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, chestHere: false, styleRank: -1, styleFill: 0, styleFeed: [], execution: 0, bossMark: -1, ultCue: '', ultFill: 0, ultLeft: 0, grabHits: -1, grabNeed: 0, grabLeft: 0, grabEnd: '', attackKey: '', jawCue: 0, leftKey: '', rightKey: '', ...createRaptorHud(), dashKey: '', slotKeys: '', ...createControlsHud() };
   const subs = new Set<() => void>();
   return {
     get: () => state,

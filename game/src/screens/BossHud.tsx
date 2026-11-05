@@ -4,6 +4,8 @@
 // name as it clears.
 // Update 0.2.3 — the mark is each boss's own (the Bone King's: its final blast, in its second life; none before).
 // Update 0.3.36 — while its show plays, the key that skips it (the designer: "SPACE" to skip), in the bottom bar.
+// Update 0.3.49 — a boss's ultimate (the Boss Design Bible): the cue saying how to cancel it, under its bar; the cancel's
+// progress, and a thin line of its window running out.
 import type { CSSProperties } from 'react';
 import type { HudState } from '../engine/hudStore';
 
@@ -25,6 +27,17 @@ export function BossHud({ s }: { s: HudState }) {
           <div className="rb-boss-bar-track">
             <i className="rb-boss-bar-fill" />
             {s.bossMark >= 0 && <i className="rb-boss-bar-rage" />}
+          </div>
+        </div>
+      )}
+      {s.ultCue && !s.cine && (
+        <div className="rb-ult" style={{ '--fill': s.ultFill, '--left': s.ultLeft } as CSSProperties}>
+          <span className="rb-ult-cue">{s.ultCue}</span>
+          <div className="rb-ult-track">
+            <i className="rb-ult-fill" />
+          </div>
+          <div className="rb-ult-time">
+            <i className="rb-ult-left" />
           </div>
         </div>
       )}

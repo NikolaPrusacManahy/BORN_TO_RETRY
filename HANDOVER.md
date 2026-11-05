@@ -2,13 +2,18 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-05, after Update 0.3.48)
-- **Version 0.3.48** (every boss's health cut by 30%), built and copied to main, **not committed** until the designer says
-  "commit". 0.3.47 is committed (`ae3973d`); the designer pushes through GitHub Desktop.
+## Where things stand (2026-11-05, after Update 0.3.49)
+- **Version 0.3.49** (the Dragon by the Boss Design Bible, ultimates), built and copied to main; 0.3.48 (every boss's health
+  cut by 30%) too. **Neither committed** until the designer says "commit". 0.3.47 is committed (`ae3973d`); the designer
+  pushes through GitHub Desktop.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
-  ("Keep them, adapt"). In floor order, the Dragon first.
+  ("Keep them, adapt"). In floor order. **The Dragon is done (0.3.49), awaiting the designer's play; The Swarm is next.**
+  Its ultimate is on `sim/enemies/ultimate.ts`, for the rest to share. Kit clashes still to meet: the slide (gone since
+  0.3.20; the bible's Sky Clap, Pillar Swing, Tail Lash), boss melee can't be parried and parry is bare-handed, four
+  ultimates cancel by shooting (count any ranged hit, and give fists a parryable shot), the audio has no left/right (the
+  Velociraptor's lesson).
 - **A playtest with players is planned** (performance and feedback): the frame-rate counter (0.3.45, F2) and the Feedback
   box (0.3.46, pause menu) are for it.
 - **The floors** (`world/dungeon/floorOrder.ts`): 1 the Dungeon, 2 the Venom Garden, 3 the Bone Keep, 4 Frozen Depths,
@@ -62,7 +67,15 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-05, Update 0.3.48: every boss's health cut by 30%)
+## Last update (2026-11-05, Update 0.3.49: the Dragon by the Boss Design Bible)
+- **The designer**: "go check enemies bible. This is how we will work away with bosses"; "Keep them, adapt". Spec
+  `MD_UPDATES/U0349_DRAGON_BIBLE.md`.
+- **Built:** Flame Sweep, Wing Gust, Tail Quake; phase 2 in the sky (Dive Bomb, Ember Rain, old moves chained); Inferno Core
+  on the shared `sim/enemies/ultimate.ts`, with its cue on screen and the music cut. Its old moves are gone. Tests:
+  `test-dragon.ts` (rewritten, with a simulated whole fight), `test-ultimate.ts`.
+- **Unseen:** not played. The core's place was checked in Blender renders of its pose; the rest of the look wasn't seen.
+
+## Before (2026-11-05, Update 0.3.48: every boss's health cut by 30%)
 - **The designer**: "also nerf all bosses HP by 30%". Spec `MD_UPDATES/U0348_BOSS_HEALTH.md`; the knobs' defaults, exactly
   70% of what they were; mini bosses unchanged. Test: `test-boss.ts`.
 

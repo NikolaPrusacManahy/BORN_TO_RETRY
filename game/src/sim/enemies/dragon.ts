@@ -1,54 +1,46 @@
-// Update 0.0.18 — the Dragon, floor 2's boss (the designer). It flies at you, low; every Dragon pause it picks a move
-// by how far you are and where (seeded) and warns, each its own way: it rears and its throat glows (the beam), it
-// draws a breath (the fireballs), it crouches to spring (the claws' swoop), it draws a wing back (the wing swing), it
-// coils (the tail swing: always, when you're behind it). The moves are in dragonMoves.ts. It never flinches; swoop it
-// into a wall or a column and it's stunned (hits do more). At Rage at of its health it screams (bossRoom.ts calls
-// wasps), then warns quicker, pauses less and flies faster. Its death show is every boss's (bossDoom.ts). Pure.
-// Update 0.0.20 (the designer) — close to it, it strikes (wing, tail, claws) and pauses half as long; far off, it
-// breathes fire and throws fireballs; between, the swoop, the beam and fireballs. The beam charges 1.5 s, its line
-// aimed all the while (the view draws it as a warning).
-// Update 0.0.21 (the designer) — raging, it doesn't call wasps or roar: it flies straight up and bombs you (dragonSky.ts).
-// Stay close to it too long and it charges up and bursts into flame round it (Enemy.near counts the time).
+// Update 0.0.18 — the Dragon, its floor's boss (the designer). It flies at you, low. It never flinches. Its death show is
+// every boss's (bossDoom.ts).
+// Update 0.3.49 — anew, from the Boss Design Bible ("Read the tell": watch the body, dash at the right moment; slow, huge,
+// honest telegraphs). Every pause on the ground it picks a move by how far you are (seeded) and warns: its head rears and
+// its throat glows (Flame Sweep), its wings lift (Wing Gust), it turns its back and shakes its tail (Tail Quake). Each
+// leaves a punish window (dragonMoves.ts). At half health it screams and takes to the sky for good (dragonSky.ts: Dive
+// Bomb, Ember Rain; its old moves quicker and chained), its ultimate first, and again every so often (dragonCore.ts).
 import { Vector3 } from 'three';
 import { DRAGON } from '../../tuning/dragon';
 import type { PlayerState } from '../player/state';
 import { chaseDir } from './chase';
-import { stepCharge, startCharge } from './charge';
-import { startSky, stepSky } from './dragonSky';
-import { aimBeam, BREATH, BURST, CLAWS, flameBurst, dragonMouth, dragonPace, dragonRecover, FIREBALLS, fireball, moreFireballs, startBreath, stepBreath, swoopSpec, TAIL, tailSwing, WING, wingSwing } from './dragonMoves';
+import { startCore, stepBlast, stepCore, stepCoreLanding } from './dragonCore';
+import { aimSweepStart, BLAST, CORE, DIVE, dragonMouth, dragonRecover, EMBER, startGust, startSweep, stepGust, stepSweep, SWEEP, TAIL, tailSlam, WING } from './dragonMoves';
+import { climb, startDive, stepDive, stepDiveTell, stepEmbers, stepSky, takeOff } from './dragonSky';
 import { Enemy, EnemyWorld, setPhase, turn, walk, yawTo } from './enemy';
+import { ultimateDue } from './ultimate';
 
 /** It stops flying this close to you (m: its body is wide). */
 const STAND_OFF = 6;
-/** Behind it (rad off its facing) and this close (m): the tail. */
-const BEHIND = 1.9;
-const TAIL_FROM = 9;
-/** The odds of each move (beam, fireballs, claws, wing, tail) close (Dragon close), between, and far (Dragon far).
- *  **(placeholders)** */
-const ODDS_NEAR = [0, 0, 0.15, 0.55, 0.3];
-const ODDS_MID = [0.3, 0.25, 0.45, 0, 0];
-const ODDS_FAR = [0.5, 0.5, 0, 0, 0];
-/** While winding up a swoop it turns this much slower (a dash aside beats it). */
-const CLAW_AIM = 0.6;
+/** The odds of each move (sweep, wing, tail) close (Dragon close), between, and far (Dragon far). **(placeholders)** */
+const ODDS_NEAR = [0.2, 0.4, 0.4];
+const ODDS_MID = [0.5, 0.25, 0.25];
+const ODDS_FAR = [0.6, 0.25, 0.15];
 
 const way = new Vector3();
 const mouth = new Vector3();
 
-/** The warning before `move` (s), quicker once it rages. */
+/** The warning before `move` (s): its old moves quicker in phase 2. */
 export function dragonWindup(d: Enemy, move: number): number {
   const v = DRAGON.v;
-  const base = [v.breathWindup, v.fireWindup, v.clawWindup, v.wingWindup, v.tailWindup, v.burstWindup][move] ?? v.breathWindup;
+  if (move === DIVE) return v.diveWindup;
+  if (move === EMBER) return v.emberWindup;
+  const base = move === WING ? v.wingWindup : move === TAIL ? v.tailWindup : v.sweepWindup;
   return base * (d.stage > 0 ? v.rageWindup : 1);
 }
 
-/** Its pause before the next move: shorter raging, and shorter when you're close (it strikes more often). */
-const pauseOf = (d: Enemy, dist: number) => DRAGON.v.dragonPause * (d.stage > 0 ? DRAGON.v.ragePause : 1) * (dist <= DRAGON.v.dragonNear ? DRAGON.v.closePause : 1);
+/** Its pause before the next move: shorter when you're close (it strikes more often). */
+const pauseOf = (dist: number) => DRAGON.v.dragonPause * (dist <= DRAGON.v.dragonNear ? DRAGON.v.closePause : 1);
 
 /** The next move for where you are (seeded); never the same one three times running. */
-function pick(d: Enemy, dist: number, off: number, w: EnemyWorld): number {
-  if (dist <= TAIL_FROM && off >= BEHIND) return TAIL;
+function pick(d: Enemy, dist: number, w: EnemyWorld): number {
   const odds = dist <= DRAGON.v.dragonNear ? ODDS_NEAR : dist <= DRAGON.v.dragonFar ? ODDS_MID : ODDS_FAR;
-  let move = BREATH;
+  let move = SWEEP;
   for (let tries = 0; tries < 3; tries++) {
     let roll = w.rng();
     for (let m = 0; m < odds.length; m++) {
@@ -67,81 +59,118 @@ function pick(d: Enemy, dist: number, off: number, w: EnemyWorld): number {
 
 function warn(d: Enemy, move: number, w: EnemyWorld) {
   d.move = move;
+  d.shots = 0;
   setPhase(d, 'windup');
   dragonMouth(d, mouth);
   w.events.push('dragonWindup', move, mouth.x, mouth.y, mouth.z);
+}
+
+/** A ground move over. On the ground it goes back to flying at you; in phase 2 its sweep chains into its gust, and any
+ *  other goes back up. */
+function afterMove(d: Enemy, index: number, dist: number, w: EnemyWorld) {
+  if (d.stage === 0) {
+    setPhase(d, 'chase');
+    d.cooldown = pauseOf(dist);
+  } else if (d.move === SWEEP) warn(d, WING, w);
+  else takeOff(d, index, w, false);
 }
 
 export function updateDragon(d: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: number) {
   const v = DRAGON.v;
   const dist = Math.hypot(player.pos.x - d.pos.x, player.pos.z - d.pos.z);
   const toward = yawTo(d, player.pos.x, player.pos.z);
-  // Half dead: it screams and flies up to bomb you (once), whatever it was about, unless it's swooping or breathing fire.
-  if (d.stage === 0 && d.hp <= v.dragonHp * v.rageAt && d.phase !== 'charge' && d.phase !== 'breath' && d.phase !== 'intro') {
+  // Half dead: it screams and takes to the sky (once), unless it's in the middle of its fire or its wind.
+  if (d.stage === 0 && d.hp <= v.dragonHp * v.rageAt && d.phase !== 'breath' && d.phase !== 'intro') {
     d.stage = 1;
-    startSky(d, index, w);
+    takeOff(d, index, w, true);
     return;
   }
-  // How long you've stayed close (it forgets at half the rate when you step away).
-  if (d.phase !== 'sky' && d.phase !== 'intro') d.near = dist <= v.burstNear ? d.near + dt : Math.max(0, d.near - dt * 0.5);
+  const due = d.stage > 0 && ultimateDue(d.ult, v.coreEvery, dt);
   switch (d.phase) {
-    case 'sky':
-      if (stepSky(d, index, player, w, dt)) d.cooldown = pauseOf(d, dist);
+    case 'sky': {
+      if (due && d.pos.y >= v.skyAlt - 0.01 && !player.dead) {
+        startCore(d);
+        break;
+      }
+      // (Due, it picks nothing else on its way up.)
+      if (due) d.cooldown = Math.max(d.cooldown, 1);
+      const next = stepSky(d, player, w, dt);
+      if (next === SWEEP) {
+        // Down to it first ('dive', Enemy.move SWEEP).
+        d.move = SWEEP;
+        setPhase(d, 'dive');
+      } else if (next >= 0) warn(d, next, w);
       break;
-    case 'stun':
-      if (d.t >= v.dragonStun) {
-        setPhase(d, 'chase');
-        d.cooldown = pauseOf(d, dist) * 0.5;
+    }
+    case 'dive':
+      if (d.move === DIVE) {
+        if (stepDive(d, index, player, w, dt)) setPhase(d, 'stun');
+      } else if (d.move === CORE) stepCoreLanding(d, index, player, w, dt);
+      else {
+        climb(d, 0, dt);
+        if (d.pos.y <= 0) warn(d, SWEEP, w);
       }
       break;
+    case 'blast':
+      stepCore(d, index, w, dt);
+      break;
+    case 'stun': {
+      const long = d.move === DIVE ? v.diveStuck : v.coreStagger;
+      if (d.t < long) break;
+      // Out of the ground, its Tail Quake; its core broken, back up.
+      if (d.move === DIVE) warn(d, TAIL, w);
+      else if (d.stage > 0) takeOff(d, index, w, false);
+      else setPhase(d, 'chase');
+      break;
+    }
     case 'recover':
-      if (d.move !== TAIL) d.facing = turn(d.facing, toward, v.dragonTurn * dt);
-      if (d.move === FIREBALLS) moreFireballs(d, index, player, w);
-      if (d.t >= dragonRecover(d.move)) {
-        setPhase(d, 'chase');
-        d.cooldown = pauseOf(d, dist);
-      }
+      if (d.move === BLAST) stepBlast(d, player, w);
+      // (Its head low, or its back to you: it doesn't turn.)
+      else if (d.move === WING) d.facing = turn(d.facing, toward, v.dragonTurn * dt);
+      if (d.t >= dragonRecover(d.move)) afterMove(d, index, dist, w);
       break;
     case 'chase': {
       if (player.dead) break;
       if (d.cooldown <= 0) {
-        const off = Math.abs(Math.atan2(Math.sin(toward - d.facing), Math.cos(toward - d.facing)));
-        if (d.near >= v.burstAfter) {
-          d.near = 0;
-          warn(d, BURST, w);
-        } else warn(d, pick(d, dist, off, w), w);
+        warn(d, pick(d, dist, w), w);
         break;
       }
       const how = chaseDir(w.flow.large, w.nav.large, d.pos, player.pos.x, player.pos.z, way);
       d.facing = turn(d.facing, how === 'path' ? Math.atan2(-way.x, -way.z) : toward, v.dragonTurn * dt);
       if (how === 'none' || (how === 'straight' && dist <= STAND_OFF)) break;
-      walk(d, way.x, way.z, v.dragonSpeed * dragonPace(d) * dt, w.nav.large);
+      walk(d, way.x, way.z, v.dragonSpeed * dt, w.nav.large);
       break;
     }
     case 'windup':
-      if (d.move !== TAIL && d.move !== BURST) d.facing = turn(d.facing, toward, v.dragonTurn * (d.move === CLAWS ? CLAW_AIM : 1) * dt);
-      // Charging the beam: its line is aimed all the while (the warning).
-      if (d.move === BREATH) aimBeam(d, player, w);
-      if (d.t < dragonWindup(d, d.move)) break;
-      if (d.move === BREATH) startBreath(d, index, player, w);
-      else if (d.move === CLAWS) startCharge(d, index, w);
-      else {
-        if (d.move === FIREBALLS) {
-          d.shots = 0;
-          fireball(d, index, player, w);
-        } else if (d.move === WING) wingSwing(d, index, player, w);
-        else if (d.move === BURST) flameBurst(d, index, player, w);
-        else tailSwing(d, index, player, w);
-        setPhase(d, 'recover');
-      }
+      windup(d, index, player, toward, w, dt);
       break;
     case 'breath':
-      if (stepBreath(d, index, player, w, dt)) setPhase(d, 'recover');
-      break;
-    case 'charge':
-      if (stepCharge(d, index, player, w, dt, swoopSpec(d)) === 'out') setPhase(d, 'recover');
+      if (d.move === EMBER) {
+        if (stepEmbers(d, index, player, w, dt)) takeOff(d, index, w, false);
+      } else if (d.move === WING ? stepGust(d, index, player, w, dt) : stepSweep(d, player, w)) setPhase(d, 'recover');
       break;
     default:
       break;
+  }
+}
+
+/** One tick of a warning, and the move it warned of. */
+function windup(d: Enemy, index: number, player: PlayerState, toward: number, w: EnemyWorld, dt: number) {
+  const v = DRAGON.v;
+  const long = dragonWindup(d, d.move);
+  if (d.move === DIVE) stepDiveTell(d, player, w, dt);
+  // Its back to you, by the time it slams.
+  else if (d.move === TAIL) d.facing = turn(d.facing, toward + Math.PI, (Math.PI / Math.max(0.1, long)) * 1.2 * dt);
+  else d.facing = turn(d.facing, toward, v.dragonTurn * dt);
+  if (d.move === EMBER) climb(d, v.skyAlt, dt);
+  if (d.move === SWEEP) aimSweepStart(d, w);
+  if (d.t < long) return;
+  if (d.move === SWEEP) startSweep(d, index, w);
+  else if (d.move === WING) startGust(d, index, w);
+  else if (d.move === DIVE) startDive(d, index, player, w);
+  else if (d.move === EMBER) setPhase(d, 'breath');
+  else {
+    tailSlam(d, index, w);
+    setPhase(d, 'recover');
   }
 }

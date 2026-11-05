@@ -41,9 +41,13 @@ let wanted: TrackName | null = null;
 let screen: TrackName | null = null;
 let floor: TrackName | null = null;
 let engine: AudioEngine | null = null;
+/** Update 0.3.49 — a boss's ultimate has cut the fight's music. */
+let cut = false;
+/** Cut, it's gone in this long (s). */
+export const CUT_OUT = 0.15;
 
 function want() {
-  const w = screen ?? floor;
+  const w = screen ?? (cut ? null : floor);
   if (w === wanted) return;
   wanted = w;
   engine?.tracks.apply();
@@ -59,6 +63,13 @@ export function setMusic(name: TrackName | null) {
 export function setFloorMusic(name: TrackName | null) {
   if (name === floor) return;
   floor = name;
+  want();
+}
+
+/** Update 0.3.49 — the Boss Design Bible: a boss's ultimate cuts the music, and it comes back where it was left. */
+export function cutMusic(on: boolean) {
+  if (on === cut) return;
+  cut = on;
   want();
 }
 
@@ -141,7 +152,7 @@ export class MusicPlayer {
     if (!p || !ctx) return;
     const now = ctx.currentTime;
     const fight = COMBAT.includes(p.name);
-    const out = fight ? FIGHT_FADE_OUT : FADE_OUT;
+    const out = cut ? CUT_OUT : fight ? FIGHT_FADE_OUT : FADE_OUT;
     if (fight) this.left.set(p.name, loopAt(p.from, now - p.at + out, p.src.buffer?.duration ?? 0));
     p.gain.gain.cancelScheduledValues(now);
     p.gain.gain.setValueAtTime(p.gain.gain.value, now);

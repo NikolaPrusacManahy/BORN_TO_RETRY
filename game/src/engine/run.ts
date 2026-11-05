@@ -49,7 +49,8 @@ import { CAMERA } from '../tuning/camera';
 import { FISTS } from '../tuning/combat';
 import { LAB } from '../tuning/lab';
 import { MOON } from '../tuning/moon';
-import { combatMusicOn, floorTrack, setFloorMusic } from '../audio/music';
+import { combatMusicOn, cutMusic, floorTrack, setFloorMusic } from '../audio/music';
+import { ultimateIn } from '../sim/enemies/ultimate';
 import type { DebugInfo } from './hudStore';
 import { readCombatIntent, readPlayerIntent } from './intents';
 import { focusOf } from '../sim/items/focus';
@@ -254,6 +255,8 @@ export class Run extends RunBase {
     this.hudFeed.slamReady = !p.dead && canSlam(p, this.level.physics);
     // (Update 0.3.19 — the floor's fight music, while a fight is on: audio/music.ts.)
     setFloorMusic(d && combatMusicOn(d, p.dead) ? floorTrack(d) : null);
+    // (Update 0.3.49 — a boss's ultimate cuts it.)
+    cutMusic(ultimateIn(this.combat.enemies) !== null);
     this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d, this.look.yaw, this.show.hud, choosing ?? '');
     // Dead: once it's black, the death screen (the dungeon: Retry is a new run) or the lab's start. The way down: the
     // next floor (Update 0.2.2: off the last, the run is won; Update 0.3.23: behind the loader).

@@ -1,31 +1,39 @@
-// Update 0.0.18 — the Dragon, floor 2's boss (the designer: an intro where it screams and the scream shakes; fire breath
-// like a laser beam that burns even its own side; fireballs; claws; wing swings; tail swings). Its beam burns you and
-// any enemy in its line, stops at a wall and follows you slowly; its fireballs come in a burst; its claws swoop through
-// you; its wing blows away what's in front, its tail sweeps all round (jump it); at half health it screams once and
-// calls wasps; dead, its show is the Demon's. Floor 2's boss room holds it, and it screams in its stance.
+// Update 0.0.18 — the Dragon, its floor's boss (the designer). Its show, its scream in its stance, its death.
+// Update 0.3.49 — its moves are the Boss Design Bible's ("Read the tell"): Flame Sweep, Wing Gust, Tail Quake; at half
+// health it takes to the sky (Dive Bomb, Ember Rain, its old moves quicker and chained), its ultimate first (Inferno Core).
 import { Vector3 } from 'three';
 import { check, near, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
 import { arenaWorld, OPEN_WORLD } from './fakes/enemyWorld';
 import { EventQueue } from '../src/core/eventQueue';
 import { createRng } from '../src/core/rng';
-import { updateOrbs } from '../src/sim/combat/orbs';
 import { updateBombs } from '../src/sim/combat/bombs';
+import { fireOrb } from '../src/sim/combat/orbs';
+import { parry } from '../src/sim/combat/parry';
+import { updateOrbs } from '../src/sim/combat/orbs';
+import { Pillar } from '../src/sim/combat/pillars';
+import { createPuddles, updatePuddles } from '../src/sim/combat/puddles';
+import { updateQuakes } from '../src/sim/combat/quakes';
 import { createCombat, CombatEvent } from '../src/sim/combat/state';
 import { introBeats } from '../src/sim/dungeon/bossRoom';
 import { createDungeonRun, stepRooms } from '../src/sim/dungeon/roomLoop';
-import { BREATH, BURST, CLAWS, FIREBALLS, TAIL, WING } from '../src/sim/enemies/dragonMoves';
+import { dragonWindup } from '../src/sim/enemies/dragon';
+import { BLAST_FOR, CORE_CUE, startCore } from '../src/sim/enemies/dragonCore';
+import { BLAST, CORE, DIVE, EMBER, SWEEP, TAIL, WING } from '../src/sim/enemies/dragonMoves';
 import { createEnemies, Enemy, EnemyWorld, hitEnemy, isLive, setPhase, spawnEnemy } from '../src/sim/enemies/enemy';
-import { bossOf, doomTime, ownBossOf } from '../src/sim/enemies/kinds';
+import { bossOf, doomTime, ENEMY_STATS, ownBossOf } from '../src/sim/enemies/kinds';
 import { updateEnemies } from '../src/sim/enemies/update';
 import { createPlayer, PlayerState } from '../src/sim/player/state';
+import { BOSS } from '../src/tuning/boss';
+import { FISTS } from '../src/tuning/combat';
+import { MOVE } from '../src/tuning/movement';
 import { DRAGON } from '../src/tuning/dragon';
 import { Arena, boxAt } from '../src/world/arena';
 import { buildDungeon } from '../src/world/dungeon/assemble';
 import { planFloor } from '../src/world/dungeon/floorPlan';
 
 const v = DRAGON.v;
-const events = new EventQueue<CombatEvent>(512, 'none');
+const events = new EventQueue<CombatEvent>(2048, 'none');
 const kinds = () => Array.from({ length: events.length }, (_, i) => events.at(i).kind);
 
 interface Fight {
@@ -33,6 +41,7 @@ interface Fight {
   p: PlayerState;
   all: Enemy[];
   d: Enemy;
+  pools: ReturnType<typeof createPuddles>;
 }
 
 /** A dragon at `at` facing `facing` (default: you). */
@@ -44,11 +53,12 @@ function fight(at: Vector3, facing = Math.atan2(at.x, at.z), arena?: Arena): Fig
   w.enemies = all;
   spawnEnemy(all, 'dragon', at, facing);
   events.clear();
-  return { w, p, all, d: all[0] };
+  return { w, p, all, d: all[0], pools: createPuddles() };
 }
 
 function warnNow(f: Fight, move: number) {
   f.d.move = move;
+  f.d.shots = 0;
   setPhase(f.d, 'windup');
 }
 
@@ -60,7 +70,9 @@ function run(f: Fight, secs: number, each?: () => void) {
     each?.();
     updateEnemies(f.all, f.p, f.w, OPEN_WORLD, DT);
     updateOrbs(f.w.orbs, f.p, new FlatWorld(), events, DT);
-    updateBombs(f.w.bombs, f.p, events, DT);
+    updateBombs(f.w.bombs, f.p, events, DT, f.pools);
+    updateQuakes(f.w.quakes, f.p, events, DT);
+    updatePuddles(f.pools, f.p, DT);
     f.p.hurtTime = Math.max(0, f.p.hurtTime - DT);
     seen.push(...kinds());
     events.clear();
@@ -68,94 +80,435 @@ function run(f: Fight, secs: number, each?: () => void) {
   return { seen, hurt: f.p.hp < hp };
 }
 
-section('Dragon — its fire beam');
+/** A dragon in phase 2, up in the sky, its first ultimate behind it. */
+function inSky(at = new Vector3(0, 0, -9)): Fight {
+  const f = fight(at);
+  f.d.stage = 1;
+  f.d.pos.y = v.skyAlt;
+  f.d.ult.count = 1;
+  setPhase(f.d, 'sky');
+  return f;
+}
+
+/** A dragon charging its core: `at` its room's middle. */
+function charging(at = new Vector3(0, 0, -6)): Fight {
+  const f = fight(at);
+  f.d.stage = 1;
+  f.d.pos.y = 4;
+  startCore(f.d);
+  run(f, v.coreGlide + 0.02);
+  return f;
+}
+
+section('Dragon — the bible’s dials');
 {
   const f = fight(new Vector3(0, 0, -15));
-  // A grunt of its own, between you (frozen where it stands).
-  const g = spawnEnemy(f.all, 'grunt', new Vector3(0, 0, -2.5), Math.PI);
-  f.all[g].frozen = 99;
-  warnNow(f, BREATH);
-  const a = run(f, v.breathWindup + 0.3);
-  check('after its warning it breathes a beam of fire: in its line, you burn', a.seen.includes('dragonBreath') && a.hurt && f.d.phase === 'breath');
-  check('so does any enemy in its line, its own side too', !isLive(f.all[g]) && a.seen.includes('burnt') && !a.seen.includes('kill'));
-  check('through your chest, the beam ends on the floor just past you', near(f.d.aim.y, 0, 0.05) && f.d.aim.z > 0 && Math.hypot(f.d.aim.x, f.d.aim.z) < 5, `${f.d.aim.x.toFixed(2)}, ${f.d.aim.y.toFixed(2)}, ${f.d.aim.z.toFixed(2)}`);
-  const b = run(f, v.beamTime);
-  check('it burns out, then it stands a moment', b.seen.length >= 0 && f.d.phase === 'recover');
+  check('Boss 1’s tells are about 1.2 s', [SWEEP, WING, TAIL, DIVE, EMBER].every((m) => near(dragonWindup(f.d, m), 1.2, 0.01)));
+  check('its ultimate’s window is 8 s', v.coreWindow === 8);
+  check('phase 2 at half health', v.rageAt === 0.5);
+  f.d.stage = 1;
+  check('in phase 2 its old moves tell quicker; its new ones as long', dragonWindup(f.d, SWEEP) < 1.2 && dragonWindup(f.d, WING) < 1.2 && dragonWindup(f.d, TAIL) < 1.2 && dragonWindup(f.d, DIVE) === 1.2);
+  check('never tankier: the health 0.3.48 gave it', ENEMY_STATS.dragon().hp === 1120);
+}
 
-  // Stepping aside as it starts: it follows, but slowly.
+section('Dragon — Flame Sweep');
+{
+  const f = fight(new Vector3(0, 0, -15));
+  warnNow(f, SWEEP);
+  const tell = run(f, v.sweepWindup - DT);
+  check('its tell can’t hurt you, and the fire doesn’t start till it’s over', !tell.hurt && !tell.seen.includes('dragonBreath') && f.d.phase === 'windup');
+  const a = run(f, v.sweepTime + 0.05);
+  check('then fire low across the floor, catching you where you stand', a.seen.includes('dragonBreath') && a.hurt);
+  check('and its head stays low a while: open to be hit', f.d.phase === 'recover' && f.d.move === SWEEP);
+  const yaw = f.d.facing;
+  f.p.pos.set(9, 0, 9);
+  run(f, v.sweepRecover - 0.1);
+  check('it doesn’t turn meanwhile', f.d.facing === yaw && f.d.phase === 'recover');
+  const on = run(f, 0.15);
+  check('then it’s back to flying at you', f.d.phase === 'chase' && !on.seen.includes('dragonBreath'));
+
+  // Left to right, across where it faced.
   const s = fight(new Vector3(0, 0, -15));
-  warnNow(s, BREATH);
-  run(s, v.breathWindup - DT);
-  s.p.pos.x = 7;
-  const c = run(s, 0.2);
-  check('step aside as it starts: the beam lags behind you', c.seen.includes('dragonBreath') && !c.hurt);
-  const d = run(s, v.beamTime - 0.3);
-  check('but it follows you round', d.hurt);
+  warnNow(s, SWEEP);
+  run(s, v.sweepWindup + 0.02);
+  const start = s.d.facing;
+  run(s, v.sweepTime * 0.5);
+  const mid = s.d.facing;
+  run(s, v.sweepTime * 0.45);
+  check(`it swings steadily across its ${v.sweepArc}° arc`, near(mid - start, ((v.sweepArc * Math.PI) / 180) * 0.5, 0.05) && s.d.facing > mid, `${start.toFixed(2)} ${mid.toFixed(2)} ${s.d.facing.toFixed(2)}`);
 
-  // A wall between: the beam stops at it.
+  const j = fight(new Vector3(0, 0, -15));
+  warnNow(j, SWEEP);
+  const over = run(j, v.sweepWindup + v.sweepTime + 0.05, () => {
+    j.p.pos.y = v.sweepClear + 0.1;
+  });
+  check('jump it and it passes under you', over.seen.includes('dragonBreath') && !over.hurt);
+
+  const dash = fight(new Vector3(0, 0, -15));
+  warnNow(dash, SWEEP);
+  const through = run(dash, v.sweepWindup + v.sweepTime + 0.05, () => {
+    dash.p.invuln = 1;
+  });
+  check('dash through it (a dash’s invincibility) and it can’t touch you', through.seen.includes('dragonBreath') && !through.hurt);
+
   const wall: Arena = { name: 'w', boxes: [boxAt(-40, -1, -40, 80, 1, 80, 'floor'), boxAt(-10, 0, -8, 20, 9, 1, 'wall')], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] };
   const w = fight(new Vector3(0, 0, -15), undefined, wall);
-  warnNow(w, BREATH);
-  const e = run(w, v.breathWindup + 0.5);
-  check('a wall stops it: behind one, you’re safe', e.seen.includes('dragonBreath') && !e.hurt && w.d.aim.z < -7.5, `ends at z ${w.d.aim.z.toFixed(2)}`);
+  warnNow(w, SWEEP);
+  const e = run(w, v.sweepWindup + v.sweepTime + 0.05);
+  check('a wall stops it: behind one, you’re safe', e.seen.includes('dragonBreath') && !e.hurt);
 }
 
-section('Dragon — fireballs, claws, wing, tail');
+section('Dragon — Wing Gust');
 {
-  const f = fight(new Vector3(0, 0, -15));
-  warnNow(f, FIREBALLS);
-  const a = run(f, v.fireWindup + v.fireGap * v.fireballs + 1);
-  check(`its fireballs come in a burst of ${v.fireballs}, and hit you`, a.seen.filter((k) => k === 'dragonFireball').length === v.fireballs && a.hurt);
-
-  const c = fight(new Vector3(0, 0, -14));
-  warnNow(c, CLAWS);
-  const b = run(c, v.clawWindup + 1);
-  check('its claws: it swoops through you, hurting and throwing you', b.seen.includes('demonCharge') && b.hurt && Math.hypot(c.p.vel.x, c.p.vel.z) > 5);
-
-  const w = fight(new Vector3(0, 0, -6));
-  warnNow(w, WING);
-  const d = run(w, v.wingWindup + 0.05);
-  check('its wing sweeps the front: hurt and blown away', d.seen.includes('dragonWing') && d.hurt && w.p.vel.z > 5);
-  const behind = fight(new Vector3(0, 0, -6), 0);
-  warnNow(behind, WING);
-  const e = run(behind, v.wingWindup + 0.05);
-  check('behind it, the wing misses', e.seen.includes('dragonWing') && !e.hurt);
-
-  const t = fight(new Vector3(0, 0, -5), 0);
-  t.d.cooldown = 0;
-  const g = run(t, v.tailWindup + 0.05);
-  check('behind it and close: it coils and its tail sweeps round, hurting you', t.d.move === TAIL && g.seen.includes('dragonTail') && g.hurt);
-  const j = fight(new Vector3(0, 0, -5), 0);
-  j.d.cooldown = 0;
-  const h = run(j, v.tailWindup + 0.05, () => {
-    j.p.pos.y = v.tailClear + 0.2;
+  const f = fight(new Vector3(0, 0, -10));
+  warnNow(f, WING);
+  const tell = run(f, v.wingWindup - DT);
+  check('its tell leaves you be', f.p.vel.z === 0 && !tell.seen.includes('dragonWing'));
+  let most = 0;
+  const a = run(f, v.gustTime * 0.5, () => {
+    most = Math.max(most, f.p.vel.z);
   });
-  check('jump it and it passes under you', h.seen.includes('dragonTail') && !h.hurt);
+  check('then the wind pushes you back', a.seen.includes('dragonWing') && most > 1 && f.d.phase === 'breath', most.toFixed(2));
+  const b = run(f, v.gustTime * 0.5 + 0.05);
+  const thrown = [...a.seen, ...b.seen].filter((k) => k === 'dragonRubble').length;
+  check(`and it throws ${v.rubbles} chunks of rubble at you`, thrown === v.rubbles && f.w.orbs.some((o) => o.look === 'rubble'), `${thrown}`);
+  check('then it stands a moment', f.d.phase === 'recover' && f.d.move === WING);
+
+  const side = fight(new Vector3(0, 0, -10));
+  warnNow(side, WING);
+  run(side, v.wingWindup + 0.02);
+  side.p.pos.set(14, 0, -10);
+  side.p.vel.set(0, 0, 0);
+  run(side, 0.3);
+  check('strafe out of its arc and the wind leaves you be', side.p.vel.x === 0 && side.p.vel.z === 0);
+
+  const r = fight(new Vector3(0, 0, -8));
+  warnNow(r, WING);
+  const hit = run(r, v.wingWindup + 1);
+  check('rubble that reaches you hurts', hit.hurt);
 }
 
-section('Dragon — rage and death');
+section('Dragon — Tail Quake');
+{
+  const f = fight(new Vector3(0, 0, -12));
+  warnNow(f, TAIL);
+  const toward = f.d.facing;
+  const tell = run(f, v.tailWindup - DT);
+  const off = Math.abs(Math.atan2(Math.sin(f.d.facing - toward), Math.cos(f.d.facing - toward)));
+  check('through its tell it turns its back on you', off > 3 && !tell.seen.includes('dragonTail'), off.toFixed(2));
+  const a = run(f, 0.05);
+  check('then the slam: a ring rolls out over the floor', a.seen.includes('dragonTail') && f.w.quakes.some((q) => q.alive));
+  const yaw = f.d.facing;
+  const b = run(f, 1.2);
+  check('on the floor, it catches you', b.hurt);
+  run(f, v.tailExposed - 1.3);
+  check(`its back stays to you for ${v.tailExposed} s`, f.d.phase === 'recover' && f.d.facing === yaw);
+  run(f, 0.2);
+  check('then it’s back to flying at you', f.d.phase === 'chase');
+
+  const j = fight(new Vector3(0, 0, -12));
+  warnNow(j, TAIL);
+  const over = run(j, v.tailWindup + 1.3, () => {
+    j.p.pos.y = v.tailClear + 0.1;
+  });
+  check('jump the ring and it passes under you', over.seen.includes('dragonTail') && !over.hurt);
+}
+
+section('Dragon — which move, where you are');
+{
+  const picks = (dist: number) => {
+    const seen = new Set<number>();
+    for (let i = 0; i < 60; i++) {
+      const f = fight(new Vector3(0, 0, -dist));
+      f.w.rng = createRng(100 + i);
+      f.d.cooldown = 0;
+      run(f, DT);
+      if (f.d.phase === 'windup') seen.add(f.d.move);
+    }
+    return seen;
+  };
+  const close = picks(v.dragonNear - 2);
+  const far = picks(v.dragonFar + 6);
+  check('close or far, phase 1 is its three moves', [close, far].every((s) => s.size === 3 && s.has(SWEEP) && s.has(WING) && s.has(TAIL)), `${[...close]} / ${[...far]}`);
+  const pauseAt = (dist: number) => {
+    const f = fight(new Vector3(0, 0, -dist));
+    f.d.move = WING;
+    setPhase(f.d, 'recover');
+    f.d.t = 10;
+    run(f, DT);
+    return f.d.cooldown;
+  };
+  check('close, it pauses less between moves', near(pauseAt(v.dragonNear - 2), pauseAt(v.dragonFar + 6) * v.closePause, 0.02));
+}
+
+section('Dragon — phase 2: it takes to the sky');
 {
   const f = fight(new Vector3(0, 0, -20));
   hitEnemy(f.d, 300, 0, 0, 0);
   check('it never flinches', f.d.phase !== 'flinch');
   f.d.hp = v.dragonHp * v.rageAt - 1;
   const a = run(f, 0.05);
-  // (Update 0.0.21 — the designer: raging, it flies up to bomb you; it no longer stands and roars.)
-  check('at half health it screams and takes to the sky', a.seen.filter((k) => k === 'dragonScream').length === 1 && f.d.stage === 1 && f.d.phase === 'sky');
-  const b = run(f, v.screamTime + 0.05);
-  check('once', !b.seen.includes('dragonScream') && f.d.phase !== 'roar');
+  check('at half health it screams and takes to the sky, once', a.seen.filter((k) => k === 'dragonScream').length === 1 && f.d.stage === 1 && f.d.phase === 'sky');
+  run(f, v.skyRise + 0.05);
+  check('its ultimate first, as phase 2 starts: it comes down to it', f.d.phase === 'dive' && f.d.move === CORE);
+
+  const g = fight(new Vector3(0, 0, -20));
+  warnNow(g, SWEEP);
+  run(g, v.sweepWindup + 0.1);
+  g.d.hp = v.dragonHp * v.rageAt - 1;
+  run(g, 0.05);
+  check('in the middle of its fire, it finishes first', g.d.stage === 0 && g.d.phase === 'breath');
+
+  const s = inSky();
+  s.d.cooldown = 99;
+  s.p.pos.set(30, 0, 0);
+  run(s, 3);
+  check(`it holds ${v.skyAlt} m up, drifting after you`, near(s.d.pos.y, v.skyAlt, 0.01) && s.d.pos.x > 5, `${s.d.pos.x.toFixed(1)}`);
+  const seen = new Set<number>();
+  for (let i = 0; i < 60; i++) {
+    const t = inSky();
+    t.w.rng = createRng(500 + i);
+    t.d.cooldown = 0;
+    run(t, DT);
+    seen.add(t.d.move);
+  }
+  check('up there: Dive Bomb, Ember Rain, or down to its Flame Sweep', seen.size === 3 && seen.has(DIVE) && seen.has(EMBER) && seen.has(SWEEP), [...seen].join());
+}
+
+section('Dragon — Dive Bomb');
+{
+  const f = inSky();
+  warnNow(f, DIVE);
+  f.p.pos.set(3, 0, 2);
+  const tell = run(f, v.diveWindup * 0.5);
+  check('a screech’s tell, high up: it doesn’t fall', near(f.d.pos.y, v.skyAlt, 0.01) && !tell.hurt);
+  check('its shadow follows you all through it', f.d.aim.x === 3 && f.d.aim.z === 2);
+  f.p.pos.set(-4, 0, 1);
+  run(f, v.diveWindup * 0.5 - DT);
+  check('still following', f.d.aim.x === -4 && f.d.aim.z === 1);
+  const lock = run(f, 2 * DT);
+  check('then it locks on and dives', f.d.phase === 'dive' && f.d.move === DIVE && lock.seen.includes('dragonDive'));
+  const a = run(f, v.diveFall);
+  check('where you stood, it lands: hurt and thrown', a.seen.includes('dragonSlam') && a.hurt && near(f.d.pos.y, 0, 0.01) && near(f.d.pos.x, -4, 0.01));
+  check('and it’s stuck in the ground', f.d.phase === 'stun' && f.d.move === DIVE);
+  const hp = f.d.hp;
+  hitEnemy(f.d, 100, 0, 1, 0);
+  check('hits do more while it’s stuck', near(hp - f.d.hp, 100 * BOSS.v.stunBonus, 0.01));
+  run(f, v.diveStuck - 0.1);
+  check(`for ${v.diveStuck} s`, f.d.phase === 'stun');
+  run(f, 0.15);
+  check('then it chains its Tail Quake', f.d.phase === 'windup' && f.d.move === TAIL);
+  run(f, dragonWindup(f.d, TAIL) + v.tailExposed + 0.05);
+  check('then back up', f.d.phase === 'sky');
+
+  const s = inSky();
+  warnNow(s, DIVE);
+  run(s, v.diveWindup + 2 * DT);
+  s.p.pos.set(v.diveRadius + 2, 0, 0);
+  const b = run(s, v.diveFall);
+  check('dash aside at the last moment and it misses', b.seen.includes('dragonSlam') && !b.hurt);
+}
+
+section('Dragon — Ember Rain');
+{
+  const f = inSky();
+  warnNow(f, EMBER);
+  const tell = run(f, v.emberWindup - DT);
+  check('it hovers through its tell: nothing falls yet', near(f.d.pos.y, v.skyAlt, 0.01) && !tell.seen.includes('dragonBomb'));
+  let first = Infinity;
+  let spread = 0;
+  let circling = false;
+  f.d.ult.since = 0;
+  const a = run(f, DT + v.emberGap * v.embers + v.bombFall + 0.1, () => {
+    f.p.hurtTime = 1;
+    if (f.d.phase === 'sky') circling = true;
+    for (const b of f.w.bombs) {
+      if (!b.alive || b.look !== 'ember') continue;
+      const d = Math.hypot(b.to.x, b.to.z);
+      if (first === Infinity) first = d;
+      spread = Math.max(spread, d);
+    }
+  });
+  check(`${v.embers} fireballs fall`, a.seen.filter((k) => k === 'dragonBomb').length === v.embers, `${a.seen.filter((k) => k === 'dragonBomb').length}`);
+  check('the first on you, the rest near you', first === 0 && spread > 1 && spread <= v.emberSpread + 0.01, `${first} ${spread.toFixed(1)}`);
+  check('each leaves a burning pool', f.pools.filter((p) => p.alive && p.fire).length === v.embers);
+  check('then it’s back to circling', circling);
+
+  const g = inSky();
+  g.d.cooldown = 99;
+  g.pools[0].alive = true;
+  g.pools[0].fire = true;
+  g.pools[0].x = g.pools[0].z = g.pools[0].y = 0;
+  g.pools[0].r = v.poolRadius;
+  g.pools[0].life = g.pools[0].full = v.poolTime;
+  const burn = run(g, 0.1);
+  check('standing in a pool burns you', burn.hurt);
+  g.p.hurtTime = 0;
+  const hp = g.p.hp;
+  run(g, 0.1, () => {
+    g.p.pos.y = 1;
+  });
+  check('over it, in the air, it can’t', g.p.hp === hp);
+  run(g, v.poolTime);
+  check(`it fades after ${v.poolTime} s`, !g.pools[0].alive);
+}
+
+section('Dragon — its old moves chained, in phase 2');
+{
+  const f = inSky();
+  f.w.rng = () => 0.99; // the last of its picks: down to its sweep
+  f.d.cooldown = 0;
+  run(f, DT);
+  check('it comes down', f.d.phase === 'dive' && f.d.move === SWEEP);
+  run(f, v.skyRise + 0.05);
+  check('to its Flame Sweep', f.d.pos.y === 0 && f.d.phase === 'windup' && f.d.move === SWEEP);
+  run(f, dragonWindup(f.d, SWEEP) + v.sweepTime + v.sweepRecover + 0.1);
+  check('chained into its Wing Gust', f.d.phase === 'windup' && f.d.move === WING);
+  run(f, dragonWindup(f.d, WING) + v.gustTime + v.swingRecover + 0.1);
+  check('then back up', f.d.phase === 'sky');
+}
+
+section('Dragon — Inferno Core, its ultimate');
+{
+  const f = charging();
+  check('it lands in its room’s middle, on the floor, its chest open', f.d.phase === 'blast' && f.d.pos.x === f.d.from.x && f.d.pos.z === f.d.from.z && f.d.pos.y === 0);
+  check(`the cue on screen, ${v.coreWindow} s on the clock`, f.d.ult.on && f.d.ult.cue === CORE_CUE && near(f.d.ult.left, v.coreWindow, 0.05));
+  const rumble = run(f, 1);
+  check('the ground shakes through it', rumble.seen.filter((k) => k === 'dragonRumble').length >= 2);
+  const hp = f.d.hp;
+  // (It faces you, along +z: a blow on its front travels along −z.)
+  hitEnemy(f.d, 30, 0, 0, -1);
+  check('a blow on its front goes to the core, not its health', f.d.ult.fill === 30 && f.d.hp === hp);
+  hitEnemy(f.d, 30, 0, 0, 1);
+  check('a blow on its back hurts it, and the core none', f.d.ult.fill === 30 && f.d.hp === hp - 30);
+  hitEnemy(f.d, v.coreHp, 0, 0, -1);
+  const broke = run(f, DT * 2);
+  check('enough on the core and it breaks', broke.seen.includes('dragonCoreBroken') && !f.d.ult.on);
+  check('it’s stunned: hits do more', f.d.phase === 'stun' && f.d.move === CORE);
+  const left = f.d.hp;
+  hitEnemy(f.d, 100, 0, 0, -1);
+  check('its health now, not the core', near(left - f.d.hp, 100 * BOSS.v.stunBonus, 0.01));
+  const after = run(f, v.coreStagger - 0.1);
+  check(`for ${v.coreStagger} s, no blast`, f.d.phase === 'stun' && !after.seen.includes('dragonBurst'));
+  run(f, 0.15);
+  check('then back up', f.d.phase === 'sky');
+
+  const n = charging();
+  const hpFull = n.p.hp;
+  const b = run(n, v.coreWindow + 0.05);
+  check('not broken in time: the blast', b.seen.includes('dragonBurst') && !n.d.ult.on && n.d.move === BLAST);
+  check(`heavy damage (${v.coreDamage}), thrown; not an instant death`, n.p.hp === hpFull - v.coreDamage && !n.p.dead && Math.hypot(n.p.vel.x, n.p.vel.z) > 5);
+  run(n, v.coreRecover + 0.1);
+  check('then back up', n.d.phase === 'sky');
+
+  // A pillar between you.
+  const pillar = (x: number, z: number): Pillar => ({ x, z, half: 0.6, h: 8, box: null, broken: false, yaw: 0, room: 0, lie: { x: 0, z: 0, yaw: 0 }, stump: null, top: null });
+  const s = charging();
+  (s.w as unknown as { pillars: Pillar[] }).pillars = [pillar(0, -3), pillar(8, -3)];
+  const safe = run(s, v.coreWindow + BLAST_FOR + 0.1);
+  const pillars = (s.w as unknown as { pillars: Pillar[] }).pillars;
+  check('a pillar between you takes the blast', safe.seen.includes('dragonBurst') && s.p.hp === hpFull);
+  check('and it goes (that one)', pillars[0].broken && !pillars[1].broken && safe.seen.includes('pillarBreak'));
+
+  const t = charging();
+  (t.w as unknown as { pillars: Pillar[] }).pillars = [pillar(8, -3)];
+  run(t, v.coreWindow + BLAST_FOR + 0.1);
+  check('a pillar off to the side does nothing', t.p.hp === hpFull - v.coreDamage && !(t.w as unknown as { pillars: Pillar[] }).pillars[0].broken);
+
+  const dash = charging();
+  const dashed = run(dash, v.coreWindow + 0.1, () => {
+    if (dash.d.move === BLAST && dash.d.t < 0.1) dash.p.invuln = 0.1;
+    else dash.p.invuln = 0;
+  });
+  run(dash, BLAST_FOR);
+  check('a dash’s moment doesn’t slip all of it', dashed.seen.includes('dragonBurst') && dash.p.hp === hpFull - v.coreDamage, `${dash.p.hp}`);
+
+  // Every so often.
+  const e = inSky();
+  e.d.ult.since = 0;
+  e.d.cooldown = 99;
+  run(e, v.coreEvery - 0.5);
+  check(`not before its time (about ${v.coreEvery} s on)`, e.d.phase === 'sky');
+  run(e, 1);
+  check('then again', e.d.phase === 'dive' && e.d.move === CORE);
+}
+
+section('Dragon — death');
+{
+  const f = fight(new Vector3(0, 0, -20));
   hitEnemy(f.d, 1e9, 0, 0, 0);
   const c = run(f, doomTime() + 0.05);
   check('killed, it rises, hangs, sinks and bursts', c.seen.includes('bossBurst') && f.d.struck);
+  const g = charging();
+  hitEnemy(g.d, 1e9, 0, 0, 1);
+  run(g, 0.1);
+  check('killed at its back mid-charge, its window doesn’t matter: no blast', !isLive(g.d));
 }
 
-section('Dragon — floor 1’s boss room (Update 0.3.41; floor 2’s before)');
+section('Dragon — fair to fists (ARE YOU EVEN HUMAN?)');
 {
-  // (Update 0.2.3 — floor 3's is the Bone King now: test-bone-king.ts.)
+  // Its core must break with bare hands, from the far corner of its room, by running alone.
+  const combo = FISTS.v.jabDamage * 2 + FISTS.v.finisherDamage;
+  const dps = combo / (FISTS.v.jabInterval * 3);
+  const room = 60;
+  const run_ = (Math.SQRT2 * (room / 2)) / MOVE.v.runSpeed;
+  const needed = run_ + v.coreHp / dps;
+  check(`jabs alone break the core from a far corner in time (${needed.toFixed(1)} s of ${v.coreWindow})`, needed < v.coreWindow);
+  // Rubble can be parried back, bare-handed: its bonus damage.
+  const f = fight(new Vector3(0, 0, -20));
+  const eye = new Vector3(0, 1.6, 0);
+  const ahead = new Vector3(0, 0, -1);
+  const c = createCombat({ name: 't', boxes: [], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] }, false);
+  fireOrb(c.orbs, new Vector3(0, 1.6, -0.5), new Vector3(0, 0, 1), v.rubbleSpeed, v.rubbleDamage, 'dragon', 'rubble');
+  check('its rubble can be parried back', parry(c, eye, ahead) >= 0 && c.orbs.some((o) => o.parried && o.look === 'rubble'));
+  check('no damage yet to its fight', f.d.hp === v.dragonHp);
+}
+
+section('Dragon — a whole fight, nothing stuck');
+{
+  // You stand and take it (kept alive), and hit it now and then.
+  const f = fight(new Vector3(0, 0, -20));
+  f.w.rng = createRng(77);
+  const moves = new Set<number>();
+  const phases = new Set<string>();
+  let stuckFor = 0;
+  let last = '';
+  let longest = 0;
+  let ultimates = 0;
+  let wasOn = false;
+  const secs = 400;
+  run(f, secs, () => {
+    f.p.hp = 100;
+    f.p.hurtTime = 0;
+    f.p.vel.set(0, 0, 0);
+    f.p.pos.set(0, 0, 0);
+    const key = `${f.d.phase}:${f.d.move}`;
+    stuckFor = key === last ? stuckFor + DT : 0;
+    last = key;
+    longest = Math.max(longest, f.d.phase === 'chase' || f.d.phase === 'sky' ? 0 : stuckFor);
+    phases.add(f.d.phase);
+    if (f.d.phase === 'windup') moves.add(f.d.move);
+    if (f.d.ult.on && !wasOn) ultimates++;
+    wasOn = f.d.ult.on;
+    // Phase 1 lasts a while, then half its health.
+    if (f.d.stage === 0 && f.d.t < DT * 2 && f.d.phase === 'chase') f.d.hp -= 60;
+    f.d.hp = Math.max(1, f.d.hp);
+    if (!Number.isFinite(f.d.pos.x + f.d.pos.y + f.d.pos.z + f.d.facing)) throw new Error('its place went bad');
+  });
+  check('it uses every move', [SWEEP, WING, TAIL, DIVE, EMBER].every((m) => moves.has(m)), [...moves].join());
+  check('it goes through every state', ['chase', 'windup', 'breath', 'recover', 'sky', 'dive', 'stun', 'blast'].every((p) => phases.has(p)), [...phases].join());
+  check(`no state holds it longer than its window (${longest.toFixed(1)} s)`, longest <= v.coreWindow + 0.1);
+  check(`its ultimate came back about every ${v.coreEvery} s (${ultimates})`, ultimates >= 4 && ultimates <= 8);
+}
+
+section('Dragon — floor 1’s boss room');
+{
   check('floor 1’s boss is the Dragon (Update 0.3.41); floor 2’s The Swarm (Update 0.3.42)', bossOf(1) === 'dragon' && ownBossOf(1) === 'dragon' && bossOf(2) === 'swarm' && ownBossOf(2) === 'swarm');
   const level = buildDungeon(planFloor(4242, 1));
   const b = level.boss;
   const room = level.rooms[b.room];
+  const inRoom = (level.arena.pillars ?? []).filter((p) => p.x > room.min.x && p.x < room.max.x && p.z > room.min.z && p.z < room.max.z);
+  check('its room has the bible’s 4 stone pillars', inRoom.length === 4, `${inRoom.length}`);
   const run0 = createDungeonRun(level);
   check('floor 1’s boss run is the Dragon’s', run0.boss.kind === 'dragon');
   const combat = createCombat(level.arena, false);
@@ -190,108 +543,20 @@ section('Dragon — floor 1’s boss room (Update 0.3.41; floor 2’s before)');
   tick(0.5, () => {
     p.hp = 100;
   });
-  // (Update 0.0.21 — the designer: no more spawning wasps.)
   const minions = combat.enemies.filter((e) => isLive(e) && e.kind !== 'dragon').length;
-  check('raging, it calls no wasps (nor anything)', minions === 0 && boss.phase === 'sky');
-}
-
-section('Dragon — close, it strikes; far, it burns (Update 0.0.20)');
-{
-  // The designer: more melee when you're close, the beam and fireballs when you're far; the beam charges 1.5 s and
-  // warns you.
-  const picks = (dist: number) => {
-    const seen = new Set<number>();
-    for (let i = 0; i < 40; i++) {
-      const f = fight(new Vector3(0, 0, -dist));
-      f.w.rng = createRng(100 + i);
-      f.d.cooldown = 0;
-      run(f, DT);
-      if (f.d.phase === 'windup') seen.add(f.d.move);
-    }
-    return seen;
-  };
-  const close = picks(v.dragonNear - 2);
-  const far = picks(v.dragonFar + 6);
-  check('close, only melee: wing, tail, claws', close.size > 1 && [...close].every((m) => m === WING || m === TAIL || m === CLAWS), [...close].join());
-  check('far, only the beam and fireballs', far.has(BREATH) && far.has(FIREBALLS) && [...far].every((m) => m === BREATH || m === FIREBALLS), [...far].join());
-  const pauseAt = (dist: number) => {
-    const f = fight(new Vector3(0, 0, -dist));
-    f.d.move = WING;
-    setPhase(f.d, 'recover');
-    f.d.t = 10;
-    run(f, DT);
-    return f.d.cooldown;
-  };
-  check('close, it pauses less between moves', near(pauseAt(v.dragonNear - 2), pauseAt(v.dragonFar + 6) * v.closePause, 0.02));
-  const f = fight(new Vector3(0, 0, -20));
-  warnNow(f, BREATH);
-  const charge = run(f, v.breathWindup - 0.1);
-  check(`the beam charges ${v.breathWindup} s, aimed at you all the while (the warning line), harmless meanwhile`, v.breathWindup === 1.5 && !charge.seen.includes('dragonBreath') && !charge.hurt && Math.hypot(f.d.aim.x, f.d.aim.z) < 5 && f.d.phase === 'windup');
-  const fire = run(f, 0.2);
-  check('then it fires', fire.seen.includes('dragonBreath') && fire.hurt);
-}
-
-section('Dragon — the sky bombardment (Update 0.0.21)');
-{
-  // The designer: its second phase starts with it flying up and bombing the ground with massive fireballs, their
-  // landing shown; 5 to 8 s in the air.
-  const f = fight(new Vector3(0, 0, -12));
-  f.d.hp = v.dragonHp * v.rageAt - 1;
-  let top = 0;
-  let marked = 0;
-  let bombs = 0;
-  let longest = 0;
-  const spots: number[] = [];
-  let px = f.p.pos.x;
-  let pz = f.p.pos.z;
-  const a = run(f, v.skyMax + v.skyRise + 1, () => {
-    f.p.hurtTime = 0;
-    top = Math.max(top, f.d.pos.y);
-    const alive = f.w.bombs.filter((b) => b.alive);
-    marked = Math.max(marked, alive.length);
-    // (Each bomb just thrown, against where you stood as it was thrown: the last tick.)
-    for (const b of alive) if (b.t > 0 && b.t <= DT * 1.01) spots.push(Math.hypot(b.to.x - px, b.to.z - pz));
-    px = f.p.pos.x;
-    pz = f.p.pos.z;
-    if (f.d.phase === 'sky') longest = f.d.t;
+  check('phase 2: it calls nothing', minions === 0 && boss.phase === 'sky');
+  tick(v.skyRise + v.coreGlide + 0.1, () => {
+    p.hp = 100;
   });
-  bombs = a.seen.filter((k) => k === 'dragonBomb').length;
-  check(`it flies up (${v.skyAlt} m)`, near(top, v.skyAlt, 0.05));
-  check(`and bombs the ground with fireballs (${bombs}), each landing spot known from the throw`, bombs >= 6 && marked >= 2 && a.seen.filter((k) => k === 'bombBlast').length >= bombs - 3);
-  check('aimed at you or round you', spots.length > 0 && spots.every((d) => d <= v.bombSpread + 0.01) && spots.some((d) => d < 0.01));
-  check(`up there ${v.skyMin}–${v.skyMax} s, then back down to fight`, longest >= v.skyMin && longest <= v.skyMax + v.skyRise + 0.05 && f.d.pos.y === 0 && f.d.phase !== 'sky', longest.toFixed(2));
-  check('a bomb landing on you hurts', a.hurt);
-  // Out of a bomb's reach: unhurt.
-  const g = fight(new Vector3(0, 0, -12));
-  g.w.bombs[0].alive = true;
-  g.w.bombs[0].to.set(20, 0, 20);
-  g.w.bombs[0].from.set(20, 10, 20);
-  g.w.bombs[0].fall = 0.1;
-  g.w.bombs[0].radius = v.bombRadius;
-  g.w.bombs[0].damage = v.bombDamage;
-  g.d.cooldown = 99;
-  const b = run(g, 0.2);
-  check('away from where it lands, it misses', b.seen.includes('bombBlast') && !b.hurt);
-}
-
-section('Dragon — the flame burst (Update 0.0.21)');
-{
-  // The designer: stay near it too long (about 30 s) and it charges up and explodes in flames: run.
-  const f = fight(new Vector3(0, 0, -4));
-  f.d.near = v.burstAfter;
-  f.d.cooldown = 0;
-  const a = run(f, DT);
-  check('after you have stayed close too long, it charges a burst', f.d.phase === 'windup' && f.d.move === BURST && a.seen.includes('dragonWindup'));
-  const b = run(f, v.burstWindup + 0.05);
-  check(`then bursts into flame: close, you're hurt and thrown far`, b.seen.includes('dragonBurst') && b.hurt && Math.hypot(f.p.vel.x, f.p.vel.z) > 10);
-  const g = fight(new Vector3(0, 0, -4));
-  g.d.near = v.burstAfter;
-  g.d.cooldown = 0;
-  run(g, v.burstWindup * 0.5);
-  g.p.pos.set(0, 0, v.burstRadius + 4);
-  const c = run(g, v.burstWindup * 0.5 + 0.05);
-  check('run out of its reach while it charges and you are safe', c.seen.includes('dragonBurst') && !c.hurt);
-  const h = fight(new Vector3(0, 0, -4));
-  run(h, 3);
-  check('close for a while (3 s) counts up; it bursts only after Burst after', near(h.d.near, 3, 0.05) && h.d.move !== BURST);
+  check('its core, in its room’s middle, where its portal was', boss.phase === 'blast' && near(boss.pos.x, b.portal.x, 0.01) && near(boss.pos.z, b.portal.z, 0.01));
+  // Your back to a pillar: the blast breaks it.
+  const pillar = inRoom[0];
+  const dx = pillar.x - boss.pos.x;
+  const dz = pillar.z - boss.pos.z;
+  const dist = Math.hypot(dx, dz);
+  tick(v.coreWindow + BLAST_FOR + 0.1, () => {
+    p.pos.set(pillar.x + (dx / dist) * 2, 0, pillar.z + (dz / dist) * 2);
+    p.hurtTime = 0;
+  });
+  check('behind one of its pillars, the blast misses you and breaks it', combat.pillars.some((q) => q.broken) && seen.includes('pillarBreak') && p.hp === 100, `${p.hp}`);
 }

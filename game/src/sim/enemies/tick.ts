@@ -42,7 +42,8 @@ export function beginTick(e: Enemy, nav: NavGrid, dt: number, gravity = 1): bool
     return false;
   }
   // A walker in the air with no leap to carry it (knocked out of one) falls.
-  if (!flies(e.kind) && e.phase !== 'leap' && e.phase !== 'sky' && e.phase !== 'held' && e.pos.y > e.perch) {
+  // (Update 0.3.49 — the Dragon holds its own height, all through its moves in the sky.)
+  if (!flies(e.kind) && e.kind !== 'dragon' && e.phase !== 'leap' && e.phase !== 'sky' && e.phase !== 'held' && e.pos.y > e.perch) {
     e.vel.y -= FALL * gravity * dt;
     e.pos.y = Math.max(e.perch, e.pos.y + e.vel.y * dt);
     if (e.pos.y === e.perch) e.vel.y = 0;

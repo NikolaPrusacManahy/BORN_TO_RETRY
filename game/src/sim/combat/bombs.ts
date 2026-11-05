@@ -19,7 +19,7 @@ import type { EventQueue } from '../../core/eventQueue';
 import { damagePlayer } from '../player/health';
 import type { Cause, PlayerState } from '../player/state';
 import type { CombatEvent } from './state';
-import { addPuddle, Puddle } from './puddles';
+import { addFirePool, addPuddle, Puddle } from './puddles';
 import { FOES_MOON } from '../../tuning/foesMoon';
 import { FOES_NORSE } from '../../tuning/foesNorse';
 import { addRime, chillYou, Frost } from './frost';
@@ -45,7 +45,8 @@ export interface Bomb {
   /** (Update 0.2.10 — 'bubble': floor 5's Big Glub's; it pops, 'bubblePop'. 'geyser': the Drowned King's.) */
   /** (Update 0.3.35 — 'kitsune': Yokai : Okami's blue fireball, thrown low and fast; 'sun': its massive fireball, hurled
    *  high and down onto the whole arena.) */
-  look: 'fire' | 'bones' | 'poison' | 'bubble' | 'geyser' | 'powder' | 'mine' | 'rime' | 'iceBlock' | 'boulder' | 'pillar' | 'kitsune' | 'sun';
+  /** (Update 0.3.49 — 'ember': the Dragon's Ember Rain: a fireball that leaves a burning pool.) */
+  look: 'fire' | 'bones' | 'poison' | 'bubble' | 'geyser' | 'powder' | 'mine' | 'rime' | 'iceBlock' | 'boulder' | 'pillar' | 'kitsune' | 'sun' | 'ember';
   /** Update 0.3.15 — landed, it burns this long before it goes (s). */
   fuse: number;
 }
@@ -106,6 +107,7 @@ export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQue
       addPuddle(puddles, b.to.x, b.to.y, b.to.z, events);
       continue;
     }
+    if (b.look === 'ember') addFirePool(puddles, b.to.x, b.to.y, b.to.z);
     const frosty = b.look === 'rime' || b.look === 'iceBlock';
     if (frosty && frost) addRime(frost, b.to.x, b.to.z, FOES_NORSE.v.rimeSize * (b.look === 'rime' ? 1 : BLOCK_RIME), FOES_NORSE.v.rimeLast);
     events.push(b.look === 'bones' ? 'boneCrash' : b.look === 'bubble' ? 'bubblePop' : b.look === 'geyser' ? 'geyserBurst' : b.look === 'powder' ? 'powderBlast' : b.look === 'mine' ? 'mineBlast' : b.look === 'rime' ? 'rimeBurst' : b.look === 'iceBlock' ? 'iceBlockShatter' : b.look === 'boulder' ? 'boulderSmash' : b.look === 'pillar' ? 'pillarCrash' : b.look === 'kitsune' ? 'kitsuneBlast' : b.look === 'sun' ? 'sunBlast' : 'bombBlast', b.radius, b.to.x, b.to.y, b.to.z);

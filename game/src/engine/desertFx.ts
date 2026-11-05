@@ -94,7 +94,9 @@ export class DesertFx {
       if (!p.alive) return;
       m.position.set(p.x, p.y + 0.04, p.z);
       m.scale.setScalar(p.r * (1 + 0.04 * Math.sin(this.time * 3 + i)));
-      (m.material as THREE.MeshBasicMaterial).opacity = 0.45 * Math.min(1, p.life / 1.5);
+      // (Update 0.3.49 — the Dragon's burning pools.)
+      (m.material as THREE.MeshBasicMaterial).color.setHex(p.fire ? 0xff5a18 : 0x50ff30);
+      (m.material as THREE.MeshBasicMaterial).opacity = (p.fire ? 0.75 : 0.45) * Math.min(1, p.life / 1.5);
     });
     // The Skull Orc's leap.
     const orc = state.enemies.find((e) => e.kind === 'skullOrc' && isLive(e) && e.phase === 'leap');

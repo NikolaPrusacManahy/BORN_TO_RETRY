@@ -51,6 +51,7 @@ import { createRaptorHud, raptorHud, sameRaptor } from './raptorHud';
 import { controlsHud, createControlsHud, createParryClock, sameControls } from './controlsHud';
 import type { Bindings } from '../input/bindings';
 import { keyLabel, slotKeysOf } from '../input/keyLabel';
+import { ultimateIn } from '../sim/enemies/ultimate';
 
 /** HUD refresh interval (s); hits, hurts and health changes push at once. */
 const HUD_EVERY = 0.05;
@@ -143,12 +144,17 @@ export class HudFeed {
     const grabLeft = g.on && g.fly < 0 ? Math.ceil(Math.max(0, 1 - g.t / rules.time) * 20) / 20 : 0;
     const grabEnd = !g.on && g.since < GRAB_FLASH ? g.end : '';
     const bossMark = show.bossMark;
+    // (Update 0.3.49 — a boss's ultimate: in steps of 2%.)
+    const ult = ultimateIn(combat.enemies);
+    const ultCue = ult ? ult.cue : '';
+    const ultFill = ult ? Math.min(1, Math.floor((ult.fill / ult.need) * 50) / 50) : 0;
+    const ultLeft = ult ? Math.ceil((ult.left / ult.window) * 50) / 50 : 0;
     const raptor = raptorHud(p, combat, this.raptor);
     // (Update 0.3.16 — the Big Shark's arrow.)
     const shark = combat.enemies.find((e) => e.kind === 'bigShark' && e.alive);
     const jaw = shark ? jawCue(shark) : 0;
     const ctl = controlsHud(combat, this.heavyKey, this.slamKey, this.slamReady, this.parryClock, this.controls);
-    const grab = cur.grabHits === grabHits && cur.grabLeft === grabLeft && cur.grabEnd === grabEnd && cur.bossMark === bossMark && cur.attackKey === this.attackKey && sameRaptor(cur, raptor) && cur.dashKey === this.dashKey && cur.jawCue === jaw && cur.leftKey === this.leftKey && cur.rightKey === this.rightKey && cur.slotKeys === this.slotKeys;
+    const grab = cur.grabHits === grabHits && cur.grabLeft === grabLeft && cur.grabEnd === grabEnd && cur.bossMark === bossMark && cur.ultCue === ultCue && cur.ultFill === ultFill && cur.ultLeft === ultLeft && cur.attackKey === this.attackKey && sameRaptor(cur, raptor) && cur.dashKey === this.dashKey && cur.jawCue === jaw && cur.leftKey === this.leftKey && cur.rightKey === this.rightKey && cur.slotKeys === this.slotKeys;
     if (this.timer > 0 && same && shown && grab && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution && cur.chestHere === chestHere && cur.styleRank === styleRank && this.styleTop === styleTop && sameControls(cur, ctl)) return;
     this.styleTop = styleTop;
     this.bonus = bonus;
@@ -203,6 +209,9 @@ export class HudFeed {
       styleFeed: style.feed.map((l) => ({ id: l.id, text: l.text })),
       execution,
       bossMark,
+      ultCue,
+      ultFill,
+      ultLeft,
       grabHits,
       grabNeed: rules.hits,
       grabLeft,

@@ -20,6 +20,7 @@
 import { Vector3 } from 'three';
 import { createSwarmBody, type SwarmBody } from './swarmBody';
 import { swarmEyeHeight, swarmTakes } from './swarmHits';
+import { createUltimate, resetUltimate, type Ultimate, ultimateTakes } from './ultimate';
 import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
 import type { CombatEvent } from '../combat/state';
@@ -100,6 +101,8 @@ export interface Enemy {
   /** Update 0.3.42 — The Swarm's worms (swarmBody.ts): made the first time a slot holds one, seeded each time one
    *  spawns there. */
   swarm: SwarmBody | null;
+  /** Update 0.3.49 — a boss's ultimate (ultimate.ts). */
+  ult: Ultimate;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -174,6 +177,7 @@ export function createEnemies(): Enemy[] {
     pinned: 0,
     hype: 0,
     swarm: null,
+    ult: createUltimate(),
   }));
 }
 
@@ -212,6 +216,7 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.blink = 0;
   e.deeds = 0;
   e.ward = 0;
+  resetUltimate(e.ult);
   // (Update 0.3.42 — The Swarm's worms seeded round it on its first tick.)
   if (kind === 'swarm') (e.swarm ??= createSwarmBody()).seeded = false;
   return i;
@@ -286,6 +291,12 @@ export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, 
   }
   // Update 0.2.3 — the Bone King rebuilding: nothing hurts it.
   if (e.kind === 'boneKing' && e.phase === 'rebuild') return false;
+  // Update 0.3.49 — a blow on what cancels its ultimate (the Dragon's core): that takes it, not its health.
+  if (ultimateTakes(e, dirX, dirZ)) {
+    e.flash = 0.12;
+    e.ult.fill += damage;
+    return false;
+  }
   const s = ENEMY_STATS[e.kind]();
   e.flash = 0.12;
   e.hp -= e.phase === 'stun' ? damage * s.stunned : damage;

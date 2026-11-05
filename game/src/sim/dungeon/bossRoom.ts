@@ -29,6 +29,7 @@ import { BIG_SHARK } from '../../tuning/bigShark';
 import { CINEMA } from '../../tuning/cinema';
 import { clearQuakes } from '../combat/quakes';
 import { clearBombs } from '../combat/bombs';
+import { clearPuddles } from '../combat/puddles';
 import type { CombatState } from '../combat/state';
 import { hitEnemy, isLive, setPhase, spawnEnemy } from '../enemies/enemy';
 import { ENEMY_STATS, EnemyKind } from '../enemies/kinds';
@@ -271,6 +272,8 @@ function down(b: BossRun, slot: number, combat: CombatState) {
   }
   clearQuakes(combat.quakes);
   clearBombs(combat.bombs);
+  // (Update 0.3.49 — the Dragon's burning pools go out with it.)
+  clearPuddles(combat.puddles);
 }
 
 function minions(combat: CombatState, slot: number): number {

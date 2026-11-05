@@ -101,6 +101,35 @@ export function uprootPillar(state: PillarWorld, i: number) {
   state.events.push('pillarGrab', i, p.x, p.h * PILLAR_CUT, p.z);
 }
 
+/** Update 0.3.49 — the first pillar standing on the line from (ax, az) to (bx, bz) (−1: none), its sides counted this far
+ *  out (m): the Dragon's blast, stopped by one. */
+export function pillarBetween(pillars: readonly Pillar[], ax: number, az: number, bx: number, bz: number, margin: number): number {
+  let best = -1;
+  let first = Infinity;
+  pillars.forEach((p, i) => {
+    if (p.broken) return;
+    const r = p.half + margin;
+    // Where the line is inside the pillar's square (a share of the way along it).
+    let from = 0;
+    let to = 1;
+    for (const [start, delta, mid] of [
+      [ax, bx - ax, p.x],
+      [az, bz - az, p.z],
+    ]) {
+      if (Math.abs(delta) < 1e-6) {
+        if (Math.abs(start - mid) > r) to = -1;
+        continue;
+      }
+      const t0 = (mid - r - start) / delta;
+      const t1 = (mid + r - start) / delta;
+      from = Math.max(from, Math.min(t0, t1));
+      to = Math.min(to, Math.max(t0, t1));
+    }
+    if (from <= to && from < first) [best, first] = [i, from];
+  });
+  return best;
+}
+
 /** The nearest pillar standing within `max` of (x, z) (−1: none). */
 export function standingNear(state: Pick<PillarWorld, 'pillars'>, x: number, z: number, max: number): number {
   let best = -1;

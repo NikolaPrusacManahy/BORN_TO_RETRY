@@ -1,0 +1,70 @@
+/* Update 0.3.49 — a boss's ultimate: the cue saying how to cancel it, under the boss's bar. The cancel's progress, and a
+   thin line of its window running out. */
+.rb-ult {
+  --fill: 0;
+  --left: 1;
+  position: absolute;
+  top: 118px;
+  left: 50%;
+  width: 520px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  animation: rb-ult-in 0.25s ease-out;
+}
+
+.rb-ult-cue {
+  font-family: var(--rb-font);
+  font-weight: 700;
+  font-size: 30px;
+  letter-spacing: 0.14em;
+  color: #fff0c8;
+  text-shadow: var(--rb-edge), 0 0 14px #ff7a20;
+}
+
+.rb-ult-track {
+  position: relative;
+  width: 100%;
+  height: 18px;
+  overflow: hidden;
+  background: #2a0b0f;
+  border: 3px solid #ffb060;
+  box-shadow: var(--rb-frame);
+}
+
+.rb-ult-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  transform: scaleX(var(--fill));
+  background: linear-gradient(#fff4c8 0 30%, #ffb040 30% 70%, #e8641e 70%);
+  transition: transform 0.1s ease-out;
+}
+
+.rb-ult-time {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: #2a0b0f;
+}
+
+.rb-ult-left {
+  position: absolute;
+  inset: 0;
+  transform-origin: center;
+  transform: scaleX(var(--left));
+  background: #ff5a30;
+}
+
+@keyframes rb-ult-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(1.15);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}

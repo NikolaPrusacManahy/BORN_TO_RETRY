@@ -175,6 +175,8 @@ export class ShotsView {
           g.quaternion.setFromAxisAngle(UP, spin * 1.6);
           g.scale.setScalar(1);
           break;
+        // (Update 0.3.49 — the Dragon's rubble tumbles too.)
+        case 'rubble':
         case 'carrot':
           // End over end.
           side.set(-dir.z, 0, dir.x).normalize();
