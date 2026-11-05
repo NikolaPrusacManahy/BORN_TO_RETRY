@@ -37,7 +37,6 @@ import { SWIMS } from '../sim/enemies/kinds6';
 import { fishPose } from './fishPose';
 import { FOES3 } from '../tuning/foes3';
 import { BONE_KING } from '../tuning/boneKing';
-import { SMASH } from '../sim/enemies/boneKingMoves';
 import { lizardSeen } from '../sim/enemies/lizard';
 import { FOES4 } from '../tuning/foes4';
 import { posedBounds } from './bodyMeasure';
@@ -210,13 +209,13 @@ export class EnemiesView {
       // (Update 0.2.10 — and floor 5's under the water: drownedFx.ts shows their fins.)
       // (Update 0.3.15 — Mako in the sand, a Tentacle sunk under the sea. Update 0.3.22 — floor 7's dead in the snow.)
       const buried = ((e.kind === 'cactoro' || e.kind === 'cactoroBig' || e.kind === 'mako') && e.pos.y < -1) || (e.kind === 'tentacle' && e.pos.y < -5) || ((e.kind === 'draugr' || e.kind === 'barrowMaid') && e.pos.y < -1.5) || submerged(e);
-      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing' || e.kind === 'whale' || e.kind === 'frostRoc' || e.kind === 'tidebreaker' || e.kind === 'okami') && e.phase === 'dead' && e.struck) && !buried;
+      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing' || e.kind === 'whale' || e.kind === 'frostRoc' || e.kind === 'tidebreaker' || e.kind === 'okami') && e.phase === 'dead' && e.struck) && !buried && !(e.king && e.phase === 'leap');
       if (!b.root.visible) continue;
       const windup = look.windup(e.move, e.stage);
       const king = e.kind === 'boneKing';
-      const glow = e.phase === 'windup' ? Math.min(1, e.t / windup) : e.phase === 'blast' ? Math.min(1, e.t / BONE_KING.v.blastCharge) : 0;
+      const glow = e.phase === 'windup' ? Math.min(1, e.t / windup) : 0;
       const swell = e.kind === 'slime' ? 1 + 0.35 * glow : 1;
-      const scale = (ENEMY_STATS[e.kind]().height / b.root.userData.height) * swell;
+      const scale = (ENEMY_STATS[e.kind]().height / b.root.userData.height) * swell * (e.king?.grow ?? 1);
       // (Update 0.2.28 — a hit squashes it a moment.)
       const squash = Math.max(0, Math.min(1, e.flash / 0.12)) * SQUASH;
       b.root.scale.set(scale * (1 + squash), scale * (1 - squash), scale * (1 + squash));
@@ -238,8 +237,8 @@ export class EnemiesView {
       if (e.phase === 'rebuild' && e.t >= (king ? BONE_KING.v.kingDown : FOES3.v.skeletonDown)) want = 'rise';
       // Update 0.3.8 — pinned to a wall: struck there and held so (its clip stops a moment in).
       if (e.pinned > 0) want = 'hit';
-      // Update 0.2.3 — the Bone King stands as it crouches to jump (its attack is a swing).
-      if (king && e.phase === 'windup' && e.move === SMASH) want = 'idle';
+      // Update 0.3.53 — the Bone King stands through its moves: kingPose.ts poses it.
+      if (king && (e.phase === 'windup' || e.phase === 'recover' || e.phase === 'blast' || e.phase === 'grab')) want = 'idle';
       // Update 0.2.5 (the designer: Tribals on a perch "just run on the spot"): one on its feet that hasn't moved a while stands.
       const moved = Math.hypot(e.pos.x - e.prev.x, e.pos.z - e.prev.z) > 1e-4;
       slot.still = moved || e.phase !== 'chase' ? 0 : slot.still + dt;

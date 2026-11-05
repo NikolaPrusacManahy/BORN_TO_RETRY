@@ -41,6 +41,7 @@ export function separateEnemies(enemies: Enemy[], nav: Record<SizeClass, NavGrid
 
 const shove = new Vector3();
 /** Passes over the enemies when pushing the player out (squeezed between two, one push can land in the other). */
+const KING_ON = 0.8;
 const PUSH_PASSES = 3;
 
 /** The player can't walk through an enemy: pushed out of any it overlaps, through the collision world (so never into
@@ -49,6 +50,8 @@ export function pushPlayerOut(player: PlayerState, enemies: Enemy[], world: Coll
   for (let pass = 0; pass < PUSH_PASSES; pass++) {
     for (const e of enemies) {
       if (!isLive(e) || e.phase === 'held' || e.phase === 'rebuild') continue;
+      // (Update 0.3.53 — up on the Bone King's arm or its back, you're on it; its bones flown, there's nothing there.)
+      if (e.king && (player.pos.y - e.pos.y > KING_ON || e.phase === 'leap')) continue;
       const min = radiusOf(e) + radius;
       const dx = player.pos.x - e.pos.x;
       const dz = player.pos.z - e.pos.z;

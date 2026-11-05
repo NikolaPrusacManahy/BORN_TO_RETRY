@@ -123,6 +123,8 @@ export const DUNGEON_LOOK: DungeonStyle = { ...BRICK, bossWalls: 5, bossTowers: 
 export const BONE: DungeonStyle = {
   ...STONE,
   id: 'bone',
+  // (Update 0.3.53 — the Bone King's pit: high walls.)
+  bossWalls: 6,
   decor: 'kit_r_Skull2',
   decorY: 2.3,
   decorOut: 0.3,

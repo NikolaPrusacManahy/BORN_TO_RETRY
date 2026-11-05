@@ -1,7 +1,6 @@
 // Update 0.0.21 — the Dragon's fire bombs as you see them (the designer: "the player can see where it will land"): each
 // a big fireball on its arc, and on the floor where it will land a red ring as wide as its burst, filling in and
 // brightening as it comes, so the last moment reads. Pooled and updated in place.
-// Update 0.2.3 — a skeleton the Bone King throws is drawn by kingView.ts: here only its spot.
 // Update 0.2.4 — a Lizard's poison glob: a green ball. Update 0.3.15 — the Bomber's powder bomb: a small black ball, its
 // fuse spitting sparks; its ring fills over its flight and its fuse together (batted back, over its short flight).
 // Update 0.3.18 — floor 8's mine: a small steel ball floating down, its light blinking red, faster as its fuse runs.
@@ -83,7 +82,7 @@ export class BombView {
       s.spark.visible = b.alive && b.look === 'powder';
       if (!b.alive) continue;
       // (Update 0.3.29 — a hurled pillar is drawn by the floor's view: pillarEvents.ts.)
-      s.ball.visible = b.look !== 'bones' && b.look !== 'geyser' && b.look !== 'pillar' && b.look !== 'sun';
+      s.ball.visible = b.look !== 'geyser' && b.look !== 'pillar' && b.look !== 'sun';
       s.ball.material = b.look === 'poison' ? this.poisonMat : b.look === 'bubble' ? this.bubbleMat : b.look === 'powder' ? this.powderMat : b.look === 'mine' ? this.mineMat : b.look === 'rime' ? this.rimeMat : b.look === 'iceBlock' ? this.iceMat : b.look === 'boulder' ? this.rockMat : b.look === 'kitsune' ? this.kitsuneMat : this.ballMat;
       const frosty = b.look === 'rime' || b.look === 'iceBlock' || b.look === 'kitsune';
       s.ball.geometry = b.look === 'iceBlock' ? this.boxGeo : b.look === 'boulder' ? this.rockGeo : this.ballGeo;

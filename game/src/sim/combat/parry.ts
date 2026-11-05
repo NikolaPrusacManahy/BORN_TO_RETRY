@@ -15,6 +15,7 @@ import { launch } from '../enemies/flight';
 import { ENEMY_STATS } from '../enemies/kinds';
 import { chill } from '../cards/cardMoves';
 import { tearStruck } from '../enemies/swarmMoves';
+import { ribStruck } from '../enemies/boneKingMoves';
 import { heavyPowers } from '../cards/cardPowers';
 import { segmentDistance } from './geometry';
 import type { CombatState } from './state';
@@ -66,6 +67,7 @@ export function parry(state: CombatState, eye: Vector3, dir: Vector3): number {
   }
   o.vel.copy(toward).multiplyScalar(Math.max(o.vel.length() * FISTS.v.parrySpeed, FISTS.v.parryMinSpeed));
   o.parried = true;
+  o.arc = 0;
   o.life = LIFE;
   o.damage = FISTS.v.parryDamage;
   state.events.push('parry', best, o.pos.x, o.pos.y, o.pos.z);
@@ -93,6 +95,8 @@ export function stepParried(state: CombatState, world: CollisionWorld, dt: numbe
       if (eye?.swarm) eye.swarm.pierce = true;
       const killed = landHit(state, hit, o.damage, KNOCK, o.vel.x / flat, o.vel.z / flat, 'hitThrown', o.damage);
       if (eye && !killed) tearStruck(eye, hit.index, state);
+      // (Update 0.3.53 — a rib sent back into the Bone King: it staggers.)
+      if (o.look === 'rib' && hit.kind === 'enemy' && !killed && state.enemies[hit.index].kind === 'boneKing') ribStruck(state.enemies[hit.index], hit.index, state);
       // (Update 0.3.5 — Cold Snap's freeze, Thunderclap's lightning, Powder Keg's blast.)
       if (hit.kind === 'enemy') {
         chill(state, hit.index);

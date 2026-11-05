@@ -21,6 +21,8 @@ import { Vector3 } from 'three';
 import { createSwarmBody, type SwarmBody } from './swarmBody';
 import { swarmEyeHeight, swarmTakes } from './swarmHits';
 import { createUltimate, resetUltimate, type Ultimate, ultimateTakes } from './ultimate';
+import { createKingBody, type KingBody, skullY } from './kingBody';
+import { BONE_KING } from '../../tuning/boneKing';
 import { onPupil } from './swarmMoves';
 import type { Wormling } from './wormlings';
 import type { EventQueue } from '../../core/eventQueue';
@@ -105,6 +107,8 @@ export interface Enemy {
   swarm: SwarmBody | null;
   /** Update 0.3.49 — a boss's ultimate (ultimate.ts). */
   ult: Ultimate;
+  /** Update 0.3.53 — the Bone King's body as a place (kingBody.ts; null: anything else). */
+  king: KingBody | null;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -182,6 +186,7 @@ export function createEnemies(): Enemy[] {
     hype: 0,
     swarm: null,
     ult: createUltimate(),
+    king: null,
   }));
 }
 
@@ -223,6 +228,7 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   resetUltimate(e.ult);
   // (Update 0.3.42 — The Swarm's worms seeded round it on its first tick.)
   if (kind === 'swarm') (e.swarm ??= createSwarmBody()).seeded = false;
+  e.king = kind === 'boneKing' ? createKingBody() : null;
   return i;
 }
 
@@ -230,7 +236,8 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
 export const isLive = (e: Enemy) => e.alive && e.phase !== 'dead';
 
 // (Update 0.3.42 — The Swarm's: as far as its heap reaches now, thinning as its worms die.)
-export const radiusOf = (e: Enemy) => (e.kind === 'swarm' && e.swarm?.seeded ? e.swarm.extent : ENEMY_STATS[e.kind]().radius);
+// (Update 0.3.53 — the Bone King's, as it's grown.)
+export const radiusOf = (e: Enemy) => (e.kind === 'swarm' && e.swarm?.seeded ? e.swarm.extent : ENEMY_STATS[e.kind]().radius * (e.king?.grow ?? 1));
 
 /** Walls push it: always a flier (on its own grid), a walker only on the ground (Update 0.3.15 — not one rooted in the sea,
  *  its floor below the ground's: floor 6's Tentacle, which the sea's edge pushed out of the water). */
@@ -245,6 +252,13 @@ export function enemyAxis(e: Enemy, bottom: Vector3, top: Vector3) {
     return;
   }
   const s = ENEMY_STATS[e.kind]();
+  // (Update 0.3.53 — the Bone King, grown.)
+  if (e.king) {
+    const g = e.king.grow;
+    bottom.set(e.pos.x, e.pos.y + s.radius * g, e.pos.z);
+    top.set(e.pos.x, e.pos.y + (s.height - s.radius) * g, e.pos.z);
+    return;
+  }
   const half = Math.max(0, fishLength(e.kind, s.height) / 2 - s.radius);
   bottom.set(e.pos.x + Math.sin(e.facing) * half, e.pos.y + s.radius, e.pos.z + Math.cos(e.facing) * half);
   top.set(e.pos.x - Math.sin(e.facing) * half, e.pos.y + Math.max(s.radius, s.height - s.radius), e.pos.z - Math.cos(e.facing) * half);
@@ -302,6 +316,14 @@ export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, 
   }
   // Update 0.2.3 — the Bone King rebuilding: nothing hurts it.
   if (e.kind === 'boneKing' && e.phase === 'rebuild') return false;
+  // Update 0.3.53 — a blow on its skull, or on its core with its bones flown: more.
+  if (e.king) {
+    if (e.phase === 'leap') damage *= BONE_KING.v.coreBonus;
+    else if (at && at.y >= skullY(e)) {
+      damage *= BONE_KING.v.skullBonus;
+      e.king.skullHit++;
+    }
+  }
   // Update 0.3.49 — a blow on what cancels its ultimate (the Dragon's core): that takes it, not its health.
   if (ultimateTakes(e, dirX, dirZ)) {
     e.flash = 0.12;

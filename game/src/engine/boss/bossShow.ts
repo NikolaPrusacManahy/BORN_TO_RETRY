@@ -20,7 +20,6 @@ import { ENEMY_STATS, EnemyKind } from '../../sim/enemies/kinds';
 import { DRAGON } from '../../tuning/dragon';
 import { SWARM } from '../../tuning/swarm';
 import { BOSS } from '../../tuning/boss';
-import { BONE_KING } from '../../tuning/boneKing';
 import { DINO } from '../../tuning/dino';
 import { DROWNED } from '../../tuning/drowned';
 import { WHALE } from '../../tuning/whale';
@@ -50,7 +49,6 @@ export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { dragon: BOSS_NAM
 /** Update 0.2.3 — a boss bar's mark: where it rages (the Demon, the Dragon), or the Bone King's final blast (its second
  *  life only). */
 function markOf(boss: Enemy): number {
-  if (boss.kind === 'boneKing') return boss.stage > 0 ? BONE_KING.v.blastAt : -1;
   // (Update 0.2.8 — the Velociraptor: where its frenzy starts, then its blitz.)
   if (boss.kind === 'dino') return boss.stage >= 2 ? -1 : boss.stage > 0 ? DINO.v.blitzAt : DINO.v.frenzyAt;
   // (Update 0.2.10 — the Drowned King: where it rises for good.)

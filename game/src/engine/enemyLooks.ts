@@ -17,7 +17,7 @@ import { ENEMIES } from '../tuning/enemies';
 import { FOES } from '../tuning/foes';
 import { FOES2 } from '../tuning/foes2';
 import { FOES3 } from '../tuning/foes3';
-import { BONE_KING } from '../tuning/boneKing';
+import { kingTell } from '../sim/enemies/boneKing';
 import { FOES4 } from '../tuning/foes4';
 import { windupOf as bigWindup } from '../sim/enemies/cactoroBig';
 import { dinoWindup } from '../sim/enemies/dino';
@@ -127,7 +127,7 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
   // 20/30).
   skeleton: { url: '/models/enemies/skeleton.glb', clips: { ...newer('Skeleton', 'Running', 'Running'), rise: 'Skeleton_Spawn' }, lands: 18 / 30, windup: () => FOES3.v.skeletonWindup, glow: [0.85, 0.9, 1], posed: true },
   mushnub: { url: '/models/enemies/mushnub.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', air: 'Jump' }, lands: 8 / 30, windup: () => FOES3.v.mushnubWindup, glow: [0.2, 0.8, 1] },
-  boneKing: { url: '/models/enemies/skeleton.glb', clips: { ...newer('Skeleton', 'Running', 'Running'), rise: 'Skeleton_Spawn' }, lands: 18 / 30, windup: (move) => [BONE_KING.v.throwWindup, BONE_KING.v.smashWindup, BONE_KING.v.grabWindup, 1.2][move] ?? 1, glow: [0.55, 0.85, 1], posed: true },
+  boneKing: { url: '/models/enemies/skeleton.glb', clips: { ...newer('Skeleton', 'Running', 'Running'), rise: 'Skeleton_Spawn' }, lands: 18 / 30, windup: (move, stage) => kingTell(move, stage ?? 0), glow: [0.55, 0.85, 1], posed: true },
   tribal: { url: '/models/enemies/tribal.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 15 / 30, windup: () => FOES4.v.tribalWindup, glow: [1, 0.45, 0.1] },
   cactoro: { url: '/models/enemies/cactoro.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Bite_Front', hit: 'HitRecieve', death: 'Death', air: 'Jump' }, lands: 8 / 30, windup: () => FOES4.v.cactoroRise, glow: [0.5, 1, 0.2] },
   cactoroBig: { url: '/models/enemies/cactoro_big.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 15 / 30, windup: bigWindup, glow: [1, 0.6, 0.1] },

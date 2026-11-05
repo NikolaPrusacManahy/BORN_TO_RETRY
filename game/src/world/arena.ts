@@ -1,6 +1,6 @@
 // M1 — an arena as plain data: boxes (some tilted into ramps), jump pads, the player start and enemy spawns.
 // physics/ builds colliders from it and engine/ builds meshes from it, so the two always match.
-import { Euler, Quaternion } from 'three';
+import { Euler, Matrix4, Quaternion, Vector3 } from 'three';
 
 /** M1 step 8 — 'hazard': spikes; solid like a block, and touching its top hurts (sim/player/hazards.ts). */
 // Update 0.0.20 — 'lava': a pit's bottom (solid; landing on it burns you: sim/dungeon/lava.ts).
@@ -87,6 +87,27 @@ export function rampZ(x: number, z0: number, y0: number, z1: number, y1: number,
     x,
     y: (y0 + y1) / 2 - (ny * thickness) / 2,
     z: (z0 + z1) / 2 - (nz * thickness) / 2,
+    w: width,
+    h: thickness,
+    d: len,
+    quat: [q.x, q.y, q.z, q.w],
+    kind: 'ramp',
+  };
+}
+
+/** Update 0.3.53 — a ramp whose top surface runs from `a` to `b`, any way round (the Bone King's arm), `width` wide and
+ *  `thickness` thick; a little extra length tucks its ends in. */
+export function rampBetween(a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }, width: number, thickness = 0.5): ArenaBox {
+  const along = new Vector3(b.x - a.x, b.y - a.y, b.z - a.z);
+  const len = along.length() + 0.6;
+  along.normalize();
+  const side = new Vector3().crossVectors(along, new Vector3(0, 1, 0)).normalize();
+  const up = new Vector3().crossVectors(side, along).normalize();
+  const q = new Quaternion().setFromRotationMatrix(new Matrix4().makeBasis(side, up, along.clone().negate()));
+  return {
+    x: (a.x + b.x) / 2 - (up.x * thickness) / 2,
+    y: (a.y + b.y) / 2 - (up.y * thickness) / 2,
+    z: (a.z + b.z) / 2 - (up.z * thickness) / 2,
     w: width,
     h: thickness,
     d: len,

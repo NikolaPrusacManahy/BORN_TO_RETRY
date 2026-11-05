@@ -35,7 +35,38 @@ export function fireOrb(orbs: Orb[], from: Vector3, direction: Vector3, speed: n
   o.life = ORB_LIFE;
   o.home = home;
   o.drop = drop;
+  o.arc = 0;
   return true;
+}
+
+/** How thick a rib is (m). */
+export const RIB_R = 0.6;
+
+/** Update 0.3.53 — a Bone King's rib: it curves out to `side`, reaches `to`, and comes back down the other side. */
+export function fireRib(orbs: Orb[], from: Vector3, to: Vector3, side: number, long: number, wide: number, damage: number, by: Cause | null): boolean {
+  if (!fireOrb(orbs, from, dir.subVectors(to, from).normalize(), 1, damage, by, 'rib')) return false;
+  const o = orbs.find((x) => x.alive && x.look === 'rib' && x.arc === 0)!;
+  o.arc = side;
+  o.arcT = 0;
+  o.arcFor = long;
+  o.arcWide = wide;
+  o.from.copy(from);
+  o.to.copy(to);
+  o.life = long + 1;
+  return true;
+}
+
+/** Where a rib is, `u` of the way through its flight (0..1). */
+export function ribAt(o: Orb, u: number, out: Vector3): Vector3 {
+  const a = u * Math.PI * 2;
+  // Out and back along its line, swinging out to one side going and the other coming.
+  const c = (1 - Math.cos(a)) / 2;
+  const dx = o.to.x - o.from.x;
+  const dz = o.to.z - o.from.z;
+  const d = Math.hypot(dx, dz) || 1;
+  const off = Math.sin(a) * o.arc * o.arcWide;
+  const low = Math.min(1, c * 2.5);
+  return out.set(o.from.x + dx * c + (-dz / d) * off, o.from.y + (o.to.y - o.from.y) * low * low * (3 - 2 * low), o.from.z + dz * c + (dx / d) * off);
 }
 
 function pop(o: Orb, at: Vector3, events: EventQueue<CombatEvent>) {
@@ -57,16 +88,30 @@ export function updateOrbs(orbs: Orb[], player: PlayerState, world: CollisionWor
     if (o.home > 0) home(o, player, dt);
     // (Update 0.3.51 — a tear arcs, and where it lands it leaves a puddle.)
     if (o.drop > 0) o.vel.y -= o.drop * dt;
-    next.copy(o.pos).addScaledVector(o.vel, dt);
+    // (Update 0.3.53 — a rib on its curve; back where it left, it's gone, caught.)
+    if (o.arc !== 0) {
+      o.arcT += dt;
+      if (o.arcT >= o.arcFor) {
+        o.alive = false;
+        continue;
+      }
+      ribAt(o, o.arcT / o.arcFor, next);
+      if (dt > 0) o.vel.subVectors(next, o.pos).divideScalar(dt);
+    } else next.copy(o.pos).addScaledVector(o.vel, dt);
     if (canHurt(player)) {
       a.set(player.pos.x, player.pos.y + BODY.radius, player.pos.z);
       b.set(player.pos.x, player.pos.y + height - BODY.radius, player.pos.z);
-      if (segmentDistance(o.pos, next, a, b, hitAt) <= r + BODY.radius) {
+      if (segmentDistance(o.pos, next, a, b, hitAt) <= (o.arc !== 0 ? RIB_R : r) + BODY.radius) {
         o.alive = false;
         damagePlayer(player, o.damage, o.by);
         events.push('orbHitPlayer', o.damage, hitAt.x, hitAt.y, hitAt.z);
         continue;
       }
+    }
+    // (A rib goes through what's in its way: it's coming back.)
+    if (o.arc !== 0) {
+      o.pos.copy(next);
+      continue;
     }
     const step = o.vel.length() * dt;
     dir.copy(o.vel).divideScalar(Math.max(o.vel.length(), 1e-6));

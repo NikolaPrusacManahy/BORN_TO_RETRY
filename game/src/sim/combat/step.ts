@@ -66,6 +66,7 @@ import { parry, stepParried } from './parry';
 import { wallSplats } from './splat';
 import { execHeld, execTarget, stepExecution, tryExecute } from './execution';
 import { stepFlood } from '../enemies/drownedKingMoves';
+import { breakCage } from '../enemies/boneKingMoves';
 import { updateTurret } from './turret';
 import { bumpEnemies, chargeRate, fistFactor, frenzyFactor, parryTimes, pogo, tickCards } from '../cards/cardMoves';
 import { splinter, tickPowers } from '../cards/cardPowers';
@@ -111,6 +112,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     stepPin(state, player, intent, dt);
     return;
   }
+  // (Update 0.3.53 — shut in the Bone King's cage, a swing breaks a bar.)
+  if (intent.attackPressed) breakCage(state);
   const throwing = state.weapon !== null && state.weapon.throwing >= 0;
   if (state.fullMeter) state.execution = 1;
   state.execTarget = execTarget(state, player, intent.yaw);

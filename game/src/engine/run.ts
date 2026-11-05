@@ -137,6 +137,12 @@ export class Run extends RunBase {
         stepRooms(d, p, this.combat, this.combat.rng, stepDt);
         this.level.physics.setGates(d.shut);
       }
+      // (Update 0.3.53 — the Bone King's arm down, or up: what you can stand on of it.)
+      const king = this.combat.enemies.find((e) => e.alive && e.king);
+      if (king?.king?.dirty) {
+        king.king.dirty = false;
+        this.level.physics.setBody(king.king.boxes);
+      } else if (!king && this.level.physics.hasBody) this.level.physics.setBody([]);
       pushPlayerOut(p, this.combat.enemies, this.level.physics, BODY.radius, this.shove);
       input.clearPressed();
       const dy = p.pos.y - this.prev.y;

@@ -12,7 +12,7 @@
 import * as THREE from 'three';
 import type { Orb } from '../sim/combat/targets';
 
-export type ShotStyle = 'fire' | 'blueFire' | 'acid' | 'water' | 'spear' | 'spine' | 'feather' | 'carrot' | 'laser' | 'missile' | 'axe' | 'shuriken' | 'kunai' | 'arrow' | 'rubble';
+export type ShotStyle = 'fire' | 'blueFire' | 'acid' | 'water' | 'spear' | 'spine' | 'feather' | 'carrot' | 'laser' | 'missile' | 'axe' | 'shuriken' | 'kunai' | 'arrow' | 'rubble' | 'rib';
 
 /** A shot's style: by who fired it, then by its look. */
 export function shotStyle(o: Orb): ShotStyle {
@@ -21,6 +21,7 @@ export function shotStyle(o: Orb): ShotStyle {
   if (o.by === 'maskTribal') return 'feather';
   if (o.look === 'laser' || o.look === 'missile' || o.look === 'axe' || o.look === 'shuriken' || o.look === 'kunai' || o.look === 'arrow') return o.look;
   if (o.look === 'rubble') return 'rubble';
+  if (o.look === 'rib') return 'rib';
   if (o.look === 'tear') return 'acid';
   if (o.look === 'ki') return 'blueFire';
   return o.look === 'water' ? 'water' : o.look === 'spear' ? 'spear' : o.look === 'spine' ? 'spine' : o.look === 'carrot' ? 'carrot' : 'fire';
@@ -57,6 +58,8 @@ export const TRAILS: Record<ShotStyle, ShotTrail> = {
   arrow: { rate: 0, color: 0, falls: true, burst: 5, burstColor: 0xd8c4a0, flash: null },
   // (Update 0.3.49 — the Dragon's wind's rubble: dust behind it, stone where it lands.)
   rubble: { rate: 10, color: 0x8a8278, falls: true, burst: 10, burstColor: 0x7a7268, flash: null },
+  // (Update 0.3.53 — the Bone King's rib.)
+  rib: { rate: 12, color: 0xd8ccb0, falls: true, burst: 10, burstColor: 0xe0d4b8, flash: null },
 };
 
 /** Every style's meshes for one shot's slot (each hidden but its own: shotsView.ts shows one). Geometries and
@@ -164,7 +167,10 @@ export class ShotMeshes {
     const chunk = new THREE.Mesh(kit.shell, kit.rubble);
     chunk.scale.set(0.42, 0.32, 0.36);
     rubble.add(chunk);
+    // (Update 0.3.53 — a rib, a long curved bone, flat: it spins about y.)
+    const rib = new THREE.Mesh(kit.rib, kit.bone);
     this.parts = {
+      rib,
       rubble,
       axe,
       shuriken,
@@ -223,6 +229,8 @@ export class ShotKit {
   readonly leafGreen = new THREE.MeshStandardMaterial({ color: 0x4caa2e, roughness: 0.8 });
   readonly laser = new THREE.MeshBasicMaterial({ color: 0xffd6ee, toneMapped: false });
   readonly rubble = new THREE.MeshStandardMaterial({ color: 0x7d756b, roughness: 1, flatShading: true });
+  readonly rib = new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(new THREE.Vector3(-1.7, 0, -0.5), new THREE.Vector3(0, 0, 1.3), new THREE.Vector3(1.7, 0, -0.5)), 12, 0.16, 6);
+  readonly bone = new THREE.MeshStandardMaterial({ color: 0xccb899, roughness: 0.8 });
 
   dispose() {
     for (const v of Object.values(this)) if (v instanceof THREE.BufferGeometry || v instanceof THREE.Material) v.dispose();

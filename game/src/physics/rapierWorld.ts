@@ -56,6 +56,7 @@ export class RapierWorld implements CollisionWorld {
   private grounded = false;
   /** Update 0.3.10 — each of the arena's boxes' collider (a broken pillar's is made again: `reshape`). */
   private readonly solids = new Map<ArenaBox, RAPIER.Collider>();
+  private readonly body: RAPIER.Collider[] = [];
   private readonly notPlayer = (c: RAPIER.Collider) => c.handle !== this.player.handle;
 
   constructor(arena: Arena) {
@@ -216,6 +217,23 @@ export class RapierWorld implements CollisionWorld {
     this.solids.delete(box);
     for (const b of boxes) this.solids.set(b, this.world.createCollider(RAPIER.ColliderDesc.cuboid(b.w / 2, b.h / 2, b.d / 2).setTranslation(b.x, b.y, b.z)));
     this.world.step();
+  }
+
+  /** Update 0.3.53 — what you can stand on of the Bone King now, in place of what you could (nothing: its arm's up). */
+  setBody(boxes: readonly ArenaBox[]) {
+    for (const c of this.body) this.world.removeCollider(c, false);
+    this.body.length = 0;
+    for (const b of boxes) {
+      const desc = RAPIER.ColliderDesc.cuboid(b.w / 2, b.h / 2, b.d / 2).setTranslation(b.x, b.y, b.z);
+      if (b.quat) desc.setRotation({ x: b.quat[0], y: b.quat[1], z: b.quat[2], w: b.quat[3] });
+      this.body.push(this.world.createCollider(desc));
+    }
+    this.world.step();
+  }
+
+  /** Is any of it there to stand on? */
+  get hasBody() {
+    return this.body.length > 0;
   }
 
   /** Update 0.0.12 — the dungeon's gates, open to start with. */

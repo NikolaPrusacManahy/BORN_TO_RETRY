@@ -33,6 +33,12 @@ import { wallsOpen } from '../src/sim/dungeon/bossRoom';
 import { createDungeonRun, stepRooms } from '../src/sim/dungeon/roomLoop';
 import { updateEnemies } from '../src/sim/enemies/update';
 import { createPlayer } from '../src/sim/player/state';
+import { Enemy, spawnEnemy } from '../src/sim/enemies/enemy';
+import { CAGE, COLOSSUS, GRASP, RIBS, SHATTER, SLAM } from '../src/sim/enemies/boneKingMoves';
+import { kingTall, layArm } from '../src/sim/enemies/kingBody';
+import { openUltimate } from '../src/sim/enemies/ultimate';
+import { KingView } from '../src/engine/boss/kingView';
+import { BONE_KING } from '../src/tuning/boneKing';
 import { bossRoomStart } from '../src/world/dungeon/bossStart';
 import { swarmBeats } from '../src/sim/dungeon/swarmShow';
 import { dragonAt, dragonBeats, dragonPose } from '../src/sim/dungeon/dragonShow';
@@ -128,6 +134,40 @@ const kind = bossOf(floor);
 /** Update 0.3.52 — code-made meshes, baked (positions, colours, triangles). */
 const meshes: { pos: number[]; rgb: number[]; idx: number[] }[] = [];
 const k2 = { value: k };
+/** Update 0.3.53 — bakes a scene into `meshes`: skinned ones as posed, instanced ones each copy. */
+const bake = (root: THREE.Object3D) => {
+  root.updateMatrixWorld(true);
+  root.traverse((o) => {
+    if (!(o instanceof THREE.Mesh) || !o.visible) return;
+    for (let up: THREE.Object3D | null = o; up; up = up.parent) if (!up.visible) return;
+    const g = o.geometry as THREE.BufferGeometry;
+    const at = g.getAttribute('position');
+    const col = g.getAttribute('color');
+    const base = o.material instanceof THREE.MeshStandardMaterial || o.material instanceof THREE.MeshBasicMaterial ? o.material.color : new THREE.Color(0.5, 0.5, 0.5);
+    const copies = o instanceof THREE.InstancedMesh ? o.count : 1;
+    const idx = g.getIndex();
+    const tris = idx ? Array.from(idx.array) : Array.from({ length: at.count }, (_, i) => i);
+    for (let c = 0; c < copies; c++) {
+      const mw = new THREE.Matrix4();
+      if (o instanceof THREE.InstancedMesh) {
+        o.getMatrixAt(c, mw);
+        mw.premultiply(o.matrixWorld);
+      } else mw.copy(o.matrixWorld);
+      const pos: number[] = [];
+      const rgb: number[] = [];
+      const v3 = new THREE.Vector3();
+      for (let i = 0; i < at.count; i++) {
+        if (o instanceof THREE.SkinnedMesh) o.getVertexPosition(i, v3);
+        else v3.fromBufferAttribute(at, i);
+        v3.applyMatrix4(mw);
+        pos.push(v3.x, v3.y, v3.z);
+        if (col) rgb.push(col.getX(i), col.getY(i), col.getZ(i));
+        else rgb.push(base.r, base.g, base.b);
+      }
+      meshes.push({ pos, rgb, idx: tris });
+    }
+  });
+};
 const demon = { x: b.portal.x, z: b.portal.z, yaw: Math.atan2(-(eye.x - b.portal.x), -(eye.z - b.portal.z)), height: ENEMY_STATS[kind]().height };
 if (kind === 'bigShark') {
   const sc = new SharkCinema(b.portal);
@@ -164,37 +204,6 @@ if (kind === 'swarm') {
   const at = (t: number) => (sc.intro(t, eye, shot), { at: shot.pos.toArray(), to: shot.look.toArray() });
   cams.splice(1, 2, ...(Object.keys(when) as (keyof typeof when)[]).map((n) => ({ name: `swarm-${n}`, ...at(when[n]) })));
   // Its flesh (made in code) and, at `--beat=`, its real worms and eye, run to that moment.
-  const bake = (root: THREE.Object3D) => {
-    root.updateMatrixWorld(true);
-    root.traverse((o) => {
-      if (!(o instanceof THREE.Mesh) || !o.visible) return;
-      for (let up: THREE.Object3D | null = o; up; up = up.parent) if (!up.visible) return;
-      const g = o.geometry as THREE.BufferGeometry;
-      const at = g.getAttribute('position');
-      const col = g.getAttribute('color');
-      const base = o.material instanceof THREE.MeshStandardMaterial || o.material instanceof THREE.MeshBasicMaterial ? o.material.color : new THREE.Color(0.5, 0.5, 0.5);
-      const copies = o instanceof THREE.InstancedMesh ? o.count : 1;
-      const idx = g.getIndex();
-      const tris = idx ? Array.from(idx.array) : Array.from({ length: at.count }, (_, i) => i);
-      for (let c = 0; c < copies; c++) {
-        const mw = new THREE.Matrix4();
-        if (o instanceof THREE.InstancedMesh) {
-          o.getMatrixAt(c, mw);
-          mw.premultiply(o.matrixWorld);
-        } else mw.copy(o.matrixWorld);
-        const pos: number[] = [];
-        const rgb: number[] = [];
-        const v3 = new THREE.Vector3();
-        for (let i = 0; i < at.count; i++) {
-          v3.fromBufferAttribute(at, i).applyMatrix4(mw);
-          pos.push(v3.x, v3.y, v3.z);
-          if (col) rgb.push(col.getX(i), col.getY(i), col.getZ(i));
-          else rgb.push(base.r, base.g, base.b);
-        }
-        meshes.push({ pos, rgb, idx: tris });
-      }
-    });
-  };
   const sv = new SwarmShowView(level);
   bake(sv.group);
   const beat = process.argv.find((a) => a.startsWith('--beat='))?.slice(7) as keyof typeof when | undefined;
@@ -224,6 +233,89 @@ if (kind === 'swarm') {
     // Its walls as they are then.
     k2.value = wallsOpen(run.boss);
   }
+}
+if (kind === 'boneKing') {
+  // (Update 0.3.53 — it posed for a move, by the game's own pose and view code, baked: `--beat=stand|wrong|ribs|slamtell|slam|grasp|shatter|out|cage|caged|grow|colossus|club`.)
+  const beat = process.argv.find((a) => a.startsWith('--beat='))?.slice(7) ?? 'stand';
+  const gltf = await parseUntextured(new URL('../public/models/enemies/skeleton.glb', import.meta.url));
+  const root = gltf.scene as THREE.Object3D;
+  const combat = createCombat(level.arena, false);
+  const mid = new THREE.Vector3(b.portal.x, 0, b.portal.z);
+  const slot = spawnEnemy(combat.enemies, 'boneKing', mid, Math.atan2(-(eye.x - mid.x), -(eye.z - mid.z)));
+  const e = combat.enemies[slot];
+  const pl = createPlayer(eye.x, 0, eye.z, 0);
+  const K = e.king!;
+  K.midSet = true;
+  K.midX = mid.x;
+  K.midZ = mid.z;
+  const fx = -Math.sin(e.facing);
+  const fz = -Math.cos(e.facing);
+  const set = (phase: Enemy['phase'], move: number, t: number, shots = 0) => {
+    e.phase = phase;
+    e.move = move;
+    e.t = t;
+    e.shots = shots;
+  };
+  if (beat === 'wrong') e.stage = 1;
+  if (beat === 'ribs') set('windup', RIBS, 0.8);
+  if (beat === 'slamtell') set('windup', SLAM, 1);
+  if (beat === 'slam') {
+    set('recover', SLAM, 1);
+    layArm(e, false);
+  }
+  if (beat === 'grasp') {
+    set('grab', GRASP, 0.5);
+    K.spotX = mid.x + fx * 9;
+    K.spotZ = mid.z + fz * 9;
+    K.hands = 0.5;
+  }
+  if (beat === 'shatter') set('windup', SHATTER, 0.7);
+  if (beat === 'out') {
+    set('leap', SHATTER, 1.6);
+    K.spoke = e.facing;
+  }
+  if (beat === 'cage' || beat === 'caged') {
+    set('windup', CAGE, 0.7);
+    Object.assign(K.cage, { on: true, closed: beat === 'caged', trapped: beat === 'caged', x: mid.x + fx * 12, z: mid.z + fz * 12, t: 1 });
+  }
+  if (beat === 'grow') {
+    set('blast', COLOSSUS, 1.2, 0);
+    K.grow = 1.6;
+    e.stage = 1;
+  }
+  if (beat === 'colossus' || beat === 'club') {
+    e.stage = 1;
+    K.grow = BONE_KING.v.colossusGrow;
+    set('blast', COLOSSUS, beat === 'club' ? 0.2 : 2, beat === 'club' ? 2 : 1);
+    if (beat === 'colossus') {
+      openUltimate(e.ult, 'x', 7, 3);
+      e.ult.left = 4;
+      layArm(e, true);
+    }
+  }
+  const box0 = new THREE.Box3().setFromObject(root, true);
+  const mixer = new THREE.AnimationMixer(root);
+  mixer.clipAction(gltf.animations.find((a: THREE.AnimationClip) => a.name.endsWith('Idle'))!).play();
+  mixer.update(0.5);
+  const h = kingTall(e);
+  const sc0 = h / (box0.max.y - box0.min.y);
+  root.scale.setScalar(sc0);
+  root.position.copy(e.pos);
+  root.position.y -= box0.min.y * sc0;
+  root.rotation.set(0, e.facing + Math.PI, 0);
+  root.updateMatrixWorld(true);
+  const scene = new THREE.Scene();
+  scene.add(root);
+  const view = new KingView(scene);
+  view.update(combat, 0.016, () => root);
+  scene.updateMatrixWorld(true);
+  bake(scene);
+  // What you can stand on of it, shown as boxes.
+  if (process.argv.includes('--boxes')) for (const bx of K.boxes) boxes.push({ m: new THREE.Matrix4().compose(p.set(bx.x, bx.y, bx.z), bx.quat ? q.set(...bx.quat) : q.identity(), s.set(bx.w, bx.h, bx.d)).toArray(), color: [0.9, 0.2, 0.2] });
+  const look = (name: string, f: number, r: number, u: number, to = 0.42) => ({ name, at: [mid.x + fx * f * h - fz * r * h, u * h, mid.z + fz * f * h + fx * r * h], to: [mid.x, to * h, mid.z] });
+  cams.splice(1, 2, look('king-front', 1.25, 0.25, 0.45), look('king-side', 0.45, 1.3, 0.5), look('king-behind', -0.9, 0.5, 0.9), look('king-high', 2, 1.2, 1.4, 0.1));
+  // (Not the portal's demon.)
+  demon.height = 0;
 }
 if (kind === 'dragon') {
   // (Update 0.3.50 — its show's own shots, it placed for one of them: `--beat=pass|high|low|climb|fall|scream`.)

@@ -23,7 +23,7 @@
 // a wasps' hive on the wall beside this cell (floor). Its boss room is its own (Update 0.3.52: The Swarm's nest, nest.ts).
 // Update 0.2.24 — floor 3's Bone Keep (boneRooms.ts): g an open grave (Skeletons climb out), m a bed of glowing
 // mushrooms (Mushnubs come out), o a burrow (White Rabbits pop out), x a crystal cluster (a block; Skull Wraiths blink
-// to them). Its boss room is its own, the Throne Hall. The lava rooms are retired.
+// to them). Its boss room is its own (Update 0.3.53: the Bone King's pit, pit.ts). The lava rooms are retired.
 // Update 0.3.11 — floor 7's Frozen Depths (frozenRooms.ts): I a sheet of ice (floor you slide on), F a snowy tree in a
 // bed of snow, n a bed of snow (floor).
 // Update 0.3.13 — floor 8's Forge (forgeRooms.ts): H a crusher (its hammer slams the cell on a beat; cells side by side
@@ -46,7 +46,8 @@ import { KEEP_ROOMS } from './keepRooms';
 import { DESERT_ROOMS } from './desertRooms';
 import { DROWNED_ROOMS } from './drownedRooms';
 import { VENOM_ROOMS } from './venomRooms';
-import { BONE_ROOMS, THRONE_ROOM } from './boneRooms';
+import { BONE_ROOMS } from './boneRooms';
+import { PIT_ROOM } from './pit';
 import { FROZEN_ROOMS } from './frozenRooms';
 import { FORGE_ROOMS } from './forgeRooms';
 import { COVE_ROOMS, SHARK_ROOM } from './coveRooms';
@@ -185,8 +186,8 @@ export const BOSS_ROOM: RoomTemplate = {
   ]),
 };
 
-/** Update 0.2.23 — floor `floor`'s boss room: floor 2's its own, floor 3's the Throne Hall
- *  (boneRooms.ts, Update 0.2.24), floor 6's the Shark's Graveyard (coveRooms.ts, Update 0.3.16), the rest the one above.
+/** Update 0.2.23 — floor `floor`'s boss room: floor 2's its own, floor 3's its own,
+ *  floor 6's the Shark's Graveyard (coveRooms.ts, Update 0.3.16), the rest the one above.
  *  (Update 0.3.25 — by its place, floorOrder.ts: the Venom Garden's, the Bone Keep's, Skull Cove's.) Update 0.3.29 — the
  *  Moon's, Tidebreaker's shattered crater (moonRooms.ts). Update 0.3.32 — the Shrine Dimension's Great Shrine. */
 export const bossRoomOf = (floor: number): RoomTemplate => {
@@ -194,7 +195,8 @@ export const bossRoomOf = (floor: number): RoomTemplate => {
   // (Update 0.3.50 — the Dungeon's, the Dragon's courtyard: courtyard.ts.)
   if (r === 'dungeon') return COURTYARD_ROOM;
   // (Update 0.3.52 — the Venom Garden's, The Swarm's nest: nest.ts.)
-  return r === 'garden' ? NEST_ROOM : r === 'keep' ? THRONE_ROOM : r === 'cove' ? SHARK_ROOM : r === 'moon' ? MOON_BOSS_ROOM : r === 'shrine' ? SHRINE_BOSS_ROOM : BOSS_ROOM;
+  // (Update 0.3.53 — the Bone Keep's, the Bone King's pit: pit.ts.)
+  return r === 'garden' ? NEST_ROOM : r === 'keep' ? PIT_ROOM : r === 'cove' ? SHARK_ROOM : r === 'moon' ? MOON_BOSS_ROOM : r === 'shrine' ? SHRINE_BOSS_ROOM : BOSS_ROOM;
 };
 
 /** Update 0.0.13 — the shop (the designer: a room with five floor tiles, each showing something to buy). */

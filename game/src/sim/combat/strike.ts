@@ -7,6 +7,7 @@
 // Update 0.1.19 — the Ninja may teleport away from a hit about to land (ninja.ts): it misses.
 // Update 0.2.23 — floor 2's wasps' hives are targets too (sim/dungeon/hives.ts): a ball on its wall.
 import { hitWormling, WORMLING_RADIUS, wormlingUp } from '../enemies/wormlings';
+import { spineAt, spineFrom, spineRadius } from '../enemies/kingBody';
 import { SWARM } from '../../tuning/swarm';
 import { Vector3 } from 'three';
 import { ENEMIES } from '../../tuning/enemies';
@@ -31,7 +32,7 @@ import { TARGET_SHAPES, dummyAxis, turretAxis } from './targets';
 import { hitTurret } from './turretDamage';
 import { HIVE_RADIUS, hitHive } from '../dungeon/hives';
 
-export type TargetKind = 'dummy' | 'turret' | 'enemy' | 'hive' | 'wormling';
+export type TargetKind = 'dummy' | 'turret' | 'enemy' | 'hive' | 'wormling' | 'spine';
 
 export interface TargetHit {
   kind: TargetKind;
@@ -90,6 +91,18 @@ export function nearestTarget(state: CombatState, from: Vector3, to: Vector3, ra
     b.set(q.x, q.top, q.z);
     consider('wormling', i, WORMLING_RADIUS);
   });
+  // (Update 0.3.53 — the Bone King's vertebra, through its Colossus: for a blow from up on its body, ahead of its body itself.)
+  state.enemies.forEach((e, i) => {
+    if (!isLive(e) || !e.king || !e.ult.on || from.y < spineFrom(e)) return;
+    spineAt(e, a);
+    b.copy(a);
+    if (segmentDistance(from, to, a, b, at, sOut) > radius + spineRadius(e)) return;
+    nearest = -1;
+    out.kind = 'spine';
+    out.index = i;
+    out.s = sOut.s;
+    out.point.copy(at);
+  });
   return out.index >= 0;
 }
 
@@ -111,6 +124,13 @@ export function hitTarget(state: CombatState, t: TargetHit, damage: number, knoc
       const eye = state.enemies.find((e) => isLive(e) && e.kind === 'swarm');
       if (eye && !eye.swarm?.shield) eye.hp = Math.max(1, eye.hp - SWARM.v.bigWormBar);
       return true;
+    }
+    case 'spine': {
+      const k = state.enemies[t.index];
+      k.flash = 0.12;
+      k.ult.fill += 1;
+      if (k.king) k.king.spineHit++;
+      return false;
     }
   }
 }

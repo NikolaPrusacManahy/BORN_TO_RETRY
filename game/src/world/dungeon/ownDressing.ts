@@ -6,6 +6,7 @@
 // Update 0.3.17 — and floor 8's moon (moon.ts: its set pieces, meteorites, greenhouse beds, dishes). Update 0.3.32 —
 // and floor 8's Shrine Dimension (shrine.ts: its trees, beds, bamboo, lanterns, set pieces, bridges; its petals).
 // Update 0.3.43 — and floor 10's Hell (hell.ts: the fires in its braziers). Pure.
+import { dressPit } from './pit';
 import type { Rng } from '../../core/rng';
 import { colAt, FloorPlan, rowAt } from './floorPlan';
 import type { Put, SandCell } from './dressExtras';
@@ -92,7 +93,10 @@ export function dressOwnCell(c: Cell, x: number, z: number, boss: boolean, rng: 
 export function dressOwnRooms(K: DungeonStyle, plan: FloorPlan, inRoom: Int16Array, nearDoor: (col: number, row: number) => boolean, rng: Rng, put: Put, marks: Marks) {
   if (K.id === 'venom') dressGarden(plan, inRoom, nearDoor, rng, put);
   if (K.bossTowers) dressCourtyard(K, plan, rng, put, marks.scorch);
-  if (K.id === 'bone') dressKeep(plan, inRoom, nearDoor, rng, put);
+  if (K.id === 'bone') {
+    dressKeep(plan, inRoom, nearDoor, rng, put);
+    dressPit(plan, rng, put);
+  }
   if (K.id === 'cove') dressCove(plan, rng, put);
   if (K.id === 'moon') dressMoon(plan, rng, put);
   if (K.id === 'shrine') dressShrine(plan, rng, put);

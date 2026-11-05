@@ -7,12 +7,14 @@
 // Update 0.3.15 — floor 6's Kraken Tentacle holds you the same way, on its own terms (coil.ts): up in its coil, your
 // clicks to break free, then down on the shore along an arc (`fly`, `from`, `to`, `slam`). Update 0.3.16 — and the Big
 // Shark's jaws (jaws.ts): your clicks force them open, then your punch to its throat.
+// Update 0.3.53 — the Boss Design Bible's Grave Grasp: its hands hold you where they burst from the floor, your view on its
+// skull. Your hits are on them, not it. Mash out, and it reels; not in time, they throw you at the wall.
 import { Vector3 } from 'three';
 import { BONE_KING } from '../../tuning/boneKing';
 import { FOES_COVE_B } from '../../tuning/foesCoveB';
 import { BIG_SHARK } from '../../tuning/bigShark';
 import { wallBetween } from '../../world/navGrid';
-import { hitEnemy, setPhase } from '../enemies/enemy';
+import { setPhase } from '../enemies/enemy';
 import { ENEMY_STATS } from '../enemies/kinds';
 import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
@@ -51,17 +53,13 @@ export function grabRules(state: Pick<CombatState, 'enemies' | 'grab'>): { hits:
   return { hits: Math.round(BONE_KING.v.grabHits), time: BONE_KING.v.grabTime };
 }
 
-/** Where you're held: in front of it, this share of its height up (your feet), this far out from its body (m): its
- *  face in front of you, its arm reaching to you. */
-const HELD_UP = 0.4;
-const HELD_OUT = 2.8;
+/** Held in its hands, your feet are this far off the floor (m), where your hits land above that. */
+const HELD_UP = 0.15;
+const HIT_UP = 0.9;
 /** Thrown: how far it looks for a wall (m), in how many ways; and how hard you go up (m/s). */
 const WALL_REACH = 24;
 const WALL_WAYS = 16;
 const THROW_UP = 5;
-/** Broken free, you drop away from it (m/s). */
-const DROP_BACK = 3;
-
 const at = new Vector3();
 
 /** What a grab works with (the fight's state, or the enemies' world: they're the same). */
@@ -72,9 +70,7 @@ export function heldAt(state: Holder, slot: number, out: Vector3): Vector3 {
   const k = state.enemies[slot];
   if (k.kind === 'tentacle') return coilHeldAt(state, slot, out);
   if (k.kind === 'bigShark') return jawsHeldAt(state, slot, out);
-  const s = ENEMY_STATS[k.kind]();
-  const out2 = s.radius + HELD_OUT;
-  return out.set(k.pos.x - Math.sin(k.facing) * out2, k.pos.y + s.height * HELD_UP, k.pos.z - Math.cos(k.facing) * out2);
+  return out.set(k.king?.spotX ?? k.pos.x, k.pos.y + HELD_UP, k.king?.spotZ ?? k.pos.z);
 }
 
 /** Its skull (world): where you look while it holds you, and where your hits land. */
@@ -122,15 +118,9 @@ export function stepGrab(state: CombatState, player: PlayerState, intent: Combat
     const ev = state.events;
     // Your fists, left and right in turn (a weapon's hand: the right).
     ev.push(state.weapon || g.hits % 2 === 0 ? 'jabR' : 'jabL', 0);
-    skullOf(state, g.slot, at);
+    heldAt(state, g.slot, at).y += HIT_UP;
     ev.push('hitJab', g.slot, at.x, at.y, at.z);
     ev.push('kingQteHit', g.hits, at.x, at.y, at.z);
-    hitEnemy(k, v.grabHitDamage, 0, 0, 0);
-    if (k.phase !== 'grab') {
-      // (Its first life ended under your hits: it falls to pieces, and you with it.)
-      release(state, player, 'free');
-      return;
-    }
     if (g.hits >= Math.round(v.grabHits)) {
       release(state, player, 'free');
       setPhase(k, 'stun');
@@ -175,11 +165,10 @@ function throwYou(state: CombatState, player: PlayerState) {
 
 function release(state: CombatState, player: PlayerState, end: 'free' | 'thrown') {
   const g = state.grab;
-  const k = state.enemies[g.slot];
   g.on = false;
   g.end = end;
   g.since = 0;
-  if (end === 'free' && k) player.vel.set(-Math.sin(k.facing) * DROP_BACK, 0, -Math.cos(k.facing) * DROP_BACK);
+  if (end === 'free') player.vel.set(0, 0, 0);
 }
 
 /** Seconds since the last grab ended (the screen's flash), counted while you're free. */

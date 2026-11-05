@@ -169,10 +169,6 @@ export type CombatEvent =
   // rebuilding (its second life starting: its roar), calling up skeletons, its final blast charging, the floor
   // trembling (value = how far charged, 0..1) and the blast (value = its radius).
   | 'kingWindup'
-  | 'kingThrow'
-  | 'boneCrash'
-  | 'kingJump'
-  | 'kingSmash'
   | 'kingGrab'
   | 'kingQteHit'
   | 'kingFree'
@@ -180,10 +176,28 @@ export type CombatEvent =
   | 'kingCollapse'
   | 'kingRise'
   | 'kingRoar'
-  | 'kingSummon'
-  | 'kingCharge'
+  // (Update 0.3.53 — by the Boss Design Bible: boneKingMoves.ts.)
+  | 'kingRibs'
+  | 'kingRibBack'
+  | 'kingDust'
+  | 'kingHands'
+  | 'kingSlam'
+  | 'kingArmUp'
+  | 'kingShatter'
+  | 'kingBoneHit'
+  | 'kingCracks'
+  | 'kingCage'
+  | 'kingCageShut'
+  | 'kingCageBreak'
+  | 'kingCrush'
+  | 'kingColossus'
+  | 'kingOpen'
+  | 'kingSpine'
+  | 'kingClubUp'
+  | 'kingClub'
+  | 'kingSkull'
+  | 'kingSpineHit'
   | 'kingRumble'
-  | 'kingBlast'
   // Update 0.2.4 — floor 4's (value = its slot unless said): the Tribal drawing its spear, throwing it, springing aside;
   // a Cactoro digging in, the sand bulging where it'll come up, its ring of spines; the big Cactoro's warning (value =
   // its move), its volley, bursting up under you, shutting itself in its thorns, a blow turned by them; the Hywirl

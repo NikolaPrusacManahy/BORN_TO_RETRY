@@ -149,27 +149,3 @@ export const BONE_ROOMS: readonly RoomTemplate[] = [
     '....LLpppppppp',
   ]),
 ];
-
-/** The Throne Hall: floor 3's boss room (the Bone King's), as rooms.ts's BOSS_ROOM but pillared: two rows of skull
- *  pillars down it (dressing.ts hangs the skulls), candelabra along its walls. */
-export const THRONE_ROOM: RoomTemplate = {
-  id: 'throne hall',
-  kind: 'boss',
-  rows: quarter([
-    '...............',
-    '...............',
-    '.........E.....',
-    '...J...........',
-    '...............',
-    '....C.......C..',
-    '...............',
-    '...............',
-    '....C.......C..',
-    '..E............',
-    '...............',
-    '....C.......C..',
-    '...............',
-    '...............',
-    '...............',
-  ]),
-};

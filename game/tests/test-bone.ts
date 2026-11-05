@@ -50,7 +50,7 @@ section('Bone Keep — the floor');
   });
   check('no lane between blocks narrower than 4 m in its rooms', pinched.length === 0, pinched.map((t) => t.id).join(', '));
   check('the keep, the bridgeworks and the lava rooms are retired', !FIGHT_ROOMS.some((t) => ['the keep', 'bridgeworks', 'lava lake', 'lava bridges', 'gauntlet'].includes(t.id)));
-  check('its boss room is the Throne Hall', bossRoomOf(3).id === 'throne hall' && bossRoomOf(3).rows.join('').split('C').length - 1 === 24);
+  check('its boss room is the Bone King’s pit', bossRoomOf(3).id === 'the bone pit');
   let bad = '';
   let graves = 0;
   let crystals = 0;
@@ -77,15 +77,15 @@ section('Bone Keep — the floor');
     }
     crystals += look.pieces.filter((p) => KEEP_PIECES.crystals.includes(p.piece)).length;
     const inBoss = (x: number, z: number) => colAt(x) >= bossRoom.x0 && rowAt(z) >= bossRoom.z0 && colAt(x) < bossRoom.x0 + bossRoom.layout.w && rowAt(z) < bossRoom.z0 + bossRoom.layout.h;
-    pillars += look.pieces.filter((p) => p.piece === KEEP_PIECES.skull && p.y > 1 && inBoss(p.x, p.z)).length;
+    pillars += look.pieces.filter((p) => BONE.litter.includes(p.piece) && inBoss(p.x, p.z)).length;
     if (look.marks.graves.length === 0 && plan.rooms.some((r) => r.layout.cells.includes('grave'))) bad ||= `seed ${seed}: no open graves drawn`;
   }
   check('24 floors: every grave, mushroom bed and burrow is a bed of earth, no paving; a headstone at each grave', !bad && graves > 0, bad || `${graves} graves`);
-  check('crystal clusters; the Throne Hall’s 24 pillars hung with 12 skulls each', crystals > 0 && pillars === 24 * 24 * 12, `${crystals} crystals, ${pillars} skulls`);
+  check('crystal clusters; the Bone King’s pit full of bones', crystals > 0 && pillars > 24 * 60, `${crystals} crystals, ${pillars} bones`);
   check('graves, mushroom beds and burrows are beds; a crystal is not', ['grave', 'shroom', 'burrow'].every((c) => SANDY.has(c as never)) && !SANDY.has('crystal'));
   // (Update 0.3.14 — the kit has a texture now, floor 6's palette: taken out to parse it in Node.)
   const kit = await parseUntextured(new URL('../public/models/dungeon/kit.glb', import.meta.url));
-  const all = [KEEP_PIECES.headstone, ...KEEP_PIECES.crystals, KEEP_PIECES.skull, KEEP_PIECES.candelabrum, BONE.decor, ...BONE.litter, BONE.low!];
+  const all = [KEEP_PIECES.headstone, ...KEEP_PIECES.crystals, 'kit_pf_Environment_LargeBones', KEEP_PIECES.candelabrum, BONE.decor, ...BONE.litter, BONE.low!];
   const missing = all.filter((n) => !kit.scene.getObjectByName(n));
   check('every piece it uses is in the kit', missing.length === 0, missing.join(', '));
 }

@@ -14,15 +14,12 @@ import { emptyTargetHit, landHit } from '../src/sim/combat/strike';
 import { percherOf, rosterOf } from '../src/sim/dungeon/wavePlan';
 import { BURST } from '../src/sim/enemies/dragonling';
 import { dodges } from '../src/sim/enemies/evade';
-import { hitEnemy, isLive, setPhase, spawnEnemy } from '../src/sim/enemies/enemy';
+import { hitEnemy, isLive, spawnEnemy } from '../src/sim/enemies/enemy';
 import { EnemyKind, ENEMY_STATS, MINI_BOSSES } from '../src/sim/enemies/kinds';
-import { BLASTED, SUMMONED, SUMMONED_AGAIN } from '../src/sim/enemies/boneKingMoves';
 import { createPlayer } from '../src/sim/player/state';
 import { freeAt } from '../src/world/navGrid';
 import { FOES } from '../src/tuning/foes';
 import { FOES3B } from '../src/tuning/foes3b';
-import { BONE_KING } from '../src/tuning/boneKing';
-import { FOES3 } from '../src/tuning/foes3';
 import { Arena, boxAt } from '../src/world/arena';
 
 const v = FOES3B.v;
@@ -158,22 +155,3 @@ section('Big Mushnub — heavy blows, knocked back; it splits');
   check('they don’t split again', h.c.enemies.filter((e) => isLive(e)).length === 0);
 }
 
-section('Bone King — its skeletons again after its blast');
-{
-  const f = fight('boneKing', new Vector3(0, 0, -12));
-  f.e.stage = 1;
-  f.e.deeds = SUMMONED | BLASTED;
-  f.e.cooldown = 0;
-  setPhase(f.e, 'chase');
-  const r = run(f, 1.2 + FOES3.v.skeletonRise + 0.3);
-  const skeletons = f.c.enemies.filter((e) => e.alive && e.kind === 'skeleton');
-  check(`after the blast it calls up ${Math.round(BONE_KING.v.summon)} more skeletons`, count(r.seen, 'kingSummon') === 1 && skeletons.length === Math.round(BONE_KING.v.summon) && (f.e.deeds & SUMMONED_AGAIN) !== 0);
-  const r2 = run(f, 15);
-  check('once only', count(r2.seen, 'kingSummon') === 0);
-  const g = fight('boneKing', new Vector3(0, 0, -12));
-  g.e.stage = 1;
-  g.e.deeds = SUMMONED;
-  g.e.cooldown = 0;
-  setPhase(g.e, 'chase');
-  check('not before its blast', count(run(g, 4).seen, 'kingSummon') === 0);
-}
