@@ -2,10 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-05, after Update 0.3.49)
-- **Version 0.3.49** (the Dragon by the Boss Design Bible, ultimates), built and copied to main; 0.3.48 (every boss's health
-  cut by 30%) too. **Neither committed** until the designer says "commit". 0.3.47 is committed (`ae3973d`); the designer
-  pushes through GitHub Desktop.
+## Where things stand (2026-11-05, after Update 0.3.50)
+- **Version 0.3.50** (the Dragon's courtyard and its intro), built and copied to main, **not committed** until the designer
+  says "commit". 0.3.49 is committed (`f5e8c9d`), not pushed; the designer pushes through GitHub Desktop.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
@@ -42,10 +41,13 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
     - then the other executions (the Ghost's 16, the old Yeti punch's 11), the same way.
   - **Okami's rage and frenzy:** not built. The plan's first idea, in `MD/FLOOR8_SHRINE_PLAN.md`, is a petal storm with
     shadow clones, its markings blazing.
+  - **Each boss its own room (the designer, 0.3.50):** done for the Dragon; The Swarm, the Bone King, the Big Shark, Okami
+    and Tidebreaker already had their own; still on the shared `BOSS_ROOM`: the Frost Roc, the Drowned King, the
+    Velociraptor, floor 10.
   - **Boss intros at Tidebreaker's quality:**
-    - done for the Big Shark, Tidebreaker and Okami;
-    - still on the shared portal intro: the Dragon (floor 1's now), The Swarm, the Bone King, the Velociraptor, the
-      Drowned King and the Frost Roc (the Demon's gone);
+    - done for the Big Shark, Tidebreaker, Okami and the Dragon;
+    - still on the shared portal intro: The Swarm, the Bone King, the Velociraptor, the Drowned King and the Frost Roc
+      (the Demon's gone);
     - Hellwarden gets one when it's built.
   - **Hellwarden,** floor 10's boss: `MD/FLOOR10_HELL_PLAN.md`; a Bestiary model animated with `tools/ual_bake.py`.
   - **The trailer:** the capture kit is in (F7). `MD_UPDATES/U0337_CAPTURE_KIT.md` has its keys, how to film each kind
@@ -67,7 +69,15 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-05, Update 0.3.49: the Dragon by the Boss Design Bible)
+## Last update (2026-11-05, Update 0.3.50: the Dragon's courtyard and its intro)
+- **The designer**: "I am thinking of having each boss their designed room for them * dragon, maybe shift the arena a bit
+  * We also need an intro". Spec `MD_UPDATES/U0350_DRAGON_COURTYARD.md`.
+- **Built:** `world/dungeon/courtyard.ts` (towers, tall walls, battlements, the 4 pillars, ruins, ash); its show
+  (`sim/dungeon/dragonShow.ts`, `engine/boss/dragonCinema.ts`, `dragonShowView.ts`). Test: `test-dragon-show.ts`.
+- **Unseen:** not played. The room and the shots were checked in Blender renders; the flames, crowns, flash and crater
+  weren't seen at all.
+
+## Before (2026-11-05, Update 0.3.49: the Dragon by the Boss Design Bible)
 - **The designer**: "go check enemies bible. This is how we will work away with bosses"; "Keep them, adapt". Spec
   `MD_UPDATES/U0349_DRAGON_BIBLE.md`.
 - **Built:** Flame Sweep, Wing Gust, Tail Quake; phase 2 in the sky (Dive Bomb, Ember Rain, old moves chained); Inferno Core

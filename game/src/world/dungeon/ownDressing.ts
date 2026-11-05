@@ -9,6 +9,7 @@
 import type { Rng } from '../../core/rng';
 import { colAt, FloorPlan, rowAt } from './floorPlan';
 import type { Put, SandCell } from './dressExtras';
+import { dressCourtyard } from './courtyard';
 import { dressBed, dressGarden, dressWeb, Mark } from './gardenDressing';
 import { dressCrystal, dressKeep, dressLair } from './keepDressing';
 import { dressFrozen } from './frozen';
@@ -90,6 +91,7 @@ export function dressOwnCell(c: Cell, x: number, z: number, boss: boolean, rng: 
 /** The floor's own dressing over its rooms (`inRoom`: each cell's room, −1: none). */
 export function dressOwnRooms(K: DungeonStyle, plan: FloorPlan, inRoom: Int16Array, nearDoor: (col: number, row: number) => boolean, rng: Rng, put: Put, marks: Marks) {
   if (K.id === 'venom') dressGarden(plan, inRoom, nearDoor, rng, put, marks.scorch);
+  if (K.bossTowers) dressCourtyard(K, plan, rng, put, marks.scorch);
   if (K.id === 'bone') dressKeep(plan, inRoom, nearDoor, rng, put);
   if (K.id === 'cove') dressCove(plan, rng, put);
   if (K.id === 'moon') dressMoon(plan, rng, put);

@@ -51,6 +51,7 @@ import { FROZEN_ROOMS } from './frozenRooms';
 import { FORGE_ROOMS } from './forgeRooms';
 import { COVE_ROOMS, SHARK_ROOM } from './coveRooms';
 import { MOON_BOSS_ROOM, MOON_ROOMS } from './moonRooms';
+import { COURTYARD_ROOM } from './courtyard';
 import { SHRINE_BOSS_ROOM, SHRINE_ROOMS } from './shrineRooms';
 import { realmOf } from './floorOrder';
 
@@ -189,6 +190,8 @@ export const BOSS_ROOM: RoomTemplate = {
  *  Moon's, Tidebreaker's shattered crater (moonRooms.ts). Update 0.3.32 — the Shrine Dimension's Great Shrine. */
 export const bossRoomOf = (floor: number): RoomTemplate => {
   const r = realmOf(floor);
+  // (Update 0.3.50 — the Dungeon's, the Dragon's courtyard: courtyard.ts.)
+  if (r === 'dungeon') return COURTYARD_ROOM;
   return r === 'garden' ? SCORCHED_ROOM : r === 'keep' ? THRONE_ROOM : r === 'cove' ? SHARK_ROOM : r === 'moon' ? MOON_BOSS_ROOM : r === 'shrine' ? SHRINE_BOSS_ROOM : BOSS_ROOM;
 };
 

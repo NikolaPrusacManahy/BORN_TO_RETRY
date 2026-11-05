@@ -115,6 +115,10 @@ export const VENOM: DungeonStyle = {
   burnt: { kit_n_CommonTree_Dead_2: CHAR, kit_n_CommonTree_Dead_3: CHAR, kit_n_BirchTree_Dead_3: CHAR, kit_n_TreeStump: CHAR, kit_n_WoodLog: CHAR },
 };
 
+/** Update 0.3.50 — the Dungeon: brick, its boss room the Dragon's courtyard (courtyard.ts): tall walls and corner towers,
+ *  ash in its beds and its trees charred, as the Scorched Grove's. */
+export const DUNGEON_LOOK: DungeonStyle = { ...BRICK, bossWalls: 5, bossTowers: 6, ash: VENOM.ash, burnt: VENOM.burnt };
+
 /** Update 0.2.24 — the Bone Keep: floor 3's stone bleached bone-white, under a pale lavender sky. */
 export const BONE: DungeonStyle = {
   ...STONE,
@@ -214,5 +218,5 @@ export const MOON_LOOK: DungeonStyle = {
  *  (floorOrder.ts: the floors reordered); the Shrine Dimension, unbuilt, brick meanwhile; Hell on Earth the Forge's.
  *  Update 0.3.32 — the Shrine Dimension's its own (shrineStyle.ts). Update 0.3.43 — Hell on Earth its own (hellStyle.ts:
  *  the Forge's rooms turned to Hell's; the Forge's own sooty look retired). */
-const LOOKS: Readonly<Record<Realm, DungeonStyle>> = { dungeon: BRICK, garden: VENOM, keep: BONE, frozen: FROZEN_LOOK, temple: DROWNED, desert: SAND, cove: COVE_LOOK, shrine: SHRINE_LOOK, moon: MOON_LOOK, hell: HELL_LOOK };
+const LOOKS: Readonly<Record<Realm, DungeonStyle>> = { dungeon: DUNGEON_LOOK, garden: VENOM, keep: BONE, frozen: FROZEN_LOOK, temple: DROWNED, desert: SAND, cove: COVE_LOOK, shrine: SHRINE_LOOK, moon: MOON_LOOK, hell: HELL_LOOK };
 export const styleOf = (floor: number): DungeonStyle => LOOKS[realmOf(floor)];

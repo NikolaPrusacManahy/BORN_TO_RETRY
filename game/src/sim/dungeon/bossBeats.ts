@@ -5,6 +5,7 @@ import { CINEMA } from '../../tuning/cinema';
 import type { BossRun } from './bossRoom';
 import { tideWalls } from './tideShow';
 import { okamiWalls } from './okamiShow';
+import { dragonWalls } from './dragonShow';
 
 /** The show's beats, in seconds from stepping in. */
 export interface IntroBeats {
@@ -47,13 +48,15 @@ export function wallsOpen(b: BossRun): number {
   if (b.beat !== 'intro') return 1;
   if (b.kind === 'tidebreaker') return tideWalls(b.t);
   if (b.kind === 'okami') return okamiWalls(b.t);
+  // (Update 0.3.50 — the Dragon's: its fire drives them back.)
+  if (b.kind === 'dragon' && b.ownShow) return dragonWalls(b.t);
   const s = introBeats();
   return smooth((b.t - s.wallsFrom) / (s.wallsTo - s.wallsFrom));
 }
 
 /** How open the portal is (0..1): it opens, holds while the boss rises, then closes. */
 export function portalOpen(b: BossRun): number {
-  if (b.beat !== 'intro' || b.kind === 'bigShark' || b.kind === 'tidebreaker' || b.kind === 'okami') return 0;
+  if (b.beat !== 'intro' || b.kind === 'bigShark' || b.kind === 'tidebreaker' || b.kind === 'okami' || (b.kind === 'dragon' && b.ownShow)) return 0;
   const s = introBeats();
   if (b.t < s.riseTo) return smooth((b.t - s.portalFrom) / (s.portalTo - s.portalFrom));
   return 1 - smooth((b.t - s.riseTo) / 0.8);

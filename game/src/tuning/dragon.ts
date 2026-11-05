@@ -80,6 +80,13 @@ export const DRAGON = group('dragon', 'Dragon (boss)', {
   coreDamage: knob(70, 1, 200, 5, 'Blast damage', 'To you, if it blows with no pillar between you (heavy, not a one-shot).'),
   coreShove: knob(20, 0, 40, 0.5, 'Blast shove', 'How hard the blast throws you (m/s).'),
   coreRecover: knob(1.5, 0.2, 5, 0.1, 'Blast recovery', 'After the blast, before it flies again (s).'),
+  // Update 0.3.50 — its show.
+  showPass: knob(2, 0.5, 6, 0.1, 'Show: over your head', 'It comes in over your head from behind and away over the far wall.'),
+  showLap: knob(3.4, 1, 8, 0.1, 'Show: its fire', 'Its lap of the courtyard, its fire driving the walls back.'),
+  showRise: knob(0.9, 0.3, 3, 0.1, 'Show: its climb', 'It climbs straight up over the middle.'),
+  showDive: knob(1.5, 0.5, 4, 0.1, 'Show: its dive', 'Its dive with its name, slowed (as you see it, longer).'),
+  showSlow: knob(0.28, 0.05, 1, 0.01, 'Show: slow motion', 'The run’s speed through the slowed part of its dive.'),
+  showRoar: knob(3, 1, 6, 0.1, 'Show: its scream', 'From its landing to the fight: it staggers, screams fire at the sky, and the view comes back to you.'),
   dragonCoins: knob(15, 0, 300, 5, 'Dragon coins', 'Coins in its chest.'),
   labDragons: knob(0, 0, 1, 1, 'Lab dragon', 'A dragon in the Feel Lab waves (to try the fight).'),
 });

@@ -81,6 +81,27 @@ export function playDragon(a: AudioEngine, kind: CombatEvent, value: number, far
       noise(a, { dur: 0.8, gain: 0.8 * loud, filter: 'highpass', from: 5000, to: 900 });
       tone(a, { from: 880, to: 60, dur: 0.7, gain: 0.5 * loud, type: 'sawtooth' });
       return true;
+    // Update 0.3.50 — its show.
+    case 'dragonPass':
+      noise(a, { dur: 1.1, gain: 0.9, filter: 'lowpass', from: 3200, to: 180 });
+      tone(a, { from: 150, to: 44, dur: 1, gain: 0.7, type: 'sawtooth' });
+      tone(a, { from: 300, to: 620, dur: 0.8, gain: 0.3, type: 'sawtooth' });
+      return true;
+    case 'dragonFireRun':
+      noise(a, { dur: v.showLap, gain: 0.7, filter: 'lowpass', from: 2400, to: 900 });
+      tone(a, { from: 72, to: 58, dur: v.showLap, gain: 0.35, type: 'sawtooth' });
+      return true;
+    case 'dragonWallBurst':
+      noise(a, { dur: 0.3, gain: 0.45 * loud, filter: 'lowpass', from: 1500, to: 120 });
+      return true;
+    case 'dragonTowerBurst':
+      noise(a, { dur: 0.9, gain: 0.8 * loud, filter: 'lowpass', from: 1800, to: 70 });
+      tone(a, { from: 80, to: 30, dur: 0.7, gain: 0.6 * loud });
+      return true;
+    case 'dragonLand':
+      noise(a, { dur: 1.4, gain: 1, filter: 'lowpass', from: 3400, to: 50 });
+      tone(a, { from: 80, to: 18, dur: 1.3, gain: 1, type: 'sawtooth' });
+      return true;
     case 'dragonBurst':
       noise(a, { dur: 1.2, gain: 0.9 * loud, filter: 'lowpass', from: 3600, to: 60 });
       tone(a, { from: 70, to: 20, dur: 1.1, gain: 0.9 * loud, type: 'sawtooth' });

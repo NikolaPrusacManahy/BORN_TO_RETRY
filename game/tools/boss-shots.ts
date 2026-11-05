@@ -23,6 +23,8 @@ import { DROWNED } from '../src/tuning/drowned';
 import { BIG_SHARK } from '../src/tuning/bigShark';
 import { SharkCinema } from '../src/engine/boss/sharkCinema';
 import { OkamiCinema } from '../src/engine/shrine/okamiCinema';
+import { DragonCinema } from '../src/engine/boss/dragonCinema';
+import { dragonAt, dragonBeats, dragonPose } from '../src/sim/dungeon/dragonShow';
 import { okamiBeats } from '../src/sim/dungeon/okamiShow';
 import { kitOf } from '../src/world/dungeon/okamiIsles';
 import { sharkAt, sharkBeats, sharkMark } from '../src/sim/dungeon/sharkShow';
@@ -138,6 +140,19 @@ if (kind === 'okami' && level.okami) {
   const at = (name: string, t: number) => (oc.intro(t, eye, shot), { name, at: shot.pos.toArray(), to: shot.look.toArray() });
   cams.splice(1, 2, at('okami-merge', (ob.mergeFrom + ob.mergeTo) / 2), at('okami-temples', ob.temple[2]), at('okami-crash', ob.crashTo - 0.2));
   Object.assign(demon, { x: o.landing.x, z: o.landing.z, yaw: Math.atan2(-(o.safe.x - o.landing.x), -(o.safe.z - o.landing.z)) });
+}
+if (kind === 'dragon') {
+  // (Update 0.3.50 — its show's own shots, it placed for one of them: `--beat=pass|high|low|climb|fall|scream`.)
+  const dc = new DragonCinema(level);
+  dc.start(eye, new THREE.Vector3(-ex, 0, -ez));
+  const db = dragonBeats();
+  const lap = db.lapTo - db.lapFrom;
+  const when = { pass: db.overhead + 0.25, high: db.lapFrom + lap * 0.3, low: db.lapFrom + lap * 0.875, climb: db.diveFrom - 0.1, fall: (db.slowFrom + db.slowTo) / 2, scream: db.screamAt + 0.5 };
+  const at = (t: number) => (dc.intro(t, eye, shot), { at: shot.pos.toArray(), to: shot.look.toArray() });
+  cams.splice(1, 2, ...(Object.keys(when) as (keyof typeof when)[]).map((n) => ({ name: `dragon-${n}`, ...at(when[n]) })));
+  const beat = (process.argv.find((a) => a.startsWith('--beat='))?.slice(7) ?? 'scream') as keyof typeof when;
+  const pose = dragonAt(level, when[beat] ?? when.scream, eye, dragonPose());
+  Object.assign(demon, { x: pose.x, y: pose.y, z: pose.z, yaw: pose.yaw });
 }
 const extent = { min: { x: room.min.x - 8, z: room.min.z - 8 }, max: { x: room.max.x + 8, z: room.max.z + 8 } };
 const floors = level.arena.boxes.filter((x) => x.kind === 'floor').map((x) => ({ x: x.x, z: x.z, w: x.w, d: x.d }));

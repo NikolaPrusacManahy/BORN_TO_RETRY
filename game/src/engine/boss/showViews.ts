@@ -11,6 +11,8 @@ import { OkamiShowView } from '../shrine/okamiShowView';
 import type { KitMaterial } from '../shrine/isleMesh';
 import { okamiWide } from '../shrine/okamiCinema';
 import { tideWide } from './tideCinema';
+import { DragonShowView } from './dragonShowView';
+import { dragonWide } from './dragonCinema';
 
 export { WIDE_HAZE } from './tideCinema';
 
@@ -27,9 +29,10 @@ export interface ShowView {
 export function showViewOf(level: DungeonLevel, depths: DepthsView): ShowView | null {
   const boss = bossOf(level.plan.level);
   if (boss === 'tidebreaker') return new TideShowView(level);
+  if (boss === 'dragon') return new DragonShowView(level);
   if (boss === 'okami' && level.okami && depths.sky) return new OkamiShowView(level, depths.sky);
   return null;
 }
 
 /** How far the haze is pushed out for a show's wide shots (0..1). */
-export const wideOf = (run: BossRun) => Math.max(tideWide(run), okamiWide(run));
+export const wideOf = (run: BossRun) => Math.max(tideWide(run), okamiWide(run), dragonWide(run));

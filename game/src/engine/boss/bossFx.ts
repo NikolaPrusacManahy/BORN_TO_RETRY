@@ -6,7 +6,8 @@
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
 import { dragonWindup } from '../../sim/enemies/dragon';
-import { DIVE } from '../../sim/enemies/dragonMoves';
+import { DIVE, INTRO_DIVE, INTRO_FLY, INTRO_LAP } from '../../sim/enemies/dragonMoves';
+import { CLIMB } from '../../sim/dungeon/dragonShow';
 import { DRAGON } from '../../tuning/dragon';
 import { QUAKE_POOL } from '../../sim/combat/quakes';
 import { bossIn } from './bossIn';
@@ -15,6 +16,9 @@ import { bossIn } from './bossIn';
 const FLASH = 0.6;
 const FLASH_SIZE = 11;
 const FLASH_LIGHT = 400;
+/** Update 0.3.50 — its shadow in its show: this wide (m), while it's under this high (m). */
+const SHADOW_WIDE = 7;
+const SHADOW_UP = 40;
 
 const additive = (color: number) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
 
@@ -68,14 +72,25 @@ export class BossFx {
     // The Dragon's dive: its shadow on you, growing as its tell runs; dark and full-sized as it falls.
     const telling = !!d && d.phase === 'windup' && d.move === DIVE;
     const falling = !!d && d.phase === 'dive' && d.move === DIVE;
-    this.landing.visible = this.shadow.visible = telling || falling;
-    if (d && (telling || falling)) {
-      const k = falling ? 1 : Math.min(1, d.t / dragonWindup(d, DIVE));
-      const r = DRAGON.v.diveRadius;
-      this.shadow.position.set(d.aim.x, 0.05, d.aim.z);
+    // (Update 0.3.50 — in its show: its shadow racing over the floor, then growing where it dives.)
+    const showDive = !!d && d.phase === 'intro' && d.move === INTRO_DIVE;
+    const racing = !!d && d.phase === 'intro' && (d.move === INTRO_FLY || d.move === INTRO_LAP) && d.pos.y < SHADOW_UP;
+    this.shadow.visible = telling || falling || showDive || racing;
+    this.landing.visible = telling || falling || showDive;
+    if (d && racing) {
+      this.shadow.position.set(d.pos.x, 0.05, d.pos.z);
+      this.shadow.scale.setScalar(SHADOW_WIDE);
+      (this.shadow.material as THREE.MeshBasicMaterial).opacity = 0.5;
+    }
+    if (d && (telling || falling || showDive)) {
+      const k = falling ? 1 : showDive ? 1 - d.pos.y / CLIMB : Math.min(1, d.t / dragonWindup(d, DIVE));
+      const r = showDive ? SHADOW_WIDE : DRAGON.v.diveRadius;
+      const ax = showDive ? d.pos.x : d.aim.x;
+      const az = showDive ? d.pos.z : d.aim.z;
+      this.shadow.position.set(ax, 0.05, az);
       this.shadow.scale.setScalar(r * (0.3 + 0.7 * k));
       (this.shadow.material as THREE.MeshBasicMaterial).opacity = 0.2 + 0.55 * k;
-      this.landing.position.set(d.aim.x, 0.07, d.aim.z);
+      this.landing.position.set(ax, 0.07, az);
       this.landing.scale.setScalar(r);
       (this.landing.material as THREE.MeshBasicMaterial).opacity = 0.3 + 0.7 * k;
     }

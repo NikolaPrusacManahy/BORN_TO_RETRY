@@ -15,7 +15,7 @@ import { Pillar } from '../src/sim/combat/pillars';
 import { createPuddles, updatePuddles } from '../src/sim/combat/puddles';
 import { updateQuakes } from '../src/sim/combat/quakes';
 import { createCombat, CombatEvent } from '../src/sim/combat/state';
-import { introBeats } from '../src/sim/dungeon/bossRoom';
+import { dragonBeats } from '../src/sim/dungeon/dragonShow';
 import { createDungeonRun, stepRooms } from '../src/sim/dungeon/roomLoop';
 import { dragonWindup } from '../src/sim/enemies/dragon';
 import { BLAST_FOR, CORE_CUE, startCore } from '../src/sim/enemies/dragonCore';
@@ -531,13 +531,11 @@ section('Dragon — floor 1’s boss room');
   const half = (room.max.x - room.min.x) / 2;
   p.pos.set(mx + ex * (half - 3), 0, mz + ez * (half - 3));
   tick(DT);
-  const s = introBeats();
-  tick(s.riseTo - 0.05);
+  // (Update 0.3.50 — its own show: test-dragon-show.ts.)
+  const s = dragonBeats();
+  tick(s.end + 0.1);
   const boss = combat.enemies[run0.boss.slot];
-  check('it rises out of the portal', run0.boss.slot >= 0 && boss.kind === 'dragon' && !seen.includes('dragonScream'));
-  tick(0.1);
-  check('and screams as it takes its stance', seen.filter((k) => k === 'dragonScream').length === 1 && boss.phase === 'intro');
-  tick(s.end - s.riseTo);
+  check('after its show, it screamed once', seen.filter((k) => k === 'dragonScream').length === 1);
   check('then the fight starts', run0.boss.beat === 'fight' && boss.phase === 'chase');
   boss.hp = v.dragonHp * v.rageAt - 1;
   tick(0.5, () => {

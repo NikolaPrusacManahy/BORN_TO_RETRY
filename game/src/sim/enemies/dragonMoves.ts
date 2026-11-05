@@ -26,6 +26,14 @@ export const EMBER = 4;
 /** Its ultimate (dragonCore.ts): coming down to it, and the blast. */
 export const CORE = 5;
 export const BLAST = 6;
+/** Update 0.3.50 — in its show (sim/dungeon/dragonShow.ts): flying over, its lap of fire, climbing, diving, staggering from
+ *  its landing, screaming. */
+export const INTRO_FLY = 7;
+export const INTRO_LAP = 8;
+export const INTRO_RISE = 9;
+export const INTRO_DIVE = 10;
+export const INTRO_LAND = 11;
+export const INTRO_SCREAM = 12;
 
 /** Its mouth: this share of its height up (above its hover), this share of its radius in front. */
 const MOUTH_UP = 0.75;

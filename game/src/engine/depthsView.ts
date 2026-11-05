@@ -44,7 +44,7 @@ export class DepthsView {
     this.vents = new VentView(level.forge.vents);
     this.belts = new BeltView(level.forge.belts);
     this.cove = new CoveView(level.cove);
-    this.arena = new SharkArena(level.boss.end, level.plan.seed, styleOf(level.plan.level).bossWalls !== undefined);
+    this.arena = new SharkArena(level.boss.end, level.plan.seed, styleOf(level.plan.level).id === 'cove');
     this.moon = new MoonView(level);
     const look = styleOf(level.plan.level);
     this.shrine = look.id === 'shrine' ? new ShrineSky(look.sky ?? 0xffffff) : null;

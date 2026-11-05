@@ -135,7 +135,7 @@ section('Lava rooms — falling in');
 
 section('Floor 3 — its look');
 {
-  check('floor 1 is brick, floor 2 the Venom Garden (its brick overgrown), floor 3 the Bone Keep (its stone bleached)', styleOf(1) === BRICK && styleOf(2).id === 'venom' && styleOf(3) === BONE && BONE.wall === STONE.wall);
+  check('floor 1 is brick, floor 2 the Venom Garden (its brick overgrown), floor 3 the Bone Keep (its stone bleached)', styleOf(1).id === 'brick' && styleOf(1).wall === BRICK.wall && styleOf(2).id === 'venom' && styleOf(3) === BONE && BONE.wall === STONE.wall);
   // (Update 0.3.14 — the kit has a texture now, floor 6's palette: taken out to parse it in Node.)
   const kit = await parseUntextured(new URL('../public/models/dungeon/kit.glb', import.meta.url));
   const three = planFloor(5, 3);

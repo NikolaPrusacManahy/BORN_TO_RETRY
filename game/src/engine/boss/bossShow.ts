@@ -31,6 +31,8 @@ import { sharkSlow } from '../../sim/dungeon/sharkShow';
 import { tideSlow } from '../../sim/dungeon/tideShow';
 import { TideCinema } from './tideCinema';
 import { OkamiCinema } from '../shrine/okamiCinema';
+import { DragonCinema } from './dragonCinema';
+import { dragonSlow } from '../../sim/dungeon/dragonShow';
 import { okamiSlow } from '../../sim/dungeon/okamiShow';
 import { BIG_SHARK } from '../../tuning/bigShark';
 import { TIDEBREAKER } from '../../tuning/tidebreaker';
@@ -89,6 +91,8 @@ export class BossShow {
   private readonly shark: SharkCinema | null;
   private readonly tide: TideCinema | null;
   private readonly okami: OkamiCinema | null;
+  /** Update 0.3.50 — the Dragon's own. */
+  private readonly dragon: DragonCinema | null;
   private beat: BossBeat = 'waiting';
   /** Real seconds of the death's slow motion left. */
   private slow = 0;
@@ -105,6 +109,7 @@ export class BossShow {
     this.shark = run && run.boss.kind === 'bigShark' ? new SharkCinema(run.level.boss.portal) : null;
     this.tide = run && run.boss.kind === 'tidebreaker' ? new TideCinema(run.level) : null;
     this.okami = run && run.boss.kind === 'okami' && run.level.okami ? new OkamiCinema(run.level) : null;
+    this.dragon = run && run.boss.kind === 'dragon' && run.boss.ownShow ? new DragonCinema(run.level) : null;
     if (run) {
       this.hud.bossTitle = bossTitle(run.level.plan.level);
       this.hud.bossName = BOSS_NAMES[run.boss.kind] ?? BOSS_NAME;
@@ -125,6 +130,7 @@ export class BossShow {
     if (this.run && sharkSlow(this.run.boss) < 1) return sharkSlow(this.run.boss);
     if (this.run && tideSlow(this.run.boss) < 1) return tideSlow(this.run.boss);
     if (this.run && okamiSlow(this.run.boss) < 1) return okamiSlow(this.run.boss);
+    if (this.run && dragonSlow(this.run.boss) < 1) return dragonSlow(this.run.boss);
     if (this.slow <= 0 || c.slowTime <= 0) return 1;
     const k = 1 - this.slow / c.slowTime;
     return c.slow + (1 - c.slow) * k * k;
@@ -167,9 +173,10 @@ export class BossShow {
       if (b.beat === 'intro') this.shark?.start(eye, dir, eye);
       if (b.beat === 'intro') this.tide?.start(eye, dir);
       if (b.beat === 'intro') this.okami?.start(eye, dir);
+      if (b.beat === 'intro') this.dragon?.start(eye, dir);
       if (b.beat === 'fight' && this.beat === 'intro') {
-        look.yaw = (this.shark ?? this.tide ?? this.okami ?? this.cinema).endYaw;
-        look.pitch = (this.shark ?? this.tide ?? this.okami ?? this.cinema).endPitch;
+        look.yaw = (this.shark ?? this.tide ?? this.okami ?? this.dragon ?? this.cinema).endYaw;
+        look.pitch = (this.shark ?? this.tide ?? this.okami ?? this.dragon ?? this.cinema).endPitch;
       }
       if (b.beat === 'dying') this.slow = CINEMA.v.slowTime;
       this.beat = b.beat;
@@ -178,11 +185,12 @@ export class BossShow {
       if (this.shark) this.shark.intro(b.t, eye, view);
       else if (this.tide) this.tide.intro(b.t, eye, view);
       else if (this.okami) this.okami.intro(b.t, eye, view);
+      else if (this.dragon) this.dragon.intro(b.t, eye, view);
       else this.cinema.intro(b.t, view);
       out.cinematic = true;
       h.cine = h.skip = true;
       const s = introBeats();
-      h.card = this.shark ? SharkCinema.named(b.t) : this.tide ? TideCinema.named(b.t) : this.okami ? OkamiCinema.named(b.t) : b.t >= s.riseTo - CARD_EDGE && b.t < s.stanceTo + CARD_EDGE;
+      h.card = this.shark ? SharkCinema.named(b.t) : this.tide ? TideCinema.named(b.t) : this.okami ? OkamiCinema.named(b.t) : this.dragon ? DragonCinema.named(b.t) : b.t >= s.riseTo - CARD_EDGE && b.t < s.stanceTo + CARD_EDGE;
     } else if (b.beat === 'open' && this.cinema.gateShot(b.t, eye, dir, view)) {
       out.cinematic = true;
       h.cine = true;
@@ -190,7 +198,7 @@ export class BossShow {
     if (out.cinematic) {
       camera.position.copy(view.pos);
       camera.lookAt(view.look);
-      if (b.beat === 'intro' && run.boss.kind === 'dragon') this.scream(camera, b.t);
+      if (b.beat === 'intro') this.dragon?.shake(camera, b.t);
       if (b.beat === 'intro') this.tide?.shake(camera, b.t);
       if (b.beat === 'intro') this.okami?.shake(camera, b.t);
     }
@@ -219,15 +227,4 @@ export class BossShow {
     this.hud.bossMark = markOf(boss);
   }
 
-  /** Update 0.0.18 — the Dragon screams as it takes its stance: the view shakes, hardest mid-scream. */
-  private scream(camera: THREE.PerspectiveCamera, t: number) {
-    const v = DRAGON.v;
-    const k = (t - introBeats().riseTo) / Math.max(0.3, v.screamTime);
-    if (k <= 0 || k >= 1) return;
-    const a = v.screamShake * Math.sin(Math.PI * k) * 0.35;
-    camera.position.x += a * (Math.sin(t * 71) * 0.6 + Math.sin(t * 43) * 0.4);
-    camera.position.y += a * (Math.sin(t * 67 + 1) * 0.6 + Math.sin(t * 29) * 0.4);
-    camera.position.z += a * (Math.sin(t * 59 + 2) * 0.6 + Math.sin(t * 37) * 0.4);
-    camera.rotateZ(a * 0.12 * Math.sin(t * 53));
-  }
 }

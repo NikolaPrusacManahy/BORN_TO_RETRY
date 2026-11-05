@@ -66,6 +66,19 @@ export function foes2Feedback(f: FeedbackParts, kind: CombatEvent, value: number
       f.sparks.spawn(at, back, 26, 1.4);
       f.rig.shake.add(0.5);
       break;
+    // Update 0.3.50 — its show (the view's own shake: dragonCinema.ts).
+    case 'dragonWallBurst':
+      f.chunks.spawn(at, UP, 14, 1.3);
+      f.sparks.spawn(at, UP, 16, 1.5);
+      break;
+    case 'dragonTowerBurst':
+      f.chunks.spawn(at, UP, 30, 1.6);
+      f.sparks.spawn(at, UP, 24, 1.6);
+      break;
+    case 'dragonLand':
+      f.chunks.spawn(at, UP, 50, 1.8);
+      f.sparks.spawn(at, UP, 50, 2.2);
+      break;
     case 'dragonRumble':
       f.rig.shake.add(0.14 + 0.26 * value);
       break;

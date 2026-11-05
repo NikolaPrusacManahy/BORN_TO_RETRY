@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { CombatState } from '../../sim/combat/state';
 import { dragonWindup } from '../../sim/enemies/dragon';
-import { BLAST, CORE, DIVE, EMBER, SWEEP, TAIL, WING } from '../../sim/enemies/dragonMoves';
+import { BLAST, CORE, DIVE, EMBER, INTRO_DIVE, INTRO_LAND, INTRO_LAP, INTRO_RISE, INTRO_SCREAM, SWEEP, TAIL, WING } from '../../sim/enemies/dragonMoves';
 import type { Enemy } from '../../sim/enemies/enemy';
 import { doomTime } from '../../sim/enemies/kinds';
 import { DRAGON } from '../../tuning/dragon';
@@ -48,6 +48,10 @@ const OPENS = 0.6;
 const SETTLE = 7;
 const SET_DOWN = 0.3;
 const STUCK = -0.4;
+/** How far it tips in its dive, its climb and its show's lap (rad). */
+const PITCH_DOWN = 1;
+const PITCH_UP = 0.8;
+const BANK = 0.45;
 /** Each move's warning glow. */
 const GLOW: Record<number, [number, number, number]> = {
   [SWEEP]: [1, 0.6, 0.12],
@@ -63,6 +67,7 @@ const head = new THREE.Vector3();
 const land = new THREE.Vector3();
 const body = new THREE.Vector3();
 const foot = new THREE.Vector3();
+const UP_SKY = new THREE.Vector3(0, 40, 0);
 
 /** The Dragon in play (its slot in use), if any. */
 export function dragonIn(state: CombatState): Enemy | null {
@@ -85,6 +90,9 @@ export class DragonView {
   private lowest = 0;
   private time = 0;
   private lift = 1;
+  /** How it's tipped (rad): nose down and up, banked. */
+  private pitch = 0;
+  private bank = 0;
   private lastFill = 0;
   private struck = 0;
   private readonly aura = new Aura({ calm: [1, 0.55, 0.1], rage: [1, 0.12, 0.05], ring: 0xffa020, light: 0xff8a30, embers: 0xffb040 });
@@ -146,7 +154,7 @@ export class DragonView {
     at.copy(e.prev).lerp(e.pos, alpha);
     const dead = e.phase === 'dead';
     // Set down on its feet to charge its core; sunk in the floor where it sticks.
-    const down = e.phase === 'blast' || (e.phase === 'recover' && e.move === BLAST);
+    const down = e.phase === 'blast' || (e.phase === 'recover' && e.move === BLAST) || (e.phase === 'intro' && (e.move === INTRO_LAND || e.move === INTRO_SCREAM));
     const stuck = e.phase === 'stun' && (e.move === DIVE || e.move === CORE);
     const want = stuck ? this.onFloor(at.y, STUCK) : down ? this.onFloor(at.y, SET_DOWN) : v.hover + (dead ? 0 : 0.25 * Math.sin(this.time * 2.2));
     this.lift += (want - this.lift) * Math.min(1, SETTLE * dt);
@@ -157,7 +165,8 @@ export class DragonView {
       const scale = v.dragonHeight / this.height;
       root.scale.setScalar(scale);
       root.position.set(at.x, at.y + lift - this.lowest * scale, at.z);
-      root.rotation.y = e.facing + Math.PI;
+      this.tipped(e, dt);
+      root.rotation.set(this.pitch, e.facing + Math.PI, this.bank, 'YXZ');
       this.animate(e, dt);
       tintBoss(e, this.mats, dragonWindup(e, e.move), GLOW[e.move] ?? GLOW[SWEEP], this.time);
     }
@@ -165,6 +174,17 @@ export class DragonView {
     this.aura.update(at, chest, v.dragonHeight, e.stage > 0, dead ? Math.max(0, 1 - e.t / doomTime()) : 1, camera, dt);
     this.drawFire(e);
     this.drawCore(e, dt);
+  }
+
+  /** Nose down in its dive, up as it climbs; banked into its lap. */
+  private tipped(e: Enemy, dt: number) {
+    const intro = e.phase === 'intro';
+    const diving = (intro && e.move === INTRO_DIVE) || (e.phase === 'dive' && e.move === DIVE);
+    const pitch = diving ? PITCH_DOWN : intro && e.move === INTRO_RISE ? -PITCH_UP : 0;
+    const bank = intro && e.move === INTRO_LAP ? BANK : 0;
+    const k = Math.min(1, SETTLE * dt);
+    this.pitch += (pitch - this.pitch) * k;
+    this.bank += (bank - this.bank) * k;
   }
 
   /** How high it should be for its feet's bones to be `over` m above the floor, as it's posed now. */
@@ -192,6 +212,14 @@ export class DragonView {
     const v = DRAGON.v;
     const charging = e.phase === 'windup' && e.move === SWEEP;
     const burning = e.phase === 'breath' && e.move === SWEEP;
+    // (Update 0.3.50 — in its show: its fire on the walls, then screamed at the sky.)
+    if (e.phase === 'intro' && this.root && (e.move === INTRO_LAP || e.move === INTRO_SCREAM)) {
+      this.headAt(e);
+      this.flames.hide();
+      if (e.move === INTRO_LAP) this.beam.update(head, e.aim, 1, 1, this.time);
+      else this.beam.update(head, land.copy(head).add(UP_SKY), Math.min(1, e.t / 0.3) * Math.min(1, Math.max(0, (v.showRoar - 1.6 - e.t) / 0.3)), 1, this.time);
+      return;
+    }
     if ((!charging && !burning) || !this.root) {
       this.beam.update(at, at, 0, 0, this.time);
       this.flames.hide();
@@ -248,7 +276,12 @@ export class DragonView {
     let role: Role = 'fly';
     switch (e.phase) {
       case 'intro':
-        role = e.pos.y < -0.05 ? 'fly' : 'lunge';
+        // (A Dragon rising out of a portal screams as it takes its stance. Update 0.3.50 — in its own show: claws out in its
+        // dive, reeling from its landing, then its whole lunge, screaming.)
+        if (e.move === INTRO_DIVE) role = 'strike';
+        else if (e.move === INTRO_LAND) role = 'reel';
+        else if (e.move === INTRO_SCREAM || (e.move === 0 && e.pos.y >= -0.05)) role = 'lunge';
+        else role = 'fly';
         break;
       case 'windup':
         role = e.move === SWEEP ? 'lunge' : e.move === WING || e.move === TAIL ? 'strike' : 'fly';
@@ -277,14 +310,14 @@ export class DragonView {
         role = 'fly';
     }
     if (role !== this.role) this.play(role);
-    const screaming = e.phase === 'intro';
+    const screaming = e.phase === 'intro' && (e.move === 0 || e.move === INTRO_SCREAM);
     const v = DRAGON.v;
     const held = e.phase === 'breath' || (e.phase === 'recover' && e.move === SWEEP);
     a.lunge.timeScale = screaming ? SCREAM / Math.max(0.3, v.screamTime) : held || a.lunge.time >= LUNGE ? 0 : LUNGE / dragonWindup(e, e.move);
     // Claws out through its dive.
-    a.strike.timeScale = e.phase === 'windup' ? STRIKE / dragonWindup(e, e.move) : e.phase === 'dive' && a.strike.time >= STRIKE ? 0 : 1;
+    a.strike.timeScale = e.phase === 'windup' ? STRIKE / dragonWindup(e, e.move) : (e.phase === 'dive' || (e.phase === 'intro' && e.move === INTRO_DIVE)) && a.strike.time >= STRIKE ? 0 : 1;
     // Its wings beat hard in the sky and through its wind.
-    a.fly.timeScale = e.phase === 'blast' ? 0.3 : e.phase === 'breath' && e.move === WING ? 2.6 : e.phase === 'sky' || e.phase === 'dive' ? 1.7 : e.stage > 0 ? 1.3 : 1;
+    a.fly.timeScale = e.phase === 'blast' ? 0.3 : e.phase === 'breath' && e.move === WING ? 2.6 : e.phase === 'sky' || e.phase === 'dive' || e.phase === 'intro' ? 1.7 : e.stage > 0 ? 1.3 : 1;
     // Killed: the pose freezes in the air.
     a.down.timeScale = a.down.time >= DOWN ? 0 : 1;
     this.mixer!.update(dt);

@@ -154,6 +154,13 @@ export function dress(plan: FloorPlan): Dressing {
         case 'wall':
           for (const [dc, dr, side] of DIRS) {
             const n = cellAt(plan, col + dc, row + dr);
+            // (Update 0.3.50 — a tower's faces, over the lower wall beside it.)
+            if (n === 'wall' && K.bossTowers) {
+              const [mine, theirs] = [rowsAt(plan, tall, col, row), rowsAt(plan, tall, col + dc, row + dr)];
+              const [ox, oz] = [x + dc * (CELL / 2 - WALL_DEPTH / 2), z + dr * (CELL / 2 - WALL_DEPTH / 2)];
+              for (let k = theirs; k < mine; k++) put(K.wall, ox, k * WALL_PIECE, oz, FACING[side]);
+              if (mine > theirs) put(K.cap, ox, mine * WALL_PIECE, oz, FACING[side]);
+            }
             if (!surface(n) || n === 'door') continue;
             // The face between this wall and the floor beside it: three bricks high (round a tall boss room, more), capped.
             const fx = x + dc * (CELL / 2 - WALL_DEPTH / 2);

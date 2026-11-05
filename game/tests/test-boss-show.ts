@@ -157,6 +157,8 @@ section('Boss show — the run');
 {
   const level = buildDungeon(planFloor(4242, 1));
   const run = createDungeonRun(level);
+  // (Update 0.3.50 — the Dragon has its own show, test-dragon-show.ts: the shared one's still the other bosses'.)
+  run.boss.ownShow = false;
   const show = new BossShow(run);
   const combat = createCombat(level.arena, false);
   const room = level.rooms[level.boss.room];

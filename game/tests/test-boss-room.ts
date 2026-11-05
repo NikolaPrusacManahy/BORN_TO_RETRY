@@ -30,6 +30,8 @@ section('Boss room');
   check(`you walk into a smaller room (${Math.round(startArea)} m²) that grows (${Math.round(endArea)} m²)`, startArea < endArea * 0.5);
   check('the portal is in its middle', near(b.portal.x, (room.min.x + room.max.x) / 2, 1e-9) && near(b.portal.z, (room.min.z + room.max.z) / 2, 1e-9));
   const run0 = createDungeonRun(level);
+  // (Update 0.3.50 — the Dragon has its own show, test-dragon-show.ts: the shared one's still the other bosses'.)
+  run0.boss.ownShow = false;
   check('the wooden gate is shut from the start', run0.shut[b.gate] && run0.shut.filter(Boolean).length === 1);
 
   const combat = createCombat(level.arena, false);

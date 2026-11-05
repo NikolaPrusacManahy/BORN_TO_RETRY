@@ -70,6 +70,7 @@ import './test-shots';
 import './test-blows';
 import './test-air';
 import './test-dragon';
+import './test-dragon-show';
 import './test-ultimate';
 import './test-lab';
 import './test-pistol';

@@ -21,6 +21,13 @@ export type Floor2Event =
   | 'dragonCore'
   | 'dragonRumble'
   | 'dragonCoreBroken'
+  // Update 0.3.50 — its show: over your head, its lap of fire starting, a blow on the walls and a tower's crown going
+  // (value = which), its landing (value = its ring).
+  | 'dragonPass'
+  | 'dragonFireRun'
+  | 'dragonWallBurst'
+  | 'dragonTowerBurst'
+  | 'dragonLand'
   // Update 0.2.23 — a wasps' hive lets one out (value = the wasp's slot; x, y, z = the hive), a hive falls (value = its
   // index).
   | 'hiveOut'
