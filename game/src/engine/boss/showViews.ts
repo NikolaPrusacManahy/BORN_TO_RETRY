@@ -15,6 +15,7 @@ import { DragonShowView } from './dragonShowView';
 import { dragonWide } from './dragonCinema';
 import { SwarmShowView } from '../swarm/swarmShowView';
 import { swarmWide } from '../swarm/swarmCinema';
+import { kingWide } from './kingCinema';
 
 export { WIDE_HAZE } from './tideCinema';
 
@@ -38,4 +39,4 @@ export function showViewOf(level: DungeonLevel, depths: DepthsView): ShowView | 
 }
 
 /** How far the haze is pushed out for a show's wide shots (0..1). */
-export const wideOf = (run: BossRun) => Math.max(tideWide(run), okamiWide(run), dragonWide(run), swarmWide(run));
+export const wideOf = (run: BossRun) => Math.max(tideWide(run), okamiWide(run), dragonWide(run), swarmWide(run), kingWide(run));

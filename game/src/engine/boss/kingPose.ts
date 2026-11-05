@@ -9,6 +9,7 @@ import { CAGE, CLUB_DROP, COLOSSUS, GRASP, RIBS, SHATTER, SLAM } from '../../sim
 import { kingTell } from '../../sim/enemies/boneKing';
 import type { Enemy } from '../../sim/enemies/enemy';
 import { handDownAt, kingTall, shoulderAt } from '../../sim/enemies/kingBody';
+import { SHOW_ARM, SHOW_DOWN, SHOW_LIFT, SHOW_ROAR, SHOW_STOOP, skullSpot } from '../../sim/dungeon/kingShow';
 import { BONE_KING } from '../../tuning/boneKing';
 
 /** Its arms, longer than the model's; its forearm's length in the model's own measure, to its fingertips; its height, too. */
@@ -24,6 +25,9 @@ const FEET_OUT = 0.1;
 /** Quick in and out of a pose (s). */
 const EASE_IN = 0.14;
 const EASE_OUT = 0.35;
+/** Its skull on the floor: its pivot this high (in the model's measure: half the skull's width), tipped on its side this far (rad). */
+const SKULL_ON_FLOOR = 0.62;
+const LYING = 1.35;
 
 interface Limb {
   upper: THREE.Object3D;
@@ -154,6 +158,8 @@ export function poseKing(root: THREE.Object3D, bones: KingBones, e: Enemy, time:
   let lw = 0;
   let down = false;
   let rattle = 0;
+  /** Lifting its skull: how far from the floor to its neck (−1: not). */
+  let lift = -1;
   const tell = kingTell(e.move, e.stage);
   const k = e.t / Math.max(0.1, tell);
   switch (e.phase) {
@@ -234,6 +240,31 @@ export function poseKing(root: THREE.Object3D, bones: KingBones, e: Enemy, time:
         bow = 0.4 * fall * left;
       }
       break;
+    case 'intro':
+      if (e.move === SHOW_STOOP) {
+        // Down to its skull.
+        const s = smooth(e.t / v.showStoop);
+        bow = 0.62 * s;
+        rw = s;
+        skullSpot(e, handR).y = SKULL_ON_FLOOR * scale;
+      } else if (e.move === SHOW_LIFT) {
+        bow = 0.62 * (1 - smooth(e.t / v.showLift));
+        rw = 1;
+        lift = smooth(e.t / v.showLift);
+      } else if (e.move === SHOW_ROAR) {
+        rw = lw = smooth(e.t / 0.2);
+        at(handR, 0.08, 0.46, 0.68);
+        at(handL, 0.08, -0.46, 0.68);
+      } else if (e.move === SHOW_ARM) {
+        rw = smooth(e.t / 0.25);
+        lw = 0.4 * rw;
+        at(handR, 0.16, 0.26, 1.08);
+        at(handL, 0.1, -0.24, 0.25);
+      } else if (e.move === SHOW_DOWN) {
+        bow = rw = lw = down_w(e, v.showBack);
+        down = true;
+      }
+      break;
     default:
       break;
   }
@@ -290,12 +321,31 @@ export function poseKing(root: THREE.Object3D, bones: KingBones, e: Enemy, time:
     handR.copy(ramp);
     if (e.phase !== 'blast') at(handL, 0.42, -0.2, 0);
   }
+  if (lift >= 0) {
+    // From where it lay up to its neck.
+    skullSpot(e, handR).y = SKULL_ON_FLOOR * scale;
+    bones.neck.getWorldPosition(c);
+    handR.lerp(c, lift);
+  }
   const lowerR = FORE * scale * LONG;
   const elbowOut = new THREE.Vector3().copy(rt).multiplyScalar(0.7).addScaledVector(fw, -0.6);
   if (rw > 0) reach(bones.armR, handR, elbowOut, lowerR, true, rw);
   elbowOut.copy(rt).multiplyScalar(-0.7).addScaledVector(fw, -0.6);
   if (lw > 0) reach(bones.armL, handL, elbowOut, lowerR, true, lw);
   root.updateMatrixWorld(true);
+  // Through its show, till it's on its neck: its skull on the floor, or in its hand.
+  if (e.phase === 'intro' && e.move <= SHOW_LIFT) {
+    bones.head.getWorldPosition(c);
+    bones.head.getWorldQuaternion(q0);
+    tipQ.setFromAxisAngle(fw, LYING);
+    const lying = q0.clone().premultiply(tipQ);
+    if (lift >= 0) {
+      handOfLimb(bones.armR, scale, d);
+      d.lerp(c, smooth((lift - 0.6) / 0.4));
+      lying.slerp(q0, lift);
+    } else skullSpot(e, d).y = SKULL_ON_FLOOR * scale;
+    setWorld(bones.head, d, lying);
+  }
 }
 
 /** Bowed, its arm down: quickly on the slam, slowly off at the end of its hold. */

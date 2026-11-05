@@ -35,6 +35,8 @@ import { DragonCinema } from './dragonCinema';
 import { dragonSlow } from '../../sim/dungeon/dragonShow';
 import { SwarmCinema } from '../swarm/swarmCinema';
 import { swarmSlow } from '../../sim/dungeon/swarmShow';
+import { kingSlow } from '../../sim/dungeon/kingShow';
+import { KingCinema } from './kingCinema';
 import { okamiSlow } from '../../sim/dungeon/okamiShow';
 import { BIG_SHARK } from '../../tuning/bigShark';
 import { TIDEBREAKER } from '../../tuning/tidebreaker';
@@ -98,6 +100,8 @@ export class BossShow {
   private readonly dragon: DragonCinema | null;
   /** Update 0.3.52 — The Swarm's own. */
   private readonly swarm: SwarmCinema | null;
+  /** Update 0.3.54 — the Bone King's own. */
+  private readonly king: KingCinema | null;
   private beat: BossBeat = 'waiting';
   /** Real seconds of the death's slow motion left. */
   private slow = 0;
@@ -116,6 +120,7 @@ export class BossShow {
     this.okami = run && run.boss.kind === 'okami' && run.level.okami ? new OkamiCinema(run.level) : null;
     this.dragon = run && run.boss.kind === 'dragon' && run.boss.ownShow ? new DragonCinema(run.level) : null;
     this.swarm = run && run.boss.kind === 'swarm' && run.boss.ownShow ? new SwarmCinema(run.level) : null;
+    this.king = run && run.boss.kind === 'boneKing' && run.boss.ownShow ? new KingCinema(run.level) : null;
     if (run) {
       this.hud.bossTitle = bossTitle(run.level.plan.level);
       this.hud.bossName = BOSS_NAMES[run.boss.kind] ?? BOSS_NAME;
@@ -138,6 +143,7 @@ export class BossShow {
     if (this.run && okamiSlow(this.run.boss) < 1) return okamiSlow(this.run.boss);
     if (this.run && dragonSlow(this.run.boss) < 1) return dragonSlow(this.run.boss);
     if (this.run && swarmSlow(this.run.boss) < 1) return swarmSlow(this.run.boss);
+    if (this.run && kingSlow(this.run.boss) < 1) return kingSlow(this.run.boss);
     if (this.slow <= 0 || c.slowTime <= 0) return 1;
     const k = 1 - this.slow / c.slowTime;
     return c.slow + (1 - c.slow) * k * k;
@@ -182,9 +188,10 @@ export class BossShow {
       if (b.beat === 'intro') this.okami?.start(eye, dir);
       if (b.beat === 'intro') this.dragon?.start(eye, dir);
       if (b.beat === 'intro') this.swarm?.start(eye, dir);
+      if (b.beat === 'intro') this.king?.start(eye, dir);
       if (b.beat === 'fight' && this.beat === 'intro') {
-        look.yaw = (this.shark ?? this.tide ?? this.okami ?? this.dragon ?? this.swarm ?? this.cinema).endYaw;
-        look.pitch = (this.shark ?? this.tide ?? this.okami ?? this.dragon ?? this.swarm ?? this.cinema).endPitch;
+        look.yaw = (this.shark ?? this.tide ?? this.okami ?? this.dragon ?? this.swarm ?? this.king ?? this.cinema).endYaw;
+        look.pitch = (this.shark ?? this.tide ?? this.okami ?? this.dragon ?? this.swarm ?? this.king ?? this.cinema).endPitch;
       }
       if (b.beat === 'dying') this.slow = CINEMA.v.slowTime;
       this.beat = b.beat;
@@ -195,11 +202,12 @@ export class BossShow {
       else if (this.okami) this.okami.intro(b.t, eye, view);
       else if (this.dragon) this.dragon.intro(b.t, eye, view);
       else if (this.swarm) this.swarm.intro(b.t, eye, view);
+      else if (this.king) this.king.intro(b.t, eye, view);
       else this.cinema.intro(b.t, view);
       out.cinematic = true;
       h.cine = h.skip = true;
       const s = introBeats();
-      h.card = this.shark ? SharkCinema.named(b.t) : this.tide ? TideCinema.named(b.t) : this.okami ? OkamiCinema.named(b.t) : this.dragon ? DragonCinema.named(b.t) : this.swarm ? SwarmCinema.named(b.t) : b.t >= s.riseTo - CARD_EDGE && b.t < s.stanceTo + CARD_EDGE;
+      h.card = this.shark ? SharkCinema.named(b.t) : this.tide ? TideCinema.named(b.t) : this.okami ? OkamiCinema.named(b.t) : this.dragon ? DragonCinema.named(b.t) : this.swarm ? SwarmCinema.named(b.t) : this.king ? KingCinema.named(b.t) : b.t >= s.riseTo - CARD_EDGE && b.t < s.stanceTo + CARD_EDGE;
     } else if (b.beat === 'open' && this.cinema.gateShot(b.t, eye, dir, view)) {
       out.cinematic = true;
       h.cine = true;
@@ -209,6 +217,7 @@ export class BossShow {
       camera.lookAt(view.look);
       if (b.beat === 'intro') this.dragon?.shake(camera, b.t);
       if (b.beat === 'intro') this.swarm?.shake(camera, b.t);
+      if (b.beat === 'intro') this.king?.shake(camera, b.t);
       if (b.beat === 'intro') this.tide?.shake(camera, b.t);
       if (b.beat === 'intro') this.okami?.shake(camera, b.t);
     }

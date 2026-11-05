@@ -61,6 +61,8 @@ export interface KingBody {
   cage: KingCage;
   /** Its shattered bones' first spoke (yaw). */
   spoke: number;
+  /** Update 0.3.54 — no loose bones in here (where you stand as its show starts). */
+  clearOf: { minX: number; maxX: number; minZ: number; maxZ: number } | null;
   /** Blows landed on its skull and spine since last counted (the feedback). */
   skullHit: number;
   spineHit: number;
@@ -79,6 +81,7 @@ export const createKingBody = (): KingBody => ({
   hands: -1,
   cage: { on: false, closed: false, trapped: false, x: 0, z: 0, t: 0 },
   spoke: 0,
+  clearOf: null,
   skullHit: 0,
   spineHit: 0,
 });

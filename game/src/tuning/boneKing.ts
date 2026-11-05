@@ -52,4 +52,11 @@ export const BONE_KING = group('boneKing', 'Bone King', {
   colossusStun: knob(5, 1, 12, 0.5, 'Colossus stun', 'Broken, it reels this long (s): hits do more.'),
   colossusDamage: knob(65, 1, 200, 1, 'Club damage', 'Its club across the whole floor: to you, unless you’re up on a ledge.'),
   colossusShove: knob(14, 0, 40, 0.5, 'Club shove', 'How hard its club’s blast throws you (m/s).'),
+  showBuild: knob(3, 1, 8, 0.1, 'Show: building', 'Its bones flying in and building it, from the feet up (s).'),
+  showStoop: knob(1, 0.3, 3, 0.1, 'Show: stooping', 'It stoops for its skull (s).'),
+  showLift: knob(1, 0.3, 3, 0.1, 'Show: its skull', 'It lifts its skull to its neck (s).'),
+  showSlow: knob(0.32, 0.05, 1, 0.01, 'Show: slow motion', 'The run’s speed as its eyes catch (as you see it, longer).'),
+  showRoar: knob(0.6, 0.2, 2, 0.1, 'Show: its roar', 'It roars, arms out (s).'),
+  showArm: knob(0.7, 0.2, 2, 0.1, 'Show: its arm', 'Its arm held high before it comes down (s).'),
+  showBack: knob(1.2, 0.5, 3, 0.1, 'Show: back to you', 'After its arm lands, the view coming back to you (s).'),
 });

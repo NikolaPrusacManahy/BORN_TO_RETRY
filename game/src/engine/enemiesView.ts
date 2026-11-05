@@ -37,6 +37,7 @@ import { SWIMS } from '../sim/enemies/kinds6';
 import { fishPose } from './fishPose';
 import { FOES3 } from '../tuning/foes3';
 import { BONE_KING } from '../tuning/boneKing';
+import { SHOW_BUILD, SHOW_WAIT } from '../sim/dungeon/kingShow';
 import { lizardSeen } from '../sim/enemies/lizard';
 import { FOES4 } from '../tuning/foes4';
 import { posedBounds } from './bodyMeasure';
@@ -209,7 +210,7 @@ export class EnemiesView {
       // (Update 0.2.10 — and floor 5's under the water: drownedFx.ts shows their fins.)
       // (Update 0.3.15 — Mako in the sand, a Tentacle sunk under the sea. Update 0.3.22 — floor 7's dead in the snow.)
       const buried = ((e.kind === 'cactoro' || e.kind === 'cactoroBig' || e.kind === 'mako') && e.pos.y < -1) || (e.kind === 'tentacle' && e.pos.y < -5) || ((e.kind === 'draugr' || e.kind === 'barrowMaid') && e.pos.y < -1.5) || submerged(e);
-      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing' || e.kind === 'whale' || e.kind === 'frostRoc' || e.kind === 'tidebreaker' || e.kind === 'okami') && e.phase === 'dead' && e.struck) && !buried && !(e.king && e.phase === 'leap');
+      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing' || e.kind === 'whale' || e.kind === 'frostRoc' || e.kind === 'tidebreaker' || e.kind === 'okami') && e.phase === 'dead' && e.struck) && !buried && !(e.king && (e.phase === 'leap' || (e.phase === 'intro' && e.move === SHOW_WAIT)));
       if (!b.root.visible) continue;
       const windup = look.windup(e.move, e.stage);
       const king = e.kind === 'boneKing';
@@ -239,6 +240,8 @@ export class EnemiesView {
       if (e.pinned > 0) want = 'hit';
       // Update 0.3.53 — the Bone King stands through its moves: kingPose.ts poses it.
       if (king && (e.phase === 'windup' || e.phase === 'recover' || e.phase === 'blast' || e.phase === 'grab')) want = 'idle';
+      // (Update 0.3.54 — building itself in its show: its clip for that, sped to fit.)
+      if (king && e.phase === 'intro' && e.move === SHOW_BUILD) want = 'rise';
       // Update 0.2.5 (the designer: Tribals on a perch "just run on the spot"): one on its feet that hasn't moved a while stands.
       const moved = Math.hypot(e.pos.x - e.prev.x, e.pos.z - e.prev.z) > 1e-4;
       slot.still = moved || e.phase !== 'chase' ? 0 : slot.still + dt;
@@ -264,7 +267,7 @@ export class EnemiesView {
         if (own) b.extra[own].timeScale = e.phase === 'windup' ? (b.extra[own].getClip().duration * (mine?.[2] ?? 1)) / Math.max(0.1, windup) : (mine?.[3] ?? 1);
       }
       attack.timeScale = look.lands / windup;
-      b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? BONE_KING.v.kingRise : e.phase === 'intro' ? FOES_NORSE.v.riseTime : FOES3.v.skeletonRise);
+      b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? (e.phase === 'intro' ? BONE_KING.v.showBuild : BONE_KING.v.kingRise) : e.phase === 'intro' ? FOES_NORSE.v.riseTime : FOES3.v.skeletonRise);
       b.actions.move.timeScale = e.phase === 'held' ? 3 : dash ? 2 : flies(e.kind) ? 1 : Math.min(PACE_HIGH, Math.max(PACE_LOW, slot.pace / full));
       const ice = e.frozen > 0 ? 1 : 0;
       if (!ice && !b.root.userData.kept && !(e.pinned > 0 && e.t > PIN_POSE)) b.mixer.update(dt);

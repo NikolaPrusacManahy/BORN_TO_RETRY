@@ -93,6 +93,20 @@ export function kingFeedback(f: FeedbackParts, kind: CombatEvent, value: number,
     case 'kingRoar':
       f.rig.shake.add(0.55 * near(40));
       return true;
+    case 'kingTremble':
+      f.rig.shake.add(0.3);
+      return true;
+    case 'kingGather':
+      f.chunks.spawn(at, UP, 30, 1.4);
+      return true;
+    case 'kingStands':
+      f.waves.spawn(at, 10, BONE);
+      f.chunks.spawn(at, UP, 40, 1.8);
+      return true;
+    case 'kingSkullOn':
+      f.sparks.spawn(at, UP, 50, 1.6);
+      f.waves.spawn(at, 6, GREEN);
+      return true;
     case 'kingColossus':
       f.chunks.spawn(at, UP, 40, 1.8);
       f.rig.shake.add(0.7 * near(60));

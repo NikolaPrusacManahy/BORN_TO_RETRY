@@ -38,6 +38,8 @@ import { CAGE, COLOSSUS, GRASP, RIBS, SHATTER, SLAM } from '../src/sim/enemies/b
 import { kingTall, layArm } from '../src/sim/enemies/kingBody';
 import { openUltimate } from '../src/sim/enemies/ultimate';
 import { KingView } from '../src/engine/boss/kingView';
+import { KingCinema } from '../src/engine/boss/kingCinema';
+import { kingBeats, kingWalls, SHOW_ARM, SHOW_BUILD, SHOW_DOWN, SHOW_EYES, SHOW_LIFT, SHOW_ROAR, SHOW_STAND, SHOW_STOOP, SHOW_WAIT } from '../src/sim/dungeon/kingShow';
 import { BONE_KING } from '../src/tuning/boneKing';
 import { bossRoomStart } from '../src/world/dungeon/bossStart';
 import { swarmBeats } from '../src/sim/dungeon/swarmShow';
@@ -237,6 +239,10 @@ if (kind === 'swarm') {
 if (kind === 'boneKing') {
   // (Update 0.3.53 — it posed for a move, by the game's own pose and view code, baked: `--beat=stand|wrong|ribs|slamtell|slam|grasp|shatter|out|cage|caged|grow|colossus|club`.)
   const beat = process.argv.find((a) => a.startsWith('--beat='))?.slice(7) ?? 'stand';
+  const showAt: Record<string, number> = (() => {
+    const s = kingBeats();
+    return { 'show-high': s.buildFrom + 1, 'show-low': s.standFrom - 0.4, 'show-stoop': s.liftFrom - 0.1, 'show-lift': (s.liftFrom + s.slowFrom) / 2, 'show-eyes': (s.slowFrom + s.slowTo) / 2, 'show-roar': s.armFrom - 0.1, 'show-arm': s.slamAt - 0.1, 'show-down': s.slamAt + 0.5 };
+  })();
   const gltf = await parseUntextured(new URL('../public/models/enemies/skeleton.glb', import.meta.url));
   const root = gltf.scene as THREE.Object3D;
   const combat = createCombat(level.arena, false);
@@ -256,6 +262,29 @@ if (kind === 'boneKing') {
     e.t = t;
     e.shots = shots;
   };
+  // (Update 0.3.54 — its show: `--beat=show-high|show-low|show-stoop|show-lift|show-eyes|show-roar|show-arm|show-down`.)
+  let clipName = 'Idle';
+  let clipAt = 0.5;
+  if (beat in showAt) {
+    const s = kingBeats();
+    const t = showAt[beat];
+    const stageOf: [number, number][] = [[s.buildFrom, SHOW_BUILD], [s.standFrom, SHOW_STAND], [s.stoopFrom, SHOW_STOOP], [s.liftFrom, SHOW_LIFT], [s.slowFrom, SHOW_EYES], [s.roarFrom, SHOW_ROAR], [s.armFrom, SHOW_ARM], [s.slamAt, SHOW_DOWN]];
+    let from = 0;
+    e.phase = 'intro';
+    e.move = SHOW_WAIT;
+    for (const [at, m] of stageOf) if (t >= at) [from, e.move] = [at, m];
+    e.t = t - from;
+    K.clearOf = { minX: b.start.min.x, maxX: b.start.max.x, minZ: b.start.min.z, maxZ: b.start.max.z };
+    if (e.move === SHOW_BUILD) {
+      clipName = 'Spawn';
+      clipAt = (e.t / BONE_KING.v.showBuild) * 2.9;
+    }
+    k2.value = kingWalls(t);
+    const kc = new KingCinema(level);
+    kc.start(eye, new THREE.Vector3(-ex, 0, -ez));
+    kc.intro(t, eye, shot);
+    cams.splice(1, 2, { name: 'king-show', at: shot.pos.toArray(), to: shot.look.toArray() });
+  }
   if (beat === 'wrong') e.stage = 1;
   if (beat === 'ribs') set('windup', RIBS, 0.8);
   if (beat === 'slamtell') set('windup', SLAM, 1);
@@ -295,8 +324,8 @@ if (kind === 'boneKing') {
   }
   const box0 = new THREE.Box3().setFromObject(root, true);
   const mixer = new THREE.AnimationMixer(root);
-  mixer.clipAction(gltf.animations.find((a: THREE.AnimationClip) => a.name.endsWith('Idle'))!).play();
-  mixer.update(0.5);
+  mixer.clipAction(gltf.animations.find((a: THREE.AnimationClip) => a.name.endsWith(clipName))!).play();
+  mixer.update(clipAt);
   const h = kingTall(e);
   const sc0 = h / (box0.max.y - box0.min.y);
   root.scale.setScalar(sc0);
@@ -313,7 +342,7 @@ if (kind === 'boneKing') {
   // What you can stand on of it, shown as boxes.
   if (process.argv.includes('--boxes')) for (const bx of K.boxes) boxes.push({ m: new THREE.Matrix4().compose(p.set(bx.x, bx.y, bx.z), bx.quat ? q.set(...bx.quat) : q.identity(), s.set(bx.w, bx.h, bx.d)).toArray(), color: [0.9, 0.2, 0.2] });
   const look = (name: string, f: number, r: number, u: number, to = 0.42) => ({ name, at: [mid.x + fx * f * h - fz * r * h, u * h, mid.z + fz * f * h + fx * r * h], to: [mid.x, to * h, mid.z] });
-  cams.splice(1, 2, look('king-front', 1.25, 0.25, 0.45), look('king-side', 0.45, 1.3, 0.5), look('king-behind', -0.9, 0.5, 0.9), look('king-high', 2, 1.2, 1.4, 0.1));
+  if (!(beat in showAt)) cams.splice(1, 2, look('king-front', 1.25, 0.25, 0.45), look('king-side', 0.45, 1.3, 0.5), look('king-behind', -0.9, 0.5, 0.9), look('king-high', 2, 1.2, 1.4, 0.1));
   // (Not the portal's demon.)
   demon.height = 0;
 }

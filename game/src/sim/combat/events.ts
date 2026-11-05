@@ -197,6 +197,11 @@ export type CombatEvent =
   | 'kingClub'
   | 'kingSkull'
   | 'kingSpineHit'
+  // (Update 0.3.54 — its show: kingShow.ts.)
+  | 'kingTremble'
+  | 'kingGather'
+  | 'kingStands'
+  | 'kingSkullOn'
   | 'kingRumble'
   // Update 0.2.4 — floor 4's (value = its slot unless said): the Tribal drawing its spear, throwing it, springing aside;
   // a Cactoro digging in, the sand bulging where it'll come up, its ring of spines; the big Cactoro's warning (value =

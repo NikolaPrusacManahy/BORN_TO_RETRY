@@ -129,6 +129,7 @@ import './test-builds';
 import './test-gold-chests';
 import './test-floor3-executions';
 import './test-bone-king';
+import './test-king-show';
 import './test-floor4';
 import './test-raptor';
 

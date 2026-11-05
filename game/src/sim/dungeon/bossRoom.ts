@@ -47,6 +47,7 @@ import { OKAMI } from '../../tuning/okami';
 import { stepOkamiIntro } from './okamiShow';
 import { stepDragonIntro } from './dragonShow';
 import { stepSwarmIntro } from './swarmShow';
+import { stepKingIntro } from './kingShow';
 
 export type BossBeat = 'waiting' | 'intro' | 'fight' | 'dying' | 'loot' | 'open';
 
@@ -80,7 +81,7 @@ const CALL_CLEAR = 8;
 const FIRST_MOVE = 1;
 
 export function createBossRun(kind: EnemyKind = 'dragon'): BossRun {
-  return { kind, stance: false, beat: 'waiting', t: 0, slot: -1, summon: 0, calling: false, skip: false, ownShow: kind === 'dragon' || kind === 'swarm' };
+  return { kind, stance: false, beat: 'waiting', t: 0, slot: -1, summon: 0, calling: false, skip: false, ownShow: kind === 'dragon' || kind === 'swarm' || kind === 'boneKing' };
 }
 
 /** Update 0.0.18 — who a boss calls once it rages, how many and how often (s) (Update 0.0.21: only the Demon called;
@@ -177,6 +178,11 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
       // (Update 0.3.52 — The Swarm's: swarmShow.ts.)
       if (b.kind === 'swarm' && b.ownShow && level) {
         stepSwarmIntro(b, level, player, combat, dt);
+        break;
+      }
+      // (Update 0.3.54 — the Bone King's: kingShow.ts.)
+      if (b.kind === 'boneKing' && b.ownShow && level) {
+        stepKingIntro(b, level, player, combat, dt);
         break;
       }
       // (Update 0.3.34 — Yokai : Okami's: okamiShow.ts.)

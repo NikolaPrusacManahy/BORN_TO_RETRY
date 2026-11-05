@@ -99,6 +99,22 @@ export function playKing(a: AudioEngine, kind: CombatEvent, value: number, far: 
     case 'kingRoar':
       a.clips.play('demonRoar', boss);
       return true;
+    case 'kingTremble':
+      noise(a, { dur: 1.4, gain: 0.24, filter: 'lowpass', from: 140, to: 70 });
+      for (let k = 0; k < 6; k++) noise(a, { dur: 0.05 + k * 0.05, gain: 0.14, filter: 'bandpass', from: 1500 + k * 120, to: 900, q: 4 });
+      return true;
+    case 'kingGather':
+      noise(a, { dur: v.showBuild, gain: 0.3, filter: 'bandpass', from: 500, to: 2600, q: 2.5 });
+      tone(a, { from: 45, to: 110, dur: v.showBuild, gain: 0.2, type: 'sawtooth' });
+      return true;
+    case 'kingStands':
+      a.clips.play('bruteSlam', 1);
+      return true;
+    case 'kingSkullOn':
+      a.clips.play('blowCrush', 1);
+      tone(a, { from: 60, to: 420, dur: 1.2, gain: 0.22, type: 'sawtooth' });
+      noise(a, { dur: 1.2, gain: 0.2, filter: 'bandpass', from: 1000, to: 3000, q: 1.5 });
+      return true;
     case 'kingColossus':
       a.clips.play('demonRoar', 1);
       noise(a, { dur: v.colossusRise, gain: 0.26, filter: 'bandpass', from: 600, to: 2600, q: 3 });

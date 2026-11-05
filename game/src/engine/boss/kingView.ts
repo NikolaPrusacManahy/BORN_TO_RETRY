@@ -12,6 +12,7 @@ import { kingTell } from '../../sim/enemies/boneKing';
 import { Enemy, isLive } from '../../sim/enemies/enemy';
 import { handDownAt, kingTall, shoulderAt, spineAt, spineRadius } from '../../sim/enemies/kingBody';
 import { BONE_KING } from '../../tuning/boneKing';
+import { SHOW_BUILD, SHOW_DOWN, SHOW_EYES } from '../../sim/dungeon/kingShow';
 import { handOfLimb, KING_POSE, type KingBones, kingBonesOf, poseKing } from './kingPose';
 
 const BONE = 0xccb899;
@@ -154,9 +155,19 @@ export class KingView {
     };
     this.home.length = 0;
     for (let i = 0; i < LOOSE; i++) {
-      const a = rnd() * Math.PI * 2;
-      const r = LOOSE_NEAR + Math.sqrt(rnd()) * (LOOSE_FAR - LOOSE_NEAR);
-      this.home.push({ x: (k.king?.midX ?? k.pos.x) + Math.cos(a) * r, z: (k.king?.midZ ?? k.pos.z) + Math.sin(a) * r, yaw: rnd() * Math.PI * 2, tip: rnd() * 0.3, long: 0.9 + rnd() * 1.1, lift: 2 + rnd() * 4, into: 0.2 + rnd() * 0.5 });
+      const mx = k.king?.midX ?? k.pos.x;
+      const mz = k.king?.midZ ?? k.pos.z;
+      const clear = k.king?.clearOf;
+      let x = 0;
+      let z = 0;
+      for (let tries = 0; tries < 8; tries++) {
+        const a = rnd() * Math.PI * 2;
+        const r = LOOSE_NEAR + Math.sqrt(rnd()) * (LOOSE_FAR - LOOSE_NEAR);
+        x = mx + Math.cos(a) * r;
+        z = mz + Math.sin(a) * r;
+        if (!clear || x < clear.minX || x > clear.maxX || z < clear.minZ || z > clear.maxZ) break;
+      }
+      this.home.push({ x, z, yaw: rnd() * Math.PI * 2, tip: rnd() * 0.3, long: 0.9 + rnd() * 1.1, lift: 2 + rnd() * 4, into: 0.2 + rnd() * 0.5 });
     }
     this.seeded = true;
     this.settled = false;
@@ -239,7 +250,9 @@ export class KingView {
     const eyes = root.getObjectByName('kingEyes');
     const extra = root.getObjectByName('kingExtraArms');
     const ult = k.phase === 'blast' && k.move === COLOSSUS;
-    this.eyeMat.opacity = ult ? 0.95 : k.stage > 0 ? 0.55 : 0;
+    // (Update 0.3.54 — catching, as its skull goes on in its show.)
+    const show = k.phase === 'intro' ? (k.move < SHOW_EYES ? 0 : k.move === SHOW_EYES ? Math.min(1, k.t / 0.5) * 0.95 : 0.95) : -1;
+    this.eyeMat.opacity = show >= 0 ? show : ult ? 0.95 : k.stage > 0 ? 0.55 : 0.25;
     if (eyes) eyes.visible = this.eyeMat.opacity > 0;
     if (!extra) return;
     extra.visible = k.stage > 0 && k.phase !== 'leap';
@@ -255,8 +268,10 @@ export class KingView {
   private drawLoose(k: Enemy, dt: number) {
     const v = BONE_KING.v;
     this.loose.visible = true;
-    const growing = k.phase === 'blast' && k.shots === 0;
-    const big = k.phase === 'blast' && k.shots !== 0;
+    // (Update 0.3.54 — in its show: flying in as it builds; part of it till its arm lands and throws them out again.)
+    const building = k.phase === 'intro' && k.move === SHOW_BUILD;
+    const growing = building || (k.phase === 'blast' && k.shots === 0);
+    const big = (k.phase === 'blast' && k.shots !== 0) || (k.phase === 'intro' && k.move > SHOW_BUILD && k.move < SHOW_DOWN);
     if (growing || big) this.gone = true;
     else if (this.gone) {
       this.gone = false;
@@ -266,7 +281,7 @@ export class KingView {
     const raining = this.rain < RAIN;
     if (!growing && !big && !raining && this.settled) return;
     const h = kingTall(k);
-    const p = growing ? Math.min(1, k.t / v.colossusRise) : 0;
+    const p = growing ? Math.min(1, k.t / (building ? v.showBuild : v.colossusRise)) : 0;
     for (let i = 0; i < LOOSE; i++) {
       const b = this.home[i];
       pos.set(b.x, 0.16, b.z);
