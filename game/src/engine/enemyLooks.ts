@@ -45,6 +45,7 @@ import { SHRINE_LOOKS } from './shrine/shrineLooks';
 import { ROAR } from '../sim/enemies/berserker';
 import { HURL, STOMP } from '../sim/enemies/haugbui';
 import { rocWindup } from '../sim/enemies/frostRoc';
+import { SHOW_DOWN as ROC_SHOW_DOWN, SHOW_LAND, SHOW_SCREAM, SHOW_UP } from '../sim/dungeon/rocShow';
 import { BREATH, CLAP, FALL as ROC_FALL, FAULT, HURL as ROC_HURL, ROAR as ROC_ROAR, SLIDE as BELLY, STOMP as ROC_STOMP } from '../sim/enemies/rocMoves';
 import { TIDE_LOOK } from './moon/tideLook';
 
@@ -227,7 +228,7 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
     lands: 15 / 30,
     windup: rocWindup,
     glow: [0.5, 0.85, 1],
-    moveClips: { [`leap:${ROC_STOMP}`]: ['Jump_Idle'], [`recover:${ROC_STOMP}`]: ['Jump_Land', true], [`recover:${CLAP}`]: ['Punch', true], [`windup:${ROC_HURL}`]: ['Duck', true], [`recover:${ROC_HURL}`]: ['Weapon', true], [`windup:${BELLY}`]: ['Duck', true], [`charge:${BELLY}`]: ['Duck', true], [`windup:${BREATH}`]: ['Yes', true], [`breath:${BREATH}`]: ['No'], [`windup:${FAULT}`]: ['Yes', true], [`recover:${FAULT}`]: ['Weapon', true], [`windup:${ROC_ROAR}`]: ['Wave', true], [`leap:${ROC_ROAR}`]: ['Jump_Idle'], [`recover:${ROC_ROAR}`]: ['Jump_Land', true], [`stun:${ROC_FALL}`]: ['Duck', true] },
+    moveClips: { [`leap:${ROC_STOMP}`]: ['Jump_Idle'], [`recover:${ROC_STOMP}`]: ['Jump_Land', true], [`recover:${CLAP}`]: ['Punch', true], [`windup:${ROC_HURL}`]: ['Duck', true], [`recover:${ROC_HURL}`]: ['Weapon', true], [`windup:${BELLY}`]: ['Duck', true], [`charge:${BELLY}`]: ['Duck', true], [`windup:${BREATH}`]: ['Yes', true], [`breath:${BREATH}`]: ['No'], [`windup:${FAULT}`]: ['Yes', true], [`recover:${FAULT}`]: ['Weapon', true], [`windup:${ROC_ROAR}`]: ['Wave', true], [`leap:${ROC_ROAR}`]: ['Jump_Idle'], [`recover:${ROC_ROAR}`]: ['Jump_Land', true], [`stun:${ROC_FALL}`]: ['Duck', true], [`intro:${SHOW_UP}`]: ['Jump_Idle'], [`intro:${ROC_SHOW_DOWN}`]: ['Jump_Idle'], [`intro:${SHOW_LAND}`]: ['Jump_Land', true], [`intro:${SHOW_SCREAM}`]: ['Wave', true] },
   },
   tidebreaker: TIDE_LOOK,
   haugbui: { url: '/models/enemies/draugr.glb', clips: { ...PEOPLE, move: 'Walk', attack: 'Punch', rise: 'StandUp' }, lands: 9 / 24, windup: (move) => (move === STOMP ? FOES_NORSE_B.v.stompWindup : move === HURL ? FOES_NORSE_B.v.hurlWindup : FOES_NORSE_B.v.haugbuiWindup), glow: [0.4, 0.75, 1], posed: true },

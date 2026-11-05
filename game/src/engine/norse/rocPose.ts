@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import type { Enemy } from '../../sim/enemies/enemy';
 import { BREATH, CLAP, FALL, FAULT, HIGH_AT, HURL, LOW_AT, ROAR, STOMP, SWING, swingAngle } from '../../sim/enemies/rocMoves';
 import { rocWindup } from '../../sim/enemies/frostRoc';
+import { SHOW_DOWN, SHOW_SCREAM, SHOW_UP } from '../../sim/dungeon/rocShow';
 import { FROST_ROC } from '../../tuning/frostRoc';
 import { type Limb, reach } from '../boss/kingPose';
 
@@ -114,6 +115,22 @@ export function poseRoc(root: THREE.Object3D, bones: RocBones, e: Enemy) {
       rw = lw = 1;
       break;
     }
+    case 'intro':
+      // (Update 0.3.57 — wings wide over everything, up as it comes down, up and out to scream.)
+      if (e.move === SHOW_UP) {
+        rw = lw = smooth(e.t / 0.3);
+        at(handR, 0.05, 0.62, 0.72);
+        at(handL, 0.05, -0.62, 0.72);
+      } else if (e.move === SHOW_DOWN) {
+        rw = lw = 1;
+        at(handR, 0.02, 0.42, 1);
+        at(handL, 0.02, -0.42, 1);
+      } else if (e.move === SHOW_SCREAM) {
+        rw = lw = smooth(e.t / 0.2);
+        at(handR, 0.12, 0.5, 0.92);
+        at(handL, 0.12, -0.5, 0.92);
+      }
+      break;
     case 'blast':
       // Up on the cliff.
       if (e.move === FALL) {

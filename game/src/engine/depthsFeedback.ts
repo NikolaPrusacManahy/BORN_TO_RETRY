@@ -66,6 +66,18 @@ export function depthsFeedback(f: FeedbackParts, kind: CombatEvent, value: numbe
       f.chunks.spawn(at, UP, 14, 1.1);
       f.rig.shake.add(fb.shakeHeavy * 0.3 * near(14));
       return true;
+    case 'rocGale':
+      f.rig.shake.add(fb.shakeHeavy * 0.3);
+      return true;
+    case 'rocThump':
+      f.chunks.spawn(at, UP, 10 + 8 * value, 1.1);
+      f.rig.shake.add(fb.shakeHeavy * (0.5 + 0.3 * value));
+      return true;
+    case 'rocBurst':
+      f.chunks.spawn(at, UP, 70, 2.4);
+      f.sparks.spawn(at, UP, 70, 2);
+      f.rig.shake.add(fb.shakeHeavy * 1.6);
+      return true;
     case 'rocFallTell':
     case 'rocFallOpen':
       f.rig.shake.add(fb.shakeHeavy * near(60));

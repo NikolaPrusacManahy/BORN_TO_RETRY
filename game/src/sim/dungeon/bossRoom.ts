@@ -49,6 +49,7 @@ import { stepOkamiIntro } from './okamiShow';
 import { stepDragonIntro } from './dragonShow';
 import { stepSwarmIntro } from './swarmShow';
 import { stepKingIntro } from './kingShow';
+import { stepRocIntro } from './rocShow';
 
 export type BossBeat = 'waiting' | 'intro' | 'fight' | 'dying' | 'loot' | 'open';
 
@@ -69,6 +70,8 @@ export interface BossRun {
   /** Update 0.3.50 — its own show, in its own room (the Dragon's; Update 0.3.52, The Swarm's): off, it rises out of the shared
    *  portal (the shared intro's tests). */
   ownShow: boolean;
+  /** Update 0.3.57 — the way the Frost Roc in its ice faces (its eyes are the show's: engine/norse/plateauView.ts). */
+  eyeYaw: number;
 }
 
 /** What the boss leaves you (Update 0.2.0: in its chest). Update 0.2.15 — no key any more (the designer: "the chest on
@@ -82,7 +85,7 @@ const CALL_CLEAR = 8;
 const FIRST_MOVE = 1;
 
 export function createBossRun(kind: EnemyKind = 'dragon'): BossRun {
-  return { kind, stance: false, beat: 'waiting', t: 0, slot: -1, summon: 0, calling: false, skip: false, ownShow: kind === 'dragon' || kind === 'swarm' || kind === 'boneKing' };
+  return { kind, stance: false, beat: 'waiting', t: 0, slot: -1, summon: 0, calling: false, skip: false, eyeYaw: 0, ownShow: kind === 'dragon' || kind === 'swarm' || kind === 'boneKing' || kind === 'frostRoc' };
 }
 
 /** Update 0.0.18 — who a boss calls once it rages, how many and how often (s) (Update 0.0.21: only the Demon called;
@@ -172,6 +175,11 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
       // (Update 0.3.52 — The Swarm's: swarmShow.ts.)
       if (b.kind === 'swarm' && b.ownShow && level) {
         stepSwarmIntro(b, level, player, combat, dt);
+        break;
+      }
+      // (Update 0.3.57 — the Frost Roc's: rocShow.ts.)
+      if (b.kind === 'frostRoc' && b.ownShow && level) {
+        stepRocIntro(b, level, player, combat, dt);
         break;
       }
       // (Update 0.3.54 — the Bone King's: kingShow.ts.)

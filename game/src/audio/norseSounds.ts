@@ -170,6 +170,20 @@ export function playNorse(a: AudioEngine, kind: CombatEvent, value: number, far:
       chop(a, Math.max(0.6, far), 2.8);
       iceShatter(a);
       return true;
+    case 'rocGale':
+      noise(a, { dur: 3, gain: 0.3, filter: 'lowpass', from: 300, to: 1500 });
+      return true;
+    case 'rocThump':
+      // (Deeper and harder each time; on the third, its eyes.)
+      noise(a, { dur: 0.35, gain: 0.3 + 0.12 * value, filter: 'lowpass', from: 140, to: 60 });
+      tone(a, { from: 60, to: 34, dur: 0.4, gain: 0.3 + 0.1 * value, type: 'sine' });
+      if (value > 0) iceShatter(a);
+      return true;
+    case 'rocBurst':
+      iceShatter(a);
+      chop(a, 1, 3);
+      tone(a, { from: 500, to: 1500, dur: 0.7, gain: 0.2, type: 'sawtooth' });
+      return true;
     case 'rocFallTell':
       tone(a, { from: 600, to: 240, dur: 1.4, gain: 0.24, type: 'sawtooth' });
       noise(a, { dur: 1.4, gain: 0.22, filter: 'lowpass', from: 300, to: 1000 });

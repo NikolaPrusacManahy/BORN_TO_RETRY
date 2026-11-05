@@ -69,4 +69,8 @@ export type NorseEvent =
   | 'rocKneeHit'
   | 'rocKneesBroken'
   | 'rocCornice'
+  // (Update 0.3.57 — its show: rocShow.ts.)
+  | 'rocGale'
+  | 'rocThump'
+  | 'rocBurst'
   | 'rocRoar';

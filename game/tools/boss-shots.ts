@@ -39,6 +39,9 @@ import { kingTall, layArm } from '../src/sim/enemies/kingBody';
 import { openUltimate } from '../src/sim/enemies/ultimate';
 import { KingView } from '../src/engine/boss/kingView';
 import { RocFx } from '../src/engine/norse/rocFx';
+import { RocCinema } from '../src/engine/norse/rocCinema';
+import { rocBeats, rocShowY, rocWalls, SHOW_DOWN as ROC_SHOW_DOWN, SHOW_ICE as ROC_SHOW_ICE, SHOW_LAND as ROC_SHOW_LAND, SHOW_SCREAM as ROC_SHOW_SCREAM, SHOW_UP as ROC_SHOW_UP } from '../src/sim/dungeon/rocShow';
+import type { BossRun } from '../src/sim/dungeon/bossRoom';
 import { PlateauView } from '../src/engine/norse/plateauView';
 import { CLAP as ROC_CLAP, FALL as ROC_FALL, FAULT as ROC_FAULT, HURL as ROC_HURL, layCracks, raiseFault, STOMP as ROC_STOMP, stepSlabs, SWING as ROC_SWING } from '../src/sim/enemies/rocMoves';
 import { setCliff } from '../src/world/dungeon/plateau';
@@ -373,6 +376,29 @@ if (kind === 'frostRoc') {
     e.shots = shots;
   };
   const world = combat as unknown as Parameters<typeof layCracks>[2];
+  // (Update 0.3.57 — its show: `--beat=show-high|show-low|show-eyes|show-burst|show-hang|show-land|show-scream`.)
+  const rs = rocBeats();
+  const showAt: Record<string, number> = { 'show-high': rs.thumps[0] - 0.2, 'show-low': rs.thumps[1] + 0.05, 'show-eyes': rs.burstAt - 0.05, 'show-burst': rs.burstAt + 0.25, 'show-hang': (rs.slowFrom + rs.slowTo) / 2, 'show-land': rs.landAt + 0.15, 'show-scream': rs.screamAt + 0.5 };
+  let clipName = 'Idle';
+  let clipAt = 0.3;
+  let shown: BossRun | null = null;
+  if (beat in showAt) {
+    const t = showAt[beat];
+    const stages: [number, number][] = [[0, ROC_SHOW_ICE], [rs.burstAt, ROC_SHOW_UP], [rs.slowTo, ROC_SHOW_DOWN], [rs.landAt, ROC_SHOW_LAND], [rs.screamAt, ROC_SHOW_SCREAM]];
+    let from = 0;
+    e.phase = 'intro';
+    for (const [at, m] of stages) if (t >= at) [from, e.move] = [at, m];
+    e.t = t - from;
+    e.pos.y = rocShowY(t);
+    clipName = e.move === ROC_SHOW_ICE ? 'Idle' : e.move === ROC_SHOW_LAND ? 'Jump_Land' : e.move === ROC_SHOW_SCREAM ? 'Wave' : 'Jump_Idle';
+    clipAt = clipName === 'Idle' ? 0.3 : clipName === 'Wave' ? 0.5 : 0.2;
+    k2.value = rocWalls(t);
+    const rc = new RocCinema(level);
+    rc.start(eye, new THREE.Vector3(-ex, 0, -ez));
+    rc.intro(t, eye, shot);
+    cams.splice(1, 2, { name: 'roc-show', at: shot.pos.toArray(), to: shot.look.toArray() });
+    shown = { kind: 'frostRoc', ownShow: true, beat: 'intro', t, eyeYaw: e.facing } as unknown as BossRun;
+  }
   if (beat === 'stomp') set('windup', ROC_STOMP, 0.8);
   if (beat === 'clap') set('windup', ROC_CLAP, 0.8);
   if (beat === 'hurl') set('windup', ROC_HURL, 0.7);
@@ -404,8 +430,8 @@ if (kind === 'frostRoc') {
   }
   const box0 = new THREE.Box3().setFromObject(root, true);
   const mixer = new THREE.AnimationMixer(root);
-  mixer.clipAction(gltf.animations.find((a: THREE.AnimationClip) => a.name === 'Idle')!).play();
-  mixer.update(0.3);
+  mixer.clipAction(gltf.animations.find((a: THREE.AnimationClip) => a.name === clipName)!).play();
+  mixer.update(clipAt);
   const h = FROST_ROC.v.rocHeight;
   const sc0 = h / (box0.max.y - box0.min.y);
   root.scale.setScalar(sc0);
@@ -419,11 +445,16 @@ if (kind === 'frostRoc') {
   fx.update(combat, 0.016, () => root);
   scene.updateMatrixWorld(true);
   bake(scene);
-  bake(new PlateauView(level).group);
+  const plateau = new PlateauView(level);
+  if (shown) plateau.update(shown, eye);
+  if (process.argv.includes('--noice')) plateau.group.traverse((o) => {
+    if (o.name === 'glacier') o.visible = false;
+  });
+  bake(plateau.group);
   const fx0 = -Math.sin(e.facing);
   const fz0 = -Math.cos(e.facing);
   const look = (name: string, f: number, r: number, u: number, to = 0.5) => ({ name, at: [e.pos.x + fx0 * f * h - fz0 * r * h, u * h, e.pos.z + fz0 * f * h + fx0 * r * h], to: [e.pos.x, to * h, e.pos.z] });
-  cams.splice(1, 2, look('roc-front', 2.1, 0.45, 0.55), look('roc-side', 0.5, 2.2, 0.6), look('roc-high', 3.6, 2.2, 2.3, 0.1), { name: 'roc-pit', at: [mid.x - R.cliffX * 26, 6, mid.z - R.cliffZ * 26], to: [mid.x + R.cliffX * 30, 13, mid.z + R.cliffZ * 30] });
+  if (!(beat in showAt)) cams.splice(1, 2, look('roc-front', 2.1, 0.45, 0.55), look('roc-side', 0.5, 2.2, 0.6), look('roc-high', 3.6, 2.2, 2.3, 0.1), { name: 'roc-pit', at: [mid.x - R.cliffX * 26, 6, mid.z - R.cliffZ * 26], to: [mid.x + R.cliffX * 30, 13, mid.z + R.cliffZ * 30] });
   demon.height = 0;
 }
 if (kind === 'dragon') {

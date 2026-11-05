@@ -62,5 +62,11 @@ export const FROST_ROC = group('frostRoc', 'Frost Roc', {
   rainRadius: knob(3, 1, 8, 0.25, 'Boulder burst', 'Each smashes this far round where it lands.'),
   rainDamage: knob(26, 1, 80, 1, 'Boulder hit', 'To you, under one.'),
   rainShove: knob(10, 0, 30, 0.5, 'Boulder shove', 'How hard one throws you.'),
+  showThumps: knob(2.4, 0.6, 6, 0.1, 'Show: its thumps', 'Its three thumps in the ice, all told.'),
+  showRise: knob(0.8, 0.2, 3, 0.05, 'Show: bursting out', 'Up out of the ice to the top of its leap.'),
+  showSlow: knob(0.32, 0.05, 1, 0.01, 'Show: slow motion', 'The run’s speed as it hangs (as you see it, longer).'),
+  showFall: knob(0.45, 0.15, 2, 0.05, 'Show: coming down', 'Down to its stomp.'),
+  showScream: knob(1, 0.3, 3, 0.1, 'Show: its scream', 'It screams, wings up.'),
+  showBack: knob(1.2, 0.5, 3, 0.1, 'Show: back to you', 'The view coming back to you.'),
   rocCoins: knob(15, 0, 200, 1, 'Frost Roc coins', 'Coins in its chest.'),
 });
