@@ -8,7 +8,7 @@
 import { group, knob } from './schema';
 
 export const SWARM = group('swarm', 'The Swarm (boss)', {
-  swarmHp: knob(1600, 100, 8000, 50, 'Swarm health', 'Its bar: every worm killed takes its share of Worm share, the eye the rest.'),
+  swarmHp: knob(1120, 100, 8000, 50, 'Swarm health', 'Its bar: every worm killed takes its share of Worm share, the eye the rest.'),
   wormShare: knob(0.6, 0, 1, 0.05, 'Worm share', 'How much of its bar all its worms are worth (the eye takes the rest).'),
   worms: knob(220, 20, 400, 10, 'Worms', 'How many worms it starts with (more: a thicker heap, and slower).'),
   wormHp: knob(5, 1, 60, 1, 'Worm health', 'Damage to kill one worm (a jab is 7: one kills one).'),

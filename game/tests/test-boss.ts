@@ -12,7 +12,7 @@ import { EventQueue } from '../src/core/eventQueue';
 import type { CombatEvent } from '../src/sim/combat/state';
 import { ChargeSpec, startCharge, stepCharge } from '../src/sim/enemies/charge';
 import { createEnemies, Enemy, EnemyWorld, hitEnemy, isLive, setPhase, spawnEnemy } from '../src/sim/enemies/enemy';
-import { doomTime, ENEMY_STATS } from '../src/sim/enemies/kinds';
+import { doomTime, ENEMY_KINDS, ENEMY_STATS, type EnemyKind } from '../src/sim/enemies/kinds';
 import { updateEnemies } from '../src/sim/enemies/update';
 import { createPlayer, PlayerState } from '../src/sim/player/state';
 import { BOSS } from '../src/tuning/boss';
@@ -128,4 +128,11 @@ section('Bosses — the death show');
   run(f, 0.2);
   check('its slot frees after', !f.d.alive);
   check('the show takes as long as its knobs say', near(doomTime(), v.doomRise + v.doomHang + v.doomDrop, 1e-9));
+}
+
+section('Every boss’s health, cut by 30% (Update 0.3.48, the designer)');
+{
+  const was: Partial<Record<EnemyKind, number>> = { dragon: 1600, swarm: 1600, boneKing: 1000, frostRoc: 1700, drownedKing: 2000, dino: 1800, bigShark: 1800, okami: 1850, tidebreaker: 1900, whale: 2600 };
+  for (const kind of Object.keys(was) as EnemyKind[]) check(`${kind}: ${was[kind]} → ${ENEMY_STATS[kind]().hp}`, near(ENEMY_STATS[kind]().hp, was[kind]! * 0.7, 1e-6) && ENEMY_STATS[kind]().boss);
+  check('every boss is on that list', ENEMY_KINDS.filter((k) => ENEMY_STATS[k]().boss).every((k) => was[k] !== undefined));
 }

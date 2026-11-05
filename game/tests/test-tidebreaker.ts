@@ -50,7 +50,7 @@ section('Tidebreaker — the Moon’s boss');
 {
   check('the Moon’s boss is its own: Tidebreaker', bossOf(FLOOR.moon) === 'tidebreaker' && ownBossOf(FLOOR.moon) === 'tidebreaker' && BOSS_NAMES.tidebreaker === 'TIDEBREAKER' && causeName('tidebreaker') === 'Tidebreaker');
   const s = ENEMY_STATS.tidebreaker();
-  check(`a boss in the bosses’ range (${s.hp}: the Drowned King 2000), huge, its coins in its chest`, s.boss && s.hp >= 1000 && s.hp <= 2000 && s.height >= 5 && s.size === 'large' && bossCoins('tidebreaker') === v.tideCoins);
+  check(`a boss in the bosses’ range (${s.hp}: the Drowned King 1400), huge, its coins in its chest`, s.boss && s.hp >= 700 && s.hp <= 1400 && s.height >= 5 && s.size === 'large' && bossCoins('tidebreaker') === v.tideCoins);
   const look = LOOKS.tidebreaker!;
   const glb = readFileSync(`public${look.url}`);
   const json = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString()) as { animations?: { name: string }[]; images?: { mimeType: string }[] };

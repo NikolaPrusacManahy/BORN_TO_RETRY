@@ -6,7 +6,7 @@
 import { group, knob } from './schema';
 
 export const BONE_KING = group('boneKing', 'Bone King', {
-  kingHp: knob(1000, 100, 6000, 50, 'Bone King health', 'Damage to bring it down, each life (it has two: the second starts as it rebuilds).'),
+  kingHp: knob(700, 100, 6000, 50, 'Bone King health', 'Damage to bring it down, each life (it has two: the second starts as it rebuilds).'),
   kingHeight: knob(6, 3, 10, 0.1, 'Bone King size', 'Its model is scaled to this (m); its hit capsule follows.'),
   kingSpeed: knob(4.5, 1, 12, 0.25, 'Bone King speed', 'How fast it walks at you (m/s).'),
   kingTurn: knob(2.5, 0.5, 8, 0.1, 'Bone King turn', 'How fast it turns to you (rad/s).'),

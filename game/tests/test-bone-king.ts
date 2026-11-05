@@ -84,7 +84,7 @@ section('Bone King — floor 3’s boss, a massive Skeleton');
   check('floor 3’s boss is the Bone King; floor 1’s the Dragon (Update 0.3.41), floor 2’s The Swarm (Update 0.3.42)', bossOf(3) === 'boneKing' && bossOf(1) === 'dragon' && bossOf(2) === 'swarm');
   const s = ENEMY_STATS.boneKing();
   check(`massive (${s.height} m: a Skeleton is ${FOES3.v.skeletonHeight}), a boss that never flinches`, s.height >= 3 * FOES3.v.skeletonHeight && s.boss && s.stagger === Infinity);
-  check(`its bar is lighter than the Dragon’s per life (${v.kingHp}), named, its chest 15 coins`, v.kingHp < 1600 && BOSS_NAMES.boneKing === 'THE BONE KING' && bossCoins('boneKing') === 15);
+  check(`its bar is lighter than the Dragon’s per life (${v.kingHp}), named, its chest 15 coins`, v.kingHp < ENEMY_STATS.dragon().hp && BOSS_NAMES.boneKing === 'THE BONE KING' && bossCoins('boneKing') === 15);
   // In its boss room: it rises out of the portal and roars as it takes its stance.
   const level = buildDungeon(planFloor(31, 3));
   const dr = createDungeonRun(level);

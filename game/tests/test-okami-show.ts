@@ -48,7 +48,7 @@ section('Yokai : Okami — its place');
 {
   check('floor 8’s boss, its own; its name', bossOf(F) === 'okami' && ownBossOf(F) === 'okami' && BOSS_NAMES.okami === 'YOKAI : OKAMI' && causeName('okami') === 'Yokai : Okami');
   const hp = ENEMY_STATS.okami().hp;
-  check(`never tankier: in the bosses’ range (${hp}; the Drowned King 2000 at most)`, hp <= 2000 && ENEMY_STATS.okami().boss);
+  check(`never tankier: in the bosses’ range (${hp}; the Drowned King 1400 at most)`, hp <= 1400 && ENEMY_STATS.okami().boss);
   const glb = readFileSync(`public${LOOKS.okami!.url}`);
   const json = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString()) as { animations?: { name: string }[]; nodes: { name?: string }[] };
   const clips = new Set((json.animations ?? []).map((a) => a.name));

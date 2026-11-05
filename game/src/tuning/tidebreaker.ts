@@ -9,7 +9,7 @@
 import { group, knob } from './schema';
 
 export const TIDEBREAKER = group('tidebreaker', 'Tidebreaker', {
-  tideHp: knob(1900, 100, 8000, 50, 'Tidebreaker health', 'Damage to kill it.'),
+  tideHp: knob(1330, 100, 8000, 50, 'Tidebreaker health', 'Damage to kill it.'),
   tideHeight: knob(5.4, 2, 12, 0.1, 'Tidebreaker height', 'How tall it stands.'),
   tideSpeed: knob(3.8, 0.5, 10, 0.1, 'Tidebreaker speed', 'How fast it stomps at you.'),
   tideTurn: knob(2.2, 0.5, 8, 0.1, 'Tidebreaker turn', 'How fast it turns to you (rad/s).'),

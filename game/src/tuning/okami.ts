@@ -7,7 +7,7 @@
 import { group, knob } from './schema';
 
 export const OKAMI = group('okami', 'Okami', {
-  okamiHp: knob(1850, 100, 8000, 50, 'Okami health', 'Damage to kill it.'),
+  okamiHp: knob(1295, 100, 8000, 50, 'Okami health', 'Damage to kill it.'),
   okamiHeight: knob(5.2, 2, 12, 0.1, 'Okami height', 'How tall it stands.'),
   okamiSpeed: knob(4.6, 0.5, 12, 0.1, 'Okami speed', 'How fast it stalks you.'),
   okamiTurn: knob(3, 0.5, 8, 0.1, 'Okami turn', 'How fast it turns to you (rad/s).'),

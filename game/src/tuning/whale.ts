@@ -3,7 +3,7 @@
 import { group, knob } from './schema';
 
 export const WHALE = group('whale', 'Old Whale', {
-  whaleHp: knob(2600, 200, 10000, 50, 'Whale health', 'Damage to kill it.'),
+  whaleHp: knob(1820, 200, 10000, 50, 'Whale health', 'Damage to kill it.'),
   whaleHeight: knob(4.5, 2, 8, 0.1, 'Whale size', 'Its body is this tall (m; about three times as long).'),
   whaleSpeed: knob(9, 2, 25, 0.5, 'Whale speed', 'How fast it swims its laps (m/s).'),
   lapRing: knob(17, 6, 26, 0.5, 'Lap', 'It swims round its room this far from the middle (m).'),

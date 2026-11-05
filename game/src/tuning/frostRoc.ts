@@ -7,7 +7,7 @@
 import { group, knob } from './schema';
 
 export const FROST_ROC = group('frostRoc', 'Frost Roc', {
-  rocHp: knob(1700, 100, 8000, 50, 'Frost Roc health', 'Damage to kill it.'),
+  rocHp: knob(1190, 100, 8000, 50, 'Frost Roc health', 'Damage to kill it.'),
   rocHeight: knob(6, 2, 12, 0.25, 'Frost Roc height', 'How tall it stands.'),
   rocSpeed: knob(4.8, 0.5, 10, 0.1, 'Frost Roc speed', 'How fast it waddles at you.'),
   rocTurn: knob(2.4, 0.5, 8, 0.1, 'Frost Roc turn', 'How fast it turns to you (rad/s).'),

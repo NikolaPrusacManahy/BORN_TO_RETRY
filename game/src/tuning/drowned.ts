@@ -6,7 +6,7 @@
 import { group, knob } from './schema';
 
 export const DROWNED = group('drowned', 'Drowned King', {
-  kingHp: knob(2000, 100, 10000, 50, 'Drowned King health', 'Damage to kill it.'),
+  kingHp: knob(1400, 100, 10000, 50, 'Drowned King health', 'Damage to kill it.'),
   kingHeight: knob(6, 2, 12, 0.1, 'Drowned King size', 'Its model is scaled to this (m).'),
   kingTurn: knob(2.5, 0.5, 8, 0.1, 'Drowned King turn', 'How fast it turns (rad/s).'),
   kingNear: knob(7, 2, 20, 0.5, 'Drowned King close', 'Closer than this, it picks its close moves (m).'),

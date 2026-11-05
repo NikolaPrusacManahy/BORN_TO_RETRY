@@ -8,7 +8,7 @@
 import { group, knob } from './schema';
 
 export const DINO = group('dino', 'Velociraptor', {
-  dinoHp: knob(1800, 100, 8000, 50, 'Velociraptor health', 'Damage to kill it.'),
+  dinoHp: knob(1260, 100, 8000, 50, 'Velociraptor health', 'Damage to kill it.'),
   dinoHeight: knob(5, 3, 12, 0.1, 'Velociraptor size', 'Its model is scaled to this (m); its hit capsule follows.'),
   dinoSpeed: knob(6, 1, 15, 0.25, 'Velociraptor speed', 'How fast it walks at you (m/s).'),
   dinoTurn: knob(2.8, 0.5, 8, 0.1, 'Velociraptor turn', 'How fast it turns to you (rad/s).'),

@@ -8,7 +8,7 @@
 import { group, knob } from './schema';
 
 export const DRAGON = group('dragon', 'Dragon (boss)', {
-  dragonHp: knob(1600, 100, 8000, 50, 'Dragon health', 'Damage to kill it.'),
+  dragonHp: knob(1120, 100, 8000, 50, 'Dragon health', 'Damage to kill it.'),
   dragonHeight: knob(7, 3, 12, 0.1, 'Dragon size', 'Its model is scaled to this (m); its hit capsule follows.'),
   hover: knob(1, 0, 4, 0.1, 'Dragon hover', 'How high above the floor it flies (m).'),
   dragonSpeed: knob(5, 1, 14, 0.25, 'Dragon speed', 'How fast it flies at you (m/s).'),

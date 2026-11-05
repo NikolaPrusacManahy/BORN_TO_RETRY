@@ -5,7 +5,7 @@
 import { group, knob } from './schema';
 
 export const BIG_SHARK = group('bigShark', 'Big Shark', {
-  bigHp: knob(1800, 200, 10000, 50, 'Big Shark health', 'Damage to kill it (the Velociraptor’s; the Drowned King’s 2000).'),
+  bigHp: knob(1260, 200, 10000, 50, 'Big Shark health', 'Damage to kill it (the Velociraptor’s; the Drowned King’s 1400).'),
   bigHeight: knob(3.2, 1.5, 6, 0.1, 'Big Shark size', 'Its body this tall (about 2.8 times as long).'),
   bigSpeed: knob(13, 2, 25, 0.5, 'Big Shark speed', 'How fast it swims round you (the designer: "it needs to be faster").'),
   bigRing: knob(9, 4, 16, 0.5, 'Big Shark circle', 'It circles you this far off.'),

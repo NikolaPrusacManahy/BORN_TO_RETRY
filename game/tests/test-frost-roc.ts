@@ -33,7 +33,7 @@ section('Frost Roc — floor 4’s boss');
 {
   check('Frozen Depths’ boss is its own: the Frost Roc', bossOf(FLOOR.frozen) === 'frostRoc' && ownBossOf(FLOOR.frozen) === 'frostRoc' && BOSS_NAMES.frostRoc === 'THE FROST ROC' && causeName('frostRoc') === 'The Frost Roc');
   const s = ENEMY_STATS.frostRoc();
-  check(`a boss in the bosses’ range (${s.hp}: the Velociraptor 1800, the Drowned King 2000), huge, its coins in its chest`, s.boss && s.hp >= 1000 && s.hp <= 2000 && s.height >= 5 && s.size === 'large' && bossCoins('frostRoc') === v.rocCoins);
+  check(`a boss in the bosses’ range (${s.hp}: the Velociraptor 1260, the Drowned King 1400), huge, its coins in its chest`, s.boss && s.hp >= 700 && s.hp <= 1400 && s.height >= 5 && s.size === 'large' && bossCoins('frostRoc') === v.rocCoins);
   check('raging, it calls the dead up', calledBy('frostRoc') === 'draugr');
   const look = LOOKS.frostRoc!;
   const glb = readFileSync(`public${look.url}`);

@@ -2,9 +2,13 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-04, after Update 0.3.47)
-- **Version 0.3.47** (runs end at floor 9, for the public playtest build), built and copied to main, **not committed**
-  until the designer says "commit". 0.3.46 is committed (`cb01934`); the designer pushes through GitHub Desktop.
+## Where things stand (2026-11-05, after Update 0.3.48)
+- **Version 0.3.48** (every boss's health cut by 30%), built and copied to main, **not committed** until the designer says
+  "commit". 0.3.47 is committed (`ae3973d`); the designer pushes through GitHub Desktop.
+- **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
+  2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
+  an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
+  ("Keep them, adapt"). In floor order, the Dragon first.
 - **A playtest with players is planned** (performance and feedback): the frame-rate counter (0.3.45, F2) and the Feedback
   box (0.3.46, pause menu) are for it.
 - **The floors** (`world/dungeon/floorOrder.ts`): 1 the Dungeon, 2 the Venom Garden, 3 the Bone Keep, 4 Frozen Depths,
@@ -58,7 +62,11 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-04, Update 0.3.47: runs end at floor 9)
+## Last update (2026-11-05, Update 0.3.48: every boss's health cut by 30%)
+- **The designer**: "also nerf all bosses HP by 30%". Spec `MD_UPDATES/U0348_BOSS_HEALTH.md`; the knobs' defaults, exactly
+  70% of what they were; mini bosses unchanged. Test: `test-boss.ts`.
+
+## Before (2026-11-04, Update 0.3.47: runs end at floor 9)
 - **The designer**, before the public build: "no access to floor 10, access of floor 1 to 9". Spec
   `MD_UPDATES/U0347_FLOORS_1_TO_9.md`. `LAST_FLOOR` is the Moon's (floor 9); tests `test-alpha.ts`,
   `test-floor3-executions.ts`.
