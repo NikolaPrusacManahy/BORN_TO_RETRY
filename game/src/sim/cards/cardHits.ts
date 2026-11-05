@@ -89,7 +89,7 @@ export function clearPowers(p: Powers) {
   p.dashing = false;
 }
 
-const hit: TargetHit = { kind: 'enemy', index: -1, s: 0, point: new Vector3() };
+const hit: TargetHit = { kind: 'enemy', index: -1, s: 0, point: new Vector3(), part: 0 };
 export const mid = (e: Enemy, out: Vector3) => out.set(e.pos.x, e.pos.y + ENEMY_STATS[e.kind]().height * 0.5, e.pos.z);
 
 /** Update 0.2.22 — the cards' hits, times this (the Kills build's bonus). */

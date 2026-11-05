@@ -38,6 +38,11 @@ import { CAGE, COLOSSUS, GRASP, RIBS, SHATTER, SLAM } from '../src/sim/enemies/b
 import { kingTall, layArm } from '../src/sim/enemies/kingBody';
 import { openUltimate } from '../src/sim/enemies/ultimate';
 import { KingView } from '../src/engine/boss/kingView';
+import { RocFx } from '../src/engine/norse/rocFx';
+import { PlateauView } from '../src/engine/norse/plateauView';
+import { CLAP as ROC_CLAP, FALL as ROC_FALL, FAULT as ROC_FAULT, HURL as ROC_HURL, layCracks, raiseFault, STOMP as ROC_STOMP, stepSlabs, SWING as ROC_SWING } from '../src/sim/enemies/rocMoves';
+import { setCliff } from '../src/world/dungeon/plateau';
+import { FROST_ROC } from '../src/tuning/frostRoc';
 import { KingCinema } from '../src/engine/boss/kingCinema';
 import { kingBeats, kingWalls, SHOW_ARM, SHOW_BUILD, SHOW_DOWN, SHOW_EYES, SHOW_LIFT, SHOW_ROAR, SHOW_STAND, SHOW_STOOP, SHOW_WAIT } from '../src/sim/dungeon/kingShow';
 import { BONE_KING } from '../src/tuning/boneKing';
@@ -344,6 +349,81 @@ if (kind === 'boneKing') {
   const look = (name: string, f: number, r: number, u: number, to = 0.42) => ({ name, at: [mid.x + fx * f * h - fz * r * h, u * h, mid.z + fz * f * h + fx * r * h], to: [mid.x, to * h, mid.z] });
   if (!(beat in showAt)) cams.splice(1, 2, look('king-front', 1.25, 0.25, 0.45), look('king-side', 0.45, 1.3, 0.5), look('king-behind', -0.9, 0.5, 0.9), look('king-high', 2, 1.2, 1.4, 0.1));
   // (Not the portal's demon.)
+  demon.height = 0;
+}
+if (kind === 'frostRoc') {
+  // (Update 0.3.56 — it posed for a move, by the game's own pose and view code, baked: `--beat=stand|stomp|clap|hurl|low|high|fault|slabs|fall`.)
+  const beat = process.argv.find((a) => a.startsWith('--beat='))?.slice(7) ?? 'stand';
+  const gltf = await parseUntextured(new URL('../public/models/enemies/frost_roc.glb', import.meta.url));
+  const root = gltf.scene as THREE.Object3D;
+  const combat = createCombat(level.arena, false);
+  const mid = new THREE.Vector3(b.portal.x, 0, b.portal.z);
+  const slot = spawnEnemy(combat.enemies, 'frostRoc', mid, Math.atan2(-(eye.x - mid.x), -(eye.z - mid.z)));
+  const e = combat.enemies[slot];
+  const R = e.roc!;
+  R.midSet = true;
+  R.midX = mid.x;
+  R.midZ = mid.z;
+  setCliff(R, level.plan);
+  const pl = createPlayer(eye.x, 0, eye.z, 0);
+  const set = (phase: Enemy['phase'], move: number, t: number, shots = 0) => {
+    e.phase = phase;
+    e.move = move;
+    e.t = t;
+    e.shots = shots;
+  };
+  const world = combat as unknown as Parameters<typeof layCracks>[2];
+  if (beat === 'stomp') set('windup', ROC_STOMP, 0.8);
+  if (beat === 'clap') set('windup', ROC_CLAP, 0.8);
+  if (beat === 'hurl') set('windup', ROC_HURL, 0.7);
+  if (beat === 'low' || beat === 'high') {
+    e.stage = 1;
+    set('dive', ROC_SWING, 0.1);
+    R.swingLow = beat === 'low';
+  }
+  if (beat === 'fault') {
+    e.stage = 1;
+    set('windup', ROC_FAULT, 0.6);
+    layCracks(e, pl, world);
+  }
+  if (beat === 'slabs') {
+    e.stage = 1;
+    layCracks(e, pl, world);
+    raiseFault(e, slot, world);
+    set('recover', ROC_FAULT, 0.5);
+    stepSlabs(e, slot, pl, world, 0.8);
+    R.time += 0.5;
+  }
+  if (beat === 'fall') {
+    e.stage = 1;
+    set('blast', ROC_FALL, 2, 1);
+    R.knees = [3, 2];
+    R.cornice = 'cracking';
+    openUltimate(e.ult, 'x', 6, 6);
+    e.pos.set(R.midX + R.cliffX * 12, 0, R.midZ + R.cliffZ * 12);
+  }
+  const box0 = new THREE.Box3().setFromObject(root, true);
+  const mixer = new THREE.AnimationMixer(root);
+  mixer.clipAction(gltf.animations.find((a: THREE.AnimationClip) => a.name === 'Idle')!).play();
+  mixer.update(0.3);
+  const h = FROST_ROC.v.rocHeight;
+  const sc0 = h / (box0.max.y - box0.min.y);
+  root.scale.setScalar(sc0);
+  root.position.copy(e.pos);
+  root.position.y -= box0.min.y * sc0;
+  root.rotation.set(0, e.facing + Math.PI, 0);
+  root.updateMatrixWorld(true);
+  const scene = new THREE.Scene();
+  scene.add(root);
+  const fx = new RocFx(scene);
+  fx.update(combat, 0.016, () => root);
+  scene.updateMatrixWorld(true);
+  bake(scene);
+  bake(new PlateauView(level).group);
+  const fx0 = -Math.sin(e.facing);
+  const fz0 = -Math.cos(e.facing);
+  const look = (name: string, f: number, r: number, u: number, to = 0.5) => ({ name, at: [e.pos.x + fx0 * f * h - fz0 * r * h, u * h, e.pos.z + fz0 * f * h + fx0 * r * h], to: [e.pos.x, to * h, e.pos.z] });
+  cams.splice(1, 2, look('roc-front', 2.1, 0.45, 0.55), look('roc-side', 0.5, 2.2, 0.6), look('roc-high', 3.6, 2.2, 2.3, 0.1), { name: 'roc-pit', at: [mid.x - R.cliffX * 26, 6, mid.z - R.cliffZ * 26], to: [mid.x + R.cliffX * 30, 13, mid.z + R.cliffZ * 30] });
   demon.height = 0;
 }
 if (kind === 'dragon') {

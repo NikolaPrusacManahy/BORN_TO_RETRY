@@ -16,6 +16,7 @@ import { ENEMY_STATS } from '../enemies/kinds';
 import { chill } from '../cards/cardMoves';
 import { tearStruck } from '../enemies/swarmMoves';
 import { ribStruck } from '../enemies/boneKingMoves';
+import { shardStruck } from '../enemies/rocMoves';
 import { heavyPowers } from '../cards/cardPowers';
 import { segmentDistance } from './geometry';
 import type { CombatState } from './state';
@@ -95,6 +96,8 @@ export function stepParried(state: CombatState, world: CollisionWorld, dt: numbe
       if (eye?.swarm) eye.swarm.pierce = true;
       const killed = landHit(state, hit, o.damage, KNOCK, o.vel.x / flat, o.vel.z / flat, 'hitThrown', o.damage);
       if (eye && !killed) tearStruck(eye, hit.index, state);
+      // (Update 0.3.56 — a shard sent back into the Frost Roc: it staggers.)
+      if (o.look === 'shard' && hit.kind === 'enemy' && !killed && state.enemies[hit.index].kind === 'frostRoc') shardStruck(state.enemies[hit.index], hit.index, state);
       // (Update 0.3.53 — a rib sent back into the Bone King: it staggers.)
       if (o.look === 'rib' && hit.kind === 'enemy' && !killed && state.enemies[hit.index].kind === 'boneKing') ribStruck(state.enemies[hit.index], hit.index, state);
       // (Update 0.3.5 — Cold Snap's freeze, Thunderclap's lightning, Powder Keg's blast.)

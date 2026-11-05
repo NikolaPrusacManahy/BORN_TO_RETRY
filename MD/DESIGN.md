@@ -365,6 +365,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   in speed, 70% speed increase on the blue enemies"; spec `MD_UPDATES/U0327_ROOMS_CHESTS_FROZEN.md`):** none of them
   slides on ice now (the Raider stops past you as on stone, the Berserker doesn't skid, a knocked body doesn't slide);
   every speed ×1.5, the Draugr's, the Barrow Maid's and Haugbui's ×1.7.
+- **The Frost Roc by the Boss Design Bible** (Update 0.3.56, the designer: "Keep them, adapt", "Next boss, floor 4 * Arena / moves / intro"; spec `MD_UPDATES/U0356_FROST_ROC_BIBLE.md`): "Ground or air?", its moves punish whichever you overuse. Stomp Quake, Wing Clap, Ice Hurl, its belly slide and breath; phase 2 at half health, a pillar torn out: Pillar Swing (low: jump; high: stay down) and Fault Line (slabs of real ground). Its ultimate, Mountain Fall: break both knees in 6 s, or boulders rain over the whole plateau. Its room's the Frozen Plateau (`world/dungeon/plateau.ts`). It replaces the moves below.
 - **Its boss, the Frost Roc** (Update 0.3.26, the designer: "Birb, the Frost Roc"; spec `MD_UPDATES/U0326_FROST_ROC.md`):
   Ultimate Monsters' Birb, huge. Its swipe close; its gust that blows you back across the ice; its belly slide (past you,
   far on ice; into a wall it's stunned); its leap that lands where you stood (a ring warns), hurting you there and

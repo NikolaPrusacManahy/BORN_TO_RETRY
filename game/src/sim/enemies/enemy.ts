@@ -22,6 +22,7 @@ import { createSwarmBody, type SwarmBody } from './swarmBody';
 import { swarmEyeHeight, swarmTakes } from './swarmHits';
 import { createUltimate, resetUltimate, type Ultimate, ultimateTakes } from './ultimate';
 import { createKingBody, type KingBody, skullY } from './kingBody';
+import { createRocBody, type RocBody } from './rocBody';
 import { BONE_KING } from '../../tuning/boneKing';
 import { onPupil } from './swarmMoves';
 import type { Wormling } from './wormlings';
@@ -109,6 +110,8 @@ export interface Enemy {
   ult: Ultimate;
   /** Update 0.3.53 — the Bone King's body as a place (kingBody.ts; null: anything else). */
   king: KingBody | null;
+  /** Update 0.3.56 — the Frost Roc's (rocBody.ts; null: anything else). */
+  roc: RocBody | null;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -187,6 +190,7 @@ export function createEnemies(): Enemy[] {
     swarm: null,
     ult: createUltimate(),
     king: null,
+    roc: null,
   }));
 }
 
@@ -229,6 +233,7 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   // (Update 0.3.42 — The Swarm's worms seeded round it on its first tick.)
   if (kind === 'swarm') (e.swarm ??= createSwarmBody()).seeded = false;
   e.king = kind === 'boneKing' ? createKingBody() : null;
+  e.roc = kind === 'frostRoc' ? createRocBody() : null;
   return i;
 }
 

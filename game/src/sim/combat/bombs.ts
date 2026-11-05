@@ -45,7 +45,7 @@ export interface Bomb {
   /** (Update 0.3.35 — 'kitsune': Yokai : Okami's blue fireball, thrown low and fast; 'sun': its massive fireball, hurled
    *  high and down onto the whole arena.) */
   /** (Update 0.3.49 — 'ember': the Dragon's Ember Rain: a fireball that leaves a burning pool.) */
-  look: 'fire' | 'poison' | 'bubble' | 'geyser' | 'powder' | 'mine' | 'rime' | 'iceBlock' | 'boulder' | 'pillar' | 'kitsune' | 'sun' | 'ember';
+  look: 'fire' | 'poison' | 'bubble' | 'geyser' | 'powder' | 'mine' | 'rime' | 'iceBlock' | 'boulder' | 'pillar' | 'kitsune' | 'sun' | 'ember' | 'berg';
   /** Update 0.3.15 — landed, it burns this long before it goes (s). */
   fuse: number;
 }
@@ -97,7 +97,7 @@ export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQue
     b.t += dt;
     const k = Math.min(1, b.t / b.fall);
     b.pos.lerpVectors(b.from, b.to, k);
-    b.pos.y += b.look === 'mine' ? 0 : Math.sin(Math.PI * k) * (b.look === 'boulder' || b.look === 'pillar' ? HIGH_ARC : b.look === 'kitsune' ? KITSUNE_ARC : b.look === 'sun' ? SUN_ARC : ARC);
+    b.pos.y += b.look === 'mine' ? 0 : Math.sin(Math.PI * k) * (b.look === 'boulder' || b.look === 'pillar' || b.look === 'berg' ? HIGH_ARC : b.look === 'kitsune' ? KITSUNE_ARC : b.look === 'sun' ? SUN_ARC : ARC);
     // (A mine you come near pops a moment later.)
     if (b.look === 'mine' && k >= 1 && Math.hypot(player.pos.x - b.to.x, player.pos.z - b.to.z) < FOES_MOON.v.mineNear) b.fuse = Math.min(b.fuse, b.t - b.fall + MINE_SNAP);
     if (k < 1 || b.t < b.fall + b.fuse) continue;
@@ -107,9 +107,9 @@ export function updateBombs(bombs: Bomb[], player: PlayerState, events: EventQue
       continue;
     }
     if (b.look === 'ember') addFirePool(puddles, b.to.x, b.to.y, b.to.z);
-    const frosty = b.look === 'rime' || b.look === 'iceBlock';
+    const frosty = b.look === 'rime' || b.look === 'iceBlock' || b.look === 'berg';
     if (frosty && frost) addRime(frost, b.to.x, b.to.z, FOES_NORSE.v.rimeSize * (b.look === 'rime' ? 1 : BLOCK_RIME), FOES_NORSE.v.rimeLast);
-    events.push(b.look === 'bubble' ? 'bubblePop' : b.look === 'geyser' ? 'geyserBurst' : b.look === 'powder' ? 'powderBlast' : b.look === 'mine' ? 'mineBlast' : b.look === 'rime' ? 'rimeBurst' : b.look === 'iceBlock' ? 'iceBlockShatter' : b.look === 'boulder' ? 'boulderSmash' : b.look === 'pillar' ? 'pillarCrash' : b.look === 'kitsune' ? 'kitsuneBlast' : b.look === 'sun' ? 'sunBlast' : 'bombBlast', b.radius, b.to.x, b.to.y, b.to.z);
+    events.push(b.look === 'bubble' ? 'bubblePop' : b.look === 'geyser' ? 'geyserBurst' : b.look === 'powder' ? 'powderBlast' : b.look === 'mine' ? 'mineBlast' : b.look === 'rime' ? 'rimeBurst' : b.look === 'iceBlock' || b.look === 'berg' ? 'iceBlockShatter' : b.look === 'boulder' ? 'boulderSmash' : b.look === 'pillar' ? 'pillarCrash' : b.look === 'kitsune' ? 'kitsuneBlast' : b.look === 'sun' ? 'sunBlast' : 'bombBlast', b.radius, b.to.x, b.to.y, b.to.z);
     const dx = player.pos.x - b.to.x;
     const dz = player.pos.z - b.to.z;
     const d = Math.hypot(dx, dz);

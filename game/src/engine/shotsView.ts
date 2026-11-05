@@ -170,6 +170,10 @@ export class ShotsView {
           g.quaternion.setFromAxisAngle(UP, spin * 3);
           g.scale.setScalar(1);
           break;
+        // (Update 0.3.56 — the Frost Roc's shard, tumbling.)
+        case 'shard':
+          g.quaternion.setFromAxisAngle(UP, spin * 1.4);
+          break;
         // (Update 0.3.53 — the Bone King's rib, flat, whirling.)
         case 'rib':
           g.quaternion.setFromAxisAngle(UP, spin * 1.2);

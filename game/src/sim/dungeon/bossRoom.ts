@@ -42,6 +42,7 @@ import type { ItemKind } from '../items/items';
 import type { PlayerState } from '../player/state';
 import { Vector3 } from 'three';
 import { FROST_ROC } from '../../tuning/frostRoc';
+import { setCliff } from '../../world/dungeon/plateau';
 import { TIDEBREAKER } from '../../tuning/tidebreaker';
 import { OKAMI } from '../../tuning/okami';
 import { stepOkamiIntro } from './okamiShow';
@@ -105,13 +106,6 @@ function callsOf(kind: EnemyKind): Calls | null {
     CALLS.kind = 'clownfish';
     CALLS.count = WHALE.v.brood;
     CALLS.every = Infinity;
-    return CALLS;
-  }
-  // (Update 0.3.26 — the Frost Roc raging calls the dead up out of the snow.)
-  if (kind === 'frostRoc') {
-    CALLS.kind = 'draugr';
-    CALLS.count = Math.round(FROST_ROC.v.calls);
-    CALLS.every = FROST_ROC.v.callEvery;
     return CALLS;
   }
   // (Update 0.3.41 — the Demon's grunts gone with it.)
@@ -196,6 +190,9 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
         b.slot = spawnEnemy(combat.enemies, b.kind, mid, Math.atan2(-(player.pos.x - portal.x), -(player.pos.z - portal.z)));
         if (b.slot >= 0) {
           setPhase(combat.enemies[b.slot], 'intro');
+          // (Update 0.3.56 — the Frost Roc knows where its cliff is.)
+          const roc = combat.enemies[b.slot].roc;
+          if (roc && level) setCliff(roc, level.plan);
           ev.push('bossRise', b.slot, portal.x, 0, portal.z);
         }
         break;

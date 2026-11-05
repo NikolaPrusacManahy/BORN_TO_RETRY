@@ -2,13 +2,13 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-05, after Update 0.3.55)
-- **Version 0.3.55** (the removed shadow setting), built and copied to main, **not committed** until the designer says
-  "commit". 0.3.54 is committed (`838ab48`), not pushed; the designer pushes through GitHub Desktop.
+## Where things stand (2026-11-05, after Update 0.3.56)
+- **Version 0.3.56** (the Frost Roc by the Boss Design Bible, its plateau), built and copied to main, **not committed** until
+  the designer says "commit". 0.3.55 is committed (`3513059`), not pushed; the designer pushes through GitHub Desktop.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
-  ("Keep them, adapt"). In floor order. **The Dragon is done (0.3.49, 0.3.50). The Swarm is done (0.3.51, 0.3.52). The Bone King is done (0.3.53, 0.3.54). The Frost Roc is next.**
+  ("Keep them, adapt"). In floor order. **The Dragon is done (0.3.49, 0.3.50). The Swarm is done (0.3.51, 0.3.52). The Bone King is done (0.3.53, 0.3.54). The Frost Roc's moves and plateau are done (0.3.56).**
   Its ultimate is on `sim/enemies/ultimate.ts`, for the rest to share. Kit clashes still to meet: the slide (gone since
   0.3.20; the bible's Sky Clap, Pillar Swing, Tail Lash), boss melee can't be parried and parry is bare-handed, four
   ultimates cancel by shooting (count any ranged hit, and give fists a parryable shot), the audio has no left/right (the
@@ -40,9 +40,9 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
     - then the other executions (the Ghost's 16, the old Yeti punch's 11), the same way.
   - **Okami's rage and frenzy:** not built. The plan's first idea, in `MD/FLOOR8_SHRINE_PLAN.md`, is a petal storm with
     shadow clones, its markings blazing.
-  - **Each boss its own room (the designer, 0.3.50):** done for the Dragon, The Swarm and the Bone King; the Big Shark,
-    Okami and Tidebreaker already had their own; still on the shared `BOSS_ROOM`: the Frost Roc, the Drowned King, the
-    Velociraptor, floor 10.
+  - **Each boss its own room (the designer, 0.3.50):** done for the Dragon, The Swarm, the Bone King and the Frost Roc; the Big
+    Shark, Okami and Tidebreaker already had their own; still on the shared `BOSS_ROOM`: the Drowned King, the Velociraptor,
+    floor 10.
   - **Boss intros at Tidebreaker's quality:**
     - done for the Big Shark, Tidebreaker, Okami, the Dragon, The Swarm and the Bone King;
     - still on the shared portal intro: the Velociraptor, the Drowned King and the Frost Roc
@@ -68,7 +68,13 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-05, Update 0.3.55: the removed shadow setting)
+## Last update (2026-11-05, Update 0.3.56: the Frost Roc by the Boss Design Bible)
+- **The designer**: "Next boss, floor 4 * Arena / moves / intro". Spec `MD_UPDATES/U0356_FROST_ROC_BIBLE.md`.
+- **Built:** its moves and Mountain Fall (`sim/enemies/rocMoves.ts`, `rocFall.ts`, `rocBody.ts`), the Frozen Plateau
+  (`world/dungeon/plateau.ts`, `engine/norse/plateauView.ts`). Its swipe, gust, leap and the dead it called are gone.
+- **Unseen:** not played. Poses checked in Blender renders of the game's own pose code; not seen moving.
+
+## Before (2026-11-05, Update 0.3.55: the removed shadow setting)
 - **The designer**: "Yes, fix it". Spec `MD_UPDATES/U0355_SHADOW_TYPE.md`.
 - **Built:** `engine/renderer.ts` asks for `PCFShadowMap`, which three.js was already falling back to.
 - **Also:** CloudAI-X/threejs-skills are installed in `.claude/skills` (three.js r186 reference, not committed). The project's own

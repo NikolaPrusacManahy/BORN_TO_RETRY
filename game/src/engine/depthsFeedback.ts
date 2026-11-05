@@ -38,8 +38,47 @@ export function depthsFeedback(f: FeedbackParts, kind: CombatEvent, value: numbe
     case 'raiderDazed':
       f.rig.shake.add(fb.shakeJab * 0.5 * near(8));
       return true;
-    // (Update 0.3.26 — the Frost Roc landing, crashing into a wall, roaring.)
-    case 'rocLand':
+    // (Update 0.3.26 — the Frost Roc crashing into a wall, roaring. Update 0.3.56 — by the Boss Design Bible.)
+    case 'rocStomp':
+      f.chunks.spawn(at, UP, 18, 1.2);
+      f.rig.shake.add(fb.shakeHeavy * 0.9 * near(30));
+      return true;
+    case 'rocClap':
+      f.rig.shake.add(fb.shakeHeavy * 0.5 * near(20));
+      return true;
+    case 'rocClapHit':
+    case 'rocSlabHit':
+      f.sparks.spawn(at, UP, 18, 1.1);
+      f.rig.shake.add(fb.shakeHeavy);
+      return true;
+    case 'rocStagger':
+    case 'rocKneeHit':
+      f.sparks.spawn(at, UP, 24, 1.2);
+      f.rig.shake.add(fb.shakeHeavy * 0.5);
+      return true;
+    case 'rocFault':
+    case 'rocRip':
+      f.chunks.spawn(at, UP, 30, 1.6);
+      f.rig.shake.add(fb.shakeHeavy * 1.2 * near(30));
+      return true;
+    case 'rocSlab':
+    case 'rocSlabBreak':
+      f.chunks.spawn(at, UP, 14, 1.1);
+      f.rig.shake.add(fb.shakeHeavy * 0.3 * near(14));
+      return true;
+    case 'rocFallTell':
+    case 'rocFallOpen':
+      f.rig.shake.add(fb.shakeHeavy * near(60));
+      return true;
+    case 'rocRumble':
+      f.rig.shake.add(fb.shakeHeavy * (0.2 + 0.5 * value) * near(60));
+      return true;
+    case 'rocKneesBroken':
+    case 'rocCornice':
+      f.chunks.spawn(at, UP, 60, 2.4);
+      f.sparks.spawn(at, UP, 60, 2);
+      f.rig.shake.add(fb.shakeHeavy * 2);
+      return true;
     case 'rocCrash':
       f.chunks.spawn(at, UP, 16, 1.4);
       f.sparks.spawn(at, UP, 36, 1.6);

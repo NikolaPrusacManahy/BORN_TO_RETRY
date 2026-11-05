@@ -48,6 +48,7 @@ import { DROWNED_ROOMS } from './drownedRooms';
 import { VENOM_ROOMS } from './venomRooms';
 import { BONE_ROOMS } from './boneRooms';
 import { PIT_ROOM } from './pit';
+import { PLATEAU_ROOM } from './plateau';
 import { FROZEN_ROOMS } from './frozenRooms';
 import { FORGE_ROOMS } from './forgeRooms';
 import { COVE_ROOMS, SHARK_ROOM } from './coveRooms';
@@ -196,7 +197,8 @@ export const bossRoomOf = (floor: number): RoomTemplate => {
   if (r === 'dungeon') return COURTYARD_ROOM;
   // (Update 0.3.52 — the Venom Garden's, The Swarm's nest: nest.ts.)
   // (Update 0.3.53 — the Bone Keep's, the Bone King's pit: pit.ts.)
-  return r === 'garden' ? NEST_ROOM : r === 'keep' ? PIT_ROOM : r === 'cove' ? SHARK_ROOM : r === 'moon' ? MOON_BOSS_ROOM : r === 'shrine' ? SHRINE_BOSS_ROOM : BOSS_ROOM;
+  // (Update 0.3.56 — Frozen Depths', the Frost Roc's plateau: plateau.ts.)
+  return r === 'garden' ? NEST_ROOM : r === 'keep' ? PIT_ROOM : r === 'frozen' ? PLATEAU_ROOM : r === 'cove' ? SHARK_ROOM : r === 'moon' ? MOON_BOSS_ROOM : r === 'shrine' ? SHRINE_BOSS_ROOM : BOSS_ROOM;
 };
 
 /** Update 0.0.13 — the shop (the designer: a room with five floor tiles, each showing something to buy). */

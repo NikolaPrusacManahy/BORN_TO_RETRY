@@ -12,7 +12,7 @@
 import * as THREE from 'three';
 import type { Orb } from '../sim/combat/targets';
 
-export type ShotStyle = 'fire' | 'blueFire' | 'acid' | 'water' | 'spear' | 'spine' | 'feather' | 'carrot' | 'laser' | 'missile' | 'axe' | 'shuriken' | 'kunai' | 'arrow' | 'rubble' | 'rib';
+export type ShotStyle = 'fire' | 'blueFire' | 'acid' | 'water' | 'spear' | 'spine' | 'feather' | 'carrot' | 'laser' | 'missile' | 'axe' | 'shuriken' | 'kunai' | 'arrow' | 'rubble' | 'rib' | 'shard';
 
 /** A shot's style: by who fired it, then by its look. */
 export function shotStyle(o: Orb): ShotStyle {
@@ -22,6 +22,7 @@ export function shotStyle(o: Orb): ShotStyle {
   if (o.look === 'laser' || o.look === 'missile' || o.look === 'axe' || o.look === 'shuriken' || o.look === 'kunai' || o.look === 'arrow') return o.look;
   if (o.look === 'rubble') return 'rubble';
   if (o.look === 'rib') return 'rib';
+  if (o.look === 'shard') return 'shard';
   if (o.look === 'tear') return 'acid';
   if (o.look === 'ki') return 'blueFire';
   return o.look === 'water' ? 'water' : o.look === 'spear' ? 'spear' : o.look === 'spine' ? 'spine' : o.look === 'carrot' ? 'carrot' : 'fire';
@@ -60,6 +61,8 @@ export const TRAILS: Record<ShotStyle, ShotTrail> = {
   rubble: { rate: 10, color: 0x8a8278, falls: true, burst: 10, burstColor: 0x7a7268, flash: null },
   // (Update 0.3.53 — the Bone King's rib.)
   rib: { rate: 12, color: 0xd8ccb0, falls: true, burst: 10, burstColor: 0xe0d4b8, flash: null },
+  // (Update 0.3.56 — the Frost Roc's shard of ice.)
+  shard: { rate: 14, color: 0xcff4ff, falls: true, burst: 10, burstColor: 0xcff4ff, flash: null },
 };
 
 /** Every style's meshes for one shot's slot (each hidden but its own: shotsView.ts shows one). Geometries and
@@ -169,7 +172,11 @@ export class ShotMeshes {
     rubble.add(chunk);
     // (Update 0.3.53 — a rib, a long curved bone, flat: it spins about y.)
     const rib = new THREE.Mesh(kit.rib, kit.bone);
+    // (Update 0.3.56 — a shard of ice, a long crystal.)
+    const shard = new THREE.Mesh(kit.shell, kit.ice);
+    shard.scale.set(0.3, 0.75, 0.3);
     this.parts = {
+      shard,
       rib,
       rubble,
       axe,
@@ -231,6 +238,7 @@ export class ShotKit {
   readonly rubble = new THREE.MeshStandardMaterial({ color: 0x7d756b, roughness: 1, flatShading: true });
   readonly rib = new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(new THREE.Vector3(-1.7, 0, -0.5), new THREE.Vector3(0, 0, 1.3), new THREE.Vector3(1.7, 0, -0.5)), 12, 0.16, 6);
   readonly bone = new THREE.MeshStandardMaterial({ color: 0xccb899, roughness: 0.8 });
+  readonly ice = new THREE.MeshStandardMaterial({ color: 0xcff4ff, emissive: 0x2a7aa0, emissiveIntensity: 0.6, roughness: 0.1, flatShading: true });
 
   dispose() {
     for (const v of Object.values(this)) if (v instanceof THREE.BufferGeometry || v instanceof THREE.Material) v.dispose();

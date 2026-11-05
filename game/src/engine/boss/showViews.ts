@@ -16,6 +16,7 @@ import { dragonWide } from './dragonCinema';
 import { SwarmShowView } from '../swarm/swarmShowView';
 import { swarmWide } from '../swarm/swarmCinema';
 import { kingWide } from './kingCinema';
+import { PlateauView } from '../norse/plateauView';
 
 export { WIDE_HAZE } from './tideCinema';
 
@@ -34,6 +35,7 @@ export function showViewOf(level: DungeonLevel, depths: DepthsView): ShowView | 
   if (boss === 'tidebreaker') return new TideShowView(level);
   if (boss === 'dragon') return new DragonShowView(level);
   if (boss === 'swarm') return new SwarmShowView(level);
+  if (boss === 'frostRoc') return new PlateauView(level);
   if (boss === 'okami' && level.okami && depths.sky) return new OkamiShowView(level, depths.sky);
   return null;
 }

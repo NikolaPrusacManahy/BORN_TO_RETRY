@@ -8,6 +8,7 @@
 // Update 0.2.23 — floor 2's wasps' hives are targets too (sim/dungeon/hives.ts): a ball on its wall.
 import { hitWormling, WORMLING_RADIUS, wormlingUp } from '../enemies/wormlings';
 import { spineAt, spineFrom, spineRadius } from '../enemies/kingBody';
+import { kneeAt, kneeRadius, kneesOpen } from '../enemies/rocBody';
 import { SWARM } from '../../tuning/swarm';
 import { Vector3 } from 'three';
 import { ENEMIES } from '../../tuning/enemies';
@@ -32,7 +33,7 @@ import { TARGET_SHAPES, dummyAxis, turretAxis } from './targets';
 import { hitTurret } from './turretDamage';
 import { HIVE_RADIUS, hitHive } from '../dungeon/hives';
 
-export type TargetKind = 'dummy' | 'turret' | 'enemy' | 'hive' | 'wormling' | 'spine';
+export type TargetKind = 'dummy' | 'turret' | 'enemy' | 'hive' | 'wormling' | 'spine' | 'knee';
 
 export interface TargetHit {
   kind: TargetKind;
@@ -40,6 +41,8 @@ export interface TargetHit {
   /** How far along the segment (0..1), and the point on the target's axis closest to it. */
   s: number;
   point: Vector3;
+  /** Update 0.3.56 — which part of it (the Frost Roc's knee). */
+  part: number;
 }
 
 const a = new Vector3();
@@ -48,7 +51,7 @@ const at = new Vector3();
 const sOut = { s: 0 };
 
 export function emptyTargetHit(): TargetHit {
-  return { kind: 'dummy', index: -1, s: 0, point: new Vector3() };
+  return { kind: 'dummy', index: -1, s: 0, point: new Vector3(), part: 0 };
 }
 
 /** The nearest target whose capsule comes within `radius` of the segment `from`→`to`. Writes it to `out`. */
@@ -103,6 +106,23 @@ export function nearestTarget(state: CombatState, from: Vector3, to: Vector3, ra
     out.s = sOut.s;
     out.point.copy(at);
   });
+  // (Update 0.3.56 — the Frost Roc's knees, through its Mountain Fall: ahead of its body, while they stand.)
+  state.enemies.forEach((e, i) => {
+    if (!isLive(e) || !kneesOpen(e) || !e.roc) return;
+    let knee = Infinity;
+    for (let k = 0; k < 2; k++) {
+      if (e.roc.knees[k] <= 0) continue;
+      kneeAt(e, k, a);
+      b.copy(a);
+      if (segmentDistance(from, to, a, b, at, sOut) > radius + kneeRadius() || sOut.s >= knee) continue;
+      knee = sOut.s;
+      out.kind = 'knee';
+      out.index = i;
+      out.part = k;
+      out.s = sOut.s;
+      out.point.copy(at);
+    }
+  });
   return out.index >= 0;
 }
 
@@ -124,6 +144,16 @@ export function hitTarget(state: CombatState, t: TargetHit, damage: number, knoc
       const eye = state.enemies.find((e) => isLive(e) && e.kind === 'swarm');
       if (eye && !eye.swarm?.shield) eye.hp = Math.max(1, eye.hp - SWARM.v.bigWormBar);
       return true;
+    }
+    case 'knee': {
+      const r = state.enemies[t.index];
+      r.flash = 0.12;
+      if (r.roc && r.roc.knees[t.part] > 0) {
+        r.roc.knees[t.part]--;
+        r.roc.kneeHit++;
+        r.ult.fill += 1;
+      }
+      return false;
     }
     case 'spine': {
       const k = state.enemies[t.index];

@@ -19,7 +19,7 @@ function chop(a: AudioEngine, far: number, big = 1) {
 const crunch = (a: AudioEngine, far: number, dur: number) => noise(a, { dur, gain: 0.2 * far, filter: 'bandpass', from: 2600, to: 900, q: 1.4 });
 
 /** Returns false for events it doesn't know. */
-export function playNorse(a: AudioEngine, kind: CombatEvent, _value: number, far: number): boolean {
+export function playNorse(a: AudioEngine, kind: CombatEvent, value: number, far: number): boolean {
   switch (kind) {
     case 'raiderCrouch':
       // Loud enough off to your side: you hear the slide coming.
@@ -115,8 +115,8 @@ export function playNorse(a: AudioEngine, kind: CombatEvent, _value: number, far
       iceShatter(a);
       chop(a, far, 1.2);
       return true;
-    // (Update 0.3.26 — the Frost Roc: its warnings a shrill cry, its gust a roar of wind, its slide a long scrape, its
-    // landing and a wall a deep thud, its breath a hiss of frost.)
+    // (Update 0.3.26 — the Frost Roc: its warnings a shrill cry, its slide a long scrape, a wall a deep thud, its breath a hiss of
+    // frost.)
     case 'rocWindup':
       tone(a, { from: 900, to: 1500, dur: 0.35, gain: 0.12 * Math.max(0.6, far), type: 'triangle' });
       return true;
@@ -124,22 +124,69 @@ export function playNorse(a: AudioEngine, kind: CombatEvent, _value: number, far
       tone(a, { from: 700, to: 300, dur: 1.1, gain: 0.22 * Math.max(0.7, far), type: 'sawtooth' });
       noise(a, { dur: 1.1, gain: 0.2 * far, filter: 'bandpass', from: 800, to: 300, q: 0.8 });
       return true;
-    case 'rocSwipe':
-      chop(a, far, 1.8);
-      return true;
-    case 'rocGust':
-      noise(a, { dur: 1.6, gain: 0.3 * Math.max(0.6, far), filter: 'lowpass', from: 300, to: 1600 });
-      return true;
     case 'rocSlide':
       noise(a, { dur: 1.2, gain: 0.24 * far, filter: 'bandpass', from: 2800, to: 900, q: 0.8 });
       return true;
     case 'rocCrash':
-    case 'rocLand':
       chop(a, far, 2.6);
       iceShatter(a);
       return true;
-    case 'rocLeap':
-      noise(a, { dur: 0.5, gain: 0.2 * far, filter: 'lowpass', from: 1200, to: 300 });
+    // (Update 0.3.56 — by the Boss Design Bible: placeholders, on what the floor already has.)
+    case 'rocStomp':
+      chop(a, Math.max(0.6, far), 2.6);
+      noise(a, { dur: 0.3, gain: 0.26 * far, filter: 'lowpass', from: 260, to: 90 });
+      return true;
+    case 'rocClap':
+      noise(a, { dur: 0.14, gain: 0.5 * Math.max(0.6, far), filter: 'bandpass', from: 1800, to: 500, q: 0.7 });
+      return true;
+    case 'rocClapHit':
+    case 'rocSlabHit':
+      crunch(a, far, 0.35);
+      return true;
+    case 'rocHurl':
+      noise(a, { dur: 0.45, gain: 0.26 * far, filter: 'bandpass', from: 500, to: 1600, q: 1.2 });
+      return true;
+    case 'rocStagger':
+      iceShatter(a);
+      tone(a, { from: 1200, to: 500, dur: 0.5, gain: 0.2 * Math.max(0.6, far), type: 'triangle' });
+      return true;
+    case 'rocSwingTell':
+      // (Low: a low creak. High: a higher one.)
+      tone(a, value > 0 ? { from: 70, to: 110, dur: 0.4, gain: 0.2 * far, type: 'sawtooth' } : { from: 260, to: 420, dur: 0.4, gain: 0.16 * far, type: 'sawtooth' });
+      return true;
+    case 'rocSwing':
+      noise(a, { dur: 0.35, gain: 0.34 * far, filter: 'bandpass', from: value > 0 ? 300 : 900, to: value > 0 ? 700 : 2000, q: 1 });
+      return true;
+    case 'rocFault':
+      chop(a, Math.max(0.6, far), 2.2);
+      return true;
+    case 'rocSlab':
+      noise(a, { dur: 0.2, gain: 0.2 * far, filter: 'lowpass', from: 500, to: 180 });
+      return true;
+    case 'rocSlabBreak':
+      iceShatter(a);
+      return true;
+    case 'rocRip':
+      chop(a, Math.max(0.6, far), 2.8);
+      iceShatter(a);
+      return true;
+    case 'rocFallTell':
+      tone(a, { from: 600, to: 240, dur: 1.4, gain: 0.24, type: 'sawtooth' });
+      noise(a, { dur: 1.4, gain: 0.22, filter: 'lowpass', from: 300, to: 1000 });
+      return true;
+    case 'rocFallOpen':
+      noise(a, { dur: 1.2, gain: 0.26, filter: 'lowpass', from: 200, to: 90 });
+      return true;
+    case 'rocRumble':
+      noise(a, { dur: 0.3, gain: (0.1 + 0.2 * value) * Math.max(0.5, far), filter: 'lowpass', from: 160, to: 80 });
+      return true;
+    case 'rocKneeHit':
+      crunch(a, far, 0.3);
+      return true;
+    case 'rocKneesBroken':
+    case 'rocCornice':
+      chop(a, 1, 3);
+      iceShatter(a);
       return true;
     case 'rocBreath':
       noise(a, { dur: 1.6, gain: 0.2 * far, filter: 'highpass', from: 2600, to: 5200 });

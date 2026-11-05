@@ -52,7 +52,7 @@ export interface Orb {
   /** (Update 0.2.10 — 'water': floor 5's Glubs' bolts. Update 0.3.18 — floor 8's: 'laser', a blaster bolt; 'missile',
    *  the Bee mech's. Update 0.3.22 — 'axe': floor 7's Axe Thrower's, spinning.) */
   // (Update 0.3.33 — floor 8's: shuriken, kunai, arrows, the Sensei's ki. Update 0.3.49 — the Dragon's wind's rubble.)
-  look: 'fire' | 'spear' | 'spine' | 'carrot' | 'water' | 'laser' | 'missile' | 'axe' | 'shuriken' | 'kunai' | 'arrow' | 'ki' | 'rubble' | 'tear' | 'rib';
+  look: 'fire' | 'spear' | 'spine' | 'carrot' | 'water' | 'laser' | 'missile' | 'axe' | 'shuriken' | 'kunai' | 'arrow' | 'ki' | 'rubble' | 'tear' | 'rib' | 'shard';
   /** Update 0.3.51 — it falls as it flies, this hard (m/s²; 0: straight: The Swarm's tears arc). */
   drop: number;
   /** Update 0.3.18 — it turns after you this fast (rad/s; 0: straight: the Bee mech's missiles home). */

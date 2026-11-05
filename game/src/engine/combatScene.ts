@@ -191,7 +191,7 @@ export class CombatScene {
     this.crew.update(state, playerChest, gameDt);
     this.moonMarks.update(state);
     this.warband.update(state, gameDt);
-    this.roc.update(state, gameDt);
+    this.roc.update(state, gameDt, (i) => this.enemies.rootOf(i));
     this.tide.update(state, this.rootOf, gameDt);
     this.shrine.update(state, gameDt, this.rootOf);
     this.raptor.update(state, alpha, gameDt, (i) => this.enemies.headOf(i));

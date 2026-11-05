@@ -7,11 +7,20 @@
 import * as THREE from 'three';
 import type { CombatState } from '../sim/combat/state';
 import { PILLAR_CUT } from '../sim/combat/pillars';
+import { HIGH_AT, LOW_AT, swingAngle } from '../sim/enemies/rocMoves';
+import { FROST_ROC } from '../tuning/frostRoc';
 import type { Level, LevelView } from './level';
 
 /** Held: gripped this share of its length from its snapped end; flying, it turns over this fast (rad/s). */
 const GRIP = 0.2;
 const TUMBLE = 5;
+/** Update 0.3.56 — the Frost Roc's forearm's length, wrist to fingertips (in the model's measure): its grip. */
+const ROC_WING = 0.8;
+/** Its pillar's thicker and longer in its grip, its reach (tuning/frostRoc.ts); gripped this share of its height out from its middle. */
+const ROC_CLUB_WIDE = 1.5;
+const ROC_CLUB_LONG = 2.2;
+const ROC_GRIP_OUT = 0.32;
+const ALONG_Y = new THREE.Vector3(0, 1, 0);
 
 interface Carried {
   top: THREE.Object3D;
@@ -76,8 +85,10 @@ export function holdPillars(combat: CombatState, view: LevelView, rootOf: (i: nu
       c.top.position.copy(bomb.pos).sub(off.set(0, len / 2, 0).applyQuaternion(spin));
       continue;
     }
-    const who = combat.enemies.findIndex((e) => e.alive && e.kind === 'tidebreaker' && e.deeds === i + 1 && e.phase !== 'dead');
-    const bone = who >= 0 ? rootOf(who)?.getObjectByName('hand_r') : null;
+    const who = combat.enemies.findIndex((e) => e.alive && (e.kind === 'tidebreaker' || e.kind === 'frostRoc') && e.deeds === i + 1 && e.phase !== 'dead');
+    // (Update 0.3.56 — the Frost Roc's, at the end of its wing, along it: kingPose.ts-style bones run along their +y.)
+    const roc = who >= 0 && combat.enemies[who].kind === 'frostRoc';
+    const bone = who >= 0 ? rootOf(who)?.getObjectByName(roc ? 'LowerArmR' : 'hand_r') : null;
     if (!bone) {
       view.breaks?.shatter(c.top);
       m.delete(i);
@@ -85,6 +96,26 @@ export function holdPillars(combat: CombatState, view: LevelView, rootOf: (i: nu
     }
     bone.updateWorldMatrix(true, false);
     bone.matrixWorld.decompose(hand, turn, scale);
+    if (roc) {
+      const e = combat.enemies[who];
+      const long = len * ROC_CLUB_LONG;
+      c.top.scale.set(ROC_CLUB_WIDE, ROC_CLUB_LONG, ROC_CLUB_WIDE);
+      if (e.phase === 'dive' && e.roc) {
+        // Level across its front, at the height its swing hits: as long as it reaches.
+        const v = FROST_ROC.v;
+        const tell = v.swingTell / (e.stage > 0 ? v.ragePace : 1);
+        const a = e.facing + swingAngle(e.roc.swingSide, e.t < tell ? 0 : Math.min(1, (e.t - tell) / v.swingFor));
+        off.set(-Math.sin(a), 0, -Math.cos(a));
+        c.top.quaternion.setFromUnitVectors(ALONG_Y, off);
+        const grip = v.rocHeight * ROC_GRIP_OUT;
+        c.top.position.set(e.pos.x + off.x * grip, e.pos.y + (e.roc.swingLow ? LOW_AT : HIGH_AT), e.pos.z + off.z * grip).addScaledVector(off, -long * GRIP);
+        continue;
+      }
+      hand.add(off.set(0, ROC_WING * scale.y, 0).applyQuaternion(turn));
+      c.top.quaternion.copy(turn);
+      c.top.position.copy(hand).add(off.set(0, -long * GRIP, 0).applyQuaternion(turn));
+      continue;
+    }
     turn.multiply(ALONG);
     c.top.quaternion.copy(turn);
     c.top.position.copy(hand).add(off.set(0, -len * GRIP, 0).applyQuaternion(turn));

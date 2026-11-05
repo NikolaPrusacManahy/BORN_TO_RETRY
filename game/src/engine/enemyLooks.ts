@@ -44,7 +44,8 @@ import { SLIDE } from '../sim/enemies/raider';
 import { SHRINE_LOOKS } from './shrine/shrineLooks';
 import { ROAR } from '../sim/enemies/berserker';
 import { HURL, STOMP } from '../sim/enemies/haugbui';
-import { BREATH, GUST, LEAP, ROAR as ROC_ROAR, rocWindup, SLIDE as BELLY, SWIPE } from '../sim/enemies/frostRoc';
+import { rocWindup } from '../sim/enemies/frostRoc';
+import { BREATH, CLAP, FALL as ROC_FALL, FAULT, HURL as ROC_HURL, ROAR as ROC_ROAR, SLIDE as BELLY, STOMP as ROC_STOMP } from '../sim/enemies/rocMoves';
 import { TIDE_LOOK } from './moon/tideLook';
 
 /** Update 0.3.15 — the Corsair's: her hook's twirl, her axe dragged in (at once), her axe. */
@@ -218,7 +219,7 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
   volva: { url: '/models/enemies/volva.glb', clips: { ...PEOPLE, move: 'Walk', attack: 'Shoot_OneHanded', air: 'Victory' }, lands: 5 / 24, windup: (move) => (move === 1 ? FOES_NORSE.v.volvaCast : 0.4), glow: [0.6, 0.95, 1], posed: true },
   berserker: { url: '/models/enemies/berserker.glb', clips: { ...PEOPLE, hit: 'Defeat', air: 'SwordSlash' }, lands: 13 / 24, windup: (move) => (move === ROAR ? FOES_NORSE_B.v.spinWarn : FOES_NORSE_B.v.berserkerWindup), glow: [1, 0.25, 0.1], posed: true },
   // Update 0.3.26 — floor 4's boss, the Frost Roc (Ultimate Monsters' Birb: export_monster.py): its swipe its Weapon
-  // (lands 15/30), its gust its wings spread (Punch, beating), its belly slide and a leap's crouch Duck, up Jump_Idle,
+  // (lands 15/30), its belly slide and a leap's crouch Duck, up Jump_Idle,
   // down Jump_Land, its breath rearing (Yes) and sweeping (No), its roar Wave.
   frostRoc: {
     url: '/models/enemies/frost_roc.glb',
@@ -226,7 +227,7 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
     lands: 15 / 30,
     windup: rocWindup,
     glow: [0.5, 0.85, 1],
-    moveClips: { [`windup:${SWIPE}`]: ['Weapon', true], [`windup:${GUST}`]: ['Punch', true], [`breath:${GUST}`]: ['Punch'], [`windup:${BELLY}`]: ['Duck', true], [`charge:${BELLY}`]: ['Duck', true], [`windup:${LEAP}`]: ['Duck', true], [`leap:${LEAP}`]: ['Jump_Idle'], [`recover:${LEAP}`]: ['Jump_Land', true], [`windup:${BREATH}`]: ['Yes', true], [`breath:${BREATH}`]: ['No'], [`windup:${ROC_ROAR}`]: ['Wave', true] },
+    moveClips: { [`leap:${ROC_STOMP}`]: ['Jump_Idle'], [`recover:${ROC_STOMP}`]: ['Jump_Land', true], [`recover:${CLAP}`]: ['Punch', true], [`windup:${ROC_HURL}`]: ['Duck', true], [`recover:${ROC_HURL}`]: ['Weapon', true], [`windup:${BELLY}`]: ['Duck', true], [`charge:${BELLY}`]: ['Duck', true], [`windup:${BREATH}`]: ['Yes', true], [`breath:${BREATH}`]: ['No'], [`windup:${FAULT}`]: ['Yes', true], [`recover:${FAULT}`]: ['Weapon', true], [`windup:${ROC_ROAR}`]: ['Wave', true], [`leap:${ROC_ROAR}`]: ['Jump_Idle'], [`recover:${ROC_ROAR}`]: ['Jump_Land', true], [`stun:${ROC_FALL}`]: ['Duck', true] },
   },
   tidebreaker: TIDE_LOOK,
   haugbui: { url: '/models/enemies/draugr.glb', clips: { ...PEOPLE, move: 'Walk', attack: 'Punch', rise: 'StandUp' }, lands: 9 / 24, windup: (move) => (move === STOMP ? FOES_NORSE_B.v.stompWindup : move === HURL ? FOES_NORSE_B.v.hurlWindup : FOES_NORSE_B.v.haugbuiWindup), glow: [0.4, 0.75, 1], posed: true },

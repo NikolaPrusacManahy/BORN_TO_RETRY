@@ -29,7 +29,7 @@ const EASE_OUT = 0.35;
 const SKULL_ON_FLOOR = 0.62;
 const LYING = 1.35;
 
-interface Limb {
+export interface Limb {
   upper: THREE.Object3D;
   lower: THREE.Object3D;
 }
@@ -114,7 +114,7 @@ function aim(bone: THREE.Object3D, target: THREE.Vector3, w: number) {
 }
 
 /** A limb's knee or elbow, to reach `target`, bending towards `pole`; or dead straight, stretched (an arm), if it's too far. */
-function reach(limb: Limb, target: THREE.Vector3, pole: THREE.Vector3, lowerLong: number, stretch: boolean, w: number) {
+export function reach(limb: Limb, target: THREE.Vector3, pole: THREE.Vector3, lowerLong: number, stretch: boolean, w: number) {
   limb.upper.getWorldPosition(a);
   limb.lower.getWorldPosition(b);
   const l1 = a.distanceTo(b);
