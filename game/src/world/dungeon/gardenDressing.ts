@@ -2,9 +2,9 @@
 // plants grow out of earth, never out of paving): a bed of earth with flowers, short grass and plants in it; a bed of
 // tall grass (clumps as high as your chest: it parts round whatever walks through it, engine/gardenView.ts); a birch or
 // a tree in its bed; webs on the floor (a sheet of web, the kit's cobwebs on it); thick cobwebs at the foot of the walls,
-// thickest in the corners (the kit's cobweb sits on the floor, its back to a wall). In the boss room, the Scorched
-// Grove, the beds are ash, the trees dead and charred (styles.ts `burnt`), stumps, logs and bones in the ash, and scorch
-// marks on its paving. Pure.
+// thickest in the corners (the kit's cobweb sits on the floor, its back to a wall). A `burnt` bed is ash, with a dead and
+// charred tree (styles.ts `burnt`) or stumps, logs and bones in it: the Dragon's courtyard's, Hell's. (Update 0.3.52 — The
+// Swarm's nest, floor 2's boss room now, is flesh: nothing of this in it.) Pure.
 import type { Rng } from '../../core/rng';
 import { cellAt, cellX, cellZ, FloorPlan, GRID } from './floorPlan';
 import type { Put, SandCell } from './dressExtras';
@@ -33,11 +33,10 @@ export const VENOM_PIECES = {
 /** Update 0.2.23 — the tall grass pieces: they part (engine/gardenView.ts). */
 export const TALL_GRASS: ReadonlySet<string> = new Set(VENOM_PIECES.tall);
 
-/** Clumps of tall grass in a bed; a cobweb at a wall's foot, and in a corner; a cell of paving scorched. */
+/** Clumps of tall grass in a bed; a cobweb at a wall's foot, and in a corner. */
 const CLUMPS = 7;
 const WALL_WEBS = 0.07;
 const CORNER_WEBS = 0.6;
-const SCORCH = 0.14;
 
 const pick = (list: readonly string[], rng: Rng) => list[Math.floor(rng() * list.length)];
 
@@ -84,16 +83,14 @@ export function dressWeb(x: number, z: number, rng: Rng, put: Put, webs: Mark[])
   }
 }
 
-/** Every room's cobwebs at the walls' feet (none near a door), and its boss room's scorch marks. `inRoom`: each cell's
- *  room (−1: none). */
-export function dressGarden(plan: FloorPlan, inRoom: Int16Array, nearDoor: (col: number, row: number) => boolean, rng: Rng, put: Put, scorch: Mark[]) {
+/** Every room's cobwebs at the walls' feet (none near a door, none in its nest). `inRoom`: each cell's room (−1: none). */
+export function dressGarden(plan: FloorPlan, inRoom: Int16Array, nearDoor: (col: number, row: number) => boolean, rng: Rng, put: Put) {
   for (let row = 0; row < GRID; row++) {
     for (let col = 0; col < GRID; col++) {
       const room = inRoom[row * GRID + col];
-      if (room < 0 || cellAt(plan, col, row) !== 'floor' || nearDoor(col, row)) continue;
+      if (room < 0 || plan.rooms[room].kind === 'boss' || cellAt(plan, col, row) !== 'floor' || nearDoor(col, row)) continue;
       const x = cellX(col);
       const z = cellZ(row);
-      if (plan.rooms[room].kind === 'boss' && rng() < SCORCH) scorch.push({ x: x + (rng() - 0.5), z: z + (rng() - 0.5), rot: rng() * Math.PI * 2, s: 2 + 2.5 * rng() });
       // The walls beside it: the cobweb's back (−z) to one of them.
       const n = cellAt(plan, col, row - 1) === 'wall';
       const s = cellAt(plan, col, row + 1) === 'wall';

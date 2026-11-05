@@ -18,8 +18,10 @@ export const MASS = 0;
 export const WINDUP = 1;
 export const LASH = 2;
 export const RECOIL = 3;
-export const DEAD = 4;
-export const GONE = 5;
+/** Update 0.3.52 — lying where its show scattered it, till it wakes. */
+export const WAIT = 4;
+export const DEAD = 5;
+export const GONE = 6;
 
 /** Constraint passes a tick; beads collide once, after the second. */
 const PASSES = 4;
@@ -38,6 +40,8 @@ const GRIP = 0.8;
 const WALL_REACH = 9;
 const WALL_MOVE = 3;
 const MAX_WALLS = 64;
+/** The share of the way out of its parting a bead is pushed each step. */
+const PART_RATE = 0.3;
 
 export interface SwarmBody {
   seeded: boolean;
@@ -68,6 +72,8 @@ export interface SwarmBody {
   wPhase: Float32Array;
   wAmp: Float32Array;
   wFreq: Float32Array;
+  /** Update 0.3.52 — when it wakes, in its show (s). */
+  wake: Float32Array;
   /** A lash's aim (locked as it whips), and whether it has hit you yet. */
   aimX: Float32Array;
   aimY: Float32Array;
@@ -87,6 +93,12 @@ export interface SwarmBody {
   lashIn: number;
   shield: boolean;
   pierce: boolean;
+  /** Update 0.3.52 — how much harder their heads swim, flooding in through its show (1: as ever). */
+  rush: number;
+  /** Update 0.3.52 — its heap parted in front of its eye, opening in its show: how wide (m; 0: not), the way it looks. */
+  part: number;
+  partX: number;
+  partZ: number;
   /** Where worms died this tick (x, y, z each) and where the eye was struck, for the feedback (cleared by its owner). */
   gore: Float32Array;
   goreN: number;
@@ -113,8 +125,9 @@ export function createSwarmBody(): SwarmBody {
     x: f(MAX), y: f(MAX), z: f(MAX), ox: f(MAX), oy: f(MAX), oz: f(MAX), r: f(MAX),
     state: new Uint8Array(w), t: f(w), hp: f(w), flash: f(w),
     ax: f(w), ay: f(w), az: f(w), ux: f(w), uy: f(w), uz: f(w), orbit: f(w), spin: f(w), wPhase: f(w), wAmp: f(w), wFreq: f(w),
+    wake: f(w),
     aimX: f(w), aimY: f(w), aimZ: f(w), struck: new Uint8Array(w),
-    cx: 0, cy: 0, cz: 0, extent: 0, alive: 0, time: 0, tick: 0, lashIn: 0, shield: false, pierce: false,
+    cx: 0, cy: 0, cz: 0, extent: 0, alive: 0, time: 0, tick: 0, lashIn: 0, shield: false, pierce: false, rush: 1, part: 0, partX: 0, partZ: 0,
     gore: f(3 * 32), goreN: 0, eyeHit: 0,
     cellStart: new Int32Array(GRID_CELLS), cellCount: new Int32Array(GRID_CELLS), cellOf: new Int32Array(MAX), sorted: new Int32Array(MAX),
     walls: f(4 * MAX_WALLS), wallN: 0, wallX: Infinity, wallZ: Infinity,
@@ -137,6 +150,8 @@ export function seedSwarm(s: SwarmBody, cx: number, cy: number, cz: number, rng:
   s.lashIn = v.lashEvery;
   s.shield = false;
   s.pierce = false;
+  s.rush = 1;
+  s.part = 0;
   s.goreN = 0;
   s.eyeHit = 0;
   s.wallX = s.wallZ = Infinity;
@@ -190,6 +205,39 @@ export function seedSwarm(s: SwarmBody, cx: number, cy: number, cz: number, rng:
   s.seeded = true;
 }
 
+/** Update 0.3.52 — its worms for its show: as `seedSwarm`, but each lying flat on the floor somewhere out in the room, outside
+ *  `hidden` (the room's start, walled off), waiting; it wakes between `from` and `to` (s into its show), the nearest first. */
+export function scatterSwarm(s: SwarmBody, cx: number, cy: number, cz: number, hidden: { min: { x: number; z: number }; max: { x: number; z: number } }, from: number, to: number, rng: Rng) {
+  const v = SWARM.v;
+  seedSwarm(s, cx, cy, cz, rng);
+  const reach = 27;
+  for (let w = 0; w < s.worms; w++) {
+    let x = cx;
+    let z = cz;
+    // Round the room, not where you are.
+    for (let tries = 0; tries < 12; tries++) {
+      const a = rng() * Math.PI * 2;
+      const r = 6 + (reach - 6) * Math.sqrt(rng());
+      x = cx + Math.cos(a) * r;
+      z = cz + Math.sin(a) * r;
+      if (x < hidden.min.x || x > hidden.max.x || z < hidden.min.z || z > hidden.max.z) break;
+    }
+    const lie = rng() * Math.PI * 2;
+    const lx = Math.cos(lie);
+    const lz = Math.sin(lie);
+    for (let b = 0; b < s.beads; b++) {
+      const i = w * s.beads + b;
+      s.x[i] = s.ox[i] = x + lx * v.segment * b;
+      s.y[i] = s.oy[i] = s.r[i];
+      s.z[i] = s.oz[i] = z + lz * v.segment * b;
+    }
+    s.state[w] = WAIT;
+    s.t[w] = 0;
+    const near = Math.sqrt((x - cx) * (x - cx) + (z - cz) * (z - cz)) / reach;
+    s.wake[w] = from + (to - from) * Math.min(1, near * 0.7 + rng() * 0.3);
+  }
+}
+
 /** Where a worm's head wants to be and how hard it swims there, by its state (into out[0..3]: x, y, z, accel). The
  *  player is at (px, pz). */
 function headGoal(s: SwarmBody, w: number, px: number, pz: number, out: Float32Array) {
@@ -234,7 +282,7 @@ function headGoal(s: SwarmBody, w: number, px: number, pz: number, out: Float32A
   out[0] = s.cx + rx * out2;
   out[1] = s.cy + ry * out2;
   out[2] = s.cz + rz * out2;
-  out[3] = st === RECOIL ? v.headPull * 1.7 : v.headPull;
+  out[3] = (st === RECOIL ? v.headPull * 1.7 : v.headPull) * s.rush;
 }
 
 const goal = new Float32Array(4);
@@ -265,8 +313,8 @@ export function stepSwarm(s: SwarmBody, cx: number, cy: number, cz: number, px: 
     const damp = st === DEAD ? DEAD_DAMPING : v.damping;
     // (Update 0.3.42 — a lashing worm flies free, its body thrown after its head: thin worms anchored to the heap
     // fell short of you. Recoiling, the eye draws it back.)
-    const pullK = st === DEAD || st === LASH ? 0 : 1;
-    if (st !== DEAD) headGoal(s, w, px, pz, goal);
+    const pullK = st === DEAD || st === LASH || st === WAIT ? 0 : 1;
+    if (st !== DEAD && st !== WAIT) headGoal(s, w, px, pz, goal);
     for (let b = 0; b < n; b++) {
       const i = w * n + b;
       let ax = 0;
@@ -276,7 +324,7 @@ export function stepSwarm(s: SwarmBody, cx: number, cy: number, cz: number, px: 
       const ey = s.y[i] - cy;
       const ez = s.z[i] - cz;
       const ed = len3(ex, ey, ez) || 1;
-      if (b === 0 && st !== DEAD) {
+      if (b === 0 && st !== DEAD && st !== WAIT) {
         // The head swims to its goal (gently as it arrives), wriggling across its neck.
         const gx = goal[0] - s.x[i];
         const gy = goal[1] - s.y[i];
@@ -342,8 +390,29 @@ export function stepSwarm(s: SwarmBody, cx: number, cy: number, cz: number, px: 
     constrain(s, v.segment);
     if (pass === 1) collide(s);
   }
+  if (s.part > 0) partHeap(s);
   environment(s, eyeR);
   measure(s, eyeR);
+}
+
+/** Update 0.3.52 — the beads in front of its eye pushed out sideways from the way it looks, as it opens. */
+function partHeap(s: SwarmBody) {
+  const all = s.worms * s.beads;
+  for (let i = 0; i < all; i++) {
+    const ex = s.x[i] - s.cx;
+    const ey = s.y[i] - s.cy;
+    const ez = s.z[i] - s.cz;
+    const along = ex * s.partX + ez * s.partZ;
+    if (along <= 0) continue;
+    const ox = ex - along * s.partX;
+    const oz = ez - along * s.partZ;
+    const off = len3(ox, ey, oz) || 1e-3;
+    if (off >= s.part) continue;
+    const k = ((s.part - off) / off) * PART_RATE;
+    s.x[i] += ox * k;
+    s.y[i] += ey * k;
+    s.z[i] += oz * k;
+  }
 }
 
 /** Neighbours a spacing apart (each moved half the error); every other bead never closer than FOLD spacings. */
@@ -417,9 +486,17 @@ export function collide(s: SwarmBody): number {
       s.cellOf[i] = -1;
       continue;
     }
-    const ix = clampCell(((s.x[i] - x0) * inv) | 0, GX);
-    const iy = clampCell(((s.y[i] - y0) * inv) | 0, GY);
-    const iz = clampCell(((s.z[i] - z0) * inv) | 0, GZ);
+    // (Update 0.3.52 — out past the grid, no collisions: its show has them all over the room.)
+    const qx = Math.floor((s.x[i] - x0) * inv);
+    const qy = Math.floor((s.y[i] - y0) * inv);
+    const qz = Math.floor((s.z[i] - z0) * inv);
+    if (qx < -2 || qx > GX + 1 || qz < -2 || qz > GZ + 1 || qy > GY + 1) {
+      s.cellOf[i] = -1;
+      continue;
+    }
+    const ix = clampCell(qx, GX);
+    const iy = clampCell(qy, GY);
+    const iz = clampCell(qz, GZ);
     const h = (ix * GY + iy) * GZ + iz;
     s.cellOf[i] = h;
     s.cellCount[h]++;

@@ -85,5 +85,11 @@ export const SWARM = group('swarm', 'The Swarm (boss)', {
   stareShove: knob(18, 0, 40, 0.5, 'Glare shove', 'How hard it throws you (m/s).'),
   stareStun: knob(4, 0.5, 10, 0.1, 'Stare stagger', 'Cancelled, it reels this long (s), open to everything.'),
   stareRecover: knob(1.5, 0.2, 5, 0.1, 'Glare recovery', 'After its glare, before it moves (s).'),
+  // Update 0.3.52 — its show.
+  showPour: knob(3.6, 1, 8, 0.1, 'Show: the flood', 'Its walls forced back, its worms flooding in from all over the floor.'),
+  showHeap: knob(1.3, 0.3, 4, 0.1, 'Show: its heap', 'Its heap closing, before its eye opens.'),
+  showSlow: knob(0.32, 0.05, 1, 0.01, 'Show: slow motion', 'The run’s speed as its eye opens (as you see it, longer).'),
+  showSweep: knob(1.6, 0.4, 4, 0.1, 'Show: its laser', 'Its laser, once round the room.'),
+  showBack: knob(1.2, 0.5, 3, 0.1, 'Show: back to you', 'The view coming back to you.'),
   coins: knob(15, 0, 300, 5, 'Swarm coins', 'Coins in its chest.'),
 });

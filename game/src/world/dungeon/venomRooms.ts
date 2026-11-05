@@ -166,27 +166,3 @@ export const VENOM_ROOMS: readonly RoomTemplate[] = [
     '..............',
   ]),
 ];
-
-/** The Scorched Grove: floor 2's boss room (the Dragon's), as rooms.ts's BOSS_ROOM but burnt: charred trees in beds of
- *  ash where its broken columns stood, more ash about (dressing.ts). */
-export const SCORCHED_ROOM: RoomTemplate = {
-  id: 'scorched grove',
-  kind: 'boss',
-  rows: quarter([
-    '...............',
-    '...............',
-    '.........E.....',
-    '...J...........',
-    '..,,...........',
-    '..,R,.......,,.',
-    '..,,........R,.',
-    '.............,.',
-    '........C......',
-    '..E............',
-    '...............',
-    '......,,.......',
-    '.....,R,.......',
-    '......,,.......',
-    '...............',
-  ]),
-};

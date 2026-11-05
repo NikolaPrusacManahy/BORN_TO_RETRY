@@ -20,7 +20,7 @@
 // silt (floor).
 // Update 0.2.23 — floor 2's Venom Garden (venomRooms.ts): , a bed of earth (flowers, short grass, plants), G a bed of
 // tall grass (it parts round what walks through it), R a tree in a bed of earth, w a web on the floor (it slows you), h
-// a wasps' hive on the wall beside this cell (floor). Its boss room is its own, scorched.
+// a wasps' hive on the wall beside this cell (floor). Its boss room is its own (Update 0.3.52: The Swarm's nest, nest.ts).
 // Update 0.2.24 — floor 3's Bone Keep (boneRooms.ts): g an open grave (Skeletons climb out), m a bed of glowing
 // mushrooms (Mushnubs come out), o a burrow (White Rabbits pop out), x a crystal cluster (a block; Skull Wraiths blink
 // to them). Its boss room is its own, the Throne Hall. The lava rooms are retired.
@@ -45,13 +45,14 @@ import { FIGHT_ROOMS as FIRST_ROOMS, quarter } from './fightRooms';
 import { KEEP_ROOMS } from './keepRooms';
 import { DESERT_ROOMS } from './desertRooms';
 import { DROWNED_ROOMS } from './drownedRooms';
-import { SCORCHED_ROOM, VENOM_ROOMS } from './venomRooms';
+import { VENOM_ROOMS } from './venomRooms';
 import { BONE_ROOMS, THRONE_ROOM } from './boneRooms';
 import { FROZEN_ROOMS } from './frozenRooms';
 import { FORGE_ROOMS } from './forgeRooms';
 import { COVE_ROOMS, SHARK_ROOM } from './coveRooms';
 import { MOON_BOSS_ROOM, MOON_ROOMS } from './moonRooms';
 import { COURTYARD_ROOM } from './courtyard';
+import { NEST_ROOM } from './nest';
 import { SHRINE_BOSS_ROOM, SHRINE_ROOMS } from './shrineRooms';
 import { realmOf } from './floorOrder';
 
@@ -184,7 +185,7 @@ export const BOSS_ROOM: RoomTemplate = {
   ]),
 };
 
-/** Update 0.2.23 — floor `floor`'s boss room: floor 2's is scorched (venomRooms.ts), floor 3's the Throne Hall
+/** Update 0.2.23 — floor `floor`'s boss room: floor 2's its own, floor 3's the Throne Hall
  *  (boneRooms.ts, Update 0.2.24), floor 6's the Shark's Graveyard (coveRooms.ts, Update 0.3.16), the rest the one above.
  *  (Update 0.3.25 — by its place, floorOrder.ts: the Venom Garden's, the Bone Keep's, Skull Cove's.) Update 0.3.29 — the
  *  Moon's, Tidebreaker's shattered crater (moonRooms.ts). Update 0.3.32 — the Shrine Dimension's Great Shrine. */
@@ -192,7 +193,8 @@ export const bossRoomOf = (floor: number): RoomTemplate => {
   const r = realmOf(floor);
   // (Update 0.3.50 — the Dungeon's, the Dragon's courtyard: courtyard.ts.)
   if (r === 'dungeon') return COURTYARD_ROOM;
-  return r === 'garden' ? SCORCHED_ROOM : r === 'keep' ? THRONE_ROOM : r === 'cove' ? SHARK_ROOM : r === 'moon' ? MOON_BOSS_ROOM : r === 'shrine' ? SHRINE_BOSS_ROOM : BOSS_ROOM;
+  // (Update 0.3.52 — the Venom Garden's, The Swarm's nest: nest.ts.)
+  return r === 'garden' ? NEST_ROOM : r === 'keep' ? THRONE_ROOM : r === 'cove' ? SHARK_ROOM : r === 'moon' ? MOON_BOSS_ROOM : r === 'shrine' ? SHRINE_BOSS_ROOM : BOSS_ROOM;
 };
 
 /** Update 0.0.13 — the shop (the designer: a room with five floor tiles, each showing something to buy). */

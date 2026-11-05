@@ -46,6 +46,7 @@ import { TIDEBREAKER } from '../../tuning/tidebreaker';
 import { OKAMI } from '../../tuning/okami';
 import { stepOkamiIntro } from './okamiShow';
 import { stepDragonIntro } from './dragonShow';
+import { stepSwarmIntro } from './swarmShow';
 
 export type BossBeat = 'waiting' | 'intro' | 'fight' | 'dying' | 'loot' | 'open';
 
@@ -63,7 +64,8 @@ export interface BossRun {
   calling: boolean;
   /** Update 0.3.36 — its show to be skipped (SPACE). */
   skip: boolean;
-  /** Update 0.3.50 — the Dragon's own show, in its own courtyard (a Dragon anywhere else rises out of a portal). */
+  /** Update 0.3.50 — its own show, in its own room (the Dragon's; Update 0.3.52, The Swarm's): off, it rises out of the shared
+   *  portal (the shared intro's tests). */
   ownShow: boolean;
 }
 
@@ -78,7 +80,7 @@ const CALL_CLEAR = 8;
 const FIRST_MOVE = 1;
 
 export function createBossRun(kind: EnemyKind = 'dragon'): BossRun {
-  return { kind, stance: false, beat: 'waiting', t: 0, slot: -1, summon: 0, calling: false, skip: false, ownShow: kind === 'dragon' };
+  return { kind, stance: false, beat: 'waiting', t: 0, slot: -1, summon: 0, calling: false, skip: false, ownShow: kind === 'dragon' || kind === 'swarm' };
 }
 
 /** Update 0.0.18 — who a boss calls once it rages, how many and how often (s) (Update 0.0.21: only the Demon called;
@@ -170,6 +172,11 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
       // (Update 0.3.50 — the Dragon's: dragonShow.ts.)
       if (b.kind === 'dragon' && b.ownShow && level) {
         stepDragonIntro(b, level, player, combat, dt);
+        break;
+      }
+      // (Update 0.3.52 — The Swarm's: swarmShow.ts.)
+      if (b.kind === 'swarm' && b.ownShow && level) {
+        stepSwarmIntro(b, level, player, combat, dt);
         break;
       }
       // (Update 0.3.34 — Yokai : Okami's: okamiShow.ts.)

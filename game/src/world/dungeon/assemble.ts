@@ -26,6 +26,7 @@ import type { Cell, RoomKind } from './rooms';
 import type { EnemyKind } from '../../sim/enemies/kinds';
 import { styleOf } from './styles';
 import { tallBoxes } from './tallWalls';
+import { nestBoxes } from './nest';
 import { hasYeti } from '../../sim/dungeon/wavePlan';
 import { columnBoxes } from './columns';
 import { IcicleSpot, iciclesOf } from './frozen';
@@ -214,6 +215,8 @@ export function buildDungeon(plan: FloorPlan): DungeonLevel {
   const pillars = columnBoxes(plan, HEIGHT.column!, boxes);
   // (Update 0.3.16 — a tall boss room's walls, over its doorways too.)
   tallBoxes(plan, boxes);
+  // (Update 0.3.52 — The Swarm's nest's round wall.)
+  if (styleOf(plan.level).id === 'venom') nestBoxes(plan, boxes);
   // Update 0.2.4 — the desert's palms and cacti; its quicksand.
   for (let row = 0; row < GRID; row++) {
     for (let col = 0; col < GRID; col++) {

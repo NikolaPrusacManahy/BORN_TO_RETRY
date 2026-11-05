@@ -15,6 +15,7 @@ import { DEAD, DEAD_FADE, GONE, LASH, MAX_BEADS, MAX_WORMS, WINDUP, type SwarmBo
 import { swarmWindup } from '../../sim/enemies/swarm';
 import { eyeOf, FAN_LASERS, fanReach, fanYaw, GAZE, pupilNow, SPLIT, STARE, TEARS } from '../../sim/enemies/swarmMoves';
 import { BeamView } from '../boss/beamView';
+import { EYE_OPENING, EYE_SHUT, EYE_SWEEP } from '../../sim/dungeon/swarmShow';
 import { WormlingsView } from './wormlingsView';
 import { swarmEyeHeight } from '../../sim/enemies/swarmHits';
 import { SWARM } from '../../tuning/swarm';
@@ -49,6 +50,8 @@ const to = new THREE.Vector3();
 const LASER = 0.4;
 const TRI = 0.3;
 const PUPIL_R = 0.22;
+/** In its show, its eye takes this long to come fully out (s of the run's). */
+const OPEN_SEEN = 1.1;
 
 /** The Swarm in play (its slot in use), if any. */
 export function swarmIn(state: CombatState): Enemy | null {
@@ -140,10 +143,28 @@ export class SwarmView {
     this.eye.scale.setScalar(r);
     this.iris.lookAt(look.copy(camera));
     this.moves(e, state, dt);
+    this.inShow(e);
     for (let i = 0; i < state.events.length; i++) if (state.events.at(i).kind === 'swarmEye') this.flash = 0.15;
     this.flash = Math.max(0, this.flash - dt);
     const red = e.phase === 'blast' ? 0.5 + 0.4 * Math.sin(this.time * 8) : 0;
     this.ballMat.emissive.setRGB(this.flash * 6 + red, this.flash * 5 + red * 0.04, this.flash * 5 + red * 0.08);
+  }
+
+  /** Update 0.3.52 — in its show: shut in its heap, opening (its pupil a slit widening), its laser going round. */
+  private inShow(e: Enemy) {
+    const showing = e.phase === 'intro' && e.move >= EYE_SHUT;
+    this.eye.visible = !(showing && e.move === EYE_SHUT);
+    if (!showing) return;
+    if (e.move === EYE_OPENING) {
+      const k = Math.min(1, e.t / OPEN_SEEN);
+      this.eye.scale.multiplyScalar(0.25 + 0.75 * k * k * (3 - 2 * k));
+      this.pupil.scale.set(0.2 + 0.5 * k, 1, 1);
+    }
+    if (e.move === EYE_SWEEP) {
+      eyeOf(e, from);
+      this.iris.lookAt(look.copy(e.aim));
+      this.lasers[0].update(from, e.aim, LASER * 1.5, 1, this.time);
+    }
   }
 
   /** Update 0.3.51 — its eye as its move has it, its lasers, its shield, its big worms. */

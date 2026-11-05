@@ -19,7 +19,7 @@
 // dressExtras.ts's; sand cells get no paving.
 // Update 0.2.9 — the walls' and ledges' cores moved to cores.ts, with feet under them and behind a pit's faces: the sky no
 // longer shows along their feet.
-// Update 0.2.23 — floor 2's Venom Garden (gardenDressing.ts): beds, tall grass, trees, webs, cobwebs, the boss room's ash;
+// Update 0.2.23 — floor 2's Venom Garden (gardenDressing.ts): beds, tall grass, trees, webs, cobwebs;
 // 0.2.24, floor 3's Bone Keep (keepDressing.ts), both through ownDressing.ts. 0.3.16 — tall boss walls (tallWalls.ts).
 import { createRng } from '../../core/rng';
 import { CELL, cellAt, cellX, cellZ, FloorPlan, GRID, Side } from './floorPlan';

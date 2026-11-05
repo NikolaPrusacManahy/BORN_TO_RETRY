@@ -2,13 +2,14 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-05, after Update 0.3.51)
-- **Version 0.3.51** (The Swarm by the Boss Design Bible), built and copied to main, **not committed** until the designer
-  says "commit". 0.3.50 is committed (`3a3921c`), not pushed; the designer pushes through GitHub Desktop.
+## Where things stand (2026-11-05, after Update 0.3.52)
+- **Versions 0.3.51 and 0.3.52** (The Swarm by the Boss Design Bible; its nest and intro), built and copied to main, **not
+  committed** until the designer says "commit". 0.3.50 is committed (`3a3921c`), not pushed; the designer pushes through
+  GitHub Desktop.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
-  ("Keep them, adapt"). In floor order. **The Dragon is done (0.3.49, 0.3.50). The Swarm's moves are done (0.3.51); its room and intro next, then the Bone King.**
+  ("Keep them, adapt"). In floor order. **The Dragon is done (0.3.49, 0.3.50). The Swarm is done (0.3.51, 0.3.52). The Bone King is next.**
   Its ultimate is on `sim/enemies/ultimate.ts`, for the rest to share. Kit clashes still to meet: the slide (gone since
   0.3.20; the bible's Sky Clap, Pillar Swing, Tail Lash), boss melee can't be parried and parry is bare-handed, four
   ultimates cancel by shooting (count any ranged hit, and give fists a parryable shot), the audio has no left/right (the
@@ -30,8 +31,8 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
     Hellwarden and its show. The plan's open questions (the Demon back? echo rooms a run? The Retrier? more packs?)
     are still the designer's.
   - **The Swarm, the Venom Garden's boss** (the designer's spec `MD/the-knot-3d-boss.md`, named The Swarm; its reel
-    read frame by frame in 0.3.42): its heap's from that spec; its moves are the bible's since 0.3.51. Its own room and
-    intro next; real sounds.
+    read frame by frame in 0.3.42): its heap's from that spec; its moves are the bible's since 0.3.51, its room and intro
+    its own since 0.3.52. Real sounds still to come.
   - **Executions reworked with the animation library** (started 0.3.40, the designer: "make stuff more accurate"):
     - the Orc's is done (its body's own clips, your claw on its face, the library's uppercut, the burst where you
       hold it), awaiting the designer's word on its renders and play;
@@ -40,12 +41,12 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
     - then the other executions (the Ghost's 16, the old Yeti punch's 11), the same way.
   - **Okami's rage and frenzy:** not built. The plan's first idea, in `MD/FLOOR8_SHRINE_PLAN.md`, is a petal storm with
     shadow clones, its markings blazing.
-  - **Each boss its own room (the designer, 0.3.50):** done for the Dragon; The Swarm, the Bone King, the Big Shark, Okami
-    and Tidebreaker already had their own; still on the shared `BOSS_ROOM`: the Frost Roc, the Drowned King, the
+  - **Each boss its own room (the designer, 0.3.50):** done for the Dragon and The Swarm; the Bone King, the Big Shark,
+    Okami and Tidebreaker already had their own; still on the shared `BOSS_ROOM`: the Frost Roc, the Drowned King, the
     Velociraptor, floor 10.
   - **Boss intros at Tidebreaker's quality:**
-    - done for the Big Shark, Tidebreaker, Okami and the Dragon;
-    - still on the shared portal intro: The Swarm, the Bone King, the Velociraptor, the Drowned King and the Frost Roc
+    - done for the Big Shark, Tidebreaker, Okami, the Dragon and The Swarm;
+    - still on the shared portal intro: the Bone King, the Velociraptor, the Drowned King and the Frost Roc
       (the Demon's gone);
     - Hellwarden gets one when it's built.
   - **Hellwarden,** floor 10's boss: `MD/FLOOR10_HELL_PLAN.md`; a Bestiary model animated with `tools/ual_bake.py`.
@@ -68,7 +69,13 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-05, Update 0.3.51: The Swarm by the Boss Design Bible)
+## Last update (2026-11-05, Update 0.3.52: The Swarm's nest and its intro)
+- **The designer**: "each boss their designed room", "very good, now next boss". Spec `MD_UPDATES/U0352_SWARM_NEST.md`.
+- **Built:** `world/dungeon/nest.ts` (round, its wall of flesh, its ring of boxes behind it); its show (`sim/dungeon/swarmShow.ts`,
+  `engine/swarm/swarmCinema.ts`, `swarmShowView.ts`): its real worms flooding in. Test: `test-swarm-show.ts`.
+- **Unseen:** not played. Checked in Blender renders of the real worm sim; its motion and the game's own materials not seen.
+
+## Before (2026-11-05, Update 0.3.51: The Swarm by the Boss Design Bible)
 - **The designer**: "very good, now next boss". Spec `MD_UPDATES/U0351_SWARM_BIBLE.md`.
 - **Built:** Gaze Beam, Burrow Ambush, Acid Tears; below half Tethered Shield and Split Pupil; Abyssal Stare on the shared
   ultimate. Its worms still lash on their own timer. Tests: `test-swarm-moves.ts`.

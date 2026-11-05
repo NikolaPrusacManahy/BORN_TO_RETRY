@@ -88,6 +88,9 @@ export type CombatEvent =
   | 'swarmHeart'
   | 'swarmBroken'
   | 'swarmGlare'
+  // Update 0.3.52 — its show: its walls going and its flood starting, its eye opening.
+  | 'swarmPour'
+  | 'swarmOpen'
   | 'demonCharge'
   | 'demonGore'
   | 'demonCrash'

@@ -1,5 +1,5 @@
 // Update 0.2.23 — floor 2's Venom Garden (the designer: floors "need to match their enemies"): its look, its own rooms
-// and scorched boss room, plants only in beds, webs that slow you, sludge that poisons, and the wasps' hives (they let
+// and its boss room (The Swarm's nest since Update 0.3.52: test-swarm-show.ts), plants only in beds, webs that slow you, sludge that poisons, and the wasps' hives (they let
 // wasps out while their room fights; punched down, they stop).
 import { Vector3 } from 'three';
 import { parseUntextured } from './fakes/glb';
@@ -45,13 +45,13 @@ section('Venom Garden — the floor');
   const venom = VENOM_ROOMS.map((t) => t.id);
   check('nine rooms of its own, and only those (floor 1 and 3 have none of them)', venom.length === 9 && on(2).every((id) => venom.includes(id)) && on(2).length === 9 && !on(1).some((id) => venom.includes(id)) && !on(3).some((id) => venom.includes(id)));
   check('no lava rooms on floors 1–2', !on(1).includes('lava lake') && !on(2).includes('lava lake') && !on(2).includes('bone bridges'));
-  check('its boss room is the Scorched Grove; the others keep theirs', bossRoomOf(FLOOR.garden).id === 'scorched grove' && bossRoomOf(FLOOR.dungeon).id === 'the burnt courtyard' && bossRoomOf(FLOOR.desert).id === 'boss');
+  check('its boss room is The Swarm’s nest (Update 0.3.52); the others keep theirs', bossRoomOf(FLOOR.garden).id === 'the nest' && bossRoomOf(FLOOR.dungeon).id === 'the burnt courtyard' && bossRoomOf(FLOOR.desert).id === 'boss');
   const living = new Set([...VENOM_PIECES.plants, ...VENOM_PIECES.tall, ...VENOM_PIECES.trees]);
   const charred = new Set([...VENOM_PIECES.burnt, ...VENOM_PIECES.ash]);
   let bad = '';
   let sludge = 0;
   let grass = 0;
-  let scorchOut = 0;
+  let scorched = 0;
   for (let seed = 1; seed <= 24 && !bad; seed++) {
     const plan = planFloor(seed, FLOOR.garden);
     const look = dress(plan);
@@ -66,20 +66,20 @@ section('Venom Garden — the floor');
       const cell = cellAt(plan, colAt(p.x), rowAt(p.z));
       if (VENOM_PIECES.tall.includes(p.piece)) grass++;
       if ((living.has(p.piece) || VENOM_PIECES.burnt.includes(p.piece)) && !SANDY.has(cell)) bad ||= `seed ${seed}: ${p.piece} on ${cell}`;
-      if (living.has(p.piece) && inBoss(p.x, p.z)) bad ||= `seed ${seed}: ${p.piece} alive in the Scorched Grove`;
-      if (VENOM_PIECES.burnt.includes(p.piece) && !inBoss(p.x, p.z)) bad ||= `seed ${seed}: a charred tree out of the boss room`;
+      if (living.has(p.piece) && inBoss(p.x, p.z)) bad ||= `seed ${seed}: ${p.piece} alive in the nest`;
+      if (VENOM_PIECES.burnt.includes(p.piece)) bad ||= `seed ${seed}: a charred tree on this floor`;
+      if (VENOM_PIECES.webs.includes(p.piece) && inBoss(p.x, p.z)) bad ||= `seed ${seed}: a cobweb in the nest`;
     }
     // Its bushes (low cover) too: each in a bed, no paving under it.
     for (const p of look.pieces) {
       if (p.piece !== VENOM.low) continue;
       if (!look.sand.some((s) => s.x === p.x && s.z === p.z) || look.pieces.some((f) => f.piece === VENOM.floor && f.x === p.x && f.z === p.z)) bad ||= `seed ${seed}: a bush on paving`;
     }
-    for (const s of look.marks.scorch) if (!inBoss(s.x, s.z)) scorchOut++;
-    if (!look.sand.filter((s) => s.ash).every((s) => inBoss(s.x, s.z))) bad ||= `seed ${seed}: ash out of the boss room`;
-    if (!look.sand.some((s) => s.ash)) bad ||= `seed ${seed}: the Scorched Grove has no ash`;
+    scorched += look.marks.scorch.length;
+    if (look.sand.some((s) => s.ash || inBoss(s.x, s.z))) bad ||= `seed ${seed}: a bed in the nest, or ash`;
   }
-  check('24 floors: every plant, bush, clump of grass and tree grows out of a bed, never paving; the boss room’s are ash and charred', !bad, bad);
-  check('scorch marks only in the boss room; sludge in the pits; tall grass where the snakes hunt', scorchOut === 0 && sludge > 0 && grass > 0, `${scorchOut} ${sludge} ${grass}`);
+  check('24 floors: every plant, bush, clump of grass and tree grows out of a bed, never paving; none in the nest, its floor is flesh', !bad, bad);
+  check('no scorch marks now; sludge in the pits; tall grass where the snakes hunt', scorched === 0 && sludge > 0 && grass > 0, `${scorched} ${sludge} ${grass}`);
   check('its charred pieces are recoloured whole', charred.size > 0 && VENOM_PIECES.burnt.every((p) => VENOM.burnt?.[p] !== undefined));
   // (Update 0.3.14 — the kit has a texture now, floor 6's palette: taken out to parse it in Node.)
   const kit = await parseUntextured(new URL('../public/models/dungeon/kit.glb', import.meta.url));

@@ -80,6 +80,13 @@ export function foes2Feedback(f: FeedbackParts, kind: CombatEvent, value: number
       f.sparks.spawn(at, UP, 50, 2.2);
       break;
     // Update 0.3.51 — The Swarm's eye.
+    case 'swarmPour':
+      f.waves.spawn(at, 18, 0xc25665);
+      f.chunks.spawn(at, UP, 26, 1.6);
+      break;
+    case 'swarmOpen':
+      f.sparks.spawn(at, UP, 26, 1.2);
+      break;
     case 'swarmBurst':
       f.chunks.spawn(at, UP, 22, 1.2);
       f.sparks.spawn(at, UP, 10, 0.9);

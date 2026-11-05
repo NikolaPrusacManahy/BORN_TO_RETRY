@@ -26,6 +26,7 @@ import { BOSS_ROOM, Cell, FIGHT_ROOMS, layOut, SHOP_ROOM, START_ROOM } from '../
 import { CORE_INSET, dress, KIT } from '../src/world/dungeon/dressing';
 import { HEIGHT } from '../src/world/dungeon/assemble';
 import { buildNavGrid, colOf, freeAt, rowOf } from '../src/world/navGrid';
+import { NEST_RADIUS, NEST_ROOM } from '../src/world/dungeon/nest';
 
 section('Dungeon — the rooms');
 {
@@ -119,9 +120,14 @@ section('Dungeon — a floor');
       for (const s of room.spawns) {
         if (!freeAt(nav, s.x, s.z) || flow.dist[rowOf(nav, s.z) * nav.cols + colOf(nav, s.x)] < 0) bad ||= `seed ${seed}: a spawn in room ${room.index} (${id}) is stuck`;
       }
-      // No pocket of floor the grunts can't get into (you'd be safe from them there).
+      // No pocket of floor the grunts can't get into (you'd be safe from them there). (Update 0.3.52 — the floor behind
+      // the nest's ring is shut off from you too: test-swarm-show.ts.)
       let pockets = 0;
-      for (let i = 0; i < nav.blocked.length; i++) if (!nav.blocked[i] && flow.dist[i] < 0) pockets++;
+      for (let i = 0; i < nav.blocked.length; i++) {
+        if (nav.blocked[i] || flow.dist[i] >= 0) continue;
+        const out = Math.hypot(nav.minX + ((i % nav.cols) + 0.5) * nav.cell - level.boss.portal.x, nav.minZ + (Math.floor(i / nav.cols) + 0.5) * nav.cell - level.boss.portal.z);
+        if (id !== NEST_ROOM.id || out <= NEST_RADIUS) pockets++;
+      }
       if (pockets > 0) bad ||= `seed ${seed}: room ${room.index} (${id}) has ${pockets} cells the grunts can't reach`;
     }
   }

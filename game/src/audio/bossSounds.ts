@@ -77,6 +77,16 @@ export function playBoss(a: AudioEngine, kind: CombatEvent, value: number, far: 
       noise(a, { dur: 1.1, gain: 0.9, filter: 'lowpass', from: 3600, to: 80 });
       tone(a, { from: 900, to: 40, dur: 1, gain: 0.6, type: 'sawtooth' });
       return true;
+    // Update 0.3.52 — its show.
+    case 'swarmPour':
+      noise(a, { dur: SWARM.v.showPour, gain: 0.8, filter: 'lowpass', from: 500, to: 1600 });
+      noise(a, { dur: SWARM.v.showPour, gain: 0.35, filter: 'bandpass', from: 1800, to: 3200, q: 1 });
+      tone(a, { from: 40, to: 70, dur: SWARM.v.showPour, gain: 0.5, type: 'sawtooth' });
+      return true;
+    case 'swarmOpen':
+      tone(a, { from: 60, to: 420, dur: 1.6, gain: 0.5, type: 'sawtooth' });
+      noise(a, { dur: 1.6, gain: 0.3, filter: 'bandpass', from: 300, to: 1200, q: 2 });
+      return true;
     case 'swarmWindup':
       noise(a, { dur: SWARM.v.lashWindup, gain: 0.35 * loud, filter: 'bandpass', from: 300, to: 1400, q: 2.5 });
       tone(a, { from: 110, to: 240, dur: SWARM.v.lashWindup, gain: 0.18 * loud, type: 'square' });

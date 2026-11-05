@@ -21,7 +21,7 @@ import { dressHell } from './hell';
 import type { Cell } from './rooms';
 import type { DungeonStyle } from './styles';
 
-/** Marks on the floor: floor 2's webs' sheets and its boss room's scorch marks; floor 3's open graves, burrows and
+/** Marks on the floor: floor 2's webs' sheets; the Dragon's courtyard's scorch marks; floor 3's open graves, burrows and
  *  mushrooms. */
 export interface Marks {
   webs: Mark[];
@@ -90,7 +90,7 @@ export function dressOwnCell(c: Cell, x: number, z: number, boss: boolean, rng: 
 
 /** The floor's own dressing over its rooms (`inRoom`: each cell's room, −1: none). */
 export function dressOwnRooms(K: DungeonStyle, plan: FloorPlan, inRoom: Int16Array, nearDoor: (col: number, row: number) => boolean, rng: Rng, put: Put, marks: Marks) {
-  if (K.id === 'venom') dressGarden(plan, inRoom, nearDoor, rng, put, marks.scorch);
+  if (K.id === 'venom') dressGarden(plan, inRoom, nearDoor, rng, put);
   if (K.bossTowers) dressCourtyard(K, plan, rng, put, marks.scorch);
   if (K.id === 'bone') dressKeep(plan, inRoom, nearDoor, rng, put);
   if (K.id === 'cove') dressCove(plan, rng, put);

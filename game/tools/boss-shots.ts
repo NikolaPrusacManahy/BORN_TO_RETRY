@@ -24,6 +24,17 @@ import { BIG_SHARK } from '../src/tuning/bigShark';
 import { SharkCinema } from '../src/engine/boss/sharkCinema';
 import { OkamiCinema } from '../src/engine/shrine/okamiCinema';
 import { DragonCinema } from '../src/engine/boss/dragonCinema';
+import { SwarmCinema } from '../src/engine/swarm/swarmCinema';
+import { SwarmShowView } from '../src/engine/swarm/swarmShowView';
+import { SwarmView } from '../src/engine/swarm/swarmView';
+import { createRng } from '../src/core/rng';
+import { createCombat } from '../src/sim/combat/state';
+import { wallsOpen } from '../src/sim/dungeon/bossRoom';
+import { createDungeonRun, stepRooms } from '../src/sim/dungeon/roomLoop';
+import { updateEnemies } from '../src/sim/enemies/update';
+import { createPlayer } from '../src/sim/player/state';
+import { bossRoomStart } from '../src/world/dungeon/bossStart';
+import { swarmBeats } from '../src/sim/dungeon/swarmShow';
 import { dragonAt, dragonBeats, dragonPose } from '../src/sim/dungeon/dragonShow';
 import { okamiBeats } from '../src/sim/dungeon/okamiShow';
 import { kitOf } from '../src/world/dungeon/okamiIsles';
@@ -114,6 +125,9 @@ const cams = [
   { name: 'boss-gate-close', at: [g.x - g.ox * 4, 1.6, g.z - g.oz * 4], to: [g.x + g.ox * 3, 1.5, g.z + g.oz * 3] },
 ];
 const kind = bossOf(floor);
+/** Update 0.3.52 — code-made meshes, baked (positions, colours, triangles). */
+const meshes: { pos: number[]; rgb: number[]; idx: number[] }[] = [];
+const k2 = { value: k };
 const demon = { x: b.portal.x, z: b.portal.z, yaw: Math.atan2(-(eye.x - b.portal.x), -(eye.z - b.portal.z)), height: ENEMY_STATS[kind]().height };
 if (kind === 'bigShark') {
   const sc = new SharkCinema(b.portal);
@@ -141,6 +155,76 @@ if (kind === 'okami' && level.okami) {
   cams.splice(1, 2, at('okami-merge', (ob.mergeFrom + ob.mergeTo) / 2), at('okami-temples', ob.temple[2]), at('okami-crash', ob.crashTo - 0.2));
   Object.assign(demon, { x: o.landing.x, z: o.landing.z, yaw: Math.atan2(-(o.safe.x - o.landing.x), -(o.safe.z - o.landing.z)) });
 }
+if (kind === 'swarm') {
+  // (Update 0.3.52 — its show's own shots.)
+  const sc = new SwarmCinema(level);
+  sc.start(eye, new THREE.Vector3(-ex, 0, -ez));
+  const sb = swarmBeats();
+  const when = { high: sb.pourFrom + 0.9, low: sb.heapFrom - 0.4, heap: sb.openFrom - 0.2, open: (sb.slowFrom + sb.slowTo) / 2, sweep: sb.sweepFrom + 0.6 };
+  const at = (t: number) => (sc.intro(t, eye, shot), { at: shot.pos.toArray(), to: shot.look.toArray() });
+  cams.splice(1, 2, ...(Object.keys(when) as (keyof typeof when)[]).map((n) => ({ name: `swarm-${n}`, ...at(when[n]) })));
+  // Its flesh (made in code) and, at `--beat=`, its real worms and eye, run to that moment.
+  const bake = (root: THREE.Object3D) => {
+    root.updateMatrixWorld(true);
+    root.traverse((o) => {
+      if (!(o instanceof THREE.Mesh) || !o.visible) return;
+      for (let up: THREE.Object3D | null = o; up; up = up.parent) if (!up.visible) return;
+      const g = o.geometry as THREE.BufferGeometry;
+      const at = g.getAttribute('position');
+      const col = g.getAttribute('color');
+      const base = o.material instanceof THREE.MeshStandardMaterial || o.material instanceof THREE.MeshBasicMaterial ? o.material.color : new THREE.Color(0.5, 0.5, 0.5);
+      const copies = o instanceof THREE.InstancedMesh ? o.count : 1;
+      const idx = g.getIndex();
+      const tris = idx ? Array.from(idx.array) : Array.from({ length: at.count }, (_, i) => i);
+      for (let c = 0; c < copies; c++) {
+        const mw = new THREE.Matrix4();
+        if (o instanceof THREE.InstancedMesh) {
+          o.getMatrixAt(c, mw);
+          mw.premultiply(o.matrixWorld);
+        } else mw.copy(o.matrixWorld);
+        const pos: number[] = [];
+        const rgb: number[] = [];
+        const v3 = new THREE.Vector3();
+        for (let i = 0; i < at.count; i++) {
+          v3.fromBufferAttribute(at, i).applyMatrix4(mw);
+          pos.push(v3.x, v3.y, v3.z);
+          if (col) rgb.push(col.getX(i), col.getY(i), col.getZ(i));
+          else rgb.push(base.r, base.g, base.b);
+        }
+        meshes.push({ pos, rgb, idx: tris });
+      }
+    });
+  };
+  const sv = new SwarmShowView(level);
+  bake(sv.group);
+  const beat = process.argv.find((a) => a.startsWith('--beat='))?.slice(7) as keyof typeof when | undefined;
+  if (beat) {
+    const run = createDungeonRun(level);
+    const combat = createCombat(level.arena, false);
+    const st = bossRoomStart(level);
+    const pl = createPlayer(st.x, 0, st.z, st.yaw);
+    pl.grounded = true;
+    const rng = createRng(3);
+    const DT = 1 / 120;
+    for (let i = 0; i < 60 && run.boss.beat !== 'intro'; i++) {
+      stepRooms(run, pl, combat, rng, DT);
+      updateEnemies(combat.enemies, pl, combat, { rayDistance: () => Infinity } as never, DT);
+      combat.events.clear();
+    }
+    while (run.boss.beat === 'intro' && run.boss.t < when[beat]) {
+      stepRooms(run, pl, combat, rng, DT);
+      updateEnemies(combat.enemies, pl, combat, { rayDistance: () => Infinity } as never, DT);
+      combat.events.clear();
+    }
+    const sc2 = new THREE.Scene();
+    const view = new SwarmView(sc2);
+    view.update(combat, eye, 1, DT);
+    bake(sc2);
+    console.log(`at ${run.boss.t.toFixed(2)} s, walls ${wallsOpen(run.boss).toFixed(2)}`);
+    // Its walls as they are then.
+    k2.value = wallsOpen(run.boss);
+  }
+}
 if (kind === 'dragon') {
   // (Update 0.3.50 — its show's own shots, it placed for one of them: `--beat=pass|high|low|climb|fall|scream`.)
   const dc = new DragonCinema(level);
@@ -159,5 +243,5 @@ const floors = level.arena.boxes.filter((x) => x.kind === 'floor').map((x) => ({
 // (The Drowned King's room in its flood.)
 const end = b.end;
 const water = kind === 'drownedKing' || kind === 'bigShark' ? { level: kind === 'bigShark' ? BIG_SHARK.v.floodTop : DROWNED.v.floodDeep, rooms: [{ x: (end.min.x + end.max.x) / 2, z: (end.min.z + end.max.z) / 2, w: end.max.x - end.min.x, d: end.max.z - end.min.z }] } : null;
-writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ seed, floor, pieces, water, gates: d.gates, torches: d.torches, cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, sand: d.sand, boxes, demon, floors }));
+writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ meshes, seed, floor, pieces, water, gates: d.gates, torches: d.torches, cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, sand: d.sand, boxes, demon, floors }));
 console.log(`seed ${seed}: boss room ${b.room} (entrance ${b.entrance}), walls at ${k}, gate ${open ? 'open' : 'shut'}, ${pieces.length} pieces, ${boxes.length} gate boxes`);

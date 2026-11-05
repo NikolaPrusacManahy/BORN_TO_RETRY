@@ -32,6 +32,33 @@ from demon_at import demon_at  # noqa: E402 (Update 0.3.16 — the boss in its s
 import hell_look  # noqa: E402
 
 
+def add_baked_mesh(m, index):
+    """Update 0.3.52 — a mesh baked to world space (game y up), its colours per vertex."""
+    pos = m['pos']
+    verts = [(pos[i], -pos[i + 2], pos[i + 1]) for i in range(0, len(pos), 3)]
+    idx = m['idx']
+    faces = [(idx[i], idx[i + 1], idx[i + 2]) for i in range(0, len(idx), 3)]
+    me = bpy.data.meshes.new('baked%d' % index)
+    me.from_pydata(verts, [], faces)
+    me.validate()
+    me.shade_smooth()
+    col = me.color_attributes.new('Col', 'FLOAT_COLOR', 'POINT')
+    rgb = m['rgb']
+    for i in range(len(me.vertices)):
+        col.data[i].color = (rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2], 1)
+    mat = bpy.data.materials.get('baked')
+    if mat is None:
+        mat = bpy.data.materials.new('baked')
+        mat.use_nodes = True
+        node = mat.node_tree.nodes.new('ShaderNodeVertexColor')
+        node.layer_name = 'Col'
+        bsdf = mat.node_tree.nodes['Principled BSDF']
+        bsdf.inputs['Roughness'].default_value = 0.4
+        mat.node_tree.links.new(node.outputs['Color'], bsdf.inputs['Base Color'])
+    me.materials.append(mat)
+    o = bpy.data.objects.new('baked%d' % index, me)
+    bpy.context.scene.collection.objects.link(o)
+
 def parse_args():
     argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
     p = argparse.ArgumentParser()
@@ -382,6 +409,9 @@ def main():
     recolour(style, protos)
     sand_cells(data.get('sand', []), style)
     water_sheets(data, style)
+    # Update 0.3.52 — code-made meshes (The Swarm's flesh and worms: boss-shots.ts), with their vertex colours.
+    for i, mesh in enumerate(data.get('meshes', [])):
+        add_baked_mesh(mesh, i)
     if args.demon and data.get('demon'):
         demon_at(args.demon, data['demon'])
     for pad in data['pads']:
