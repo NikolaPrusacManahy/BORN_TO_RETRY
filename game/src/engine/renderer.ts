@@ -8,7 +8,8 @@ export function createRenderer(container: HTMLElement): THREE.WebGLRenderer {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // (Update 0.3.55 — PCFSoftShadowMap is gone from three.js: it warned and used this anyway.)
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.domElement.className = 'rb-canvas';
   container.appendChild(renderer.domElement);
   return renderer;

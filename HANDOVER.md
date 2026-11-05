@@ -2,9 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-05, after Update 0.3.54)
-- **Versions 0.3.53 and 0.3.54** (the Bone King by the Boss Design Bible, its pit; its intro), built and copied to main, **not
-  committed** until the designer says "commit". 0.3.52 is committed (`4e07d26`), not pushed; the designer pushes through GitHub Desktop.
+## Where things stand (2026-11-05, after Update 0.3.55)
+- **Version 0.3.55** (the removed shadow setting), built and copied to main, **not committed** until the designer says
+  "commit". 0.3.54 is committed (`838ab48`), not pushed; the designer pushes through GitHub Desktop.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
@@ -68,7 +68,14 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-05, Update 0.3.54: the Bone King's intro)
+## Last update (2026-11-05, Update 0.3.55: the removed shadow setting)
+- **The designer**: "Yes, fix it". Spec `MD_UPDATES/U0355_SHADOW_TYPE.md`.
+- **Built:** `engine/renderer.ts` asks for `PCFShadowMap`, which three.js was already falling back to.
+- **Also:** CloudAI-X/threejs-skills are installed in `.claude/skills` (three.js r186 reference, not committed). The project's own
+  rules win over them.
+- **Unseen:** not looked at in the game; shadows should look the same.
+
+## Before (2026-11-05, Update 0.3.54: the Bone King's intro)
 - **The designer**: "just go next boss, arena / moves and intro". Spec `MD_UPDATES/U0354_BONE_KING_SHOW.md`.
 - **Built:** `sim/dungeon/kingShow.ts`, `engine/boss/kingCinema.ts`. Test: `test-king-show.ts`.
 - **Unseen:** not played. Checked in Blender renders of the real shots and pose code; its motion not seen.
