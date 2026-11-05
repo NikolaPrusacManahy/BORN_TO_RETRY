@@ -73,6 +73,10 @@ const SHADOW_REACH = 40;
 /** Update 0.0.15 — the boss room's sliding walls: dark masses seen from above (their faces are brick). */
 const SHELL = new THREE.Color().setRGB(0.06, 0.048, 0.04);
 
+/** Update 0.3.51 — a boss's move darkening the room: at its darkest, this much of the light's gone (the designer wants play spaces bright: never all of it), easing this fast. */
+const DARKEST = 0.72;
+const DARK_RATE = 3;
+
 export class DungeonView implements ArenaView {
   readonly group = new THREE.Group();
   readonly loaded: Promise<void>;
@@ -211,6 +215,7 @@ export class DungeonView implements ArenaView {
   update(dt: number, run: DungeonRun, at: THREE.Vector3, flood = 0, kicks = 0) {
     const shut = run.shut;
     this.daylight(at, wideOf(run.boss));
+    this.darken(run.boss.slot >= 0 ? this.darkWanted : 0, dt);
     this.areas?.update(at);
     this.under?.update(dt, at, kicks);
     const b = run.boss;
@@ -235,6 +240,20 @@ export class DungeonView implements ArenaView {
       this.bars[i].visible = Math.abs(this.barsY[i] - style.barsHidden) > 0.01;
     }
     this.tide?.update(b, at);
+  }
+
+  /** Update 0.3.51 — how dark a boss's move wants the room (0..1: The Swarm's stare; the run sets it). */
+  darkWanted = 0;
+  private dark = 0;
+
+  /** The light dimmed by how dark the room's gone, easing in and out. */
+  private darken(want: number, dt: number) {
+    this.dark += (want - this.dark) * Math.min(1, DARK_RATE * dt);
+    if (this.dark < 0.001) return;
+    const k = 1 - DARKEST * this.dark;
+    this.sky.intensity *= k;
+    this.sun.intensity *= k;
+    this.haze.color.multiplyScalar(k);
   }
 
   /** The light knobs as they are now, and the sun's shadows kept round you. `wide`: the haze pushed out (0..1). */

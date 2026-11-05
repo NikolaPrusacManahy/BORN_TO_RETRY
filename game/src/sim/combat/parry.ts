@@ -14,6 +14,7 @@ import { isLive } from '../enemies/enemy';
 import { launch } from '../enemies/flight';
 import { ENEMY_STATS } from '../enemies/kinds';
 import { chill } from '../cards/cardMoves';
+import { tearStruck } from '../enemies/swarmMoves';
 import { heavyPowers } from '../cards/cardPowers';
 import { segmentDistance } from './geometry';
 import type { CombatState } from './state';
@@ -87,7 +88,11 @@ export function stepParried(state: CombatState, world: CollisionWorld, dt: numbe
     if (nearestTarget(state, o.pos, next, r, hit)) {
       o.alive = false;
       const flat = Math.hypot(o.vel.x, o.vel.z) || 1;
+      // (Update 0.3.51 — a tear sent back goes through The Swarm's worms to its eye, and it reels.)
+      const eye = hit.kind === 'enemy' && o.look === 'tear' && state.enemies[hit.index].kind === 'swarm' ? state.enemies[hit.index] : null;
+      if (eye?.swarm) eye.swarm.pierce = true;
       const killed = landHit(state, hit, o.damage, KNOCK, o.vel.x / flat, o.vel.z / flat, 'hitThrown', o.damage);
+      if (eye && !killed) tearStruck(eye, hit.index, state);
       // (Update 0.3.5 — Cold Snap's freeze, Thunderclap's lightning, Powder Keg's blast.)
       if (hit.kind === 'enemy') {
         chill(state, hit.index);

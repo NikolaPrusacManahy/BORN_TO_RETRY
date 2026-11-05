@@ -2,6 +2,7 @@
 // fizzle after a while. (The parry that sent them back was removed at the designer's request; it returns later.)
 // Update 0.2.4 — a shot's look: the Tribal's spear and the Cactoros' spines fly as orbs do.
 // Update 0.3.3 — the parry is back (parry.ts): a shot punched back is its business, not these.
+import { addPuddle, type Puddle } from './puddles';
 import { Quaternion, Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { TARGETS } from '../../tuning/combat';
@@ -21,7 +22,7 @@ const hitAt = new Vector3();
 const spin = new Quaternion();
 
 /** Fires an orb from a free slot. Returns false when every slot is in use. */
-export function fireOrb(orbs: Orb[], from: Vector3, direction: Vector3, speed: number, damage: number, by: Cause | null = null, look: Orb['look'] = 'fire', home = 0): boolean {
+export function fireOrb(orbs: Orb[], from: Vector3, direction: Vector3, speed: number, damage: number, by: Cause | null = null, look: Orb['look'] = 'fire', home = 0, drop = 0): boolean {
   const o = orbs.find((x) => !x.alive);
   if (!o) return false;
   o.alive = true;
@@ -33,6 +34,7 @@ export function fireOrb(orbs: Orb[], from: Vector3, direction: Vector3, speed: n
   o.parried = false;
   o.life = ORB_LIFE;
   o.home = home;
+  o.drop = drop;
   return true;
 }
 
@@ -41,7 +43,7 @@ function pop(o: Orb, at: Vector3, events: EventQueue<CombatEvent>) {
   events.push('orbPop', 0, at.x, at.y, at.z);
 }
 
-export function updateOrbs(orbs: Orb[], player: PlayerState, world: CollisionWorld, events: EventQueue<CombatEvent>, dt: number) {
+export function updateOrbs(orbs: Orb[], player: PlayerState, world: CollisionWorld, events: EventQueue<CombatEvent>, dt: number, puddles: Puddle[] = []) {
   const r = TARGETS.v.orbRadius;
   const height = BODY.height;
   for (const o of orbs) {
@@ -53,6 +55,8 @@ export function updateOrbs(orbs: Orb[], player: PlayerState, world: CollisionWor
     }
     // (Update 0.3.18 — a homing one turns after your chest: floor 8's missiles.)
     if (o.home > 0) home(o, player, dt);
+    // (Update 0.3.51 — a tear arcs, and where it lands it leaves a puddle.)
+    if (o.drop > 0) o.vel.y -= o.drop * dt;
     next.copy(o.pos).addScaledVector(o.vel, dt);
     if (canHurt(player)) {
       a.set(player.pos.x, player.pos.y + BODY.radius, player.pos.z);
@@ -69,6 +73,7 @@ export function updateOrbs(orbs: Orb[], player: PlayerState, world: CollisionWor
     const wall = world.rayDistance(o.pos, dir, step + r);
     if (wall <= step + r) {
       hitAt.copy(o.pos).addScaledVector(dir, Math.max(0, wall - r));
+      if (o.look === 'tear') addPuddle(puddles, hitAt.x, Math.max(0, hitAt.y - 0.3), hitAt.z, events, 'swarm');
       pop(o, hitAt, events);
       continue;
     }

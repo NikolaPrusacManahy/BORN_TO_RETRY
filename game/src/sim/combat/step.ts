@@ -259,7 +259,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
 
   for (const d of state.dummies) updateDummy(d, events, dt);
   for (const t of state.turrets) updateTurret(t, player.pos, world, state.orbs, events, dt);
-  updateOrbs(state.orbs, player, world, events, dt);
+  updateOrbs(state.orbs, player, world, events, dt, state.puddles);
   // (Update 0.3.3 — shots you punched back.)
   stepParried(state, world, dt);
   if (player.slamImpact > 0) {

@@ -21,6 +21,8 @@ import { Vector3 } from 'three';
 import { createSwarmBody, type SwarmBody } from './swarmBody';
 import { swarmEyeHeight, swarmTakes } from './swarmHits';
 import { createUltimate, resetUltimate, type Ultimate, ultimateTakes } from './ultimate';
+import { onPupil } from './swarmMoves';
+import type { Wormling } from './wormlings';
 import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
 import type { CombatEvent } from '../combat/state';
@@ -135,6 +137,8 @@ export interface EnemyWorld {
   flood: number;
   /** Update 0.3.17 — gravity, this share of the usual (floor 8's moon; none: 1): bodies and the knocked fall slower. */
   gravity?: number;
+  /** Update 0.3.51 — The Swarm's big worms (the fight's). */
+  wormlings?: Wormling[];
 }
 
 export const ENEMY_POOL = 16;
@@ -284,6 +288,13 @@ export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, 
   // Update 0.3.42 — The Swarm: a worm in the way takes the blow (its share of the bar if it dies), or through a gap
   // its eye does (swarmHits.ts). `at`: where the blow landed (none: on the side it came from).
   if (e.kind === 'swarm' && e.swarm?.seeded) {
+    // (Update 0.3.51 — through its stare, a blow on its pupil counts towards its cancel, and hurts it no more than that.)
+    if (onPupil(e, at)) {
+      e.flash = 0.12;
+      e.ult.fill += 1;
+      e.swarm.eyeHit++;
+      return false;
+    }
     damage = swarmTakes(e, e.swarm, damage, dirX, dirZ, at);
     steady = true;
     knock = 0;

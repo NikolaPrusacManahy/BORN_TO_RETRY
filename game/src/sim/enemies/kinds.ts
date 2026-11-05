@@ -173,7 +173,8 @@ export const ENEMY_STATS: Record<EnemyKind, () => EnemyStats> = {
   swarm: () => {
     const v = SWARM.v;
     const s = fill(CACHE.swarm, v.swarmHp, RADIUS.swarm, swarmEyeHeight() + SWARM.v.eye + 0.6, v.speed, 0, Infinity, 0, doomTime() + DOOM_AFTER, 0);
-    s.stunned = 1;
+    // (Update 0.3.51 — dropped, its eye takes more, as a stunned boss's does.)
+    s.stunned = BOSS.v.stunBonus;
     return s;
   },
   // Update 0.1.19 — floor 3's. The Ninja: only a hard hit staggers it (as a Yeti's).

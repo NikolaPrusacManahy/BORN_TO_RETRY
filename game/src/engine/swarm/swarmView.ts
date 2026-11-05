@@ -4,10 +4,18 @@
 // flesh, a pale band behind the head. A worm winding up to lash glows, a struck one flashes white, a dead one shrinks
 // away as it lies. In the middle, its eye: pale, its red iris and slit pupil turned to you, pulsing, flashing when
 // struck. Gone once its body has burst.
+// Update 0.3.51 — the Boss Design Bible's moves on it: its pupil a dot through its Gaze's tell, its iris on where the laser
+// points; squinting and wet through its Tears' tell; cracked in three, its iris spinning, for its Split Pupil; red-hot through
+// its Stare, a ring round its pupil, shrinking, to aim at. Its lasers (beamView.ts in red), its shield, its big worms
+// (wormlingsView.ts). Below half its worms are brighter.
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
 import type { Enemy } from '../../sim/enemies/enemy';
 import { DEAD, DEAD_FADE, GONE, LASH, MAX_BEADS, MAX_WORMS, WINDUP, type SwarmBody } from '../../sim/enemies/swarmBody';
+import { swarmWindup } from '../../sim/enemies/swarm';
+import { eyeOf, FAN_LASERS, fanReach, fanYaw, GAZE, pupilNow, SPLIT, STARE, TEARS } from '../../sim/enemies/swarmMoves';
+import { BeamView } from '../boss/beamView';
+import { WormlingsView } from './wormlingsView';
 import { swarmEyeHeight } from '../../sim/enemies/swarmHits';
 import { SWARM } from '../../tuning/swarm';
 
@@ -21,6 +29,8 @@ const MAX_VERTS = MAX_WORMS * perWorm(MAX_RINGS);
 
 /** The flesh, its band, a wind-up's glow, a hit's flash, a dead worm's. */
 const FLESH = new THREE.Color(0x9a2f3b);
+/** Update 0.3.51 — below half. */
+const FLESH_HOT = new THREE.Color(0xd8353f);
 const BAND = new THREE.Color(0xc75b68);
 const GLOW = new THREE.Color(0xffb24a);
 const FLASH = new THREE.Color(0xffffff);
@@ -33,6 +43,12 @@ const bin = new THREE.Vector3();
 const col = new THREE.Color();
 const ring = new Float32Array(MAX_RINGS * 4);
 const look = new THREE.Vector3();
+const from = new THREE.Vector3();
+const to = new THREE.Vector3();
+/** A laser's thickness (a share of a beam's); its pupil's three in its fan, how far from its middle; a pupil's own radius. */
+const LASER = 0.4;
+const TRI = 0.3;
+const PUPIL_R = 0.22;
 
 /** The Swarm in play (its slot in use), if any. */
 export function swarmIn(state: CombatState): Enemy | null {
@@ -51,6 +67,14 @@ export class SwarmView {
   private readonly ball: THREE.Mesh;
   private readonly iris = new THREE.Group();
   private readonly ballMat = new THREE.MeshStandardMaterial({ color: 0xf0e2d2, roughness: 0.25, emissive: 0x000000 });
+  private readonly pupil: THREE.Mesh;
+  private readonly irisDisc: THREE.Mesh;
+  private readonly tri: THREE.Mesh[] = [];
+  private readonly aimRing: THREE.Mesh;
+  private readonly shield: THREE.Mesh;
+  private readonly lasers: BeamView[] = [];
+  private readonly big = new WormlingsView();
+  private hot = false;
   private shape = '';
   private time = 0;
   private flash = 0;
@@ -70,9 +94,31 @@ export class SwarmView {
     pupil.scale.set(0.38, 1, 1);
     irisDisc.position.z = 1.0;
     pupil.position.z = 1.01;
+    this.pupil = pupil;
+    this.irisDisc = irisDisc;
     this.iris.add(irisDisc, pupil);
+    for (let i = 0; i < 3; i++) {
+      const dot = new THREE.Mesh(pupil.geometry, pupil.material);
+      const a = (i / 3) * Math.PI * 2;
+      dot.position.set(Math.cos(a) * TRI, Math.sin(a) * TRI, 1.012);
+      dot.scale.setScalar(0.42);
+      dot.visible = false;
+      this.tri.push(dot);
+      this.iris.add(dot);
+    }
+    this.aimRing = new THREE.Mesh(new THREE.RingGeometry(0.92, 1, 32), new THREE.MeshBasicMaterial({ color: 0xffd080, transparent: true, opacity: 0.9, side: THREE.DoubleSide, toneMapped: false }));
+    this.aimRing.position.z = 1.02;
+    this.aimRing.visible = false;
+    this.iris.add(this.aimRing);
     this.eye.add(this.ball, this.iris);
-    this.group.add(this.mesh, this.eye);
+    this.shield = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 3), new THREE.MeshBasicMaterial({ color: 0xff8aa0, transparent: true, opacity: 0.22, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false }));
+    this.shield.visible = false;
+    this.group.add(this.mesh, this.eye, this.shield, this.big.group);
+    for (let i = 0; i < FAN_LASERS; i++) {
+      const b = new BeamView(0xffe6e0, 0xff2438, 0xff5040);
+      this.lasers.push(b);
+      this.group.add(b.group);
+    }
     this.group.visible = false;
   }
 
@@ -93,9 +139,60 @@ export class SwarmView {
     this.eye.position.set(e.prev.x + (e.pos.x - e.prev.x) * alpha, e.prev.y + (e.pos.y - e.prev.y) * alpha + swarmEyeHeight(), e.prev.z + (e.pos.z - e.prev.z) * alpha);
     this.eye.scale.setScalar(r);
     this.iris.lookAt(look.copy(camera));
+    this.moves(e, state, dt);
     for (let i = 0; i < state.events.length; i++) if (state.events.at(i).kind === 'swarmEye') this.flash = 0.15;
     this.flash = Math.max(0, this.flash - dt);
-    this.ballMat.emissive.setRGB(this.flash * 6, this.flash * 5, this.flash * 5);
+    const red = e.phase === 'blast' ? 0.5 + 0.4 * Math.sin(this.time * 8) : 0;
+    this.ballMat.emissive.setRGB(this.flash * 6 + red, this.flash * 5 + red * 0.04, this.flash * 5 + red * 0.08);
+  }
+
+  /** Update 0.3.51 — its eye as its move has it, its lasers, its shield, its big worms. */
+  private moves(e: Enemy, state: CombatState, dt: number) {
+    const s = e.swarm!;
+    const v = SWARM.v;
+    const telling = e.phase === 'windup';
+    const burning = e.phase === 'breath';
+    const staring = e.phase === 'blast' && e.move === STARE;
+    this.hot = e.stage > 0;
+    // Its pupil.
+    const fan = (telling || burning) && e.move === SPLIT;
+    this.pupil.visible = !fan;
+    for (const d of this.tri) d.visible = fan;
+    if (fan) this.iris.rotateZ(this.time * 6);
+    if (telling && e.move === GAZE) {
+      const k = Math.min(1, e.t / swarmWindup(e, GAZE));
+      this.pupil.scale.set(0.38 + (0.2 - 0.38) * k, 1 + (0.2 - 1) * k, 1);
+    } else if (burning && e.move === GAZE) this.pupil.scale.set(0.2, 0.2, 1);
+    else if (staring) {
+      const r = pupilNow(e) / (v.eye * PUPIL_R);
+      this.pupil.scale.set(r * 0.5, r * 0.5, 1);
+    } else this.pupil.scale.set(0.38, 1, 1);
+    // Its aim on the laser, through its gaze.
+    if (e.move === GAZE && (telling || burning)) this.iris.lookAt(look.copy(e.aim));
+    // Squinting and wet, for its tears.
+    if (telling && e.move === TEARS) this.eye.scale.y *= 0.72;
+    // Red-hot, for its stare, a ring round its pupil to aim at.
+    this.aimRing.visible = staring;
+    if (staring) this.aimRing.scale.setScalar(pupilNow(e) / v.eye);
+    (this.irisDisc.material as THREE.MeshStandardMaterial).emissiveIntensity = staring ? 3 : 1;
+    // Its shield.
+    this.shield.visible = s.shield;
+    if (s.shield) {
+      this.shield.position.copy(this.eye.position);
+      this.shield.scale.setScalar(s.extent + 0.4);
+    }
+    // Its lasers.
+    eyeOf(e, from);
+    this.lasers.forEach((b, i) => {
+      if (e.move === GAZE && i === 0 && telling) b.charge(from, e.aim, Math.min(1, e.t / swarmWindup(e, GAZE)), this.time);
+      else if (e.move === GAZE && i === 0 && burning) b.update(from, e.aim, LASER, 1, this.time);
+      else if (e.move === SPLIT && burning) {
+        const y = fanYaw(e, i);
+        const len = fanReach(e, i, state);
+        b.update(from, to.set(e.pos.x - Math.sin(y) * len, 0.6, e.pos.z - Math.cos(y) * len), LASER, 1, this.time);
+      } else b.update(from, from, 0, 0, this.time);
+    });
+    this.big.update(state.wormlings, from, dt);
   }
 
   /** The triangles for this many worms of this many beads (once a fight). */
@@ -154,7 +251,7 @@ export class SwarmView {
       }
       // Its colour: flesh, glowing as it winds up and lashes, white as it's struck, darker and shrinking dead.
       let shrink = 1;
-      col.copy(FLESH);
+      col.copy(this.hot ? FLESH_HOT : FLESH);
       if (st === WINDUP) col.lerp(GLOW, Math.min(1, s.t[w] / SWARM.v.lashWindup) * (0.6 + 0.4 * Math.sin(this.time * 30)));
       else if (st === LASH) col.copy(GLOW);
       else if (st === DEAD) {
@@ -239,6 +336,10 @@ export class SwarmView {
     this.geo.dispose();
     (this.mesh.material as THREE.Material).dispose();
     this.ballMat.dispose();
+    for (const b of this.lasers) b.dispose();
+    this.big.dispose();
+    this.shield.geometry.dispose();
+    (this.shield.material as THREE.Material).dispose();
     this.ball.geometry.dispose();
     for (const o of this.iris.children) {
       const m = o as THREE.Mesh;

@@ -6,6 +6,8 @@
 // bonus (not from a boss).
 // Update 0.1.19 — the Ninja may teleport away from a hit about to land (ninja.ts): it misses.
 // Update 0.2.23 — floor 2's wasps' hives are targets too (sim/dungeon/hives.ts): a ball on its wall.
+import { hitWormling, WORMLING_RADIUS, wormlingUp } from '../enemies/wormlings';
+import { SWARM } from '../../tuning/swarm';
 import { Vector3 } from 'three';
 import { ENEMIES } from '../../tuning/enemies';
 import { FEEDBACK } from '../../tuning/combat';
@@ -29,7 +31,7 @@ import { TARGET_SHAPES, dummyAxis, turretAxis } from './targets';
 import { hitTurret } from './turretDamage';
 import { HIVE_RADIUS, hitHive } from '../dungeon/hives';
 
-export type TargetKind = 'dummy' | 'turret' | 'enemy' | 'hive';
+export type TargetKind = 'dummy' | 'turret' | 'enemy' | 'hive' | 'wormling';
 
 export interface TargetHit {
   kind: TargetKind;
@@ -81,6 +83,13 @@ export function nearestTarget(state: CombatState, from: Vector3, to: Vector3, ra
     b.copy(h.pos);
     consider('hive', i, HIVE_RADIUS);
   });
+  // (Update 0.3.51 — The Swarm's big worms.)
+  state.wormlings.forEach((q, i) => {
+    if (!wormlingUp(q)) return;
+    a.set(q.x, 0, q.z);
+    b.set(q.x, q.top, q.z);
+    consider('wormling', i, WORMLING_RADIUS);
+  });
   return out.index >= 0;
 }
 
@@ -96,6 +105,13 @@ export function hitTarget(state: CombatState, t: TargetHit, damage: number, knoc
       return hitEnemy(state.enemies[t.index], damage, knock, dirX, dirZ, steady, t.point);
     case 'hive':
       return hitHive(state, t.index, damage);
+    case 'wormling': {
+      if (!hitWormling(state.wormlings, t.index, damage)) return false;
+      // (Killed, it takes a piece of The Swarm's bar.)
+      const eye = state.enemies.find((e) => isLive(e) && e.kind === 'swarm');
+      if (eye && !eye.swarm?.shield) eye.hp = Math.max(1, eye.hp - SWARM.v.bigWormBar);
+      return true;
+    }
   }
 }
 

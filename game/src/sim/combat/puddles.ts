@@ -7,7 +7,7 @@ import type { EventQueue } from '../../core/eventQueue';
 import { DRAGON } from '../../tuning/dragon';
 import { FOES4 } from '../../tuning/foes4';
 import { damagePlayer, poisonPlayer } from '../player/health';
-import type { PlayerState } from '../player/state';
+import type { Cause, PlayerState } from '../player/state';
 import type { CombatEvent } from './state';
 
 export interface Puddle {
@@ -21,12 +21,14 @@ export interface Puddle {
   full: number;
   /** Update 0.3.49 — burning, not poison. */
   fire: boolean;
+  /** Update 0.3.51 — whose poison (the death screen names it). */
+  by: Cause;
 }
 
 export const PUDDLE_POOL = 10;
 
 export function createPuddles(): Puddle[] {
-  return Array.from({ length: PUDDLE_POOL }, () => ({ alive: false, x: 0, y: 0, z: 0, r: 1, life: 0, full: 1, fire: false }));
+  return Array.from({ length: PUDDLE_POOL }, () => ({ alive: false, x: 0, y: 0, z: 0, r: 1, life: 0, full: 1, fire: false, by: 'lizard' as Cause }));
 }
 
 /** A free slot (the oldest goes if they're all in use); none in an empty pool. */
@@ -36,10 +38,13 @@ function slot(puddles: Puddle[]): Puddle | null {
 }
 
 /** A puddle at (x, y, z). */
-export function addPuddle(puddles: Puddle[], x: number, y: number, z: number, events: EventQueue<CombatEvent>) {
+export function addPuddle(puddles: Puddle[], x: number, y: number, z: number, events: EventQueue<CombatEvent>, by: Cause = 'lizard') {
   const v = FOES4.v;
   const p = slot(puddles);
-  if (p) place(p, x, y, z, v.puddleRadius, v.puddleTime, false);
+  if (p) {
+    place(p, x, y, z, v.puddleRadius, v.puddleTime, false);
+    p.by = by;
+  }
   events.push('poisonSplash', 0, x, y, z);
 }
 
@@ -72,7 +77,7 @@ export function updatePuddles(puddles: Puddle[], player: PlayerState, dt: number
     }
     if (player.dead || Math.abs(player.pos.y - p.y) > 0.4 || Math.hypot(player.pos.x - p.x, player.pos.z - p.z) > p.r) continue;
     if (p.fire) damagePlayer(player, DRAGON.v.poolDamage, 'dragon');
-    else poisonPlayer(player, v.puddleDps, v.puddlePoison, 'lizard');
+    else poisonPlayer(player, v.puddleDps, v.puddlePoison, p.by);
   }
 }
 

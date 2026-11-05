@@ -27,6 +27,8 @@ export interface LevelView extends ArenaView {
    *  Update 0.2.10 — `flood`: the Drowned King's water in its room (m). Update 0.2.11 — `kicks`: your kicks under
    *  water so far (each lets out bubbles). */
   update?(dt: number, run: DungeonRun, at: THREE.Vector3, flood?: number, kicks?: number): void;
+  /** Update 0.3.51 — how dark a boss's move wants the room (0..1). */
+  darkWanted?: number;
   /** Update 0.2.9 — anywhere else (the lobby): its own life each frame; `at`: the camera. */
   frame?(dt: number, at: THREE.Vector3): void;
   /** Update 0.3.9 — pillar `i` (`p`) broken by the pillar finisher. */

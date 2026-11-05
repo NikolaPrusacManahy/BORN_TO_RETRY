@@ -71,6 +71,23 @@ export type CombatEvent =
   | 'swarmBite'
   | 'swarmGore'
   | 'swarmEye'
+  // Update 0.3.51 — its eye: a tell (value = its move), the floor rippling, a big worm bursting up, its gaze and its fan
+  // starting, weeping and each tear, its shield up, its eye dropping, half gone, its stare, its heart through it (value =
+  // how far through, 0..1), its stare broken, its glare.
+  | 'swarmTell'
+  | 'swarmRipple'
+  | 'swarmBurst'
+  | 'swarmGaze'
+  | 'swarmFan'
+  | 'swarmWeep'
+  | 'swarmTear'
+  | 'swarmShield'
+  | 'swarmDrop'
+  | 'swarmPhase'
+  | 'swarmStare'
+  | 'swarmHeart'
+  | 'swarmBroken'
+  | 'swarmGlare'
   | 'demonCharge'
   | 'demonGore'
   | 'demonCrash'

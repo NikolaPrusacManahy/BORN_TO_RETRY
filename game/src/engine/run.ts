@@ -236,6 +236,8 @@ export class Run extends RunBase {
     const focus = lobby ? lobbyFocus(lobby, this.focus) : focusOf(this.treasure, this.combat, p, this.fighting, this.focus);
     this.prompts.update(focus, this.camera, renderer, keyLabel(input.bindings.interact), free, this.combatScene.markAt());
     const d = this.level.dungeon;
+    // (Update 0.3.51 — The Swarm's stare darkens the room.)
+    this.view.darkWanted = this.combat.enemies.some((e) => e.alive && e.kind === 'swarm' && e.phase === 'blast') ? 1 : 0;
     if (d) this.view.update?.(gameDt, d, this.camera.position, this.combat.flood, this.hits.kicks);
     else this.view.frame?.(real, this.camera.position);
     if (lobby) this.lobbyNews(lobby);

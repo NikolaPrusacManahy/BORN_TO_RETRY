@@ -82,6 +82,11 @@ export interface SwarmBody {
   time: number;
   /** Ticks since it was seeded (its worms step on every other: swarm.ts). */
   tick: number;
+  /** Update 0.3.51 — seconds to its worms' next lash; its shield's up (nothing hurts it); the next blow goes straight to
+   *  its eye (a parried tear). */
+  lashIn: number;
+  shield: boolean;
+  pierce: boolean;
   /** Where worms died this tick (x, y, z each) and where the eye was struck, for the feedback (cleared by its owner). */
   gore: Float32Array;
   goreN: number;
@@ -109,7 +114,7 @@ export function createSwarmBody(): SwarmBody {
     state: new Uint8Array(w), t: f(w), hp: f(w), flash: f(w),
     ax: f(w), ay: f(w), az: f(w), ux: f(w), uy: f(w), uz: f(w), orbit: f(w), spin: f(w), wPhase: f(w), wAmp: f(w), wFreq: f(w),
     aimX: f(w), aimY: f(w), aimZ: f(w), struck: new Uint8Array(w),
-    cx: 0, cy: 0, cz: 0, extent: 0, alive: 0, time: 0, tick: 0,
+    cx: 0, cy: 0, cz: 0, extent: 0, alive: 0, time: 0, tick: 0, lashIn: 0, shield: false, pierce: false,
     gore: f(3 * 32), goreN: 0, eyeHit: 0,
     cellStart: new Int32Array(GRID_CELLS), cellCount: new Int32Array(GRID_CELLS), cellOf: new Int32Array(MAX), sorted: new Int32Array(MAX),
     walls: f(4 * MAX_WALLS), wallN: 0, wallX: Infinity, wallZ: Infinity,
@@ -129,6 +134,9 @@ export function seedSwarm(s: SwarmBody, cx: number, cy: number, cz: number, rng:
   s.cz = cz;
   s.time = 0;
   s.tick = 0;
+  s.lashIn = v.lashEvery;
+  s.shield = false;
+  s.pierce = false;
   s.goreN = 0;
   s.eyeHit = 0;
   s.wallX = s.wallZ = Infinity;

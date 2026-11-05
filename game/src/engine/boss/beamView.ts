@@ -20,15 +20,19 @@ export class BeamView {
   readonly group = new THREE.Group();
   private readonly geo = new THREE.CylinderGeometry(1, 1, 1, 12, 1, true).translate(0, 0.5, 0);
   private readonly ball = new THREE.SphereGeometry(1, 16, 12);
-  private readonly core = new THREE.Mesh(this.geo, additive(0xfff4c0, 1));
-  private readonly sheath = new THREE.Mesh(this.geo, additive(0xff6a10, 0.55));
-  private readonly blaze = new THREE.Mesh(this.ball, additive(0xffa030, 0.8));
+  private readonly core: THREE.Mesh;
+  private readonly sheath: THREE.Mesh;
+  private readonly blaze: THREE.Mesh;
   private readonly endLight = new THREE.PointLight(0xff7a20, 0, 16, 1.4);
   private readonly mouthLight = new THREE.PointLight(0xffa040, 0, 12, 1.4);
   private readonly sight = new THREE.Mesh(this.geo, additive(0xff2a10, 0));
   private readonly gather = new THREE.Mesh(this.ball, additive(0xffb040, 0.9));
 
-  constructor() {
+  /** (Update 0.3.51 — its colours, for The Swarm's lasers.) */
+  constructor(coreColor = 0xfff4c0, sheathColor = 0xff6a10, blazeColor = 0xffa030) {
+    this.core = new THREE.Mesh(this.geo, additive(coreColor, 1));
+    this.sheath = new THREE.Mesh(this.geo, additive(sheathColor, 0.55));
+    this.blaze = new THREE.Mesh(this.ball, additive(blazeColor, 0.8));
     this.group.add(this.core, this.sheath, this.blaze, this.endLight, this.mouthLight, this.sight, this.gather);
     this.group.visible = false;
   }

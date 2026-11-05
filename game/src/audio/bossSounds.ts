@@ -11,7 +11,7 @@ import type { AudioEngine } from './audio';
 import { noise, tone } from './synth';
 
 /** `far`: 1 close by, falling off with distance. Returns false for events it doesn't know. */
-export function playBoss(a: AudioEngine, kind: CombatEvent, _value: number, far: number): boolean {
+export function playBoss(a: AudioEngine, kind: CombatEvent, value: number, far: number): boolean {
   // A boss is heard from across its room.
   const loud = Math.max(0.45, far);
   switch (kind) {
@@ -29,6 +29,54 @@ export function playBoss(a: AudioEngine, kind: CombatEvent, _value: number, far:
       return true;
     // Update 0.3.42 — The Swarm (placeholders): a wet rising hiss as its worms wind up, the whip, a lash's bite, a worm
     // torn off, its eye struck.
+    // Update 0.3.51 — its eye (the Boss Design Bible's tells; code-made till it has its own).
+    case 'swarmTell':
+      if (value === 0) tone(a, { from: 1800, to: 4200, dur: SWARM.v.gazeWindup, gain: 0.14 * far, type: 'sine' });
+      else if (value === 2) noise(a, { dur: SWARM.v.tearWindup, gain: 0.3 * far, filter: 'bandpass', from: 240, to: 620, q: 3 });
+      else if (value === 3) tone(a, { from: 90, to: 180, dur: SWARM.v.shieldWindup, gain: 0.3 * far, type: 'sawtooth' });
+      else if (value === 4) noise(a, { dur: SWARM.v.splitWindup, gain: 0.25 * far, filter: 'highpass', from: 3000, to: 7000 });
+      return true;
+    case 'swarmRipple':
+      noise(a, { dur: SWARM.v.burrowWindup, gain: 0.4, filter: 'lowpass', from: 160, to: 320 });
+      return true;
+    case 'swarmBurst':
+      noise(a, { dur: 0.35, gain: 0.6 * far, filter: 'lowpass', from: 1400, to: 200 });
+      tone(a, { from: 180, to: 60, dur: 0.3, gain: 0.4 * far, type: 'sawtooth' });
+      return true;
+    case 'swarmGaze':
+      tone(a, { from: 2600, to: 2400, dur: SWARM.v.gazeTime, gain: 0.12 * far, type: 'sawtooth' });
+      return true;
+    case 'swarmFan':
+      tone(a, { from: 1400, to: 1300, dur: SWARM.v.splitTime, gain: 0.14 * far, type: 'sawtooth' });
+      tone(a, { from: 2100, to: 2000, dur: SWARM.v.splitTime, gain: 0.1 * far, type: 'sawtooth' });
+      return true;
+    case 'swarmWeep':
+    case 'swarmTear':
+      noise(a, { dur: 0.22, gain: 0.25 * far, filter: 'bandpass', from: 900, to: 300, q: 2 });
+      return true;
+    case 'swarmShield':
+      tone(a, { from: 120, to: 340, dur: 0.7, gain: 0.35, type: 'sine' });
+      return true;
+    case 'swarmDrop':
+    case 'swarmBroken':
+      noise(a, { dur: 0.7, gain: 0.7, filter: 'lowpass', from: 2400, to: 90 });
+      tone(a, { from: 260, to: 50, dur: 0.6, gain: 0.5, type: 'sawtooth' });
+      return true;
+    case 'swarmPhase':
+      tone(a, { from: 90, to: 380, dur: 1, gain: 0.45, type: 'sawtooth' });
+      noise(a, { dur: 1, gain: 0.35, filter: 'bandpass', from: 400, to: 1600, q: 1 });
+      return true;
+    case 'swarmStare':
+      tone(a, { from: 44, to: 110, dur: SWARM.v.stareWindow, gain: 0.45, type: 'sawtooth' });
+      return true;
+    case 'swarmHeart':
+      tone(a, { from: 70, to: 40, dur: 0.16, gain: 0.7 });
+      tone(a, { from: 62, to: 36, dur: 0.16, gain: 0.5, delay: 0.22 });
+      return true;
+    case 'swarmGlare':
+      noise(a, { dur: 1.1, gain: 0.9, filter: 'lowpass', from: 3600, to: 80 });
+      tone(a, { from: 900, to: 40, dur: 1, gain: 0.6, type: 'sawtooth' });
+      return true;
     case 'swarmWindup':
       noise(a, { dur: SWARM.v.lashWindup, gain: 0.35 * loud, filter: 'bandpass', from: 300, to: 1400, q: 2.5 });
       tone(a, { from: 110, to: 240, dur: SWARM.v.lashWindup, gain: 0.18 * loud, type: 'square' });

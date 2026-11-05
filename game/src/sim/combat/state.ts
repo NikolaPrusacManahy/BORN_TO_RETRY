@@ -40,6 +40,7 @@ import { FistState, createFists } from './fists';
 import { HitStop } from './hitStop';
 import { Dummy, Orb, Turret, createDummy, createOrbs, createTurret } from './targets';
 import { Hive, resetHives } from '../dungeon/hives';
+import { clearWormlings, createWormlings, type Wormling } from '../enemies/wormlings';
 import { Pillar, pillarsOf } from './pillars';
 
 /** The lab's RNG seed: the same seed, the same drops and waves. */
@@ -62,6 +63,8 @@ export interface CombatState {
    *  Update 0.2.24 — the crystals of the room you're fighting in (floor 3's: Skull Wraiths blink to them). */
   puddles: Puddle[];
   hives: Hive[];
+  /** Update 0.3.51 — The Swarm's big worms. */
+  wormlings: Wormling[];
   /** Update 0.3.11 — floor 7's ice; Update 0.3.15 — and every pit, floor 6's boardwalks (dungeon/ground.ts). */
   ground: Ground;
   crystals: Spot[];
@@ -180,6 +183,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     bombs: createBombs(),
     puddles: createPuddles(),
     hives: [],
+    wormlings: createWormlings(),
     ground: noGround(),
     crystals: [],
     nav,
@@ -253,6 +257,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   clearBombs(state.bombs);
   clearPuddles(state.puddles);
   resetHives(state.hives);
+  clearWormlings(state.wormlings);
   state.flow.small.target = state.flow.large.target = state.flow.air.target = -1;
   state.weapon = null;
   state.bag = createBag();

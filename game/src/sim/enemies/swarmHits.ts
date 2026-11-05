@@ -24,6 +24,14 @@ export function swarmTakes(e: Enemy, s: SwarmBody, damage: number, dirX: number,
   const v = SWARM.v;
   // (A blow worth its whole bar finishes it, worms or not.)
   if (damage >= v.swarmHp) return damage;
+  // (Update 0.3.51 — a parried tear goes through to its eye; its shield takes everything, on its worms or its eye; dropped,
+  // its worms are slack: blows reach its eye.)
+  const through = s.pierce || e.phase === 'stun';
+  s.pierce = false;
+  if (through) {
+    s.eyeHit++;
+    return s.shield ? 0 : damage;
+  }
   const ex = e.pos.x;
   const ey = e.pos.y + swarmEyeHeight();
   const ez = e.pos.z;
@@ -61,7 +69,7 @@ export function swarmTakes(e: Enemy, s: SwarmBody, damage: number, dirX: number,
   }
   if (best < 0) {
     s.eyeHit++;
-    return damage;
+    return s.shield ? 0 : damage;
   }
   const share = (v.wormShare * v.swarmHp) / Math.max(1, s.worms);
   const w = (best / n) | 0;
@@ -87,7 +95,7 @@ export function swarmTakes(e: Enemy, s: SwarmBody, damage: number, dirX: number,
       }
     }
   }
-  return lost;
+  return s.shield ? 0 : lost;
 }
 
 /** Worm `w` killed (bead `i` where it was struck): off the heap, its gore told. Returns 1. */

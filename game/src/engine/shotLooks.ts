@@ -21,6 +21,7 @@ export function shotStyle(o: Orb): ShotStyle {
   if (o.by === 'maskTribal') return 'feather';
   if (o.look === 'laser' || o.look === 'missile' || o.look === 'axe' || o.look === 'shuriken' || o.look === 'kunai' || o.look === 'arrow') return o.look;
   if (o.look === 'rubble') return 'rubble';
+  if (o.look === 'tear') return 'acid';
   if (o.look === 'ki') return 'blueFire';
   return o.look === 'water' ? 'water' : o.look === 'spear' ? 'spear' : o.look === 'spine' ? 'spine' : o.look === 'carrot' ? 'carrot' : 'fire';
 }

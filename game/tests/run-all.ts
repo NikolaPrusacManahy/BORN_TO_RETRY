@@ -61,6 +61,7 @@ import './test-loadout';
 import './test-foes';
 import './test-boss';
 import './test-swarm';
+import './test-swarm-moves';
 import './test-boss-room';
 import './test-boss-show';
 import './test-floor2';

@@ -130,13 +130,17 @@ section('The Swarm — the Venom Garden’s boss');
 section('The Swarm — punching it');
 {
   const f = fight(-6);
-  run(f, 1);
+  // (Update 0.3.51 — settled at its distance: a drifting heap trails behind its eye. No moves of its eye, no lash.)
+  f.e.cooldown = 99;
+  f.e.swarm!.seeded || run(f, DT);
+  f.e.swarm!.lashIn = 99;
+  run(f, 2.5);
   f.e.cooldown = 99;
   const s = f.e.swarm!;
   const hp0 = f.e.hp;
   const eyeY = swarmEyeHeight();
   // A jab on your side of the heap, at its edge, pushing in.
-  const at = new THREE.Vector3(0, eyeY, -radiusOf(f.e));
+  const at = new THREE.Vector3(f.e.pos.x, eyeY, f.e.pos.z - radiusOf(f.e));
   const share = (v.wormShare * v.swarmHp) / v.worms;
   // A lighter blow than a worm's health only hurts the worm in the way: the bar holds.
   const light = Math.max(1, v.wormHp - 2);

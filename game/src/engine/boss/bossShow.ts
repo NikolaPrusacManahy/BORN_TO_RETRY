@@ -18,6 +18,7 @@ import { CINEMA } from '../../tuning/cinema';
 import type { CombatState } from '../../sim/combat/state';
 import { ENEMY_STATS, EnemyKind } from '../../sim/enemies/kinds';
 import { DRAGON } from '../../tuning/dragon';
+import { SWARM } from '../../tuning/swarm';
 import { BOSS } from '../../tuning/boss';
 import { BONE_KING } from '../../tuning/boneKing';
 import { DINO } from '../../tuning/dino';
@@ -60,6 +61,8 @@ function markOf(boss: Enemy): number {
   if (boss.kind === 'tidebreaker') return boss.stage >= 2 ? -1 : boss.stage > 0 ? TIDEBREAKER.v.frenzyAt : TIDEBREAKER.v.rageAt;
   // (Update 0.3.34 — Yokai : Okami: no rage yet.)
   if (boss.kind === 'okami') return -1;
+  // (Update 0.3.51 — The Swarm: where its worms latch on.)
+  if (boss.kind === 'swarm') return boss.stage > 0 ? -1 : SWARM.v.phase2At;
   return boss.kind === 'dragon' ? DRAGON.v.rageAt : BOSS.v.rageAt;
 }
 export const bossTitle = (floor: number) => `Warden of Floor ${floor}`;
