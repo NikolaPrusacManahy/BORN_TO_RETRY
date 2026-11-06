@@ -320,7 +320,10 @@ export function stepFall(state: CombatState, dt: number) {
   const e = k * k;
   f.at.lerpVectors(f.from, f.to, e);
   f.at.y += f.r * SINKS_TO * e;
+  // (Update 0.3.90 — normal mode's, whatever stance he's in as it lands.)
+  state.grav.as = false;
   if (k >= 1) crash(state);
+  state.grav.as = null;
 }
 
 /** Dropped, by going Unstable or an overload: it falls apart where it hung. */
@@ -348,8 +351,8 @@ export function stepSeanGrab(state: CombatState, player: PlayerState, pressed: b
     holdPiece(state, h, player, yaw, pitch, world, dt);
     if (h.lifted) {
       if (heldDown) gatherMore(state, h, player, world, dt);
-      // (Up to its time, and it comes down anyway.)
-      if (!heldDown || h.t >= SEAN.v.gatherTime) letFall(state, h);
+      // (Update 0.3.90 — full at its time; held on past that it waits for you, for so long, then comes down anyway.)
+      if (!heldDown || h.t >= SEAN.v.gatherHold) letFall(state, h);
     } else if (heldDown) gatherMore(state, h, player, world, dt);
     else if (h.t >= SEAN.v.grabRise * THROW_AT) throwPiece(state, player, yaw, pitch, world);
     return;
@@ -367,6 +370,8 @@ function shatter(state: CombatState, r: Rock) {
 
 /** What's been thrown, each tick. */
 export function stepRocks(state: CombatState, world: CollisionWorld, dt: number) {
+  // (Update 0.3.90 — normal mode's, whatever stance he's in as they land.)
+  state.grav.as = false;
   for (const r of state.grav.rocks) {
     if (!r.alive) continue;
     r.left -= dt;
@@ -391,4 +396,5 @@ export function stepRocks(state: CombatState, world: CollisionWorld, dt: number)
     }
     r.pos.copy(end);
   }
+  state.grav.as = null;
 }

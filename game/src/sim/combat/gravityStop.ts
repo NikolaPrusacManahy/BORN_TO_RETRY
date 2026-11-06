@@ -39,12 +39,15 @@ function land(state: CombatState, s: StoredHit) {
   const knock = Math.min(SEAN.v.stopKnockMax, push);
   const fx = push > 1e-3 ? way.x / push : 0;
   const fz = push > 1e-3 ? way.z / push : 0;
+  // (Update 0.3.90 — what they kill heals by the stance they were struck in.)
+  state.grav.as = s.unstable;
   // (A cancel window counts blows.)
   const counted = s.kind === 'enemy' && state.enemies[s.index].ult.on ? s.hits : 1;
   for (let i = 0; i < counted; i++) {
     const killed = landHit(state, hit, s.damage / counted, knock, fx, fz, 'hitSlam', Math.round(s.damage / counted));
     if (killed && s.kind === 'enemy') launch(state.enemies[s.index], fx, fz);
   }
+  state.grav.as = null;
   state.events.push('seanStopPop', s.damage, s.point.x, s.point.y, s.point.z);
 }
 

@@ -154,6 +154,9 @@ export class CombatFeedback {
           this.f.rig.shake.add(e.value > 0 ? 0.7 : 0.25);
           this.f.rig.kick(e.value > 0 ? 2 : 0.6);
           break;
+        case 'seanDoomed':
+          this.f.rig.kick(0.3);
+          break;
         case 'seanStopPop':
           this.f.chunks.spawn(at, UP, 10, 1);
           this.f.sparks.spawn(at, back, 24, 1.3);

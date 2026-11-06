@@ -321,6 +321,15 @@ export const fallsApart = (e: Enemy) => (e.kind === 'skeleton' && e.phase !== 'r
 
 /** Damages an enemy pushed along (dirX, dirZ) (length 1). A hit at least as hard as its stagger flinches it
  *  (cancelling its attack; Update 0.2.18 — not `steady` damage: a bleed's or a burn's). Returns true if it died. */
+/** Update 0.3.90 — this blow, as it stands, would kill it: what `hitEnemy` does with it, without doing it. No to anything that goes on after 0 (a Cursed Crewman, a mech's pilot, what falls apart and rebuilds) and to what a blow
+ *  doesn't simply hurt (The Swarm, which its worms shield; a Bone King rebuilding; a boss's cancel window). */
+export function wouldDie(e: Enemy, damage: number): boolean {
+  if (!isLive(e) || (e.kind === 'swarm' && e.swarm?.seeded) || e.ult.on || (e.kind === 'boneKing' && e.phase === 'rebuild')) return false;
+  if (e.kind === 'crewman' || PILOT_OF[e.kind as KindMoon] || fallsApart(e)) return false;
+  const hurt = e.king && e.phase === 'leap' ? damage * BONE_KING.v.coreBonus : damage;
+  return e.hp <= (e.phase === 'stun' ? hurt * ENEMY_STATS[e.kind]().stunned : hurt);
+}
+
 export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, dirZ: number, steady = false, at: Vector3 | null = null): boolean {
   if (!isLive(e)) return false;
   // Update 0.3.42 — The Swarm: a worm in the way takes the blow (its share of the bar if it dies), or through a gap

@@ -4,14 +4,15 @@ import * as THREE from 'three';
 import { check, near, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
 import { emptyCombatIntent, type CombatIntent } from '../src/sim/combat/fists';
-import { seanHand, STOP_CAST, worldHeld } from '../src/sim/combat/gravityMeter';
+import { doomed, seanHand, STOP_CAST, worldHeld } from '../src/sim/combat/gravityMeter';
 import { stopShade } from '../src/sim/combat/gravityStop';
 import { createCombat, type CombatState } from '../src/sim/combat/state';
 import { stepCombat } from '../src/sim/combat/step';
 import { isLive, spawnEnemy } from '../src/sim/enemies/enemy';
-import type { EnemyKind } from '../src/sim/enemies/kinds';
+import { ENEMY_STATS, type EnemyKind } from '../src/sim/enemies/kinds';
 import { createPlayer } from '../src/sim/player/state';
 import { SEAN } from '../src/tuning/sean';
+import { tintDoomed } from '../src/engine/sean/doomTint';
 import { StopView } from '../src/engine/sean/stopView';
 import type { Arena } from '../src/world/arena';
 
@@ -177,6 +178,79 @@ section('Time Stop — a killing blow waits too');
   check('then it dies', !isLive(e) && r.c.kills === kills + 1 && had(r.c, 'kill'));
   check('flung', Math.hypot(e.vel.x, e.vel.z) > 3);
   check('the kill feeds the meter', r.c.grav.ult >= v.ultKill);
+}
+
+section('Time Stop — what’s taken enough to die shows red, the designer’s');
+{
+  const r = room();
+  const e = foe(r.c, 0, -5, 'grunt', v.punchDamage * 2 + 1);
+  const idx = r.c.enemies.indexOf(e);
+  const other = foe(r.c, 3, -5);
+  r.step({ throwPressed: true });
+  check('hit by nothing: not marked', !doomed(r.c.grav, idx));
+  r.c.events.clear();
+  r.step({ attackPressed: true });
+  check('not enough yet: not marked', !doomed(r.c.grav, idx) && !had(r.c, 'seanDoomed'));
+  r.step({}, 0.5);
+  r.step({ attackPressed: true });
+  r.step({}, 0.5);
+  check('still one short', !doomed(r.c.grav, idx));
+  r.c.events.clear();
+  r.step({ attackPressed: true });
+  check('enough: marked, and you’re told once', doomed(r.c.grav, idx) && had(r.c, 'seanDoomed'));
+  check('it hasn’t died yet: unfazed till it ends', isLive(e) && e.phase !== 'dead');
+  check('another’s not marked', !doomed(r.c.grav, r.c.enemies.indexOf(other)));
+  r.c.events.clear();
+  r.step({}, 0.5);
+  r.step({ attackPressed: true });
+  check('hit again, you’re not told again', doomed(r.c.grav, idx) && !had(r.c, 'seanDoomed'));
+  toEnd(r);
+  check('it ends: it dies', !isLive(e));
+  check('and the mark goes with it', !doomed(r.c.grav, idx));
+}
+
+section('Time Stop — red means it dies, and only then');
+{
+  // Each kind brought to the edge and given more than enough: what shows red is exactly what's dead when it ends. What goes on after 0 doesn't show red.
+  for (const kind of ['grunt', 'brute', 'skeleton', 'crewman', 'beeMech', 'dragon', 'swarm', 'boneKing', 'bigMushnub'] as const) {
+    const r = room();
+    const e = foe(r.c, 0, -5, kind, 5);
+    r.step({ throwPressed: true });
+    r.step({ attackPressed: true });
+    const red = doomed(r.c.grav, r.c.enemies.indexOf(e));
+    toEnd(r);
+    const died = !isLive(e);
+    check(`${kind}: ${red ? 'red' : 'not red'}, ${died ? 'dies' : 'lives on'}`, red === died);
+  }
+  const heavy = room();
+  const s = foe(heavy.c, 0, -5, 'grunt', 5);
+  s.phase = 'stun';
+  heavy.step({ throwPressed: true });
+  heavy.step({ attackPressed: true });
+  check('(a stunned body takes its own share: the mark goes by that)', doomed(heavy.c.grav, heavy.c.enemies.indexOf(s)) === (s.hp <= v.punchDamage * ENEMY_STATS.grunt().stunned));
+}
+
+section('Time Stop — how it shows red');
+{
+  const m = new THREE.MeshStandardMaterial({ color: 0x88aa66 });
+  const own = m.color.clone();
+  m.emissive.setRGB(0.2, 0.2, 0.2);
+  tintDoomed([m], true);
+  check('drawn to red, glowing red', m.color.g < own.g * 0.5 && m.color.b < own.b * 0.5 && m.color.r === own.r && m.emissive.r > 0.5 && m.emissive.g === 0 && m.emissive.b === 0);
+  tintDoomed([m], true);
+  check('asked again it’s no redder', near(m.color.g, own.g * 0.18, 1e-6));
+  tintDoomed([m], false);
+  check('its own colour back, for the next to use that body', m.color.equals(own));
+  tintDoomed([m], false);
+  check('asked again, nothing changes', m.color.equals(own));
+  const view = new StopView(new THREE.Scene());
+  const r = room();
+  const e = foe(r.c, 0, -5, 'grunt', 1);
+  r.step({ throwPressed: true });
+  r.step({ attackPressed: true });
+  view.update(r.c, DT);
+  check('its spark’s there', view.showing.sparks === 1 && doomed(r.c.grav, r.c.enemies.indexOf(e)));
+  view.dispose();
 }
 
 section('Time Stop — nothing dodges what it’s holding');

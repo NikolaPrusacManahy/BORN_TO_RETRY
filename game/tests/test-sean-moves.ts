@@ -344,7 +344,7 @@ section('Gravity Sean — his hands are his moves');
   check('a punch thrown just now meets it (no parry of his own)', parryBossBlow(p, c as unknown as EnemyWorld, e, idx));
 }
 
-section('Unstable mode: kills give health back');
+section('Kills give health back, by the stance the blow was struck in');
 {
   /** One kill of this kind with his fists, hurt first; how much it gave back. */
   const kill = (kind: EnemyKind, unstable: boolean, sean = true) => {
@@ -359,11 +359,13 @@ section('Unstable mode: kills give health back');
     return { healed: r.p.hp - 40, dead: !isLive(e), r };
   };
   const a = kill('grunt', true);
-  check(`a kill: ${a.healed} HP, the designer’s 3`, a.dead && a.healed === 3 && a.healed === v.mendKill && had(a.r.c, 'seanMend'));
+  check(`Unstable, a kill: ${a.healed} HP, the designer’s 4`, a.dead && a.healed === 4 && a.healed === v.mendKill && had(a.r.c, 'seanMend'));
   const b = kill('bigMushnub', true);
-  check(`a mini-boss: ${b.healed} HP, the designer’s 10`, b.dead && b.healed === 10 && b.healed === v.mendBig);
+  check(`Unstable, a mini-boss: ${b.healed} HP, the designer’s 12`, b.dead && b.healed === 12 && b.healed === v.mendBig);
   const n = kill('grunt', false);
-  check('in normal mode: nothing', n.dead && n.healed === 0);
+  check(`normal mode, a kill: ${n.healed} HP, the designer’s 2`, n.dead && n.healed === 2 && n.healed === v.mendNormal);
+  const nb = kill('bigMushnub', false);
+  check(`normal mode, a mini-boss: ${nb.healed} HP, the designer’s 5`, nb.dead && nb.healed === 5 && nb.healed === v.mendNormalBig);
   const j = kill('grunt', false, false);
   check('Joseph: nothing', j.dead && j.healed === 0);
   const top = room();
@@ -393,6 +395,102 @@ section('Unstable mode: kills give health back');
   dead.p.hp = 0;
   dead.step({});
   check('none for the dead', dead.p.hp === 0);
+}
+
+section('A blow counts as the stance it was struck in, whatever he’s gone to since');
+{
+  // The designer's: a Black Hole thrown in Unstable mode, then back to normal.
+  const hole = room();
+  hole.step({ interactPressed: true });
+  hole.step({ heavyPressed: true, heavyHeld: true });
+  hole.step({ heavyHeld: true }, v.palmMin);
+  hole.step({ pitch: -0.25 });
+  for (let i = 0; i < ticks(2) && hole.c.grav.hole!.flying; i++) hole.step({ pitch: -0.25 });
+  const h = hole.c.grav.hole!;
+  const victim = foe(hole.c, h.x, h.z + 2);
+  victim.hp = 2;
+  hole.c.grav.instab = 0;
+  hole.step({ interactPressed: true });
+  check('(he’s gone back to normal mode, the hole still running)', !hole.c.grav.unstable && !!hole.c.grav.hole);
+  hole.p.hp = 40;
+  for (let i = 0; i < ticks(v.holeTime) && isLive(victim); i++) hole.step({});
+  hole.step({}, 0.02);
+  check(`Black Hole, its damage: he’s in normal mode, it heals as Unstable (${hole.p.hp - 40} HP)`, !isLive(victim) && hole.p.hp - 40 === v.mendKill);
+  const burst = room();
+  burst.step({ interactPressed: true });
+  burst.step({ heavyPressed: true, heavyHeld: true });
+  burst.step({ heavyHeld: true }, v.palmMin);
+  burst.step({ pitch: -0.25 });
+  for (let i = 0; i < ticks(2) && burst.c.grav.hole!.flying; i++) burst.step({ pitch: -0.25 });
+  const hb = burst.c.grav.hole!;
+  const late = foe(burst.c, hb.x, hb.z + 2);
+  late.hp = 5000;
+  burst.c.grav.instab = 0;
+  burst.step({ interactPressed: true });
+  burst.step({}, v.holeTime - 0.05);
+  late.hp = 1;
+  burst.p.hp = 40;
+  burst.step({}, 0.2);
+  check(`and its burst (${burst.p.hp - 40} HP)`, !isLive(late) && burst.p.hp - 40 === v.mendKill);
+  // A rock in the air, and he's gone Unstable.
+  const rock = room();
+  rock.step({ pitch: -0.35, heavyPressed: true, heavyHeld: true });
+  rock.step({ pitch: 0, heavyHeld: true }, v.grabRise + 0.02);
+  const target = foe(rock.c, 0, -14);
+  target.hp = 1;
+  pin(rock.c);
+  rock.step({ pitch: 0 });
+  rock.step({ pitch: 0, interactPressed: true });
+  check('(a rock in the air, and he’s Unstable)', rock.c.grav.unstable && rock.c.grav.rocks.some((k) => k.alive));
+  rock.p.hp = 40;
+  rock.step({ pitch: 0 }, 1.5);
+  check(`what he threw in normal mode heals as normal (${rock.p.hp - 40} HP)`, !isLive(target) && rock.p.hp - 40 === v.mendNormal);
+  // Vent: his way out of Unstable mode.
+  const vent = room();
+  vent.step({ interactPressed: true });
+  const near_ = foe(vent.c, 0, -2);
+  near_.hp = 1;
+  pin(vent.c);
+  vent.p.hp = 40;
+  vent.step({ interactPressed: true });
+  vent.step({}, 0.05);
+  check(`Vent’s blast heals as Unstable, as he leaves it (${vent.p.hp - 40} HP)`, !vent.c.grav.unstable && !isLive(near_) && vent.p.hp - 40 === v.mendKill);
+  // Shockwave Punch, left through its wind-up.
+  const shock = room();
+  shock.step({ interactPressed: true });
+  const sv = foe(shock.c, 0, -3);
+  sv.hp = 1;
+  pin(shock.c);
+  shock.step({ slamPressed: true });
+  shock.c.grav.instab = 0;
+  const sh = sv.hp;
+  sv.hp = 500;
+  shock.step({ interactPressed: true });
+  sv.hp = sh;
+  shock.p.hp = 40;
+  shock.step({}, v.shockWindup + 0.05);
+  check(`Shockwave Punch, left in its wind-up (${shock.p.hp - 40} HP)`, !isLive(sv) && shock.p.hp - 40 === v.mendKill);
+  // Time Stop: each by what it was struck in.
+  const stored = (unstableFirst: boolean) => {
+    const r = room();
+    r.c.grav.ult = 1;
+    r.step({ throwPressed: true });
+    if (unstableFirst) r.step({ interactPressed: true });
+    const e = foe(r.c, 0, -1.8);
+    e.hp = 1;
+    r.step({ attackPressed: true });
+    if (unstableFirst) r.step({ interactPressed: true });
+    check(`(${unstableFirst ? 'Unstable when it landed, normal now' : 'normal throughout'})`, !r.c.grav.unstable && isLive(e));
+    r.p.hp = 40;
+    for (let i = 0; i < ticks(v.stopTime + 1) && r.c.grav.stop; i++) r.step({});
+    r.step({}, 0.02);
+    return { healed: r.p.hp - 40, dead: !isLive(e) };
+  };
+  const sa = stored(false);
+  check(`a blow held back in normal mode: ${sa.healed} HP`, sa.dead && sa.healed === v.mendNormal);
+  const sb = stored(true);
+  check(`and in Unstable mode: ${sb.healed} HP`, sb.dead && sb.healed === v.mendKill);
+  check('nothing’s left marked as another stance', sb.dead && room().c.grav.as === null);
 }
 
 section('The meter his ultimates share');

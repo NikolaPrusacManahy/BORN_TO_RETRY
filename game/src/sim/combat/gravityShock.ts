@@ -61,6 +61,8 @@ function fire(state: CombatState, player: PlayerState, yaw: number, pitch: numbe
   const fx = flat > 0.05 ? dir.x / flat : -Math.sin(yaw);
   const fz = flat > 0.05 ? dir.z / flat : -Math.cos(yaw);
   let struck = false;
+  // (Update 0.3.90 — Unstable mode's, even if he's left it through its wind-up.)
+  state.grav.as = true;
   state.dummies.forEach((d, i) => {
     if (d.broken) return;
     dummyAt.set(d.home.x + d.offset.x, d.home.y, d.home.z + d.offset.z);
@@ -69,6 +71,7 @@ function fire(state: CombatState, player: PlayerState, yaw: number, pitch: numbe
   state.enemies.forEach((e, i) => {
     if (isLive(e)) struck = strike(state, player, 'enemy', i, e.pos, radiusOf(e), ENEMY_STATS[e.kind]().height, fx, fz) || struck;
   });
+  state.grav.as = null;
   // It throws you back; in the air it holds you up as well.
   player.vel.x -= fx * v.shockRecoil;
   player.vel.z -= fz * v.shockRecoil;

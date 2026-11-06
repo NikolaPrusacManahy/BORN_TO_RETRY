@@ -178,6 +178,8 @@ export function stepHole(state: CombatState, world: CollisionWorld, dt: number) 
   if (!h) return;
   if (h.flying) return fly(state, world, dt);
   const v = SEAN.v;
+  // (Update 0.3.90 — it's an Unstable mode attack: what it kills counts as that, whatever stance he's in by now.)
+  state.grav.as = true;
   h.t += dt;
   state.enemies.forEach((e, i) => {
     if (isLive(e)) drag(state, i, e, dt);
@@ -188,6 +190,7 @@ export function stepHole(state: CombatState, world: CollisionWorld, dt: number) 
     drain(state);
   }
   if (h.t >= v.holeTime) burst(state);
+  state.grav.as = null;
 }
 
 /** After the enemies have moved: bosses in its reach lose some of the ground they made. They aren't pulled, only slowed. */

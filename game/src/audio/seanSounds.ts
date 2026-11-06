@@ -110,6 +110,9 @@ export function playSean(a: AudioEngine, kind: CombatEvent, value: number, far: 
       a.clips.play('hellWhoosh', 1, 0.6);
       tone(a, { from: 40, to: 480, dur: 0.3, gain: 0.24, type: 'sawtooth' });
       return true;
+    case 'seanDoomed':
+      tone(a, { from: 210, to: 70, dur: 0.22, gain: 0.2, type: 'sawtooth' });
+      return true;
     case 'seanStopPop':
       a.clips.play('demonSlam', Math.min(1, 0.35 + value / 300) * far, 1.1);
       return true;

@@ -4,7 +4,8 @@ import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
 
 const COOL = 0x8f83ff;
-const SPARK = 0xd9d2ff;
+const SPARK = new THREE.Color(0xd9d2ff);
+const DOOMED = new THREE.Color(0xff2a1a);
 /** The shell: how far it rolls out (m), how long it takes (s), how long it takes to come back (s). */
 const SHELL_R = 70;
 const OUT_FOR = 0.7;
@@ -32,7 +33,7 @@ export class StopView {
   private readonly dustMat = new THREE.PointsMaterial({ color: 0xcfc8ff, size: 0.07, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
   private readonly dust = new THREE.Points(this.dustGeo, this.dustMat);
   private readonly sparkGeo = new THREE.IcosahedronGeometry(1, 0);
-  private readonly sparkMat = new THREE.MeshBasicMaterial({ color: SPARK, transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
+  private readonly sparkMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
   private readonly sparks = new THREE.InstancedMesh(this.sparkGeo, this.sparkMat, SPARKS);
   private readonly at = new THREE.Vector3();
   private was = false;
@@ -56,6 +57,7 @@ export class StopView {
     this.shell.visible = this.dust.visible = this.sparks.visible = false;
     this.shell.frustumCulled = this.dust.frustumCulled = this.sparks.frustumCulled = false;
     this.sparks.count = 0;
+    this.sparks.setColorAt(0, SPARK);
     scene.add(this.shell, this.dust, this.sparks);
   }
 
@@ -123,8 +125,11 @@ export class StopView {
       const size = Math.min(SPARK_MAX, SPARK_MIN + SPARK_GROW * Math.sqrt(h.damage) * 2) * (1 + 0.12 * Math.sin(this.time * 17 + i));
       q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, this.time * 3 + i);
       this.sparks.setMatrixAt(i, m.compose(h.point, q, scl.setScalar(size)));
+      // (Update 0.3.90 — red once it's enough to kill it.)
+      this.sparks.setColorAt(i, h.doomed ? DOOMED : SPARK);
     }
     this.sparks.instanceMatrix.needsUpdate = true;
+    if (this.sparks.instanceColor) this.sparks.instanceColor.needsUpdate = true;
   }
 
   dispose() {

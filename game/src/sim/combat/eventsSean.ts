@@ -37,11 +37,13 @@ export type SeanEvent =
   | 'seanStopHit'
   | 'seanStopEnd'
   | 'seanStopPop'
+  // Update 0.3.90 — what it's holding is enough to kill one.
+  | 'seanDoomed'
   // Update 0.3.83 — Meteor: called, on its way, down (value: its radius).
   | 'seanMeteorCall'
   | 'seanMeteorFall'
   | 'seanMeteorHit'
-  // Update 0.3.88 — health back from a kill in Unstable mode.
+  // Update 0.3.88 — health back from a kill.
   | 'seanMend'
   // The shared meter's full. Update 0.3.87 — a long wait's over (value: 0 Black Hole, 1 Shockwave Punch).
   | 'seanUltReady'

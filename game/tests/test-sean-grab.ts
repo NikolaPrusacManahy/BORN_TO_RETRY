@@ -197,12 +197,12 @@ section('Held on: his palms join, the ground shakes, and it lifts');
   const was = h.at.clone();
   r.step({ heavyHeld: true, yaw: Math.PI / 2 }, 0.1);
   const moved = h.at.distanceTo(was);
-  check(`turn away and it follows, heavy (${moved.toFixed(2)} m in 0.1 s)`, moved > 0 && moved < 4);
+  check(`turn away and it follows, heavy (${moved.toFixed(2)} m in 0.1 s)`, moved > 0 && moved < 6);
   r.step({ heavyHeld: true, yaw: Math.PI / 2 }, 3);
   check('over where you face now', h.at.x < -6);
 }
 
-section('Up to 10 s, and it grows');
+section('Full at 5.5 s, the designer’s; it waits for you up to 10 s');
 {
   const r = room();
   r.step({ pitch: LOOK_DOWN, heavyPressed: true, heavyHeld: true });
@@ -215,7 +215,7 @@ section('Up to 10 s, and it grows');
     if (i % 120 === 0) sizes.push(h.r);
     for (let k = 0; k < r.c.events.length; k++) if (r.c.events.at(k).kind === 'seanTear') spots.push(new THREE.Vector3(r.c.events.at(k).x, 0, r.c.events.at(k).z));
   }
-  check(`the designer’s ${v.gatherTime} s`, v.gatherTime === 10);
+  check(`the designer’s ${v.gatherTime} s`, v.gatherTime === 5.5);
   check(`it keeps growing: ${sizes.map((n) => n.toFixed(1)).join(', ')} m`, sizes.every((n, i) => i === 0 || n >= sizes[i - 1]) && sizes[sizes.length - 1] > sizes[1] * 3);
   check(`at its end: all ${gatherMax()} rocks, and full size (${h.r.toFixed(1)} m)`, h.gathered >= gatherMax() - 1 && h.r > v.gatherSize * 0.9);
   const off = spots.map((o) => Math.hypot(o.x, o.z));
@@ -224,7 +224,19 @@ section('Up to 10 s, and it grows');
   check('from all round you, not all from one place', Math.max(...round) - Math.min(...round) > 2 && new Set(spots.map((o) => `${o.x.toFixed(2)},${o.z.toFixed(2)}`)).size === spots.length);
   check(`each left its crater (${r.c.grav.craters.filter((k) => k.on).length})`, r.c.grav.craters.filter((k) => k.on).length === spots.length + 1);
   r.step({ heavyHeld: true }, 0.1);
-  check('then it comes down, held or not', !r.c.grav.held && !!r.c.grav.fall && had(r.c, 'seanDrop'));
+  const full = h.gathered;
+  check('full, and it waits for you: you choose when', r.c.grav.held === h && h.gathered === gatherMax());
+  r.step({ heavyHeld: true }, v.gatherHold - v.gatherTime - 0.2);
+  check(`still there near ${v.gatherHold} s, and no bigger`, r.c.grav.held === h && h.gathered === full);
+  r.step({ heavyHeld: true }, 0.2);
+  check('then it comes down anyway', !r.c.grav.held && !!r.c.grav.fall && had(r.c, 'seanDrop'));
+}
+
+section('Right click in normal mode hits 25% harder, the designer’s');
+{
+  check(`a chunk: ${v.smallDamage}, from 30`, near(v.smallDamage, 30 * 1.25, 1e-9));
+  check(`a pillar: ${v.bigDamage}, from 80; its burst ${v.bigBlastDamage}, from 30`, near(v.bigDamage, 80 * 1.25, 1e-9) && near(v.bigBlastDamage, 30 * 1.25, 1e-9));
+  check(`the sphere at its fullest: ${v.gatherDamage}, from 300`, near(v.gatherDamage, 300 * 1.25, 1e-9));
 }
 
 section('Let go: it comes down where you’re aiming, and hits the arena');

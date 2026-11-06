@@ -33,7 +33,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import type { CombatState } from '../sim/combat/state';
-import { worldHeld } from '../sim/combat/gravityMeter';
+import { doomed, worldHeld } from '../sim/combat/gravityMeter';
+import { tintDoomed } from './sean/doomTint';
 import { pullPose } from './sean/holePull';
 import { ENEMY_POOL, EnemyPhase } from '../sim/enemies/enemy';
 import { ENEMY_KINDS, ENEMY_STATS, EnemyKind, flies } from '../sim/enemies/kinds';
@@ -329,6 +330,8 @@ export class EnemiesView {
         m.depthWrite = seen >= 1;
       }
       for (const m of b.mats) m.emissive.setRGB(flash + mark * 0.9 + glow * look.glow[0] + ice * 0.25, flash - mark * 0.3 + glow * look.glow[1] + ice * 0.55, flash - mark * 0.3 + glow * look.glow[2] + ice * 0.95);
+      // (Update 0.3.90 — in Gravity Sean's Time Stop, what's taken enough to die when it ends.)
+      tintDoomed(b.mats, doomed(state.grav, i));
       if (e.kind === 'brute' && e.phase === 'windup') this.ring(slot.ring, e.pos, glow);
       slot.phase = e.phase;
       slot.t = e.t;

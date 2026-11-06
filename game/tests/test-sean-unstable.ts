@@ -123,6 +123,20 @@ section('Black Hole — right click held: in his palm');
   check('in normal mode right click’s Grab', n.c.grav.palm < 0 && !!n.c.grav.held);
 }
 
+section('Black Hole — 25% more range, the designer’s');
+{
+  check(`it pulls from ${v.holeReach} m, from 12; it flies ${v.holeRange} m, from 30`, near(v.holeReach, 12 * 1.25, 1e-9) && near(v.holeRange, 30 * 1.25, 1e-9));
+  const r = room();
+  r.step({ heavyPressed: true, heavyHeld: true });
+  r.step({ heavyHeld: true }, v.palmMin);
+  r.step({ pitch: -0.25 });
+  for (let i = 0; i < ticks(2) && r.c.grav.hole!.flying; i++) r.step({ pitch: -0.25 });
+  const h = r.c.grav.hole!;
+  const e = foe(r.c, h.x + 13.5, h.z);
+  r.step({});
+  check('13.5 m off, past its old reach: it’s got it', e.phase === 'held');
+}
+
 section('Black Hole — it opens where it strikes');
 {
   const floor = room();

@@ -70,7 +70,10 @@ function vent(state: CombatState, player: PlayerState) {
   g.unstable = false;
   g.instab = 0;
   state.events.push('seanVent', k, player.pos.x, player.pos.y, player.pos.z);
+  // (Update 0.3.90 — Unstable mode's blow, though he's just left it.)
+  g.as = true;
   gravBlast(state, player.pos.x, player.pos.y, player.pos.z, v.ventRadius + (v.ventRadiusFull - v.ventRadius) * k, v.ventDamage + (v.ventDamageFull - v.ventDamage) * k, v.ventKnock);
+  g.as = null;
 }
 
 /** The meter at max: the big blast, some of it yours, back to normal mode, and E waits. */
@@ -81,7 +84,9 @@ function overload(state: CombatState, player: PlayerState) {
   g.instab = 0;
   g.switchWait = v.overloadWait;
   state.events.push('seanOverload', 0, player.pos.x, player.pos.y, player.pos.z);
+  g.as = true;
   gravBlast(state, player.pos.x, player.pos.y, player.pos.z, v.overloadRadius, v.overloadDamage, v.overloadKnock);
+  g.as = null;
   damagePlayer(player, v.overloadSelf, 'overload');
 }
 
@@ -168,7 +173,10 @@ export function trySeanSlam(state: CombatState, player: PlayerState, pressed: bo
 export function landPlunge(state: CombatState, player: PlayerState, drop: number) {
   const v = SEAN.v;
   const { damage, radius } = powerFor(drop);
+  // (Normal mode's, whatever he's gone to on the way down.)
+  state.grav.as = false;
   gravBlast(state, player.pos.x, player.pos.y, player.pos.z, radius + v.plungeWider, damage, v.plungeKnock);
+  state.grav.as = null;
 }
 
 /** Each tick: Unstable, a dash just begun toward an enemy goes all the way to it. */

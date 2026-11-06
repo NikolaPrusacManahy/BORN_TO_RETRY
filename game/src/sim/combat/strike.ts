@@ -15,7 +15,7 @@ import { SWARM } from '../../tuning/swarm';
 import { Vector3 } from 'three';
 import { ENEMIES } from '../../tuning/enemies';
 import { FEEDBACK } from '../../tuning/combat';
-import { enemyAxis, hitEnemy, isLive, radiusOf } from '../enemies/enemy';
+import { enemyAxis, hitEnemy, isLive, radiusOf, wouldDie } from '../enemies/enemy';
 import { dropWeapon } from '../weapons/weapons';
 import { dodges } from '../enemies/evade';
 import { ENEMY_STATS, MINI_BOSSES } from '../enemies/kinds';
@@ -213,7 +213,16 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   // (Update 0.3.85 — Gravity Sean's Time Stop: it's held back, and they look unfazed. As it lands there's no dodging it.)
   const stop = state.grav.stop;
   if (stop && !stop.releasing) {
-    storeHit(state, t.kind, t.index, t.part, t.point, damage, knock, dirX, dirZ);
+    const held = storeHit(state, t.kind, t.index, t.part, t.point, damage, knock, dirX, dirZ);
+    // (Update 0.3.90 — once it's enough to kill it, the view shows it red. What it'll be when it lands, as below.)
+    if (held && t.kind === 'enemy' && !held.doomed) {
+      const e = state.enemies[t.index];
+      const sum = holds(state, 'bloodPact') ? held.damage * (1 + CARDS.v.bloodPact) : held.damage;
+      if (wouldDie(e, mercy(state, e, sum))) {
+        held.doomed = true;
+        state.events.push('seanDoomed', 0, held.point.x, held.point.y, held.point.z);
+      }
+    }
     return false;
   }
   if (t.kind === 'enemy' && !steady && !stop && dodges(state, t.index, dirX, dirZ)) return false;

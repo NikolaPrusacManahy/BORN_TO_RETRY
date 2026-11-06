@@ -100,7 +100,8 @@ export interface Hole {
   pulled: number[];
 }
 
-/** Update 0.3.85 — what Time Stop's holding back for one target: all its blows' damage, the sum of their pushes, how many, where the last landed. */
+/** Update 0.3.85 — what Time Stop's holding back for one target: all its blows' damage, the sum of their pushes, how many, where the last landed.
+ *  Update 0.3.90 — whether any were struck in Unstable mode (what it heals by), and whether they're enough to kill it (the view shows it red). */
 export interface StoredHit {
   kind: TargetKind;
   index: number;
@@ -110,6 +111,8 @@ export interface StoredHit {
   dx: number;
   dz: number;
   hits: number;
+  unstable: boolean;
+  doomed: boolean;
 }
 
 /** Time Stop: how long, what it's holding back, and whether that's landing now. */
@@ -141,8 +144,10 @@ export interface GravityState {
   slamWait: number;
   /** The meter his ultimates share (0 … 1). */
   ult: number;
-  /** Update 0.3.88 — health owed him by kills in Unstable mode: step.ts pays it, having the player. */
+  /** Update 0.3.88 — health owed him by kills: step.ts pays it, having the player. */
   mend: number;
+  /** Update 0.3.90 — the stance the blows landing right now were struck in, when that's not the stance he's in (null: it is). A Black Hole he's walked away from, a rock in the air. */
+  as: boolean | null;
   /** Seconds a punch just thrown still meets the boss blows only a parry answers. */
   clash: number;
   /** A dash under way has had its pull settled. */
@@ -177,6 +182,7 @@ export function createGravity(): GravityState {
     slamWait: 0,
     ult: 0,
     mend: 0,
+    as: null,
     clash: 0,
     dashing: false,
     held: null,
@@ -219,15 +225,16 @@ export function gravHit(state: Fed) {
 
 /** Update 0.3.85 — a hit of his in stopped time: held back, for when it ends (gravityStop.ts). The meters don't wait, and nor does your sight of it; the enemy doesn't react at all. Plain targets add theirs up;
  *  the parts that only count blows (a knee, a chain) keep each. */
-export function storeHit(state: Fed, kind: TargetKind, index: number, part: number, point: Vector3, damage: number, knock: number, dirX: number, dirZ: number) {
-  const s = state.grav.stop;
-  if (!s) return;
+export function storeHit(state: Fed, kind: TargetKind, index: number, part: number, point: Vector3, damage: number, knock: number, dirX: number, dirZ: number): StoredHit | null {
+  const g = state.grav;
+  const s = g.stop;
+  if (!s) return null;
   gravHit(state);
   const adds = kind === 'enemy' || kind === 'dummy' || kind === 'turret' || kind === 'hive' || kind === 'wormling';
   let h = adds ? s.stored.find((o) => o.kind === kind && o.index === index) : undefined;
   if (!h) {
-    if (s.stored.length >= STORED) return;
-    h = { kind, index, part, point: new Vector3(), damage: 0, dx: 0, dz: 0, hits: 0 };
+    if (s.stored.length >= STORED) return null;
+    h = { kind, index, part, point: new Vector3(), damage: 0, dx: 0, dz: 0, hits: 0, unstable: false, doomed: false };
     s.stored.push(h);
   }
   h.point.copy(point);
@@ -235,16 +242,29 @@ export function storeHit(state: Fed, kind: TargetKind, index: number, part: numb
   h.dx += dirX * knock;
   h.dz += dirZ * knock;
   h.hits++;
+  h.unstable = h.unstable || (g.as ?? g.unstable);
   state.events.push('seanStopHit', h.damage, point.x, point.y, point.z);
+  return h;
+}
+
+/** Update 0.3.90 — is what Time Stop's holding for enemy `i` enough to kill it? (The view shows it red.) */
+export function doomed(g: GravityState, i: number): boolean {
+  if (!g.stop) return false;
+  for (const s of g.stop.stored) if (s.kind === 'enemy' && s.index === i) return s.doomed;
+  return false;
 }
 
 /** Nothing in the world moves: Time Stop, Meteor. The enemies' look holds still too. */
 export const worldHeld = (g: GravityState) => g.stop !== null || g.meteor !== null;
 
-/** A kill of his. `big`: a mini-boss or a boss. Update 0.3.88 — in Unstable mode it gives health back. */
+/** A kill of his. `big`: a mini-boss or a boss. Update 0.3.88 — it gives health back. Update 0.3.90 — in both stances, by the stance the blow was struck in (the designer: a Black Hole "casted" in Unstable mode heals as Unstable, "since it's
+ *  an attack in the unstable mode", whatever he's gone to since). */
 export function gravKill(state: Fed, big: boolean) {
-  addUlt(state, SEAN.v.ultKill);
-  if (state.grav.unstable) state.grav.mend += big ? SEAN.v.mendBig : SEAN.v.mendKill;
+  const g = state.grav;
+  const v = SEAN.v;
+  addUlt(state, v.ultKill);
+  if (g.as ?? g.unstable) g.mend += big ? v.mendBig : v.mendKill;
+  else g.mend += big ? v.mendNormalBig : v.mendNormal;
 }
 
 /** Update 0.3.86 — how many rocks a piece can gather (the last's there as its time's up), and how far it's got (0 … 1). */
