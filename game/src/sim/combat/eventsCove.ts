@@ -66,6 +66,24 @@ export type CoveEvent =
   | 'bigSharkTailWindup'
   | 'bigSharkTail'
   | 'bigSharkFrenzy'
+  // Update 0.3.62 — by the Boss Design Bible: bubbles under you, it coming up; backing off to ram, off, into a ship; the water churning;
+  // your blood, your scent caught; planks bulging, smashed; the water still, its window, the anchor dropped, it crushed, it coming down, on you.
+  | 'sharkBubbles'
+  | 'sharkBreachUp'
+  | 'sharkRamWarn'
+  | 'sharkRamGo'
+  | 'sharkRam'
+  | 'sharkChurn'
+  | 'sharkBleed'
+  | 'sharkMark'
+  | 'sharkBulge'
+  | 'sharkBreak'
+  | 'sharkStill'
+  | 'sharkAbyssOpen'
+  | 'sharkAnchorDrop'
+  | 'sharkCrushed'
+  | 'sharkAbyssCome'
+  | 'sharkAbyssHit'
   // Mako: diving into the sand, the sand churning where it'll erupt (x, z: the spot), erupting with its bite, its
   // charge on boards, its cleaver up, its blow.
   | 'makoDive'

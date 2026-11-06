@@ -202,6 +202,33 @@ export function depthsFeedback(f: FeedbackParts, kind: CombatEvent, value: numbe
     case 'bigSharkTail':
       f.rig.shake.add(fb.shakeHeavy * near(10));
       return true;
+    // (Update 0.3.62 — by the Boss Design Bible.)
+    case 'sharkBreachUp':
+    case 'sharkAbyssHit':
+      f.sparks.spawn(at, UP, 40, 2);
+      f.rig.shake.add(fb.shakeHeavy * near(24));
+      return true;
+    case 'sharkRam':
+    case 'sharkBreak':
+      f.chunks.spawn(at, UP, 40, 1.8);
+      f.rig.shake.add(fb.shakeHeavy * 1.2 * near(50));
+      return true;
+    case 'sharkCrushed':
+      f.chunks.spawn(at, UP, 50, 2);
+      f.rig.shake.add(fb.shakeHeavy * 1.5);
+      return true;
+    case 'sharkBubbles':
+    case 'sharkRamWarn':
+    case 'sharkRamGo':
+    case 'sharkChurn':
+    case 'sharkBleed':
+    case 'sharkMark':
+    case 'sharkBulge':
+    case 'sharkStill':
+    case 'sharkAbyssOpen':
+    case 'sharkAnchorDrop':
+    case 'sharkAbyssCome':
+      return true;
     case 'bigSharkStuck':
       f.chunks.spawn(at, UP, 16, 1.2);
       f.rig.shake.add(fb.shakeHeavy * near(20));

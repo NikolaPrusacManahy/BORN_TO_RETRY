@@ -20,6 +20,9 @@ import { WoodGate } from '../src/engine/boss/woodGate';
 import { introBeats } from '../src/sim/dungeon/bossRoom';
 import { bossOf, ENEMY_STATS } from '../src/sim/enemies/kinds';
 import { DROWNED } from '../src/tuning/drowned';
+import { SharkFx } from '../src/engine/boss/sharkFx';
+import { setSharkArena } from '../src/sim/enemies/sharkBody';
+import { ABYSS as SHARK_ABYSS } from '../src/sim/enemies/sharkArena';
 import { DINO } from '../src/tuning/dino';
 import { RuinsView } from '../src/engine/boss/ruinsView';
 import { DinoCinema } from '../src/engine/boss/dinoCinema';
@@ -471,6 +474,32 @@ if (kind === 'frostRoc') {
   const look = (name: string, f: number, r: number, u: number, to = 0.5) => ({ name, at: [e.pos.x + fx0 * f * h - fz0 * r * h, u * h, e.pos.z + fz0 * f * h + fx0 * r * h], to: [e.pos.x, to * h, e.pos.z] });
   if (!(beat in showAt)) cams.splice(1, 2, look('roc-front', 2.1, 0.45, 0.55), look('roc-side', 0.5, 2.2, 0.6), look('roc-high', 3.6, 2.2, 2.3, 0.1), { name: 'roc-pit', at: [mid.x - R.cliffX * 26, 6, mid.z - R.cliffZ * 26], to: [mid.x + R.cliffX * 30, 13, mid.z + R.cliffZ * 30] });
   demon.height = 0;
+}
+if (kind === 'bigShark') {
+  // (Update 0.3.62 — its arena and its anchors, baked: `--beat=arena|abyss`.)
+  const beat = process.argv.find((a) => a.startsWith('--beat='))?.slice(7) ?? '';
+  if (beat) {
+    const combat = createCombat(level.arena, false);
+    const mid = new THREE.Vector3(b.portal.x, 4, b.portal.z);
+    const slot = spawnEnemy(combat.enemies, 'bigShark', mid, 0);
+    const e = combat.enemies[slot];
+    const half = (b.end.max.x - b.end.min.x) / 2;
+    setSharkArena(e.shark!, level.arena, b.portal.x, b.portal.z, half);
+    if (beat === 'abyss') {
+      e.phase = 'blast';
+      e.move = SHARK_ABYSS;
+      e.shots = 1;
+      e.shark!.marked = 0;
+      e.shark!.chainOpen = true;
+    }
+    const scene = new THREE.Scene();
+    const fx = new SharkFx(scene);
+    fx.update(combat, 0.016, { x: eye.x, y: 4, z: eye.z });
+    scene.updateMatrixWorld(true);
+    bake(scene);
+    const a = e.shark!.anchors[0];
+    cams.splice(1, 2, { name: 'shark-room', at: [b.portal.x + half * 0.9, 30, b.portal.z + half * 0.9], to: [b.portal.x, 0, b.portal.z] }, { name: 'shark-low', at: [b.portal.x, 5, b.portal.z], to: [a.x, 4, a.z] }, { name: 'shark-anchor', at: [a.x + 7, 3.5, a.z + 5], to: [a.x, 5, a.z] });
+  }
 }
 if (kind === 'dino' && floor === 6) {
   // (Update 0.3.60 — it posed for a move, by the game's own pose code, baked: `--beat=stand|crouch|tail|bark|flip`.)

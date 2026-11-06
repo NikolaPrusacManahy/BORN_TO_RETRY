@@ -9,6 +9,8 @@
 import { hitWormling, WORMLING_RADIUS, wormlingUp } from '../enemies/wormlings';
 import { spineAt, spineFrom, spineRadius } from '../enemies/kingBody';
 import { kneeAt, kneeRadius, kneesOpen } from '../enemies/rocBody';
+import { anchorY, CHAIN_R } from '../enemies/sharkAbyss';
+import { BIG_SHARK } from '../../tuning/bigShark';
 import { SWARM } from '../../tuning/swarm';
 import { Vector3 } from 'three';
 import { ENEMIES } from '../../tuning/enemies';
@@ -33,7 +35,7 @@ import { TARGET_SHAPES, dummyAxis, turretAxis } from './targets';
 import { hitTurret } from './turretDamage';
 import { HIVE_RADIUS, hitHive } from '../dungeon/hives';
 
-export type TargetKind = 'dummy' | 'turret' | 'enemy' | 'hive' | 'wormling' | 'spine' | 'knee' | 'head';
+export type TargetKind = 'dummy' | 'turret' | 'enemy' | 'hive' | 'wormling' | 'spine' | 'knee' | 'head' | 'chain';
 
 export interface TargetHit {
   kind: TargetKind;
@@ -96,6 +98,19 @@ export function nearestTarget(state: CombatState, from: Vector3, to: Vector3, ra
     b.set(q.x, q.top, q.z);
     consider('wormling', i, WORMLING_RADIUS);
   });
+  // (Update 0.3.62 — the Big Shark's anchor's chain, as it waits under it: ahead of the rest.)
+  state.enemies.forEach((e, i) => {
+    if (!isLive(e) || !e.shark?.chainOpen || e.shark.marked < 0) return;
+    const c = e.shark.anchors[e.shark.marked];
+    a.set(c.x, anchorY(), c.z);
+    b.set(c.x, BIG_SHARK.v.floodTop + 0.6, c.z);
+    if (segmentDistance(from, to, a, b, at, sOut) > radius + CHAIN_R) return;
+    nearest = -1;
+    out.kind = 'chain';
+    out.index = i;
+    out.s = sOut.s;
+    out.point.copy(at);
+  });
   // (Update 0.3.58 — the Drowned King's heads flying at you: shot or punched, they pop; parrying's the bonus.)
   if (heads) {
     state.orbs.forEach((o, i) => {
@@ -155,6 +170,11 @@ export function hitTarget(state: CombatState, t: TargetHit, damage: number, knoc
       const eye = state.enemies.find((e) => isLive(e) && e.kind === 'swarm');
       if (eye && !eye.swarm?.shield) eye.hp = Math.max(1, eye.hp - SWARM.v.bigWormBar);
       return true;
+    }
+    case 'chain': {
+      const s = state.enemies[t.index].shark;
+      if (s) s.chainHit = true;
+      return false;
     }
     case 'head': {
       const o = state.orbs[t.index];

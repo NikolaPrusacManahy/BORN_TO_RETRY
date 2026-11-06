@@ -2,13 +2,13 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-05, after Update 0.3.61)
-- **Versions 0.3.58 to 0.3.61** (the Drowned King and the Velociraptor by the Boss Design Bible, their rooms and intros), built, **not committed** until the designer says "commit".
+## Where things stand (2026-11-05, after Update 0.3.62)
+- **Versions 0.3.58 to 0.3.62** (the Drowned King and the Velociraptor by the Boss Design Bible, their rooms and intros; the Big Shark adapted), built, **not committed** until the designer says "commit".
   The designer (asleep, 2026-11-05): "do all of the bosses, but do not touch boss 8 & 9 … do floor 5, 6, 7 & 10 * Arena / Moves / Intro".
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
-  ("Keep them, adapt"). In floor order. **The Dragon is done (0.3.49, 0.3.50). The Swarm is done (0.3.51, 0.3.52). The Bone King is done (0.3.53, 0.3.54). The Frost Roc is done (0.3.56, 0.3.57). The Drowned King is done (0.3.58, 0.3.59). The Velociraptor is done (0.3.60, 0.3.61). Floors 8 and 9 stay as they are (the designer: "they are fine").**
+  ("Keep them, adapt"). In floor order. **The Dragon is done (0.3.49, 0.3.50). The Swarm is done (0.3.51, 0.3.52). The Bone King is done (0.3.53, 0.3.54). The Frost Roc is done (0.3.56, 0.3.57). The Drowned King is done (0.3.58, 0.3.59). The Velociraptor is done (0.3.60, 0.3.61). The Big Shark is adapted (0.3.62). Floors 8 and 9 stay as they are (the designer: "they are fine").**
   Its ultimate is on `sim/enemies/ultimate.ts`, for the rest to share. Kit clashes still to meet: the slide (gone since
   0.3.20; the bible's Sky Clap, Pillar Swing, Tail Lash), boss melee can't be parried and parry is bare-handed, four
   ultimates cancel by shooting (count any ranged hit, and give fists a parryable shot), the audio has no left/right (the
@@ -65,7 +65,12 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-05, Update 0.3.61: the Velociraptor's intro)
+## Last update (2026-11-05, Update 0.3.62: the Big Shark by the Boss Design Bible)
+- **The designer**: "Keep them, adapt", "do floor 5, 6, 7 & 10 * Arena / Moves / Intro". Spec `MD_UPDATES/U0362_BIG_SHARK_BIBLE.md`.
+- **Built:** its Breach, Hull Ram, Undertow; Blood Scent, Deck Breaker; Abyss Jaws (`sim/enemies/sharkArena.ts`, `sharkAbyss.ts`); ships and anchors in its arena. Its jaw moves, swallow and show stand.
+- **Unseen:** not played. Its arena checked in Blender renders.
+
+## Before (2026-11-05, Update 0.3.61: the Velociraptor's intro)
 - **The designer**: "do floor 5, 6, 7 & 10 * Arena / Moves / Intro". Spec `MD_UPDATES/U0361_VELOCIRAPTOR_SHOW.md`.
 - **Built:** `sim/dungeon/dinoShow.ts`, `engine/boss/dinoCinema.ts`. Test: `test-dino-show.ts`.
 - **Unseen:** not played or heard. Checked in Blender renders.

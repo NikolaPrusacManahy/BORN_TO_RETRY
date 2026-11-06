@@ -269,7 +269,7 @@ export function snap(e: Enemy, index: number, player: PlayerState, w: EnemyWorld
 }
 
 /** A move done: a breath, and one more since its last swallow (a feint isn't one). */
-function rest(e: Enemy) {
+export function rest(e: Enemy) {
   if (e.move === SWALLOW) e.shots = 0;
   else if (e.move !== FEINT) e.shots++;
   e.move = 0;

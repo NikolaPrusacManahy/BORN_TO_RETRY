@@ -223,6 +223,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   left or move right that way to escape its jaws. Its swallow: caught, your hands hold its jaws apart, click fast and
   punch its throat, or it's one shot. Its tail, its teeth stuck in a wall, its frenzy below half. 1260 health. Dead,
   the arena drains. **(placeholder numbers, F1 → Big Shark)**
+- **The Big Shark by the Boss Design Bible** (Update 0.3.62; spec `MD_UPDATES/U0362_BIG_SHARK_BIBLE.md`): "The arena is a weapon". It stays under water with its jaw moves and swallow. New: a **Breach** (bubbles under you; it comes up through them and out, open in the air), a **Hull Ram** (into a sunken ship: a shock along the seabed, wreckage, its teeth stuck), an **Undertow** (a whirlpool whose eye bites). Phase 2: the ships keep coming apart; **Blood Scent** (hurt, you bleed; 2 s at one spot and it strikes there), **Deck Breaker** (planks bulge; it smashes out, stuck in the hole 3 s). Its ultimate, **Abyss Jaws**, as phase 2 starts then every 60 s: the water goes still, it waits under an anchor, its chain glowing: hit the chain and the anchor crushes it, stunned 7 s; not, it comes down on you, 50.
 
 ### Floor 8 — the Shrine Dimension (Update 0.3.32; the plan `MD/FLOOR8_SHRINE_PLAN.md`; spec `MD_UPDATES/U0332_SHRINE_LEVEL.md`)
 - The designer: "Japan theme … karate or martial art enemies … Sakura trees and a shrine and this kind of thing, loads

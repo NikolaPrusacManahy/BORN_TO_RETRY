@@ -3,6 +3,7 @@
 // as it lines up, a swish as it passes, its jaws creaking wide. Its blows: a huge snap, the tail's slap, a crunch into a
 // wall. In its jaws: your shoves forcing them, your punch to its throat, or the gulp. Your escape: a rush of water.
 import type { CombatEvent } from '../sim/combat/state';
+import { BIG_SHARK } from '../tuning/bigShark';
 import type { AudioEngine } from './audio';
 import { noise, tone } from './synth';
 
@@ -20,6 +21,56 @@ function snap(a: AudioEngine, far: number, big = 1) {
 export function playShark(a: AudioEngine, kind: CombatEvent, _value: number, far: number): boolean {
   const boss = Math.max(0.5, far);
   switch (kind) {
+    // (Update 0.3.62 — by the Boss Design Bible.)
+    case 'sharkBubbles':
+      noise(a, { dur: BIG_SHARK.v.breachTell, gain: 0.3 * boss, filter: 'bandpass', from: 500, to: 2200, q: 6 });
+      return true;
+    case 'sharkBreachUp':
+      rush(a, 0.7, 0.6, 500, 3000);
+      return true;
+    case 'sharkRamWarn':
+      tone(a, { from: 50, to: 95, dur: BIG_SHARK.v.ramTell, gain: 0.32 * boss, type: 'sawtooth' });
+      return true;
+    case 'sharkRamGo':
+      rush(a, 0.5 * boss, 0.9);
+      return true;
+    case 'sharkRam':
+    case 'sharkBreak':
+      a.clips.play('demonCrash', boss);
+      noise(a, { dur: 1.1, gain: 0.34, filter: 'lowpass', from: 1500, to: 200 });
+      return true;
+    case 'sharkChurn':
+      noise(a, { dur: BIG_SHARK.v.whirlTell + BIG_SHARK.v.whirlFor, gain: 0.26, filter: 'bandpass', from: 400, to: 1200, q: 1.4 });
+      return true;
+    case 'sharkBleed':
+      tone(a, { from: 190, to: 70, dur: 0.5, gain: 0.28, type: 'sawtooth' });
+      return true;
+    case 'sharkMark':
+      tone(a, { from: 90, to: 200, dur: BIG_SHARK.v.scentWarn, gain: 0.34, type: 'sawtooth' });
+      return true;
+    case 'sharkBulge':
+      for (let i = 0; i < 4; i++) noise(a, { dur: 0.1, gain: 0.32 * boss, filter: 'bandpass', from: 600, to: 300, q: 3, delay: i * (BIG_SHARK.v.breakTell / 4) });
+      return true;
+    case 'sharkStill':
+      // (Silence, near enough: one low note, and chains.)
+      tone(a, { from: 62, to: 40, dur: BIG_SHARK.v.abyssTell, gain: 0.3 });
+      noise(a, { dur: BIG_SHARK.v.abyssTell, gain: 0.08, filter: 'highpass', from: 3000, to: 4500 });
+      return true;
+    case 'sharkAbyssOpen':
+      tone(a, { from: 44, to: 80, dur: BIG_SHARK.v.abyssWindow, gain: 0.32, type: 'sawtooth' });
+      return true;
+    case 'sharkAnchorDrop':
+      tone(a, { from: 900, to: 300, dur: 0.3, gain: 0.3, type: 'square' });
+      return true;
+    case 'sharkCrushed':
+      a.clips.play('demonCrash', 1, 0.8);
+      return a.clips.play('demonRoar', 1, 1.4) || true;
+    case 'sharkAbyssCome':
+      rush(a, 0.7, 0.5, 600, 3000);
+      return true;
+    case 'sharkAbyssHit':
+      snap(a, 1, 1.4);
+      return true;
     case 'bigSharkFlood':
       noise(a, { dur: 4, gain: 0.35, filter: 'lowpass', from: 300, to: 1100 });
       tone(a, { from: 45, to: 70, dur: 4, gain: 0.3 });

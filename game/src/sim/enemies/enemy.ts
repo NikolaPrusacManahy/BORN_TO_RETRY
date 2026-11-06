@@ -25,6 +25,7 @@ import { createKingBody, type KingBody, skullY } from './kingBody';
 import { createRocBody, type RocBody } from './rocBody';
 import { createDrownedBody, type DrownedBody } from './drownedBody';
 import { createDinoBody, type DinoBody } from './dinoBody';
+import { createSharkBody, type SharkBody } from './sharkBody';
 import { BONE_KING } from '../../tuning/boneKing';
 import { onPupil } from './swarmMoves';
 import type { Wormling } from './wormlings';
@@ -118,6 +119,8 @@ export interface Enemy {
   drowned: DrownedBody | null;
   /** Update 0.3.60 — the Velociraptor's clicks, its eyes, its pack (dinoBody.ts; null: anything else). */
   raptor: DinoBody | null;
+  /** Update 0.3.62 — the Big Shark's arena, its whirlpool, your blood (sharkBody.ts; null: anything else). */
+  shark: SharkBody | null;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -199,6 +202,7 @@ export function createEnemies(): Enemy[] {
     roc: null,
     drowned: null,
     raptor: null,
+    shark: null,
   }));
 }
 
@@ -244,6 +248,7 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.roc = kind === 'frostRoc' ? createRocBody() : null;
   e.drowned = kind === 'drownedKing' ? createDrownedBody() : null;
   e.raptor = kind === 'dino' ? createDinoBody() : null;
+  e.shark = kind === 'bigShark' ? createSharkBody() : null;
   return i;
 }
 

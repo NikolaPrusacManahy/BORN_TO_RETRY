@@ -52,6 +52,7 @@ import { stepKingIntro } from './kingShow';
 import { stepRocIntro } from './rocShow';
 import { stepDrownedIntro } from './drownedShow';
 import { stepDinoIntro } from './dinoShow';
+import { setSharkArena } from '../enemies/sharkBody';
 
 export type BossBeat = 'waiting' | 'intro' | 'fight' | 'dying' | 'loot' | 'open';
 
@@ -162,6 +163,9 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
     case 'intro': {
       if (b.kind === 'bigShark') {
         stepSharkIntro(b, portal, player, combat, dt);
+        // (Update 0.3.62 — it knows its ships and its anchors.)
+        const sb = b.slot >= 0 ? combat.enemies[b.slot].shark : null;
+        if (sb && !sb.set && level) setSharkArena(sb, level.arena, portal.x, portal.z, (level.boss.end.max.x - level.boss.end.min.x) / 2);
         break;
       }
       // (Update 0.3.31 — Tidebreaker's own show: tideShow.ts.)

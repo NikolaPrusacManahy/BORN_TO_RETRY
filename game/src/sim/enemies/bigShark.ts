@@ -14,11 +14,18 @@
 // once you've pressed the wrong way (no escaping this bite); `shots`: moves since its last swallow; `stage`: 1 frenzied;
 // `near`: seconds on this lap. In the show (`intro`) it's placed by the show. Update 0.3.16 — its circle kept in open
 // water, off the walls (openMiddle). Pure.
+// Update 0.3.62 — by the Boss Design Bible, "The arena is a weapon" (the designer: "Keep them, adapt"; spec
+// MD_UPDATES/U0362_BIG_SHARK_BIBLE.md): between those, its Breach, its Hull Ram and its Undertow (sharkArena.ts); in phase 2 its Blood
+// Scent and Deck Breaker, the ships coming apart; its ultimate, Abyss Jaws (sharkAbyss.ts).
 import { BIG_SHARK } from '../../tuning/bigShark';
 import type { CollisionWorld } from '../collisionWorld';
 import type { PlayerState } from '../player/state';
 import { Vector3 } from 'three';
-import { behind, charge, escape, FEINT, FEINT_WARN, LUNGE, openMiddle, quick, ROAR, roomPast, snap, SNAP, startFeint, startLunge, startSnap, startSwallow, startTail, SWALLOW, TAIL, windup } from './bigSharkMoves';
+import { behind, charge, escape, FEINT, FEINT_WARN, LUNGE, openMiddle, quick, rest, ROAR, roomPast, snap, SNAP, startFeint, startLunge, startSnap, startSwallow, startTail, SWALLOW, TAIL, windup } from './bigSharkMoves';
+import { ABYSS, BREACH, BREAKER, RAM, SCENT, startBreach, startBreaker, startRam, startScent, startWhirl, stepArenaMove, stepScent, stepWhirl, stuckFor, WHIRL, wreckage } from './sharkArena';
+import { startAbyss, stepAbyss } from './sharkAbyss';
+import { setSharkArena } from './sharkBody';
+import { ultimateDue } from './ultimate';
 import { Enemy, EnemyWorld, setPhase } from './enemy';
 import { chest, circleYou, holdDepth } from './fishSwim';
 import { ENEMY_STATS } from './kinds';
@@ -32,11 +39,20 @@ const EASY = 0.6;
 const LUNGES = 0.55;
 const TAIL_GAP = 2;
 const WEAVE = 1.6;
+/** The odds of one of its moves on the arena, in place of its jaw moves; of which (Breach, Hull Ram, Undertow, Deck Breaker). */
+const ARENA = 0.45;
+const ARENA_ONE = [0.4, 0.3, 0.3, 0];
+const ARENA_TWO = [0.3, 0.2, 0.2, 0.3];
+const ARENA_MOVES = [BREACH, RAM, WHIRL, BREAKER];
 const about = new Vector3();
 
 /** How long `move` warns (s): the view times its bite to it. */
 export function bigSharkWindup(move: number): number {
   const v = BIG_SHARK.v;
+  if (move === BREACH) return v.breachTell;
+  if (move === RAM) return v.ramTell;
+  if (move === SCENT) return v.scentWarn;
+  if (move === BREAKER) return v.breakTell;
   return move === LUNGE ? v.lungeWarn : move === SNAP ? v.snapWarn : move === SWALLOW ? v.swallowWarn : move === TAIL ? v.tailWarn : move === FEINT ? FEINT_WARN : ROAR_TIME;
 }
 
@@ -52,8 +68,30 @@ export function updateBigShark(e: Enemy, index: number, player: PlayerState, w: 
     w.events.push('bigSharkFrenzy', index, e.pos.x, e.pos.y + s.height, e.pos.z);
     return;
   }
+  // (Its arena, read as its room's show started: bossRoom.ts. In the Lab or a test, four anchors round where it is.)
+  if (e.shark && !e.shark.set) setSharkArena(e.shark, { boxes: [] }, e.pos.x, e.pos.z, 0);
   escape(e, index, player, w);
+  stepWhirl(e, index, player, w, dt);
+  const scent = stepScent(e, index, player, w, dt);
+  // Phase 2: the ships keep coming apart.
+  const body = e.shark!;
+  if (e.stage > 0) {
+    body.wreckIn -= dt;
+    if (body.wreckIn <= 0) {
+      body.wreckIn = v.wreckEvery;
+      if (e.phase !== 'blast') wreckage(e, player, w, 2);
+    }
+  }
+  const due = e.stage > 0 && e.phase !== 'blast' && e.phase !== 'roar' && ultimateDue(e.ult, v.abyssEvery, dt);
+  // (One of its moves on the arena, at any of those phases.)
+  if (e.move >= BREACH && e.move !== ABYSS && e.move !== WHIRL && (e.phase === 'windup' || e.phase === 'leap' || e.phase === 'dive')) {
+    if (stepArenaMove(e, index, player, w, dt, world)) rest(e);
+    return;
+  }
   switch (e.phase) {
+    case 'blast':
+      if (stepAbyss(e, index, player, w, dt, world)) rest(e);
+      break;
     case 'roar':
       holdDepth(e, chest(player), s.speed, dt, w, world);
       if (e.t < ROAR_TIME) break;
@@ -61,7 +99,10 @@ export function updateBigShark(e: Enemy, index: number, player: PlayerState, w: 
       setPhase(e, 'chase');
       break;
     case 'stun':
-      if (e.t >= v.stunTime) setPhase(e, 'recover');
+      if (e.t >= (e.move === ABYSS ? v.abyssStun : stuckFor(e.move) || v.stunTime)) {
+        e.move = 0;
+        setPhase(e, 'recover');
+      }
       break;
     case 'flinch':
       setPhase(e, 'chase');
@@ -71,6 +112,15 @@ export function updateBigShark(e: Enemy, index: number, player: PlayerState, w: 
       if (e.t >= REST) setPhase(e, 'chase');
       break;
     case 'chase':
+      // (Its ultimate, or your scent at one spot, before anything.)
+      if (due && !player.dead) {
+        startAbyss(e, index, player, w);
+        break;
+      }
+      if (scent && !player.dead) {
+        startScent(e, index, player, w);
+        break;
+      }
       lap(e, index, player, w, dt, world);
       break;
     case 'windup':
@@ -103,6 +153,21 @@ function lap(e: Enemy, index: number, player: PlayerState, w: EnemyWorld, dt: nu
   if (e.near < lapFor / 3 || w.rng() > dt / ((lapFor * 2) / 3)) return;
   e.near = 0;
   if (e.shots >= Math.round(v.swallowEvery)) return startSwallow(e, index, player, w);
+  // (One of its moves on the arena.)
+  if (w.rng() < ARENA) {
+    const odds = e.stage > 0 ? ARENA_TWO : ARENA_ONE;
+    let roll = w.rng();
+    for (let m = 0; m < odds.length; m++) {
+      roll -= odds[m];
+      if (roll >= 0) continue;
+      const move = ARENA_MOVES[m];
+      if (move === BREACH) startBreach(e, index, player, w);
+      else if (move === RAM) startRam(e, index, player, w);
+      else if (move === WHIRL) startWhirl(e, index, player, w);
+      else startBreaker(e, index, player, w);
+      return;
+    }
+  }
   const r = w.rng();
   const room = roomPast(e, player, w);
   if (r < v.feints && room) startFeint(e, index, w);
