@@ -26,6 +26,7 @@ import { FOES5 } from '../tuning/foes5';
 import { deepWindup } from '../sim/enemies/deepOne';
 import { bogWindup } from '../sim/enemies/bogBrute';
 import { drownedWindup } from '../sim/enemies/drownedKing';
+import { SHOW_DOWN as KING_SHOW_DOWN, SHOW_LAND as KING_SHOW_LAND, SHOW_UP as KING_SHOW_UP } from '../sim/dungeon/drownedShow';
 import { DIVE as KING_DIVE, FRENZY as KING_FRENZY, JAWS as KING_JAWS, LUNGE as KING_LUNGE, MAW as KING_MAW, RIPTIDE as KING_RIPTIDE, RISEN as KING_RISEN, SURF as KING_SURF } from '../sim/enemies/drownedKingMoves';
 import { FOES6 } from '../tuning/foes6';
 import { FOES6B } from '../tuning/foes6b';
@@ -170,7 +171,7 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
     lands: 15 / 30,
     windup: drownedWindup,
     glow: [0.3, 1, 0.85],
-    moveClips: { [`windup:${KING_JAWS}`]: ['Idle'], [`breath:${KING_JAWS}`]: ['Idle'], [`recover:${KING_JAWS}`]: ['Idle'], [`windup:${KING_FRENZY}`]: ['Idle'], [`dive:${KING_FRENZY}`]: ['Idle'], [`recover:${KING_FRENZY}`]: ['Idle'], [`stun:${KING_FRENZY}`]: ['Idle'], [`windup:${KING_RIPTIDE}`]: ['Idle'], [`blast:${KING_RIPTIDE}`]: ['Idle'], [`blast:${KING_MAW}`]: ['Idle'], [`stun:${KING_MAW}`]: ['Idle'], [`recover:${KING_MAW}`]: ['Idle'], [`leap:${KING_LUNGE}`]: ['Jump_Idle'], [`recover:${KING_LUNGE}`]: ['Jump_Land', true], [`windup:${KING_DIVE}`]: ['Duck', true], [`windup:${KING_RISEN}`]: ['Wave'], [`windup:${KING_SURF}`]: ['Duck', true] },
+    moveClips: { [`windup:${KING_JAWS}`]: ['Idle'], [`breath:${KING_JAWS}`]: ['Idle'], [`recover:${KING_JAWS}`]: ['Idle'], [`windup:${KING_FRENZY}`]: ['Idle'], [`dive:${KING_FRENZY}`]: ['Idle'], [`recover:${KING_FRENZY}`]: ['Idle'], [`stun:${KING_FRENZY}`]: ['Idle'], [`windup:${KING_RIPTIDE}`]: ['Idle'], [`blast:${KING_RIPTIDE}`]: ['Idle'], [`blast:${KING_MAW}`]: ['Idle'], [`stun:${KING_MAW}`]: ['Idle'], [`recover:${KING_MAW}`]: ['Idle'], [`leap:${KING_LUNGE}`]: ['Jump_Idle'], [`recover:${KING_LUNGE}`]: ['Jump_Land', true], [`windup:${KING_DIVE}`]: ['Duck', true], [`windup:${KING_RISEN}`]: ['Wave'], [`windup:${KING_SURF}`]: ['Duck', true], [`intro:${KING_SHOW_UP}`]: ['Jump_Idle'], [`intro:${KING_SHOW_DOWN}`]: ['Jump_Idle'], [`intro:${KING_SHOW_LAND}`]: ['Jump_Land', true] },
   },
   // Update 0.2.11 — floor 6's: the designer's fish (export_monster.py, their one clip), the Prince the King's model.
   clownfish: { url: '/models/enemies/clownfish.glb', clips: SWIM, lands: 0.6, windup: () => FOES6.v.clownWindup, glow: [1, 0.55, 0.2] },

@@ -88,4 +88,13 @@ export const DROWNED = group('drowned', 'Drowned King', {
   mawStun: knob(7, 1, 15, 0.5, 'Maw jammed', 'Parry its bite: its jaw jams open, it’s stunned this long (s), hits do more.'),
   mawSelf: knob(100, 0, 400, 5, 'Maw jam damage', 'What its jaw jamming does to it.'),
   kingCoins: knob(15, 0, 100, 1, 'Drowned King coins', 'Coins in its chest.'),
+  // Its show (Update 0.3.59).
+  showFlood: knob(1.8, 0.5, 5, 0.1, 'Show: the flood', 'The walls burst and the water comes up over this long (s).'),
+  showFin: knob(2.4, 0.5, 6, 0.1, 'Show: its fin', 'Its fin goes round you this long (s).'),
+  showCrown: knob(1.2, 0.3, 4, 0.1, 'Show: its crown', 'Its crown comes up out of the water over this long (s).'),
+  showRise: knob(0.5, 0.15, 2, 0.05, 'Show: bursting up', 'Up out of the water to the top of its leap (s).'),
+  showSlow: knob(0.32, 0.05, 1, 0.01, 'Show: slow motion', 'The run’s speed as it hangs (as you see it, longer).'),
+  showFall: knob(0.45, 0.15, 2, 0.05, 'Show: coming down', 'Down to its landing (s).'),
+  showSnap: knob(0.8, 0.3, 3, 0.1, 'Show: its heads', 'Its heads snap at you this long (s).'),
+  showBack: knob(1.1, 0.5, 3, 0.1, 'Show: back to you', 'The view coming back to you (s).'),
 });

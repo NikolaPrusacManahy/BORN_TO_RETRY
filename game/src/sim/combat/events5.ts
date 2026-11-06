@@ -80,4 +80,9 @@ export type DrownedEvent =
   | 'drownedMawFlash'
   | 'drownedMawJam'
   | 'drownedMawBite'
+  // Update 0.3.59 — its show: the walls weeping, bursting; its crown coming up; the wave of its landing.
+  | 'drownedWeep'
+  | 'drownedWalls'
+  | 'drownedCrown'
+  | 'drownedShowWave'
   | 'geyserBurst';

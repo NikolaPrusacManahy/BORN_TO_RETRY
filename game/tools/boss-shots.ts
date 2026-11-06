@@ -23,6 +23,8 @@ import { DROWNED } from '../src/tuning/drowned';
 import { DrownedFx } from '../src/engine/drownedFx';
 import { TempleView } from '../src/engine/temple/templeView';
 import { clawAt } from '../src/sim/enemies/drownedJaws';
+import { DrownedCinema } from '../src/engine/temple/drownedCinema';
+import { drownedBeats, drownedShowY, drownedWalls, finSpot, SHOW_CROWN as KING_SHOW_CROWN, SHOW_DOWN as KING_SHOW_DOWN, SHOW_LAND as KING_SHOW_LAND, SHOW_UNDER as KING_SHOW_UNDER, SHOW_UP as KING_SHOW_UP, showWater } from '../src/sim/dungeon/drownedShow';
 import { FRENZY as KING_FRENZY, JAWS as KING_JAWS, LUNGE as KING_LUNGE, MAW as KING_MAW, RIPTIDE as KING_RIPTIDE } from '../src/sim/enemies/drownedKingMoves';
 import { MAW_BITE, MAW_PULL, MAW_TELL } from '../src/sim/enemies/drownedMaw';
 import { BIG_SHARK } from '../src/tuning/bigShark';
@@ -146,6 +148,8 @@ const cams = [
   { name: 'boss-gate-close', at: [g.x - g.ox * 4, 1.6, g.z - g.oz * 4], to: [g.x + g.ox * 3, 1.5, g.z + g.oz * 3] },
 ];
 const kind = bossOf(floor);
+// (The water in its room for the shot.)
+const water0 = { level: DROWNED.v.shallow };
 /** Update 0.3.52 — code-made meshes, baked (positions, colours, triangles). */
 const meshes: { pos: number[]; rgb: number[]; idx: number[] }[] = [];
 const k2 = { value: k };
@@ -515,6 +519,37 @@ if (kind === 'drownedKing') {
     set('stun', KING_MAW, 1);
     e.drowned!.jammed = true;
   }
+  // (Update 0.3.59 — its show: `--beat=show-high|show-fin|show-crown|show-hang|show-land|show-snap`.)
+  const ds = drownedBeats();
+  const kingShow: Record<string, number> = { 'show-high': ds.floodTo - 0.3, 'show-fin': (ds.finFrom + ds.finTo) / 2 + 0.3, 'show-crown': ds.upAt - 0.1, 'show-hang': (ds.slowFrom + ds.slowTo) / 2, 'show-land': ds.landAt + 0.1, 'show-snap': ds.snapAt + 0.3 };
+  let kingShot: { name: string; at: number[]; to: number[] } | null = null;
+  let kingShown: BossRun | null = null;
+  if (beat in kingShow) {
+    const t = kingShow[beat];
+    const stages: [number, number][] = [[0, KING_SHOW_UNDER], [ds.crownFrom, KING_SHOW_CROWN], [ds.upAt, KING_SHOW_UP], [ds.slowTo, KING_SHOW_DOWN], [ds.landAt, KING_SHOW_LAND]];
+    let from = 0;
+    e.phase = 'intro';
+    for (const [at, m] of stages) if (t >= at) [from, e.move] = [at, m];
+    e.t = t - from;
+    e.pos.y = drownedShowY(t);
+    combat.flood = showWater(t);
+    if (t >= ds.finFrom && t < ds.finTo) {
+      const toX = eye.x - mid.x;
+      const toZ = eye.z - mid.z;
+      const d = Math.hypot(toX, toZ);
+      finSpot(t, mid.x, mid.z, toX / d, toZ / d, e.pos);
+      e.pos.y = -DROWNED.v.kingHeight;
+    }
+    clipName = e.move === KING_SHOW_LAND ? 'Jump_Land' : e.move === KING_SHOW_UP || e.move === KING_SHOW_DOWN ? 'Jump_Idle' : 'Idle';
+    clipAt = 0.2;
+    k2.value = drownedWalls(t);
+    const dc = new DrownedCinema(level);
+    dc.start(eye, new THREE.Vector3(-ex, 0, -ez));
+    dc.intro(t, eye, shot);
+    kingShot = { name: 'dk-show', at: shot.pos.toArray(), to: shot.look.toArray() };
+    kingShown = { kind: 'drownedKing', ownShow: true, beat: 'intro', t, eyeYaw: e.facing } as unknown as BossRun;
+    water0.level = combat.flood;
+  }
   const box0 = new THREE.Box3().setFromObject(root, true);
   const mixer = new THREE.AnimationMixer(root);
   mixer.clipAction(gltf.animations.find((a: THREE.AnimationClip) => a.name === clipName)!).play();
@@ -533,11 +568,13 @@ if (kind === 'drownedKing') {
   scene.updateMatrixWorld(true);
   bake(scene);
   const temple = new TempleView(level);
+  if (kingShown) temple.update(kingShown, eye);
   bake(temple.group);
   const fx0 = -Math.sin(e.facing);
   const fz0 = -Math.cos(e.facing);
   const look = (name: string, f: number, r: number, u: number, to = 0.5) => ({ name, at: [e.pos.x + fx0 * f * h - fz0 * r * h, u * h, e.pos.z + fz0 * f * h + fx0 * r * h], to: [e.pos.x, to * h + e.pos.y, e.pos.z] });
   cams.splice(1, 2, look('dk-front', 2.1, 0.45, 0.5), look('dk-close', 1.2, 0.5, 0.42, 0.42), look('dk-side', 0.4, 2.2, 0.6), look('dk-high', 3.6, 2.2, 2.3, 0.1), { name: 'dk-room', at: [mid.x + (room.max.x - room.min.x) * 0.48, 26, mid.z + (room.max.z - room.min.z) * 0.48], to: [mid.x, 0, mid.z] });
+  if (kingShot) cams.splice(1, 5, kingShot);
   demon.height = 0;
 }
 if (kind === 'dragon') {
@@ -557,6 +594,6 @@ const extent = { min: { x: room.min.x - 8, z: room.min.z - 8 }, max: { x: room.m
 const floors = level.arena.boxes.filter((x) => x.kind === 'floor').map((x) => ({ x: x.x, z: x.z, w: x.w, d: x.d }));
 // (The Drowned King's room in its flood.)
 const end = b.end;
-const water = kind === 'drownedKing' || kind === 'bigShark' ? { level: kind === 'bigShark' ? BIG_SHARK.v.floodTop : DROWNED.v.shallow, rooms: [{ x: (end.min.x + end.max.x) / 2, z: (end.min.z + end.max.z) / 2, w: end.max.x - end.min.x, d: end.max.z - end.min.z }] } : null;
+const water = kind === 'drownedKing' || kind === 'bigShark' ? { level: kind === 'bigShark' ? BIG_SHARK.v.floodTop : water0.level, rooms: [{ x: (end.min.x + end.max.x) / 2, z: (end.min.z + end.max.z) / 2, w: end.max.x - end.min.x, d: end.max.z - end.min.z }] } : null;
 writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ meshes, seed, floor, pieces, water, gates: d.gates, torches: d.torches, cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, sand: d.sand, boxes, demon, floors }));
 console.log(`seed ${seed}: boss room ${b.room} (entrance ${b.entrance}), walls at ${k}, gate ${open ? 'open' : 'shut'}, ${pieces.length} pieces, ${boxes.length} gate boxes`);

@@ -151,6 +151,17 @@ export function drownedFeedback(f: FeedbackParts, kind: CombatEvent, value: numb
     case 'bogLeap':
     case 'tideRise':
     case 'tideFall':
+    case 'drownedWalls':
+      f.rig.shake.add(0.4);
+      return true;
+    case 'drownedCrown':
+      f.waves.spawn(at, 3, WATER);
+      return true;
+    case 'drownedShowWave':
+      f.waves.spawn(at, 24, WATER);
+      f.sparks.spawn(at, UP, 50, 2);
+      return true;
+    case 'drownedWeep':
     case 'drownedRiseWarn':
     case 'drownedSurfWindup':
     case 'drownedSnap':

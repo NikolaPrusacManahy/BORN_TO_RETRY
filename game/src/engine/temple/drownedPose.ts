@@ -7,6 +7,7 @@ import type { Enemy } from '../../sim/enemies/enemy';
 import { clawAt } from '../../sim/enemies/drownedJaws';
 import { DIVE, FRENZY, JAWS, MAW, RIPTIDE } from '../../sim/enemies/drownedKingMoves';
 import { drownedWindup } from '../../sim/enemies/drownedKing';
+import { SHOW_DOWN, SHOW_LAND, SHOW_UP } from '../../sim/dungeon/drownedShow';
 import { DROWNED } from '../../tuning/drowned';
 import { type Limb, reach } from '../boss/kingPose';
 
@@ -125,6 +126,23 @@ export function poseDrowned(root: THREE.Object3D, bones: DrownedBones, e: Enemy)
         tilt = BACK * 0.5 * Math.sin(Math.min(1, e.t / 0.5) * Math.PI);
         at(handR, 0.1, 0.4, 0.3);
         at(handL, 0.1, -0.4, 0.3);
+      }
+      break;
+    case 'intro':
+      // (Update 0.3.59 — its show: arms flung wide over everything, up as it comes down, then down, claws out at you.)
+      if (e.move === SHOW_UP) {
+        rw = lw = smooth(e.t / 0.3);
+        at(handR, 0.08, 0.46, 0.52);
+        at(handL, 0.08, -0.46, 0.52);
+      } else if (e.move === SHOW_DOWN) {
+        rw = lw = 1;
+        at(handR, 0.02, 0.36, 0.7);
+        at(handL, 0.02, -0.36, 0.7);
+      } else if (e.move === SHOW_LAND) {
+        rw = lw = smooth(e.t / 0.3);
+        tilt = HUNCH * rw;
+        at(handR, 0.22, 0.34, 0.5);
+        at(handL, 0.22, -0.34, 0.5);
       }
       break;
     case 'stun':

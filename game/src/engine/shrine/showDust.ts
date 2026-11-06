@@ -42,7 +42,8 @@ export class ShowDust {
   private readonly bursts: Burst[] = [];
   private readonly stuff: { dispose(): void }[] = [];
 
-  constructor(strikes: readonly Strike[]) {
+  /** Update 0.3.59 — `wet`: pale spray and no rocks (the Drowned King's). */
+  constructor(strikes: readonly Strike[], wet = false) {
     const ringGeo = new THREE.RingGeometry(0.8, 1, 56).rotateX(-Math.PI / 2);
     const rockGeo = new THREE.IcosahedronGeometry(1, 0);
     const rockMat = new THREE.MeshStandardMaterial({ color: 0x7d746a, roughness: 1, flatShading: true });
@@ -57,7 +58,7 @@ export class ShowDust {
       const puffs: THREE.Sprite[] = [];
       const ways = new Float32Array(PUFFS * 3);
       for (let i = 0; i < PUFFS; i++) {
-        const mat = new THREE.SpriteMaterial({ map: auraTexture(), color: 0xd8c8b4, transparent: true, opacity: 0, depthWrite: false });
+        const mat = new THREE.SpriteMaterial({ map: auraTexture(), color: wet ? 0xeaf8fc : 0xd8c8b4, transparent: true, opacity: 0, depthWrite: false });
         const p = new THREE.Sprite(mat);
         p.visible = false;
         this.stuff.push(mat);
@@ -67,7 +68,7 @@ export class ShowDust {
       }
       const rocks: THREE.Mesh[] = [];
       const flights = new Float32Array(ROCKS * 4);
-      for (let i = 0; i < ROCKS; i++) {
+      for (let i = 0; i < (wet ? 0 : ROCKS); i++) {
         const r = new THREE.Mesh(rockGeo, rockMat);
         r.visible = false;
         r.castShadow = true;

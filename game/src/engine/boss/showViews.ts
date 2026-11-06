@@ -19,6 +19,7 @@ import { kingWide } from './kingCinema';
 import { PlateauView } from '../norse/plateauView';
 import { TempleView } from '../temple/templeView';
 import { rocWide } from '../norse/rocCinema';
+import { drownedWide } from '../temple/drownedCinema';
 
 export { WIDE_HAZE } from './tideCinema';
 
@@ -44,4 +45,4 @@ export function showViewOf(level: DungeonLevel, depths: DepthsView): ShowView | 
 }
 
 /** How far the haze is pushed out for a show's wide shots (0..1). */
-export const wideOf = (run: BossRun) => Math.max(tideWide(run), okamiWide(run), dragonWide(run), swarmWide(run), kingWide(run), rocWide(run));
+export const wideOf = (run: BossRun) => Math.max(tideWide(run), okamiWide(run), dragonWide(run), swarmWide(run), kingWide(run), rocWide(run), drownedWide(run));

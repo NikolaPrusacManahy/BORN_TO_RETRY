@@ -32,9 +32,22 @@ interface Marks {
 const FIN = 0.45;
 const FINS: Partial<Record<EnemyKind, number>> = { bogBrute: 2.2, drownedKing: 4 };
 
+/** Update 0.3.59 — a fin: thin, swept back, its nose towards −z; 1 high. */
+function finGeometry(): THREE.BufferGeometry {
+  const s = new THREE.Shape();
+  s.moveTo(-0.24, 0);
+  s.quadraticCurveTo(-0.02, 0.5, 0.22, 1);
+  s.quadraticCurveTo(0.12, 0.45, 0.24, 0);
+  s.lineTo(-0.24, 0);
+  const g = new THREE.ExtrudeGeometry(s, { depth: 0.1, bevelEnabled: false, curveSegments: 6 });
+  g.translate(0, 0, -0.05);
+  g.rotateY(-Math.PI / 2);
+  return g;
+}
+
 export class DrownedFx {
   readonly group = new THREE.Group();
-  private readonly finGeo = new THREE.ConeGeometry(0.22, 1, 4).translate(0, 0.5, 0);
+  private readonly finGeo = finGeometry();
   private readonly ringGeo = new THREE.RingGeometry(0.9, 1, 48).rotateX(-Math.PI / 2);
   private readonly shellGeo = new THREE.IcosahedronGeometry(1, 1);
   private readonly lineGeo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2).translate(0, 0, -0.5);

@@ -29,6 +29,9 @@ export const DIVE = 8;
 export const CRUISE = 9;
 export const RISEN = 10;
 
+/** Update 0.3.59 — in its show its crown's out of the water from this stage (sim/dungeon/drownedShow.ts). */
+export const SHOW_CROWN = 21;
+
 /** It roars this long as it rises for good (s). */
 export const ROAR = 1.6;
 /** Under the water it circles at this share of its swim. */
@@ -55,7 +58,7 @@ export const deepEnough = (w: EnemyWorld) => w.flood >= WADE_MIN;
 
 /** Under the water: out of reach of every blow, not drawn (only a fin shows). */
 export function submerged(e: Enemy): boolean {
-  if (e.kind === 'drownedKing') return e.pos.y <= -DROWNED.v.kingHeight * 0.5;
+  if (e.kind === 'drownedKing') return e.pos.y <= -DROWNED.v.kingHeight * 0.5 && !(e.phase === 'intro' && e.move >= SHOW_CROWN);
   return (e.kind === 'snapper' || e.kind === 'bogBrute') && e.pos.y <= BURIED * 0.5;
 }
 

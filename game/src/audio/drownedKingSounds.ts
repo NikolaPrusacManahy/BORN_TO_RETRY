@@ -117,6 +117,20 @@ export function playDrownedKing(a: AudioEngine, kind: CombatEvent, far: number):
       a.clips.play('demonCrash', boss);
       snap(a, 1);
       return true;
+    case 'drownedWeep':
+      noise(a, { dur: 0.6, gain: 0.16, filter: 'highpass', from: 1800, to: 3200 });
+      return true;
+    case 'drownedWalls':
+      a.clips.play('demonCrash', 1);
+      noise(a, { dur: v.showFlood + 0.5, gain: 0.36, filter: 'lowpass', from: 2400, to: 700 });
+      return true;
+    case 'drownedCrown':
+      tone(a, { from: 46, to: 68, dur: v.showCrown, gain: 0.3, type: 'sawtooth' });
+      noise(a, { dur: v.showCrown, gain: 0.12, filter: 'bandpass', from: 300, to: 900, q: 4 });
+      return true;
+    case 'drownedShowWave':
+      a.clips.play('demonRoar', boss);
+      return true;
     case 'geyserBurst':
       noise(a, { dur: 0.7, gain: 0.35 * far, filter: 'highpass', from: 1500, to: 4000 });
       splash(a, far, 1.4);

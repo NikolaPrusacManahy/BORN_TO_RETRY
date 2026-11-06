@@ -7,6 +7,7 @@ import { submerged, FRENZY, JAWS, MAW } from '../../sim/enemies/drownedKingMoves
 import { clawAt } from '../../sim/enemies/drownedJaws';
 import { drownedWindup } from '../../sim/enemies/drownedKing';
 import { MAW_BITE, MAW_TELL } from '../../sim/enemies/drownedMaw';
+import { SHOW_LAND } from '../../sim/dungeon/drownedShow';
 import { DROWNED } from '../../tuning/drowned';
 import { drownedBonesOf, poseDrowned } from './drownedPose';
 import { jawMaterial, lowerJaw, upperJaw } from './headGeometry';
@@ -113,7 +114,9 @@ export class DrownedHeads {
     const merging = maw && k.shots === MAW_TELL ? Math.min(1, k.t / (v.mawTell * 0.8)) : 0;
     const gone = (maw && k.shots !== MAW_TELL) || stuck;
     const snap = k.phase === 'windup' && k.move === JAWS;
-    const turned = (k.phase === 'windup' && (k.move === FRENZY || k.move === JAWS)) || k.phase === 'dive' || k.phase === 'breath' || maw;
+    // (Update 0.3.59 — as its show ends, they snap at you: its tell, shown.)
+    const showing = k.phase === 'intro' && k.move === SHOW_LAND;
+    const turned = (k.phase === 'windup' && (k.move === FRENZY || k.move === JAWS)) || k.phase === 'dive' || k.phase === 'breath' || maw || showing;
     let n = 0;
     if (!gone) {
       const count = maw ? Math.round(v.headsOn) : Math.min(b.heads, MOST);
@@ -131,6 +134,7 @@ export class DrownedHeads {
         let open = 0.14 + 0.1 * Math.sin(this.time * 7 + h * 1.7);
         // Its heads snap their jaws together, twice.
         if (snap) open = HEAD_OPEN * Math.abs(Math.sin(u * Math.PI * 2));
+        if (showing) open = HEAD_OPEN * Math.abs(Math.sin(k.t * 7));
         if (maw) open = HEAD_OPEN;
         let scale = HEAD * size;
         if (merging > 0) {
