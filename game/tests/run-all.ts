@@ -101,6 +101,7 @@ import './test-dino-show';
 import './test-shark-arena';
 import './test-hellwarden';
 import './test-warden-show';
+import './test-poses-settle';
 import './test-tidebreaker';
 import './test-tidebreaker-view';
 import './test-tidebreaker-show';

@@ -1,18 +1,22 @@
 // Update 0.3.60 — the Velociraptor posed for the bible's moves, over its clips: crouched low for a pounce (a Feint the very same), side-on
 // with its tail flicking, reared back to bark, and on its back, blinded. Its whole body tilted about its feet, its tail bent bone by bone.
 // Pure maths on the skeleton.
+// Update 0.3.69 — its tail starts from its clip's pose each frame (poseBase.ts): its flick was added to last frame's, and its idle holds its tail still, so through its wind-ups it curled right round.
 import * as THREE from 'three';
 import { SHOW_CROUCH, SHOW_ROAR } from '../../sim/dungeon/dinoShow';
 import { AMBUSH, APEX, EMERGE, FEINT, PACK, ROAR, SICKLE, TAIL } from '../../sim/enemies/dinoMoves';
 import { dinoWindup } from '../../sim/enemies/dino';
 import type { Enemy } from '../../sim/enemies/enemy';
 import { DINO } from '../../tuning/dino';
+import { fromClip, posedNow } from '../poseBase';
 
 /** Crouched: how far down, how far its nose goes down (shares of its height, rad). Reared to bark. */
 const CROUCH = 0.16;
 const NOSE_DOWN = 0.32;
 const REAR = 0.5;
 const STAGGER = 0.1;
+/** The bones it turns. */
+const TAIL_BONES = ['Tail2', 'Tail3', 'Tail4'];
 
 const fw = new THREE.Vector3();
 const rt = new THREE.Vector3();
@@ -23,6 +27,7 @@ const smooth = (k: number) => {
 
 /** Poses it for now (its clip has just been applied; `root` scaled and placed). */
 export function poseRaptor(root: THREE.Object3D, e: Enemy, time: number) {
+  const held = fromClip(root, TAIL_BONES);
   const h = DINO.v.dinoHeight;
   fw.set(-Math.sin(e.facing), 0, -Math.cos(e.facing));
   rt.set(Math.cos(e.facing), 0, -Math.sin(e.facing));
@@ -64,11 +69,7 @@ export function poseRaptor(root: THREE.Object3D, e: Enemy, time: number) {
   if (tilt !== 0) root.rotateOnWorldAxis(rt, -tilt);
   if (roll !== 0) root.rotateOnWorldAxis(fw, roll);
   if (down !== 0) root.position.y -= down * h;
-  if (flick !== 0) {
-    for (const n of ['Tail2', 'Tail3', 'Tail4']) {
-      const b = root.getObjectByName(n);
-      if (b) b.rotation.z += flick;
-    }
-  }
+  if (flick !== 0) for (const t of held) t.bone.rotation.z += flick;
+  posedNow(held);
   root.updateMatrixWorld(true);
 }

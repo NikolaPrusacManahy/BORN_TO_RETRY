@@ -11,6 +11,7 @@ import type { Enemy } from '../../sim/enemies/enemy';
 import { handDownAt, kingTall, shoulderAt } from '../../sim/enemies/kingBody';
 import { SHOW_ARM, SHOW_DOWN, SHOW_LIFT, SHOW_ROAR, SHOW_STOOP, skullSpot } from '../../sim/dungeon/kingShow';
 import { BONE_KING } from '../../tuning/boneKing';
+import { fromClip, posedNow } from '../poseBase';
 
 /** Its arms, longer than the model's; its forearm's length in the model's own measure, to its fingertips; its height, too. */
 const LONG = 1.25;
@@ -144,8 +145,13 @@ export function handOfLimb(limb: Limb, scale: number, out: THREE.Vector3): THREE
 
 const easeOut = (e: Enemy, long: number) => smooth(Math.min(e.t / EASE_IN, (long - e.t) / EASE_OUT));
 
+/** Update 0.3.69 — the bones it poses; each frame starts from their clip's pose (poseBase.ts). Its idle holds its torso and neck still for its whole length: rebuilt wrong, they turned right round;
+ *  and its hips in a bow, and its head with them. */
+const POSED = ['Hips', 'Torso', 'Neck', 'Head', 'LUpperLeg001', 'LDownLeg001', 'RUpperLeg001', 'RDownLeg001', 'LUpperLeg', 'LDownLeg', 'RUpperLeg', 'RDownLeg'];
+
 /** Poses it for now (its clip has just been applied; `root` scaled and placed). `time`: to rattle. */
 export function poseKing(root: THREE.Object3D, bones: KingBones, e: Enemy, time: number) {
+  const held = fromClip(root, POSED);
   const v = BONE_KING.v;
   const h = kingTall(e);
   const scale = h / MODEL_TALL;
@@ -346,6 +352,7 @@ export function poseKing(root: THREE.Object3D, bones: KingBones, e: Enemy, time:
     } else skullSpot(e, d).y = SKULL_ON_FLOOR * scale;
     setWorld(bones.head, d, lying);
   }
+  posedNow(held);
 }
 
 /** Bowed, its arm down: quickly on the slam, slowly off at the end of its hold. */

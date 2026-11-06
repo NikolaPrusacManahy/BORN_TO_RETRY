@@ -9,6 +9,7 @@ import type { Enemy } from '../../sim/enemies/enemy';
 import { VERDICT } from '../../sim/enemies/wardenMoves';
 import { HELLWARDEN } from '../../tuning/hellwarden';
 import { type Limb, reach } from '../boss/kingPose';
+import { fromClip, posedNow } from '../poseBase';
 
 /** Its forearm's length (m on its 6 m). */
 const FORE = 1;
@@ -41,44 +42,8 @@ const smooth = (k: number) => {
 };
 const pulse = (age: number, life: number) => (age >= 0 && age < life ? (1 - age / life) ** 2 : 0);
 
-/** Update 0.3.66 — the bones it poses. The mixer only writes a bone when its clip's value changes, so where a clip holds still, last frame's pose is still there, and a turn turns it again:
- *  its head, frame after frame, right round behind its collar (the designer: "he is supposed to have his skull face on here"). So each frame starts from the clip's pose. */
+/** Update 0.3.66 — the bones it poses; each frame starts from their clip's pose (poseBase.ts; the designer: "he is supposed to have his skull face on here"). */
 const POSED = ['spine_02', 'neck_01', 'Head', 'upperarm_r', 'lowerarm_r', 'hand_r', 'upperarm_l', 'lowerarm_l', 'hand_l'];
-
-interface Held {
-  bone: THREE.Object3D;
-  clip: THREE.Quaternion;
-  posed: THREE.Quaternion;
-  on: boolean;
-}
-
-const heldOf = new WeakMap<THREE.Object3D, Held[]>();
-
-/** Back to the clip's pose: what the mixer's just written, or if it hasn't, what it wrote before it was posed. */
-function unpose(root: THREE.Object3D): Held[] {
-  let held = heldOf.get(root);
-  if (!held) {
-    held = [];
-    for (const name of POSED) {
-      const bone = root.getObjectByName(name);
-      if (bone) held.push({ bone, clip: new THREE.Quaternion(), posed: new THREE.Quaternion(), on: false });
-    }
-    heldOf.set(root, held);
-  }
-  for (const h of held) {
-    if (h.on && h.bone.quaternion.equals(h.posed)) h.bone.quaternion.copy(h.clip);
-    h.clip.copy(h.bone.quaternion);
-    h.on = false;
-  }
-  return held;
-}
-
-function remember(held: Held[]) {
-  for (const h of held) {
-    h.posed.copy(h.bone.quaternion);
-    h.on = true;
-  }
-}
 
 function limbOf(root: THREE.Object3D, n1: string, n2: string): Limb | null {
   const upper = root.getObjectByName(n1);
@@ -223,11 +188,11 @@ function aimY(bone: THREE.Object3D, target: THREE.Vector3, w: number) {
 export function poseWarden(root: THREE.Object3D, e: Enemy, blade: BladeFrame | null) {
   fw.set(-Math.sin(e.facing), 0, -Math.cos(e.facing));
   rt.set(Math.cos(e.facing), 0, -Math.sin(e.facing));
-  const held = unpose(root);
+  const held = fromClip(root, POSED);
   if (e.phase === 'intro') {
     root.updateMatrixWorld(true);
     poseShow(root, e, blade);
-    remember(held);
+    posedNow(held);
     return;
   }
   if (e.phase !== 'blast' || e.move !== VERDICT) return;
@@ -258,5 +223,5 @@ export function poseWarden(root: THREE.Object3D, e: Enemy, blade: BladeFrame | n
   handR.parent.getWorldQuaternion(parentQ);
   handR.quaternion.copy(parentQ.invert()).multiply(delta).multiply(handQ);
   root.updateMatrixWorld(true);
-  remember(held);
+  posedNow(held);
 }
