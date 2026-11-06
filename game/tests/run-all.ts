@@ -97,6 +97,7 @@ import './test-floor-kinds';
 import './test-frost-roc';
 import './test-roc-show';
 import './test-drowned-show';
+import './test-dino-show';
 import './test-tidebreaker';
 import './test-tidebreaker-view';
 import './test-tidebreaker-show';

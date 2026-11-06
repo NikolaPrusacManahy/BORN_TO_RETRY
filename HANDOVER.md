@@ -2,13 +2,13 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-05, after Update 0.3.60)
-- **Versions 0.3.58 to 0.3.60** (the Drowned King and its intro; the Velociraptor by the Boss Design Bible, its ruins), built, **not committed** until the designer says "commit".
+## Where things stand (2026-11-05, after Update 0.3.61)
+- **Versions 0.3.58 to 0.3.61** (the Drowned King and the Velociraptor by the Boss Design Bible, their rooms and intros), built, **not committed** until the designer says "commit".
   The designer (asleep, 2026-11-05): "do all of the bosses, but do not touch boss 8 & 9 … do floor 5, 6, 7 & 10 * Arena / Moves / Intro".
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
-  ("Keep them, adapt"). In floor order. **The Dragon is done (0.3.49, 0.3.50). The Swarm is done (0.3.51, 0.3.52). The Bone King is done (0.3.53, 0.3.54). The Frost Roc is done (0.3.56, 0.3.57). The Drowned King is done (0.3.58, 0.3.59). The Velociraptor's moves and ruins are done (0.3.60). Floors 8 and 9 stay as they are (the designer: "they are fine").**
+  ("Keep them, adapt"). In floor order. **The Dragon is done (0.3.49, 0.3.50). The Swarm is done (0.3.51, 0.3.52). The Bone King is done (0.3.53, 0.3.54). The Frost Roc is done (0.3.56, 0.3.57). The Drowned King is done (0.3.58, 0.3.59). The Velociraptor is done (0.3.60, 0.3.61). Floors 8 and 9 stay as they are (the designer: "they are fine").**
   Its ultimate is on `sim/enemies/ultimate.ts`, for the rest to share. Kit clashes still to meet: the slide (gone since
   0.3.20; the bible's Sky Clap, Pillar Swing, Tail Lash), boss melee can't be parried and parry is bare-handed, four
   ultimates cancel by shooting (count any ranged hit, and give fists a parryable shot), the audio has no left/right (the
@@ -43,9 +43,7 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   - **Each boss its own room (the designer, 0.3.50):** done for the Dragon, The Swarm, the Bone King, the Frost Roc, the Drowned King and the Velociraptor; the Big
     Shark, Okami and Tidebreaker already had their own; still on the shared `BOSS_ROOM`: floor 10.
   - **Boss intros at Tidebreaker's quality:**
-    - done for the Big Shark, Tidebreaker, Okami, the Dragon, The Swarm, the Bone King, the Frost Roc and the Drowned King;
-    - still on the shared portal intro: the Velociraptor
-      (the Demon's gone);
+    - done for the Big Shark, Tidebreaker, Okami, the Dragon, The Swarm, the Bone King, the Frost Roc, the Drowned King and the Velociraptor;
     - Hellwarden gets one when it's built.
   - **Hellwarden,** floor 10's boss: `MD/FLOOR10_HELL_PLAN.md`; a Bestiary model animated with `tools/ual_bake.py`.
   - **The trailer:** the capture kit is in (F7). `MD_UPDATES/U0337_CAPTURE_KIT.md` has its keys, how to film each kind
@@ -67,7 +65,12 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-05, Update 0.3.60: the Velociraptor by the Boss Design Bible)
+## Last update (2026-11-05, Update 0.3.61: the Velociraptor's intro)
+- **The designer**: "do floor 5, 6, 7 & 10 * Arena / Moves / Intro". Spec `MD_UPDATES/U0361_VELOCIRAPTOR_SHOW.md`.
+- **Built:** `sim/dungeon/dinoShow.ts`, `engine/boss/dinoCinema.ts`. Test: `test-dino-show.ts`.
+- **Unseen:** not played or heard. Checked in Blender renders.
+
+## Before (2026-11-05, Update 0.3.60: the Velociraptor by the Boss Design Bible)
 - **The designer**: "do floor 5, 6, 7 & 10 * Arena / Moves / Intro". Spec `MD_UPDATES/U0360_VELOCIRAPTOR_BIBLE.md`.
 - **Built:** its Sickle Pounce, Stalk & Ambush, Tail Lash; Pack Call, Feint; Apex Hunt (`sim/enemies/dino.ts`, `dinoMoves.ts`, `dinoHunt.ts`, `dinoApex.ts`); left and right in the audio; its ruins (`world/dungeon/ruins.ts`).
 - **Unseen:** not played or heard. The sound is the lesson here: check its panning first, with headphones.
