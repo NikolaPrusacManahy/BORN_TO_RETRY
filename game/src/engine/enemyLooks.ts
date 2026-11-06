@@ -7,6 +7,7 @@
 // Update 0.2.10 — floor 5's: the blobs (the Snapper, the Urchin, the Jelly, the Spawnling: Bite_Front 7/30), the fliers
 // (the Glubs' spit is a Punch, 6/30 and 9/30; the Squidle's dive a Headbutt, 7/30), the mini bosses (the big rig's
 // Weapon, 15/30); under the water, nothing shows (the Snapper's fin is drownedFx.ts's).
+import type { Enemy } from '../sim/enemies/enemy';
 import { bratWindup } from '../sim/enemies/dragonling';
 import { rabbitWindup } from '../sim/enemies/rabbit';
 import { mushWindup } from '../sim/enemies/bigMushnub';
@@ -81,6 +82,8 @@ export interface Look {
    *  it (where its blow lands: the rest follows in the next phase, the same clip carrying on); (Update 0.3.30) a second
    *  number: played this much faster out of a warning. */
   moveClips?: Readonly<Record<string, readonly [string, boolean?, number?, number?]>>;
+  /** Update 0.3.65 — where in a move's own clip it is (s), if something other than time says (Hellwarden's leap: the show's freeze frame holds it). */
+  clipAt?: (e: Enemy) => number | null;
 }
 
 /** Update 0.0.18 — a newer-pack monster's clips (`<Name>_Idle`, …); `move` and `air` name their own. */

@@ -41,7 +41,8 @@ const to = new Vector3();
 export const paceOf = (e: Enemy) => (e.stage > 0 ? HELLWARDEN.v.ragePace : 1);
 /** Its blows' share (weak, with a blade knocked away). */
 export const hurtOf = (e: Enemy) => (e.warden && e.warden.weak > 0 ? HELLWARDEN.v.weakShare : 1);
-export const hiddenWarden = (e: Enemy) => e.kind === 'hellwarden' && e.pos.y <= HIDDEN_AT * 0.5;
+// (Update 0.3.65 — not in its show: it rises through the lava, the floor hiding the rest of it.)
+export const hiddenWarden = (e: Enemy) => e.kind === 'hellwarden' && e.phase !== 'intro' && e.pos.y <= HIDDEN_AT * 0.5;
 
 /** One swing of its Arc: you in reach and arc, your feet low: hurt and thrown. Columns in reach are cut. A wall of fire ahead of it. */
 export function swingArc(e: Enemy, index: number, player: PlayerState, w: EnemyWorld) {

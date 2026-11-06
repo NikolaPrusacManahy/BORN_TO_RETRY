@@ -86,6 +86,23 @@
   width: 520px;
 }
 
+/* Update 0.3.65 — Hellwarden's: how many times you've fallen. */
+.rb-show-card-line {
+  font-family: var(--rb-font);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #ffb08a;
+  text-shadow: var(--rb-edge);
+  opacity: 0;
+  margin-top: 6px;
+  transition: opacity 0.6s 0.55s ease;
+}
+
+.rb-show-card.is-on .rb-show-card-line {
+  opacity: 1;
+}
+
 .rb-boss-bar {
   --fill: 1;
   --rage: 0.5;

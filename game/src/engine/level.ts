@@ -29,6 +29,8 @@ export interface LevelView extends ArenaView {
   update?(dt: number, run: DungeonRun, at: THREE.Vector3, flood?: number, kicks?: number): void;
   /** Update 0.3.51 — how dark a boss's move wants the room (0..1). */
   darkWanted?: number;
+  /** Update 0.3.65 — its wall torches' flames out (Hellwarden's show). */
+  torchesOut?: boolean;
   /** Update 0.2.9 — anywhere else (the lobby): its own life each frame; `at`: the camera. */
   frame?(dt: number, at: THREE.Vector3): void;
   /** Update 0.3.9 — pillar `i` (`p`) broken by the pillar finisher. */

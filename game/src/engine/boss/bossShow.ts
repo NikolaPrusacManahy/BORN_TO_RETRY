@@ -43,12 +43,12 @@ import { RocCinema } from '../norse/rocCinema';
 import { DrownedCinema } from '../temple/drownedCinema';
 import { DinoCinema } from './dinoCinema';
 import { WardenCinema } from '../hell/wardenCinema';
-import { wardenSlow } from '../../sim/dungeon/wardenShow';
 import { dinoSlow } from '../../sim/dungeon/dinoShow';
 import { okamiSlow } from '../../sim/dungeon/okamiShow';
 import { BIG_SHARK } from '../../tuning/bigShark';
 import { TIDEBREAKER } from '../../tuning/tidebreaker';
 import { HELLWARDEN } from '../../tuning/hellwarden';
+import { fallenLine, loadSave } from '../../state/settings';
 import { bossIn } from './bossIn';
 
 /** The boss's name card. **(placeholder names)** */
@@ -87,6 +87,8 @@ export interface ShowHud {
   card: boolean;
   bossName: string;
   bossTitle: string;
+  /** Update 0.3.65 — a line under its name ('': none): Hellwarden's, how many times you've fallen. */
+  bossLine: string;
   /** The boss's health (0..1), −1: no bar. Update 0.2.3 — where its bar's mark is (−1: none). */
   bossHp: number;
   bossMark: number;
@@ -101,7 +103,7 @@ const eye = new THREE.Vector3();
 const view: Shot = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
 
 export class BossShow {
-  readonly hud: ShowHud = { cine: false, card: false, bossName: BOSS_NAME, bossTitle: '', bossHp: -1, bossMark: -1, veil: false, floorName: '', skip: false };
+  readonly hud: ShowHud = { cine: false, card: false, bossName: BOSS_NAME, bossTitle: '', bossLine: '', bossHp: -1, bossMark: -1, veil: false, floorName: '', skip: false };
   private readonly cinema: Cinema | null;
   private readonly shark: SharkCinema | null;
   private readonly tide: TideCinema | null;
@@ -169,7 +171,6 @@ export class BossShow {
     if (this.run && rocSlow(this.run.boss) < 1) return rocSlow(this.run.boss);
     if (this.run && drownedSlow(this.run.boss) < 1) return drownedSlow(this.run.boss);
     if (this.run && dinoSlow(this.run.boss) < 1) return dinoSlow(this.run.boss);
-    if (this.run && wardenSlow(this.run.boss) < 1) return wardenSlow(this.run.boss);
     if (this.slow <= 0 || c.slowTime <= 0) return 1;
     const k = 1 - this.slow / c.slowTime;
     return c.slow + (1 - c.slow) * k * k;
@@ -219,6 +220,7 @@ export class BossShow {
       if (b.beat === 'intro') this.drowned?.start(eye, dir);
       if (b.beat === 'intro') this.dino?.start(eye, dir);
       if (b.beat === 'intro') this.warden?.start(eye, dir);
+      if (b.beat === 'intro' && this.warden) this.hud.bossLine = fallenLine(loadSave().deaths);
       if (b.beat === 'fight' && this.beat === 'intro') {
         look.yaw = (this.shark ?? this.tide ?? this.okami ?? this.dragon ?? this.swarm ?? this.king ?? this.roc ?? this.drowned ?? this.dino ?? this.warden ?? this.cinema).endYaw;
         look.pitch = (this.shark ?? this.tide ?? this.okami ?? this.dragon ?? this.swarm ?? this.king ?? this.roc ?? this.drowned ?? this.dino ?? this.warden ?? this.cinema).endPitch;

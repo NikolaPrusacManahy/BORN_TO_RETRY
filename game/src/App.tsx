@@ -123,6 +123,14 @@ export default function App() {
   const onDeathScreen = useCallback(
     (info: DeathInfo) => {
       setDeath(info);
+      // (Update 0.3.65 — counted for good: Hellwarden's forged from them.)
+      if (!info.won) {
+        setSave((old) => {
+          const next = { ...old, deaths: old.deaths + 1 };
+          writeSave(next);
+          return next;
+        });
+      }
       go('dead');
       getGame()?.unlock();
     },

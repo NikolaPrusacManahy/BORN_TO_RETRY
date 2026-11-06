@@ -219,7 +219,7 @@ and 2, and further character, gun and nature models. Released under
 
 **Sound effects:** [Sonniss #GameAudioGDC 2026](https://sonniss.com): libraries by 344 Audio, Alexander
 Kopeikin, Cinematic Sound Design, David Dumais Audio, Epic Stock Media, Federico Soler, InMotionAudio, Ivo Vicic,
-SoundBits and The Noisery. Other sounds are made in code.
+Jake Fielding, SoundBits and The Noisery. Other sounds are made in code.
 
 **Fight music:** Polarnyne (Izakaya Funes' Metal Pack) and Intersonic Sound (Replica · Extreme Cyber Metal).
 

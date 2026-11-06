@@ -20,7 +20,7 @@ export const CREDITS: readonly CreditBoard[] = [
   },
   {
     title: 'SOUND',
-    lines: ['Sonniss #GameAudioGDC 2026', '344 Audio · Alexander Kopeikin', 'Cinematic Sound Design', 'David Dumais Audio · Epic Stock Media', 'Federico Soler · InMotionAudio', 'Ivo Vicic · SoundBits · The Noisery'],
+    lines: ['Sonniss #GameAudioGDC 2026', '344 Audio · Alexander Kopeikin', 'Cinematic Sound Design', 'David Dumais Audio · Epic Stock Media', 'Federico Soler · InMotionAudio', 'Ivo Vicic · Jake Fielding', 'SoundBits · The Noisery'],
   },
   {
     title: 'MUSIC',

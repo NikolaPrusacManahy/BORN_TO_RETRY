@@ -31,8 +31,25 @@ export type HellEvent =
   | 'wardenFlash'
   | 'wardenShatter'
   | 'wardenCleave'
-  // Update 0.3.64 — its show: the floor splitting, its steps, its sword catching fire, its blow.
+  // Update 0.3.64 — its show: the floor splitting.
   | 'wardenRift'
-  | 'wardenStep'
-  | 'wardenIgnite'
-  | 'wardenShowBlow';
+  // Update 0.3.65 — the designer's shot list: the door, the torches, the bones dragged in, the lava surging, the chains, each piece of armor (value:
+  // which), its sword rising and heating, its skull, the mask on, the eye, the silence, its leap, the freeze frame and out of it, its landing;
+  // and at half health, the mask cracking and the second eye lit.
+  | 'wardenDoor'
+  | 'wardenTorches'
+  | 'wardenBones'
+  | 'wardenSurge'
+  | 'wardenSnap'
+  | 'wardenClamp'
+  | 'wardenSwordRise'
+  | 'wardenHeat'
+  | 'wardenSkull'
+  | 'wardenMaskOn'
+  | 'wardenEye'
+  | 'wardenHush'
+  | 'wardenLeap'
+  | 'wardenFreeze'
+  | 'wardenThaw'
+  | 'wardenLand'
+  | 'wardenCrack';

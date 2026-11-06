@@ -46,15 +46,27 @@ def add_baked_mesh(m, index):
     rgb = m['rgb']
     for i in range(len(me.vertices)):
         col.data[i].color = (rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2], 1)
-    mat = bpy.data.materials.get('baked')
+    # Update 0.3.65 — and what of them glows (`em`).
+    em = m.get('em')
+    if em:
+        emc = me.color_attributes.new('Em', 'FLOAT_COLOR', 'POINT')
+        for i in range(len(me.vertices)):
+            emc.data[i].color = (em[i * 3], em[i * 3 + 1], em[i * 3 + 2], 1)
+    name = 'baked_em' if em else 'baked'
+    mat = bpy.data.materials.get(name)
     if mat is None:
-        mat = bpy.data.materials.new('baked')
+        mat = bpy.data.materials.new(name)
         mat.use_nodes = True
         node = mat.node_tree.nodes.new('ShaderNodeVertexColor')
         node.layer_name = 'Col'
         bsdf = mat.node_tree.nodes['Principled BSDF']
         bsdf.inputs['Roughness'].default_value = 0.4
         mat.node_tree.links.new(node.outputs['Color'], bsdf.inputs['Base Color'])
+        if em:
+            en = mat.node_tree.nodes.new('ShaderNodeVertexColor')
+            en.layer_name = 'Em'
+            mat.node_tree.links.new(en.outputs['Color'], bsdf.inputs['Emission Color'])
+            bsdf.inputs['Emission Strength'].default_value = 1.5
     me.materials.append(mat)
     o = bpy.data.objects.new('baked%d' % index, me)
     bpy.context.scene.collection.objects.link(o)
@@ -439,6 +451,18 @@ def main():
             if o.type == 'LIGHT' and o.data.type == 'SUN' and style.get('sun') is not None:
                 o.data.color = srgb(style['sun'])
         hell_look.apply(scene, data, style, os.path.dirname(os.path.abspath(args.json)))
+        # Update 0.3.65 — how dark the show has the room, how far its sky's drawn down.
+        show = data.get('show')
+        if show:
+            k = 1 - 0.72 * show['dim']
+            for o in scene.objects:
+                if o.type == 'LIGHT':
+                    o.data.energy *= k
+            bg = scene.world.node_tree.nodes['Background']
+            veil = show['veil'] * 0.94
+            col = bg.inputs['Color'].default_value
+            bg.inputs['Color'].default_value = (col[0] * (1 - veil) + 0.0065 * veil, col[1] * (1 - veil) + 0.0015 * veil, col[2] * (1 - veil) + 0.0015 * veil, 1)
+            bg.inputs['Strength'].default_value *= k
     scene.render.resolution_x = args.width
     scene.render.resolution_y = round(args.width * 9 / 16)
     scene.render.image_settings.file_format = 'PNG'
@@ -450,6 +474,7 @@ def main():
     os.makedirs(args.out, exist_ok=True)
     # From above: the whole floor.
     e = data['extent']
+    no_overview = data.get('noOverview')
     cx = (e['min']['x'] + e['max']['x']) / 2
     cz = (e['min']['z'] + e['max']['z']) / 2
     span = max(e['max']['x'] - e['min']['x'], e['max']['z'] - e['min']['z'])
@@ -459,14 +484,14 @@ def main():
     cam.location = to_blender(cx, 120, cz)
     cam.rotation_euler = (0, 0, 0)
     scene.render.resolution_y = args.width
-    for i, cut in enumerate(data.get('cuts', [9.5 if data.get('interior') else 120])):
+    for i, cut in enumerate([] if no_overview else data.get('cuts', [9.5 if data.get('interior') else 120])):
         cam.data.clip_start = 120 - cut if cut < 120 else 0.05
         scene.render.filepath = os.path.join(args.out, 'overview.png' if i == 0 else f'overview{i + 1}.png')
         bpy.ops.render.render(write_still=True)
     scene.render.resolution_y = round(args.width * 9 / 16)
     cam.data.clip_start = 0.05
     for c in data['cams']:
-        shoot(cam, os.path.join(args.out, c['name'] + '.png'), to_blender(*c['at']), to_blender(*c['to']))
+        shoot(cam, os.path.join(args.out, c['name'] + '.png'), to_blender(*c['at']), to_blender(*c['to']), data.get('vfov', 75))
 
 
 main()

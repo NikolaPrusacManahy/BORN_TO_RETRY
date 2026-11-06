@@ -20,6 +20,7 @@ import { MoonView } from './moon/moonView';
 import { showTime } from './moon/floorBlast';
 import { ShrineSky } from './shrine/shrineSky';
 import { HellView } from './hell/hellView';
+import { wardenVeil } from '../sim/dungeon/wardenShow';
 import { islesTaken } from '../sim/dungeon/okamiShow';
 import { styleOf } from '../world/dungeon/styles';
 
@@ -88,7 +89,7 @@ export class DepthsView {
     this.cove.update(run.powder, this.time);
     this.moon.update(dt, run.meteors, at, showTime(run.boss));
     this.shrine?.update(dt, at, islesTaken(run.boss));
-    this.hell.update(dt, at);
+    this.hell.update(dt, at, wardenVeil(run.boss));
   }
 
   dispose() {

@@ -71,6 +71,7 @@ import { chillSlow, rimeGrip } from '../sim/combat/frost';
 import { caltropSlow } from '../sim/combat/smoke';
 import { floodSlow, stepTide, tideSlow } from '../sim/dungeon/tide';
 import { verdictGrey } from '../sim/enemies/wardenVerdict';
+import { wardenDark, wardenFreezeGrey, wardenSilent } from '../sim/dungeon/wardenShow';
 import { Lobby, lobbyFocus, stepLobby } from '../sim/lobby/lobby';
 import { styleOf } from '../world/dungeon/styles';
 import { sharkSea } from '../sim/dungeon/sharkShow';
@@ -253,9 +254,13 @@ export class Run extends RunBase {
     // (Update 0.3.51 — The Swarm's stare darkens the room.)
     // (Update 0.3.60 — so does the Velociraptor's Apex Hunt.)
     this.view.darkWanted = this.combat.storm > 0 || this.combat.enemies.some((e) => e.alive && e.kind === 'swarm' && e.phase === 'blast') ? 1 : 0;
+    // (Update 0.3.65 — and Hellwarden's show: the torches die, and all of them are out till it lands.)
+    const hellShow = d ? wardenDark(d.boss) : 0;
+    if (hellShow > 0) this.view.darkWanted = hellShow;
+    this.view.torchesOut = hellShow > 0.2;
     // (Update 0.3.63 — Hellwarden's Last Verdict: the screen drained of colour.)
     const warden = this.combat.enemies.find((e) => e.alive && e.kind === 'hellwarden');
-    const grey = warden ? Math.round(verdictGrey(warden) * 20) / 20 : 0;
+    const grey = warden ? Math.round(Math.max(verdictGrey(warden), d ? wardenFreezeGrey(d.boss) : 0) * 20) / 20 : 0;
     if (grey !== this.grey) {
       this.grey = grey;
       renderer.domElement.style.filter = grey > 0 ? `grayscale(${grey}) contrast(${1 + 0.15 * grey})` : '';
@@ -287,7 +292,7 @@ export class Run extends RunBase {
     // (Update 0.3.19 — the floor's fight music, while a fight is on: audio/music.ts.)
     setFloorMusic(d && combatMusicOn(d, p.dead) ? floorTrack(d) : null);
     // (Update 0.3.49 — a boss's ultimate cuts it.)
-    cutMusic(ultimateIn(this.combat.enemies) !== null);
+    cutMusic(ultimateIn(this.combat.enemies) !== null || (!!this.level.dungeon && wardenSilent(this.level.dungeon.boss)));
     this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d, this.look.yaw, this.show.hud, choosing ?? '');
     // Dead: once it's black, the death screen (the dungeon: Retry is a new run) or the lab's start. The way down: the
     // next floor (Update 0.2.2: off the last, the run is won; Update 0.3.23: behind the loader).

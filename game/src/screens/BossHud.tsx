@@ -20,6 +20,7 @@ export function BossHud({ s }: { s: HudState }) {
         <span className="rb-show-card-title">{s.bossTitle}</span>
         <span className="rb-show-card-name">{s.bossName}</span>
         <i className="rb-show-card-rule" />
+        {s.bossLine && <span className="rb-show-card-line">{s.bossLine}</span>}
       </div>
       {s.bossHp >= 0 && !s.cine && (
         <div className="rb-boss-bar" style={{ '--fill': s.bossHp, '--rage': s.bossMark } as CSSProperties}>

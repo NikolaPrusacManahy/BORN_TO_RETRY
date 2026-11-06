@@ -301,6 +301,8 @@ function skipShow(b: BossRun, portal: { x: number; z: number }, spawns: readonly
     ev.clear();
   }
   for (const e of kept) ev.push(e.kind, e.value, e.x, e.y, e.z);
+  // (Update 0.3.65 — Hellwarden's landing is its first attack, but not on one who skipped seeing it.)
+  if (b.kind === 'hellwarden') clearQuakes(combat.quakes);
 }
 
 /** It's dead: every grunt dies with it, its orbs and quakes are gone. */

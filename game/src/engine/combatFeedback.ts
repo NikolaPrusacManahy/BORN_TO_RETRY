@@ -272,7 +272,7 @@ export class CombatFeedback {
           break;
         default:
           // (Update 0.3.14 — floors 6–8's world: depthsFeedback.ts.)
-          if (!wardenFeedback(this.f, e.kind, at, this.nearHere) && !depthsFeedback(this.f, e.kind, e.value, at, this.nearHere) && !shrineFeedback(this.f, e.kind, e.value, at, this.nearHere)) foes2Feedback(this.f, e.kind, e.value, at, back, this.nearHere);
+          if (!wardenFeedback(this.f, e.kind, at, this.nearHere, e.value) && !depthsFeedback(this.f, e.kind, e.value, at, this.nearHere) && !shrineFeedback(this.f, e.kind, e.value, at, this.nearHere)) foes2Feedback(this.f, e.kind, e.value, at, back, this.nearHere);
           break;
       }
     }

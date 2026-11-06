@@ -2,9 +2,8 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-05, after Update 0.3.64)
-- **Versions 0.3.58 to 0.3.64** (the Drowned King, the Velociraptor and the Big Shark by the Boss Design Bible; Hellwarden, floor 10's new boss), built, **not committed** until the designer says "commit".
-  The designer (asleep, 2026-11-05): "do all of the bosses, but do not touch boss 8 & 9 … do floor 5, 6, 7 & 10 * Arena / Moves / Intro".
+## Where things stand (2026-11-06, after Update 0.3.65)
+- **Version 0.3.65** (Hellwarden's intro rebuilt to the designer's shot list), built, **not committed** until the designer says "commit". 0.3.58 to 0.3.64 are committed; the designer pushes.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
@@ -65,7 +64,13 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-05, Update 0.3.64: Hellwarden's intro)
+## Last update (2026-11-05, Update 0.3.65: Hellwarden forged from your dead)
+- **The designer** sent a revised shot list: "make it memorable and spectacular". Spec `MD_UPDATES/U0365_HELLWARDEN_FORGED.md`.
+- **Built:** door and torches, bones dragged into a river of lava, a bare molten rise, armor flying on piece by piece, the sword heating along its claws, the skull becoming its mask, the eye igniting, silence, a frozen leap with its name and your death count, and a landing that's its first attack. At half health its mask cracks and its second eye lights. The sky stays down through the fight. Test: `test-warden-show.ts`.
+- **New:** the save counts your deaths (`SaveData.deaths`). Its bones left the floor's dressing. Clips `hell*` from the Sonniss library (`tools/sfx/recipes/warden.json`), picked by name and measurement.
+- **Unseen:** not played or heard. Checked in Blender renders with no shaders, so the molten crust and the glows only look roughly right there.
+
+## Before (2026-11-05, Update 0.3.64: Hellwarden's intro)
 - **The designer**: "do floor 5, 6, 7 & 10 * Arena / Moves / Intro". Spec `MD_UPDATES/U0364_HELLWARDEN_SHOW.md`.
 - **Built:** `sim/dungeon/wardenShow.ts`, `engine/hell/wardenCinema.ts`. Test: `test-warden-show.ts`.
 - **Unseen:** not played. Checked in Blender renders.

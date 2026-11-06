@@ -54,14 +54,14 @@ export class ClipBank {
 
   /** Plays one of `sound`'s picks if it has any loaded: at its mix's loudness times `scale`, `rate` times as fast.
    *  False if it didn't (the caller plays its own). */
-  play(sound: ClipSound, scale = 1, rate = 1): boolean {
+  play(sound: ClipSound, scale = 1, rate = 1, delay = 0): boolean {
     const mix = MIX[sound];
     const picks = PICKS[sound];
     const list = this.buffers.get(sound);
     if (!mix || !picks || picks.length === 0 || !list) return false;
     const buf = list[picks[Math.floor(Math.random() * picks.length)] - 1];
     if (!buf) return false;
-    this.start(buf, mix.gain * scale, rate * (1 + (Math.random() * 2 - 1) * mix.vary));
+    this.start(buf, mix.gain * scale, rate * (1 + (Math.random() * 2 - 1) * mix.vary), delay);
     return true;
   }
 
@@ -71,7 +71,7 @@ export class ClipBank {
     if (buf) this.start(buf, (MIX[sound]?.gain ?? 0.6) * scale, 1);
   }
 
-  private start(buf: AudioBuffer, gain: number, rate: number) {
+  private start(buf: AudioBuffer, gain: number, rate: number, delay = 0) {
     const ctx = this.a.ctx;
     if (!ctx || !this.a.sfx) return;
     const src = ctx.createBufferSource();
@@ -80,6 +80,6 @@ export class ClipBank {
     const g = ctx.createGain();
     g.gain.value = gain;
     src.connect(g).connect(this.a.sfx);
-    src.start();
+    src.start(ctx.currentTime + delay);
   }
 }

@@ -77,6 +77,19 @@ export class AudioEngine {
   }
 
   /** Update 0.2.11 — under water or not (cheap to call every frame). */
+  /** Update 0.3.65 — everything ringing cut dead, and nothing heard for `secs` (the designer: "Hard cut to silence"). */
+  hardCut(secs: number) {
+    if (!this.ctx || !this.sfx) return;
+    const now = this.ctx.currentTime;
+    const g = this.sfx.gain;
+    const back = g.value;
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(back, now);
+    g.linearRampToValueAtTime(0, now + 0.012);
+    g.setValueAtTime(0, now + secs);
+    g.linearRampToValueAtTime(back, now + secs + 0.02);
+  }
+
   muffle(on: boolean) {
     if (!this.ctx || !this.muffler || on === this.muffled) return;
     this.muffled = on;

@@ -10,7 +10,9 @@ import { wardenWindup } from '../../sim/enemies/hellwarden';
 import { VERDICT_CHARGE } from '../../sim/enemies/wardenVerdict';
 import { HELLWARDEN } from '../../tuning/hellwarden';
 import { HALOS } from '../halos';
-import { poseWarden } from './wardenPose';
+import { type BladeFrame, poseWarden } from './wardenPose';
+import { SHOW_CROUCH, SHOW_SLAM } from '../../sim/dungeon/wardenShow';
+import { WardenForge } from './wardenForge';
 
 const FLAMES = 420;
 const SPOKES = 16;
@@ -71,12 +73,16 @@ export class WardenFx {
   private readonly sheetMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false });
   private readonly sheet = new THREE.Mesh(this.sheetGeo, this.sheetMat);
   private tipLocal: THREE.Vector3 | null = null;
+  private blade: BladeFrame | null = null;
+  /** Update 0.3.65 — its show: its armor, its sword, its mask (wardenForge.ts). */
+  readonly forge: WardenForge;
   private cracksAt: { x: number; z: number; yaw: number; long: number }[] = [];
   private cracksFor = '';
   private time = 0;
 
   constructor(scene: THREE.Scene) {
     scene.add(this.group);
+    this.forge = new WardenForge(scene);
     this.flames.frustumCulled = this.lines.frustumCulled = this.cracks.frustumCulled = false;
     this.flames.count = this.lines.count = this.cracks.count = 0;
     this.second.castShadow = this.great.castShadow = true;
@@ -100,8 +106,11 @@ export class WardenFx {
       const sword = root.getObjectByName('Hellwarden_Sword') as THREE.SkinnedMesh | undefined;
       const hand = root.getObjectByName('hand_r');
       root.updateMatrixWorld(true);
-      if (sword && hand && !this.tipLocal) this.tipLocal = this.measureTip(sword, hand);
-      poseWarden(root, e, this.tipLocal);
+      if (sword && hand && !this.tipLocal) {
+        this.tipLocal = this.measureTip(sword, hand);
+        this.blade = { tip: this.tipLocal, wide: this.measureWide(sword, hand, this.tipLocal) };
+      }
+      poseWarden(root, e, this.blade);
     }
     const v = HELLWARDEN.v;
     let n = 0;
@@ -148,6 +157,7 @@ export class WardenFx {
     this.flames.count = n;
     if (n > 0) this.flames.instanceMatrix.needsUpdate = true;
     this.drawVerdict(e);
+    if (root) this.forge.update(e, root, dt, this.tipLocal);
   }
 
   private drawCracks(e: CombatState['enemies'][number]) {
@@ -193,7 +203,8 @@ export class WardenFx {
     const flare = e.phase === 'windup' && e.move === ARC ? Math.min(1, e.t / Math.max(0.05, wardenWindup(ARC, e.stage))) : 0;
     this.steel.emissiveIntensity = 0.6 + 1.6 * flare;
     if (out) return n;
-    const burning = e.stage > 0 || e.phase === 'intro' || flare > 0;
+    // (Update 0.3.65 — in its show, only once the heat's reached its tip.)
+    const burning = e.stage > 0 || flare > 0 || (e.phase === 'intro' && e.move >= SHOW_CROUCH && e.move <= SHOW_SLAM);
     // Its right.
     handR.getWorldPosition(a);
     tip.copy(this.tipLocal);
@@ -245,6 +256,29 @@ export class WardenFx {
     return out;
   }
 
+  /** The way across its blade in its hand's frame: its widest point off the line to its tip. */
+  private measureWide(sword: THREE.SkinnedMesh, hand: THREE.Object3D, tipAt: THREE.Vector3): THREE.Vector3 {
+    const out = new THREE.Vector3(1, 0, 0);
+    const p = sword.geometry.getAttribute('position');
+    const v = new THREE.Vector3();
+    const along = tipAt.clone().normalize();
+    let far = 0;
+    for (let i = 0; i < p.count; i += 2) {
+      sword.getVertexPosition(i, v);
+      v.applyMatrix4(sword.matrixWorld);
+      hand.worldToLocal(v);
+      const on = v.dot(along);
+      if (on < tipAt.length() * 0.45) continue;
+      v.addScaledVector(along, -on);
+      const d = v.lengthSq();
+      if (d > far) {
+        far = d;
+        out.copy(v);
+      }
+    }
+    return out.normalize();
+  }
+
   /** Its great sword over it through Last Verdict, its flash, its cleave across everything. */
   private drawVerdict(e: CombatState['enemies'][number]) {
     const v = HELLWARDEN.v;
@@ -273,11 +307,14 @@ export class WardenFx {
     this.flames.count = this.lines.count = this.cracks.count = 0;
     this.second.visible = this.great.visible = this.sheet.visible = false;
     this.tipLocal = null;
+    this.blade = null;
     this.cracksFor = '';
+    this.forge.clear();
   }
 
   dispose() {
     this.group.removeFromParent();
+    this.forge.dispose();
     this.flames.dispose();
     this.lines.dispose();
     this.cracks.dispose();

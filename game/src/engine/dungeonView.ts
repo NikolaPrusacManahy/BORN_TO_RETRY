@@ -41,6 +41,7 @@ import type { ArenaView } from './arenaView';
 import { Portal } from './boss/portal';
 import { Shell } from './boss/shell';
 import { WoodGate } from './boss/woodGate';
+import { HALOS } from './halos';
 import { LavaView } from './lavaView';
 import { padsOf, SandView } from './sandView';
 import { roomSigns } from './roomSignsView';
@@ -207,6 +208,7 @@ export class DungeonView implements ArenaView {
   private material(src: THREE.MeshStandardMaterial, piece = ''): THREE.Material {
     const mat = kitMaterial(src, piece, this.dressing.style, this.under);
     this.mats.push(mat);
+    if (src.name.startsWith('Fire')) this.fireMats.push(mat);
     return mat;
   }
 
@@ -216,6 +218,12 @@ export class DungeonView implements ArenaView {
     const shut = run.shut;
     this.daylight(at, wideOf(run.boss));
     this.darken(run.boss.slot >= 0 ? this.darkWanted : 0, dt);
+    if (this.fireFlare > 0) {
+      this.fireFlare -= dt;
+      const room = run.level.boss.end;
+      const k = Math.max(0, this.fireFlare / 0.4);
+      for (const t of this.dressing.torches) if (t.x > room.min.x - 2 && t.x < room.max.x + 2 && t.z > room.min.z - 2 && t.z < room.max.z + 2) HALOS.add(t.x, t.y, t.z, 5 * k, 0xffa040, k);
+    }
     this.areas?.update(at);
     this.under?.update(dt, at, kicks);
     const b = run.boss;
@@ -244,6 +252,16 @@ export class DungeonView implements ArenaView {
 
   /** Update 0.3.51 — how dark a boss's move wants the room (0..1: The Swarm's stare; the run sets it). */
   darkWanted = 0;
+  /** Update 0.3.65 — every wall torch's flame out (Hellwarden's show). Set back: they all come back at once, with a flare. */
+  set torchesOut(out: boolean) {
+    if (out === this.firesOut) return;
+    this.firesOut = out;
+    for (const m of this.fireMats) m.visible = !out;
+    if (!out) this.fireFlare = 0.4;
+  }
+  private firesOut = false;
+  private fireFlare = 0;
+  private readonly fireMats: THREE.Material[] = [];
   private dark = 0;
 
   /** The light dimmed by how dark the room's gone, easing in and out. */

@@ -78,7 +78,7 @@ export function linksOf(c: Chain, each: (at: THREE.Vector3, along: THREE.Vector3
 
 /** A brazier's iron: a bowl on three legs splayed out to a ring on the floor (`S`: its bowl's size, 1 at 1 m across). */
 const S = 1.3;
-function brazierGeometry(): THREE.BufferGeometry {
+export function brazierGeometry(): THREE.BufferGeometry {
   const top = BRAZIER.bowl;
   const bowl = new THREE.LatheGeometry(
     [
@@ -119,6 +119,7 @@ export class HellView {
   private readonly braziers: { x: number; z: number; phase: number }[] = [];
   private time = 0;
   private linkCount = 0;
+  private dim = 0;
 
   constructor(level: DungeonLevel) {
     const look = styleOf(level.plan.level);
@@ -176,11 +177,12 @@ export class HellView {
     return this.linkCount;
   }
 
-  /** `at`: the view. */
-  update(dt: number, at: THREE.Vector3) {
+  /** `at`: the view; (Update 0.3.65) `wantDim`: how far its sky's wanted drawn down (0..1; quick in the show, slowly back as it dies). */
+  update(dt: number, at: THREE.Vector3, wantDim = 0) {
     if (!this.sky) return;
     this.time += dt;
-    this.sky.update(dt, at);
+    this.dim += (wantDim - this.dim) * Math.min(1, dt * (wantDim > this.dim ? 8 : 0.8));
+    this.sky.update(dt, at, this.dim);
     crackTime(this.time);
     crackGlow(HELL.v.cracks);
     const glow = HELL.v.braziers;

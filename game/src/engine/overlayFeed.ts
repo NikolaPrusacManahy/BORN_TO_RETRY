@@ -133,7 +133,7 @@ export class HudFeed {
     // The boss's bar moves in steps of 1%.
     const bossHp = show.bossHp < 0 ? -1 : Math.ceil(show.bossHp * 100) / 100;
     const skip = show.skip ? this.skipKey : '';
-    const shown = cur.cine === show.cine && cur.card === show.card && cur.skip === skip && cur.bossHp === bossHp && cur.veil === show.veil && cur.floorName === show.floorName && cur.bossTitle === show.bossTitle;
+    const shown = cur.cine === show.cine && cur.card === show.card && cur.skip === skip && cur.bossHp === bossHp && cur.veil === show.veil && cur.floorName === show.floorName && cur.bossTitle === show.bossTitle && cur.bossLine === show.bossLine;
     const keys = cur.keys === it.keys && cur.whiteKeys === it.whiteKeys && cur.goldKeys === it.goldKeys && cur.keyPick === keyPick;
     const rings = cur.redRings === it.redRings && cur.blueRings === it.blueRings && cur.greenRings === it.greenRings && cur.tealRings === it.tealRings && cur.cards === it.cards.size;
     const sig = slotSig(combat);
@@ -201,6 +201,7 @@ export class HudFeed {
       skip,
       bossName: show.bossName,
       bossTitle: show.bossTitle,
+      bossLine: show.bossLine,
       bossHp,
       veil: show.veil,
       floorName: show.floorName,

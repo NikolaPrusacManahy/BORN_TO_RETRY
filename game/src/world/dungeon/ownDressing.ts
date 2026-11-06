@@ -9,7 +9,6 @@
 import { dressPit } from './pit';
 import { dressTemple } from './temple';
 import { dressRuins } from './ruins';
-import { dressThrone } from './throne';
 import type { Rng } from '../../core/rng';
 import { colAt, FloorPlan, rowAt } from './floorPlan';
 import type { Put, SandCell } from './dressExtras';
@@ -107,6 +106,5 @@ export function dressOwnRooms(K: DungeonStyle, plan: FloorPlan, inRoom: Int16Arr
   if (K.id === 'shrine') dressShrine(plan, rng, put);
   if (K.id === 'hell') {
     dressHell(plan, put);
-    dressThrone(plan, rng, put);
   }
 }

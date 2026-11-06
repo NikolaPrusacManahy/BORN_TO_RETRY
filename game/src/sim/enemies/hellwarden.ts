@@ -103,6 +103,8 @@ export function updateHellwarden(e: Enemy, index: number, player: PlayerState, w
   if (e.stage === 0 && hp <= v.rageAt && (e.phase === 'chase' || e.phase === 'recover' || e.phase === 'stun')) {
     e.stage = 1;
     b.twin = true;
+    // (Update 0.3.65 — the mask cracks and the second eye lights: the intro coming back.)
+    w.events.push('wardenCrack', index, e.pos.x, e.pos.y + v.height * 0.85, e.pos.z);
     warn(e, ROAR, index, w);
     return;
   }

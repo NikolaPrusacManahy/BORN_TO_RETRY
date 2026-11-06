@@ -10,7 +10,7 @@
 // stands on them; its temples), and its show's own shots.
 //   npx tsx tools/boss-shots.ts <out folder> [seed] [k] [floor] [--open] [--beat=under]
 //   blender --background --python tools/blender/render_dungeon.py -- --json <out folder>/dungeon.json --kit public/models/dungeon/kit.glb --out <out folder> --day
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as THREE from 'three';
 import { parseUntextured } from '../tests/fakes/glb';
@@ -23,7 +23,9 @@ import { DROWNED } from '../src/tuning/drowned';
 import { HELLWARDEN } from '../src/tuning/hellwarden';
 import { WardenFx } from '../src/engine/hell/wardenFx';
 import { WardenCinema } from '../src/engine/hell/wardenCinema';
-import { SHOW_DRAG as WARDEN_SHOW_DRAG, SHOW_RAISE as WARDEN_SHOW_RAISE, SHOW_ROAR as WARDEN_SHOW_ROAR, SHOW_WALK as WARDEN_SHOW_WALK, wardenAt, wardenBeats, wardenWalls } from '../src/sim/dungeon/wardenShow';
+import { LANDED as WARDEN_LANDED, SHOW_AIR as WARDEN_SHOW_AIR, SHOW_CROUCH as WARDEN_SHOW_CROUCH, SHOW_FORGE as WARDEN_SHOW_FORGE, SHOW_HEAT as WARDEN_SHOW_HEAT, SHOW_MASK as WARDEN_SHOW_MASK, SHOW_RISE as WARDEN_SHOW_RISE, SHOW_SLAM as WARDEN_SHOW_SLAM, SHOW_SWORD as WARDEN_SHOW_SWORD, SHOW_UNDER as WARDEN_SHOW_UNDER, wardenAt, wardenBeats, wardenDark, wardenFreezeGrey, wardenVeil, wardenWalls } from '../src/sim/dungeon/wardenShow';
+import { WARDEN_LOOK } from '../src/engine/hell/wardenLook';
+import type { WardenUniforms } from '../src/engine/hell/wardenShader';
 import { ThroneView } from '../src/engine/hell/throneView';
 import { ARC as WARDEN_ARC, BRAND as WARDEN_BRAND, VERDICT as WARDEN_VERDICT } from '../src/sim/enemies/wardenMoves';
 import { SharkFx } from '../src/engine/boss/sharkFx';
@@ -166,13 +168,17 @@ const kind = bossOf(floor);
 // (The water in its room for the shot.)
 const water0 = { level: DROWNED.v.shallow };
 /** Update 0.3.52 — code-made meshes, baked (positions, colours, triangles). */
-const meshes: { pos: number[]; rgb: number[]; idx: number[] }[] = [];
+const meshes: { pos: number[]; rgb: number[]; idx: number[]; em?: number[] }[] = [];
+/** Update 0.3.65 — a vertex's colour as the game's shader would have it (the render has no shaders), and how much of that glows. */
+let vertexTint: ((o: THREE.Mesh, i: number, into: THREE.Color) => number) | null = null;
 const k2 = { value: k };
+/** Update 0.3.65 — how dark the room is for the shot, how far its sky's drawn down, how drained of colour. */
+const showLight = { dim: 0, veil: 0, grey: 0 };
 /** Update 0.3.53 — bakes a scene into `meshes`: skinned ones as posed, instanced ones each copy. */
 const bake = (root: THREE.Object3D) => {
   root.updateMatrixWorld(true);
   root.traverse((o) => {
-    if (!(o instanceof THREE.Mesh) || !o.visible) return;
+    if (!(o instanceof THREE.Mesh) || !o.visible || o.name === 'glow' || o.geometry.type === 'RingGeometry') return;
     for (let up: THREE.Object3D | null = o; up; up = up.parent) if (!up.visible) return;
     const g = o.geometry as THREE.BufferGeometry;
     const at = g.getAttribute('position');
@@ -189,16 +195,22 @@ const bake = (root: THREE.Object3D) => {
       } else mw.copy(o.matrixWorld);
       const pos: number[] = [];
       const rgb: number[] = [];
+      const em: number[] = [];
       const v3 = new THREE.Vector3();
+      const tinted = new THREE.Color();
+      const unlit = o.material instanceof THREE.MeshBasicMaterial;
       for (let i = 0; i < at.count; i++) {
         if (o instanceof THREE.SkinnedMesh) o.getVertexPosition(i, v3);
         else v3.fromBufferAttribute(at, i);
         v3.applyMatrix4(mw);
         pos.push(v3.x, v3.y, v3.z);
-        if (col) rgb.push(col.getX(i), col.getY(i), col.getZ(i));
-        else rgb.push(base.r, base.g, base.b);
+        if (col) tinted.setRGB(col.getX(i), col.getY(i), col.getZ(i));
+        else tinted.setRGB(base.r, base.g, base.b);
+        const glow = vertexTint ? vertexTint(o, i, tinted) : 0;
+        rgb.push(tinted.r, tinted.g, tinted.b);
+        if (vertexTint) em.push(unlit ? tinted.r : tinted.r * glow, unlit ? tinted.g : tinted.g * glow, unlit ? tinted.b : tinted.b * glow);
       }
-      meshes.push({ pos, rgb, idx: tris });
+      meshes.push(vertexTint ? { pos, rgb, idx: tris, em } : { pos, rgb, idx: tris });
     }
   });
 };
@@ -524,33 +536,41 @@ if (kind === 'hellwarden') {
     clipName = 'Jump_Air';
     clipAt = 0.2;
   }
-  // (Update 0.3.64 — its show: `--beat=show-high|show-walk|show-sword|show-name|show-roar`.)
+  // (Update 0.3.65 — its show, the designer's shot list: `--beat=show-door|show-torches|show-river|show-low|show-rise|show-rise2|show-chains|show-boots|show-gauntlet|show-chest|show-hero|show-sword|show-heat|show-heat2|show-skull|show-mask|show-eye|show-crouch|show-freeze|show-land`;
+  // `--tex=<raw 1024x1024 RGB>`: its texture, baked onto its vertices; `--phase2`: its mask cracked.)
   const wb = wardenBeats();
-  const wShow: Record<string, number> = { 'show-high': wb.walkFrom - 0.1, 'show-walk': wb.walkFrom + (wb.walkTo - wb.walkFrom) * 0.6, 'show-sword': wb.slowFrom - 0.1, 'show-name': (wb.slowFrom + wb.slowTo) / 2, 'show-roar': wb.roarAt + 0.3 };
+  const wShow: Record<string, number> = { 'show-door': wb.doorAt + 0.02, 'show-torches': wb.torchFrom + 0.6, 'show-river': wb.bonesFrom + 0.95, 'show-low': wb.bonesTo - 0.55, 'show-rise': wb.riseFrom + 2.4, 'show-rise2': wb.riseTo - 0.25, 'show-chains': wb.snapAt + 0.22, 'show-boots': wb.clamps[0] - 0.04, 'show-gauntlet': wb.clamps[1] + 0.02, 'show-chest': wb.clamps[3] + 0.04, 'show-hero': wb.clamps[4] + 0.2, 'show-sword': (wb.swordFrom + wb.swordAt) / 2, 'show-heat': wb.heatFrom + 0.5, 'show-heat2': wb.heatTo - 0.3, 'show-skull': (wb.skullFrom + wb.skullAt) / 2, 'show-mask': wb.skullAt + 0.2, 'show-eye': wb.eyeAt + 0.06, 'show-crouch': wb.leapAt - 0.05, 'show-freeze': (wb.freezeFrom + wb.freezeTo) / 2, 'show-land': wb.landAt - 0.015 };
   let wShot: { name: string; at: number[]; to: number[] } | null = null;
   let wShown: BossRun | null = null;
+  if (process.argv.includes('--phase2')) {
+    e.stage = 1;
+    W.twin = true;
+  }
   if (beat in wShow) {
     const t = wShow[beat];
     const toX = eye.x - mid.x;
     const toZ = eye.z - mid.z;
     const d = Math.hypot(toX, toZ);
-    wardenAt(mid.x, mid.z, t, toX / d, toZ / d, e.pos);
+    wardenAt(mid.x, mid.z, t, toX / d, toZ / d, d, e.pos);
     e.phase = 'intro';
-    e.move = t < wb.walkTo ? WARDEN_SHOW_WALK : t < wb.slowFrom ? WARDEN_SHOW_DRAG : t < wb.slowTo ? WARDEN_SHOW_RAISE : WARDEN_SHOW_ROAR;
-    clipName = t < wb.walkTo ? 'Walk_Carry_Loop' : t < wb.slowTo ? 'Sword_Idle' : 'MonsterTransformation';
-    e.t = 1;
-    clipAt = 0.5;
-    // (`--clip=name@seconds`: to try a clip for a beat.)
-    const tryClip = process.argv.find((a) => a.startsWith('--clip='))?.slice(7);
-    if (tryClip) [clipName, clipAt] = [tryClip.split('@')[0], Number(tryClip.split('@')[1])];
+    const stages: [number, number][] = [[0, WARDEN_SHOW_UNDER], [wb.riseFrom, WARDEN_SHOW_RISE], [wb.snapAt, WARDEN_SHOW_FORGE], [wb.swordFrom, WARDEN_SHOW_SWORD], [wb.heatFrom, WARDEN_SHOW_HEAT], [wb.skullFrom, WARDEN_SHOW_MASK], [wb.crouchFrom, WARDEN_SHOW_CROUCH], [wb.leapAt, WARDEN_SHOW_AIR], [wb.freezeTo, WARDEN_SHOW_SLAM]];
+    let from = 0;
+    for (const [at, mv] of stages) if (t >= at) [from, e.move] = [at, mv];
+    e.t = t - from;
+    W.showT = t;
+    clipName = WARDEN_LOOK.moveClips?.[`intro:${e.move}`]?.[0] ?? 'Idle_Loop';
+    clipAt = WARDEN_LOOK.clipAt?.(e) ?? 0.4;
     k2.value = wardenWalls(t);
     const wc = new WardenCinema(level);
     wc.start(eye, new THREE.Vector3(-ex, 0, -ez));
     wc.intro(t, eye, shot);
     wShot = { name: 'hw-show', at: shot.pos.toArray(), to: shot.look.toArray() };
     wShown = { kind: 'hellwarden', ownShow: true, beat: 'intro', t, eyeYaw: e.facing } as unknown as BossRun;
+    showLight.dim = wardenDark(wShown);
+    showLight.veil = wardenVeil(wShown);
+    showLight.grey = wardenFreezeGrey(wShown);
   }
-  const box0 = new THREE.Box3().setFromObject(root, true);
+  if (!wShown) showLight.veil = hv.fightSky;
   const mixer = new THREE.AnimationMixer(root);
   mixer.clipAction(gltf.animations.find((a: THREE.AnimationClip) => a.name === clipName)!).play();
   mixer.update(clipAt);
@@ -563,17 +583,94 @@ if (kind === 'hellwarden') {
   const scene = new THREE.Scene();
   scene.add(root);
   const fx = new WardenFx(scene);
+  // (Its flights bake from the pose as it is, so a piece in flight needs its pose set first.)
   fx.update(combat, 0.016, () => root);
   scene.updateMatrixWorld(true);
+  if (process.env.HW_WHERE) {
+    const headAt = new THREE.Vector3();
+    root.getObjectByName('Head')!.getWorldPosition(headAt);
+    const tx = (eye.x - mid.x) / Math.hypot(eye.x - mid.x, eye.z - mid.z);
+    const tz = (eye.z - mid.z) / Math.hypot(eye.x - mid.x, eye.z - mid.z);
+    const skull = root.getObjectByName('Hellwarden_Skull') as THREE.SkinnedMesh;
+    const box = new THREE.Box3().setFromObject(skull, true);
+    const c = box.getCenter(new THREE.Vector3());
+    console.log('WHERE head toward', ((headAt.x - mid.x) * tx + (headAt.z - mid.z) * tz).toFixed(2), 'across', ((headAt.x - mid.x) * tz - (headAt.z - mid.z) * tx).toFixed(2), 'up', headAt.y.toFixed(2), '| skull middle toward', ((c.x - mid.x) * tx + (c.z - mid.z) * tz).toFixed(2), 'across', ((c.x - mid.x) * tz - (c.z - mid.z) * tx).toFixed(2), 'up', c.y.toFixed(2));
+  }
+  const texArg = process.argv.find((a) => a.startsWith('--tex='))?.slice(6);
+  const tex = texArg ? readFileSync(texArg) : null;
+  const uniOf = (o: THREE.Mesh): WardenUniforms | undefined => fx.forge.uniformsOf(o.name);
+  const noise3 = (x: number, y: number, z: number) => 0.5 + 0.5 * Math.sin(x * 41 + Math.sin(y * 37) * 2.4) * Math.sin(y * 29 + Math.sin(z * 43) * 2.1);
+  vertexTint = (o, i, into) => {
+    const uv = (o.geometry as THREE.BufferGeometry).getAttribute('uv');
+    const u = uniOf(o);
+    const isBody = o instanceof THREE.SkinnedMesh || (!(o instanceof THREE.InstancedMesh) && (o.parent === fx.forge.group || o.parent?.parent === fx.forge.group));
+    if (!tex || !uv || !isBody) return 0;
+    const px = Math.min(1023, Math.floor(uv.getX(i) * 1024));
+    const py = Math.min(1023, Math.floor(uv.getY(i) * 1024));
+    const off = (py * 1024 + px) * 3;
+    const lin = (c: number) => (c / 255) ** 2.2;
+    into.setRGB(lin(tex[off]), lin(tex[off + 1]), lin(tex[off + 2]));
+    const eyePatch = uv.getX(i) >= 0.945 && uv.getY(i) >= 0.945;
+    if (!u) {
+      // A piece in flight: red hot; its skull's sockets dark.
+      if (eyePatch) into.setRGB(0.015, 0.015, 0.015);
+      into.r += 0.7;
+      into.g += 0.2;
+      return 0.8;
+    }
+    const pa = (o.geometry as THREE.BufferGeometry).getAttribute('position');
+    const x = pa.getX(i);
+    const y = pa.getY(i);
+    const z = pa.getZ(i);
+    if (u.uEyes.value > 0.5 && eyePatch) {
+      const lit = x > 0 ? u.uEye.value.x : u.uEye.value.y;
+      if (lit <= 0) into.setRGB(0.015, 0.015, 0.015);
+      else into.setRGB(1, 1, 0.95);
+      return lit > 0 ? 3 : 0;
+    }
+    if (u.uBlade.value > 0.5) {
+      const along = ((x - u.uBladeFrom.value.x) * u.uBladeDir.value.x + (y - u.uBladeFrom.value.y) * u.uBladeDir.value.y + (z - u.uBladeFrom.value.z) * u.uBladeDir.value.z) / u.uBladeLen.value;
+      const painted = into.r - into.b > 0.25;
+      if (along > u.uHeat.value) {
+        const l = (into.r * 0.3 + into.g * 0.59 + into.b * 0.11) * 0.62;
+        into.setRGB(l, l, l);
+        return 0;
+      }
+      if (painted) return Math.abs(along - u.uHeat.value) < 0.05 ? 3 : 1.5;
+      return 0;
+    }
+    const region = (o.geometry as THREE.BufferGeometry).getAttribute('aRegion')?.getX(i) ?? 0;
+    const m = region < 0.5 ? u.uMolten.value.x : region < 1.5 ? u.uMolten.value.y : u.uMolten.value.z;
+    const hot = region < 0.5 ? u.uHot.value.x : region < 1.5 ? u.uHot.value.y : u.uHot.value.z;
+    if (m > 0) {
+      const seam = noise3(x, y, z) > 0.62 ? 1 : 0;
+      into.lerp(new THREE.Color(seam ? 1 : 0.46, seam ? 0.42 : 0.06, seam ? 0.08 : 0.012), m);
+    }
+    if (u.uCrack.value > 0 && Math.abs(x + 0.04 + Math.sin(y * 70) * 0.012) < 0.008 && y > 1.97 && y < 2.17) {
+      into.setRGB(1, 0.4, 0.08);
+      return 2;
+    }
+    into.r += hot * 0.75;
+    into.g += hot * 0.25;
+    return Math.max(m * 1.1, hot * 0.9, u.uRim.value * 0.08);
+  };
   bake(scene);
+  vertexTint = null;
   const tv = new ThroneView(level);
+  tv.take([], kit.scene, (src) => src);
   if (wShown) tv.update(wShown, eye);
+  if (!wShown) tv.update({ kind: 'hellwarden', ownShow: true, beat: 'fight', t: 1, eyeYaw: e.facing } as unknown as BossRun, eye);
+  vertexTint = (o, _i, into) => {
+    if (o.name === 'river') into.setRGB(1, 0.32, 0.05);
+    return o.material instanceof THREE.MeshBasicMaterial ? 1 : 0;
+  };
   bake(tv.group);
+  vertexTint = null;
   const fx0 = -Math.sin(e.facing);
   const fz0 = -Math.cos(e.facing);
   const look = (name: string, f: number, r: number, u: number, to = 0.5) => ({ name, at: [e.pos.x + fx0 * f * h - fz0 * r * h, u * h, e.pos.z + fz0 * f * h + fx0 * r * h], to: [e.pos.x, to * h + e.pos.y, e.pos.z] });
   cams.splice(1, 2, look('hw-front', 2.2, 0.5, 0.5), look('hw-side', 0.4, 2.4, 0.55), look('hw-high', 3.4, 1.8, 2, 0.1), { name: 'hw-room', at: [mid.x + (room.max.x - room.min.x) * 0.5, 30, mid.z + (room.max.z - room.min.z) * 0.5], to: [mid.x, 0, mid.z] });
-  if (wShot) cams.splice(1, 4, wShot);
+  if (wShot) cams.splice(0, cams.length, wShot);
   demon.height = 0;
 }
 if (kind === 'bigShark') {
@@ -809,5 +906,5 @@ const floors = level.arena.boxes.filter((x) => x.kind === 'floor').map((x) => ({
 // (The Drowned King's room in its flood.)
 const end = b.end;
 const water = kind === 'drownedKing' || kind === 'bigShark' ? { level: kind === 'bigShark' ? BIG_SHARK.v.floodTop : water0.level, rooms: [{ x: (end.min.x + end.max.x) / 2, z: (end.min.z + end.max.z) / 2, w: end.max.x - end.min.x, d: end.max.z - end.min.z }] } : null;
-writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ meshes, seed, floor, pieces, water, gates: d.gates, torches: d.torches, cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, sand: d.sand, boxes, demon, floors }));
+writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ ...(kind === 'hellwarden' ? { noOverview: true, vfov: 67.7, show: showLight } : {}), meshes, seed, floor, pieces, water, gates: d.gates, torches: d.torches, cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, sand: d.sand, boxes, demon, floors }));
 console.log(`seed ${seed}: boss room ${b.room} (entrance ${b.entrance}), walls at ${k}, gate ${open ? 'open' : 'shut'}, ${pieces.length} pieces, ${boxes.length} gate boxes`);

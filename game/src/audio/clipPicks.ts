@@ -11,7 +11,7 @@ import type { MoveEvent } from '../sim/player/state';
  *  the hammer had the blade's), the bosses' fire shot, the Snake's and Spider's bite, a punch's whoosh, or an execution's
  *  blows. */
 // (Update 0.3.41 — the Demon's roar and slam: clips the other bosses play, its own events gone with it.)
-export type ClipSound = CombatEvent | MoveEvent | 'demonRoar' | 'demonSlam' | 'hammerSwing' | 'hammerHit' | 'fireShot' | 'bite' | 'jab' | 'blowPunch' | 'blowChop' | 'blowTear' | 'blowCrush';
+export type ClipSound = CombatEvent | MoveEvent | 'demonRoar' | 'demonSlam' | 'hellClamp' | 'hellSnap' | 'hellSizzle' | 'hellDrag' | 'hellSink' | 'hellScrape' | 'hellWhoosh' | 'hellBraam' | 'hellBoom' | 'hammerSwing' | 'hammerHit' | 'fireShot' | 'bite' | 'jab' | 'blowPunch' | 'blowChop' | 'blowTear' | 'blowCrush';
 
 export interface Mix {
   /** Its loudness (the clips peak at -3 dB). */
@@ -60,6 +60,16 @@ export const MIX: Partial<Record<ClipSound, Mix>> = {
   bossDown: { gain: 0.8, vary: 0 },
   bossBurst: { gain: 0.9, vary: 0.03 },
   demonSlam: { gain: 0.9, vary: 0.03 },
+  // (Update 0.3.65 — Hellwarden's show.)
+  hellClamp: { gain: 1, vary: 0.03 },
+  hellSnap: { gain: 0.8, vary: 0.04 },
+  hellSizzle: { gain: 0.9, vary: 0.05 },
+  hellDrag: { gain: 0.8, vary: 0 },
+  hellSink: { gain: 0.5, vary: 0.12 },
+  hellScrape: { gain: 0.8, vary: 0 },
+  hellWhoosh: { gain: 0.9, vary: 0 },
+  hellBraam: { gain: 1, vary: 0 },
+  hellBoom: { gain: 1, vary: 0 },
   demonCrash: { gain: 0.85, vary: 0.04 },
   quakeHit: { gain: 0.6, vary: 0.05 },
   dragonBreath: { gain: 0.7, vary: 0.02 },
@@ -155,6 +165,15 @@ export const PICKS: Partial<Record<ClipSound, number[]>> = {
   bossDown: [1],
   bossBurst: [1],
   demonSlam: [1],
+  hellClamp: [1],
+  hellSnap: [1],
+  hellSizzle: [1],
+  hellDrag: [1],
+  hellSink: [1],
+  hellScrape: [1],
+  hellWhoosh: [1],
+  hellBraam: [1],
+  hellBoom: [1],
   demonCrash: [1],
   quakeHit: [1],
   dragonBreath: [1],
@@ -249,6 +268,15 @@ export const CLIP_LABELS: Partial<Record<ClipSound, string>> = {
   bossDown: 'Boss down',
   bossBurst: 'Boss bursts',
   demonSlam: 'Demon slam',
+  hellClamp: 'Hellwarden: armor clamps',
+  hellSnap: 'Hellwarden: chains snap',
+  hellSizzle: 'Hellwarden: lava',
+  hellDrag: 'Hellwarden: bones dragged',
+  hellSink: 'Hellwarden: into the lava',
+  hellScrape: 'Hellwarden: claws on the blade',
+  hellWhoosh: 'Hellwarden: its leap',
+  hellBraam: 'Hellwarden: freeze frame',
+  hellBoom: 'Hellwarden: its landing',
   demonCrash: 'Demon crash',
   quakeHit: 'Quake hit',
   dragonBreath: 'Dragon breath',

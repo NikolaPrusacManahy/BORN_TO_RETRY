@@ -233,7 +233,8 @@ export class EnemiesView {
       const attack = b.actions.attack;
       // A clip restarts when it changes, or when the same phase starts over (hit again mid-flinch); a wind-up's
       // attack carries on through the recovery.
-      const again = slot.phase === e.phase && e.t < slot.t;
+      // (Update 0.3.65 — not through Hellwarden's show: its stages share clips, and restarting one would flash it back to its bind pose.)
+      const again = slot.phase === e.phase && e.t < slot.t && !(look.clipAt && e.phase === 'intro');
       // Update 0.1.2 — one standing in an execution stands still (one held thrashes).
       let want: Role = e.phase === 'held' && !moveOf(e.kind).held ? 'idle' : roleFor(e.phase, attack.time >= attack.getClip().duration - 0.01);
       if (e.phase === 'intro' && ENEMY_STATS[e.kind]().boss) want = 'idle'; // (Update 0.3.26 — a boss's show stands.)
@@ -268,6 +269,12 @@ export class EnemiesView {
         const mine = look.moveClips?.[`${e.phase}:${e.move}`], own = mine?.[0];
         if ((own ?? want) !== b.role || (again && (own !== undefined || ONCE.includes(want)))) this.play(b, own ?? want);
         if (own) b.extra[own].timeScale = e.phase === 'windup' ? (b.extra[own].getClip().duration * (mine?.[2] ?? 1)) / Math.max(0.1, windup) : (mine?.[3] ?? 1);
+        // (Update 0.3.65 — held where its look says.)
+        const fixed = own ? look.clipAt?.(e) : null;
+        if (own && fixed != null) {
+          b.extra[own].timeScale = 0;
+          b.extra[own].time = fixed;
+        }
       }
       attack.timeScale = look.lands / windup;
       b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? (e.phase === 'intro' ? BONE_KING.v.showBuild : BONE_KING.v.kingRise) : e.phase === 'intro' ? FOES_NORSE.v.riseTime : FOES3.v.skeletonRise);

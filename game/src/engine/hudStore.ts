@@ -85,6 +85,8 @@ export interface HudState {
   skip: string;
   bossName: string;
   bossTitle: string;
+  /** Update 0.3.65 — a line under its name. */
+  bossLine: string;
   bossHp: number;
   veil: boolean;
   floorName: string;
@@ -149,7 +151,7 @@ export interface HudStore {
 }
 
 export function createHudStore(): HudStore {
-  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, mag: -1, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, tealRings: 0, cards: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, skip: '', bossName: '', bossTitle: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, chestHere: false, styleRank: -1, styleFill: 0, styleFeed: [], execution: 0, bossMark: -1, ultCue: '', ultFill: 0, ultLeft: 0, bloodMist: 0, grabHits: -1, grabNeed: 0, grabLeft: 0, grabEnd: '', attackKey: '', jawCue: 0, leftKey: '', rightKey: '', ...createRaptorHud(), dashKey: '', slotKeys: '', ...createControlsHud() };
+  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, mag: -1, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, tealRings: 0, cards: 0, slots: [], slot: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, skip: '', bossName: '', bossTitle: '', bossLine: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, chestHere: false, styleRank: -1, styleFill: 0, styleFeed: [], execution: 0, bossMark: -1, ultCue: '', ultFill: 0, ultLeft: 0, bloodMist: 0, grabHits: -1, grabNeed: 0, grabLeft: 0, grabEnd: '', attackKey: '', jawCue: 0, leftKey: '', rightKey: '', ...createRaptorHud(), dashKey: '', slotKeys: '', ...createControlsHud() };
   const subs = new Set<() => void>();
   return {
     get: () => state,

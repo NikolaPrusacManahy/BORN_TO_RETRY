@@ -7,7 +7,7 @@ const UP = new THREE.Vector3(0, 1, 0);
 const FIRE = 0xff7a30;
 
 /** Returns false for events it doesn't know. `near`: 1 at the camera, 0 far off. */
-export function wardenFeedback(f: FeedbackParts, kind: CombatEvent, at: THREE.Vector3, near: (far: number) => number): boolean {
+export function wardenFeedback(f: FeedbackParts, kind: CombatEvent, at: THREE.Vector3, near: (far: number) => number, value = 0): boolean {
   switch (kind) {
     case 'wardenArc':
       f.sparks.spawn(at, UP, 26, 1.6);
@@ -61,17 +61,48 @@ export function wardenFeedback(f: FeedbackParts, kind: CombatEvent, at: THREE.Ve
       f.chunks.spawn(at, UP, 60, 2);
       f.rig.shake.add(0.6);
       return true;
-    case 'wardenStep':
-      f.waves.spawn(at, 2.4, FIRE);
-      f.rig.shake.add(0.2 * near(30));
+    // Update 0.3.65 — its show.
+    case 'wardenSurge':
+      f.waves.spawn(at, 6, FIRE);
+      f.sparks.spawn(at, UP, 24, 1.6);
       return true;
-    case 'wardenIgnite':
-      f.sparks.spawn(at, UP, 40, 2);
+    case 'wardenSnap':
+      f.sparks.spawn(at, UP, 40, 2.4);
       return true;
-    case 'wardenShowBlow':
-      f.waves.spawn(at, 22, FIRE);
-      f.chunks.spawn(at, UP, 60, 2.2);
-      f.rig.shake.add(1);
+    case 'wardenClamp':
+      f.sparks.spawn(at, UP, value === 4 ? 90 : 46, value === 4 ? 2.8 : 2);
+      if (value === 4) f.waves.spawn(at, 9, FIRE);
+      return true;
+    case 'wardenSwordRise':
+      f.waves.spawn(at, 5, FIRE);
+      f.sparks.spawn(at, UP, 30, 2);
+      return true;
+    case 'wardenMaskOn':
+      f.sparks.spawn(at, UP, 18, 1);
+      return true;
+    case 'wardenLeap':
+      f.waves.spawn(at, 7, FIRE);
+      f.chunks.spawn(at, UP, 40, 1.8);
+      return true;
+    case 'wardenLand':
+      f.waves.spawn(at, 16, FIRE);
+      f.chunks.spawn(at, UP, 80, 2.4);
+      f.sparks.spawn(at, UP, 60, 2.8);
+      f.rig.shake.add(1.6);
+      return true;
+    case 'wardenCrack':
+      f.sparks.spawn(at, UP, 34, 1.4);
+      f.rig.shake.add(0.3);
+      return true;
+    case 'wardenDoor':
+    case 'wardenTorches':
+    case 'wardenBones':
+    case 'wardenHeat':
+    case 'wardenSkull':
+    case 'wardenEye':
+    case 'wardenHush':
+    case 'wardenFreeze':
+    case 'wardenThaw':
       return true;
     case 'wardenFlare':
     case 'wardenEmbers':

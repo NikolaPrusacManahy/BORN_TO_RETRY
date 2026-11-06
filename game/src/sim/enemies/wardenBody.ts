@@ -58,6 +58,8 @@ export interface WardenBody {
   weak: number;
   /** Its sword shattered. */
   shattered: boolean;
+  /** Update 0.3.65 — how far into its show (s; what its views are drawn from). */
+  showT: number;
 }
 
-export const createWardenBody = (): WardenBody => ({ walls: [], brand: null, echoes: [], echoLeft: 0, echoIn: 0, echoNext: 0, twin: false, thrown: false, weak: 0, shattered: false });
+export const createWardenBody = (): WardenBody => ({ showT: 0, walls: [], brand: null, echoes: [], echoLeft: 0, echoIn: 0, echoNext: 0, twin: false, thrown: false, weak: 0, shattered: false });

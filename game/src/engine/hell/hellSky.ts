@@ -59,6 +59,8 @@ export class HellSky {
   readonly group = new THREE.Group();
   private readonly clouds = new THREE.Group();
   private readonly stuff: { dispose(): void }[] = [];
+  private readonly veil: THREE.MeshBasicMaterial;
+  private readonly veilMesh: THREE.Mesh;
 
   /** `haze`: the haze's colour (sRGB hex), the dome's foot. */
   constructor(haze: number) {
@@ -127,12 +129,29 @@ export class HellSky {
         this.group.add(s);
       }
     });
-    this.group.add(sky, sun, this.clouds);
+    // Update 0.3.65 — a veil just inside all that, so Hellwarden's tan mask and red body stand out from the sky (dim).
+    const veilGeo = new THREE.SphereGeometry(FAR * 0.7, 24, 12);
+    this.veil = new THREE.MeshBasicMaterial({ color: 0x140505, side: THREE.BackSide, fog: false, depthWrite: false, transparent: true, opacity: 0 });
+    const veil = new THREE.Mesh(veilGeo, this.veil);
+    veil.frustumCulled = false;
+    veil.renderOrder = -0.5;
+    veil.visible = false;
+    this.veilMesh = veil;
+    this.stuff.push(veilGeo, this.veil);
+    this.group.traverse((o) => {
+      if (o instanceof THREE.Sprite) o.renderOrder = -0.75;
+    });
+    for (const o of this.clouds.children) o.renderOrder = -0.75;
+    sun.renderOrder = -0.75;
+    core.renderOrder = halo.renderOrder = -0.75;
+    this.group.add(sky, sun, this.clouds, veil);
   }
 
-  /** `at`: the view (the sky stays round it). */
-  update(dt: number, at: THREE.Vector3) {
+  /** `at`: the view (the sky stays round it); (Update 0.3.65) `dim`: how far it's drawn down (0..1). */
+  update(dt: number, at: THREE.Vector3, dim = 0) {
     this.group.position.copy(at);
+    this.veil.opacity = dim * 0.94;
+    this.veilMesh.visible = dim > 0.004;
     this.clouds.rotation.y += DRIFT * dt;
   }
 
