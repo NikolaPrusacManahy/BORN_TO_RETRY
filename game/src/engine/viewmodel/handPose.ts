@@ -37,6 +37,10 @@ export const PUNCH = shape(
   [0.2, -1.0, 0, 0.5, -0.2, 0],
 );
 
+/** Update 0.3.79 — the Playable Demon's hand sign, for its ranged mode (the designer's picture): index and middle straight together, ring and little curled into the palm. (Its
+ *  thumb's a rig's own, as in the punching fist: it lies across those two.) */
+export const SIGN_CURL = [0.04, 0.06, 0.04, 0.04, 0.06, 0.04, 1.55, 1.78, 1.0, 1.6, 1.8, 1.0];
+
 /** Round a handle the tip joint bends this much of the middle joint's bend. */
 const TIP_SHARE = 0.75;
 /** The knuckle's bend is tried up to a rig's most (HandFit.most) in this step; the middle joint's up to its, found by
@@ -65,12 +69,18 @@ export interface HandFit {
   most: { knuckle: number; middle: number };
   /** Update 0.3.73 — where its punch ends, if not at the crosshair: how far ahead of the eye, under it, and to its own side (m). */
   strike?: { ahead: number; drop: number; side: number };
+  /** Update 0.3.79 — in its hand sign, how far its index and middle turn in to lie together (rad). */
+  signClose?: number;
+  /** And its thumb's turns from the baked tuck, over the two curled fingers (as `punch`). */
+  signThumb?: readonly number[];
+  /** And how far its ring and little fingers fold in towards the middle of the palm, to meet the thumb (rad). */
+  signFold?: number;
 }
 export const QUATERNIUS_HAND: HandFit = { punch: PUNCH.thumb, grip: GRIP_THUMB, open: OPEN.thumb, finger: 0.004, hole: { wrist: 0, palm: 0 }, most: { knuckle: 1.7, middle: 1.9 } };
 /** The Playable Demon's (a Universal Animation Library rig: cut_arms.py solves its tuck over the fingers, right as baked;
  *  thick gauntlet fingers, closing a loop about 5 × 9 cm that its big hilt fills: the handle goes in the loop's middle). */
 // (Update 0.3.73 — its punch rises to the middle of the view, the elbow low. Its vambrace flares so wide that a straight one hides the fist behind it.)
-export const DEMON_HAND: HandFit = { punch: [0, 0, 0, 0, 0, 0], grip: [0, 0, 0, 0, 0, 0], open: [0, 0, 0, 0, 0, 0], finger: 0.008, hole: { wrist: 0.01, palm: 0.015 }, most: { knuckle: 1.7, middle: 1.65 }, strike: { ahead: 0.44, drop: 0, side: 0.02 } };
+export const DEMON_HAND: HandFit = { punch: [0, 0, 0, 0, 0, 0], grip: [0, 0, 0, 0, 0, 0], open: [0, 0, 0, 0, 0, 0], finger: 0.008, hole: { wrist: 0.01, palm: 0.015 }, most: { knuckle: 1.7, middle: 1.65 }, strike: { ahead: 0.44, drop: 0, side: 0.02 }, signClose: 0.1, signThumb: [1, 0, -0.5, 0, 0, 0], signFold: 0.2 };
 
 interface Joint {
   bone: THREE.Bone;
@@ -80,6 +90,7 @@ interface Joint {
 const turn = new THREE.Quaternion();
 const euler = new THREE.Euler();
 const X = new THREE.Vector3(1, 0, 0);
+const Z = new THREE.Vector3(0, 0, 1);
 const p3 = new THREE.Vector3();
 const p4 = new THREE.Vector3();
 const tip = new THREE.Vector3();
@@ -124,15 +135,24 @@ export class HandBones {
   }
 
   /** The hand closed (into the punching fist, or round a handle of radius `grip` m leaning `tilt` rad in the fist by
-   *  `hold`, 0 … 1), then opened by `open` (0 … 1). */
-  pose(open: number, grip = 0, hold = 0, tilt = 0.4) {
+   *  `hold`, 0 … 1), then opened by `open` (0 … 1). Update 0.3.79 — and into the hand sign by `sign` (0 … 1). */
+  pose(open: number, grip = 0, hold = 0, tilt = 0.4, sign = 0) {
     const s = this.live;
     const held = hold > 0 && grip > 0;
     const g = held ? this.grip(grip, tilt) : PUNCH;
     const t = this.fit;
-    for (let i = 0; i < JOINTS; i++) s.curl[i] = lerp(lerp(PUNCH.curl[i], g.curl[i], hold), OPEN.curl[i], open);
-    for (let i = 0; i < 6; i++) s.thumb[i] = lerp(lerp(t.punch[i], held ? t.grip[i] : t.punch[i], hold), t.open[i], open);
+    for (let i = 0; i < JOINTS; i++) s.curl[i] = lerp(lerp(lerp(PUNCH.curl[i], g.curl[i], hold), OPEN.curl[i], open), SIGN_CURL[i], sign);
+    for (let i = 0; i < 6; i++) s.thumb[i] = lerp(lerp(lerp(t.punch[i], held ? t.grip[i] : t.punch[i], hold), t.open[i], open), (t.signThumb ?? t.punch)[i], sign);
     this.set(s);
+    // (The two fingers of its sign, together.)
+    if (sign > 0 && t.signClose) {
+      const m = this.side === 'L' ? 1 : -1;
+      this.fingers[0].bone.quaternion.multiply(turn.setFromAxisAngle(Z, -m * t.signClose * sign));
+      this.fingers[3].bone.quaternion.multiply(turn.setFromAxisAngle(Z, m * t.signClose * sign));
+      const fold = (t.signFold ?? 0) * sign;
+      this.fingers[6].bone.quaternion.multiply(turn.setFromAxisAngle(Z, m * fold));
+      this.fingers[9].bone.quaternion.multiply(turn.setFromAxisAngle(Z, m * fold * 1.4));
+    }
   }
 
   /** The grip round a handle of radius `r` leaning `tilt` (blended between the ones worked out). */

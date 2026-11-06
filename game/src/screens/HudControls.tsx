@@ -77,14 +77,16 @@ function Input({ cap, name, state = '', fill = 1 }: { cap: string; name: string;
 /** What each of the Demon's keys does right now. */
 export function DemonControls({ s }: { s: HudState }) {
   const out = s.bladeOut;
-  const brand = out ? 'Slam' : s.inAir ? 'Plunge' : 'Brand of Ruin';
-  const waiting = !out && !s.inAir && s.brandFill < 1;
+  // (Update 0.3.79 — in ranged mode the sword's put away, as it is thrown.)
+  const noSword = out || s.ranged;
+  const brand = noSword ? 'Slam' : s.inAir ? 'Plunge' : 'Brand of Ruin';
+  const waiting = !noSword && !s.inAir && s.brandFill < 1;
   return (
     <div className="rb-inputs">
       <Input cap={s.attackKey} name={out ? 'Claws' : s.ranged ? 'Ember Slashes' : 'Blazing Arc'} state={!out && s.ranged ? 'is-lit' : ''} />
       <Input cap={s.heavyKey} name={out ? 'Regain Blade' : 'Blade Throw'} state={out ? 'is-lit' : ''} />
       {out ? <Input cap={s.interactKey} name="Teleport" state={s.canBlink ? 'is-lit' : 'is-off'} /> : <Input cap={s.interactKey} name="Mode Switch" state={s.ranged ? 'is-lit' : ''} />}
-      <Input cap={s.dashKey} name={out ? 'Dash' : 'Hellfire Lunge'} />
+      <Input cap={s.dashKey} name={noSword ? 'Dash' : 'Hellfire Lunge'} />
       <Input cap={s.slamKey} name={brand} state={waiting ? 'is-off' : ''} fill={waiting ? s.brandFill : 1} />
       <Input cap={s.throwKey} name="Last Verdict" state={s.execution >= 1 ? 'is-ready' : 'is-off'} fill={s.execution} />
     </div>

@@ -36,7 +36,7 @@ const THRUST_BACK = 0.26;
 const PLANT_IN = 0.08;
 const PLANT_BACK = 0.36;
 /** Update 0.3.78 — how long it takes to shift into or out of ranged mode's stance (s). */
-const STANCE = 0.18;
+const STANCE = 0.24;
 /** A slash reaches its contact (the middle of the path) this far through its swing's ease. */
 const CONTACT = 0.5;
 
@@ -78,6 +78,15 @@ export class SwordAnim {
   /** How far into it (0 … 1). */
   get stance(): number {
     return this.stanceAt;
+  }
+
+  /** Update 0.3.79 — the first half of that, the sword going away (0 … 1: drawn back into its hilt, and gone); the second, the hand opening into its sign (0 … 1). */
+  get swordGoing(): number {
+    return clamp01(this.stanceAt * 2);
+  }
+
+  get handSign(): number {
+    return smooth(clamp01(this.stanceAt * 2 - 1));
   }
 
   /** A weapon taken in hand: its moves from now on. */

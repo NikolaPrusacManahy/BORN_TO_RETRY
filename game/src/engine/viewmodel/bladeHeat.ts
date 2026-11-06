@@ -52,34 +52,35 @@ export class BladeHeat {
     return this.drops.count;
   }
 
-  /** Each frame. `blade`: its world matrix while it's in the hand (null: it isn't); `heat`: 0 … 1; `root`, `tip`: the guard and the tip along its own y. */
-  update(dt: number, blade: THREE.Matrix4 | null, heat: number, root: number, tip: number) {
+  /** Each frame. `blade`: its world matrix while it's in the hand (null: it isn't); `heat`: 0 … 1; `root`, `tip`: the guard and the tip along its own y. Update 0.3.79 — `edge`: how far off that
+   *  line they lick, and `small`: how big they are (the two fingers of its hand sign burn too). */
+  update(dt: number, blade: THREE.Matrix4 | null, heat: number, root: number, tip: number, edge = EDGE, small = 1) {
     this.time += dt;
     const on = blade !== null ? heat : 0;
     const long = tip - root;
     let n = 0;
     for (let k = 0; blade && k < FLAMES && (k + 1) / FLAMES <= on + 1 / FLAMES / 2 && on > 0.02; k++) {
-      pos.set(k % 2 === 0 ? EDGE : -EDGE, root + (long * (k + 0.5)) / FLAMES, 0).applyMatrix4(blade);
+      pos.set(k % 2 === 0 ? edge : -edge, root + (long * (k + 0.5)) / FLAMES, 0).applyMatrix4(blade);
       const lick = 0.7 + 0.3 * Math.sin(this.time * 17 + k * 2.3);
-      const s = (0.035 + 0.05 * on) * lick;
-      this.flames.setMatrixAt(n++, mat.compose(pos, q.setFromAxisAngle(Y, k * 1.9), scl.set(s, (0.14 + 0.26 * on) * lick, s)));
+      const s = (0.035 + 0.05 * on) * lick * small;
+      this.flames.setMatrixAt(n++, mat.compose(pos, q.setFromAxisAngle(Y, k * 1.9), scl.set(s, (0.14 + 0.26 * on) * lick * small, s)));
     }
     this.flames.count = n;
     if (n > 0) this.flames.instanceMatrix.needsUpdate = true;
-    this.drip(dt, blade, on, root, long);
+    this.drip(dt, blade, on, root, long, edge);
     this.light.visible = DEMON.v.lightOn >= 1;
     if (blade) this.light.position.set(0, root + LIGHT_UP, 0).applyMatrix4(blade);
     this.light.intensity = blade ? DEMON.v.lightArms * (LIGHT_COLD + (1 - LIGHT_COLD) * heat) : 0;
   }
 
-  private drip(dt: number, blade: THREE.Matrix4 | null, on: number, root: number, long: number) {
+  private drip(dt: number, blade: THREE.Matrix4 | null, on: number, root: number, long: number, edge: number) {
     this.due += dt * DRIP * on * on;
     let n = 0;
     for (let i = 0; i < EMBERS; i++) {
       if (this.left[i] <= 0 && this.due >= 1 && blade) {
         this.due -= 1;
         this.left[i] = LIFE * (0.6 + 0.4 * Math.random());
-        this.at[i].set((Math.random() < 0.5 ? 1 : -1) * EDGE, root + long * on * Math.random(), 0).applyMatrix4(blade);
+        this.at[i].set((Math.random() < 0.5 ? 1 : -1) * edge, root + long * on * Math.random(), 0).applyMatrix4(blade);
         this.vel[i].set((Math.random() - 0.5) * 0.3, -0.25 - Math.random() * 0.4, (Math.random() - 0.5) * 0.3);
       }
       if (this.left[i] <= 0) continue;

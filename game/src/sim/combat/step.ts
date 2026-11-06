@@ -243,7 +243,11 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
       if (intent.interactPressed) blinkToBlade(state, player, intent.yaw, intent.pitch, world);
       if (bladeAway(state)) stepThrown(state, player, intent.yaw, intent.pitch, world, dt);
     } else {
-      if (intent.heavyPressed && (b.step < 0 || b.struck) && !clasped && b.plant <= 0 && !b.verdict) startThrow(state);
+      if (intent.heavyPressed && (b.step < 0 || b.struck) && !clasped && b.plant <= 0 && !b.verdict) {
+        // (Update 0.3.79 — ranged mode has it put away: it's out again to be thrown.)
+        if (b.ranged) switchMode(state);
+        startThrow(state);
+      }
       // (Update 0.3.78 — with it in hand, E's Mode Switch.)
       if (intent.interactPressed && !clasped && !b.verdict) switchMode(state);
     }
@@ -251,11 +255,15 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     NO_HEAVY.heavyHeld = false;
   }
   // (Update 0.3.73 — with it out of your hand you've your gauntlets, by the fists' rules: a plain dash, a plain slam.)
-  const sworded = demon && !bladeAway(state);
+  // (Update 0.3.79 — so too in ranged mode, the sword put away, but for what left click does.)
+  const inHand = demon && !bladeAway(state);
+  const sworded = inHand && !b.ranged;
   if (demon) player.demon = sworded;
-  if (sworded) {
+  if (inHand) {
     fistIntent = Object.assign(NO_SWING, fistIntent);
     NO_SWING.attackPressed = NO_SWING.attackHeld = false;
+  }
+  if (sworded) {
     stepLunge(state, player);
     tryBrand(state, player, intent.slamPressed && !clasped);
   }
@@ -277,7 +285,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     }
   }
   // (Update 0.3.71 — a swing lands when its blade gets there.)
-  if (sworded) {
+  if (inHand) {
     if (updateBlade(b, swingPressed, swingHeld, clasped || b.plant > 0 || player.dashTime > 0, events, dt, rate)) {
       aim(player, intent.yaw, intent.pitch, eye, dir);
       landBlade(state, b.step, eye, dir, world, fistFactor(state));

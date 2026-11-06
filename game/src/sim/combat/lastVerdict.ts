@@ -9,7 +9,7 @@ import { isLive } from '../enemies/enemy';
 import { launch } from '../enemies/flight';
 import { ENEMY_STATS } from '../enemies/kinds';
 import type { PlayerState } from '../player/state';
-import { begin, VERDICT } from './bladeSwing';
+import { begin, switchMode, VERDICT } from './bladeSwing';
 import { catchBlade } from './bladeThrow';
 import type { CombatState } from './state';
 import { landHit } from './strike';
@@ -31,6 +31,8 @@ export function tryVerdict(state: CombatState, player: PlayerState, pressed: boo
   const b = state.blade;
   if (!pressed || b.verdict || b.heat < 1) return false;
   catchBlade(state);
+  // (Update 0.3.79 — ranged mode has it put away: it's out again for this.)
+  if (b.ranged) switchMode(state);
   b.verdict = true;
   b.verdictT = 0;
   b.verdictStruck = false;

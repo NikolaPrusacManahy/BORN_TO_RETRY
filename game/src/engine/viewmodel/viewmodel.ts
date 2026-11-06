@@ -19,7 +19,7 @@
 // Update 0.3.70 — the Playable Demon (design bible): its own arms, its blade in the hand whenever nothing else is. They're
 // fetched only for it (armsWardrobe.ts), so nobody else pays for them. Left click swings the blade, right click raises it.
 // Update 0.3.73 — thrown, it's out of the hand and the gauntlets take over, both of them; heat burns on it (bladeHeat.ts); Last Verdict grows it (bladeGrow.ts).
-// Update 0.3.74 — and takes both hands.
+// Update 0.3.74 — and takes both hands. Update 0.3.79 — its ranged mode puts it away: the hand sign, the blade's pose now the fingers'.
 import * as THREE from 'three';
 import { ARMS } from '../../tuning/arms';
 import { DEMON } from '../../tuning/demon';
@@ -57,8 +57,14 @@ const CHARGE_EASE = 14;
 const RELEASE = 0.6;
 /** Update 0.3.74 — where the left hand closes on the hilt for Last Verdict: this far along it from the right fist (m; below it). */
 const VERDICT_LEFT = -0.17;
-/** Update 0.3.73 — how much of the blade's flare its heat gives it, at full. Update 0.3.78 — and ranged mode. */
-const RANGED_GLOW = 0.35;
+/** Update 0.3.79 — the two fingers of its hand sign burning: at least this hot, from this far along them to this far (m from the palm), this far off their line, this big. */
+const SIGN_FIRE = 0.45;
+const SIGN_FROM = 0.08;
+const SIGN_TO = 0.3;
+const SIGN_EDGE = 0.025;
+const SIGN_SMALL = 0.45;
+/** Its slash's streak, off the fingertips: this share of a blade's length. */
+const SIGN_TRAIL = 0.42;
 const HEAT_GLOW = 0.55;
 
 const ease = (rate: number, dt: number) => 1 - Math.exp(-rate * dt);
@@ -290,7 +296,7 @@ export class Viewmodel {
     this.off.anim.update(gameDt, realDt);
     this.slam.follow(p.slamming);
     // (Update 0.3.72 — the Demon's dive: its sword point down, all the way.)
-    if (this.bladed && p.slamming) this.swordAnim.plant(true);
+    if (this.bladed && this.swordAnim.swordGoing < 1 && p.slamming) this.swordAnim.plant(true);
     else this.swordAnim.landed();
     this.slam.update(gameDt);
     this.block.update(gameDt);
@@ -358,9 +364,10 @@ export class Viewmodel {
       this.block.mix(rig, right, blocking);
       rig.apply('R', right, v.wristBend + (1 - v.wristBend) * Math.max(clasp, this.grip.bend('R')), this.block.pole(this.elbow.copy(GUARD.R.pole), blocking));
     }
-    rig.openHand('R', Math.max(book * this.book.open('R'), this.grip.open('R'), held ? Math.max(RELEASE * this.swordAnim.letGo, turnOpen(moves, this.flip)) : 0), held ? wrapOf(moves, this.flip) : gun > 0 ? GUN_GRIP : ROPE, held ? armed : gun || this.grip.rope('R'), held ? this.swordPose.tilt : gun > 0 ? this.gun.tilt : undefined);
+    rig.openHand('R', Math.max(book * this.book.open('R'), this.grip.open('R'), held ? Math.max(RELEASE * this.swordAnim.letGo, turnOpen(moves, this.flip)) : 0), held ? wrapOf(moves, this.flip) : gun > 0 ? GUN_GRIP : ROPE, held ? armed : gun || this.grip.rope('R'), held ? this.swordPose.tilt : gun > 0 ? this.gun.tilt : undefined, held ? this.swordAnim.handSign : 0);
     if (this.weapon) {
-      this.weapon.visible = reach < 0.2 && !this.swordAnim.empty;
+      // (Update 0.3.79 — and not with the Demon's sword put away.)
+      this.weapon.visible = reach < 0.2 && !this.swordAnim.empty && this.swordAnim.swordGoing < 1;
       if (book > 0) this.book.bookMatrix(rig, this.weapon.matrix);
       else if (gun > 0) this.gun.matrix(rig, this.weapon.matrix);
       else holdWeapon(rig, moves, this.swordPose.tilt, this.flip, this.weapon.matrix);
@@ -389,14 +396,19 @@ export class Viewmodel {
     const d = DEMON.v;
     const grown = this.swordAnim.grown;
     const long = 1 + (d.verdictGrow - 1) * grown;
-    this.grow?.set(long, 1 + (d.verdictBroad - 1) * grown);
+    // (Update 0.3.79 — going away, it draws back into its hilt; coming back, out of it.)
+    this.grow?.set(long * (1 - this.swordAnim.swordGoing), 1 + (d.verdictBroad - 1) * grown);
     // (Update 0.3.73 — the trail as long as the blade is, and longer at high heat: it reaches further.)
     this.trail.stretch = long * (this.heat >= d.heatHigh ? d.hotArc : 1);
     const inHand = !!blade && this.bladed && blade.visible;
-    const cutting = inHand && this.swordAnim.slicing && gameDt > 0;
-    // (Update 0.3.73 — and it burns brighter as it heats. Update 0.3.78 — and in ranged mode, so you can see you're in it.)
-    this.trail.update(realDt, cutting && blade ? blade.matrixWorld : null, this.bladed ? Math.max(this.swordAnim.flare, this.swordAnim.stance * RANGED_GLOW, this.heat * HEAT_GLOW) : 0);
-    this.fire?.update(realDt, inHand && blade ? blade.matrixWorld : null, this.heat, this.trail.root, this.trail.tip * long);
+    // (Update 0.3.79 — put away, its pose is the two fingers': the trail streams from them, and they burn.)
+    const signing = !!blade && this.bladed && !blade.visible && this.swordAnim.swordGoing >= 1;
+    const cutting = (inHand || signing) && this.swordAnim.slicing && gameDt > 0;
+    if (signing) this.trail.stretch = SIGN_TRAIL;
+    // (Update 0.3.73 — and it burns brighter as it heats.)
+    this.trail.update(realDt, cutting && blade ? blade.matrixWorld : null, this.bladed ? Math.max(this.swordAnim.flare, this.heat * HEAT_GLOW) : 0);
+    if (signing && blade) this.fire?.update(realDt, blade.matrixWorld, Math.max(this.heat, SIGN_FIRE), SIGN_FROM, SIGN_TO, SIGN_EDGE, SIGN_SMALL);
+    else this.fire?.update(realDt, inHand && blade ? blade.matrixWorld : null, this.heat, this.trail.root, this.trail.tip * long);
   }
 
   /** Draws the arms over the world already on screen: depth cleared, colour kept. */

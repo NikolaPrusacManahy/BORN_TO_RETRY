@@ -2,9 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-06, after Update 0.3.78)
-- **Version 0.3.78** (the Demon's Mode Switch), built, **not committed** until the designer says "commit", nor are 0.3.70 to 0.3.77. 0.3.58 to 0.3.69 are committed; the designer pushes.
-- **The Playable Demon is under way** (`enemy_bibles/Born to Retry — Playable Demon.docx`, specs `MD_UPDATES/U0370_PLAYABLE_DEMON_1.md`, `U0371_BLAZING_ARC.md`, `U0372_DEMON_MOVES.md`, `U0373_DEMON_BIG_MOVES.md`, `U0374_DEMON_REWORK.md`, which overrides the bible on Q and right click, `U0375_DEMON_FEEL.md`, `U0376_SWORD_LIGHT.md`, `U0378_MODE_SWITCH.md`, which replaces its Hold left click): phases 1 to 4 are done. The sword's light is stable on the designer's PC ("perfectly stable"), and stays. The forge hiss is out, on their word. Next, when the designer says: phase 5 (balance). Waiting on the designer: floor 10 in public runs (the unlock can't be earned there while it's closed), Victory lap or Demon Mode, HP 100 or lower.
+## Where things stand (2026-11-06, after Update 0.3.79)
+- **Version 0.3.79** (Mode Switch: the sword away, the hand sign), built, **not committed** until the designer says "commit", nor are 0.3.70 to 0.3.78. 0.3.58 to 0.3.69 are committed; the designer pushes.
+- **The Playable Demon is under way** (`enemy_bibles/Born to Retry — Playable Demon.docx`, specs `MD_UPDATES/U0370_PLAYABLE_DEMON_1.md`, `U0371_BLAZING_ARC.md`, `U0372_DEMON_MOVES.md`, `U0373_DEMON_BIG_MOVES.md`, `U0374_DEMON_REWORK.md`, which overrides the bible on Q and right click, `U0375_DEMON_FEEL.md`, `U0376_SWORD_LIGHT.md`, `U0378_MODE_SWITCH.md`, which replaces its Hold left click, `U0379_HAND_SIGN.md`): phases 1 to 4 are done. The sword's light is stable on the designer's PC ("perfectly stable"), and stays. The forge hiss is out, on their word. Next, when the designer says: phase 5 (balance). Waiting on the designer: floor 10 in public runs (the unlock can't be earned there while it's closed), Victory lap or Demon Mode, HP 100 or lower.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
@@ -65,7 +65,12 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-06, Update 0.3.78: the Demon's Mode Switch)
+## Last update (2026-11-06, Update 0.3.79: Mode Switch: the sword away, the hand sign)
+- The designer's pictures: in ranged mode the sword goes away and the right hand comes up, two fingers raised, the others curled under the thumb, and slashes from there (`SIGN_CURL`, `sign()`).
+- My call, with the sword away: a plain dash and slam, as when it's thrown; right click and Q bring it out and leave ranged mode.
+- Rendered against the pictures; wrists 40° at most. Not seen moving or heard by me. Tests: `test-demon-ranged.ts`.
+
+## Before (2026-11-06, Update 0.3.78: the Demon's Mode Switch)
 - The designer's final touch. E, sword in hand: a ranged stance, left click or held sending slash after slash with no limit, two swings each the other way, each crescent leaning as its swing came.
 - Held left click now just keeps attacking, in both modes: the charge and Ember Wave's swing are gone.
 - A crescent does 16, not 40, as there's no limit: a stream's about 61 a second, the combo's about 91. My numbers, in F1. Not seen moving or heard by me. Tests: `test-demon-ranged.ts`.

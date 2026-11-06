@@ -37,6 +37,9 @@ if (process.env.STRIKE) {
   const [ahead, drop, side] = process.env.STRIKE.split(',').map(Number);
   DEMON_HAND.strike = { ahead, drop, side };
 }
+// (Update 0.3.79 — trying the thumb of its hand sign: "x,y,z,x,y,z".)
+if (process.env.SIGN_THUMB) DEMON_HAND.signThumb = process.env.SIGN_THUMB.split(',').map(Number);
+if (process.env.SIGN_FOLD) DEMON_HAND.signFold = Number(process.env.SIGN_FOLD);
 const ONLY = process.env.ONLY ? new RegExp(process.env.ONLY) : null;
 const kind = (demon ? 'sword' : process.argv[2]) as WeaponKind;
 const out = process.argv[3];

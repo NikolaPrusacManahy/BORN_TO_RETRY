@@ -24,6 +24,8 @@ const OUT: V = [1, 0.05, 0.3];
 const HIGH: V = [0.85, 0.2, 0.25];
 /** Update 0.3.74 — dropped, the forearm rising to the fist: for a blade held out level (and it keeps the vambrace low on the screen). */
 const LOW: V = [0.7, -0.8, 0.15];
+/** Update 0.3.79 — in under you: a backhand, the forearm reaching out to the right with the hand. */
+const IN: V = [-0.4, -0.9, 0.1];
 /** Thrown up over your head: the elbow high. */
 const OVER: V = [0.8, 1, 0.1];
 /** How far the blade leans in the fist (degrees), in every key. */
@@ -117,31 +119,38 @@ const ARC_OVER: BladeArc = {
   through: new Vector3(-0.1, 0.01, 0),
 };
 
-/** Update 0.3.78 — ranged mode's first slash (the designer: "the slashes will be sent in 2 different angles, like inclined slash east and west"): from high on the right down across the view; the crescent leaves as it passes the middle. */
+/** Update 0.3.79 — the hand sign's pose (the designer's picture: "he would put the sword away and show his right arm with his finger posed like the reference"): its palm to you, its index on the
+ *  right. Leaned all the way in the "fist" (90°), the way a blade would point is the way the two fingers do, so a swing's keys, its trail and the rest all work as a blade's. */
+const sign = (grip: V, fingers: V, elbow: V = LOW, palm: V = [-0.9, 0, -0.4]): SwordPose => pose(grip, fingers, palm, 90, elbow);
+
+/** Ranged mode's stance: the hand up in front of you, the two fingers up. */
+export const DEMON_RANGED = sign([0.2, -0.04, -0.37], [-0.02, 0.97, -0.22], LOW, [-0.85, 0, -0.5]);
+
+/** Update 0.3.78 — ranged mode's first slash (the designer: "the slashes will be sent in 2 different angles, like inclined slash east and west"): the hand from high on the right down across the view;
+ *  the crescent leaves as it passes the middle. */
 const ARC_SHOT_A: BladeArc = {
   step: 3,
   keys: [
-    key([0.22, -0.05, -0.38], [0.1, 0.94, -0.33]),
-    key([0.14, -0.1, -0.44], [-0.2, 0.88, -0.42]),
-    key([0.02, -0.15, -0.46], [-0.55, 0.66, -0.5]),
-    key([-0.08, -0.2, -0.42], [-0.68, 0.46, -0.56], HIGH),
-    key([-0.12, -0.23, -0.38], [-0.7, 0.36, -0.6], HIGH),
+    sign([0.25, 0, -0.34], [0.12, 0.93, -0.34]),
+    sign([0.2, -0.03, -0.38], [-0.02, 0.92, -0.38]),
+    sign([0.12, -0.07, -0.42], [-0.32, 0.82, -0.47]),
+    sign([0.05, -0.12, -0.44], [-0.6, 0.6, -0.52], OUT),
+    sign([0.01, -0.15, -0.44], [-0.72, 0.46, -0.52], OUT),
   ],
   hit: 0.5,
   cocked: new Vector3(0.06, -0.08, -0.05),
   through: new Vector3(-0.05, 0.14, 0.09),
 };
 
-/** Update 0.3.73 — Blade Throw: from over the right shoulder, slung across and away; it leaves as the arm comes through the middle. */
-/** Update 0.3.78 — its second, the other way: from high on the left, a backhand down to low on the right. */
+/** Update 0.3.78 — its second, the other way: from high on the left, down to low on the right. */
 const ARC_SHOT_B: BladeArc = {
   step: 4,
   keys: [
-    key([-0.02, -0.05, -0.42], [-0.5, 0.78, -0.38]),
-    key([0.03, -0.08, -0.46], [-0.22, 0.86, -0.46]),
-    key([0.1, -0.13, -0.48], [0.2, 0.72, -0.66]),
-    key([0.13, -0.12, -0.5], [0.55, 0.4, -0.73], LOW),
-    key([0.14, -0.13, -0.49], [0.72, 0.2, -0.66], LOW),
+    sign([0.03, -0.02, -0.4], [-0.62, 0.7, -0.35], OUT),
+    sign([0.08, -0.03, -0.42], [-0.35, 0.85, -0.4]),
+    sign([0.14, -0.03, -0.44], [0, 0.88, -0.46]),
+    sign([0.2, -0.05, -0.45], [0.35, 0.72, -0.58], IN),
+    sign([0.24, -0.07, -0.44], [0.55, 0.55, -0.62], IN),
   ],
   hit: 0.5,
   cocked: new Vector3(0.06, 0.08, 0.05),
@@ -182,8 +191,6 @@ const ARC_VERDICT: BladeArc = {
 
 export const DEMON_ARCS: readonly BladeArc[] = [ARC_SLASH, ARC_BACK, ARC_OVER, ARC_SHOT_A, ARC_SHOT_B, ARC_THROW, ARC_VERDICT];
 
-/** Update 0.3.78 — ranged mode's stance (the designer: "the way he holds the sword changes a bit"): further forward and leaned in across you, its point towards what you're slashing at. */
-export const DEMON_RANGED = key([0.15, -0.14, -0.46], [-0.3, 0.68, -0.67]);
 /** Update 0.3.74 — caught: the blade's weight in your hand, up across you and back. */
 export const DEMON_CAUGHT = key([0.2, -0.14, -0.42], [-0.52, 0.78, -0.34]);
 /** Hellfire Lunge: the arm straight out, the blade on what you're looking at (a thrust's a fencer's, this once: the wrist couldn't do it). */
