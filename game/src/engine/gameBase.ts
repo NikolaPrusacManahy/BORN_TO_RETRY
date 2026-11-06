@@ -56,7 +56,7 @@ export abstract class GameBase {
   runCards = true;
   /** Update 0.3.70 — who you play as (the lobby's choice), and in the Lab whether you're the Demon (its panel). */
   runCharacter: CharacterId = 'adventurer';
-  private labDemon = false;
+  private labWho: CharacterId = 'adventurer';
   /** Update 0.3.23 — the loader's going up before a build: nothing else runs meanwhile; the game's gone (no build). */
   protected covering = false;
   protected gone = false;
@@ -130,8 +130,12 @@ export abstract class GameBase {
   labCommand(cmd: LabCommand) {
     if (!this.lab) return;
     if (cmd.kind === 'demon') {
-      this.labDemon = cmd.on;
+      this.labWho = cmd.on ? 'demon' : 'adventurer';
       if (cmd.on) this.cb.onDemonEarned?.();
+    }
+    if (cmd.kind === 'sean') {
+      this.labWho = 'spacesuit';
+      this.cb.onSeanEarned?.();
     }
     this.run?.labCommand(cmd);
   }
@@ -203,7 +207,7 @@ export abstract class GameBase {
 
   protected newRun(level: Level) {
     this.run?.dispose();
-    this.run = new Run(level, this.audio, this.renderer, this.hud, this.cb, this.levels, this.inLab ? 'real' : this.runDifficulty, this.inLab || this.runCards, this.inLab, this.inLab ? (this.labDemon ? 'demon' : 'adventurer') : this.runCharacter);
+    this.run = new Run(level, this.audio, this.renderer, this.hud, this.cb, this.levels, this.inLab ? 'real' : this.runDifficulty, this.inLab || this.runCards, this.inLab, this.inLab ? this.labWho : this.runCharacter);
     this.run.waves = !this.inLab || this.labWaves;
     this.run.paused = this.paused;
     if (this.inLab) this.run.labCommand({ kind: 'meter', on: this.labMeter });

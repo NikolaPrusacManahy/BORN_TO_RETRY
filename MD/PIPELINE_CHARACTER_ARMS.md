@@ -72,6 +72,10 @@ uncomfortable to play with.
   covered the crosshair in play, so the guard was moved to the lower corners. The spots were found by measuring
   where the knuckles land through the game's own arms camera (`test-arms.ts` now keeps the centre clear).
 
+## Lessons from Gravity Sean (Update 0.3.80)
+- A character from the same Humanoid Rig pack is Joseph's skeleton, bone for bone: the cut with no options is all it takes, and every guard and grip carries over. Check the lengths against Joseph's first (`test-gravity-sean.ts` does).
+- Blender's `fp.png` isn't the game's pose: judge the fists through the game's rig, `ARMS=<id> npx tsx tools/hand-shots.ts <out>`, then `render_view.py` on its `shots.json` and `pov.json`.
+
 ## Lessons from the Demon (Update 0.3.70)
 - A Bestiary monster's rig isn't Quaternius's humanoid: `--rig ual` takes it to the names the arms know. Its thumb starts at the wrist with its own axes: it's solved, not turned (`tuck_thumb`), and `HandFit` in `handPose.ts` holds its own numbers.
 - **Judge a grip from the eye and from all round it.** The designer's reference showed what the fist was missing: fingers wrapped round the handle, hiding it, the whole fist in frame. Render from every side (`weapon-shots.ts` plus an orbit) before guessing.

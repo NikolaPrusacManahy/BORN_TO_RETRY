@@ -1,8 +1,10 @@
 // Update 0.3.70 — whose arms you have on: Joseph's, or the Playable Demon's with its blade (design bible). Each is fetched the
 // first time it's wanted and kept, so nobody else pays for the Demon's and a choice on the lobby's dais is quick the second
 // time. The Viewmodel wears what it's given.
+// Update 0.3.80 — and Gravity Sean's: Joseph's skeleton in a space suit, so every guard, punch and grip carries over.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import type { CharacterId } from '../../sim/characters';
 import { ArmsRig } from './armsRig';
 import { DEMON_HAND } from './handPose';
 import { DEMON_MOVES } from './weaponMoves';
@@ -10,12 +12,15 @@ import { DEMON_MOVES } from './weaponMoves';
 export const ARMS_URL = '/models/arms/adventurer.glb';
 export const DEMON_ARMS_URL = '/models/arms/demon.glb';
 export const DEMON_BLADE_URL = '/models/weapons/demon_blade.glb';
+export const SEAN_ARMS_URL = '/models/arms/spacesuit.glb';
+/** Who has arms of their own; anyone else has Joseph's. */
+const ARMS_OF: Partial<Record<CharacterId, string>> = { demon: DEMON_ARMS_URL, spacesuit: SEAN_ARMS_URL };
 
 export class ArmsWardrobe {
-  /** You're the Demon; its blade while you are (null: anyone else, or not fetched yet). */
-  demon = false;
+  /** Whose arms you have on; the Demon's blade while you're the Demon (null: anyone else, or not fetched yet). */
+  who: CharacterId = 'adventurer';
   blade: THREE.Object3D | null = null;
-  private readonly rigs = new Map<boolean, ArmsRig>();
+  private readonly rigs = new Map<CharacterId, ArmsRig>();
   private bladeModel: THREE.Object3D | null = null;
   /** Fetching it failed: the run mustn't wait on it for ever. */
   private bladeFailed = false;
@@ -27,16 +32,21 @@ export class ArmsWardrobe {
     private readonly bladeGone: (old: THREE.Object3D | null) => void,
   ) {}
 
-  /** The arms and the blade of who you are (`demon`). */
-  dress(demon: boolean) {
-    this.demon = demon;
-    const rig = this.rigs.get(demon);
+  get demon() {
+    return this.who === 'demon';
+  }
+
+  /** The arms (and, the Demon, the blade) of who you are. */
+  dress(who: CharacterId) {
+    this.who = who;
+    const demon = who === 'demon';
+    const rig = this.rigs.get(who);
     if (rig) this.wear(rig);
     else if (this.fetches) {
-      void ArmsRig.load(demon ? DEMON_ARMS_URL : ARMS_URL, demon ? DEMON_HAND : undefined)
+      void ArmsRig.load(ARMS_OF[who] ?? ARMS_URL, demon ? DEMON_HAND : undefined)
         .then((r) => {
-          this.rigs.set(demon, r);
-          if (this.demon === demon) this.wear(r);
+          this.rigs.set(who, r);
+          if (this.who === who) this.wear(r);
         })
         .catch((err) => console.error('arms failed to load', err));
     }
@@ -61,7 +71,7 @@ export class ArmsWardrobe {
 
   /** The Demon's blade: its own moves (it's no weapon of the catalog), and in the hand. */
   hold(model: THREE.Object3D) {
-    this.demon = true;
+    this.who = 'demon';
     this.bladeModel = this.blade = model;
     model.userData.moves = DEMON_MOVES;
     model.traverse((o) => {
@@ -72,7 +82,7 @@ export class ArmsWardrobe {
 
   /** These arms are whoever you are now's. */
   keep(rig: ArmsRig) {
-    this.rigs.set(this.demon, rig);
+    this.rigs.set(this.who, rig);
   }
 
   /** Nothing of the Demon's is still on its way. */

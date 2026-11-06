@@ -143,7 +143,7 @@ export class LobbyView implements LevelView {
       body.scale.setScalar(1);
       body.traverse((o) => {
         if (!(o instanceof THREE.Mesh)) return;
-        o.material = isPlayable(c, this.lobby.demon) ? kitMaterial(o.material as THREE.MeshStandardMaterial, this.mats) : shade;
+        o.material = isPlayable(c, this.lobby.demon, this.lobby.won) ? kitMaterial(o.material as THREE.MeshStandardMaterial, this.mats) : shade;
         o.castShadow = o.receiveShadow = true;
       });
       this.group.add(body);

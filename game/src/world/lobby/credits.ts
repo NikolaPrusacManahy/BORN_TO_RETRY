@@ -16,7 +16,7 @@ export interface CreditBoard {
 export const CREDITS: readonly CreditBoard[] = [
   {
     title: 'MODELS',
-    lines: ['Quaternius (CC0)', 'Modular Dungeon Pack · Ultimate Nature Pack', 'Ultimate RPG Pack · Ultimate Monsters', 'Pirate Kit · Ultimate Space Kit', 'Characters: Adventurer, King, Suit, Swat', 'Guns: Pistol'],
+    lines: ['Quaternius (CC0)', 'Modular Dungeon Pack · Ultimate Nature Pack', 'Ultimate RPG Pack · Ultimate Monsters', 'Pirate Kit · Ultimate Space Kit', 'Characters: Adventurer, Spacesuit, Swat', 'Guns: Pistol'],
   },
   {
     title: 'SOUND',

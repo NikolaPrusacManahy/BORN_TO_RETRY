@@ -5,6 +5,7 @@
 // Update 0.3.0 — Glow (engine/glowPass.ts) and Effects: high or low (engine/effectsLevel.ts).
 // Update 0.3.38 — the frame-rate cap (core/framePacer.ts).
 // Update 0.3.70 — you've beaten the final boss: the Playable Demon's yours.
+// Update 0.3.80 — you've won a whole run: Gravity Sean's yours.
 import { Bindings, DEFAULT_BINDINGS, hydrateBindings } from '../input/bindings';
 import { canPlay, CharacterId, ROSTER } from '../sim/characters';
 import { DEFAULT_DIFFICULTY, Difficulty, isDifficulty } from '../sim/lobby/difficulty';
@@ -55,6 +56,8 @@ export interface SaveData {
   deaths: number;
   /** Update 0.3.70 — you've beaten the final boss, on any difficulty: the Demon's yours to play. */
   demon: boolean;
+  /** Update 0.3.80 — you've won a whole run, on any difficulty: Gravity Sean's yours to play. */
+  won: boolean;
 }
 
 /** Named after the working title; kept when the game became Born To Retry so saved settings carry over. */
@@ -69,7 +72,14 @@ export const UI_SIZE_MAX = 1.4;
 export const DEFAULT_SETTINGS: Settings = { sensitivity: 1, invertY: false, fov: 100, volume: 0.8, sfxVolume: 1, musicVolume: 0.7, uiSize: 1, blood: 'on', glow: true, effects: 'high', frameCap: DEFAULT_FRAME_CAP, fpsKey: DEFAULT_FPS_KEY, showFps: false, bindings: DEFAULT_BINDINGS };
 
 export function defaultSave(): SaveData {
-  return { version: 1, settings: { ...DEFAULT_SETTINGS, bindings: { ...DEFAULT_BINDINGS } }, difficulty: DEFAULT_DIFFICULTY, character: DEFAULT_CHARACTER, cards: true, deaths: 0, demon: false };
+  return { version: 1, settings: { ...DEFAULT_SETTINGS, bindings: { ...DEFAULT_BINDINGS } }, difficulty: DEFAULT_DIFFICULTY, character: DEFAULT_CHARACTER, cards: true, deaths: 0, demon: false, won: false };
+}
+
+/** A run's end, saved: a death counted (Update 0.3.65); Update 0.3.80 — a win kept for good, whatever the difficulty. The same
+ *  save if nothing's new. */
+export function saveRunEnd(old: SaveData, won: boolean): SaveData {
+  if (!won) return { ...old, deaths: old.deaths + 1 };
+  return old.won ? old : { ...old, won: true };
 }
 
 /** Update 0.2.9 — the character a new save has (the first playable one). */
@@ -82,15 +92,17 @@ export function hydrateSave(raw: unknown): SaveData {
   const base = defaultSave();
   if (!raw || typeof raw !== 'object') return base;
   const s: Partial<Settings> = (raw as { settings?: Partial<Settings> }).settings ?? {};
-  const { difficulty, character, cards, deaths, demon } = raw as Partial<Record<'difficulty' | 'character' | 'cards' | 'deaths' | 'demon', unknown>>;
+  const { difficulty, character, cards, deaths, demon, won } = raw as Partial<Record<'difficulty' | 'character' | 'cards' | 'deaths' | 'demon' | 'won', unknown>>;
   const beaten = demon === true;
+  const runWon = won === true;
   return {
     version: 1,
     difficulty: isDifficulty(difficulty) ? difficulty : DEFAULT_DIFFICULTY,
-    character: canPlay(character, beaten) ? (character as CharacterId) : DEFAULT_CHARACTER,
+    character: canPlay(character, beaten, runWon) ? (character as CharacterId) : DEFAULT_CHARACTER,
     cards: typeof cards === 'boolean' ? cards : true,
     deaths: Math.floor(clamp(deaths, 0, 1e7, 0)),
     demon: beaten,
+    won: runWon,
     settings: {
       sensitivity: clamp(s.sensitivity, SENS_MIN, SENS_MAX, DEFAULT_SETTINGS.sensitivity),
       invertY: typeof s.invertY === 'boolean' ? s.invertY : DEFAULT_SETTINGS.invertY,

@@ -45,7 +45,7 @@ import { DebugOverlay } from './screens/DebugOverlay';
 import { FpsCounter } from './screens/FpsCounter';
 import { useFpsKey } from './screens/useFpsKey';
 import { CreditIntro } from './screens/CreditIntro';
-import { Settings, loadSave, writeSave } from './state/settings';
+import { Settings, loadSave, saveRunEnd, writeSave } from './state/settings';
 import { setUiSize } from './ui/uiScale';
 import { setBloodLevel } from './engine/bloodFx';
 import { setEffectsLow } from './engine/effectsLevel';
@@ -119,23 +119,29 @@ export default function App() {
     if (ok) go(ph === 'lobbyPaused' || ph === 'lobby' ? 'lobby' : 'playing');
   }, [getGame, go]);
 
+  /** A run's end, for good (Update 0.3.65: a death counted, Hellwarden's forged from them; Update 0.3.80: a win, on any
+   *  difficulty: Gravity Sean's yours). */
+  const runEnded = useCallback((won: boolean) => {
+    setSave((old) => {
+      const next = saveRunEnd(old, won);
+      if (next !== old) writeSave(next);
+      return next;
+    });
+  }, []);
+
   /** Update 0.1.14 — the death screen: up over the black, the mouse freed. */
   const onDeathScreen = useCallback(
     (info: DeathInfo) => {
       setDeath(info);
-      // (Update 0.3.65 — counted for good: Hellwarden's forged from them.)
-      if (!info.won) {
-        setSave((old) => {
-          const next = { ...old, deaths: old.deaths + 1 };
-          writeSave(next);
-          return next;
-        });
-      }
+      runEnded(!!info.won);
       go('dead');
       getGame()?.unlock();
     },
-    [getGame, go],
+    [getGame, go, runEnded],
   );
+
+  /** Update 0.3.80 — in the Lab, played as Gravity Sean: he's yours on the dais too. */
+  const onSeanEarned = useCallback(() => runEnded(true), [runEnded]);
 
   /** Update 0.3.70 — the final boss beaten, on any difficulty: the Demon's yours, for good. */
   const onDemonEarned = useCallback(() => {
@@ -169,8 +175,8 @@ export default function App() {
     if (!g || phaseRef.current !== 'menu') return;
     go('intro');
     void g.lock();
-    g.startIntro({ difficulty: save.difficulty, character: save.character, cards: save.cards, demon: save.demon });
-  }, [getGame, go, save.difficulty, save.character, save.cards, save.demon]);
+    g.startIntro({ difficulty: save.difficulty, character: save.character, cards: save.cards, demon: save.demon, won: save.won });
+  }, [getGame, go, save.difficulty, save.character, save.cards, save.demon, save.won]);
 
   /** Update 0.0.19 — the main menu's Lab: straight into the Lab. */
   const startLab = useCallback(() => {
@@ -269,6 +275,7 @@ export default function App() {
       onDeathScreen={onDeathScreen}
       onLobbyPick={gate.onPick}
       onDemonEarned={onDemonEarned}
+      onSeanEarned={onSeanEarned}
       onLobbyGate={gate.onGate}
       onReady={() => setReady(true)}
     >

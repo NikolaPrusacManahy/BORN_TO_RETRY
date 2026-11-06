@@ -8,6 +8,7 @@
 // Update 0.3.23 — every level made ready before it shows (levelLoad.ts): till then the world (the floor's name too)
 // waits and the App shows the loader (RunCallbacks.onLoading).
 // Update 0.3.70 — who you play as: the Playable Demon's arms and rules (`playAs`).
+// Update 0.3.80 — or Gravity Sean's arms, on Joseph's rules.
 import { groundOf } from '../sim/dungeon/ground';
 import * as THREE from 'three';
 import { FixedStep } from '../core/fixedStep';
@@ -119,7 +120,7 @@ export abstract class RunBase {
     character: CharacterId = 'adventurer',
   ) {
     this.demon = character === 'demon';
-    this.arms = new Viewmodel(true, this.demon);
+    this.arms = new Viewmodel(true, character);
     // Loading the same models again (each floor) comes from memory.
     THREE.Cache.enabled = true;
     this.scene.add(this.camera);
@@ -267,13 +268,15 @@ export abstract class RunBase {
   /** Update 0.0.19 — the Lab's panel asked for something (in front of where you look). */
   labCommand(cmd: LabCommand) {
     runLab(cmd, this.combat, this.player, this.look.yaw, this.treasure);
-    if (cmd.kind === 'demon') this.playAs(cmd.on);
+    if (cmd.kind === 'demon') this.playAs(cmd.on ? 'demon' : 'adventurer');
+    if (cmd.kind === 'sean') this.playAs('spacesuit');
   }
 
-  /** Update 0.3.70 — from now on you're the Demon (its arms, its rules) or not (a choice on the lobby's dais, the Lab). */
-  protected playAs(demon: boolean) {
-    this.demon = this.combat.demon = this.player.demon = demon;
-    this.arms.setDemon(demon);
+  /** Update 0.3.70 — from now on you're the Demon (its arms, its rules) or not (a choice on the lobby's dais, the Lab).
+   *  Update 0.3.80 — whoever you are: only the Demon has its own rules. */
+  protected playAs(who: CharacterId) {
+    this.demon = this.combat.demon = this.player.demon = who === 'demon';
+    this.arms.setCharacter(who);
   }
 
   /** Update 0.2.16 — the deal's card `i` is taken (the deal screen still shows it flying to your coins). */

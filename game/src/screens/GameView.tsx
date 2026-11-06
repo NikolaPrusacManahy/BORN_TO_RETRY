@@ -22,12 +22,12 @@ interface Props extends GameCallbacks {
   children?: ReactNode;
 }
 
-export const GameView = forwardRef<GameHandle, Props>(function GameView({ settings, showHud, onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onDeathScreen, onLobbyPick, onDemonEarned, onLobbyGate, onDeal, onInventory, onLoading, onReady, children }, ref) {
+export const GameView = forwardRef<GameHandle, Props>(function GameView({ settings, showHud, onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onDeathScreen, onLobbyPick, onDemonEarned, onSeanEarned, onLobbyGate, onDeal, onInventory, onLoading, onReady, children }, ref) {
   const host = useRef<HTMLDivElement>(null);
   const game = useRef<Game | null>(null);
   const hud = useMemo(() => createHudStore(), []);
-  const cbs = useRef({ onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onDeathScreen, onLobbyPick, onDemonEarned, onLobbyGate, onDeal, onInventory, onLoading, onReady, settings });
-  cbs.current = { onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onDeathScreen, onLobbyPick, onDemonEarned, onLobbyGate, onDeal, onInventory, onLoading, onReady, settings };
+  const cbs = useRef({ onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onDeathScreen, onLobbyPick, onDemonEarned, onSeanEarned, onLobbyGate, onDeal, onInventory, onLoading, onReady, settings });
+  cbs.current = { onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onDeathScreen, onLobbyPick, onDemonEarned, onSeanEarned, onLobbyGate, onDeal, onInventory, onLoading, onReady, settings };
 
   useEffect(() => {
     let disposed = false;
@@ -43,6 +43,7 @@ export const GameView = forwardRef<GameHandle, Props>(function GameView({ settin
         onDeathScreen: (info) => cbs.current.onDeathScreen(info),
         onLobbyPick: (d, c, f) => cbs.current.onLobbyPick(d, c, f),
         onDemonEarned: () => cbs.current.onDemonEarned?.(),
+        onSeanEarned: () => cbs.current.onSeanEarned?.(),
         onLobbyGate: () => cbs.current.onLobbyGate(),
         onDeal: (cards) => cbs.current.onDeal(cards),
         onInventory: () => cbs.current.onInventory(),

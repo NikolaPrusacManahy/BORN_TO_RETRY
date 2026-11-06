@@ -35,6 +35,7 @@ import { leftGrip } from './twoHand';
 import { SlamArms } from './slamArms';
 import { BlockArms } from './blockArms';
 import { movesOf } from './weaponMoves';
+import type { CharacterId } from '../../sim/characters';
 import { ArmsWardrobe } from './armsWardrobe';
 import { BladeTrail } from './bladeTrail';
 import { BladeGrow } from './bladeGrow';
@@ -50,7 +51,7 @@ import { SwordAnim, SwordMove } from './swordAnim';
 import { GUN_GRIP, GunArms } from './gunArms';
 import { emptySword } from './swordPoses';
 
-export { ARMS_URL, DEMON_ARMS_URL, DEMON_BLADE_URL } from './armsWardrobe';
+export { ARMS_URL, DEMON_ARMS_URL, DEMON_BLADE_URL, SEAN_ARMS_URL } from './armsWardrobe';
 /** How fast the charge draw-back follows the charge (per second). */
 const CHARGE_EASE = 14;
 /** Update 0.1.9 — how far a hand opens as it throws a dagger (0 … 1). */
@@ -124,7 +125,7 @@ export class Viewmodel {
   private grow: BladeGrow | null = null;
 
   /** `loadModel`: fetch the arms (tests attach a parsed model instead). `demon`: the Demon's (Update 0.3.70). */
-  constructor(loadModel = true, demon = false) {
+  constructor(loadModel = true, who: CharacterId = 'adventurer') {
     this.scene.add(new THREE.HemisphereLight(0xcfc6dd, 0x2a2026, 1.1));
     const key = new THREE.DirectionalLight(0xffe2c8, 1.6);
     key.position.set(-1, 2, 1.5);
@@ -138,12 +139,12 @@ export class Viewmodel {
       (rig) => this.attach(rig),
       (old) => this.setWeapon(this.weapon === old ? null : this.weapon),
     );
-    this.wardrobe.dress(demon);
+    this.wardrobe.dress(who);
   }
 
-  /** Update 0.3.70 — whose arms: the Demon's with its blade (`on`) or Joseph's. */
-  setDemon(on: boolean) {
-    if (on !== this.wardrobe.demon) this.wardrobe.dress(on);
+  /** Update 0.3.70 — whose arms: the Demon's with its blade, or Joseph's. Update 0.3.80 — or Gravity Sean's. */
+  setCharacter(who: CharacterId) {
+    if (who !== this.wardrobe.who) this.wardrobe.dress(who);
   }
 
   get isDemon() {

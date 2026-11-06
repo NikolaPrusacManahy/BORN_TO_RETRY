@@ -330,7 +330,7 @@ export class Run extends RunBase {
       if (e === 'pick') {
         this.cb.onLobbyPick(l.difficulty, l.character, l.cards);
         // (Update 0.3.70 — chosen on the dais, you look down at its hands at once.)
-        this.playAs(l.character === 'demon');
+        this.playAs(l.character);
       }
       else if (e === 'gate') this.cb.onLobbyGate();
     }

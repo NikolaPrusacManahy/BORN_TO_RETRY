@@ -49,12 +49,14 @@ export interface LobbyChoice {
   cards: boolean;
   /** Update 0.3.70 — you've beaten the final boss. */
   demon: boolean;
+  /** Update 0.3.80 — you've won a whole run. */
+  won: boolean;
 }
 
 export class Game extends GameBase {
   private readonly menus: MenuScenes;
   /** Update 0.2.9 — what you chose in the lobby last (the run's difficulty: GameBase.runDifficulty). */
-  private choice: LobbyChoice = { difficulty: 'real', character: 'adventurer', cards: true, demon: false };
+  private choice: LobbyChoice = { difficulty: 'real', character: 'adventurer', cards: true, demon: false, won: false };
   private readonly resizeObs: ResizeObserver;
   private raf = 0;
   private last = performance.now();
@@ -126,7 +128,7 @@ export class Game extends GameBase {
     this.inLab = false;
     this.mode = 'play';
     this.runCharacter = this.choice.character;
-    this.newRun(lobbyLevel(createLobby(this.choice.difficulty, this.choice.character, this.choice.cards, this.choice.demon)));
+    this.newRun(lobbyLevel(createLobby(this.choice.difficulty, this.choice.character, this.choice.cards, this.choice.demon, this.choice.won)));
     this.input.clear();
   }
 
@@ -153,7 +155,7 @@ export class Game extends GameBase {
   /** Into a new dungeon run as `character` (only playable ones) on `difficulty`, with Fate Cards or not (`cards`). Call
    *  once the screen is black. */
   startRun(character: CharacterId, difficulty: Difficulty, cards = true) {
-    if (!canPlay(character, this.choice.demon)) return;
+    if (!canPlay(character, this.choice.demon, this.choice.won)) return;
     this.runCharacter = character;
     this.runDifficulty = difficulty;
     this.runCards = cards;

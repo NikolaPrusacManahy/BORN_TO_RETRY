@@ -4,7 +4,7 @@
 // charged punch, each weapon ready). Meshes are written out in each shot's own camera for Blender
 // (tools/blender/render_view.py; render pov.json the same way).
 // Update 0.1.9 — the Dual Daggers: a dagger in each fist, both grips up close.
-//   npx tsx tools/hand-shots.ts <out folder>
+//   npx tsx tools/hand-shots.ts <out folder>   (ARMS=spacesuit: another character's arms)
 //   VARIANTS="name:x,y,z,x,y,z;…" npx tsx tools/hand-shots.ts <out folder>   (the fist's thumb tried each way: front and
 //   palm views of each, to pick one)
 //   blender --background --python tools/blender/render_view.py -- --json <out folder>/shots.json --out <out folder>
@@ -62,7 +62,7 @@ function grab(scene: THREE.Object3D, cam: THREE.Camera): Mesh[] {
 
 /** The arms in the guard (holding `kind` if given), settled. */
 async function arms(kind?: WeaponKind) {
-  const a = await load('../public/models/arms/adventurer.glb');
+  const a = await load(`../public/models/arms/${process.env.ARMS ?? 'adventurer'}.glb`);
   const vm = new Viewmodel(false);
   const rig = ArmsRig.fromScene(a.scene);
   vm.attach(rig);

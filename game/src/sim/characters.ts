@@ -7,8 +7,11 @@
 // Update 0.3.70 — the Playable Demon (enemy_bibles/Born to Retry — Playable Demon.docx; the designer: "players when beating
 // the final boss, no matter the difficulty, they will unlock the boss as a playable character"): earned, not given. Its
 // figure's in its own file (tools/blender/export_demon_figure.py).
+// Update 0.3.80 — Gravity Sean, the space suit (the designer: "remove King and William Rich from the lobby, we replace them
+// with Gravity Sean"; "a character that unlocked after winning a entire run, no matter what difficulty"; "we will design his
+// abilities in game soon"; "just crop his arms and set them up for FPS pov"): Joseph's rules and hands till then.
 
-export type CharacterId = 'adventurer' | 'king' | 'suit' | 'swat' | 'demon';
+export type CharacterId = 'adventurer' | 'spacesuit' | 'swat' | 'demon';
 
 export interface Character {
   id: CharacterId;
@@ -19,18 +22,20 @@ export interface Character {
   available: boolean;
   /** Update 0.3.70 — can be played once you've beaten the final boss. */
   earned?: boolean;
+  /** Update 0.3.80 — can be played once you've won a whole run. */
+  byWin?: boolean;
 }
 
 export const ROSTER: readonly Character[] = [
   { id: 'adventurer', name: 'Joseph', kit: 'Fists only. Picks up used weapons.', available: true },
-  { id: 'king', name: 'Fallen King', kit: '', available: false },
-  { id: 'suit', name: 'William Rich', kit: '', available: false },
+  { id: 'spacesuit', name: 'Gravity Sean', kit: 'Fists only. Picks up used weapons.', available: false, byWin: true },
   { id: 'swat', name: 'Alpha Team', kit: '', available: false },
   { id: 'demon', name: 'The Demon', kit: 'The sword always in hand.', available: false, earned: true },
 ];
 
-/** Update 0.3.70 — can they be played? `beaten`: you've beaten the final boss (saved: SaveData.demon). */
-export const isPlayable = (c: Character, beaten: boolean) => c.available || (!!c.earned && beaten);
+/** Update 0.3.70 — can they be played? `beaten`: you've beaten the final boss (saved: SaveData.demon). Update 0.3.80 —
+ *  `won`: you've won a whole run (saved: SaveData.won). */
+export const isPlayable = (c: Character, beaten: boolean, won = false) => c.available || (!!c.earned && beaten) || (!!c.byWin && won);
 
 /** Update 0.3.70 — the character `id` can be played. */
-export const canPlay = (id: unknown, beaten: boolean) => ROSTER.some((c) => c.id === id && isPlayable(c, beaten));
+export const canPlay = (id: unknown, beaten: boolean, won = false) => ROSTER.some((c) => c.id === id && isPlayable(c, beaten, won));

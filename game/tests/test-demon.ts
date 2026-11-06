@@ -277,8 +277,8 @@ section('The Demon — and back to Joseph');
   const { vm, rig, blade } = await demonArms();
   const before = rig.root.parent;
   check('the Demon’s arms are on', !!before && vm.isDemon);
-  vm.setDemon(false);
+  vm.setCharacter('adventurer');
   check('its blade is put away', vm.heldWeapon === null && !vm.armed && blade.parent === null);
-  vm.setDemon(true);
+  vm.setCharacter('demon');
   check('and it’s there again without fetching a thing', vm.heldWeapon === blade && vm.isDemon && vm.loaded);
 }

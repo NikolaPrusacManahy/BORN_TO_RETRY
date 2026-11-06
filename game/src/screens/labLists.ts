@@ -173,8 +173,8 @@ export const LAB_ITEMS: readonly [string, Pick[]][] = [
   ['Rings', [item('redRing', 'Red ring'), item('tealRing', 'Teal ring'), item('greenRing', 'Green ring'), item('blueRing', 'Blue ring')]],
   ['Keys', [item('key', 'Key'), item('whiteKey', 'White key'), item('goldKey', 'Gold key'), ['Chest', { kind: 'chest' }]]],
   ['Bonuses', [item('snowflake', 'Snowflake'), item('goldIngots', 'Gold ingots'), item('bluePotion', 'Blue potion')]],
-  // (Update 0.3.70 — and playing it unlocks it in the lobby.)
-  ['Play as', [['The Demon', { kind: 'demon', on: true }], ['Joseph', { kind: 'demon', on: false }]]],
+  // (Update 0.3.70 — and playing it unlocks it in the lobby. Update 0.3.80 — Gravity Sean too.)
+  ['Play as', [['The Demon', { kind: 'demon', on: true }], ['Gravity Sean', { kind: 'sean' }], ['Joseph', { kind: 'demon', on: false }]]],
   [
     'Weapons',
     [

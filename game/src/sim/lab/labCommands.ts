@@ -32,7 +32,9 @@ export type LabCommand =
   | { kind: 'clear' }
   | { kind: 'heal' }
   | { kind: 'meter'; on: boolean }
-  | { kind: 'demon'; on: boolean };
+  | { kind: 'demon'; on: boolean }
+  // (Update 0.3.80 — Gravity Sean's arms, on Joseph's rules.)
+  | { kind: 'sean' };
 
 /** How far in front of you (m) things appear: an enemy by its size (a boss further), items, a weapon, a chest. */
 const AHEAD = { small: 7, large: 10, air: 8, boss: 16, item: 2.5, weapon: 2.5, chest: 3 };
@@ -110,6 +112,9 @@ export function runLab(cmd: LabCommand, state: CombatState, player: PlayerState,
         state.bag.fill(null);
         state.slot = 0;
       }
+      return 0;
+    case 'sean':
+      state.demon = false;
       return 0;
   }
 }
