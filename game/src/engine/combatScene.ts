@@ -46,6 +46,7 @@ import { WarbandFx } from './norse/warbandFx';
 import { RocFx } from './norse/rocFx';
 import { SharkFx } from './boss/sharkFx';
 import { WardenFx } from './hell/wardenFx';
+import { DemonFireView } from './demon/demonFireView';
 import { EchoesView } from './hell/echoesView';
 import { TideFx } from './moon/tideFx';
 import { ShrineFx } from './shrine/shrineFx';
@@ -102,6 +103,9 @@ export class CombatScene {
   private readonly roc: RocFx;
   private readonly sharkFx: SharkFx;
   private readonly wardenFx: WardenFx;
+  /** Update 0.3.72 — the Demon's fire: made when you are the Demon. */
+  private demonFire: DemonFireView | null = null;
+  private readonly world: THREE.Scene;
   private readonly echoes: EchoesView;
   private readonly tide: TideFx;
   private readonly shrine: ShrineFx;
@@ -119,6 +123,7 @@ export class CombatScene {
 
   /** Update 0.3.24 — `kinds`: the enemies whose models the level needs (enemiesView.ts). */
   constructor(scene: THREE.Scene, state: CombatState, audio: AudioEngine, rig: CameraRig, arms: Viewmodel, kinds: readonly EnemyKind[] = ENEMY_KINDS) {
+    this.world = scene;
     this.targets = new TargetsView(scene, state);
     this.enemies = new EnemiesView(scene, true, kinds);
     this.exec = new ExecScene(scene);
@@ -178,6 +183,8 @@ export class CombatScene {
     this.blows.apply(state);
     this.execFx.apply(state);
     this.bossFx.update(state, gameDt);
+    if (state.demon && !this.demonFire) this.demonFire = new DemonFireView(this.world);
+    this.demonFire?.update(state, gameDt);
     this.gun.update(state, gameDt);
     state.events.clear();
     this.targets.update(state, playerChest, gameDt);
@@ -280,6 +287,7 @@ export class CombatScene {
     this.raptor.dispose();
     this.sharkFx.dispose();
     this.wardenFx.dispose();
+    this.demonFire?.dispose();
     this.echoes.dispose();
     this.hives.dispose();
     this.blood.dispose();

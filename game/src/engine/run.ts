@@ -153,7 +153,8 @@ export class Run extends RunBase {
         solid.dirty = false;
         this.level.physics.setBody(solid.boxes);
       } else if (!solid && this.level.physics.hasBody) this.level.physics.setBody([]);
-      pushPlayerOut(p, this.combat.enemies, this.level.physics, BODY.radius, this.shove);
+      // (Update 0.3.72 — the Demon's Hellfire Lunge goes through them.)
+      if (!(this.combat.demon && p.dashTime > 0)) pushPlayerOut(p, this.combat.enemies, this.level.physics, BODY.radius, this.shove);
       input.clearPressed();
       const dy = p.pos.y - this.prev.y;
       if (wasGrounded && p.grounded && Math.abs(dy) > STEP_MIN) this.rig.step(dy);
@@ -208,7 +209,9 @@ export class Run extends RunBase {
     const frozen = this.combat.hitStop.tick(real) || this.hold || this.told || this.chestShot.locked || capture.frozen;
     if (this.chestShot.locked) riseChests(this.treasure, real * LAB.v.timeScale);
     if (locked && !p.dead) this.played += real;
-    const scale = LAB.v.timeScale * this.death.timeScale * this.show.timeScale * this.combatScene.timeScale * capture.timeScale;
+    // (Update 0.3.72 — the Demon's counter-slash: the world slows for it.)
+    this.combat.slowMo = Math.max(0, this.combat.slowMo - real);
+    const scale = LAB.v.timeScale * this.death.timeScale * this.show.timeScale * this.combatScene.timeScale * capture.timeScale * (this.combat.slowMo > 0 ? DEMON.v.counterScale : 1);
     const gameDt = frozen ? 0 : real * scale;
     const steps = frozen ? 0 : this.tick(gameDt, input);
     // (Update 0.2.16 — a chest dealt Fate Cards: the world holds still, the page's deal screen shows them.)
@@ -287,7 +290,10 @@ export class Run extends RunBase {
     const f = this.combat.fists;
     const choosing = this.treasure.choosing >= 0 ? this.combat.items.keyPick : null;
     this.arms.palm.update(choosing, this.keyLook, real);
-    this.arms.update(gameDt, real, mouseDx, mouseDy, p, f.charging ? f.charge / FISTS.v.chargeTime : -1);
+    // (Update 0.3.72 — the Demon's: its Ember Wave's charge, its block.)
+    const b = this.combat.blade;
+    this.arms.setBlock(b.guard);
+    this.arms.update(gameDt, real, mouseDx, mouseDy, p, b.charging ? b.charge / DEMON.v.chargeTime : f.charging ? f.charge / FISTS.v.chargeTime : -1);
 
     renderer.render(this.scene, this.camera);
     if (!shot.cinematic && !chestShot && !away && capture.armsShown) this.arms.render(renderer, aspect);
@@ -295,7 +301,8 @@ export class Run extends RunBase {
     fillDebug(debug, p, this.combat);
     this.hudFeed.keysOf(input.bindings);
     // (Update 0.3.20 — a ground pound ready.)
-    this.hudFeed.slamReady = !p.dead && canSlam(p, this.level.physics);
+    // (Update 0.3.72 — the Demon's sword: Ctrl on the ground too.)
+    this.hudFeed.slamReady = !p.dead && (canSlam(p, this.level.physics) || (this.combat.demon && p.grounded && b.brandWait <= 0));
     // (Update 0.3.19 — the floor's fight music, while a fight is on: audio/music.ts.)
     setFloorMusic(d && combatMusicOn(d, p.dead) ? floorTrack(d) : null);
     // (Update 0.3.49 — a boss's ultimate cuts it.)

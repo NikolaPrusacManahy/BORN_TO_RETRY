@@ -61,6 +61,8 @@ export interface CombatIntent {
   switchKeyPressed: boolean;
   /** Update 0.2.8 — the dash key, pinned by the Velociraptor (pin.ts: a dash in a bite's glow twists you out of it). */
   dodgePressed: boolean;
+  /** Update 0.3.72 — the slam's key (the Playable Demon's Brand of Ruin, on the ground). */
+  slamPressed: boolean;
   yaw: number;
   pitch: number;
 }
@@ -83,7 +85,7 @@ export function createFists(): FistState {
 }
 
 export function emptyCombatIntent(): CombatIntent {
-  return { attackHeld: false, attackPressed: false, heavyHeld: false, throwPressed: false, reloadPressed: false, interactPressed: false, slotPressed: -1, switchKeyPressed: false, dodgePressed: false, yaw: 0, pitch: 0 };
+  return { attackHeld: false, attackPressed: false, heavyHeld: false, throwPressed: false, reloadPressed: false, interactPressed: false, slotPressed: -1, switchKeyPressed: false, dodgePressed: false, slamPressed: false, yaw: 0, pitch: 0 };
 }
 
 export function emptyPunch(): Punch {

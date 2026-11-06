@@ -29,6 +29,7 @@ import { playFish } from './fishSounds';
 import { playCove } from './coveSounds';
 import { playShark } from './sharkSounds';
 import { playWarden } from './wardenSounds';
+import { playDemon } from './demonSounds';
 import { playMoon } from './moonSounds';
 import { playShrine } from './shrineSounds';
 import { playNorse } from './norseSounds';
@@ -66,6 +67,8 @@ export class CombatSounds {
     if (kind === 'slash') this.swung = WEAPON_KINDS[value] ?? '';
     // (Update 0.3.1 — a thump under every blow that lands; a punch's or a kill's own sound turned off in the Lab: none.)
     impactLayer(a, kind, value);
+    // (Update 0.3.72 — the Playable Demon's fire.)
+    if (playDemon(a, kind, value, far)) return;
     const layer = layerOf(kind);
     if (layer && OFF.has(layer)) return;
     if (playClip(a, kind, value, far, this.swung)) return;

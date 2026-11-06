@@ -22,6 +22,7 @@ import type { WeaponKind } from '../src/sim/weapons/catalog';
 import { createPlayer } from '../src/sim/player/state';
 import { ARMS } from '../src/tuning/arms';
 import { DEMON } from '../src/tuning/demon';
+import { bladeFollow, bladeWindup } from '../src/sim/combat/bladeSwing';
 import { WEAPONS } from '../src/tuning/weapons';
 
 const ASPECT = 16 / 9;
@@ -128,6 +129,24 @@ if (demon) {
       });
     }
   }
+  // (Update 0.3.72 — the rest of phase 2: the charge, Ember Wave's swing, the block, the counter from it, the thrust, the dive.)
+  const swing = (step: number, at: number) => (vm: Viewmodel, p: P) => {
+    vm.arc(step);
+    play(vm, p, [bladeWindup(step) * 0.5, bladeWindup(step), bladeWindup(step) + bladeFollow(step) * 0.5][at]);
+  };
+  MOMENTS.push({ name: 'charging', run: (vm, p) => play(vm, p, 0.8, 1) });
+  for (const [name, step] of [['ember', 3], ['counter', 4]] as const) {
+    MOMENTS.push({ name: `${name}_0`, run: swing(step, 0) }, { name: `${name}_1`, run: swing(step, 1) }, { name: `${name}_2`, run: swing(step, 2) });
+  }
+  MOMENTS.push({
+    name: 'block',
+    run: (vm, p) => {
+      vm.setBlock(true);
+      play(vm, p, 0.3);
+    },
+  });
+  MOMENTS.push({ name: 'thrust', run: (vm, p) => (vm.thrust(), play(vm, p, 0.08)) });
+  MOMENTS.push({ name: 'plant', run: (vm, p) => (vm.plant(), play(vm, p, 0.15)) });
   const bare = (vm: Viewmodel, p: P) => (vm.setWeapon(null), play(vm, p, 1.2));
   MOMENTS.push({ name: 'fists', run: bare }, { name: 'punch_r', run: (vm, p) => (bare(vm, p), vm.punch('R', 'jab'), play(vm, p, 0.05)) }, { name: 'punch_l', run: (vm, p) => (bare(vm, p), vm.punch('L', 'jab'), play(vm, p, 0.05)) });
 }

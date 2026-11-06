@@ -48,7 +48,10 @@ import { updateAxeCharge } from '../weapons/axeThrow';
 import { axeOut, callBack } from '../weapons/recall';
 import { startWave, updateSmashWaves } from '../weapons/smashWaves';
 import { throwWeapon, tryPickup, updateStands } from '../weapons/weapons';
-import { landBlade, updateBlade } from './bladeSwing';
+import { landBlade, startCounter, updateBlade } from './bladeSwing';
+import { stepDemonFire } from './demonFire';
+import { landPlunge, stepLunge, tickDemon, tryBrand } from './demonMoves';
+import { DEMON } from '../../tuning/demon';
 import { WEAPONS } from '../../tuning/weapons';
 import { updateDummy } from './dummy';
 import { CombatIntent, emptyCombatIntent, emptyPunch, updateFists } from './fists';
@@ -216,10 +219,14 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   }
   // (Update 0.3.71 — the Demon's left click is its blade's, not the fists': Blazing Arc, below.)
   const demon = state.demon && w === null;
-  const demonAttack = fistIntent.attackPressed || fistIntent.attackHeld;
+  const swingPressed = fistIntent.attackPressed;
+  const swingHeld = fistIntent.attackHeld;
   if (demon) {
     fistIntent = Object.assign(NO_SWING, fistIntent);
     NO_SWING.attackPressed = NO_SWING.attackHeld = false;
+    tickDemon(state, dt);
+    stepLunge(state, player);
+    tryBrand(state, player, intent.slamPressed && !clasped);
   }
   // (Update 0.3.5 — barehanded, right click is the parry: Hair Trigger's longer window, Giant Killer's no wait.)
   const times = parryTimes(state);
@@ -236,13 +243,24 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
       // (Update 0.3.58 — a Drowned King's head: its short wait, or you could parry only one in a volley.)
       state.fists.parryCooldown = state.fists.quick ? Math.min(times.cooldown, DROWNED.v.headWait) : times.cooldown;
       state.fists.quick = false;
+      // (Update 0.3.72 — the Demon's Verdict Parry answers.)
+      if (demon) {
+        state.fists.parryCooldown = Math.min(state.fists.parryCooldown, DEMON.v.parryWait);
+        startCounter(state);
+      }
     }
   }
   // (Update 0.3.71 — a swing lands when its blade gets there.)
-  if (demon && updateBlade(state.blade, demonAttack, clasped || state.fists.parryWindow > 0, events, dt, rate)) {
-    aim(player, intent.yaw, intent.pitch, eye, dir);
-    landBlade(state, state.blade.step, eye, dir, world, fistFactor(state));
-  }
+  if (demon) {
+    // (Update 0.3.72 — right click held: the block, for as long as you hold it and nothing's swinging; nor with the sword in the floor.)
+    const b = state.blade;
+    b.guard = intent.heavyHeld && !clasped && b.plant <= 0 && b.step < 0;
+    player.guard = b.guard ? DEMON.v.guardShare : 0;
+    if (updateBlade(b, swingPressed, swingHeld, clasped || b.plant > 0 || b.guard || player.dashTime > 0 || state.fists.parryWindow > 0, events, dt, rate)) {
+      aim(player, intent.yaw, intent.pitch, eye, dir);
+      landBlade(state, b.step, eye, dir, world, fistFactor(state));
+    }
+  } else if (player.guard > 0) player.guard = 0;
   // (Update 0.2.16 — All In, a Fate Card: your fists hit twice as hard.)
   if (swung) punch.damage *= fistFactor(state);
   if (axe && w) {
@@ -285,10 +303,13 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   // (Update 0.3.3 — shots you punched back.)
   stepParried(state, world, dt);
   if (player.slamImpact > 0) {
+    // (Update 0.3.72 — the Demon's dive: Brand of Ruin, from however far it fell.)
+    if (state.demon && state.weapon === null) landPlunge(state, player, player.slamImpact);
     // (Update 0.2.15 — Pogo: a slam that kills bounces you back up. Update 0.2.22 — its blast: Tremor's.)
-    if (tremors(state)) pogo(state, player, slamImpact(state, player.pos, player.slamImpact));
+    else if (tremors(state)) pogo(state, player, slamImpact(state, player.pos, player.slamImpact));
     player.slamImpact = 0;
   }
+  stepDemonFire(state, world, dt);
   // (Update 0.2.10 — an Urchin's thorns: your blows on it with its spikes out hurt you.)
   if (state.thorns > 0) {
     damagePlayer(player, state.thorns, 'urchin');
@@ -302,6 +323,11 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   if (state.fists.parried) {
     state.fists.parried = false;
     state.fists.parryCooldown = times.cooldown;
+    // (Update 0.3.72 — the Demon's Verdict Parry answers.)
+    if (demon) {
+      state.fists.parryCooldown = Math.min(times.cooldown, DEMON.v.parryWait);
+      startCounter(state);
+    }
   }
   // (Update 0.3.7 — bodies thrown into walls.)
   wallSplats(state);

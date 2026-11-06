@@ -96,6 +96,7 @@ export function dropKi(ki: KiCharge) {
 export function cancelCharges(state: CombatState) {
   state.fists.charging = false;
   state.fists.chargeReady = false;
+  state.blade.charging = state.blade.full = false;
   if (state.ki.charging && state.weapon) state.weapon.uses += state.ki.paid;
   dropKi(state.ki);
 }

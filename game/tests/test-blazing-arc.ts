@@ -10,7 +10,7 @@ import { DT, FlatWorld, ticks } from './fakes/flatWorld';
 import { parseUntextured } from './fakes/glb';
 import { playClip } from '../src/audio/clipRoutes';
 import type { AudioEngine } from '../src/audio/audio';
-import { bladeWindup, landBlade, OVERHEAD } from '../src/sim/combat/bladeSwing';
+import { bladeBack, bladeFollow, bladeStrike, bladeWindup, landBlade, OVERHEAD } from '../src/sim/combat/bladeSwing';
 import { emptyCombatIntent } from '../src/sim/combat/fists';
 import { CombatState, createCombat } from '../src/sim/combat/state';
 import { stepCombat } from '../src/sim/combat/step';
@@ -71,10 +71,19 @@ section('Blazing Arc — a hit lands when the blade gets there');
 
 section('Blazing Arc — the combo: slash, backslash, overhead');
 {
+  // (Update 0.3.72 — a deliberate change: held no longer repeats it. The bible gives Hold to Ember Wave: test-demon-moves.ts.)
   const r = room([{ x: 0, z: -3 }]);
-  const held = bladeWindup(0) + d.slashNext + bladeWindup(0) + d.slashNext + bladeWindup(OVERHEAD) + d.overheadNext + 0.02;
-  r.step({ attackHeld: true }, held);
-  check('held: the three in order, and round again', r.steps.join() === '0,1,2,0', r.steps.join());
+  for (let i = 0; i < 4; i++) {
+    r.step({ attackPressed: true });
+    r.step({}, bladeWindup(i % 3) + (i % 3 === OVERHEAD ? d.overheadNext : d.slashNext) + 0.02);
+  }
+  check('click after click: the three in order, and round again', r.steps.join() === '0,1,2,0', r.steps.join());
+  const q = room([]);
+  q.step({ attackPressed: true });
+  q.step({}, bladeWindup(0) * 0.9);
+  q.step({ attackPressed: true });
+  q.step({}, bladeWindup(0) + d.slashNext);
+  check('a click late in a swing is kept for the next', q.steps.join() === '0,1', q.steps.join());
   const big = room([{ x: 0, z: -3 }]);
   const was = big.c.dummies[0].hp;
   landBlade(big.c, OVERHEAD, new THREE.Vector3(0, 1.6, 0), new THREE.Vector3(0, 0, -1), world);
@@ -167,16 +176,17 @@ function wrist(rig: ArmsRig): number {
   const knuckle = r.knuckle.getWorldPosition(new THREE.Vector3());
   return (at.clone().sub(elbow).angleTo(knuckle.sub(at)) * 180) / Math.PI;
 }
-const strikeOf = (s: number) => (s === OVERHEAD ? d.overheadStrike : d.slashStrike);
-const followOf = (s: number) => (s === OVERHEAD ? d.overheadFollow : d.slashFollow);
-const backOf = (s: number) => (s === OVERHEAD ? d.overheadBack : d.slashBack);
+const strikeOf = bladeStrike;
+const followOf = bladeFollow;
+const backOf = bladeBack;
 
 section('Blazing Arc — each swing has a body (frame by frame, the real arms)');
 {
-  check('three swings', DEMON_ARCS.length === 3 && DEMON_ARCS.every((a, i) => a.step === i));
+  // (Update 0.3.72 — and Ember Wave's swing and the counter's.)
+  check('five swings, in order', DEMON_ARCS.length === 5 && DEMON_ARCS.every((a, i) => a.step === i));
   check('each cocked, through its contact, to its end', DEMON_ARCS.every((a) => a.keys.length >= 4 && a.hit > 0.3 && a.hit < 0.8));
   for (const arc of DEMON_ARCS) {
-    const name = ['The slash', 'The backslash', 'The overhead'][arc.step];
+    const name = ['The slash', 'The backslash', 'The overhead', 'Ember Wave', 'The counter'][arc.step];
     const { vm, rig, blade, play } = await arms();
     vm.arc(arc.step);
     const windup = bladeWindup(arc.step);

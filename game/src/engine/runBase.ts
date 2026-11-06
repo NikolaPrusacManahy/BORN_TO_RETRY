@@ -126,6 +126,7 @@ export abstract class RunBase {
     this.sounds = new MoveSounds(audio);
     const s = level.arena.playerStart;
     this.player = createPlayer(s.x, s.y, s.z, s.yaw);
+    this.player.demon = this.demon;
     this.hudFeed = new HudFeed(hud);
     this.prompts = new PromptView(renderer.domElement.parentElement);
     this.load(level, false);
@@ -271,7 +272,7 @@ export abstract class RunBase {
 
   /** Update 0.3.70 — from now on you're the Demon (its arms, its rules) or not (a choice on the lobby's dais, the Lab). */
   protected playAs(demon: boolean) {
-    this.demon = this.combat.demon = demon;
+    this.demon = this.combat.demon = this.player.demon = demon;
     this.arms.setDemon(demon);
   }
 

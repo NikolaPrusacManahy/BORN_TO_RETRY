@@ -25,6 +25,15 @@ export type CombatEvent =
   | 'pierce'
   // Update 0.3.71 — the Demon's blade starts a swing (for the arms and its sounds; value: which of the three).
   | 'bladeSwing'
+  // Update 0.3.72 — its fire: its overhead's wall, Ember Wave leaving and meeting a wall, Hellfire Lunge's start and end, Brand of Ruin
+  // going in (value 1: a dive's) and each step of its pillars.
+  | 'demonWall'
+  | 'emberWave'
+  | 'emberPop'
+  | 'demonLunge'
+  | 'demonLungeEnd'
+  | 'demonBrand'
+  | 'demonErupt'
   // What a punch or swing did; x, y, z = where.
   | 'whiff'
   | 'hitJab'

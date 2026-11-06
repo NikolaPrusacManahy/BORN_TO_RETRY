@@ -5,6 +5,7 @@
 import type { Vector3 } from 'three';
 import { CARDS } from '../../tuning/cards';
 import { DASH } from '../../tuning/movement';
+import { DEMON } from '../../tuning/demon';
 import { bears } from '../cards/cards';
 import { lit } from '../cards/builds';
 import { BUILDS } from '../../tuning/builds';
@@ -28,8 +29,10 @@ export function tryStartDash(p: PlayerState, pressed: boolean, wish: Vector3): b
   const free = p.freeDash > 0;
   if (!pressed || (p.dashCharges < 1 && !free) || p.dashTime > 0 || p.dashLock > 0) return false;
   if (!free) p.dashCharges -= 1;
-  p.dashTime = DASH.v.duration;
-  p.invuln = Math.max(p.invuln, DASH.v.duration);
+  // (Update 0.3.72 — the Playable Demon's Hellfire Lunge: as many charges, far further: combat/demonMoves.ts hits what it passes.)
+  const time = p.demon ? DEMON.v.lungeTime : DASH.v.duration;
+  p.dashTime = time;
+  p.invuln = Math.max(p.invuln, time);
   if (wish.x !== 0 || wish.z !== 0) p.dashDir.set(wish.x, 0, wish.z);
   else p.dashDir.set(-Math.sin(p.yaw), 0, -Math.cos(p.yaw));
   p.slamming = false;
@@ -39,8 +42,9 @@ export function tryStartDash(p: PlayerState, pressed: boolean, wish: Vector3): b
 }
 
 export function updateDash(p: PlayerState, dt: number) {
-  p.vel.x = p.dashDir.x * DASH.v.speed;
-  p.vel.z = p.dashDir.z * DASH.v.speed;
+  const speed = p.demon ? DEMON.v.lungeSpeed : DASH.v.speed;
+  p.vel.x = p.dashDir.x * speed;
+  p.vel.z = p.dashDir.z * speed;
   if (DASH.v.gravity > 0) applyGravity(p.vel, dt, DASH.v.gravity * p.gravity);
   else p.vel.y = 0;
   p.dashTime -= dt;

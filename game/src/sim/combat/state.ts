@@ -38,6 +38,7 @@ import { AIR, buildNavGrid, NavGrid } from '../../world/navGrid';
 import { Waves, createWaves } from '../enemies/waves';
 import { FistState, createFists } from './fists';
 import { BladeSwing, createBladeSwing } from './bladeSwing';
+import { createDemonFire, DemonFire } from './demonFire';
 import { HitStop } from './hitStop';
 import { Dummy, Orb, Turret, createDummy, createOrbs, createTurret } from './targets';
 import { Hive, resetHives } from '../dungeon/hives';
@@ -51,8 +52,11 @@ export type { CombatEvent } from './events';
 
 export interface CombatState {
   fists: FistState;
-  /** Update 0.3.71 — the Demon's Blazing Arc. */
+  /** Update 0.3.71 — the Demon's Blazing Arc. Update 0.3.72 — and its moves' fire; the real seconds the world's still slowed for (its
+   *  counter-slash: the Run slows it). */
   blade: BladeSwing;
+  demonFire: DemonFire;
+  slowMo: number;
   dummies: Dummy[];
   turrets: Turret[];
   orbs: Orb[];
@@ -182,6 +186,8 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
   const state: CombatState = {
     fists: createFists(),
     blade: createBladeSwing(),
+    demonFire: createDemonFire(),
+    slowMo: 0,
     dummies: arena.dummies.map(createDummy),
     turrets: arena.turrets.map(createTurret),
     orbs: createOrbs(),
@@ -259,6 +265,8 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
 export function resetCombat(state: CombatState, arena: Arena) {
   state.fists = createFists();
   state.blade = createBladeSwing();
+  state.demonFire = createDemonFire();
+  state.slowMo = 0;
   state.dummies = arena.dummies.map(createDummy);
   state.turrets = arena.turrets.map(createTurret);
   for (const o of state.orbs) o.alive = false;

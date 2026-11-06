@@ -5,13 +5,12 @@
 // and it heaves back to ready, a little past and settling. The shoulders and the view turn with it (`lean`), and the blade
 // burns brighter through the strike (`flare`).
 import { Vector3 } from 'three';
-import { bladeWindup, OVERHEAD } from '../../sim/combat/bladeSwing';
-import { DEMON } from '../../tuning/demon';
+import { bladeBack, bladeFollow, bladeStrike, bladeWindup } from '../../sim/combat/bladeSwing';
 import type { SwordPose } from './armsRig';
 import { emptySword, mixSword, slashPose } from './swordPoses';
 
 export interface BladeArc {
-  /** Which hit (0 slash, 1 backslash, 2 overhead). */
+  /** Which (0 slash, 1 backslash, 2 overhead, 3 Ember Wave, 4 the counter). */
   step: number;
   /** Cocked first, on through its contact, to where its weight carries it. */
   keys: readonly SwordPose[];
@@ -24,11 +23,6 @@ export interface BladeArc {
 
 export type ArcPhase = 'wind' | 'strike' | 'follow' | 'back' | 'done';
 
-const big = (a: BladeArc) => a.step === OVERHEAD;
-const strikeOf = (a: BladeArc) => (big(a) ? DEMON.v.overheadStrike : DEMON.v.slashStrike);
-const followOf = (a: BladeArc) => (big(a) ? DEMON.v.overheadFollow : DEMON.v.slashFollow);
-const backOf = (a: BladeArc) => (big(a) ? DEMON.v.overheadBack : DEMON.v.slashBack);
-
 const smooth = (x: number) => x * x * (3 - 2 * x);
 /** Back to ready: a heave, a little past, and settling. */
 const settle = (x: number) => (x < 0.7 ? 1.05 * smooth(x / 0.7) : 1.05 - 0.05 * smooth((x - 0.7) / 0.3));
@@ -39,9 +33,9 @@ const end = emptySword();
  *  Returns its phase, and how hot the blade burns (`glow.k`, 0 … 1). */
 export function arcAt(a: BladeArc, t: number, from: SwordPose, ready: SwordPose, out: SwordPose, lean: Vector3, leanFrom: Vector3, glow: { k: number }): ArcPhase {
   const windup = bladeWindup(a.step);
-  const strike = Math.min(strikeOf(a), windup * 0.9);
+  const strike = Math.min(bladeStrike(a.step), windup * 0.9);
   const cock = windup - strike;
-  const follow = followOf(a);
+  const follow = bladeFollow(a.step);
   glow.k = 0;
   if (t < cock) {
     const x = smooth(t / cock);
@@ -65,7 +59,7 @@ export function arcAt(a: BladeArc, t: number, from: SwordPose, ready: SwordPose,
     glow.k = 1 - y;
     return 'follow';
   }
-  const r = (t - windup - follow) / backOf(a);
+  const r = (t - windup - follow) / bladeBack(a.step);
   if (r >= 1) {
     lean.set(0, 0, 0);
     return 'done';

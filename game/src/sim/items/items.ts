@@ -17,6 +17,7 @@ import type { CombatState } from '../combat/state';
 import { addShield, healPlayer, maxHpOf, maxShield } from '../player/health';
 import type { PlayerState } from '../player/state';
 import { HASTE, WEAPON_KINDS } from '../weapons/catalog';
+import { DEMON } from '../../tuning/demon';
 import { giveWeapon } from '../weapons/slots';
 import { holding } from '../weapons/weapons';
 import { hasteFactor } from './bonuses';
@@ -139,8 +140,12 @@ export const hpBonusOf = (inv: Inventory) => ITEMS.v.redRingHp * inv.redRings + 
 export const moveFactor = (state: CombatState) => {
   const v = CARDS.v;
   const cards = (state.rush > 0 ? 1 + v.bloodrush : 1) * (holds(state, 'leadenFeet') ? 1 - v.leaden : 1) * (holds(state, 'ironSkin') ? 1 - v.ironSlow : 1);
-  return speedFactor(state.items) * hasteFactor(state.bonuses) * (1 + (state.weapon ? HASTE[state.weapon.kind]() : 0)) * cards;
+  // (Update 0.3.72 — and the Demon's sword, in the floor or held up to block.)
+  return speedFactor(state.items) * hasteFactor(state.bonuses) * (1 + (state.weapon ? HASTE[state.weapon.kind]() : 0)) * cards * (state.demon ? bladeSlow(state) : 1);
 };
+
+/** Update 0.3.72 — how fast the Demon can move, its sword in the floor or held up to block. */
+const bladeSlow = (state: CombatState) => (state.blade.plant > 0 ? DEMON.v.plantSlow : state.blade.guard ? DEMON.v.guardSlow : 1);
 
 /** Would taking it do anything? A heart at full health or armour with a full shield wouldn't. */
 export function useful(kind: ItemKind, p: PlayerState): boolean {

@@ -100,6 +100,28 @@ export class CombatFeedback {
         case 'bladeSwing':
           this.f.arms.arc(e.value);
           break;
+        // Update 0.3.72 — the Demon's other moves.
+        case 'demonLunge':
+          this.f.arms.thrust();
+          this.f.rig.shake.add(0.14);
+          // (The view flung wide at once, easing back: gone before you've seen it.)
+          this.f.rig.lunge(-7);
+          break;
+        case 'demonBrand':
+          this.f.arms.plant();
+          this.f.rig.shake.add(e.value === 1 ? 0.5 : 0.35);
+          this.f.rig.kick(e.value === 1 ? 2.2 : 1.4);
+          break;
+        case 'demonErupt':
+          this.f.rig.shake.add(0.05);
+          break;
+        case 'emberWave':
+          this.f.rig.shake.add(0.12);
+          this.f.rig.kick(0.8);
+          break;
+        case 'demonWall':
+          this.f.rig.shake.add(0.08);
+          break;
         case 'parry':
           this.f.arms.block.parried();
           break;

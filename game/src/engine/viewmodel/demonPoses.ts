@@ -53,7 +53,7 @@ const WRIST_BACK = 0.105;
 
 /** A key from where the fist is and which way the blade points: its edge turned to where the forearm comes from, for the
  *  straightest wrist that holds it there. */
-function key(grip: V, blade: V, elbow: V = OUT): SwordPose {
+function key(grip: V, blade: V, elbow: V = OUT, tilt = GRIP): SwordPose {
   const g = new Vector3(...grip);
   const b = new Vector3(...blade).normalize();
   const pole = new Vector3(...elbow);
@@ -64,7 +64,7 @@ function key(grip: V, blade: V, elbow: V = OUT): SwordPose {
     along.subVectors(wrist, e).normalize();
   }
   const edge = along.clone().addScaledVector(b, -along.dot(b));
-  return pose(grip, [b.x, b.y, b.z], [edge.x, edge.y, edge.z], GRIP, elbow);
+  return pose(grip, [b.x, b.y, b.z], [edge.x, edge.y, edge.z], tilt, elbow);
 }
 
 /** Down from over the right shoulder, across the middle, away low on the left. */
@@ -115,4 +115,41 @@ const ARC_OVER: BladeArc = {
   through: new Vector3(-0.1, 0.01, 0),
 };
 
-export const DEMON_ARCS: readonly BladeArc[] = [ARC_SLASH, ARC_BACK, ARC_OVER];
+/** Update 0.3.72 — Ember Wave: from the charge, held high, cut down across the view; the crescent leaves as it passes the middle. */
+const ARC_EMBER: BladeArc = {
+  step: 3,
+  keys: [
+    key([0.22, -0.05, -0.38], [0.1, 0.94, -0.33]),
+    key([0.14, -0.1, -0.44], [-0.2, 0.88, -0.42]),
+    key([0.02, -0.15, -0.46], [-0.55, 0.66, -0.5]),
+    key([-0.08, -0.2, -0.42], [-0.68, 0.46, -0.56], HIGH),
+    key([-0.12, -0.23, -0.38], [-0.7, 0.36, -0.6], HIGH),
+  ],
+  hit: 0.5,
+  cocked: new Vector3(0.06, -0.08, -0.05),
+  through: new Vector3(-0.05, 0.14, 0.09),
+};
+
+/** Update 0.3.72 — Verdict Parry's counter-slash: from the block, straight back across. */
+const ARC_COUNTER: BladeArc = {
+  step: 4,
+  keys: [
+    key([0.14, -0.13, -0.44], [-0.52, 0.76, -0.38]),
+    key([0.08, -0.14, -0.46], [-0.42, 0.72, -0.52]),
+    key([0.13, -0.11, -0.46], [0, 0.86, -0.5]),
+    key([0.2, -0.07, -0.42], [0.3, 0.86, -0.42]),
+    key([0.22, -0.05, -0.4], [0.38, 0.84, -0.38]),
+  ],
+  hit: 0.5,
+  cocked: new Vector3(-0.02, 0.08, 0.05),
+  through: new Vector3(0.05, -0.12, -0.07),
+};
+
+export const DEMON_ARCS: readonly BladeArc[] = [ARC_SLASH, ARC_BACK, ARC_OVER, ARC_EMBER, ARC_COUNTER];
+
+/** Update 0.3.72 — the block: the blade up across you, over the crosshair: you still have to see. */
+export const DEMON_GUARD = key([0.2, -0.14, -0.42], [-0.52, 0.78, -0.34]);
+/** Hellfire Lunge: the arm straight out, the blade on what you're looking at (a thrust's a fencer's, this once: the wrist couldn't do it). */
+export const DEMON_THRUST = key([0.1, -0.17, -0.54], [-0.1, 0.12, -0.99], OUT, 48);
+/** The sword going into the floor. */
+export const DEMON_PLANT = key([0.13, -0.1, -0.54], [-0.12, -0.6, -0.79]);

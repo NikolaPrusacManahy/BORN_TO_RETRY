@@ -208,6 +208,20 @@ export class Viewmodel {
     else this.block.raise();
   }
 
+  /** Update 0.3.72 — the Demon's: right click held, its blade held up. */
+  setBlock(on: boolean) {
+    if (this.bladed) this.swordAnim.block(on);
+  }
+
+  /** Update 0.3.72 — the Demon's Hellfire Lunge; its sword into the floor. */
+  thrust() {
+    if (this.bladed) this.swordAnim.thrust();
+  }
+
+  plant() {
+    if (this.bladed) this.swordAnim.plant(false);
+  }
+
   /** M2 — the sword arm's next move. */
   sword(move: SwordMove) {
     if (move === 'throw' && this.weapon?.userData.hold === 'gun') this.gun.throwStart();
@@ -245,6 +259,9 @@ export class Viewmodel {
     this.swordAnim.update(gameDt, realDt);
     this.off.anim.update(gameDt, realDt);
     this.slam.follow(p.slamming);
+    // (Update 0.3.72 — the Demon's dive: its sword point down, all the way.)
+    if (this.bladed && p.slamming) this.swordAnim.plant(true);
+    else this.swordAnim.landed();
     this.slam.update(gameDt);
     this.block.update(gameDt);
     this.motion.update(gameDt, realDt, mouseDx, mouseDy, p, this.pivot, this.holder);
@@ -333,7 +350,8 @@ export class Viewmodel {
     }
     if (!this.trail) return;
     const cutting = !!blade && this.bladed && blade.visible && this.swordAnim.slicing && gameDt > 0;
-    this.trail.update(realDt, cutting ? blade.matrixWorld : null, this.bladed ? this.swordAnim.flare : 0);
+    // (Update 0.3.72 — and it burns brighter as Ember Wave charges.)
+    this.trail.update(realDt, cutting ? blade.matrixWorld : null, this.bladed ? Math.max(this.swordAnim.flare, this.chargeVis * 0.8) : 0);
   }
 
   /** Draws the arms over the world already on screen: depth cleared, colour kept. */

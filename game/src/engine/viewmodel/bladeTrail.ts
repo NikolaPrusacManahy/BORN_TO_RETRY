@@ -10,8 +10,9 @@ import { DEMON } from '../../tuning/demon';
 const SAMPLES = 24;
 const SUB = 3;
 const ROWS = 3;
-/** How long a piece of it burns (s). */
+/** How long a piece of it burns (s), and over how many of its oldest samples it fades in. */
 const LIFE = 0.17;
+const TAIL = 3;
 /** Rows, as a share of the way from the guard to the tip, and how bright each. */
 const ROW_AT = [0.3, 0.8, 1] as const;
 const ROW_GAIN = [0, 0.8, 0.45] as const;
@@ -118,7 +119,9 @@ export class BladeTrail {
     let v = 0;
     const put = (i: number, u: number) => {
       const age = this.ages[i] + (this.ages[i + 1] - this.ages[i]) * u;
-      const life = Math.max(0, 1 - age / LIFE);
+      // (Its tail fades whatever its age: a swing's first frames are only a moment old as it lands, and it'd start with a hard edge.)
+      const tail = Math.min(1, (this.count - 1 - (i + u)) / TAIL);
+      const life = Math.max(0, 1 - age / LIFE) * tail;
       col.copy(DYING).lerp(HOT, life);
       for (let r = 0; r < ROWS; r++) {
         a.copy(this.points[Math.max(0, i - 1)][r]);

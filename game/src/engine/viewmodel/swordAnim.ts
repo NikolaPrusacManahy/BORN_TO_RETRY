@@ -9,6 +9,7 @@
 // Update 0.1.5 — any one-handed or two-handed weapon's moves: the weapon in hand picks its own set (weaponMoves.ts: the
 // sword's, the Gold Axe's hacks and cocked throw, the Hammer's heavy swings and smash); this plays it.
 import { Vector3 } from 'three';
+import { DEMON } from '../../tuning/demon';
 import { WEAPONS } from '../../tuning/weapons';
 import type { SwordPose } from './armsRig';
 import { arcAt, type ArcPhase } from './bladeArcs';
@@ -19,7 +20,8 @@ import { MoveSet, SWORD_MOVES } from './weaponMoves';
 // it's half-way back, and no wait for a hit.
 // Update 0.3.70 — a guard (the Playable Demon's right click, its blade its parry): up to the charged blow's pose and back.
 // Update 0.3.71 — an arc: one of the Demon's Blazing Arc (bladeArcs.ts plays it), on the game's clock, hit-stop and all.
-export type SwordMove = 'ready' | 'forehand' | 'backhand' | 'pierce' | 'throw' | 'toss' | 'guard' | 'arc';
+// Update 0.3.72 — its block, held as long as you hold it; its lunge's thrust; the sword going into the floor.
+export type SwordMove = 'ready' | 'forehand' | 'backhand' | 'pierce' | 'throw' | 'toss' | 'guard' | 'arc' | 'thrust' | 'plant';
 
 /** A new move takes over from wherever the sword was over this long (s). */
 const BLEND = 0.04;
@@ -28,6 +30,11 @@ const THROW_DRAW = 0.6;
 /** A guard goes up over this long, and back over this long (s). */
 const GUARD_UP = 0.07;
 const GUARD_DOWN = 0.22;
+/** Update 0.3.72 — a thrust goes out over this long, and back over this; the sword goes into the floor and comes back. */
+const THRUST_OUT = 0.04;
+const THRUST_BACK = 0.26;
+const PLANT_IN = 0.08;
+const PLANT_BACK = 0.36;
 /** A slash reaches its contact (the middle of the path) this far through its swing's ease. */
 const CONTACT = 0.5;
 
@@ -55,6 +62,9 @@ export class SwordAnim {
   private arcStep = 0;
   private phase: ArcPhase = 'done';
   private readonly glow = { k: 0 };
+  /** Update 0.3.72 — right click held; falling in a dive, the sword held point down. */
+  private blocking = false;
+  private plantHeld = false;
 
   /** A weapon taken in hand: its moves from now on. */
   use(moves: MoveSet) {
@@ -75,12 +85,36 @@ export class SwordAnim {
     this.start('arc');
   }
 
-  /** How hot the blade burns through an arc (0 … 1), and whether it's cutting the air. */
+  /** Update 0.3.72 — the block: up as you press it, and held till you let go. */
+  block(on: boolean) {
+    if (on && this.move !== 'guard') this.start('guard');
+    this.blocking = on;
+  }
+
+  /** Update 0.3.72 — Hellfire Lunge. */
+  thrust() {
+    this.start('thrust');
+  }
+
+  /** Update 0.3.72 — the sword point down: held while `falling` (a dive), else for the moment it's in the floor. */
+  plant(falling: boolean) {
+    this.plantHeld = falling;
+    if (this.move !== 'plant') this.start('plant');
+  }
+
+  /** The dive's over: it stays in the floor only its moment. */
+  landed() {
+    this.plantHeld = false;
+  }
+
+  /** How hot the blade burns through an arc or a thrust (0 … 1), and whether it's cutting the air. */
   get flare(): number {
+    if (this.move === 'thrust') return this.t < THRUST_OUT + DEMON.v.lungeTime ? 1 : 0;
     return this.move === 'arc' ? this.glow.k : 0;
   }
 
   get slicing(): boolean {
+    // (A thrust leaves none as it goes out: the arm's only getting there. It's still in the arms' frame after, so nothing to burn.)
     return this.move === 'arc' && (this.phase === 'strike' || this.phase === 'follow');
   }
 
@@ -133,6 +167,9 @@ export class SwordAnim {
     }
     this.lean.multiplyScalar(Math.exp(-14 * gameDt));
     this.t += this.t < this.contact() ? realDt : gameDt;
+    // (Update 0.3.72 — held up, or falling point down: it stays.)
+    if (this.move === 'guard' && this.blocking) this.t = Math.min(this.t, GUARD_UP);
+    if (this.move === 'plant' && this.plantHeld) this.t = Math.min(this.t, PLANT_IN);
   }
 
   /** Seconds into this move at which it meets what it hits (0: nothing to wait for). */
@@ -146,7 +183,7 @@ export class SwordAnim {
   pose(charge: number, out: SwordPose): SwordPose {
     this.target(charge, out);
     // (Update 0.3.71 — an arc's wind-up is its own blend.)
-    const blend = this.move === 'arc' ? 0 : this.move === 'throw' ? WEAPONS.v.throwWindup * THROW_DRAW : BLEND;
+    const blend = this.move === 'arc' || this.move === 'thrust' || this.move === 'plant' ? 0 : this.move === 'throw' ? WEAPONS.v.throwWindup * THROW_DRAW : BLEND;
     if (this.t < blend) mixSword(this.from, out, smooth(this.t / blend), out);
     copySword(out, this.last);
     return out;
@@ -203,7 +240,27 @@ export class SwordAnim {
         this.pathNow = 0;
         if (t >= GUARD_UP + GUARD_DOWN) return this.toReady(charge, out);
         const up = t < GUARD_UP ? t / GUARD_UP : 1 - (t - GUARD_UP) / GUARD_DOWN;
-        mixSword(this.ready(charge, scratch), m.heavyReady, smooth(up), out);
+        mixSword(this.ready(charge, scratch), m.guard ?? m.heavyReady, smooth(up), out);
+        return;
+      }
+      case 'thrust': {
+        this.pathNow = 0;
+        const to = m.thrust ?? m.heavyOut;
+        const hold = THRUST_OUT + DEMON.v.lungeTime;
+        if (t < THRUST_OUT) mixSword(this.from, to, smooth(t / THRUST_OUT), out);
+        else if (t < hold) copySword(to, out);
+        else if (t < hold + THRUST_BACK) mixSword(to, this.ready(charge, scratch), smooth((t - hold) / THRUST_BACK), out);
+        else this.toReady(charge, out);
+        return;
+      }
+      case 'plant': {
+        this.pathNow = 0;
+        const to = m.plant ?? m.heavyOut;
+        const hold = PLANT_IN + DEMON.v.plantFor;
+        if (t < PLANT_IN) mixSword(this.from, to, smooth(t / PLANT_IN), out);
+        else if (t < hold) copySword(to, out);
+        else if (t < hold + PLANT_BACK) mixSword(to, this.ready(charge, scratch), smooth((t - hold) / PLANT_BACK), out);
+        else this.toReady(charge, out);
         return;
       }
       case 'throw': {

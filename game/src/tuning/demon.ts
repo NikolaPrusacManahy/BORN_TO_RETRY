@@ -1,6 +1,8 @@
 // Update 0.3.71 — the Playable Demon's Blazing Arc (enemy_bibles/Born to Retry — Playable Demon.docx; the designer: "swing animation
 // needs premium treatment"): its numbers and its timing, which the rules and the arms share, so the blade arrives as the
 // hit lands. Times in seconds, distances in metres. **(placeholders)**
+// Update 0.3.72 — and the rest of phase 2 (the designer: "continue"): its fire wall, Ember Wave, Verdict Parry, Hellfire Lunge, Brand of
+// Ruin and its Plunge.
 import { group, knob } from './schema';
 
 export const DEMON = group('demon', 'The Demon', {
@@ -24,7 +26,59 @@ export const DEMON = group('demon', 'The Demon', {
   overheadNext: knob(0.3, 0.02, 1.2, 0.01, 'Overhead to the next', 'After its contact, seconds till you can start again.'),
   combo: knob(0.5, 0.1, 2, 0.05, 'Combo window', 'Swing again within this and the combo goes on.'),
   stop: knob(45, 0, 200, 5, 'Hit-stop: slash (ms)', 'The blade biting: 2 to 4 frames, the bible says.'),
-  overheadStop: knob(110, 0, 300, 5, 'Hit-stop: overhead (ms)', 'Its third.'),
+  overheadStop: knob(110, 0, 300, 5, 'Hit-stop: overhead (ms)', 'Its third, and the counter.'),
   view: knob(0.18, 0, 1, 0.01, 'Swing view lean', 'How much the view turns with the swing (the arms turn this much more).'),
   flare: knob(1.6, 0, 5, 0.05, 'Blade flare', 'How much brighter the blade burns through a strike.'),
+
+  wallAhead: knob(3.5, 1, 8, 0.1, 'Fire wall: how far ahead', 'The overhead leaves it this far in front of you (m).'),
+  wallLong: knob(7, 2, 16, 0.5, 'Fire wall: length', 'How long it is, across your way (m).'),
+  wallFor: knob(2.5, 0.5, 8, 0.1, 'Fire wall: time', 'Seconds it burns.'),
+  wallTick: knob(0.45, 0.1, 2, 0.05, 'Fire wall: burn', 'It burns what’s in it once in so many seconds.'),
+  wallDamage: knob(10, 1, 80, 1, 'Fire wall: damage', 'Each burn.'),
+
+  chargeAfter: knob(0.34, 0.1, 1, 0.01, 'Ember Wave: hold', 'Left click held this long, its swing done, and it starts to charge.'),
+  chargeTime: knob(0.55, 0.1, 2, 0.01, 'Ember Wave: charge', 'Seconds it takes to fill.'),
+  emberWindup: knob(0.12, 0.03, 0.5, 0.005, 'Ember Wave: wind-up', 'Seconds from letting go to the wave leaving.'),
+  emberStrike: knob(0.07, 0.02, 0.3, 0.005, 'Ember Wave: strike', 'The end of that: the swing itself.'),
+  emberFollow: knob(0.15, 0.03, 0.5, 0.005, 'Ember Wave: follow-through', 'Seconds its weight carries it on.'),
+  emberBack: knob(0.5, 0.1, 1.2, 0.01, 'Ember Wave: return', 'Seconds back to ready.'),
+  emberNext: knob(0.3, 0.02, 1.2, 0.01, 'Ember Wave: to the next', 'After it’s gone, seconds till you can swing again.'),
+  waveSpeed: knob(30, 5, 80, 1, 'Ember Wave: speed', 'm/s.'),
+  waveRange: knob(26, 5, 80, 1, 'Ember Wave: range', 'How far it goes (m).'),
+  waveWidth: knob(2.4, 0.5, 6, 0.1, 'Ember Wave: width', 'How far either side of its line it hits (m).'),
+  waveDamage: knob(40, 1, 300, 1, 'Ember Wave: damage', 'To everything it passes through.'),
+  waveKnock: knob(6, 0, 40, 0.5, 'Ember Wave: knock', 'm/s.'),
+
+  guardShare: knob(0.5, 0, 1, 0.05, 'Block', 'Share of a blow the blade takes off while you hold right click.'),
+  guardSlow: knob(0.6, 0.1, 1, 0.05, 'Block: speed', 'How fast you move holding it, times your speed.'),
+  parryWait: knob(1.5, 0, 6, 0.1, 'Verdict Parry: wait', 'After one lands, seconds till you can parry again (Joseph’s Parry cooldown is much longer).'),
+  counterDamage: knob(70, 1, 300, 1, 'Counter-slash damage', 'To everything in its arc.'),
+  counterArc: knob(60, 10, 120, 1, 'Counter-slash sweep', 'Degrees each side of your aim.'),
+  counterSlow: knob(0.45, 0, 2, 0.05, 'Counter-slash: slow motion', 'Real seconds the world slows for.'),
+  counterScale: knob(0.3, 0.05, 1, 0.05, 'Counter-slash: how slow', 'The world’s speed meanwhile.'),
+  counterWindup: knob(0.05, 0.02, 0.3, 0.005, 'Counter-slash: wind-up', 'Seconds to its contact: instant.'),
+  counterStrike: knob(0.04, 0.01, 0.2, 0.005, 'Counter-slash: strike', 'The end of that.'),
+  counterFollow: knob(0.12, 0.03, 0.5, 0.005, 'Counter-slash: follow-through', 'Seconds its weight carries it on.'),
+  counterBack: knob(0.4, 0.1, 1.2, 0.01, 'Counter-slash: return', 'Seconds back to ready.'),
+  counterNext: knob(0.15, 0.02, 0.8, 0.01, 'Counter-slash: to the next', 'After contact, seconds till you can swing again.'),
+
+  lungeSpeed: knob(85, 20, 200, 1, 'Hellfire Lunge: speed', 'm/s: too fast to see past.'),
+  lungeTime: knob(0.13, 0.05, 0.5, 0.01, 'Hellfire Lunge: length', 'Seconds. (Joseph’s dash goes 5.6 m; this about twice as far.)'),
+  lungeWidth: knob(1.5, 0.3, 4, 0.1, 'Hellfire Lunge: width', 'How far either side of your path it burns (m).'),
+  lungeDamage: knob(30, 1, 200, 1, 'Hellfire Lunge: damage', 'To everything it passes through.'),
+  lungeKnock: knob(5, 0, 40, 0.5, 'Hellfire Lunge: knock', 'm/s.'),
+  lungeStop: knob(30, 0, 200, 5, 'Hit-stop: lunge (ms)', 'Each thing it goes through.'),
+
+  brandSpokes: knob(8, 3, 16, 1, 'Brand of Ruin: lines', 'How many lines of pillars, planted standing.'),
+  brandSteps: knob(6, 2, 14, 1, 'Brand of Ruin: length', 'Pillars along each.'),
+  brandStep: knob(2, 0.5, 5, 0.1, 'Brand of Ruin: spacing', 'Metres between them.'),
+  brandStepT: knob(0.06, 0.01, 0.3, 0.005, 'Brand of Ruin: speed', 'Seconds from one pillar to the next along a line.'),
+  brandWarn: knob(0.16, 0, 1, 0.01, 'Brand of Ruin: wind-up', 'Seconds from planting to its first pillars.'),
+  brandRadius: knob(1.4, 0.3, 4, 0.1, 'Brand of Ruin: pillar', 'How wide a pillar burns (m).'),
+  brandDamage: knob(34, 1, 300, 1, 'Brand of Ruin: damage', 'To each thing, once.'),
+  plungeDamage: knob(70, 1, 300, 1, 'Plunge: damage', 'From the highest fall.'),
+  brandKnock: knob(11, 0, 40, 0.5, 'Brand of Ruin: knock', 'm/s, outwards.'),
+  brandWait: knob(5, 0, 20, 0.5, 'Brand of Ruin: wait', 'Seconds till you can plant it again.'),
+  plantFor: knob(0.4, 0.1, 1.5, 0.05, 'Brand of Ruin: planted', 'Seconds you’re rooted, and nothing can touch you.'),
+  plantSlow: knob(0.1, 0, 1, 0.05, 'Brand of Ruin: rooted', 'How fast you can move meanwhile, times your speed.'),
 });

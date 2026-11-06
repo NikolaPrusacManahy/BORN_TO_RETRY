@@ -2,9 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-06, after Update 0.3.71)
-- **Version 0.3.71** (the white arms fixed, and the Demon's Blazing Arc), built, **not committed** until the designer says "commit", nor is 0.3.70. 0.3.58 to 0.3.69 are committed; the designer pushes.
-- **The Playable Demon is under way** (`enemy_bibles/Born to Retry — Playable Demon.docx`, specs `MD_UPDATES/U0370_PLAYABLE_DEMON_1.md`, `U0371_BLAZING_ARC.md`): phase 1 is done, and of phase 2 the swing (not its fire wall). Next: the rest of phase 2. Waiting on the designer: opening floor 10 to public runs (they can't earn the Demon till then), Victory lap or Demon Mode, its HP.
+## Where things stand (2026-11-06, after Update 0.3.72)
+- **Version 0.3.72** (the Demon's main moves), built, **not committed** until the designer says "commit", nor are 0.3.70 and 0.3.71. 0.3.58 to 0.3.69 are committed; the designer pushes.
+- **The Playable Demon is under way** (`enemy_bibles/Born to Retry — Playable Demon.docx`, specs `MD_UPDATES/U0370_PLAYABLE_DEMON_1.md`, `U0371_BLAZING_ARC.md`, `U0372_DEMON_MOVES.md`): phases 1 and 2 are done, not yet played. Next, when the designer says: phase 3 (Blade Throw, Last Verdict, heat, heal on kill), then 4 (feel) and 5 (balance). Waiting on the designer: floor 10 in public runs (the unlock can't be earned there while it's closed), Victory lap or Demon Mode, HP 100 or lower.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
@@ -65,7 +65,13 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-06, Update 0.3.71: the white arms fixed, and Blazing Arc)
+## Last update (2026-11-06, Update 0.3.72: the Demon's main moves)
+- Phase 2 of 5, all of it: the overhead's fire wall, Ember Wave on a held left click, Verdict Parry (block, counter-slash, slow motion), Hellfire Lunge, Brand of Ruin, Plunge.
+- **A deliberate change:** holding left click no longer repeats the combo; the bible gives Hold to Ember Wave. `test-blazing-arc.ts` changed to match.
+- Rules in `sim/combat/` (`demonFire.ts`, `demonMoves.ts`, `bladeSwing.ts`, `sweep.ts`), numbers in `tuning/demon.ts`, its fire in `engine/demon/demonFireView.ts`. Joseph's dash, parry and slam are tested as unchanged.
+- Poses rendered through the game's own arms, wrists at most 36°. Not seen moving or heard in the game by me, and the fire's look has never been rendered in a room. Tests: `test-demon-moves.ts`.
+
+## Before (2026-11-06, Update 0.3.71: the white arms fixed, and Blazing Arc)
 - The Demon's arm drew pure white in 0.3.70: its glow map had gone and its white emissive stayed. Fixed in the cut, and the shipped files' JSON is tested now.
 - Left click is Blazing Arc: slash, backslash, overhead, each with a wind-up, a strike fastest at contact, a follow-through and a heavy return (`viewmodel/bladeArcs.ts`).
 - The hit lands as the blade arrives, to all in its arc (`sim/combat/bladeSwing.ts`), both reading `tuning/demon.ts`. A burning trail, the blade flaring, the shoulders and the view turning.
