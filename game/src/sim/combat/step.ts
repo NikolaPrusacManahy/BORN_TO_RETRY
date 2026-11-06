@@ -48,6 +48,7 @@ import { updateAxeCharge } from '../weapons/axeThrow';
 import { axeOut, callBack } from '../weapons/recall';
 import { startWave, updateSmashWaves } from '../weapons/smashWaves';
 import { throwWeapon, tryPickup, updateStands } from '../weapons/weapons';
+import { landBlade, updateBlade } from './bladeSwing';
 import { WEAPONS } from '../../tuning/weapons';
 import { updateDummy } from './dummy';
 import { CombatIntent, emptyCombatIntent, emptyPunch, updateFists } from './fists';
@@ -91,6 +92,8 @@ const NO_HEAVY = emptyCombatIntent();
 const HOLD_HEAVY = emptyCombatIntent();
 /** The presses with a click (one made in a slam, let go as you land). */
 const CLICK = emptyCombatIntent();
+/** Update 0.3.71 — the Demon's: the fists' rules keep only its parry. */
+const NO_SWING = emptyCombatIntent();
 
 /** `spawns`: where the lab's grunts may come from (none: no waves). */
 export function stepCombat(state: CombatState, player: PlayerState, intent: CombatIntent, world: CollisionWorld, dt: number, spawns: readonly Spot[] = []) {
@@ -211,6 +214,13 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     fistIntent = Object.assign(CLICK, fistIntent);
     CLICK.attackPressed = true;
   }
+  // (Update 0.3.71 — the Demon's left click is its blade's, not the fists': Blazing Arc, below.)
+  const demon = state.demon && w === null;
+  const demonAttack = fistIntent.attackPressed || fistIntent.attackHeld;
+  if (demon) {
+    fistIntent = Object.assign(NO_SWING, fistIntent);
+    NO_SWING.attackPressed = NO_SWING.attackHeld = false;
+  }
   // (Update 0.3.5 — barehanded, right click is the parry: Hair Trigger's longer window, Giant Killer's no wait.)
   const times = parryTimes(state);
   let swung = axe || volley || gun || clasped ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate, chargeRate(state), times);
@@ -227,6 +237,11 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
       state.fists.parryCooldown = state.fists.quick ? Math.min(times.cooldown, DROWNED.v.headWait) : times.cooldown;
       state.fists.quick = false;
     }
+  }
+  // (Update 0.3.71 — a swing lands when its blade gets there.)
+  if (demon && updateBlade(state.blade, demonAttack, clasped || state.fists.parryWindow > 0, events, dt, rate)) {
+    aim(player, intent.yaw, intent.pitch, eye, dir);
+    landBlade(state, state.blade.step, eye, dir, world, fistFactor(state));
   }
   // (Update 0.2.16 — All In, a Fate Card: your fists hit twice as hard.)
   if (swung) punch.damage *= fistFactor(state);

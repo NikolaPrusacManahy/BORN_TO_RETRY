@@ -115,6 +115,9 @@ export class CombatSounds {
       case 'respawn':
         tone(a, { from: 400, to: 800, dur: 0.12, gain: 0.08 * far, type: 'triangle' });
         break;
+      case 'bladeSwing':
+        noise(a, { dur: value === 2 ? 0.3 : 0.2, gain: 0.3, filter: 'bandpass', from: 2000, to: 500, q: 1.1 });
+        break;
       case 'slash':
         if (WEAPON_KINDS[value] === 'daggers') noise(a, { dur: 0.08, gain: 0.15, filter: 'bandpass', from: 4200, to: 1500, q: 1.6 });
         else noise(a, { dur: 0.16, gain: 0.2, filter: 'bandpass', from: 2400, to: 700, q: 1.3 });

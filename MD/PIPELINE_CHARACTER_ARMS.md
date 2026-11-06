@@ -79,3 +79,4 @@ uncomfortable to play with.
 - Keep one hammer grip through every pose. Leaned to a fencer's the fingers open to clear the handle, and it shows in front of them. Move the arm instead, and print the wrist per frame.
 - A blade pointing away from your eye looks short however long it is. To feel big it has to stand across the view. Grow the blade, not the guard (`export_weapon.py --blade`).
 - Look at key frames at full size, not only on a contact sheet: the handle coming back in front of the fingers didn't show on one.
+- **A map taken off leaves its factor behind.** The glow map went, its white emissive at strength 2 stayed, and the whole arm drew pure white in the game (0.3.70). Workbench previews don't draw emissive and the tests' models have no textures, so nothing showed it: check the file's own JSON (`test-blazing-arc.ts` does).

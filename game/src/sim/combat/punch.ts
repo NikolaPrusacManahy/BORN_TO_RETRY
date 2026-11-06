@@ -23,7 +23,7 @@ import type { CollisionWorld } from '../collisionWorld';
 import type { PlayerState } from '../player/state';
 import type { Punch, PunchKind } from './fists';
 import type { CombatEvent, CombatState } from './state';
-import { emptyTargetHit, landHit, nearestTarget } from './strike';
+import { emptyTargetHit, landHit, nearestTarget, type TargetHit } from './strike';
 
 const end = new Vector3();
 const hit = emptyTargetHit();
@@ -33,6 +33,16 @@ export function aim(p: PlayerState, yaw: number, pitch: number, eye: Vector3, di
   eye.set(p.pos.x, p.pos.y + CAMERA.v.eyeHeight, p.pos.z);
   const c = Math.cos(pitch);
   dir.set(-Math.sin(yaw) * c, Math.sin(pitch), -Math.cos(yaw) * c);
+}
+
+/** Update 0.0.17 — the snowflake bonus: a melee hit freezes what it hits (never a boss). */
+export function frostHit(state: CombatState, t: TargetHit) {
+  if (state.bonuses.snowflake <= 0 || t.kind !== 'enemy') return;
+  const e = state.enemies[t.index];
+  if (isLive(e) && !ENEMY_STATS[e.kind]().boss) {
+    e.frozen = BONUS.v.frozen;
+    state.events.push('freeze', t.index, t.point.x, t.point.y, t.point.z);
+  }
 }
 
 const STOP: Record<PunchKind, () => number> = {
@@ -62,14 +72,7 @@ export function resolvePunch(punch: Punch, state: CombatState, eye: Vector3, dir
     jabPowers(state, hit.index);
     if (killed) launch(state.enemies[hit.index], dir.x / flat, dir.z / flat);
   }
-  // Update 0.0.17 — the snowflake bonus: a melee hit freezes what it hits (never a boss).
-  if (state.bonuses.snowflake > 0 && hit.kind === 'enemy') {
-    const e = state.enemies[hit.index];
-    if (isLive(e) && !ENEMY_STATS[e.kind]().boss) {
-      e.frozen = BONUS.v.frozen;
-      state.events.push('freeze', hit.index, hit.point.x, hit.point.y, hit.point.z);
-    }
-  }
+  frostHit(state, hit);
   state.hitStop.request(STOP[punch.kind]() * (charged ? 0.5 + 0.5 * punch.charge : 1));
   return eye.distanceTo(hit.point);
 }

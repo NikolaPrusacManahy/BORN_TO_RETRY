@@ -50,6 +50,14 @@ export function playClip(a: AudioEngine, kind: CombatEvent, value: number, far: 
     case 'jabL':
     case 'jabR':
       return a.clips.play('jab');
+    // Update 0.3.71 — the Demon's blade (the bible: "metallic scrape on the combo"): metal dragged, then the air and the
+    // fire it cuts, just ahead of its contact; deeper and later for the overhead.
+    case 'bladeSwing': {
+      const big = value === 2;
+      a.clips.play('hellScrape', big ? 0.4 : 0.28, big ? 1.25 : 1.55);
+      a.clips.play(big ? 'hammerSwing' : 'slash', 1, big ? 0.8 : 0.72, big ? 0.1 : 0.04);
+      return a.clips.play('hellWhoosh', big ? 0.95 : 0.65, big ? 1.1 : 1.45, big ? 0.04 : 0);
+    }
     case 'heavy':
       return a.clips.play('heavy', 0.7 + 0.5 * Math.min(1, value));
     case 'hitFinisher':

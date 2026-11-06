@@ -16,16 +16,20 @@ import { parseUntextured } from '../tests/fakes/glb';
 import { ArmsRig } from '../src/engine/viewmodel/armsRig';
 import { DEMON_HAND } from '../src/engine/viewmodel/handPose';
 import { Viewmodel } from '../src/engine/viewmodel/viewmodel';
-import { DEMON_MOVES, MOVES } from '../src/engine/viewmodel/weaponMoves';
+import { MOVES } from '../src/engine/viewmodel/weaponMoves';
 import { WEAPON_URL } from '../src/engine/weaponsView';
 import type { WeaponKind } from '../src/sim/weapons/catalog';
 import { createPlayer } from '../src/sim/player/state';
 import { ARMS } from '../src/tuning/arms';
+import { DEMON } from '../src/tuning/demon';
 import { WEAPONS } from '../src/tuning/weapons';
 
 const ASPECT = 16 / 9;
 const STEP = 1 / 120;
 const demon = process.argv[2] === 'demon';
+/** (A combo's next swing starts this long after the last one's contact.) */
+const d1 = 0.16;
+const d2 = 0.3;
 if (process.env.DEMON_HANDS) ARMS.v.demonHands = Number(process.env.DEMON_HANDS);
 const kind = (demon ? 'sword' : process.argv[2]) as WeaponKind;
 const out = process.argv[3];
@@ -37,7 +41,7 @@ const WEAPON_FILE = process.argv[5];
 
 const load = (path: string | URL) => parseUntextured(typeof path === 'string' ? pathToFileURL(path) : path);
 
-type Mesh = { color: number[]; pos: number[]; idx: number[]; uv?: number[]; smooth?: boolean };
+type Mesh = { color: number[]; pos: number[]; idx: number[]; uv?: number[]; smooth?: boolean; colors?: number[] };
 const v = new THREE.Vector3();
 
 /** The arms' scene in its camera's space. */
@@ -56,10 +60,16 @@ function grab(vm: Viewmodel): Mesh[] {
       v.applyMatrix4(o.matrixWorld).applyMatrix4(toCam);
       pos.push(+v.x.toFixed(5), +v.y.toFixed(5), +v.z.toFixed(5));
     }
-    const idx = g.index ? Array.from(g.index.array) : Array.from({ length: g.attributes.position.count }, (_, i) => i);
-    const col = (o.material as THREE.MeshStandardMaterial).color;
+    let idx = g.index ? Array.from(g.index.array) : Array.from({ length: g.attributes.position.count }, (_, i) => i);
+    // (Update 0.3.71 — the Demon's trail: only what it's burning, in its fire's colour.)
+    if (o.userData.trail) {
+      idx = idx.slice(0, g.drawRange.count);
+      if (idx.length === 0) return;
+    }
+    const col = o.userData.trail ? new THREE.Color(1, 0.45, 0.1) : (o.material as THREE.MeshStandardMaterial).color;
     const uv = g.attributes.uv ? Array.from(g.attributes.uv.array, (n) => +n.toFixed(5)) : undefined;
-    meshes.push({ color: [col.r, col.g, col.b], pos, idx, uv, smooth: !!uv });
+    const colors = o.userData.trail ? Array.from(g.attributes.color.array, (n) => +n.toFixed(3)) : undefined;
+    meshes.push({ color: [col.r, col.g, col.b], pos, idx, uv, smooth: !!uv, colors });
   });
   return meshes;
 }
@@ -94,6 +104,30 @@ if (MOVES[kind].pair) {
 if (demon) {
   // (In between the keys, a swing's wrist; and the gauntlets alone, the blade thrown.)
   MOMENTS.push({ name: 'swing_12', run: swingTo(0.12) }, { name: 'swing_38', run: swingTo(0.38) }, { name: 'swing_62', run: swingTo(0.62) }, { name: 'swing_80', run: swingTo(0.8) });
+  // (Update 0.3.71 — Blazing Arc, each hit in six moments, flowing from the one before.)
+  const arcTime = (step: number, at: number) => {
+    const d = DEMON.v;
+    const big = step === 2;
+    const windup = big ? d.overheadWindup : d.slashWindup;
+    const strike = big ? d.overheadStrike : d.slashStrike;
+    const follow = big ? d.overheadFollow : d.slashFollow;
+    return [windup - strike, windup - strike * 0.5, windup, windup + follow * 0.35, windup + follow, windup + follow + (big ? d.overheadBack : d.slashBack) * 0.5][at];
+  };
+  for (const step of [0, 1, 2]) {
+    for (let at = 0; at < 6; at++) {
+      MOMENTS.push({
+        name: `arc${step}_${at}`,
+        run: (vm, p) => {
+          for (let s = 0; s < step; s++) {
+            vm.arc(s);
+            play(vm, p, arcTime(s, 2) + (s === 2 ? d2 : d1));
+          }
+          vm.arc(step);
+          play(vm, p, arcTime(step, at));
+        },
+      });
+    }
+  }
   const bare = (vm: Viewmodel, p: P) => (vm.setWeapon(null), play(vm, p, 1.2));
   MOMENTS.push({ name: 'fists', run: bare }, { name: 'punch_r', run: (vm, p) => (bare(vm, p), vm.punch('R', 'jab'), play(vm, p, 0.05)) }, { name: 'punch_l', run: (vm, p) => (bare(vm, p), vm.punch('L', 'jab'), play(vm, p, 0.05)) });
 }
@@ -104,11 +138,11 @@ for (const moment of MOMENTS) {
   const weapon = await load(WEAPON_FILE ?? new URL(`../public${WEAPON_URL[kind]}`, import.meta.url));
   const vm = new Viewmodel(false);
   const rig = ArmsRig.fromScene(arms.scene, demon ? DEMON_HAND : undefined);
-  vm.attach(rig);
-  vm.setLens(ASPECT);
   const held = weapon.scene.clone();
   held.userData.kind = kind;
-  if (demon) held.userData.moves = DEMON_MOVES;
+  if (demon) vm.holdBlade(held);
+  vm.attach(rig);
+  vm.setLens(ASPECT);
   if (MOVES[kind].pair) held.userData.pair = weapon.scene.clone();
   vm.setWeapon(held);
   const p = createPlayer(0, 0, 0, 0);

@@ -170,6 +170,12 @@ def strip_maps():
         for n in list(m.node_tree.nodes):
             if n.type == 'SEPARATE_COLOR' or (n.type == 'TEX_IMAGE' and n.image and ('ORM' in n.image.name or 'Emissive' in n.image.name)):
                 m.node_tree.nodes.remove(n)
+        # (Its glow map gone, its glow must go too: left on, a white emissive of strength 2 draws the whole arm pure white
+        # in the game, and neither these previews nor the tests' untextured models show it.)
+        for n in m.node_tree.nodes:
+            if n.type == 'BSDF_PRINCIPLED':
+                n.inputs['Emission Color'].default_value = (0, 0, 0, 1)
+                n.inputs['Emission Strength'].default_value = 0
     for o in bpy.data.objects:
         if o.type == 'MESH':
             while o.data.color_attributes:

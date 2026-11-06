@@ -9,7 +9,8 @@ import type { WeaponKind } from '../../sim/weapons/catalog';
 import { ARMS } from '../../tuning/arms';
 import type { SwordPose } from './armsRig';
 import { AXE_COCKED, AXE_READY, AXE_SLASH, AXE_THROWN } from './axePoses';
-import { DEMON_DOWN, DEMON_READY, DEMON_SLASH, DEMON_UP } from './demonPoses';
+import type { BladeArc } from './bladeArcs';
+import { DEMON_ARCS, DEMON_DOWN, DEMON_READY, DEMON_SLASH, DEMON_UP } from './demonPoses';
 import { DAGGER_COCKED, DAGGER_COCKED_L, DAGGER_CUT, DAGGER_CUT_L, DAGGER_READY, DAGGER_READY_L, DAGGER_TIP, DAGGER_TOSSED, DAGGER_TOSSED_L } from './daggerPoses';
 import { HAMMER_READY, HAMMER_SLASH, HAMMER_SMASH, HAMMER_UP } from './hammerPoses';
 import { PIERCE_OUT, PIERCE_READY, READY, SLASH } from './swordPoses';
@@ -40,6 +41,8 @@ export interface MoveSet {
   /** Update 0.1.9 — where the fist closes once it's turned over for throwing (its model's metres; tipHold.ts), null: it
    *  never is. */
   tip: Vector3 | null;
+  /** Update 0.3.71 — the Demon's Blazing Arc: its three swings (bladeArcs.ts). */
+  arcs?: readonly BladeArc[];
 }
 
 const a = () => ARMS.v;
@@ -150,6 +153,7 @@ export const DEMON_MOVES: MoveSet = {
   grip: () => 0.023,
   pair: null,
   tip: null,
+  arcs: DEMON_ARCS,
 };
 
 /** (The Grimoire is held its own way, bookArms.ts, and the Pistol, gunArms.ts; the sword's set stands in.) */

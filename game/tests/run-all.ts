@@ -22,6 +22,7 @@ import './test-menu';
 import './test-camp';
 import './test-lobby';
 import './test-demon';
+import './test-blazing-arc';
 import './test-seams';
 import './test-floor5';
 import './test-floor5-foes';

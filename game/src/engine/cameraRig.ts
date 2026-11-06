@@ -35,6 +35,8 @@ export class CameraRig {
   private kickPitch = 0;
   private swimT = 0;
   private readonly at = new THREE.Vector3();
+  /** Update 0.3.71 — the view turning with the Demon's swing (rad; x up, y left, z rolled). */
+  readonly swing = new THREE.Vector3();
 
   constructor(readonly camera: THREE.PerspectiveCamera) {}
 
@@ -95,7 +97,7 @@ export class CameraRig {
     this.kickPitch *= 1 - ease(KICK_EASE, dt);
     const s = this.shake;
     this.camera.position.set(this.at.x + s.x, this.at.y + this.eye + this.dip.x + this.stepOffset + bob + s.y, this.at.z + s.z);
-    this.camera.rotation.set(look.pitch + s.pitch + this.kickPitch, look.yaw + s.yaw, this.roll + s.roll, 'YXZ');
+    this.camera.rotation.set(look.pitch + s.pitch + this.kickPitch + this.swing.x, look.yaw + s.yaw + this.swing.y, this.roll + s.roll + this.swing.z, 'YXZ');
     const fov = verticalFov(hFov + this.fovExtra, aspect);
     if (Math.abs(this.camera.fov - fov) > 0.01 || this.camera.aspect !== aspect) {
       this.camera.fov = fov;
@@ -108,5 +110,6 @@ export class CameraRig {
     this.eye = CAMERA.v.eyeHeight;
     this.fovExtra = this.roll = this.dip.x = this.dip.v = this.stepOffset = this.kickPitch = 0;
     this.shake.trauma = 0;
+    this.swing.set(0, 0, 0);
   }
 }

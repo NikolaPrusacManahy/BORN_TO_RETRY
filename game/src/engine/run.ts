@@ -88,6 +88,8 @@ const KILL_Y = -20;
 /** Update 0.3.60 — where you face, for your right. */
 const rightOf = new THREE.Vector3();
 
+import { DEMON } from '../tuning/demon';
+
 export class Run extends RunBase {
   /** Update 0.3.63 — how grey the screen is. */
   private grey = 0;
@@ -226,6 +228,7 @@ export class Run extends RunBase {
     }
     this.sounds.setWallRunning(!this.paused && p.wallRunning);
     const fov = capture.fovOf(settings.fov);
+    this.rig.swing.copy(this.arms.swingLean).multiplyScalar(DEMON.v.view);
     this.rig.update(real * scale, this.clock.alpha, this.prev, p, this.look, fov, aspect);
     // The boss room's show may take the view.
     const shot = this.show.update(real, this.camera, this.look, this.combat);

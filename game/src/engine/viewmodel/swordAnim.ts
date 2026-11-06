@@ -8,15 +8,18 @@
 // lands on the click.
 // Update 0.1.5 — any one-handed or two-handed weapon's moves: the weapon in hand picks its own set (weaponMoves.ts: the
 // sword's, the Gold Axe's hacks and cocked throw, the Hammer's heavy swings and smash); this plays it.
+import { Vector3 } from 'three';
 import { WEAPONS } from '../../tuning/weapons';
 import type { SwordPose } from './armsRig';
+import { arcAt, type ArcPhase } from './bladeArcs';
 import { copySword, emptySword, mixSword, slashPose } from './swordPoses';
 import { MoveSet, SWORD_MOVES } from './weaponMoves';
 
 // Update 0.1.9 — a toss (the Dual Daggers' volley): the charged blow's path, quicker, a dagger gone from the hand till
 // it's half-way back, and no wait for a hit.
 // Update 0.3.70 — a guard (the Playable Demon's right click, its blade its parry): up to the charged blow's pose and back.
-export type SwordMove = 'ready' | 'forehand' | 'backhand' | 'pierce' | 'throw' | 'toss' | 'guard';
+// Update 0.3.71 — an arc: one of the Demon's Blazing Arc (bladeArcs.ts plays it), on the game's clock, hit-stop and all.
+export type SwordMove = 'ready' | 'forehand' | 'backhand' | 'pierce' | 'throw' | 'toss' | 'guard' | 'arc';
 
 /** A new move takes over from wherever the sword was over this long (s). */
 const BLEND = 0.04;
@@ -46,6 +49,12 @@ export class SwordAnim {
   private readonly last = copySword(SWORD_MOVES.ready, emptySword());
   /** The weapon in hand's moves. */
   moves: MoveSet = SWORD_MOVES;
+  /** Update 0.3.71 — how an arc's shoulders are turned (rad; x up, y left, z rolled), as it began, its phase, its glow. */
+  readonly lean = new Vector3();
+  private readonly leanFrom = new Vector3();
+  private arcStep = 0;
+  private phase: ArcPhase = 'done';
+  private readonly glow = { k: 0 };
 
   /** A weapon taken in hand: its moves from now on. */
   use(moves: MoveSet) {
@@ -59,6 +68,22 @@ export class SwordAnim {
     copySword(this.last, this.from);
   }
 
+  /** Update 0.3.71 — one of the Demon's Blazing Arc starts, from wherever the blade is. */
+  arc(step: number) {
+    this.arcStep = step;
+    this.leanFrom.copy(this.lean);
+    this.start('arc');
+  }
+
+  /** How hot the blade burns through an arc (0 … 1), and whether it's cutting the air. */
+  get flare(): number {
+    return this.move === 'arc' ? this.glow.k : 0;
+  }
+
+  get slicing(): boolean {
+    return this.move === 'arc' && (this.phase === 'strike' || this.phase === 'follow');
+  }
+
   /** A slash: back across if the sword rests on the left, otherwise a forehand. */
   slash() {
     this.start(this.pathNow > 0.5 ? 'backhand' : 'forehand');
@@ -69,6 +94,7 @@ export class SwordAnim {
     this.move = 'ready';
     this.t = 1;
     this.pathNow = 0;
+    this.lean.set(0, 0, 0);
     copySword(this.moves.ready, this.last);
   }
 
@@ -100,6 +126,12 @@ export class SwordAnim {
 
   /** `gameDt` stops in hit-stop; until a swing reaches its contact it runs on `realDt`, so it freezes on impact. */
   update(gameDt: number, realDt: number) {
+    // (Update 0.3.71 — an arc's hit lands at its contact, by the same clock.)
+    if (this.move === 'arc') {
+      this.t += gameDt;
+      return;
+    }
+    this.lean.multiplyScalar(Math.exp(-14 * gameDt));
     this.t += this.t < this.contact() ? realDt : gameDt;
   }
 
@@ -113,7 +145,8 @@ export class SwordAnim {
   /** This frame's pose (view space). `charge`: how far a pierce is charged, 0..1. */
   pose(charge: number, out: SwordPose): SwordPose {
     this.target(charge, out);
-    const blend = this.move === 'throw' ? WEAPONS.v.throwWindup * THROW_DRAW : BLEND;
+    // (Update 0.3.71 — an arc's wind-up is its own blend.)
+    const blend = this.move === 'arc' ? 0 : this.move === 'throw' ? WEAPONS.v.throwWindup * THROW_DRAW : BLEND;
     if (this.t < blend) mixSword(this.from, out, smooth(this.t / blend), out);
     copySword(out, this.last);
     return out;
@@ -156,6 +189,14 @@ export class SwordAnim {
           if (k >= 1) return this.toReady(charge, out);
           mixSword(out, this.ready(charge, scratch), smooth(k), out);
         }
+        return;
+      }
+      case 'arc': {
+        this.pathNow = 0;
+        const arc = m.arcs?.[this.arcStep];
+        if (!arc) return this.toReady(charge, out);
+        this.phase = arcAt(arc, t, this.from, this.ready(charge, scratch), out, this.lean, this.leanFrom, this.glow);
+        if (this.phase === 'done') this.toReady(charge, out);
         return;
       }
       case 'guard': {

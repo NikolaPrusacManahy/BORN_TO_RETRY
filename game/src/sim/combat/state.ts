@@ -37,6 +37,7 @@ import { GRID_RADIUS, SizeClass } from '../enemies/kinds';
 import { AIR, buildNavGrid, NavGrid } from '../../world/navGrid';
 import { Waves, createWaves } from '../enemies/waves';
 import { FistState, createFists } from './fists';
+import { BladeSwing, createBladeSwing } from './bladeSwing';
 import { HitStop } from './hitStop';
 import { Dummy, Orb, Turret, createDummy, createOrbs, createTurret } from './targets';
 import { Hive, resetHives } from '../dungeon/hives';
@@ -50,6 +51,8 @@ export type { CombatEvent } from './events';
 
 export interface CombatState {
   fists: FistState;
+  /** Update 0.3.71 — the Demon's Blazing Arc. */
+  blade: BladeSwing;
   dummies: Dummy[];
   turrets: Turret[];
   orbs: Orb[];
@@ -178,6 +181,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
   const nav = { small: buildNavGrid(ground, GRID_RADIUS.small), large: buildNavGrid(ground, GRID_RADIUS.large), air: buildNavGrid(ground, GRID_RADIUS.air, 0, 0.5, AIR) };
   const state: CombatState = {
     fists: createFists(),
+    blade: createBladeSwing(),
     dummies: arena.dummies.map(createDummy),
     turrets: arena.turrets.map(createTurret),
     orbs: createOrbs(),
@@ -254,6 +258,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
  *  barehanded, the stands stocked, no punch in progress. */
 export function resetCombat(state: CombatState, arena: Arena) {
   state.fists = createFists();
+  state.blade = createBladeSwing();
   state.dummies = arena.dummies.map(createDummy);
   state.turrets = arena.turrets.map(createTurret);
   for (const o of state.orbs) o.alive = false;

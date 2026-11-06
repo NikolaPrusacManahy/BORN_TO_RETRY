@@ -23,6 +23,8 @@ export type CombatEvent =
   // M2 — sword swings (for the arms).
   | 'slash'
   | 'pierce'
+  // Update 0.3.71 — the Demon's blade starts a swing (for the arms and its sounds; value: which of the three).
+  | 'bladeSwing'
   // What a punch or swing did; x, y, z = where.
   | 'whiff'
   | 'hitJab'

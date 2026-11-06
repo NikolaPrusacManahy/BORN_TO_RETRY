@@ -33,6 +33,7 @@ import { SlamArms } from './slamArms';
 import { BlockArms } from './blockArms';
 import { movesOf } from './weaponMoves';
 import { ArmsWardrobe } from './armsWardrobe';
+import { BladeTrail } from './bladeTrail';
 import { ChestReach } from './chestReach';
 import { BookArms } from './bookArms';
 import { HeldGrip, ROPE } from './heldGrip';
@@ -96,6 +97,9 @@ export class Viewmodel {
   private weapon: THREE.Object3D | null = null;
   /** Update 0.3.70 — whose arms you have on (armsWardrobe.ts). */
   private readonly wardrobe: ArmsWardrobe;
+  /** Update 0.3.71 — the Demon's blade's burning trail, and the blade it's following (bladeTrail.ts). */
+  trail: BladeTrail | null = null;
+  private followed: THREE.Object3D | null = null;
 
   /** `loadModel`: fetch the arms (tests attach a parsed model instead). `demon`: the Demon's (Update 0.3.70). */
   constructor(loadModel = true, demon = false) {
@@ -188,6 +192,16 @@ export class Viewmodel {
     else this.anim.punch(side, style);
   }
 
+  /** Update 0.3.71 — the Demon's left click: one of Blazing Arc starts (`step`: 0 slash, 1 backslash, 2 overhead). */
+  arc(step: number) {
+    this.swordAnim.arc(step);
+  }
+
+  /** How the Demon's swing turns the shoulders (rad): the view turns a little with them. */
+  get swingLean(): THREE.Vector3 {
+    return this.swordAnim.lean;
+  }
+
   /** Right click pressed, the parry: the right fist snaps up (Update 0.3.70 — or the Demon's blade). */
   guard() {
     if (this.bladed) this.swordAnim.start('guard');
@@ -234,6 +248,11 @@ export class Viewmodel {
     this.slam.update(gameDt);
     this.block.update(gameDt);
     this.motion.update(gameDt, realDt, mouseDx, mouseDy, p, this.pivot, this.holder);
+    // (Update 0.3.71 — the shoulders turning with the Demon's swing.)
+    const lean = this.swordAnim.lean;
+    this.pivot.rotation.x += lean.x;
+    this.pivot.rotation.y += lean.y;
+    this.pivot.rotation.z += lean.z;
     this.gun.update(gameDt);
     this.armedVis = Math.max(0, Math.min(1, this.armedVis + ((this.weapon ? 1 : -1) * gameDt) / v.armedSwap));
     this.flip = Math.max(0, Math.min(1, this.flip + ((charge >= 0 ? 1 : -1) * gameDt) / v.daggerFlip));
@@ -299,9 +318,22 @@ export class Viewmodel {
     }
     this.off.place(rig, reach < 0.2 && palm < 0.2, this.flip);
     this.camera.updateMatrixWorld(true);
+    this.burn(gameDt, realDt);
     this.book.update(gameDt, book, rig, this.camera);
     this.palm.place(rig);
     if (this.chest.weight > 0) this.chest.settle(this.camera.worldToLocal(rig.knuckle('L', this.knuckleL)), this.camera.worldToLocal(rig.knuckle('R', this.knuckleR)));
+  }
+
+  /** Update 0.3.71 — the Demon's blade: its trail through the air, its flare. */
+  private burn(gameDt: number, realDt: number) {
+    const blade = this.wardrobe.blade;
+    if (blade !== this.followed) {
+      this.followed = blade;
+      if (blade) (this.trail ??= new BladeTrail(this.scene)).follow(blade);
+    }
+    if (!this.trail) return;
+    const cutting = !!blade && this.bladed && blade.visible && this.swordAnim.slicing && gameDt > 0;
+    this.trail.update(realDt, cutting ? blade.matrixWorld : null, this.bladed ? this.swordAnim.flare : 0);
   }
 
   /** Draws the arms over the world already on screen: depth cleared, colour kept. */

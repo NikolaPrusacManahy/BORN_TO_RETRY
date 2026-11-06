@@ -96,6 +96,10 @@ export class CombatFeedback {
         case 'guard':
           this.f.arms.guard();
           break;
+        // Update 0.3.71 — the Demon's Blazing Arc: one of its swings starts (its hit lands as hitSlash or hitPierce).
+        case 'bladeSwing':
+          this.f.arms.arc(e.value);
+          break;
         case 'parry':
           this.f.arms.block.parried();
           break;
