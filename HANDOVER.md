@@ -2,8 +2,8 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-06, after Update 0.3.67)
-- **Version 0.3.67** (pits burn you and bounce you back out), built, **not committed** until the designer says "commit". 0.3.58 to 0.3.66 are committed; the designer pushes.
+## Where things stand (2026-11-06, after Update 0.3.68)
+- **Version 0.3.68** (standing enemies keep moving), built, **not committed** until the designer says "commit". 0.3.58 to 0.3.67 are committed; the designer pushes.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
@@ -64,7 +64,15 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-06, Update 0.3.67: pits burn you and bounce you back out)
+## Last update (2026-11-06, Update 0.3.68: standing enemies keep moving)
+- **Not asked for:** found fixing Hellwarden's skull (0.3.66), and it changes how nearly every enemy stands, so the designer should look at it in play. Spec `MD_UPDATES/U0368_IDLE_STANDS.md`.
+- **Was:** the mixer gives one action per clip, so a one-off role on an idle's clip (`rise` on 90 looks, `hit` on 22) made that idle play once and hold. 92 of 96 looks froze after one play, most at a rise's speed.
+- **Built:** a role on its idle's clip now just stands (`engine/enemiesView.ts`). A corpse still stops; real rises and executions are as they were. Test: `test-idle-stands.ts`.
+- **Only executions needed the frozen idle** (your hands follow the body's bones), so they keep it: of 105 compared frame by frame, 99 are identical, and 6 fish differ only once dead. Nothing else did: checked frame by frame, old code against new.
+- **Found, not fixed:** the Bone King's `kingPose.ts` (torso and neck once rebuilt, hips in its Grasp's bow) and the Velociraptor's `raptorPose.ts` (its tail in its wind-ups) still turn a little further every frame on bones their clips hold still, as Hellwarden's neck did. Both were there before and are no worse. Likely fix: `wardenPose.ts`'s `unpose`.
+- **Unseen:** not played; tests only.
+
+## Before (2026-11-06, Update 0.3.67: pits burn you and bounce you back out)
 - **The designer:** "let's change the rules of the lava pool and water pool ... just take damage and bounce out". Spec `MD_UPDATES/U0367_PIT_BOUNCE.md`.
 - **Built:** every pit costs 10 health instead of 50 and throws you back to the last solid ground you stood on, in a guided arc of about 0.9 s (`sim/player/pitBounce.ts`). No teleport, no fight reset. Still kills at 10 health or less. Enemies knocked in still die.
 - **Unseen:** not played. Tested in rules with a stand-in pit (`test-lava.ts`), not on the real collision.

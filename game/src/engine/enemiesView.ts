@@ -26,6 +26,9 @@
 // in the scene only while the slot shows it. Every slot holds one hidden body of each kind loaded, and three.js walks
 // every object in the scene (bones too) before each frame, hidden or not: the Lab loads all 97 kinds, 16 slots × 2,775
 // objects = 44,400 walked a frame (about 13 ms; a floor's run, 3,000). Now the hidden ones wait outside the scene.
+// Update 0.3.68 — standing bodies keep moving. The mixer gives one action per clip, so a role on its idle's clip shared
+// its idle's action, and `rise` (every look with none of its own) or `hit` made that action play once and hold, at a
+// rise's speed. A role on the idle's clip now just stands: it can't change how the idle plays.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -59,6 +62,8 @@ import { sinkOf } from './enemyPose';
 
 /** Update 0.3.40 — how long (s) a held body's next clip fades in, if its look doesn't say. */
 const EXEC_FADE = 0.06;
+/** Update 0.3.68 — among a body's own clips, its stance in an execution (a copy of its idle's, if that was shared). */
+const STOOD = '@stood';
 
 interface Body {
   root: THREE.Object3D;
@@ -146,6 +151,13 @@ export class EnemiesView {
     const box = !skinned ? new THREE.Box3().setFromObject(model) : look.posed ? posedBounds(model, find(look.clips.idle), new THREE.Box3()) : geo?.boundingBox;
     const height = box && !box.isEmpty() ? box.max.y - box.min.y : 2;
     const lowest = box && !box.isEmpty() ? box.min.y : 0;
+    const clipFor = (role: Role) => find(clipOf(look, role)) ?? animations[0];
+    const standing = clipFor('idle');
+    const copyOf = (c: THREE.AnimationClip) => new THREE.AnimationClip(c.name, c.duration, c.tracks);
+    // (Update 0.3.68 — a corpse stops, even on its idle's clip: a copy, its tracks shared, is an action of its own.)
+    const dying = clipFor('death') === standing ? copyOf(standing) : clipFor('death');
+    // (Update 0.3.68 — and so does its stance in an execution: `update`.)
+    const stance = ONCE.some((role) => clipFor(role) === standing) ? copyOf(standing) : null;
     for (const slot of this.slots) {
       const root = cloneSkinned(model);
       root.userData.height = height;
@@ -160,14 +172,20 @@ export class EnemiesView {
       const mixer = new THREE.AnimationMixer(root);
       const actions = {} as Record<Role, THREE.AnimationAction>;
       for (const role of ROLES) {
-        const a = mixer.clipAction(find(clipOf(look, role)) ?? animations[0]);
-        if (ONCE.includes(role)) {
+        const clip = role === 'death' ? dying : clipFor(role);
+        const a = mixer.clipAction(clip);
+        // (Update 0.3.68 — a role on its idle's clip stands: that action stays looping.)
+        if (ONCE.includes(role) && clip !== standing) {
           a.setLoop(THREE.LoopOnce, 1);
           a.clampWhenFinished = true;
         }
         actions[role] = a;
       }
       const extra: Record<string, THREE.AnimationAction> = {};
+      if (stance) {
+        const a = (extra[STOOD] = mixer.clipAction(stance));
+        [a.loop, a.clampWhenFinished] = [THREE.LoopOnce, true];
+      }
       for (const [name, once] of Object.values(look.moveClips ?? {})) { // (Update 0.3.26 — its moves' own clips.)
         const a = (extra[name] ??= mixer.clipAction(find(name) ?? animations[0]));
         if (once) [a.loop, a.clampWhenFinished] = [THREE.LoopOnce, true];
@@ -231,12 +249,14 @@ export class EnemiesView {
       // (Update 0.2.11 — a fish tips, wriggles and dies belly up.)
       fishPose(b.root, e, dt);
       const attack = b.actions.attack;
+      const idle = b.actions.idle;
       // A clip restarts when it changes, or when the same phase starts over (hit again mid-flinch); a wind-up's
       // attack carries on through the recovery.
       // (Update 0.3.65 — not through Hellwarden's show: its stages share clips, and restarting one would flash it back to its bind pose.)
       const again = slot.phase === e.phase && e.t < slot.t && !(look.clipAt && e.phase === 'intro');
       // Update 0.1.2 — one standing in an execution stands still (one held thrashes).
-      let want: Role = e.phase === 'held' && !moveOf(e.kind).held ? 'idle' : roleFor(e.phase, attack.time >= attack.getClip().duration - 0.01);
+      // (Update 0.3.68 — an attack on its idle's clip loops, so it's never "over" by its time: it just stands.)
+      let want: Role = e.phase === 'held' && !moveOf(e.kind).held ? 'idle' : roleFor(e.phase, attack === idle || attack.time >= attack.getClip().duration - 0.01);
       if (e.phase === 'intro' && ENEMY_STATS[e.kind]().boss) want = 'idle'; // (Update 0.3.26 — a boss's show stands.)
       // Update 0.1.19 — a Skeleton in pieces lies there, then rises as it rebuilds (its clip sped to fit the knob).
       if (e.phase === 'rebuild' && e.t >= (king ? BONE_KING.v.kingDown : FOES3.v.skeletonDown)) want = 'rise';
@@ -261,14 +281,22 @@ export class EnemiesView {
       // (Update 0.3.26 — a move's own clip, played through its warning; Update 0.3.29 — or up to its blow, `mine[2]`.)
       // Update 0.3.40 — held in an execution: its own clips in turn (exec/looks.ts `clips`), timed to it.
       const ex = state.exec;
+      // (Update 0.3.68 — its own pace, unless a move's own clip on it says otherwise this frame; nothing else writes it now.)
+      idle.timeScale = 1;
       const held = e.phase === 'held' && b.root.userData.execClips && ex.active && ex.target === i && !ex.pinned ? execClipAt(EXEC_LOOKS[e.kind]!.clips!, ex.t) : null;
       if (held) {
         if (held.name !== b.role) this.play(b, held.name, held.fade ?? EXEC_FADE);
         b.extra[held.name].timeScale = (held.speed ?? 1) * EXECUTION.v.speed;
       } else {
-        const mine = look.moveClips?.[`${e.phase}:${e.move}`], own = mine?.[0];
+        const mine = look.moveClips?.[`${e.phase}:${e.move}`];
+        // (Update 0.3.68 — in an execution your hands follow its bones (exec/hands.ts), so its executions stay as they were:
+        // on its idle's clip it plays that once, at the speed it always did, and holds.)
+        const stance = e.phase === 'held' && !mine && b.actions[want] === idle ? b.extra[STOOD] : undefined;
+        const own = stance ? STOOD : mine?.[0];
         if ((own ?? want) !== b.role || (again && (own !== undefined || ONCE.includes(want)))) this.play(b, own ?? want);
-        if (own) b.extra[own].timeScale = e.phase === 'windup' ? (b.extra[own].getClip().duration * (mine?.[2] ?? 1)) / Math.max(0.1, windup) : (mine?.[3] ?? 1);
+        if (stance) stance.timeScale = b.actions.move === idle ? 3 : b.actions.rise === idle ? stance.getClip().duration / Math.max(0.1, FOES3.v.skeletonRise) : 1;
+        // (Update 0.3.68 — standing through a warning on its idle's clip isn't fitted to the warning.)
+        else if (own) b.extra[own].timeScale = e.phase === 'windup' && b.extra[own] !== idle ? (b.extra[own].getClip().duration * (mine?.[2] ?? 1)) / Math.max(0.1, windup) : (mine?.[3] ?? 1);
         // (Update 0.3.65 — held where its look says.)
         const fixed = own ? look.clipAt?.(e) : null;
         if (own && fixed != null) {
@@ -276,8 +304,8 @@ export class EnemiesView {
           b.extra[own].time = fixed;
         }
       }
-      attack.timeScale = look.lands / windup;
-      b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? (e.phase === 'intro' ? BONE_KING.v.showBuild : BONE_KING.v.kingRise) : e.phase === 'intro' ? FOES_NORSE.v.riseTime : FOES3.v.skeletonRise);
+      if (attack !== idle) attack.timeScale = look.lands / windup;
+      if (b.actions.rise !== idle) b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? (e.phase === 'intro' ? BONE_KING.v.showBuild : BONE_KING.v.kingRise) : e.phase === 'intro' ? FOES_NORSE.v.riseTime : FOES3.v.skeletonRise);
       b.actions.move.timeScale = e.phase === 'held' ? 3 : dash ? 2 : flies(e.kind) ? 1 : Math.min(PACE_HIGH, Math.max(PACE_LOW, slot.pace / full));
       const ice = e.frozen > 0 ? 1 : 0;
       if (!ice && !b.root.userData.kept && !(e.pinned > 0 && e.t > PIN_POSE)) b.mixer.update(dt);
@@ -310,6 +338,11 @@ export class EnemiesView {
 
   private play(b: Body, key: Role | string, fade = FADE) {
     const of = (k: string) => b.actions[k as Role] ?? b.extra[k];
+    // (Update 0.3.68 — from standing to standing, on the same action: it carries on, no restart through its bind pose.)
+    if (b.role && of(b.role) === b.actions.idle && of(key) === b.actions.idle) {
+      b.role = key;
+      return;
+    }
     if (b.role && b.role !== key) of(b.role).fadeOut(fade);
     of(key).reset().setEffectiveWeight(1).fadeIn(b.role ? fade : 0).play();
     b.role = key;

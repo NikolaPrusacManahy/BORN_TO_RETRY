@@ -211,6 +211,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 - **Never tankier** (the designer, Update 0.3.15: "do not make enemies tankier NEVER"): a floor's enemies have no more
   health than the floors before's (regulars 12–60, mini bosses up to 340); harder means more AI (the Bomber leads his
   throws).
+- **One standing keeps moving** (Update 0.3.68; spec `MD_UPDATES/U0368_IDLE_STANDS.md`): its idle loops at its own pace, through a flinch or a rise with no clip of its own. A corpse stops, and one in your execution plays it once and holds, since your hands follow its bones.
 - **Every enemy's run plays at the pace it really goes** (Update 0.3.15, the designer: they "run on the same spot");
   one barely moving stands. Mini bosses: **Mako** (dives into the sand, its fin cutting to you, erupts under you; on boards
   it charges) and **Captain Barbarossa** (a red aim line that follows you slower than you run, then his shot; cover

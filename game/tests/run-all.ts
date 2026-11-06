@@ -138,5 +138,6 @@ import './test-bone-king';
 import './test-king-show';
 import './test-floor4';
 import './test-raptor';
+import './test-idle-stands';
 
 process.exit(summary() > 0 ? 1 : 0);
