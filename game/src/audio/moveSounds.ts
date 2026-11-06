@@ -33,17 +33,11 @@ const MOVE_CLIPS: Partial<Record<MoveEvent, ClipSound>> = {
   lavaBurn: 'lavaBurn',
 };
 
-/** Update 0.3.75 — the Demon's sword's forge hiss at this heat (0 … 1): nothing when it's cold, rising fast as it nears full. */
-export const forgeLevel = (heat: number) => DEMON.v.hissVolume * heat * heat;
-
 export class MoveSounds {
   private wallRun: NoiseLoop;
-  /** Update 0.3.75 — high and thin: a hiss. */
-  private forge: NoiseLoop;
 
   constructor(private a: AudioEngine) {
     this.wallRun = new NoiseLoop(a, 1600);
-    this.forge = new NoiseLoop(a, 9000);
   }
 
   play(kind: MoveEvent, value: number) {
@@ -140,8 +134,4 @@ export class MoveSounds {
     this.wallRun.setLevel(on ? 0.1 : 0);
   }
 
-  /** Update 0.3.75 — every frame: how hot the Demon's sword is (0: silent). */
-  setForge(heat: number) {
-    this.forge.setLevel(forgeLevel(heat));
-  }
 }

@@ -67,6 +67,11 @@ function slashTo(state: CombatState, player: PlayerState, reach: number) {
       const e = t.kind === 'enemy' ? state.enemies[t.index] : null;
       const s = e ? ENEMY_STATS[e.kind]() : null;
       const share = s?.boss && v.verdictBoss < 1 ? v.verdictBoss : 0;
+      // (The Swarm: past its worms, or one would take it; and through its stare, it's more than a hit on its eye.)
+      if (e?.swarm) {
+        e.swarm.pierce = true;
+        if (e.ult.on) e.ult.fill = e.ult.need;
+      }
       for (let i = 0; i < LIVES; i++) {
         const killed = landHit(state, t, share > 0 ? s!.hp * share : KILLS, v.overheadKnock, dx / d, dz / d, 'hitPierce', 1, true);
         if (killed && e) launch(e, dx / d, dz / d);

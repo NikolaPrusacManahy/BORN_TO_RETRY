@@ -1,10 +1,10 @@
 // Update 0.3.75 — the Playable Demon's feel, phase 4 (the bible; the designer: "start phase 4"). A freeze on every sword hit. Its heavy steps: low, with the view dipping. Ordinary enemies losing
-// their nerve as it comes near. Its sword hissing as it heats. Joseph keeps his own silence.
+// their nerve as it comes near. Joseph keeps his own silence.
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { check, near, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
-import { forgeLevel, MoveSounds } from '../src/audio/moveSounds';
+import { MoveSounds } from '../src/audio/moveSounds';
 import type { AudioEngine } from '../src/audio/audio';
 import { CameraRig } from '../src/engine/cameraRig';
 import { SwordLight } from '../src/engine/demon/swordLight';
@@ -257,14 +257,12 @@ section('Its presence (the bible: "enemies that flinch or back off as you approa
   DEMON.v.presenceFlinch = was.f;
 }
 
-section('Its hiss (the bible: "a forge hiss as heat rises")');
+section('No hiss (Update 0.3.77; the designer: "remove that Hiss sound very annoying")');
 {
-  check('cold: silent', forgeLevel(0) === 0);
-  check('it rises', forgeLevel(0.25) < forgeLevel(0.5) && forgeLevel(0.5) < forgeLevel(1));
-  check('and rises faster as it nears full', forgeLevel(1) - forgeLevel(0.75) > forgeLevel(0.5) - forgeLevel(0.25));
-  check(`full: ${d.hissVolume}, under what a wall run’s scrape is`, near(forgeLevel(1), d.hissVolume, 1e-9) && forgeLevel(1) <= 0.1);
-  const run = readFileSync('src/engine/run.ts', 'utf8');
-  check('only the Demon’s, not paused, not dead, not through Last Verdict', run.includes('this.sounds.setForge(this.combat.demon && !this.paused && !p.dead && !this.combat.blade.verdict ?'));
+  const moves = readFileSync('src/audio/moveSounds.ts', 'utf8');
+  check('its sound’s gone', !moves.includes('forge') && !moves.includes('setForge'));
+  check('and nothing asks for it', !readFileSync('src/engine/run.ts', 'utf8').includes('setForge'));
+  check('nor is its knob there', !('hissVolume' in DEMON.v));
 }
 
 section('Its light (Update 0.3.76; the bible: "a warm point light on the blade lights the arena as you swing. Its brightness follows the heat meter")');

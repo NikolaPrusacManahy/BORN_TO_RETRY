@@ -28,7 +28,6 @@ import { createDinoBody, type DinoBody } from './dinoBody';
 import { createSharkBody, type SharkBody } from './sharkBody';
 import { createWardenBody, type WardenBody } from './wardenBody';
 import { BONE_KING } from '../../tuning/boneKing';
-import { onPupil } from './swarmMoves';
 import type { Wormling } from './wormlings';
 import type { EventQueue } from '../../core/eventQueue';
 import { NavGrid, pushOutOfWalls, wallBetween } from '../../world/navGrid';
@@ -327,8 +326,9 @@ export function hitEnemy(e: Enemy, damage: number, knock: number, dirX: number, 
   // Update 0.3.42 — The Swarm: a worm in the way takes the blow (its share of the bar if it dies), or through a gap
   // its eye does (swarmHits.ts). `at`: where the blow landed (none: on the side it came from).
   if (e.kind === 'swarm' && e.swarm?.seeded) {
-    // (Update 0.3.51 — through its stare, a blow on its pupil counts towards its cancel, and hurts it no more than that.)
-    if (onPupil(e, at)) {
+    // (Update 0.3.51 — through its stare, a blow on it counts towards its cancel, and hurts it no more than that. Update 0.3.77 — any blow that reaches it, the designer's fix: it
+    // had to land within a metre of its middle, up out of reach, and nobody ever could. Not a bleed's or a burn's tick.)
+    if (e.ult.on && !steady) {
       e.flash = 0.12;
       e.ult.fill += 1;
       e.swarm.eyeHit++;

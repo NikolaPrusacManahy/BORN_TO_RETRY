@@ -4,9 +4,9 @@
 //  - Acid Tears: globs that arc at you and leave puddles. Parry one back into the eye: it reels.
 //  - Tethered Shield: big worms round it feed it a shield (nothing hurts it); kill them all and it drops, wide open.
 //  - Split Pupil: three lasers turning like a fan, low (jump them, or turn with the gaps), its worms still at you.
-//  - Abyssal Stare, its ultimate: it lifts up, its worms coiled round it, the room going dark; three hits on its pupil, which
-//    shrinks, or one parried tear, before it's fully open and it reels; or a glare at everything it can see (a pillar between
-//    you saves you).
+//  - Abyssal Stare, its ultimate: it lifts up, its worms coiled round it, the room going dark; three hits on its eye, or one
+//    parried tear, before it's fully open and it reels; or a glare at everything it can see (a pillar between you saves you).
+//    Update 0.3.77 — the designer: "the fix is that we just hit the eye - that is it": any blow on it counts, and it stays in reach.
 // Enemy.aim: the gaze's far end; Enemy.near: the fan's turn; Enemy.shots: tears wept. Pure.
 import { Vector3 } from 'three';
 import { SWARM } from '../../tuning/swarm';
@@ -30,7 +30,7 @@ export const STARE = 5;
 export const GLARE = 6;
 
 /** What the screen says. */
-export const STARE_CUE = 'HIT THE PUPIL';
+export const STARE_CUE = 'HIT THE EYE';
 /** The glare lasts this long (s): a dash's moment doesn't slip all of it. */
 export const GLARE_FOR = 0.35;
 /** The ground shakes and its heart beats this often through its stare (s). */
@@ -163,18 +163,11 @@ export function startStare(e: Enemy, index: number, w: EnemyWorld) {
   w.events.push('swarmStare', index, e.pos.x, e.pos.y + swarmEyeHeight(), e.pos.z);
 }
 
-/** How wide its pupil is through its stare (m, the eye's middle out): it shrinks as it opens. */
+/** How wide its pupil looks through its stare (m, the eye's middle out): it shrinks as it opens, a clock. */
 export function pupilNow(e: Enemy): number {
   const v = SWARM.v;
   const k = 1 - e.ult.left / Math.max(0.1, e.ult.window);
   return v.pupilBig + (v.pupilSmall - v.pupilBig) * k;
-}
-
-/** Does a blow landing at `at` hit its pupil, through its stare? */
-export function onPupil(e: Enemy, at: Vector3 | null): boolean {
-  if (!e.ult.on || !at) return false;
-  eyeOf(e, eye);
-  return eye.distanceTo(at) <= pupilNow(e) + SWARM.v.eye * 0.35;
 }
 
 /** One tick of its stare. Cancelled: it reels; failed: its glare. */

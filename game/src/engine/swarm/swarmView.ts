@@ -192,9 +192,9 @@ export class SwarmView {
     if (e.move === GAZE && (telling || burning)) this.iris.lookAt(look.copy(e.aim));
     // Squinting and wet, for its tears.
     if (telling && e.move === TEARS) this.eye.scale.y *= 0.72;
-    // Red-hot, for its stare, a ring round its pupil to aim at.
+    // Red-hot, for its stare, a ring round all of it: that's what to hit (Update 0.3.77).
     this.aimRing.visible = staring;
-    if (staring) this.aimRing.scale.setScalar(pupilNow(e) / v.eye);
+    if (staring) this.aimRing.scale.setScalar(1);
     (this.irisDisc.material as THREE.MeshStandardMaterial).emissiveIntensity = staring ? 3 : 1;
     // Its shield.
     this.shield.visible = s.shield;

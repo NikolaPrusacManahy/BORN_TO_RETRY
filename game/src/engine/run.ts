@@ -231,8 +231,6 @@ export class Run extends RunBase {
       this.cb.onDeath();
     }
     this.sounds.setWallRunning(!this.paused && p.wallRunning);
-    // (Update 0.3.75 — the Demon's sword hissing as it heats; silent for Last Verdict.)
-    this.sounds.setForge(this.combat.demon && !this.paused && !p.dead && !this.combat.blade.verdict ? this.combat.blade.heat : 0);
     const fov = capture.fovOf(settings.fov);
     this.rig.swing.copy(this.arms.swingLean).multiplyScalar(DEMON.v.view);
     this.rig.update(real * scale, this.clock.alpha, this.prev, p, this.look, fov, aspect);

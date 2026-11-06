@@ -116,7 +116,6 @@ export const DEMON = group('demon', 'The Demon', {
   presenceFlinch: knob(0.5, 0, 1, 0.05, 'Presence: flinch', 'The share that flinch; the rest back off.'),
   presenceBack: knob(9, 0, 30, 0.5, 'Presence: back off', 'How hard they back away (m/s).'),
   presenceWait: knob(7, 0.5, 30, 0.5, 'Presence: wait', 'Seconds before the same enemy can lose its nerve again.'),
-  hissVolume: knob(0.09, 0, 0.5, 0.01, 'Forge hiss', 'How loud the sword hisses at full heat. It rises with heat.'),
 
   lightOn: knob(1, 0, 1, 1, 'Sword light', '1 on, 0 off: to compare the frame rate (F2). Each change makes the floor’s shaders build again: one stutter.'),
   lightRest: knob(4, 0, 60, 0.5, 'Sword light: cold', 'How bright it is with no heat.'),
