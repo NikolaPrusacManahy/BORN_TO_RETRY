@@ -25,6 +25,16 @@ MONSTERS = {
             'UAL2': ['Sword_Heavy_A', 'Sword_Heavy_A_Rec', 'Sword_Heavy_B', 'Sword_Heavy_B_Rec', 'Sword_Heavy_C', 'Sword_Heavy_C_Rec', 'Sword_Heavy_D', 'Melee_Uppercut', 'OverhandThrow', 'Sword_GroundPound', 'MonsterTransformation', 'Walk_Carry_Loop', 'Hit_Knockback'],
         },
     },
+    # Update 0.3.63 — floor 10's boss, Hellwarden (MD/FLOOR10_HELL_PLAN.md, the Boss Design Bible's Blazing Sword Demon): its greatsword kept
+    # (a mesh of its own: the game hides it when it's thrown), its fighting clips, its transformation for its roar.
+    'hellwarden': {
+        'glb': 'Hellwarden.glb', 'out': 'public/models/enemies/hellwarden.glb',
+        'grip': ('r', 'UAL1', 'Sword_Idle'),
+        'clips': {
+            'UAL1': ['Idle_Loop', 'Walk_Loop', 'Jog_Fwd_Loop', 'Death01', 'Sword_Idle', 'Sword_Attack_Standing', 'Jump_Start@0=Jump_Crouch', 'Jump_Start+Jump_Loop=Jump_Air', 'Jump_Land'],
+            'UAL2': ['Sword_Heavy_A', 'Sword_Heavy_B', 'Sword_Heavy_C', 'Sword_Heavy_D', 'Sword_Dash', 'Sword_GroundPound', 'Sword_Block', 'Sword_UpperCut', 'OverhandThrow', 'MonsterTransformation', 'Walk_Carry_Loop', 'Hit_Knockback'],
+        },
+    },
     # Update 0.3.34 — floor 8's boss, Yokai : Okami (MD/FLOOR8_SHRINE_PLAN.md): the Lycan repainted white with red
     # markings (okami_paint.py), no weapon (the designer: "no sword"). Update 0.3.35 (the designer: "why does the boss
     # still do the fighter stancing and the hits??? he has human animations?") — the library's most beast-like clips in

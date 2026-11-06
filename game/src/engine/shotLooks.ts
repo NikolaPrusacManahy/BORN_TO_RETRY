@@ -14,7 +14,7 @@ import * as THREE from 'three';
 import type { Orb } from '../sim/combat/targets';
 import { jawMaterial, lowerJaw, upperJaw } from './temple/headGeometry';
 
-export type ShotStyle = 'fire' | 'blueFire' | 'acid' | 'water' | 'spear' | 'spine' | 'feather' | 'carrot' | 'laser' | 'missile' | 'axe' | 'shuriken' | 'kunai' | 'arrow' | 'rubble' | 'rib' | 'shard' | 'head';
+export type ShotStyle = 'fire' | 'blueFire' | 'acid' | 'water' | 'spear' | 'spine' | 'feather' | 'carrot' | 'laser' | 'missile' | 'axe' | 'shuriken' | 'kunai' | 'arrow' | 'rubble' | 'rib' | 'shard' | 'head' | 'blade';
 
 /** A shot's style: by who fired it, then by its look. */
 export function shotStyle(o: Orb): ShotStyle {
@@ -26,6 +26,7 @@ export function shotStyle(o: Orb): ShotStyle {
   if (o.look === 'rib') return 'rib';
   if (o.look === 'shard') return 'shard';
   if (o.look === 'head') return 'head';
+  if (o.look === 'blade') return 'blade';
   if (o.look === 'tear') return 'acid';
   if (o.look === 'ki') return 'blueFire';
   return o.look === 'water' ? 'water' : o.look === 'spear' ? 'spear' : o.look === 'spine' ? 'spine' : o.look === 'carrot' ? 'carrot' : 'fire';
@@ -68,6 +69,8 @@ export const TRAILS: Record<ShotStyle, ShotTrail> = {
   shard: { rate: 14, color: 0xcff4ff, falls: true, burst: 10, burstColor: 0xcff4ff, flash: null },
   // (Update 0.3.58 — the Drowned King's head: dripping, and it bursts wet.)
   head: { rate: 16, color: 0x9fe8ff, falls: true, burst: 14, burstColor: 0x7ad0e0, flash: null },
+  // (Update 0.3.63 — Hellwarden's blade: embers behind it.)
+  blade: { rate: 40, color: 0xff8a30, falls: false, burst: 16, burstColor: 0xffa040, flash: 0xff8a30 },
 };
 
 /** Every style's meshes for one shot's slot (each hidden but its own: shotsView.ts shows one). Geometries and
@@ -189,7 +192,11 @@ export class ShotMeshes {
     biter.add(jawUp, jawDown);
     jawUp.position.y = jawDown.position.y = -0.45;
     this.jaws.push(jawUp, jawDown);
+    // (Update 0.3.63 — Hellwarden's blade, long and burning.)
+    const longBlade = new THREE.Mesh(kit.box, kit.fireInner);
+    longBlade.scale.set(0.28, 0.08, 4.2);
     this.parts = {
+      blade: longBlade,
       head: biter,
       shard,
       rib,

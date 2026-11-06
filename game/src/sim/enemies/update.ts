@@ -85,6 +85,7 @@ import { updateDiver, updateMineLayer, updateStrafer } from './ships';
 import { updateBeeShip } from './beeShip';
 import { updateBeeMech, updateBeeNaut } from './beeMech';
 import { updateTidebreaker } from './tidebreaker';
+import { updateHellwarden } from './hellwarden';
 import { updateOkami } from './okami';
 import { updateRaider } from './raider';
 import { updateAxeThrower } from './axeThrower';
@@ -187,6 +188,7 @@ const UPDATE: Record<EnemyKind, Update> = {
   frogMech: updateBeeMech,
   frogNaut: updateBeeNaut,
   tidebreaker: updateTidebreaker,
+  hellwarden: updateHellwarden,
   // Update 0.3.22 — floor 7's warband, Frozen Depths.
   raider: updateRaider,
   axeThrower: updateAxeThrower,
@@ -212,7 +214,7 @@ const UPDATE: Record<EnemyKind, Update> = {
 };
 /** A dead boss's show, each tick until its slot frees. Update 0.2.4 — and a Green Blob splitting as it dies.
  *  Update 0.2.11 — and a dead fish floating up. Update 0.3.15 — a Gull dropping your coins, a Tentacle sinking. */
-const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld, dt: number) => void>> = { dragon: doomBoss, swarm: doomSwarm, boneKing: doomKing, frostRoc: doomRoc, dino: doomBoss, drownedKing: doomBoss, greenBlob: splitBlob, bigMushnub: splitMushnub, clownfish: floatUp, tuna: floatUp, angelfish: floatUp, dolphin: floatUp, mantaRay: floatUp, shark: floatUp, whale: doomBoss, gull: gullDrops, tentacle: tentacleSinks, bigShark: doomBoss, tidebreaker: doomBoss, okami: doomBoss };
+const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld, dt: number) => void>> = { dragon: doomBoss, swarm: doomSwarm, boneKing: doomKing, frostRoc: doomRoc, dino: doomBoss, drownedKing: doomBoss, greenBlob: splitBlob, bigMushnub: splitMushnub, clownfish: floatUp, tuna: floatUp, angelfish: floatUp, dolphin: floatUp, mantaRay: floatUp, shark: floatUp, whale: doomBoss, gull: gullDrops, tentacle: tentacleSinks, bigShark: doomBoss, tidebreaker: doomBoss, okami: doomBoss, hellwarden: doomBoss };
 
 export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWorld, world: CollisionWorld, dt: number) {
   let any = false;

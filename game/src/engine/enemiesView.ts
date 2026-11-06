@@ -52,6 +52,7 @@ import { moveOf } from '../sim/combat/execution';
 import { submerged } from '../sim/enemies/drownedKingMoves';
 import { hiddenDino } from '../sim/enemies/dinoMoves';
 import { hiddenShark } from '../sim/enemies/sharkArena';
+import { hiddenWarden } from '../sim/enemies/wardenMoves';
 import { ownMaterials } from './norse/norseLooks';
 import { FOES_NORSE } from '../tuning/foesNorse';
 import { sinkOf } from './enemyPose';
@@ -211,8 +212,8 @@ export class EnemiesView {
       // A slime that burst is gone (one killed dies as the others do); so is the Bone King once its bones burst.
       // (Update 0.2.10 — and floor 5's under the water: drownedFx.ts shows their fins.)
       // (Update 0.3.15 — Mako in the sand, a Tentacle sunk under the sea. Update 0.3.22 — floor 7's dead in the snow.)
-      const buried = ((e.kind === 'cactoro' || e.kind === 'cactoroBig' || e.kind === 'mako') && e.pos.y < -1) || (e.kind === 'tentacle' && e.pos.y < -5) || ((e.kind === 'draugr' || e.kind === 'barrowMaid') && e.pos.y < -1.5) || submerged(e) || hiddenDino(e) || hiddenShark(e);
-      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing' || e.kind === 'whale' || e.kind === 'frostRoc' || e.kind === 'tidebreaker' || e.kind === 'okami') && e.phase === 'dead' && e.struck) && !buried && !(e.king && (e.phase === 'leap' || (e.phase === 'intro' && e.move === SHOW_WAIT)));
+      const buried = ((e.kind === 'cactoro' || e.kind === 'cactoroBig' || e.kind === 'mako') && e.pos.y < -1) || (e.kind === 'tentacle' && e.pos.y < -5) || ((e.kind === 'draugr' || e.kind === 'barrowMaid') && e.pos.y < -1.5) || submerged(e) || hiddenDino(e) || hiddenShark(e) || hiddenWarden(e);
+      b.root.visible = !((e.kind === 'slime' || e.kind === 'boneKing' || e.kind === 'dino' || e.kind === 'drownedKing' || e.kind === 'whale' || e.kind === 'frostRoc' || e.kind === 'tidebreaker' || e.kind === 'okami' || e.kind === 'hellwarden') && e.phase === 'dead' && e.struck) && !buried && !(e.king && (e.phase === 'leap' || (e.phase === 'intro' && e.move === SHOW_WAIT)));
       if (!b.root.visible) continue;
       const windup = look.windup(e.move, e.stage);
       const king = e.kind === 'boneKing';

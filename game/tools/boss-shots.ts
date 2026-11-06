@@ -20,6 +20,10 @@ import { WoodGate } from '../src/engine/boss/woodGate';
 import { introBeats } from '../src/sim/dungeon/bossRoom';
 import { bossOf, ENEMY_STATS } from '../src/sim/enemies/kinds';
 import { DROWNED } from '../src/tuning/drowned';
+import { HELLWARDEN } from '../src/tuning/hellwarden';
+import { WardenFx } from '../src/engine/hell/wardenFx';
+import { ThroneView } from '../src/engine/hell/throneView';
+import { ARC as WARDEN_ARC, BRAND as WARDEN_BRAND, VERDICT as WARDEN_VERDICT } from '../src/sim/enemies/wardenMoves';
 import { SharkFx } from '../src/engine/boss/sharkFx';
 import { setSharkArena } from '../src/sim/enemies/sharkBody';
 import { ABYSS as SHARK_ABYSS } from '../src/sim/enemies/sharkArena';
@@ -473,6 +477,73 @@ if (kind === 'frostRoc') {
   const fz0 = -Math.cos(e.facing);
   const look = (name: string, f: number, r: number, u: number, to = 0.5) => ({ name, at: [e.pos.x + fx0 * f * h - fz0 * r * h, u * h, e.pos.z + fz0 * f * h + fx0 * r * h], to: [e.pos.x, to * h, e.pos.z] });
   if (!(beat in showAt)) cams.splice(1, 2, look('roc-front', 2.1, 0.45, 0.55), look('roc-side', 0.5, 2.2, 0.6), look('roc-high', 3.6, 2.2, 2.3, 0.1), { name: 'roc-pit', at: [mid.x - R.cliffX * 26, 6, mid.z - R.cliffZ * 26], to: [mid.x + R.cliffX * 30, 13, mid.z + R.cliffZ * 30] });
+  demon.height = 0;
+}
+if (kind === 'hellwarden') {
+  // (Update 0.3.63 — it posed for a move, by the game's own view code, baked: `--beat=stand|arc|two|brand|verdict|shatter|echoes`.)
+  const beat = process.argv.find((a) => a.startsWith('--beat='))?.slice(7) ?? 'stand';
+  const gltf = await parseUntextured(new URL('../public/models/enemies/hellwarden.glb', import.meta.url));
+  const root = gltf.scene as THREE.Object3D;
+  const combat = createCombat(level.arena, false);
+  const mid = new THREE.Vector3(b.portal.x, 0, b.portal.z);
+  const slot = spawnEnemy(combat.enemies, 'hellwarden', mid, Math.atan2(-(eye.x - mid.x), -(eye.z - mid.z)));
+  const e = combat.enemies[slot];
+  const W = e.warden!;
+  const set = (phase: Enemy['phase'], move: number, t: number, shots = 0) => {
+    e.phase = phase;
+    e.move = move;
+    e.t = t;
+    e.shots = shots;
+  };
+  let clipName = 'Sword_Idle';
+  let clipAt = 0.4;
+  const hv = HELLWARDEN.v;
+  if (beat === 'arc') {
+    set('windup', WARDEN_ARC, hv.tell * 0.8);
+    clipName = 'Sword_Heavy_B';
+    clipAt = 0.5;
+    W.walls.push({ ax: mid.x - 15, az: mid.z + 8, bx: mid.x + 15, bz: mid.z + 8, left: 3, burn: 0 });
+  }
+  if (beat === 'two') {
+    e.stage = 1;
+    W.twin = true;
+    set('chase', 99, 0);
+  }
+  if (beat === 'brand') {
+    set('dive', WARDEN_BRAND, 0.5);
+    clipName = 'Sword_GroundPound';
+    clipAt = 0.7;
+    W.brand = { x: mid.x, z: mid.z, a: 0.4, t: hv.brandWarn + 3 * hv.brandStepT, done: 3 };
+  }
+  if (beat === 'verdict') {
+    e.stage = 1;
+    set('blast', WARDEN_VERDICT, 1.5, 1);
+    e.pos.y = 4;
+    clipName = 'Jump_Air';
+    clipAt = 0.2;
+  }
+  const box0 = new THREE.Box3().setFromObject(root, true);
+  const mixer = new THREE.AnimationMixer(root);
+  mixer.clipAction(gltf.animations.find((a: THREE.AnimationClip) => a.name === clipName)!).play();
+  mixer.update(clipAt);
+  const h = hv.height;
+  const sc0 = h / 2.01;
+  root.scale.setScalar(sc0);
+  root.position.copy(e.pos);
+  root.rotation.set(0, e.facing + Math.PI, 0);
+  root.updateMatrixWorld(true);
+  const scene = new THREE.Scene();
+  scene.add(root);
+  const fx = new WardenFx(scene);
+  fx.update(combat, 0.016, () => root);
+  scene.updateMatrixWorld(true);
+  bake(scene);
+  const tv = new ThroneView(level);
+  bake(tv.group);
+  const fx0 = -Math.sin(e.facing);
+  const fz0 = -Math.cos(e.facing);
+  const look = (name: string, f: number, r: number, u: number, to = 0.5) => ({ name, at: [e.pos.x + fx0 * f * h - fz0 * r * h, u * h, e.pos.z + fz0 * f * h + fx0 * r * h], to: [e.pos.x, to * h + e.pos.y, e.pos.z] });
+  cams.splice(1, 2, look('hw-front', 2.2, 0.5, 0.5), look('hw-side', 0.4, 2.4, 0.55), look('hw-high', 3.4, 1.8, 2, 0.1), { name: 'hw-room', at: [mid.x + (room.max.x - room.min.x) * 0.5, 30, mid.z + (room.max.z - room.min.z) * 0.5], to: [mid.x, 0, mid.z] });
   demon.height = 0;
 }
 if (kind === 'bigShark') {

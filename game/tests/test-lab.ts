@@ -192,7 +192,7 @@ section('Lab panel — a column a floor, the items by kind');
   // made: its column back.)
   // (Update 0.3.18 — floor 8 has its crew: a column, page 3. Update 0.3.22 — and floor 7 its warband: a column beside it.)
   // (Update 0.3.43 — Hell on Earth, its look its own, its enemies and boss still stand-ins: only to play.)
-  check('floor 10 only to play (its enemies and boss stand in); the rest each a column, three to a page', LAB_NEW.join() === '10' && LAB_COLUMNS.length === 9 && LAB_PAGES.map((pg) => pg.map((f) => f.floor).join('')).join(' ') === '123 456 789', `${LAB_NEW.join()} to play`);
+  check('each floor a column, three to a page (floor 10 with its boss, Hellwarden)', LAB_NEW.join() === '' && LAB_COLUMNS.length === 10 && LAB_PAGES.map((pg) => pg.map((f) => f.floor).join('')).join(' ') === '123 456 789 10', `${LAB_NEW.join()} to play`);
   // (Update 0.3.28 — its mini bosses two to a row: the Moon's five.)
   check('a floor’s column fits (9 rows at most: its mini bosses two to a row)', LAB_FLOORS.every((f) => labRows(f) <= 9), LAB_FLOORS.map(labRows).join(' '));
   const items = LAB_ITEMS.flatMap(([, picks]) => picks.map(([, cmd]) => cmd));

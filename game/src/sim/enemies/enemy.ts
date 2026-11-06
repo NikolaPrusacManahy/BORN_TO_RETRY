@@ -26,6 +26,7 @@ import { createRocBody, type RocBody } from './rocBody';
 import { createDrownedBody, type DrownedBody } from './drownedBody';
 import { createDinoBody, type DinoBody } from './dinoBody';
 import { createSharkBody, type SharkBody } from './sharkBody';
+import { createWardenBody, type WardenBody } from './wardenBody';
 import { BONE_KING } from '../../tuning/boneKing';
 import { onPupil } from './swarmMoves';
 import type { Wormling } from './wormlings';
@@ -121,6 +122,8 @@ export interface Enemy {
   raptor: DinoBody | null;
   /** Update 0.3.62 — the Big Shark's arena, its whirlpool, your blood (sharkBody.ts; null: anything else). */
   shark: SharkBody | null;
+  /** Update 0.3.63 — Hellwarden's fire walls, its Brand, its echoes, its blades (wardenBody.ts; null: anything else). */
+  warden: WardenBody | null;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -203,6 +206,7 @@ export function createEnemies(): Enemy[] {
     drowned: null,
     raptor: null,
     shark: null,
+    warden: null,
   }));
 }
 
@@ -249,6 +253,7 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.drowned = kind === 'drownedKing' ? createDrownedBody() : null;
   e.raptor = kind === 'dino' ? createDinoBody() : null;
   e.shark = kind === 'bigShark' ? createSharkBody() : null;
+  e.warden = kind === 'hellwarden' ? createWardenBody() : null;
   return i;
 }
 

@@ -116,7 +116,7 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   foxNaut: null,
   frogMech: null,
   frogNaut: null,
-  tidebreaker: null,
+  tidebreaker: null, hellwarden: null,
   okami: null,
   // Update 0.3.22 — floor 7's warband: the Raider's slide and the dead's grasp as close blows; the Thrower's axes and the
   // Völva's bolts as shots; the mini bosses as heavies (one at a time).

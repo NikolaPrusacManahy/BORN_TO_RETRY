@@ -282,10 +282,10 @@ export const ENEMY_STATS: Record<EnemyKind, () => EnemyStats> = {
 // (Update 0.3.41 — the designer: "take Boss 1, remove it and take Boss 2 (dragon) to floor 1 boss"; the Venom Garden's
 // to be the worm swarm, MD/the-knot-3d-boss.md: the Dragon stands in for it meanwhile.)
 // (Update 0.3.42 — the Venom Garden's own: The Swarm.)
-const BOSSES: Readonly<Record<Realm, EnemyKind>> = { dungeon: 'dragon', garden: 'swarm', keep: 'boneKing', frozen: 'frostRoc', temple: 'drownedKing', desert: 'dino', cove: 'bigShark', shrine: 'okami', moon: 'tidebreaker', hell: 'dino' };
+const BOSSES: Readonly<Record<Realm, EnemyKind>> = { dungeon: 'dragon', garden: 'swarm', keep: 'boneKing', frozen: 'frostRoc', temple: 'drownedKing', desert: 'dino', cove: 'bigShark', shrine: 'okami', moon: 'tidebreaker', hell: 'hellwarden' };
 /** The places whose boss is their own (the others' stands in). */
 // (Update 0.3.34 — the Shrine Dimension's its own, Yokai : Okami.)
-const OWN_BOSS: ReadonlySet<Realm> = new Set<Realm>(['dungeon', 'garden', 'keep', 'frozen', 'temple', 'desert', 'cove', 'shrine', 'moon']);
+const OWN_BOSS: ReadonlySet<Realm> = new Set<Realm>(['dungeon', 'garden', 'keep', 'frozen', 'temple', 'desert', 'cove', 'shrine', 'moon', 'hell']);
 export const bossOf = (floor: number): EnemyKind => BOSSES[realmOf(floor)];
 /** Update 0.3.25 — floor `floor`'s boss if it's its own (null: another floor's stands in). */
 export const ownBossOf = (floor: number): EnemyKind | null => (OWN_BOSS.has(realmOf(floor)) ? bossOf(floor) : null);

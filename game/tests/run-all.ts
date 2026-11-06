@@ -99,6 +99,7 @@ import './test-roc-show';
 import './test-drowned-show';
 import './test-dino-show';
 import './test-shark-arena';
+import './test-hellwarden';
 import './test-tidebreaker';
 import './test-tidebreaker-view';
 import './test-tidebreaker-show';

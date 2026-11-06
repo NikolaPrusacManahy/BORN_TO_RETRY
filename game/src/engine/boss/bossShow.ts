@@ -46,13 +46,14 @@ import { dinoSlow } from '../../sim/dungeon/dinoShow';
 import { okamiSlow } from '../../sim/dungeon/okamiShow';
 import { BIG_SHARK } from '../../tuning/bigShark';
 import { TIDEBREAKER } from '../../tuning/tidebreaker';
+import { HELLWARDEN } from '../../tuning/hellwarden';
 import { bossIn } from './bossIn';
 
 /** The boss's name card. **(placeholder names)** */
 // (Update 0.3.41 — the first boss's name, the Demon gone: the Dragon's.)
 export const BOSS_NAME = 'THE DRAGON';
 /** Update 0.0.18 — each boss's name. */
-export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { dragon: BOSS_NAME, swarm: 'THE SWARM', boneKing: 'THE BONE KING', dino: 'THE VELOCIRAPTOR', drownedKing: 'THE DROWNED KING', whale: 'THE OLD WHALE', bigShark: 'THE BIG SHARK', frostRoc: 'THE FROST ROC', tidebreaker: 'TIDEBREAKER', okami: 'YOKAI : OKAMI' };
+export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { hellwarden: 'HELLWARDEN', dragon: BOSS_NAME, swarm: 'THE SWARM', boneKing: 'THE BONE KING', dino: 'THE VELOCIRAPTOR', drownedKing: 'THE DROWNED KING', whale: 'THE OLD WHALE', bigShark: 'THE BIG SHARK', frostRoc: 'THE FROST ROC', tidebreaker: 'TIDEBREAKER', okami: 'YOKAI : OKAMI' };
 
 /** Update 0.2.3 — a boss bar's mark: where it rages (the Demon, the Dragon), or the Bone King's final blast (its second
  *  life only). */
@@ -69,6 +70,7 @@ function markOf(boss: Enemy): number {
   if (boss.kind === 'tidebreaker') return boss.stage >= 2 ? -1 : boss.stage > 0 ? TIDEBREAKER.v.frenzyAt : TIDEBREAKER.v.rageAt;
   // (Update 0.3.34 — Yokai : Okami: no rage yet.)
   if (boss.kind === 'okami') return -1;
+  if (boss.kind === 'hellwarden') return boss.stage > 0 ? -1 : HELLWARDEN.v.rageAt;
   // (Update 0.3.51 — The Swarm: where its worms latch on.)
   if (boss.kind === 'swarm') return boss.stage > 0 ? -1 : SWARM.v.phase2At;
   return boss.kind === 'dragon' ? DRAGON.v.rageAt : BOSS.v.rageAt;

@@ -10,6 +10,7 @@ import { spiked } from './urchin';
 import { submerged } from './drownedKingMoves';
 import { hiddenDino } from './dinoMoves';
 import { hiddenShark } from './sharkArena';
+import { hiddenWarden } from './wardenMoves';
 import { Vector3 } from 'three';
 import { FOES4 } from '../../tuning/foes4';
 import { FOES3B } from '../../tuning/foes3b';
@@ -124,6 +125,9 @@ export function dodges(state: CombatState, i: number, dirX: number, dirZ: number
       }
       return false;
     }
+    // (Update 0.3.63 — Hellwarden gone in embers: out of reach.)
+    case 'hellwarden':
+      return hiddenWarden(e);
     // (Update 0.3.62 — the Big Shark under the seabed: out of reach.)
     case 'bigShark':
       return hiddenShark(e);

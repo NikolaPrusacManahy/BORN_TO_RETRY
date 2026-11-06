@@ -18,6 +18,7 @@ import { tearStruck } from '../enemies/swarmMoves';
 import { ribStruck } from '../enemies/boneKingMoves';
 import { shardStruck } from '../enemies/rocMoves';
 import { submerged } from '../enemies/drownedKingMoves';
+import { bladeStruck } from '../enemies/wardenMoves';
 import { DROWNED } from '../../tuning/drowned';
 import { heavyPowers } from '../cards/cardPowers';
 import { segmentDistance } from './geometry';
@@ -74,7 +75,10 @@ export function parry(state: CombatState, eye: Vector3, dir: Vector3): number {
   // (Update 0.3.60 — so does the stone the Velociraptor kicks in its Apex Hunt: into its eyes.)
   const raptor = o.look === 'rubble' && o.by === 'dino' ? state.enemies.find((e) => isLive(e) && e.kind === 'dino') : null;
   if (raptor) toward.set(raptor.pos.x - o.pos.x, raptor.pos.y + ENEMY_STATS.dino().height * 0.6 - o.pos.y, raptor.pos.z - o.pos.z).normalize();
-  state.fists.quick = o.look === 'head';
+  // (Update 0.3.63 — Hellwarden's blade, knocked back at it.)
+  const warden = o.look === 'blade' ? state.enemies.find((e) => isLive(e) && e.kind === 'hellwarden') : null;
+  if (warden) toward.set(warden.pos.x - o.pos.x, warden.pos.y + ENEMY_STATS.hellwarden().height * 0.5 - o.pos.y, warden.pos.z - o.pos.z).normalize();
+  state.fists.quick = o.look === 'head' || o.look === 'blade';
   o.vel.copy(toward).multiplyScalar(Math.max(o.vel.length() * FISTS.v.parrySpeed, FISTS.v.parryMinSpeed));
   o.parried = true;
   o.arc = 0;
@@ -110,6 +114,8 @@ export function stepParried(state: CombatState, world: CollisionWorld, dt: numbe
       if (o.look === 'shard' && hit.kind === 'enemy' && !killed && state.enemies[hit.index].kind === 'frostRoc') shardStruck(state.enemies[hit.index], hit.index, state);
       // (Update 0.3.53 — a rib sent back into the Bone King: it staggers.)
       if (o.look === 'rib' && hit.kind === 'enemy' && !killed && state.enemies[hit.index].kind === 'boneKing') ribStruck(state.enemies[hit.index], hit.index, state);
+      // (Update 0.3.63 — a blade knocked back into Hellwarden: it's weaker till it fetches it.)
+      if (o.look === 'blade' && hit.kind === 'enemy' && !killed && state.enemies[hit.index].kind === 'hellwarden') bladeStruck(state.enemies[hit.index], hit.index, state);
       // (Update 0.3.58 — a head sent back into the Drowned King.)
       if (o.look === 'head' && hit.kind === 'enemy' && state.enemies[hit.index].kind === 'drownedKing') state.events.push('drownedHeadBack', hit.index, hit.point.x, hit.point.y, hit.point.z);
       // (Update 0.3.5 — Cold Snap's freeze, Thunderclap's lightning, Powder Keg's blast.)

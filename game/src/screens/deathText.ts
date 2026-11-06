@@ -76,6 +76,7 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   frogNaut: 'Finn the Frog',
   // Update 0.3.29 — the Moon's boss.
   tidebreaker: 'Tidebreaker',
+  hellwarden: 'Hellwarden',
   // Update 0.3.34 — floor 8's boss.
   okami: 'Yokai : Okami',
   icicle: 'An icicle',

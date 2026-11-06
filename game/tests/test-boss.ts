@@ -134,5 +134,5 @@ section('Every boss’s health, cut by 30% (Update 0.3.48, the designer)');
 {
   const was: Partial<Record<EnemyKind, number>> = { dragon: 1600, swarm: 1600, boneKing: 1000, frostRoc: 1700, drownedKing: 2000, dino: 1800, bigShark: 1800, okami: 1850, tidebreaker: 1900, whale: 2600 };
   for (const kind of Object.keys(was) as EnemyKind[]) check(`${kind}: ${was[kind]} → ${ENEMY_STATS[kind]().hp}`, near(ENEMY_STATS[kind]().hp, was[kind]! * 0.7, 1e-6) && ENEMY_STATS[kind]().boss);
-  check('every boss is on that list', ENEMY_KINDS.filter((k) => ENEMY_STATS[k]().boss).every((k) => was[k] !== undefined));
+  check('every boss is on that list (Hellwarden came after it, at Tidebreaker’s)', ENEMY_KINDS.filter((k) => ENEMY_STATS[k]().boss && k !== 'hellwarden').every((k) => was[k] !== undefined));
 }

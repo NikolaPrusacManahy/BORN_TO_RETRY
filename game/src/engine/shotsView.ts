@@ -170,6 +170,11 @@ export class ShotsView {
           g.quaternion.setFromAxisAngle(UP, spin * 3);
           g.scale.setScalar(1);
           break;
+        // (Update 0.3.63 — Hellwarden's blade, whirling flat.)
+        case 'blade':
+          g.quaternion.setFromAxisAngle(UP, spin * 1.5);
+          HALOS.add(o.pos.x, o.pos.y, o.pos.z, 4, 0xff7a20, 0.6);
+          break;
         // (Update 0.3.58 — the Drowned King's head, nose first, biting: gold on the way back.)
         case 'head': {
           g.quaternion.copy(q);

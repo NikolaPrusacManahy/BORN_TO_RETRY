@@ -329,6 +329,7 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
   stand-in enemies and boss. **(placeholder numbers, F1 → The Forge)**
 
 ### Floor 10 — Hell on Earth: its look (Update 0.3.43; the plan `MD/FLOOR10_HELL_PLAN.md`; spec `MD_UPDATES/U0343_HELL_LOOK.md`)
+- **Its boss, Hellwarden** (Update 0.3.63; spec `MD_UPDATES/U0363_HELLWARDEN.md`; the Boss Design Bible's Blazing Sword Demon, "The final exam"): a **Blazing Arc** (blade flares; jump the swing; a wall of fire for 4 s; columns cut through), a **Hellfire Lunge** (embers, a whoosh from the side it'll arrive on; parry the thrust: open 2 s), a **Brand of Ruin** (sword in the floor; fire pillars along 8 lines: stand in the gaps). Phase 2, at half health: its columns come down, the floor cracks, its sword splits: **Echoes of the Fallen** (shadows of the Dragon, Giant, Raptor and Wolf, each dodged as it was), **Twin Blade Recall** (parry a blade: it's weak 12 s). Its ultimate, **Last Verdict**, as phase 2 starts then every 60 s: the screen drains of colour, a great sword charges 3 s, one parry at its flash: it shatters, down 8 s; anything else: dead, the only one-shot in the game. Its room: `world/dungeon/throne.ts`. 1330 health.
 - The designer: "what do we design in floor 10? … a hell level?", then "Go with your mix", "Agreed, start". The
   plan's first step: the Forge's rooms and machinery turned to Hell's (its enemies, echo rooms and Hellwarden next).
 - **Stone:** basalt walls, dark and a little glossy; red-brown paving; **seams of lava glowing** through both, hottest at

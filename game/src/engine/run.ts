@@ -70,6 +70,7 @@ import { iceGrip, sandSlow, webSlow } from '../sim/dungeon/quicksand';
 import { chillSlow, rimeGrip } from '../sim/combat/frost';
 import { caltropSlow } from '../sim/combat/smoke';
 import { floodSlow, stepTide, tideSlow } from '../sim/dungeon/tide';
+import { verdictGrey } from '../sim/enemies/wardenVerdict';
 import { Lobby, lobbyFocus, stepLobby } from '../sim/lobby/lobby';
 import { styleOf } from '../world/dungeon/styles';
 import { sharkSea } from '../sim/dungeon/sharkShow';
@@ -87,6 +88,8 @@ const KILL_Y = -20;
 const rightOf = new THREE.Vector3();
 
 export class Run extends RunBase {
+  /** Update 0.3.63 — how grey the screen is. */
+  private grey = 0;
   private readonly skull = new THREE.Vector3();
 
   /** Runs this frame's sim ticks. Stops early when a hit starts a hit-stop, so the freeze begins on the hit. */
@@ -250,6 +253,13 @@ export class Run extends RunBase {
     // (Update 0.3.51 — The Swarm's stare darkens the room.)
     // (Update 0.3.60 — so does the Velociraptor's Apex Hunt.)
     this.view.darkWanted = this.combat.storm > 0 || this.combat.enemies.some((e) => e.alive && e.kind === 'swarm' && e.phase === 'blast') ? 1 : 0;
+    // (Update 0.3.63 — Hellwarden's Last Verdict: the screen drained of colour.)
+    const warden = this.combat.enemies.find((e) => e.alive && e.kind === 'hellwarden');
+    const grey = warden ? Math.round(verdictGrey(warden) * 20) / 20 : 0;
+    if (grey !== this.grey) {
+      this.grey = grey;
+      renderer.domElement.style.filter = grey > 0 ? `grayscale(${grey}) contrast(${1 + 0.15 * grey})` : '';
+    }
     // (Update 0.3.60 — your right, for the sounds that say which side they came from.)
     if (AudioEngine.current) {
       this.camera.getWorldDirection(rightOf);

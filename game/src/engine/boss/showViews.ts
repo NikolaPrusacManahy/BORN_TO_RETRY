@@ -20,6 +20,7 @@ import { kingWide } from './kingCinema';
 import { PlateauView } from '../norse/plateauView';
 import { TempleView } from '../temple/templeView';
 import { RuinsView } from './ruinsView';
+import { ThroneView } from '../hell/throneView';
 import { rocWide } from '../norse/rocCinema';
 import { drownedWide } from '../temple/drownedCinema';
 import { dinoWide } from './dinoCinema';
@@ -44,6 +45,7 @@ export function showViewOf(level: DungeonLevel, depths: DepthsView): ShowView | 
   if (boss === 'frostRoc') return new PlateauView(level);
   if (boss === 'drownedKing') return new TempleView(level);
   if (boss === 'dino' && level.plan.level === FLOOR.desert) return new RuinsView(level);
+  if (boss === 'hellwarden') return new ThroneView(level);
   if (boss === 'okami' && level.okami && depths.sky) return new OkamiShowView(level, depths.sky);
   return null;
 }

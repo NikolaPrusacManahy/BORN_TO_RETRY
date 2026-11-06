@@ -8,6 +8,7 @@ import type { DepthsEvent } from './events7';
 import type { CoveEvent } from './eventsCove';
 import type { MoonEvent } from './eventsMoon';
 import type { NorseEvent } from './eventsNorse';
+import type { HellEvent } from './eventsHell';
 import type { ShrineEvent } from './eventsShrine';
 
 export type CombatEvent =
@@ -370,4 +371,5 @@ export type CombatEvent =
   | CoveEvent
   | MoonEvent
   | NorseEvent
+  | HellEvent
   | ShrineEvent;

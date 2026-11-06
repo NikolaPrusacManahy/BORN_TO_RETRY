@@ -191,6 +191,6 @@ section('The Forge (floor 10) — stand-ins');
 {
   const roster = rosterOf(FLOOR.hell);
   check('its enemies stand in from the dry floors (none of floor 6’s)', roster.length > 0 && roster.every((k) => !(KINDS6 as readonly string[]).includes(k)), roster.join(', '));
-  check('its boss stands in (the Velociraptor)', bossOf(FLOOR.hell) === 'dino');
+  check('its boss stands in (the Velociraptor)', bossOf(FLOOR.hell) === 'hellwarden');
   check('“A press”, “A fire vent” on the death screen', causeName('crusher') === 'A press' && causeName('vent') === 'A fire vent');
 }

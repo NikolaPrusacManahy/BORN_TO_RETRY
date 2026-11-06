@@ -52,6 +52,7 @@ import { PIT_ROOM } from './pit';
 import { PLATEAU_ROOM } from './plateau';
 import { TEMPLE_ROOM } from './temple';
 import { RUINS_ROOM } from './ruins';
+import { THRONE_ROOM } from './throne';
 import { FROZEN_ROOMS } from './frozenRooms';
 import { FORGE_ROOMS } from './forgeRooms';
 import { COVE_ROOMS, SHARK_ROOM } from './coveRooms';
@@ -204,7 +205,7 @@ export const bossRoomOf = (floor: number): RoomTemplate => {
   // (Update 0.3.56 — Frozen Depths', the Frost Roc's plateau: plateau.ts.)
   // (Update 0.3.58 — the Drowned Temple's, the Drowned King's flooded temple: temple.ts.)
   // (Update 0.3.60 — the Desert's, the Velociraptor's ruins: ruins.ts.)
-  return r === 'garden' ? NEST_ROOM : r === 'keep' ? PIT_ROOM : r === 'frozen' ? PLATEAU_ROOM : r === 'temple' ? TEMPLE_ROOM : r === 'desert' ? RUINS_ROOM : r === 'cove' ? SHARK_ROOM : r === 'moon' ? MOON_BOSS_ROOM : r === 'shrine' ? SHRINE_BOSS_ROOM : BOSS_ROOM;
+  return r === 'garden' ? NEST_ROOM : r === 'keep' ? PIT_ROOM : r === 'frozen' ? PLATEAU_ROOM : r === 'temple' ? TEMPLE_ROOM : r === 'desert' ? RUINS_ROOM : r === 'hell' ? THRONE_ROOM : r === 'cove' ? SHARK_ROOM : r === 'moon' ? MOON_BOSS_ROOM : r === 'shrine' ? SHRINE_BOSS_ROOM : BOSS_ROOM;
 };
 
 /** Update 0.0.13 — the shop (the designer: a room with five floor tiles, each showing something to buy). */

@@ -45,6 +45,8 @@ import { CrewMarks } from './moon/crewMarks';
 import { WarbandFx } from './norse/warbandFx';
 import { RocFx } from './norse/rocFx';
 import { SharkFx } from './boss/sharkFx';
+import { WardenFx } from './hell/wardenFx';
+import { EchoesView } from './hell/echoesView';
 import { TideFx } from './moon/tideFx';
 import { ShrineFx } from './shrine/shrineFx';
 import { EnemiesView } from './enemiesView';
@@ -99,6 +101,8 @@ export class CombatScene {
   private readonly warband: WarbandFx;
   private readonly roc: RocFx;
   private readonly sharkFx: SharkFx;
+  private readonly wardenFx: WardenFx;
+  private readonly echoes: EchoesView;
   private readonly tide: TideFx;
   private readonly shrine: ShrineFx;
   readonly raptor: RaptorFx;
@@ -131,6 +135,8 @@ export class CombatScene {
     this.warband = new WarbandFx(scene);
     this.roc = new RocFx(scene);
     this.sharkFx = new SharkFx(scene);
+    this.wardenFx = new WardenFx(scene);
+    this.echoes = new EchoesView(scene);
     this.tide = new TideFx(scene);
     this.shrine = new ShrineFx(scene);
     this.raptor = new RaptorFx(scene);
@@ -196,6 +202,8 @@ export class CombatScene {
     this.warband.update(state, gameDt);
     this.roc.update(state, gameDt, (i) => this.enemies.rootOf(i));
     this.sharkFx.update(state, gameDt, playerChest);
+    this.wardenFx.update(state, gameDt, (i) => this.enemies.rootOf(i));
+    this.echoes.update(state, gameDt);
     this.tide.update(state, this.rootOf, gameDt);
     this.shrine.update(state, gameDt, this.rootOf);
     this.raptor.update(state, alpha, gameDt, (i) => this.enemies.headOf(i), (i) => this.enemies.rootOf(i));
@@ -271,6 +279,8 @@ export class CombatScene {
     this.shrine.dispose();
     this.raptor.dispose();
     this.sharkFx.dispose();
+    this.wardenFx.dispose();
+    this.echoes.dispose();
     this.hives.dispose();
     this.blood.dispose();
     this.wallSplats.dispose();

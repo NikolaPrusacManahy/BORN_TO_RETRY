@@ -2,13 +2,13 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-05, after Update 0.3.62)
-- **Versions 0.3.58 to 0.3.62** (the Drowned King and the Velociraptor by the Boss Design Bible, their rooms and intros; the Big Shark adapted), built, **not committed** until the designer says "commit".
+## Where things stand (2026-11-05, after Update 0.3.63)
+- **Versions 0.3.58 to 0.3.63** (the Drowned King, the Velociraptor and the Big Shark by the Boss Design Bible; Hellwarden, floor 10's new boss), built, **not committed** until the designer says "commit".
   The designer (asleep, 2026-11-05): "do all of the bosses, but do not touch boss 8 & 9 … do floor 5, 6, 7 & 10 * Arena / Moves / Intro".
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
-  ("Keep them, adapt"). In floor order. **The Dragon is done (0.3.49, 0.3.50). The Swarm is done (0.3.51, 0.3.52). The Bone King is done (0.3.53, 0.3.54). The Frost Roc is done (0.3.56, 0.3.57). The Drowned King is done (0.3.58, 0.3.59). The Velociraptor is done (0.3.60, 0.3.61). The Big Shark is adapted (0.3.62). Floors 8 and 9 stay as they are (the designer: "they are fine").**
+  ("Keep them, adapt"). In floor order. **The Dragon is done (0.3.49, 0.3.50). The Swarm is done (0.3.51, 0.3.52). The Bone King is done (0.3.53, 0.3.54). The Frost Roc is done (0.3.56, 0.3.57). The Drowned King is done (0.3.58, 0.3.59). The Velociraptor is done (0.3.60, 0.3.61). The Big Shark is adapted (0.3.62). Hellwarden, floor 10's, is built (0.3.63). Floors 8 and 9 stay as they are (the designer: "they are fine").**
   Its ultimate is on `sim/enemies/ultimate.ts`, for the rest to share. Kit clashes still to meet: the slide (gone since
   0.3.20; the bible's Sky Clap, Pillar Swing, Tail Lash), boss melee can't be parried and parry is bare-handed, four
   ultimates cancel by shooting (count any ranged hit, and give fists a parryable shot), the audio has no left/right (the
@@ -41,11 +41,11 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   - **Okami's rage and frenzy:** not built. The plan's first idea, in `MD/FLOOR8_SHRINE_PLAN.md`, is a petal storm with
     shadow clones, its markings blazing.
   - **Each boss its own room (the designer, 0.3.50):** done for the Dragon, The Swarm, the Bone King, the Frost Roc, the Drowned King and the Velociraptor; the Big
-    Shark, Okami and Tidebreaker already had their own; still on the shared `BOSS_ROOM`: floor 10.
+    Shark, Okami and Tidebreaker already had their own; none left on the shared `BOSS_ROOM`.
   - **Boss intros at Tidebreaker's quality:**
     - done for the Big Shark, Tidebreaker, Okami, the Dragon, The Swarm, the Bone King, the Frost Roc, the Drowned King and the Velociraptor;
     - Hellwarden gets one when it's built.
-  - **Hellwarden,** floor 10's boss: `MD/FLOOR10_HELL_PLAN.md`; a Bestiary model animated with `tools/ual_bake.py`.
+  - **Floor 10's rooms:** its boss is built (0.3.63); its Imps, Puglins, Bone Axemen, echo rooms and The Retrier aren't (`MD/FLOOR10_HELL_PLAN.md`).
   - **The trailer:** the capture kit is in (F7). `MD_UPDATES/U0337_CAPTURE_KIT.md` has its keys, how to film each kind
     of shot, and the 75 s plan. The designer records. The music is the designer's own tracks; no AI-made footage,
     music or art.
@@ -65,7 +65,12 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-05, Update 0.3.62: the Big Shark by the Boss Design Bible)
+## Last update (2026-11-05, Update 0.3.63: Hellwarden, floor 10's boss)
+- **The designer**: "For floor 10 we have nothing designed so you need to start". Spec `MD_UPDATES/U0363_HELLWARDEN.md`.
+- **Built:** its Blazing Arc, Hellfire Lunge, Brand of Ruin; Echoes of the Fallen, Twin Blade Recall; Last Verdict; the Throne of Cinders. `tools/ual_bake.py hellwarden` makes its model.
+- **Unseen:** not played. Floor 10 plays only from the Lab. Its rooms keep their stand-in enemies.
+
+## Before (2026-11-05, Update 0.3.62: the Big Shark by the Boss Design Bible)
 - **The designer**: "Keep them, adapt", "do floor 5, 6, 7 & 10 * Arena / Moves / Intro". Spec `MD_UPDATES/U0362_BIG_SHARK_BIBLE.md`.
 - **Built:** its Breach, Hull Ram, Undertow; Blood Scent, Deck Breaker; Abyss Jaws (`sim/enemies/sharkArena.ts`, `sharkAbyss.ts`); ships and anchors in its arena. Its jaw moves, swallow and show stand.
 - **Unseen:** not played. Its arena checked in Blender renders.
