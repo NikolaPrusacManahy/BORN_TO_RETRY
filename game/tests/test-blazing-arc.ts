@@ -182,11 +182,11 @@ const backOf = bladeBack;
 
 section('Blazing Arc — each swing has a body (frame by frame, the real arms)');
 {
-  // (Update 0.3.72 — and Ember Wave's swing and the counter's.)
-  check('five swings, in order', DEMON_ARCS.length === 5 && DEMON_ARCS.every((a, i) => a.step === i));
+  // (Update 0.3.72 — and Ember Wave's swing and the counter's. Update 0.3.73 — and the throw's and Last Verdict's.)
+  check('seven swings, in order', DEMON_ARCS.length === 7 && DEMON_ARCS.every((a, i) => a.step === i));
   check('each cocked, through its contact, to its end', DEMON_ARCS.every((a) => a.keys.length >= 4 && a.hit > 0.3 && a.hit < 0.8));
   for (const arc of DEMON_ARCS) {
-    const name = ['The slash', 'The backslash', 'The overhead', 'Ember Wave', 'The counter'][arc.step];
+    const name = ['The slash', 'The backslash', 'The overhead', 'Ember Wave', 'The counter', 'The throw', 'Last Verdict'][arc.step];
     const { vm, rig, blade, play } = await arms();
     vm.arc(arc.step);
     const windup = bladeWindup(arc.step);

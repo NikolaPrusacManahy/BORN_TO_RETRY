@@ -63,11 +63,14 @@ export interface HandFit {
   hole: { wrist: number; palm: number };
   /** The most a finger bends round a handle (rad). */
   most: { knuckle: number; middle: number };
+  /** Update 0.3.73 — where its punch ends, if not at the crosshair: how far ahead of the eye, under it, and to its own side (m). */
+  strike?: { ahead: number; drop: number; side: number };
 }
 export const QUATERNIUS_HAND: HandFit = { punch: PUNCH.thumb, grip: GRIP_THUMB, open: OPEN.thumb, finger: 0.004, hole: { wrist: 0, palm: 0 }, most: { knuckle: 1.7, middle: 1.9 } };
 /** The Playable Demon's (a Universal Animation Library rig: cut_arms.py solves its tuck over the fingers, right as baked;
  *  thick gauntlet fingers, closing a loop about 5 × 9 cm that its big hilt fills: the handle goes in the loop's middle). */
-export const DEMON_HAND: HandFit = { punch: [0, 0, 0, 0, 0, 0], grip: [0, 0, 0, 0, 0, 0], open: [0, 0, 0, 0, 0, 0], finger: 0.008, hole: { wrist: 0.01, palm: 0.015 }, most: { knuckle: 1.7, middle: 1.65 } };
+// (Update 0.3.73 — its punch rises to the middle of the view, the elbow low. Its vambrace flares so wide that a straight one hides the fist behind it.)
+export const DEMON_HAND: HandFit = { punch: [0, 0, 0, 0, 0, 0], grip: [0, 0, 0, 0, 0, 0], open: [0, 0, 0, 0, 0, 0], finger: 0.008, hole: { wrist: 0.01, palm: 0.015 }, most: { knuckle: 1.7, middle: 1.65 }, strike: { ahead: 0.44, drop: 0, side: 0.02 } };
 
 interface Joint {
   bone: THREE.Bone;

@@ -145,7 +145,38 @@ const ARC_COUNTER: BladeArc = {
   through: new Vector3(0.05, -0.12, -0.07),
 };
 
-export const DEMON_ARCS: readonly BladeArc[] = [ARC_SLASH, ARC_BACK, ARC_OVER, ARC_EMBER, ARC_COUNTER];
+/** Update 0.3.73 — Blade Throw: from over the right shoulder, slung across and away; it leaves as the arm comes through the middle. */
+const ARC_THROW: BladeArc = {
+  step: 5,
+  keys: [
+    key([0.24, 0, -0.34], [0.46, 0.84, -0.1]),
+    key([0.2, -0.05, -0.42], [0.1, 0.95, -0.28]),
+    key([0.1, -0.1, -0.5], [-0.3, 0.82, -0.48]),
+    key([0.02, -0.15, -0.52], [-0.55, 0.6, -0.58]),
+  ],
+  hit: 0.7,
+  cocked: new Vector3(0.06, -0.1, -0.06),
+  through: new Vector3(-0.06, 0.12, 0.06),
+};
+
+/** Update 0.3.73 — Last Verdict: towering away ahead of you as it grows, so you see how big it is (straight up, it'd only leave the screen); a heave higher, then down
+ *  the middle. (It ends a fencer's, as the thrust does: a blade this long has to lie along the arm to reach the floor.) */
+const ARC_VERDICT: BladeArc = {
+  step: 6,
+  keys: [
+    key([0.17, -0.13, -0.42], [-0.16, 0.62, -0.77]),
+    key([0.15, -0.1, -0.44], [-0.12, 0.78, -0.62]),
+    key([0.11, -0.13, -0.48], [-0.09, 0.5, -0.86], HIGH),
+    key([0.08, -0.18, -0.52], [-0.07, 0.2, -0.98], HIGH, 40),
+    key([0.06, -0.2, -0.52], [-0.06, -0.05, -0.99], HIGH, 48),
+  ],
+  // (It lands still rising to the eye: past that, a blade this long points away from you and looks small.)
+  hit: 0.6,
+  cocked: new Vector3(0.1, 0, 0),
+  through: new Vector3(-0.12, 0.01, 0),
+};
+
+export const DEMON_ARCS: readonly BladeArc[] = [ARC_SLASH, ARC_BACK, ARC_OVER, ARC_EMBER, ARC_COUNTER, ARC_THROW, ARC_VERDICT];
 
 /** Update 0.3.72 — the block: the blade up across you, over the crosshair: you still have to see. */
 export const DEMON_GUARD = key([0.2, -0.14, -0.42], [-0.52, 0.78, -0.34]);

@@ -48,9 +48,12 @@ import { updateAxeCharge } from '../weapons/axeThrow';
 import { axeOut, callBack } from '../weapons/recall';
 import { startWave, updateSmashWaves } from '../weapons/smashWaves';
 import { throwWeapon, tryPickup, updateStands } from '../weapons/weapons';
-import { landBlade, startCounter, updateBlade } from './bladeSwing';
+import { landBlade, startCounter, startThrow, updateBlade } from './bladeSwing';
+import { bladeAway, pressBlade, stepThrown } from './bladeThrow';
 import { stepDemonFire } from './demonFire';
-import { landPlunge, stepLunge, tickDemon, tryBrand } from './demonMoves';
+import { feedOnFallen, landPlunge, stepLunge, tickCleave, tickDemon, tryBrand } from './demonMoves';
+import { addHeat } from './heat';
+import { stepVerdict, tryVerdict } from './lastVerdict';
 import { DEMON } from '../../tuning/demon';
 import { WEAPONS } from '../../tuning/weapons';
 import { updateDummy } from './dummy';
@@ -109,6 +112,13 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   state.inAir = !player.grounded;
   tickCards(state, player, dt);
   settleHand(state);
+  // (Update 0.3.73 — the Demon's Last Verdict: the world holds still for it.)
+  if (state.blade.verdict) {
+    stepVerdict(state, player, intent, world, dt);
+    feedOnFallen(state, player);
+    tickCleave(state, dt);
+    return;
+  }
   tickGrab(state.grab, dt);
   if (state.grab.on) {
     stepGrab(state, player, intent, dt);
@@ -123,7 +133,9 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   if (intent.attackPressed) breakCage(state);
   const throwing = state.weapon !== null && state.weapon.throwing >= 0;
   if (state.fullMeter) state.execution = 1;
-  state.execTarget = execTarget(state, player, intent.yaw);
+  // (Update 0.3.73 — the Demon executes nothing: E is its throw, and the bar's its heat. The Lab's Meter keeps that full instead.)
+  if (state.fullMeter && state.demon) addHeat(state, 1);
+  state.execTarget = state.demon ? -1 : execTarget(state, player, intent.yaw);
   if (state.execTarget >= 0) {
     if (state.execAway >= EXEC_QUIET) {
       const e = state.enemies[state.execTarget];
@@ -131,7 +143,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     }
     state.execAway = 0;
   } else state.execAway += dt;
-  const executing = intent.interactPressed && !throwing && tryExecute(state, player, intent.yaw, intent.pitch);
+  const executing = !state.demon && intent.interactPressed && !throwing && tryExecute(state, player, intent.yaw, intent.pitch);
   if (execHeld(state.exec)) {
     // The world holds still while you hold it (and a Grimoire's charge or a volley is dropped).
     dropKi(state.ki);
@@ -219,12 +231,25 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   }
   // (Update 0.3.71 — the Demon's left click is its blade's, not the fists': Blazing Arc, below.)
   const demon = state.demon && w === null;
+  const b = state.blade;
   const swingPressed = fistIntent.attackPressed;
   const swingHeld = fistIntent.attackHeld;
   if (demon) {
+    tickDemon(state, player, dt);
+    // (Update 0.3.73 — Q: Last Verdict, and the world holds still from the next tick. E: the throw, or with it out, its recall.)
+    tryVerdict(state, player, intent.throwPressed, intent.yaw);
+    if (intent.interactPressed) {
+      if (bladeAway(state)) pressBlade(state, player, intent.yaw, intent.pitch, world);
+      else if ((b.step < 0 || b.struck) && !clasped && b.plant <= 0 && !b.verdict) startThrow(state);
+    }
+    if (bladeAway(state)) stepThrown(state, player, world, dt);
+  }
+  // (Update 0.3.73 — with it out of your hand you've your gauntlets, by the fists' rules: a plain dash, a plain slam, a plain parry.)
+  const sworded = demon && !bladeAway(state);
+  if (demon) player.demon = sworded;
+  if (sworded) {
     fistIntent = Object.assign(NO_SWING, fistIntent);
     NO_SWING.attackPressed = NO_SWING.attackHeld = false;
-    tickDemon(state, dt);
     stepLunge(state, player);
     tryBrand(state, player, intent.slamPressed && !clasped);
   }
@@ -243,24 +268,27 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
       // (Update 0.3.58 — a Drowned King's head: its short wait, or you could parry only one in a volley.)
       state.fists.parryCooldown = state.fists.quick ? Math.min(times.cooldown, DROWNED.v.headWait) : times.cooldown;
       state.fists.quick = false;
-      // (Update 0.3.72 — the Demon's Verdict Parry answers.)
-      if (demon) {
+      // (Update 0.3.72 — the Demon's Verdict Parry answers. Update 0.3.73 — and any parry heats its sword.)
+      if (demon) addHeat(state, DEMON.v.heatParry);
+      if (sworded) {
         state.fists.parryCooldown = Math.min(state.fists.parryCooldown, DEMON.v.parryWait);
         startCounter(state);
       }
     }
   }
   // (Update 0.3.71 — a swing lands when its blade gets there.)
-  if (demon) {
+  if (sworded) {
     // (Update 0.3.72 — right click held: the block, for as long as you hold it and nothing's swinging; nor with the sword in the floor.)
-    const b = state.blade;
     b.guard = intent.heavyHeld && !clasped && b.plant <= 0 && b.step < 0;
     player.guard = b.guard ? DEMON.v.guardShare : 0;
     if (updateBlade(b, swingPressed, swingHeld, clasped || b.plant > 0 || b.guard || player.dashTime > 0 || state.fists.parryWindow > 0, events, dt, rate)) {
       aim(player, intent.yaw, intent.pitch, eye, dir);
       landBlade(state, b.step, eye, dir, world, fistFactor(state));
     }
-  } else if (player.guard > 0) player.guard = 0;
+  } else if (player.guard > 0 || b.guard) {
+    player.guard = 0;
+    b.guard = false;
+  }
   // (Update 0.2.16 — All In, a Fate Card: your fists hit twice as hard.)
   if (swung) punch.damage *= fistFactor(state);
   if (axe && w) {
@@ -304,7 +332,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   stepParried(state, world, dt);
   if (player.slamImpact > 0) {
     // (Update 0.3.72 — the Demon's dive: Brand of Ruin, from however far it fell.)
-    if (state.demon && state.weapon === null) landPlunge(state, player, player.slamImpact);
+    if (sworded) landPlunge(state, player, player.slamImpact);
     // (Update 0.2.15 — Pogo: a slam that kills bounces you back up. Update 0.2.22 — its blast: Tremor's.)
     else if (tremors(state)) pogo(state, player, slamImpact(state, player.pos, player.slamImpact));
     player.slamImpact = 0;
@@ -323,8 +351,9 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   if (state.fists.parried) {
     state.fists.parried = false;
     state.fists.parryCooldown = times.cooldown;
-    // (Update 0.3.72 — the Demon's Verdict Parry answers.)
-    if (demon) {
+    // (Update 0.3.72 — the Demon's Verdict Parry answers. Update 0.3.73 — and any parry heats its sword.)
+    if (demon) addHeat(state, DEMON.v.heatParry);
+    if (sworded) {
       state.fists.parryCooldown = Math.min(times.cooldown, DEMON.v.parryWait);
       startCounter(state);
     }

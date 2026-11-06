@@ -40,7 +40,7 @@ export function Controls({ s }: { s: HudState }) {
   return (
     <div className="rb-ctls">
       <span className="rb-ctl is-jab">
-        <span className="rb-ctl-badge">{hand ? <SlotIcon kind={hand.kind} /> : <FistIcon />}</span>
+        <span className="rb-ctl-badge">{hand ? <SlotIcon kind={hand.kind} /> : s.demon && !s.bladeOut ? <SlotIcon kind="sword" /> : <FistIcon />}</span>
         <i className="rb-cap">{s.attackKey}</i>
       </span>
       <span className={`rb-ctl is-parry${parry}`} style={{ '--ctl': s.parryOff ? 0 : s.parryFill } as CSSProperties}>

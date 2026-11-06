@@ -34,6 +34,8 @@ import type { CombatEvent, CombatState } from './state';
 import { TARGET_SHAPES, dummyAxis, turretAxis } from './targets';
 import { hitTurret } from './turretDamage';
 import { HIVE_RADIUS, hitHive } from '../dungeon/hives';
+import { DEMON } from '../../tuning/demon';
+import { addHeat } from './heat';
 
 export type TargetKind = 'dummy' | 'turret' | 'enemy' | 'hive' | 'wormling' | 'spine' | 'knee' | 'head' | 'chain';
 
@@ -217,11 +219,18 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   if (t.kind === 'enemy' && !steady) bigHit(state, t.point, damage);
   const p = t.point;
   state.events.push(event, value, p.x, p.y, p.z);
+  // (Update 0.3.73 — the Playable Demon's heat. A burn's ticks don't feed it: it'd never go out.)
+  if (state.demon && !steady) addHeat(state, DEMON.v.heatHit);
   if (!killed) return false;
   state.events.push('kill', 0, p.x, p.y, p.z);
   state.hitStop.request(FEEDBACK.v.stopKill);
   if (t.kind !== 'enemy') return true;
   state.kills++;
+  // (Update 0.3.73 — its heat again, and Forged from the Fallen: every kill gives a little health back.)
+  if (state.demon) {
+    addHeat(state, DEMON.v.heatKill);
+    state.blade.fallen++;
+  }
   // Update 0.1.0 — every kill of yours fills the Execution Power meter. Update 0.1.13 — counted in whole kills: ten
   // tenths added up came to 0.9999999999999999, which looked full but couldn't execute (only the Lab's Meter, which sets
   // it to 1, could): the designer found executions "just in the Lab".

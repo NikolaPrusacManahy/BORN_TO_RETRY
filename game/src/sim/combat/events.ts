@@ -34,6 +34,15 @@ export type CombatEvent =
   | 'demonLungeEnd'
   | 'demonBrand'
   | 'demonErupt'
+  // Update 0.3.73 — its heat at full; its sword thrown, stopping in a wall, called back, caught, and you going to it; Last Verdict starting, and landing.
+  | 'heatFull'
+  | 'bladeThrown'
+  | 'bladeStuck'
+  | 'bladeRecall'
+  | 'bladeCaught'
+  | 'bladeBlink'
+  | 'demonVerdict'
+  | 'demonCleave'
   // What a punch or swing did; x, y, z = where.
   | 'whiff'
   | 'hitJab'

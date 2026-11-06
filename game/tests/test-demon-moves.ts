@@ -325,7 +325,7 @@ function wrist(rig: ArmsRig): number {
 
 section('The arms: each move’s pose');
 {
-  check('Ember Wave’s swing and the counter have their keys', DEMON_ARCS.length === 5 && DEMON_ARCS[EMBER].step === EMBER && DEMON_ARCS[COUNTER].step === COUNTER);
+  check('Ember Wave’s swing and the counter have their keys', DEMON_ARCS[EMBER].step === EMBER && DEMON_ARCS[COUNTER].step === COUNTER);
   for (const step of [EMBER, COUNTER]) {
     const { vm, rig, run } = await arms();
     vm.arc(step);
@@ -379,7 +379,7 @@ section('The arms: each move’s pose');
 section('Its fire, drawn');
 {
   const scene = new THREE.Scene();
-  const view = new DemonFireView(scene);
+  const view = new DemonFireView(scene, false);
   const c = createCombat({ name: 't', boxes: [], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [], stands: [] });
   view.update(c, DT);
   check('nothing yet', view.burning === 0);

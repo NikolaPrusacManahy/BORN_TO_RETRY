@@ -1,11 +1,14 @@
 // Update 0.3.72 — what the Playable Demon's fire looks like (sim/combat/demonFire.ts): the overhead's wall burning on the floor; Ember Wave, a crescent
 // of fire tearing along; Brand of Ruin's lines glowing and its pillars bursting out along them. As the boss's are (hell/wardenFx.ts): cones of
 // additive fire, nothing to sort. Made in code. Only for the Demon: the scene makes one when you are.
+// Update 0.3.73 — and its sword out of its hand, and Last Verdict (thrownBladeView.ts, verdictView.ts).
 import * as THREE from 'three';
 import { brandAt, eruptAt, PILLAR_FOR } from '../../sim/combat/demonFire';
 import type { CombatState } from '../../sim/combat/state';
 import { DEMON } from '../../tuning/demon';
 import { HALOS } from '../halos';
+import { ThrownBladeView } from './thrownBladeView';
+import { VerdictView } from './verdictView';
 
 const FLAMES = 360;
 const LINES = 16;
@@ -77,10 +80,15 @@ export class DemonFireView {
   private readonly waveGeo = crescentGeometry();
   private readonly waveMats: THREE.MeshBasicMaterial[] = [];
   private readonly waves: THREE.Mesh[] = [];
+  readonly thrown: ThrownBladeView;
+  readonly verdict: VerdictView;
   private time = 0;
 
-  constructor(scene: THREE.Scene) {
+  /** `fetches`: fetch the thrown blade's model (tests give it). */
+  constructor(scene: THREE.Scene, fetches = true) {
     scene.add(this.group);
+    this.thrown = new ThrownBladeView(scene, fetches);
+    this.verdict = new VerdictView(scene);
     this.flames.frustumCulled = this.lines.frustumCulled = false;
     this.flames.count = this.lines.count = 0;
     this.group.add(this.flames, this.lines);
@@ -102,6 +110,8 @@ export class DemonFireView {
 
   update(state: CombatState, dt: number) {
     this.time += dt;
+    this.thrown.update(state, dt);
+    this.verdict.update(state);
     const f = state.demonFire;
     let n = 0;
     let nl = 0;
@@ -156,6 +166,8 @@ export class DemonFireView {
   }
 
   dispose() {
+    this.thrown.dispose();
+    this.verdict.dispose();
     this.group.removeFromParent();
     this.flames.dispose();
     this.lines.dispose();

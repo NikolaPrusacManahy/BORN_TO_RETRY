@@ -38,8 +38,10 @@ function curve(q0: THREE.Vector3, q1: THREE.Vector3, q2: THREE.Vector3, q3: THRE
 export class BladeTrail {
   readonly mesh: THREE.Mesh;
   /** From the guard to the tip along the blade's own y (its model's metres). */
-  private root = 0.3;
-  private tip = 2.5;
+  readonly root = 0.3;
+  tip = 2.5;
+  /** Update 0.3.73 — how many times the blade's length it runs to (grown for Last Verdict; further at high heat). */
+  stretch = 1;
   /** Newest first: each sample's points, one per row, and its age (s). */
   private readonly points: THREE.Vector3[][] = Array.from({ length: SAMPLES }, () => ROW_AT.map(() => new THREE.Vector3()));
   private readonly ages = new Array<number>(SAMPLES).fill(LIFE);
@@ -106,7 +108,7 @@ export class BladeTrail {
       this.points[0] = last;
       this.ages[0] = 0;
       this.count = Math.min(SAMPLES, this.count + 1);
-      for (let r = 0; r < ROWS; r++) last[r].set(0, this.root + (this.tip - this.root) * ROW_AT[r], 0).applyMatrix4(blade);
+      for (let r = 0; r < ROWS; r++) last[r].set(0, this.root + (this.tip * this.stretch - this.root) * ROW_AT[r], 0).applyMatrix4(blade);
     }
     this.build();
   }

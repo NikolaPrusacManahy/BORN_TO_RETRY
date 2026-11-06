@@ -26,7 +26,8 @@ const BONUS_STEP = 50;
 /** A number for the weapon slots: changes whenever a slot's weapon or uses do. */
 function slotSig(combat: CombatState): number {
   // (Update 0.3.70 — and who you are: the Demon's first slot is its blade.)
-  let sig = combat.slot + (combat.demon ? 16 : 0);
+  // (Update 0.3.73 — and whether it's thrown.)
+  let sig = combat.slot + (combat.demon ? (bladeAway(combat) ? 32 : 16) : 0);
   for (let i = 1; i < combat.bag.length; i++) {
     const w = combat.bag[i];
     sig = sig * 1024 + (w ? (WEAPON_KINDS.indexOf(w.kind) + 1) * 256 + Math.min(255, w.uses) : 0);
@@ -54,6 +55,7 @@ import type { Bindings } from '../input/bindings';
 import { keyLabel, slotKeysOf } from '../input/keyLabel';
 import { ultimateIn } from '../sim/enemies/ultimate';
 import { markOn } from '../sim/enemies/drownedBody';
+import { bladeAway } from '../sim/combat/bladeThrow';
 
 /** HUD refresh interval (s); hits, hurts and health changes push at once. */
 const HUD_EVERY = 0.05;
@@ -115,7 +117,8 @@ export class HudFeed {
     const map = run ? mapOf(run) : null;
     const left = enemiesLeft(run, combat);
     const chestHere = !!run && chestToOpen(run.treasure, run.level, p.pos.x, p.pos.z);
-    const execution = Math.round(combat.execution * 100) / 100;
+    // (Update 0.3.73 — the Demon's bar is its heat.)
+    const execution = Math.round((combat.demon ? combat.blade.heat : combat.execution) * 100) / 100;
     // (Update 0.3.4 — the style rank: its fill in steps of 2%, its feed by its newest line.)
     const style = fb.style;
     const styleRank = style.rank;
@@ -192,6 +195,7 @@ export class HudFeed {
       slots: combat.bag.slice(1).map((w) => (w ? { kind: w.kind, uses: w.uses } : null)),
       slot: combat.slot,
       demon: combat.demon,
+      bladeOut: combat.demon && bladeAway(combat),
       slotSig: sig,
       bonusLeft,
       map,

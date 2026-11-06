@@ -18,8 +18,10 @@
 // right fist only, a quick move.
 // Update 0.3.70 — the Playable Demon (design bible): its own arms, its blade in the hand whenever nothing else is. They're
 // fetched only for it (armsWardrobe.ts), so nobody else pays for them. Left click swings the blade, right click raises it.
+// Update 0.3.73 — thrown, it's out of the hand and the gauntlets take over, both of them; heat burns on it (bladeHeat.ts); Last Verdict grows it (bladeGrow.ts).
 import * as THREE from 'three';
 import { ARMS } from '../../tuning/arms';
+import { DEMON } from '../../tuning/demon';
 import { WEAPONS } from '../../tuning/weapons';
 import type { PlayerState } from '../../sim/player/state';
 import type { ArmsRig } from './armsRig';
@@ -34,6 +36,8 @@ import { BlockArms } from './blockArms';
 import { movesOf } from './weaponMoves';
 import { ArmsWardrobe } from './armsWardrobe';
 import { BladeTrail } from './bladeTrail';
+import { BladeGrow } from './bladeGrow';
+import { BladeHeat } from './bladeHeat';
 import { ChestReach } from './chestReach';
 import { BookArms } from './bookArms';
 import { HeldGrip, ROPE } from './heldGrip';
@@ -50,6 +54,8 @@ export { ARMS_URL, DEMON_ARMS_URL, DEMON_BLADE_URL } from './armsWardrobe';
 const CHARGE_EASE = 14;
 /** Update 0.1.9 — how far a hand opens as it throws a dagger (0 … 1). */
 const RELEASE = 0.6;
+/** Update 0.3.73 — how much of the blade's flare its heat gives it, at full. */
+const HEAT_GLOW = 0.55;
 
 const ease = (rate: number, dt: number) => 1 - Math.exp(-rate * dt);
 const smooth = (x: number) => x * x * (3 - 2 * x);
@@ -100,6 +106,12 @@ export class Viewmodel {
   /** Update 0.3.71 — the Demon's blade's burning trail, and the blade it's following (bladeTrail.ts). */
   trail: BladeTrail | null = null;
   private followed: THREE.Object3D | null = null;
+  /** Update 0.3.73 — its sword out of your hand (and just caught: a jolt); its heat, on it; its growing. */
+  private bladeOut = false;
+  private catching = false;
+  private heat = 0;
+  fire: BladeHeat | null = null;
+  private grow: BladeGrow | null = null;
 
   /** `loadModel`: fetch the arms (tests attach a parsed model instead). `demon`: the Demon's (Update 0.3.70). */
   constructor(loadModel = true, demon = false) {
@@ -144,12 +156,16 @@ export class Viewmodel {
 
   /** M2 — the weapon in the right fist (null: barehanded). A new one starts in the ready pose. */
   setWeapon(given: THREE.Object3D | null) {
-    // (Update 0.3.70 — nothing else in the hand: the Demon's blade.)
-    const model = given ?? this.wardrobe.blade;
+    // (Update 0.3.70 — nothing else in the hand: the Demon's blade. Update 0.3.73 — unless it's been thrown.)
+    const model = given ?? (this.bladeOut ? null : this.wardrobe.blade);
     if (this.weapon === model) return;
     this.weapon?.removeFromParent();
     if (model) this.swordAnim.use(movesOf(model));
-    if (model && !this.weapon) this.swordAnim.reset();
+    // (Update 0.3.73 — caught: its weight in your hand, up and back; unless it's for Last Verdict, whose swing's already begun.)
+    const verdict = this.swordAnim.inVerdict;
+    if (model && !this.weapon && !verdict) this.swordAnim.reset();
+    if (model && this.catching && !verdict) this.swordAnim.start('guard');
+    this.catching = false;
     this.off.take(model?.userData.pair ?? null, model ? movesOf(model).pair : null);
     this.gun.use(model?.userData.hold === 'gun' ? model : null);
     this.weapon = model;
@@ -211,6 +227,17 @@ export class Viewmodel {
   /** Update 0.3.72 — the Demon's: right click held, its blade held up. */
   setBlock(on: boolean) {
     if (this.bladed) this.swordAnim.block(on);
+  }
+
+  /** Update 0.3.73 — the Demon's sword is out of your hand (the next `setWeapon` puts it away, or back). */
+  setBladeOut(out: boolean) {
+    if (this.bladeOut && !out) this.catching = true;
+    this.bladeOut = out;
+  }
+
+  /** Update 0.3.73 — how hot the Demon's sword is (0 … 1). */
+  setHeat(heat: number) {
+    this.heat = heat;
   }
 
   /** Update 0.3.72 — the Demon's Hellfire Lunge; its sword into the floor. */
@@ -346,12 +373,24 @@ export class Viewmodel {
     const blade = this.wardrobe.blade;
     if (blade !== this.followed) {
       this.followed = blade;
-      if (blade) (this.trail ??= new BladeTrail(this.scene)).follow(blade);
+      if (blade) {
+        (this.trail ??= new BladeTrail(this.scene)).follow(blade);
+        this.fire ??= new BladeHeat(this.scene);
+        this.grow = new BladeGrow(blade);
+      }
     }
     if (!this.trail) return;
-    const cutting = !!blade && this.bladed && blade.visible && this.swordAnim.slicing && gameDt > 0;
-    // (Update 0.3.72 — and it burns brighter as Ember Wave charges.)
-    this.trail.update(realDt, cutting ? blade.matrixWorld : null, this.bladed ? Math.max(this.swordAnim.flare, this.chargeVis * 0.8) : 0);
+    const d = DEMON.v;
+    const grown = this.swordAnim.grown;
+    const long = 1 + (d.verdictGrow - 1) * grown;
+    this.grow?.set(long, 1 + (d.verdictBroad - 1) * grown);
+    // (Update 0.3.73 — the trail as long as the blade is, and longer at high heat: it reaches further.)
+    this.trail.stretch = long * (this.heat >= d.heatHigh ? d.hotArc : 1);
+    const inHand = !!blade && this.bladed && blade.visible;
+    const cutting = inHand && this.swordAnim.slicing && gameDt > 0;
+    // (Update 0.3.72 — and it burns brighter as Ember Wave charges. Update 0.3.73 — and as it heats.)
+    this.trail.update(realDt, cutting && blade ? blade.matrixWorld : null, this.bladed ? Math.max(this.swordAnim.flare, this.chargeVis * 0.8, this.heat * HEAT_GLOW) : 0);
+    this.fire?.update(realDt, inHand && blade ? blade.matrixWorld : null, this.heat, this.trail.root, this.trail.tip * long);
   }
 
   /** Draws the arms over the world already on screen: depth cleared, colour kept. */

@@ -148,10 +148,11 @@ export function Hud({ store }: { store: HudStore }) {
           <span>{Math.max(0, s.uses - s.mag)}</span>
         </div>
       )}
-      <WeaponSlots slots={s.slots} slot={s.slot} keys={s.slotKeys} demon={s.demon} />
+      <WeaponSlots slots={s.slots} slot={s.slot} keys={s.slotKeys} demon={s.demon && !s.bladeOut} />
       <Controls s={s} />
       <Bonuses left={s.bonusLeft} />
-      <div className={`rb-hud-exec${s.execution >= 1 ? ' is-full' : ''}`} style={{ '--fill': s.execution } as CSSProperties}>
+      {s.demon && s.execution >= 1 && <i className="rb-demon-eye" />}
+      <div className={`rb-hud-exec${s.execution >= 1 ? ' is-full' : ''}${s.demon ? ' is-heat' : ''}`} style={{ '--fill': s.execution } as CSSProperties}>
         <i className="rb-hud-exec-fill" />
       </div>
       <div className={`rb-hud-dash${s.dashLocked ? ' is-locked' : ''}`} style={{ '--n': s.dashMax } as CSSProperties}>

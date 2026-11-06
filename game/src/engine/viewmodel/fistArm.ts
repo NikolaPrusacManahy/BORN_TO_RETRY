@@ -31,10 +31,13 @@ export function fistArm(rig: ArmsRig, anim: ArmsAnim, time: number, side: Side, 
   const e = anim.extension(side);
   // Where a punch aims: at the crosshair (the arms are tilted up by PREVIEW_PITCH, so aim that much lower in
   // the model), a little low, a little to this fist's side.
-  const d = ARMS.v.strikeDistance;
+  // (Update 0.3.73 — unless these arms have their own.)
+  const own = rig.strike;
+  const d = own ? own.ahead : ARMS.v.strikeDistance;
+  const spread = own ? own.side : STRIKE_SPREAD;
   strike.copy(rig.eye).addScaledVector(FORWARD, d * Math.cos(PREVIEW_PITCH));
-  strike.y -= d * Math.sin(PREVIEW_PITCH) + STRIKE_DROP;
-  strike.x += side === 'L' ? STRIKE_SPREAD : -STRIKE_SPREAD;
+  strike.y -= d * Math.sin(PREVIEW_PITCH) + (own ? own.drop : STRIKE_DROP);
+  strike.x += side === 'L' ? spread : -spread;
   out.fist.copy(g.fist).lerp(strike, Math.max(e, 0));
   if (e < 0) out.fist.addScaledVector(to.subVectors(g.fist, strike).normalize(), -e * 0.1);
   out.knuckles.copy(g.knuckles).lerp(to.subVectors(strike, rig.between).normalize(), Math.max(e, 0)).normalize();

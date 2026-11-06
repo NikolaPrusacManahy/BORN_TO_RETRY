@@ -71,6 +71,7 @@ import { chillSlow, rimeGrip } from '../sim/combat/frost';
 import { caltropSlow } from '../sim/combat/smoke';
 import { floodSlow, stepTide, tideSlow } from '../sim/dungeon/tide';
 import { verdictGrey } from '../sim/enemies/wardenVerdict';
+import { verdictShade } from '../sim/combat/lastVerdict';
 import { wardenDark, wardenFreezeGrey, wardenSilent } from '../sim/dungeon/wardenShow';
 import { Lobby, lobbyFocus, stepLobby } from '../sim/lobby/lobby';
 import { styleOf } from '../world/dungeon/styles';
@@ -107,7 +108,9 @@ export class Run extends RunBase {
       const wasGrounded = p.grounded;
       // The dead don't steer or punch; nor does anyone during the boss room's show.
       const free = !p.dead && !this.show.locked && !this.chestShot.locked && !execHeld(this.combat.exec) && !capture.flying;
-      const held = this.combat.grab.on || this.combat.pin.on;
+      // (Update 0.3.73 — the Demon's Last Verdict: you hang where you are, the world holding still; only your aim's your own.)
+      const verdict = this.combat.blade.verdict;
+      const held = this.combat.grab.on || this.combat.pin.on || verdict;
       readPlayerIntent(input, this.look, this.intent, free && !held);
       readCombatIntent(input, this.look, this.combatIntent, free);
       updateHealth(p, stepDt);
@@ -131,7 +134,7 @@ export class Run extends RunBase {
       if (stepTreasure(this.treasure, p, this.combat, ci.interactPressed, ci.switchKeyPressed, this.fighting, stepDt)) ci.interactPressed = false;
       const lobby = this.level.lobby;
       if (lobby && stepLobby(lobby, p, ci.interactPressed && free)) ci.interactPressed = false;
-      stepPlayer(p, this.intent, this.level.physics, this.level.arena.pads, stepDt);
+      if (!verdict) stepPlayer(p, this.intent, this.level.physics, this.level.arena.pads, stepDt);
       checkHazards(p, this.hazards);
       // (Update 0.3.67 — thrown back out of a pit, to where you last stood; that or, if you've stood nowhere yet, the checkpoint.)
       lavaStep(p, this.lava, d?.checkpoint ?? this.level.arena.playerStart, d);
@@ -154,7 +157,7 @@ export class Run extends RunBase {
         this.level.physics.setBody(solid.boxes);
       } else if (!solid && this.level.physics.hasBody) this.level.physics.setBody([]);
       // (Update 0.3.72 — the Demon's Hellfire Lunge goes through them.)
-      if (!(this.combat.demon && p.dashTime > 0)) pushPlayerOut(p, this.combat.enemies, this.level.physics, BODY.radius, this.shove);
+      if (!(p.demon && p.dashTime > 0)) pushPlayerOut(p, this.combat.enemies, this.level.physics, BODY.radius, this.shove);
       input.clearPressed();
       const dy = p.pos.y - this.prev.y;
       if (wasGrounded && p.grounded && Math.abs(dy) > STEP_MIN) this.rig.step(dy);
@@ -265,7 +268,8 @@ export class Run extends RunBase {
     this.view.torchesOut = hellShow > 0.2;
     // (Update 0.3.63 — Hellwarden's Last Verdict: the screen drained of colour.)
     const warden = this.combat.enemies.find((e) => e.alive && e.kind === 'hellwarden');
-    const grey = warden ? Math.round(Math.max(verdictGrey(warden), d ? wardenFreezeGrey(d.boss) : 0) * 20) / 20 : 0;
+    // (Update 0.3.73 — and the Demon's own.)
+    const grey = Math.round(Math.max(warden ? Math.max(verdictGrey(warden), d ? wardenFreezeGrey(d.boss) : 0) : 0, verdictShade(this.combat)) * 20) / 20;
     if (grey !== this.grey) {
       this.grey = grey;
       renderer.domElement.style.filter = grey > 0 ? `grayscale(${grey}) contrast(${1 + 0.15 * grey})` : '';
@@ -293,6 +297,7 @@ export class Run extends RunBase {
     // (Update 0.3.72 — the Demon's: its Ember Wave's charge, its block.)
     const b = this.combat.blade;
     this.arms.setBlock(b.guard);
+    this.arms.setHeat(this.combat.demon ? b.heat : 0);
     this.arms.update(gameDt, real, mouseDx, mouseDy, p, b.charging ? b.charge / DEMON.v.chargeTime : f.charging ? f.charge / FISTS.v.chargeTime : -1);
 
     renderer.render(this.scene, this.camera);
@@ -302,11 +307,11 @@ export class Run extends RunBase {
     this.hudFeed.keysOf(input.bindings);
     // (Update 0.3.20 — a ground pound ready.)
     // (Update 0.3.72 — the Demon's sword: Ctrl on the ground too.)
-    this.hudFeed.slamReady = !p.dead && (canSlam(p, this.level.physics) || (this.combat.demon && p.grounded && b.brandWait <= 0));
+    this.hudFeed.slamReady = !p.dead && (canSlam(p, this.level.physics) || (p.demon && p.grounded && b.brandWait <= 0));
     // (Update 0.3.19 — the floor's fight music, while a fight is on: audio/music.ts.)
     setFloorMusic(d && combatMusicOn(d, p.dead) ? floorTrack(d) : null);
     // (Update 0.3.49 — a boss's ultimate cuts it.)
-    cutMusic(ultimateIn(this.combat.enemies) !== null || (!!this.level.dungeon && wardenSilent(this.level.dungeon.boss)));
+    cutMusic(ultimateIn(this.combat.enemies) !== null || (!!this.level.dungeon && wardenSilent(this.level.dungeon.boss)) || b.verdict);
     this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d, this.look.yaw, this.show.hud, choosing ?? '');
     // Dead: once it's black, the death screen (the dungeon: Retry is a new run) or the lab's start. The way down: the
     // next floor (Update 0.2.2: off the last, the run is won; Update 0.3.23: behind the loader).

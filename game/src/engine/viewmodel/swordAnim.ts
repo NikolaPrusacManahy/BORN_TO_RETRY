@@ -9,6 +9,7 @@
 // Update 0.1.5 — any one-handed or two-handed weapon's moves: the weapon in hand picks its own set (weaponMoves.ts: the
 // sword's, the Gold Axe's hacks and cocked throw, the Hammer's heavy swings and smash); this plays it.
 import { Vector3 } from 'three';
+import { bladeBack, bladeFollow, bladeStrike, bladeWindup, VERDICT } from '../../sim/combat/bladeSwing';
 import { DEMON } from '../../tuning/demon';
 import { WEAPONS } from '../../tuning/weapons';
 import type { SwordPose } from './armsRig';
@@ -110,7 +111,22 @@ export class SwordAnim {
   /** How hot the blade burns through an arc or a thrust (0 … 1), and whether it's cutting the air. */
   get flare(): number {
     if (this.move === 'thrust') return this.t < THRUST_OUT + DEMON.v.lungeTime ? 1 : 0;
-    return this.move === 'arc' ? this.glow.k : 0;
+    return this.move === 'arc' ? Math.max(this.glow.k, this.grown) : 0;
+  }
+
+  /** Update 0.3.73 — in Last Verdict's swing. */
+  get inVerdict(): boolean {
+    return this.move === 'arc' && this.arcStep === VERDICT;
+  }
+
+  /** Update 0.3.73 — how far grown the blade is for Last Verdict (0 … 1): as it rises; shrinking again as it comes back. */
+  get grown(): number {
+    if (this.move !== 'arc' || this.arcStep !== VERDICT) return 0;
+    const windup = bladeWindup(VERDICT);
+    const rise = windup - Math.min(bladeStrike(VERDICT), windup * 0.9);
+    if (this.t < rise) return smooth(this.t / rise);
+    const after = this.t - windup - bladeFollow(VERDICT);
+    return after <= 0 ? 1 : 1 - smooth(clamp01(after / (bladeBack(VERDICT) * 0.6)));
   }
 
   get slicing(): boolean {

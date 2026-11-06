@@ -11,6 +11,7 @@ import { PICKUP_POOL, THROWN_POOL } from '../sim/weapons/weapons';
 import { crossedPair } from './pairLook';
 import type { Viewmodel } from './viewmodel/viewmodel';
 import { MOVES } from './viewmodel/weaponMoves';
+import { bladeAway } from '../sim/combat/bladeThrow';
 
 export const SWORD_URL = '/models/weapons/sword.glb';
 // Update 0.1.4 — the Grimoire: the pack's Book3_Open (grimoire.glb, export_book.py), held open in the right hand.
@@ -190,6 +191,8 @@ export class WeaponsView {
         if (k >= 1) this.launch[i] = -1;
       }
     }
+    // (Update 0.3.73 — the Demon's sword, thrown, isn't in the hand.)
+    this.arms.setBladeOut(state.demon && bladeAway(state));
     this.arms.setWeapon(state.weapon ? this.held[state.weapon.kind] ?? null : null);
     // Update 0.2.4 — the Pistol's reload and magazine, for its arm.
     this.arms.gun.sync(state.gun.reload, state.gun.empty, state.weapon?.mag ?? 0);

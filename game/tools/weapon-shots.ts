@@ -32,6 +32,12 @@ const demon = process.argv[2] === 'demon';
 const d1 = 0.16;
 const d2 = 0.3;
 if (process.env.DEMON_HANDS) ARMS.v.demonHands = Number(process.env.DEMON_HANDS);
+// (Update 0.3.73 — trying where the Demon's punch ends: "ahead,drop,side"; and only some moments, by a pattern on their names.)
+if (process.env.STRIKE) {
+  const [ahead, drop, side] = process.env.STRIKE.split(',').map(Number);
+  DEMON_HAND.strike = { ahead, drop, side };
+}
+const ONLY = process.env.ONLY ? new RegExp(process.env.ONLY) : null;
 const kind = (demon ? 'sword' : process.argv[2]) as WeaponKind;
 const out = process.argv[3];
 if (!kind || !out) throw new Error('usage: npx tsx tools/weapon-shots.ts <kind> <out folder>');
@@ -147,12 +153,20 @@ if (demon) {
   });
   MOMENTS.push({ name: 'thrust', run: (vm, p) => (vm.thrust(), play(vm, p, 0.08)) });
   MOMENTS.push({ name: 'plant', run: (vm, p) => (vm.plant(), play(vm, p, 0.15)) });
-  const bare = (vm: Viewmodel, p: P) => (vm.setWeapon(null), play(vm, p, 1.2));
+  // (Update 0.3.73 — the throw, Last Verdict's rise and fall, the sword grown; the gauntlets alone, it thrown.)
+  for (const [name, step] of [['throw', 5]] as const) {
+    MOMENTS.push({ name: `${name}_0`, run: swing(step, 0) }, { name: `${name}_1`, run: swing(step, 1) });
+  }
+  const verdict = (at: number) => (vm: Viewmodel, p: P) => (vm.arc(6), play(vm, p, at));
+  const w6 = bladeWindup(6);
+  MOMENTS.push({ name: 'verdict_rise', run: verdict(w6 * 0.45) }, { name: 'verdict_top', run: verdict(w6 * 0.86) }, { name: 'verdict_fall', run: verdict(w6 * 0.96) }, { name: 'verdict_contact', run: verdict(w6) }, { name: 'verdict_through', run: verdict(w6 + bladeFollow(6)) });
+  const bare = (vm: Viewmodel, p: P) => (vm.setBladeOut(true), vm.setWeapon(null), play(vm, p, 1.2));
   MOMENTS.push({ name: 'fists', run: bare }, { name: 'punch_r', run: (vm, p) => (bare(vm, p), vm.punch('R', 'jab'), play(vm, p, 0.05)) }, { name: 'punch_l', run: (vm, p) => (bare(vm, p), vm.punch('L', 'jab'), play(vm, p, 0.05)) });
 }
 
 const shots = [];
 for (const moment of MOMENTS) {
+  if (ONLY && !ONLY.test(moment.name)) continue;
   const arms = await load(ARMS_FILE ?? new URL('../public/models/arms/adventurer.glb', import.meta.url));
   const weapon = await load(WEAPON_FILE ?? new URL(`../public${WEAPON_URL[kind]}`, import.meta.url));
   const vm = new Viewmodel(false);

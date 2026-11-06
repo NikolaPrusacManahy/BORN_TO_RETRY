@@ -2,10 +2,13 @@
 // passes (player/dash.ts moves you; this hits). Ctrl on the ground, Brand of Ruin: the sword planted, fire out along lines from you,
 // a moment rooted and untouchable: your way out when you're surrounded. Ctrl in the air's the slam's dive, and its landing is
 // the same Brand, bigger the further you fell (demonFire.ts). Pure.
+// Update 0.3.73 — a hot Lunge leaves fire along its way; heat cools and kills heal here, each tick.
 import { Vector3 } from 'three';
 import { DEMON } from '../../tuning/demon';
+import { healPlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
-import { plantBrand } from './demonFire';
+import { leaveBurn, plantBrand } from './demonFire';
+import { coolHeat, isHot } from './heat';
 import type { CombatState } from './state';
 import { landHit } from './strike';
 import { sweepTargets, targetId } from './sweep';
@@ -24,6 +27,7 @@ export function stepLunge(state: CombatState, player: PlayerState) {
   if (on && !b.lunging) {
     b.lunging = true;
     b.lungeFrom.copy(player.pos);
+    b.lungeStart.copy(player.pos);
     b.lungeStruck.clear();
     b.step = -1;
     b.charging = b.full = false;
@@ -46,6 +50,7 @@ export function stepLunge(state: CombatState, player: PlayerState) {
   if (!on) {
     b.lunging = false;
     state.events.push('demonLungeEnd', 0, player.pos.x, player.pos.y + CHEST, player.pos.z);
+    if (isHot(state)) leaveBurn(state, b.lungeStart.x, b.lungeStart.z, player.pos.x, player.pos.z, player.pos.y);
   }
 }
 
@@ -68,11 +73,31 @@ export function landPlunge(state: CombatState, player: PlayerState, drop: number
   plantBrand(state, player.pos.x, player.pos.y, player.pos.z, player.yaw, Math.max(0.01, drop));
 }
 
+/** Update 0.3.73 — Forged from the Fallen: kills turned into health. */
+export function feedOnFallen(state: CombatState, player: PlayerState) {
+  const b = state.blade;
+  if (b.fallen <= 0) return;
+  healPlayer(player, b.fallen * DEMON.v.killHeal);
+  b.fallen = 0;
+}
+
+/** Last Verdict's sheet fading (it runs while the world holds still, too). */
+export function tickCleave(state: CombatState, dt: number) {
+  const c = state.demonFire.cleave;
+  if (!c) return;
+  c.left -= dt;
+  if (c.left <= 0) state.demonFire.cleave = null;
+}
+
 /** The Demon's timers, one tick. */
-export function tickDemon(state: CombatState, dt: number) {
+export function tickDemon(state: CombatState, player: PlayerState, dt: number) {
   const b = state.blade;
   b.plant = Math.max(0, b.plant - dt);
   b.brandWait = Math.max(0, b.brandWait - dt);
+  b.grey = Math.max(0, b.grey - dt);
+  coolHeat(state, dt);
+  feedOnFallen(state, player);
+  tickCleave(state, dt);
 }
 
 /** How fast you can move, with the sword in the floor or held up to block. */

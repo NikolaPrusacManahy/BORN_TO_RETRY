@@ -7,21 +7,27 @@
 // full it's Ember Wave (the bible's "Hold LMB"; a press in the last moments of a swing is kept for the next). Right click held
 // is a block; a parry that lands is Verdict Parry's instant counter-slash, in slow motion. Ctrl on the ground plants the sword.
 // The overhead's blow leaves its fire wall (demonFire.ts).
+// Update 0.3.73 — E's throw and Q's Last Verdict are swings too, so the arm's and the rules' times are one (bladeThrow.ts, lastVerdict.ts). At high
+// heat (heat.ts) a swing reaches further and wider.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { DEMON } from '../../tuning/demon';
 import type { CollisionWorld } from '../collisionWorld';
 import { isLive } from '../enemies/enemy';
 import { launch } from '../enemies/flight';
+import { createThrownBlade, launchBlade, type ThrownBlade } from './bladeThrow';
 import { launchWave, leaveWall } from './demonFire';
+import { isHot } from './heat';
 import { frostHit } from './punch';
 import type { CombatEvent, CombatState } from './state';
 import { emptyTargetHit, landHit, nearestTarget } from './strike';
 
-/** The combo's third; what a charge lets go; what a parry answers with. */
+/** The combo's third; what a charge lets go; what a parry answers with; E's; Q's. */
 export const OVERHEAD = 2;
 export const EMBER = 3;
 export const COUNTER = 4;
+export const THROW = 5;
+export const VERDICT = 6;
 /** So many rays make up a sweep; each goes on past what it meets (so far past it, m), through so many at most. */
 const SLASH_RAYS = 9;
 const OVERHEAD_RAYS = 5;
@@ -31,9 +37,11 @@ const UP = new Vector3(0, 1, 0);
 const DEG = Math.PI / 180;
 /** A press in a swing is kept this long, for the next. */
 const KEPT = 0.28;
+/** However hot, no further round than this either side (degrees). */
+const MOST_ARC = 100;
 
 export interface BladeSwing {
-  /** The swing in the air (0 slash, 1 backslash, 2 overhead, 3 Ember Wave, 4 the counter; −1: none), seconds into it, and whether it's landed. */
+  /** The swing in the air (0 slash, 1 backslash, 2 overhead, 3 Ember Wave, 4 the counter, 5 the throw, 6 Last Verdict; −1: none), seconds into it, and whether it's landed. */
   step: number;
   t: number;
   struck: boolean;
@@ -55,19 +63,36 @@ export interface BladeSwing {
   lunging: boolean;
   lungeFrom: Vector3;
   lungeStruck: Set<string>;
+  /** Update 0.3.73 — where it started (a hot one leaves fire along it). */
+  lungeStart: Vector3;
+  /** Its heat (0 … 1), how long since it last hit anything (s), and kills not yet turned into health. */
+  heat: number;
+  heatIdle: number;
+  fallen: number;
+  /** Thrown. */
+  flying: ThrownBlade;
+  /** Last Verdict: going, how far in (s), whether it's landed, from where and along which way; once over, how long the colour's still coming back. */
+  verdict: boolean;
+  verdictT: number;
+  verdictStruck: boolean;
+  verdictX: number;
+  verdictY: number;
+  verdictZ: number;
+  verdictYaw: number;
+  grey: number;
 }
 
-export const createBladeSwing = (): BladeSwing => ({ step: -1, t: 0, struck: false, next: 0, combo: 0, queued: 0, heldFor: 0, charging: false, charge: 0, full: false, guard: false, plant: 0, brandWait: 0, lunging: false, lungeFrom: new Vector3(), lungeStruck: new Set() });
+export const createBladeSwing = (): BladeSwing => ({ step: -1, t: 0, struck: false, next: 0, combo: 0, queued: 0, heldFor: 0, charging: false, charge: 0, full: false, guard: false, plant: 0, brandWait: 0, lunging: false, lungeFrom: new Vector3(), lungeStruck: new Set(), lungeStart: new Vector3(), heat: 0, heatIdle: 0, fallen: 0, flying: createThrownBlade(), verdict: false, verdictT: 0, verdictStruck: false, verdictX: 0, verdictY: 0, verdictZ: 0, verdictYaw: 0, grey: 0 });
 
 /** Seconds from a swing's start to its contact, its last stretch of that (the strike itself), how long its weight carries it on,
  *  the way back to ready, and from contact till the next can start. */
-export const bladeWindup = (s: number) => (s === COUNTER ? DEMON.v.counterWindup : s === EMBER ? DEMON.v.emberWindup : s === OVERHEAD ? DEMON.v.overheadWindup : DEMON.v.slashWindup);
-export const bladeStrike = (s: number) => (s === COUNTER ? DEMON.v.counterStrike : s === EMBER ? DEMON.v.emberStrike : s === OVERHEAD ? DEMON.v.overheadStrike : DEMON.v.slashStrike);
-export const bladeFollow = (s: number) => (s === COUNTER ? DEMON.v.counterFollow : s === EMBER ? DEMON.v.emberFollow : s === OVERHEAD ? DEMON.v.overheadFollow : DEMON.v.slashFollow);
-export const bladeBack = (s: number) => (s === COUNTER ? DEMON.v.counterBack : s === EMBER ? DEMON.v.emberBack : s === OVERHEAD ? DEMON.v.overheadBack : DEMON.v.slashBack);
-const bladeNext = (s: number) => (s === COUNTER ? DEMON.v.counterNext : s === EMBER ? DEMON.v.emberNext : s === OVERHEAD ? DEMON.v.overheadNext : DEMON.v.slashNext);
+export const bladeWindup = (s: number) => (s === VERDICT ? DEMON.v.verdictWindup : s === THROW ? DEMON.v.throwWindup : s === COUNTER ? DEMON.v.counterWindup : s === EMBER ? DEMON.v.emberWindup : s === OVERHEAD ? DEMON.v.overheadWindup : DEMON.v.slashWindup);
+export const bladeStrike = (s: number) => (s === VERDICT ? DEMON.v.verdictStrike : s === THROW ? DEMON.v.throwStrike : s === COUNTER ? DEMON.v.counterStrike : s === EMBER ? DEMON.v.emberStrike : s === OVERHEAD ? DEMON.v.overheadStrike : DEMON.v.slashStrike);
+export const bladeFollow = (s: number) => (s === VERDICT ? DEMON.v.verdictFollow : s === THROW ? DEMON.v.throwFollow : s === COUNTER ? DEMON.v.counterFollow : s === EMBER ? DEMON.v.emberFollow : s === OVERHEAD ? DEMON.v.overheadFollow : DEMON.v.slashFollow);
+export const bladeBack = (s: number) => (s === VERDICT ? DEMON.v.verdictBack : s === THROW ? DEMON.v.throwBack : s === COUNTER ? DEMON.v.counterBack : s === EMBER ? DEMON.v.emberBack : s === OVERHEAD ? DEMON.v.overheadBack : DEMON.v.slashBack);
+const bladeNext = (s: number) => (s >= THROW ? 0 : s === COUNTER ? DEMON.v.counterNext : s === EMBER ? DEMON.v.emberNext : s === OVERHEAD ? DEMON.v.overheadNext : DEMON.v.slashNext);
 
-function begin(b: BladeSwing, step: number, events: EventQueue<CombatEvent>) {
+export function begin(b: BladeSwing, step: number, events: EventQueue<CombatEvent>) {
   b.step = step;
   b.t = 0;
   b.struck = false;
@@ -81,6 +106,13 @@ export function startCounter(state: CombatState) {
   b.charging = b.full = false;
   begin(b, COUNTER, state.events);
   state.slowMo = DEMON.v.counterSlow;
+}
+
+/** Update 0.3.73 — E: the arm draws back to throw it. (It leaves at contact: landBlade.) */
+export function startThrow(state: CombatState) {
+  const b = state.blade;
+  b.charging = b.full = false;
+  begin(b, THROW, state.events);
 }
 
 /** One tick. `pressed`, `held`: left click; `stop`: a parry's window open, a block or a slam's clasp: no swing now. `rate`: green
@@ -156,15 +188,22 @@ export function landBlade(state: CombatState, step: number, eye: Vector3, dir: V
     launchWave(state, eye, dir);
     return 0;
   }
+  if (step === THROW) {
+    launchBlade(state, eye, dir, world);
+    return 0;
+  }
+  // (Update 0.3.73 — at high heat, bigger.)
+  const hot = isHot(state) ? v.hotArc : 1;
   const big = step === OVERHEAD || step === COUNTER;
-  const half = (step === COUNTER ? v.counterArc : step === OVERHEAD ? v.overheadArc : v.slashArc) * DEG;
+  const half = Math.min(MOST_ARC, (step === COUNTER ? v.counterArc : step === OVERHEAD ? v.overheadArc : v.slashArc) * hot) * DEG;
   const rays = step === OVERHEAD ? OVERHEAD_RAYS : SLASH_RAYS;
   const damage = (step === COUNTER ? v.counterDamage : step === OVERHEAD ? v.overheadDamage : v.slashDamage) * factor;
   const knock = big ? v.overheadKnock : v.slashKnock;
   seen.length = 0;
   for (let i = 0; i < rays; i++) {
     ray.copy(dir).applyAxisAngle(UP, -half + (2 * half * i) / (rays - 1));
-    const reach = Math.min(v.reach, world.rayDistance(eye, ray, v.reach) + v.width);
+    const far = v.reach * hot;
+    const reach = Math.min(far, world.rayDistance(eye, ray, far) + v.width);
     const flat = Math.hypot(ray.x, ray.z) || 1;
     end.copy(eye).addScaledVector(ray, reach);
     from.copy(eye);

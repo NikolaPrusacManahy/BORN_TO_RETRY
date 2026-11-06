@@ -16,9 +16,11 @@ const hit = emptyTargetHit();
 /** A name for a target, to hit it only once. */
 export const targetId = (t: TargetHit) => `${t.kind}${t.index}`;
 
-/** Calls `visit` with each target `from`→`to` passes within `radius` of. (The hit it's given is reused: read it, don't keep it.) */
-export function sweepTargets(state: CombatState, from: Vector3, to: Vector3, radius: number, visit: (t: TargetHit) => void) {
+/** Calls `visit` with each target `from`→`to` passes within `radius` of. (The hit it's given is reused: read it, don't keep it.)
+ *  Update 0.3.73 — `anyHeight`: a wall of it, not a line: how high a target is doesn't count (Last Verdict). */
+export function sweepTargets(state: CombatState, from: Vector3, to: Vector3, radius: number, visit: (t: TargetHit) => void, anyHeight = false) {
   const consider = (kind: TargetHit['kind'], index: number, r: number) => {
+    if (anyHeight) from.y = to.y = (a.y + b.y) / 2;
     if (segmentDistance(from, to, a, b, at, sOut) > radius + r) return;
     hit.kind = kind;
     hit.index = index;

@@ -77,6 +77,8 @@ export class ArmsRig {
   readonly eye = new THREE.Vector3();
   /** Between the shoulders, model space. */
   readonly between = new THREE.Vector3();
+  /** Update 0.3.73 — where this character's punch ends, if it's its own (null: at the crosshair). */
+  readonly strike: HandFit['strike'] | null;
   /** (Update 0.1.8 — read by slamArms.ts to straighten a wrist.) */
   readonly arms: Record<Side, ArmRest>;
   private readonly holds: Record<Side, HoldRest>;
@@ -86,6 +88,7 @@ export class ArmsRig {
   private readonly backLocal: Record<Side, THREE.Vector3>;
 
   private constructor(root: THREE.Object3D, fit?: HandFit) {
+    this.strike = fit?.strike ?? null;
     this.root = root;
     root.updateMatrixWorld(true);
     const find = (name: string) => {

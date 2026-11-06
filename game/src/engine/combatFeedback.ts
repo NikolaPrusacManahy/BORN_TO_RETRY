@@ -122,6 +122,22 @@ export class CombatFeedback {
         case 'demonWall':
           this.f.rig.shake.add(0.08);
           break;
+        // Update 0.3.73 — its sword thrown, caught, gone to; Last Verdict landing.
+        case 'bladeThrown':
+          this.f.rig.shake.add(0.1);
+          this.f.rig.kick(0.6);
+          break;
+        case 'bladeCaught':
+          this.f.rig.shake.add(0.1);
+          break;
+        case 'bladeBlink':
+          this.f.rig.shake.add(0.2);
+          this.f.rig.lunge(-10);
+          break;
+        case 'demonCleave':
+          this.f.rig.shake.add(1);
+          this.f.rig.kick(3);
+          break;
         case 'parry':
           this.f.arms.block.parried();
           break;

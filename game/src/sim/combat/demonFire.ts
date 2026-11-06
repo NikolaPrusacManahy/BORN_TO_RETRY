@@ -9,6 +9,7 @@ import { wallBetween } from '../../world/navGrid';
 import type { CollisionWorld } from '../collisionWorld';
 import { launch } from '../enemies/flight';
 import type { CombatState } from './state';
+import { isHot } from './heat';
 import { landHit } from './strike';
 import { sweepTargets, targetId } from './sweep';
 
@@ -50,13 +51,24 @@ export interface BrandFire {
   struck: Set<string>;
 }
 
+/** Update 0.3.73 — Last Verdict's cleave, for its view: from where, to where, and how much longer it shows (s). */
+export interface Cleave {
+  ax: number;
+  az: number;
+  bx: number;
+  bz: number;
+  y: number;
+  left: number;
+}
+
 export interface DemonFire {
   walls: FireWall[];
   waves: EmberWave[];
   brands: BrandFire[];
+  cleave: Cleave | null;
 }
 
-export const createDemonFire = (): DemonFire => ({ walls: [], waves: [], brands: [] });
+export const createDemonFire = (): DemonFire => ({ walls: [], waves: [], brands: [], cleave: null });
 
 /** At most so many at once (the oldest goes). */
 const MAX_WALLS = 4;
@@ -94,10 +106,17 @@ export function leaveWall(state: CombatState, eye: Vector3, dir: Vector3, world:
   const cz = eye.z + fz * ahead;
   next.set(cx, eye.y, cz);
   const y = eye.y - Math.min(world.rayDistance(next, DOWN, 30), 30);
-  const half = v.wallLong / 2;
+  // (Update 0.3.73 — at high heat, longer.)
+  const half = (v.wallLong * (isHot(state) ? v.hotWall : 1)) / 2;
   state.demonFire.walls.push({ ax: cx - fz * half, az: cz + fx * half, bx: cx + fz * half, bz: cz - fx * half, y, left: v.wallFor, burn: 0 });
   lastN(state.demonFire.walls, MAX_WALLS);
   state.events.push('demonWall', 0, cx, y, cz);
+}
+
+/** Update 0.3.73 — fire along a line on the floor: a hot Lunge's trail, Last Verdict's mark. */
+export function leaveBurn(state: CombatState, ax: number, az: number, bx: number, bz: number, y: number) {
+  state.demonFire.walls.push({ ax, az, bx, bz, y, left: DEMON.v.wallFor, burn: 0 });
+  lastN(state.demonFire.walls, MAX_WALLS);
 }
 
 /** Ember Wave: the flaming crescent, from your eye along your aim. */
@@ -236,5 +255,6 @@ export function clearDemonFire(f: DemonFire) {
   f.walls.length = 0;
   f.waves.length = 0;
   f.brands.length = 0;
+  f.cleave = null;
 }
 
