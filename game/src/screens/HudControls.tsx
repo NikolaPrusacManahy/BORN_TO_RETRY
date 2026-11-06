@@ -74,22 +74,7 @@ function Input({ cap, name, state = '', fill = 1 }: { cap: string; name: string;
   );
 }
 
-/** What each of the Demon's keys does right now. */
-/** Update 0.3.81 — Gravity Sean's inputs, by his stance. */
-export function SeanControls({ s }: { s: HudState }) {
-  const waiting = !s.inAir && s.brandFill < 1;
-  return (
-    <div className="rb-inputs">
-      <Input cap={s.attackKey} name={s.unstable ? 'Gravity Fists' : 'Gravity Punch'} state={s.unstable ? 'is-lit' : ''} />
-      <Input cap={s.heavyKey} name={s.seanHold > 0 ? 'Throw' : s.unstable ? 'Black Hole' : 'Grab'} state={s.seanHold > 0 ? 'is-lit' : ''} />
-      <Input cap={s.interactKey} name={s.unstable ? 'Vent' : 'Unstable'} state={s.unstable ? 'is-lit' : ''} />
-      <Input cap={s.dashKey} name="Dash" />
-      <Input cap={s.slamKey} name={s.unstable ? 'Shockwave Punch' : s.inAir ? 'Plunge' : 'Ground Slam'} state={waiting ? 'is-off' : ''} fill={waiting ? s.brandFill : 1} />
-      <Input cap={s.throwKey} name={s.unstable ? 'Meteor' : 'Time Stop'} state={s.execution >= 1 ? 'is-ready' : 'is-off'} fill={s.execution} />
-    </div>
-  );
-}
-
+/** What each of the Demon's keys does right now. (Update 0.3.87 — Gravity Sean's: SeanControls.tsx.) */
 export function DemonControls({ s }: { s: HudState }) {
   const out = s.bladeOut;
   // (Update 0.3.79 — in ranged mode the sword's put away, as it is thrown.)

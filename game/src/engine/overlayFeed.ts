@@ -55,7 +55,7 @@ import { ultimateIn } from '../sim/enemies/ultimate';
 import { markOn } from '../sim/enemies/drownedBody';
 import { bladeAway } from '../sim/combat/bladeThrow';
 import { DEMON } from '../tuning/demon';
-import { SEAN } from '../tuning/sean';
+import { copySeanHud, createSeanHud, sameSeanHud, seanHud } from '../sim/combat/gravityHud';
 
 /** HUD refresh interval (s); hits, hurts and health changes push at once. */
 const HUD_EVERY = 0.05;
@@ -97,6 +97,7 @@ export class HudFeed {
   slamReady = false;
   private readonly raptor = createRaptorHud();
   private readonly controls = createControlsHud();
+  private readonly seanNow = createSeanHud();
   private readonly parryClock = createParryClock();
 
   constructor(private readonly hud: HudStore) {}
@@ -126,15 +127,16 @@ export class HudFeed {
     const execution = Math.round((combat.demon ? combat.blade.heat : combat.sean ? combat.grav.ult : combat.execution) * 100) / 100;
     // (Update 0.3.74 — its inputs: what changes them, as one number.)
     const canBlink = combat.demon && bladeAway(combat) && combat.blade.flying.canBlink;
-    const brandFill = combat.demon ? Math.round((1 - combat.blade.brandWait / Math.max(0.01, DEMON.v.brandWait)) * 20) / 20 : combat.sean ? Math.round((combat.grav.unstable ? 1 - combat.grav.shockWait / Math.max(0.01, SEAN.v.shockWait) : 1 - combat.grav.slamWait / Math.max(0.01, SEAN.v.slamWait)) * 20) / 20 : 1;
+    const brandFill = combat.demon ? Math.round((1 - combat.blade.brandWait / Math.max(0.01, DEMON.v.brandWait)) * 20) / 20 : 1;
     const inAir = !p.grounded;
     const ranged = combat.demon && combat.blade.ranged;
     const demonSig = combat.demon ? (bladeAway(combat) ? 1 : 0) + (canBlink ? 2 : 0) + (inAir ? 4 : 0) + (ranged ? 8 : 0) + 16 * Math.round(brandFill * 20) : 0;
-    // (Update 0.3.81 — Gravity Sean's: his stance, his meter, when he can switch back.)
+    // (Update 0.3.81 — Gravity Sean's: his stance, his meter. Update 0.3.87 — and all his waits.)
     const unstable = combat.sean && combat.grav.unstable;
     const instab = combat.sean ? Math.round(combat.grav.instab * 50) / 50 : 0;
     const seanHold = !combat.sean ? 0 : combat.grav.held ? 1 : combat.grav.palm >= 0 ? 2 : 0;
-    const seanSig = combat.sean ? 1 + (unstable ? 2 : 0) + (inAir ? 4 : 0) + (combat.grav.switchWait > 0 ? 8 : 0) + 16 * Math.round(brandFill * 20) + 512 * Math.round(instab * 50) + 32768 * seanHold : 0;
+    const seanSig = combat.sean ? 1 + (unstable ? 2 : 0) + (inAir ? 4 : 0) + 8 * Math.round(instab * 50) + 512 * seanHold : 0;
+    const seanNow = seanHud(combat.grav, inAir, this.seanNow);
     // (Update 0.3.4 — the style rank: its fill in steps of 2%, its feed by its newest line.)
     const style = fb.style;
     const styleRank = style.rank;
@@ -178,7 +180,7 @@ export class HudFeed {
     const jaw = shark ? jawCue(shark) : 0;
     const ctl = controlsHud(combat, this.heavyKey, this.slamKey, this.slamReady, this.parryClock, this.controls);
     const grab = cur.grabHits === grabHits && cur.grabLeft === grabLeft && cur.grabEnd === grabEnd && cur.bossMark === bossMark && cur.ultCue === ultCue && cur.ultFill === ultFill && cur.ultLeft === ultLeft && cur.bloodMist === bloodMist && cur.attackKey === this.attackKey && sameRaptor(cur, raptor) && cur.dashKey === this.dashKey && cur.jawCue === jaw && cur.leftKey === this.leftKey && cur.rightKey === this.rightKey && cur.slotKeys === this.slotKeys;
-    if (this.timer > 0 && same && shown && grab && keys && rings && cur.slotSig === sig && cur.demonSig === demonSig && cur.seanSig === seanSig && cur.interactKey === this.interactKey && cur.throwKey === this.throwKey && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution && cur.chestHere === chestHere && cur.styleRank === styleRank && this.styleTop === styleTop && sameControls(cur, ctl)) return;
+    if (this.timer > 0 && same && shown && grab && keys && rings && cur.slotSig === sig && cur.demonSig === demonSig && cur.seanSig === seanSig && sameSeanHud(cur.seanHud, seanNow) && cur.interactKey === this.interactKey && cur.throwKey === this.throwKey && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution && cur.chestHere === chestHere && cur.styleRank === styleRank && this.styleTop === styleTop && sameControls(cur, ctl)) return;
     this.styleTop = styleTop;
     this.bonus = bonus;
     const bonusLeft: Record<string, number> = {};
@@ -216,6 +218,7 @@ export class HudFeed {
       instab,
       seanSig,
       seanHold,
+      seanHud: copySeanHud(seanNow),
       bladeOut: combat.demon && bladeAway(combat),
       canBlink,
       ranged,

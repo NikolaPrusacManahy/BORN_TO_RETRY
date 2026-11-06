@@ -64,3 +64,160 @@
     margin-left: -1px;
   }
 }
+
+/* Update 0.3.87 — his inputs (screens/SeanControls.tsx): the Demon's lines in his colours, a clock for what's waiting. */
+.rb-hud.is-sean .rb-sean-inputs {
+  gap: 5px;
+  background: linear-gradient(90deg, rgba(6, 5, 16, 0), rgba(8, 7, 24, 0.74) 22%, rgba(12, 10, 34, 0.88));
+  border-right-color: var(--rb-accent);
+}
+
+.rb-sean-row {
+  min-height: 36px;
+  gap: 10px;
+}
+
+/* (The Demon's thin line of fire: not his.) */
+.rb-sean-row::after {
+  display: none;
+}
+
+.rb-sean-row > .rb-input-name {
+  color: #dcd8f5;
+}
+
+.rb-sean-row.is-off > .rb-input-name {
+  color: #77729a;
+}
+
+.rb-sean-row.is-lit > .rb-input-name {
+  color: var(--rb-accent-hi);
+}
+
+.rb-sean-row.is-lit > .rb-cap {
+  color: #fff;
+  background: var(--rb-brass-lo);
+  border-color: var(--rb-accent);
+  border-bottom-color: var(--rb-brass-lo);
+}
+
+.rb-sean-row.is-ready > .rb-input-name {
+  color: #fff;
+  text-shadow:
+    var(--rb-edge-thin),
+    0 0 12px var(--rb-accent);
+}
+
+.rb-sean-row.is-ready > .rb-cap {
+  color: #fff;
+  background: var(--rb-brass);
+  border-color: var(--rb-accent-hi);
+  border-bottom-color: var(--rb-brass-lo);
+  box-shadow:
+    0 0 0 2px #050310,
+    0 0 14px var(--rb-accent);
+}
+
+/* It's back: its name flashes, once, as it stops being dimmed. */
+.rb-sean-row:not(.is-off) > .rb-input-name {
+  animation: rb-sean-back 0.45s ease-out;
+}
+
+@keyframes rb-sean-back {
+  0% {
+    color: #fff;
+    text-shadow:
+      var(--rb-edge-thin),
+      0 0 18px var(--rb-accent-hi);
+    transform: scale(1.14);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* The clock: filling back round, the seconds left in it. */
+.rb-sean-ring {
+  --ctl: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: conic-gradient(var(--rb-accent-hi) calc(var(--ctl) * 360deg), rgba(255, 255, 255, 0.14) 0);
+  box-shadow: 0 0 0 2px #050310;
+}
+
+.rb-sean-ring::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: #0b0922;
+}
+
+.rb-sean-ring > b {
+  position: relative;
+  font-family: var(--rb-font);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+/* What the other stance's move on this key still has to wait. */
+.rb-sean-other {
+  font-family: var(--rb-font);
+  font-size: 14px;
+  line-height: 1;
+  color: #8d86c9;
+  text-shadow: var(--rb-edge-thin);
+  white-space: nowrap;
+}
+
+/* Time Stop: what's left of it, over his other meters, and the edges of the screen gone violet. */
+.rb-hud-stop {
+  --fill: 0;
+  position: absolute;
+  left: 50%;
+  bottom: 104px;
+  width: 300px;
+  height: 10px;
+  transform: translateX(-50%);
+  background: #100d2c;
+  border: 2px solid #8f83ff;
+  box-shadow: 0 0 0 2px #05040f, 0 0 12px rgba(143, 131, 255, 0.6);
+}
+
+.rb-hud-stop > i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  transform: scaleX(var(--fill));
+  background: linear-gradient(90deg, #8f83ff, #e9e5ff);
+}
+
+.rb-hud-stop > b {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  font-family: var(--rb-font);
+  font-size: 26px;
+  line-height: 1;
+  color: #e9e5ff;
+  text-shadow:
+    var(--rb-edge-thin),
+    0 0 12px #8f83ff;
+}
+
+.rb-hud.is-stopped::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(127, 115, 255, 0) 55%, rgba(127, 115, 255, 0.32) 100%);
+}

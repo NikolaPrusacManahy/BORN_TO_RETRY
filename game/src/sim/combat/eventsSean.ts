@@ -37,5 +37,6 @@ export type SeanEvent =
   | 'seanMeteorCall'
   | 'seanMeteorFall'
   | 'seanMeteorHit'
-  // The shared meter's full.
-  | 'seanUltReady';
+  // The shared meter's full. Update 0.3.87 — a long wait's over (value: 0 Black Hole, 1 Shockwave Punch).
+  | 'seanUltReady'
+  | 'seanReady';
