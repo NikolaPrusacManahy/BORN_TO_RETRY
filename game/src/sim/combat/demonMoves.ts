@@ -9,6 +9,7 @@ import { healPlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
 import { leaveBurn, plantBrand } from './demonFire';
 import { coolHeat, isHot } from './heat';
+import { stepFeet, stepPresence } from './presence';
 import type { CombatState } from './state';
 import { landHit } from './strike';
 import { sweepTargets, targetId } from './sweep';
@@ -98,6 +99,8 @@ export function tickDemon(state: CombatState, player: PlayerState, dt: number) {
   b.grey = Math.max(0, b.grey - dt);
   coolHeat(state, dt);
   feedOnFallen(state, player);
+  stepFeet(state, player);
+  stepPresence(state, player, dt);
   tickCleave(state, dt);
 }
 

@@ -5,6 +5,7 @@
 import type { EventQueue } from '../core/eventQueue';
 import type { MoveEvent } from '../sim/player/state';
 import { SHAKE } from '../tuning/camera';
+import { DEMON } from '../tuning/demon';
 import { HEALTH } from '../tuning/health';
 import type { MoveSounds } from '../audio/moveSounds';
 import type { CameraRig } from './cameraRig';
@@ -12,6 +13,8 @@ import type { Viewmodel } from './viewmodel/viewmodel';
 
 /** Landings slower than this don't dip the view. */
 const DIP_MIN_SPEED = 2;
+/** Update 0.3.75 — one of the Demon's steps dips the arms as a landing this fast does (m/s). */
+const STEP_ARMS = 2.5;
 
 /** Counts the player's hurts and shield hits into `hits` (for the HUD's flashes). */
 export function applyMoveEvents(events: EventQueue<MoveEvent>, rig: CameraRig, sounds: MoveSounds, arms: Viewmodel, hits: { hurts: number; shields: number; kicks: number }) {
@@ -24,6 +27,10 @@ export function applyMoveEvents(events: EventQueue<MoveEvent>, rig: CameraRig, s
         arms.land(value);
       }
       if (value > SHAKE.v.hardLandSpeed) rig.shake.add((value - SHAKE.v.hardLandSpeed) * SHAKE.v.hardLand);
+    } else if (kind === 'demonStep') {
+      // Update 0.3.75 — the Playable Demon's weight: the view and the arms with it.
+      rig.heavyStep(DEMON.v.stepBob);
+      arms.land(STEP_ARMS);
     } else if (kind === 'slam') {
       arms.slam.start();
     } else if (kind === 'slamLand') {

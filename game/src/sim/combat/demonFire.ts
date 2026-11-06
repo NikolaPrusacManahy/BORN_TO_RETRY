@@ -198,6 +198,7 @@ function stepWaves(state: CombatState, world: CollisionWorld, dt: number) {
       o.struck.add(id);
       const killed = landHit(state, t, v.waveDamage, v.waveKnock, fx, fz, 'hitSlash', v.waveDamage);
       if (killed && t.kind === 'enemy') launch(state.enemies[t.index], fx, fz);
+      state.hitStop.request(v.farStop);
     });
     o.pos.copy(next);
     if (wall <= step + 0.2 || o.life <= 0) {
@@ -234,6 +235,7 @@ function stepBrands(state: CombatState, dt: number) {
           b.struck.add(id);
           const killed = landHit(state, t, b.damage, v.brandKnock, Math.sin(sa), Math.cos(sa), 'hitSlam', b.damage);
           if (killed && t.kind === 'enemy') launch(state.enemies[t.index], Math.sin(sa), Math.cos(sa));
+          state.hitStop.request(v.farStop);
         });
       }
     }

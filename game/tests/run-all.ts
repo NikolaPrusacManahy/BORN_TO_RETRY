@@ -25,6 +25,7 @@ import './test-demon';
 import './test-blazing-arc';
 import './test-demon-moves';
 import './test-demon-big';
+import './test-demon-feel';
 import './test-seams';
 import './test-floor5';
 import './test-floor5-foes';

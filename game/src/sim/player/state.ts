@@ -8,6 +8,8 @@ import type { EnemyKind } from '../enemies/kinds';
 import type { CardKind } from '../cards/cards';
 
 export type MoveEvent =
+  // Update 0.3.75 — the Playable Demon's heavy step (combat/presence.ts).
+  | 'demonStep'
   // Update 0.0.20 — fell into lava (sent back to the floor's start).
   | 'lavaBurn'
   // Update 0.3.14 — into floor 6's sea.

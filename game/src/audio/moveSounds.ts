@@ -2,10 +2,11 @@
 // with it). M1 step 8 — and
 // getting hurt and dying.
 // Update 0.1.17 — the landing from the designer's recording (clips.ts; louder the harder).
-// (Footsteps came and went: the designer, "no need in this game".)
+// (Footsteps came and went: the designer, "no need in this game". Update 0.3.75 — but the Playable Demon's bible asks for its own, low and heavy: only it has any.)
 // Batch 5: every other move a clip first (MOVE_CLIPS: the jumps share one, as do the wall jumps), the made sound without.
 import type { MoveEvent } from '../sim/player/state';
 import type { ClipSound } from './clipPicks';
+import { DEMON } from '../tuning/demon';
 import { SOUND } from '../tuning/sound';
 import type { AudioEngine } from './audio';
 import { NoiseLoop, noise, tone } from './synth';
@@ -32,11 +33,17 @@ const MOVE_CLIPS: Partial<Record<MoveEvent, ClipSound>> = {
   lavaBurn: 'lavaBurn',
 };
 
+/** Update 0.3.75 — the Demon's sword's forge hiss at this heat (0 … 1): nothing when it's cold, rising fast as it nears full. */
+export const forgeLevel = (heat: number) => DEMON.v.hissVolume * heat * heat;
+
 export class MoveSounds {
   private wallRun: NoiseLoop;
+  /** Update 0.3.75 — high and thin: a hiss. */
+  private forge: NoiseLoop;
 
   constructor(private a: AudioEngine) {
     this.wallRun = new NoiseLoop(a, 1600);
+    this.forge = new NoiseLoop(a, 9000);
   }
 
   play(kind: MoveEvent, value: number) {
@@ -63,6 +70,14 @@ export class MoveSounds {
       case 'pad':
         tone(a, { from: 160, to: 900, dur: 0.28, gain: 0.2, type: 'triangle' });
         break;
+      // Update 0.3.75 — the landing, lower: the Demon's step. Made, if there's no recording.
+      case 'demonStep': {
+        const v = DEMON.v;
+        if (a.clips.play('land', v.stepVolume, v.stepPitch)) break;
+        tone(a, { from: 75, to: 38, dur: 0.12, gain: v.stepVolume });
+        noise(a, { dur: 0.07, gain: v.stepVolume * 0.4, filter: 'lowpass', from: 500, to: 120 });
+        break;
+      }
       case 'land': {
         if (value < 3) break;
         const k = Math.min(1, value / 30);
@@ -123,5 +138,10 @@ export class MoveSounds {
   /** Every frame: a lighter, brighter scrape while wall running. */
   setWallRunning(on: boolean) {
     this.wallRun.setLevel(on ? 0.1 : 0);
+  }
+
+  /** Update 0.3.75 — every frame: how hot the Demon's sword is (0: silent). */
+  setForge(heat: number) {
+    this.forge.setLevel(forgeLevel(heat));
   }
 }

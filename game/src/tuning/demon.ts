@@ -5,6 +5,7 @@
 // Ruin and its Plunge.
 // Update 0.3.73 — phase 3 (the designer: "start phase 3"): its heat, Forged from the Fallen, Blade Throw and Last Verdict.
 // Update 0.3.74 — the designer gave right click to the throw and chose no parry for it: Verdict Parry, its block and its counter-slash are gone.
+// Update 0.3.75 — phase 4 (the designer: "start phase 4"): how it feels.
 import { group, knob } from './schema';
 
 export const DEMON = group('demon', 'The Demon', {
@@ -105,4 +106,15 @@ export const DEMON = group('demon', 'The Demon', {
   verdictBoss: knob(0.4, 0.05, 1, 0.05, 'Last Verdict: on a boss', 'Share of its full health it takes. 1: it dies.'),
   verdictGrow: knob(3, 1, 5, 0.1, 'Last Verdict: sword length', 'How many times longer the blade grows.'),
   verdictBroad: knob(2.4, 1, 5, 0.1, 'Last Verdict: sword width', 'How many times wider.'),
+
+  farStop: knob(35, 0, 200, 5, 'Hit-stop: at a distance (ms)', 'Ember Wave, the thrown sword, Brand of Ruin: each thing they hit. (The bible: 2 to 4 frames on every sword hit.)'),
+  stepEvery: knob(4.2, 1, 10, 0.1, 'Footsteps: stride', 'Metres between its heavy steps on the ground (you run at 12 m/s).'),
+  stepVolume: knob(0.3, 0, 1, 0.01, 'Footsteps: volume', 'How loud each is.'),
+  stepPitch: knob(0.62, 0.3, 1, 0.01, 'Footsteps: pitch', 'Times the landing sound’s own pitch: lower, heavier.'),
+  stepBob: knob(0.03, 0, 0.2, 0.005, 'Footsteps: bob', 'How far each step dips the view (m).'),
+  presenceRange: knob(4.5, 0, 12, 0.1, 'Presence: range', 'Ordinary enemies coming this near flinch or back off (m). 0: they don’t.'),
+  presenceFlinch: knob(0.5, 0, 1, 0.05, 'Presence: flinch', 'The share that flinch; the rest back off.'),
+  presenceBack: knob(9, 0, 30, 0.5, 'Presence: back off', 'How hard they back away (m/s).'),
+  presenceWait: knob(7, 0.5, 30, 0.5, 'Presence: wait', 'Seconds before the same enemy can lose its nerve again.'),
+  hissVolume: knob(0.09, 0, 0.5, 0.01, 'Forge hiss', 'How loud the sword hisses at full heat. It rises with heat.'),
 });

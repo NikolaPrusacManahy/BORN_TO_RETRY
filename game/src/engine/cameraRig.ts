@@ -47,6 +47,11 @@ export class CameraRig {
     this.dip.v -= depth * Math.sqrt(CAMERA.v.springStiffness) * 2.2;
   }
 
+  /** Update 0.3.75 — one of the Demon's heavy steps: the view dips `depth` m and comes back, on the landing's spring. */
+  heavyStep(depth: number) {
+    this.dip.v -= depth * Math.sqrt(CAMERA.v.springStiffness) * 2.2;
+  }
+
   /** M1 step 6 — a hit nods the view down by `deg`, then it eases back. */
   kick(deg: number) {
     this.kickPitch = Math.max(-0.2, this.kickPitch - (deg * Math.PI) / 180);

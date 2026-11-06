@@ -126,7 +126,8 @@ export function blinkToBlade(state: CombatState, player: PlayerState, yaw: numbe
   return true;
 }
 
-function cut(state: CombatState, t: ThrownBlade, from: Vector3, end: Vector3, damage: number) {
+/** `stop`: the freeze a hit takes (ms). */
+function cut(state: CombatState, t: ThrownBlade, from: Vector3, end: Vector3, damage: number, stop = 0) {
   const v = DEMON.v;
   const flat = Math.hypot(t.dir.x, t.dir.z) || 1;
   const fx = t.dir.x / flat;
@@ -137,6 +138,7 @@ function cut(state: CombatState, t: ThrownBlade, from: Vector3, end: Vector3, da
     t.struck.add(id);
     const killed = landHit(state, hit, damage, v.throwKnock, fx, fz, 'hitSlash', damage);
     if (killed && hit.kind === 'enemy') launch(state.enemies[hit.index], fx, fz);
+    if (stop > 0) state.hitStop.request(stop);
   });
 }
 
@@ -153,7 +155,7 @@ export function stepThrown(state: CombatState, player: PlayerState, yaw: number,
     const step = v.throwSpeed * dt;
     const wall = world.rayDistance(t.pos, t.dir, step + TIP);
     next.copy(t.pos).addScaledVector(t.dir, Math.min(step, wall));
-    cut(state, t, t.pos, next, v.throwDamage);
+    cut(state, t, t.pos, next, v.throwDamage, v.farStop);
     t.pos.copy(next);
     t.flown += step;
     if (wall <= step + TIP) {
@@ -181,7 +183,7 @@ export function stepThrown(state: CombatState, player: PlayerState, yaw: number,
     }
     t.dir.copy(to).divideScalar(far);
     next.copy(t.pos).addScaledVector(t.dir, step);
-    cut(state, t, t.pos, next, v.recallDamage);
+    cut(state, t, t.pos, next, v.recallDamage, v.farStop);
     t.pos.copy(next);
   }
 }

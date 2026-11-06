@@ -75,9 +75,14 @@ export interface BladeSwing {
   verdictStruck: boolean;
   verdictSeen: Set<string>;
   grey: number;
+  /** Update 0.3.75 — your feet last tick, how far into this stride; per enemy slot, till it can lose its nerve again (s). */
+  feetX: number;
+  feetZ: number;
+  stride: number;
+  dread: number[];
 }
 
-export const createBladeSwing = (): BladeSwing => ({ step: -1, t: 0, struck: false, next: 0, combo: 0, queued: 0, heldFor: 0, charging: false, charge: 0, full: false, plant: 0, brandWait: 0, lunging: false, lungeFrom: new Vector3(), lungeStruck: new Set(), lungeStart: new Vector3(), heat: 0, heatIdle: 0, fallen: 0, flying: createThrownBlade(), verdict: false, verdictT: 0, verdictStruck: false, verdictSeen: new Set(), grey: 0 });
+export const createBladeSwing = (): BladeSwing => ({ step: -1, t: 0, struck: false, next: 0, combo: 0, queued: 0, heldFor: 0, charging: false, charge: 0, full: false, plant: 0, brandWait: 0, lunging: false, lungeFrom: new Vector3(), lungeStruck: new Set(), lungeStart: new Vector3(), heat: 0, heatIdle: 0, fallen: 0, flying: createThrownBlade(), verdict: false, verdictT: 0, verdictStruck: false, verdictSeen: new Set(), grey: 0, feetX: 0, feetZ: 0, stride: 0, dread: [] });
 
 /** Seconds from a swing's start to its contact, its last stretch of that (the strike itself), how long its weight carries it on,
  *  the way back to ready, and from contact till the next can start. */
