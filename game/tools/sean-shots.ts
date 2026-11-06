@@ -77,12 +77,14 @@ const wrist = (side: 'L' | 'R') => {
   return THREE.MathUtils.radToDeg(wr.clone().sub(el).normalize().angleTo(kn.clone().sub(wr).normalize())).toFixed(0);
 };
 
-const SHOTS: { name: string; mode: GravityMode; instab: number; hand: SeanHand }[] = [
+const SHOTS: { name: string; mode: GravityMode; instab: number; hand: SeanHand; strike?: boolean }[] = [
   { name: 'normal', mode: 1, instab: 0, hand: 'none' },
   { name: 'unstable_low', mode: 2, instab: 0.1, hand: 'none' },
   { name: 'unstable_full', mode: 2, instab: 1, hand: 'none' },
   { name: 'reach', mode: 1, instab: 0, hand: 'reach' },
-  { name: 'gather', mode: 1, instab: 0, hand: 'gather' },
+  { name: 'palm', mode: 2, instab: 0.2, hand: 'palm' },
+  { name: 'wind', mode: 2, instab: 0.2, hand: 'wind' },
+  { name: 'strike', mode: 2, instab: 0.2, hand: 'none', strike: true },
   { name: 'raise', mode: 1, instab: 0, hand: 'raise' },
   { name: 'sky', mode: 2, instab: 0.4, hand: 'sky' },
 ];
@@ -90,7 +92,11 @@ const pov: { name: string; meshes: Mesh[] }[] = [];
 for (const s of SHOTS) {
   vm.setGravity(s.mode, s.instab);
   vm.seanHands.set(s.hand);
-  play(1.2);
+  play(s.strike ? 1 : 1.2);
+  if (s.strike) {
+    vm.seanHands.strike();
+    play(0.2);
+  }
   console.log(`${s.name}: wrists L ${wrist('L')}°, R ${wrist('R')}°`);
   pov.push({ name: s.name, meshes: grab(vm.scene, vm.camera) });
 }

@@ -126,14 +126,14 @@ export class HudFeed {
     const execution = Math.round((combat.demon ? combat.blade.heat : combat.sean ? combat.grav.ult : combat.execution) * 100) / 100;
     // (Update 0.3.74 — its inputs: what changes them, as one number.)
     const canBlink = combat.demon && bladeAway(combat) && combat.blade.flying.canBlink;
-    const brandFill = combat.demon ? Math.round((1 - combat.blade.brandWait / Math.max(0.01, DEMON.v.brandWait)) * 20) / 20 : combat.sean ? Math.round((1 - combat.grav.slamWait / Math.max(0.01, SEAN.v.slamWait)) * 20) / 20 : 1;
+    const brandFill = combat.demon ? Math.round((1 - combat.blade.brandWait / Math.max(0.01, DEMON.v.brandWait)) * 20) / 20 : combat.sean ? Math.round((combat.grav.unstable ? 1 - combat.grav.shockWait / Math.max(0.01, SEAN.v.shockWait) : 1 - combat.grav.slamWait / Math.max(0.01, SEAN.v.slamWait)) * 20) / 20 : 1;
     const inAir = !p.grounded;
     const ranged = combat.demon && combat.blade.ranged;
     const demonSig = combat.demon ? (bladeAway(combat) ? 1 : 0) + (canBlink ? 2 : 0) + (inAir ? 4 : 0) + (ranged ? 8 : 0) + 16 * Math.round(brandFill * 20) : 0;
     // (Update 0.3.81 — Gravity Sean's: his stance, his meter, when he can switch back.)
     const unstable = combat.sean && combat.grav.unstable;
     const instab = combat.sean ? Math.round(combat.grav.instab * 50) / 50 : 0;
-    const seanHold = !combat.sean ? 0 : combat.grav.held ? 1 : combat.grav.caught >= 0 ? 2 : 0;
+    const seanHold = !combat.sean ? 0 : combat.grav.held ? 1 : combat.grav.palm >= 0 ? 2 : 0;
     const seanSig = combat.sean ? 1 + (unstable ? 2 : 0) + (inAir ? 4 : 0) + (combat.grav.switchWait > 0 ? 8 : 0) + 16 * Math.round(brandFill * 20) + 512 * Math.round(instab * 50) + 32768 * seanHold : 0;
     // (Update 0.3.4 — the style rank: its fill in steps of 2%, its feed by its newest line.)
     const style = fb.style;

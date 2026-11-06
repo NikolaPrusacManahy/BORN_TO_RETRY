@@ -28,6 +28,8 @@ export const slamFloor = (p: PlayerState) => (p.sean ? Math.min(SLAM.v.minHeight
 
 /** Update 0.3.20 — a slam could start now (the HUD lights the ground pound's key). */
 export function canSlam(p: PlayerState, world: CollisionWorld): boolean {
+  // (Update 0.3.84 — Gravity Sean in Unstable mode has his Shockwave Punch instead.)
+  if (p.sean && p.unstable) return false;
   return !p.grounded && !p.slamming && p.dashTime <= 0 && heightAboveGround(p, world) >= slamFloor(p);
 }
 

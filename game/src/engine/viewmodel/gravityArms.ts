@@ -25,6 +25,10 @@ const HOT = new THREE.Color(0xff2fd0);
 const WHITE = new THREE.Color(0xfff2ff);
 /** Times a second an arc's redrawn, and the rings snap. */
 const CRACKLE = 26;
+/** Update 0.3.84 — Black Hole on his palm: how far from wrist to knuckle, how far off the palm (m), its size (m). */
+const PALM_ALONG = 0.8;
+const PALM_OFF = 0.07;
+const ORB_SIZE = 0.05;
 
 const wrist = new THREE.Vector3();
 const elbow = new THREE.Vector3();
@@ -60,7 +64,7 @@ export class GravityArms {
   private readonly arcGeo = new THREE.BufferGeometry();
   private readonly arcMat = new THREE.MeshBasicMaterial({ color: HOT, transparent: true, opacity: 0.95, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
   readonly arcs = new THREE.Mesh(this.arcGeo, this.arcMat);
-  /** Update 0.3.83 — Black Hole gathering, between his palms. */
+  /** Update 0.3.84 — Black Hole in his palm. */
   private readonly orbGeo = new THREE.SphereGeometry(1, 20, 14);
   private readonly orbMat = new THREE.MeshBasicMaterial({ color: 0x000000, toneMapped: false });
   private readonly orbRimMat = new THREE.MeshBasicMaterial({ color: COOL, transparent: true, opacity: 0.7, side: THREE.BackSide, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
@@ -116,10 +120,10 @@ export class GravityArms {
     return this.arcGeo.drawRange.count;
   }
 
-  /** Each frame, the arms posed; `eye`: the arms camera; `gather`: how far both palms have come in, gathering (0 … 1). */
-  update(dt: number, rig: ArmsRig, eye: THREE.Vector3, gather = 0) {
+  /** Each frame, the arms posed; `eye`: the arms camera; `palm`: how far his hand's come up to hold Black Hole (0 … 1). */
+  update(dt: number, rig: ArmsRig, eye: THREE.Vector3, palm = 0) {
     this.time += dt;
-    this.gather(rig, gather);
+    this.onPalm(rig, palm);
     const on = this.mode > 0;
     this.wild += ((this.mode === 2 ? 1 : 0) - this.wild) * (1 - Math.exp(-14 * dt));
     if (this.mode === 2 && this.wild > 0.995) this.wild = 1;
@@ -154,15 +158,14 @@ export class GravityArms {
     if (this.mode === 2 && snap) this.bolts(rig, eye);
   }
 
-  /** The orb between his palms. */
-  private gather(rig: ArmsRig, k: number) {
+  /** The orb over his right palm: past the middle of the hand, off the palm's side. */
+  private onPalm(rig: ArmsRig, k: number) {
     const on = this.mode > 0 && k > 0.2;
     this.orb.visible = this.orbRim.visible = on;
     if (!on) return;
-    rig.knuckle('L', a);
-    rig.knuckle('R', b);
-    at.addVectors(a, b).multiplyScalar(0.5);
-    const s = 0.04 * k * (1 + 0.08 * Math.sin(this.time * 31));
+    rig.handFrame('R', a, b, u);
+    at.lerpVectors(a, b, PALM_ALONG).addScaledVector(u, -PALM_OFF);
+    const s = ORB_SIZE * k * (1 + 0.08 * Math.sin(this.time * 31));
     this.orb.position.copy(at);
     this.orbRim.position.copy(at);
     this.orb.scale.setScalar(s);

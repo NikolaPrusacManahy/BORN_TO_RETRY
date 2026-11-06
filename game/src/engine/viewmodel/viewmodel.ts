@@ -386,7 +386,7 @@ export class Viewmodel {
       this.gravity?.shake('R', right);
       rig.apply('R', right, v.wristBend + (1 - v.wristBend) * Math.max(clasp, this.grip.bend('R'), handR), this.block.pole(this.elbow.copy(GUARD.R.pole), blocking));
     }
-    rig.openHand('R', Math.max(this.seanHands.weight.R, book * this.book.open('R'), this.grip.open('R'), held ? Math.max(RELEASE * this.swordAnim.letGo, turnOpen(moves, this.flip)) : 0), held ? wrapOf(moves, this.flip) : gun > 0 ? GUN_GRIP : ROPE, held ? armed : gun || this.grip.rope('R'), held ? this.swordPose.tilt : gun > 0 ? this.gun.tilt : undefined, held ? this.swordAnim.handSign : 0);
+    rig.openHand('R', Math.max(this.seanHands.open, book * this.book.open('R'), this.grip.open('R'), held ? Math.max(RELEASE * this.swordAnim.letGo, turnOpen(moves, this.flip)) : 0), held ? wrapOf(moves, this.flip) : gun > 0 ? GUN_GRIP : ROPE, held ? armed : gun || this.grip.rope('R'), held ? this.swordPose.tilt : gun > 0 ? this.gun.tilt : undefined, held ? this.swordAnim.handSign : 0);
     if (this.weapon) {
       // (Update 0.3.79 — and not with the Demon's sword put away.)
       this.weapon.visible = reach < 0.2 && !this.swordAnim.empty && this.swordAnim.swordGoing < 1;
@@ -398,7 +398,7 @@ export class Viewmodel {
     this.off.place(rig, reach < 0.2 && palm < 0.2, this.flip);
     this.camera.updateMatrixWorld(true);
     this.burn(gameDt, realDt);
-    this.gravity?.update(realDt, rig, this.camera.getWorldPosition(this.eyeAt), this.seanHands.gathering);
+    this.gravity?.update(realDt, rig, this.camera.getWorldPosition(this.eyeAt), this.seanHands.holding);
     this.book.update(gameDt, book, rig, this.camera);
     this.palm.place(rig);
     if (this.chest.weight > 0) this.chest.settle(this.camera.worldToLocal(rig.knuckle('L', this.knuckleL)), this.camera.worldToLocal(rig.knuckle('R', this.knuckleR)));

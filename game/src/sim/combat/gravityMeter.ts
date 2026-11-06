@@ -6,13 +6,12 @@ import { SEAN } from '../../tuning/sean';
 import type { CombatEvent } from './state';
 import type { EventQueue } from '../../core/eventQueue';
 
-/** Update 0.3.82 — how many pieces can be in the air, how many craters a floor keeps (the oldest goes), how many flung at once. */
+/** Update 0.3.82 — how many pieces can be in the air, how many craters a floor keeps (the oldest goes). */
 export const ROCKS = 8;
 export const CRATERS = 12;
-export const FLUNG = 6;
 
-/** What his open hands are doing (viewmodel/seanHands.ts). */
-export type SeanHand = 'none' | 'reach' | 'gather' | 'raise' | 'sky';
+/** What his hands are doing that isn't the fists' (viewmodel/seanHands.ts). */
+export type SeanHand = 'none' | 'reach' | 'palm' | 'wind' | 'raise' | 'sky';
 
 /** A piece he's holding: big (a pillar) or small (a chunk of floor), its size, how long held, where it came from and where it is. */
 export interface HeldPiece {
@@ -40,25 +39,19 @@ export interface Crater {
   r: number;
 }
 
-/** An enemy in flight (`index` −1: free slot): its way, how far to go, how far in all, its height at the start. */
-export interface Flung {
-  index: number;
-  dx: number;
-  dz: number;
-  left: number;
-  total: number;
-  from: number;
-}
-
-/** Update 0.3.83 — Black Hole: gathering or running, how long, its next damage, where, the floor under it, who it has. */
+/** Update 0.3.84 — Black Hole, thrown: in flight or open, how long, its next damage, where, its way, the floor under it, how hard (the Instability it was thrown at), who it has. */
 export interface Hole {
-  charging: boolean;
+  flying: boolean;
   t: number;
   tick: number;
   x: number;
   y: number;
   z: number;
+  dx: number;
+  dy: number;
+  dz: number;
   floor: number;
+  power: number;
   pulled: number[];
 }
 
@@ -92,14 +85,14 @@ export interface GravityState {
   rocks: Rock[];
   craters: Crater[];
   nextCrater: number;
-  /** Fling: who's caught (−1: nobody), for how long, from what height; its wait; who's in flight. */
-  caught: number;
-  caughtT: number;
-  caughtY: number;
-  flingWait: number;
-  flung: Flung[];
-  /** Update 0.3.83 — his ultimates, under way. */
+  /** Update 0.3.84 — Black Hole: how long it's been in his palm (−1: it isn't), its wait, and it thrown. */
+  palm: number;
+  holeWait: number;
   hole: Hole | null;
+  /** Shockwave Punch: how far through its wind-up (−1: not winding up), its wait. */
+  shock: number;
+  shockWait: number;
+  /** Update 0.3.83 — Meteor, under way. */
   meteor: Meteor | null;
 }
 
@@ -118,12 +111,11 @@ export function createGravity(): GravityState {
     rocks: Array.from({ length: ROCKS }, () => ({ alive: false, big: false, r: 0, left: 0, pos: new Vector3(), vel: new Vector3() })),
     craters: Array.from({ length: CRATERS }, () => ({ on: false, x: 0, y: 0, z: 0, r: 0 })),
     nextCrater: 0,
-    caught: -1,
-    caughtT: 0,
-    caughtY: 0,
-    flingWait: 0,
-    flung: Array.from({ length: FLUNG }, () => ({ index: -1, dx: 0, dz: 0, left: 0, total: 0, from: 0 })),
+    palm: -1,
+    holeWait: 0,
     hole: null,
+    shock: -1,
+    shockWait: 0,
     meteor: null,
   };
 }
@@ -151,11 +143,12 @@ export function gravHit(state: Fed) {
 /** A kill of his. */
 export const gravKill = (state: Fed) => addUlt(state, SEAN.v.ultKill);
 
-/** What his open hands are doing now. */
+/** What his hands are doing now. */
 export function seanHand(g: GravityState): SeanHand {
   if (g.meteor) return 'sky';
-  if (g.hole) return g.hole.charging ? 'gather' : 'raise';
-  return g.held || g.caught >= 0 ? 'reach' : 'none';
+  if (g.shock >= 0) return 'wind';
+  if (g.palm >= 0) return 'palm';
+  return g.held ? 'reach' : 'none';
 }
 
 /** How much harder Unstable mode hits, now. */

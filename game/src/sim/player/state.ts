@@ -67,8 +67,8 @@ export interface PlayerState {
   sean: boolean;
   hover: number;
   hovering: boolean;
-  /** Update 0.3.83 — Black Hole has him floating at this height (m; −1: not). */
-  floatY: number;
+  /** Update 0.3.84 — Gravity Sean's in Unstable mode: Ctrl's a punch there, in the air too, not a plunge. */
+  unstable: boolean;
   /** Time left in the current dash (0 = not dashing). */
   dashTime: number;
   dashDir: Vector3;
@@ -166,7 +166,7 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     sean: false,
     hover: 0,
     hovering: false,
-    floatY: -1,
+    unstable: false,
     dashTime: 0,
     dashDir: new Vector3(0, 0, -1),
     wallJumpsLeft: WALL.v.count,

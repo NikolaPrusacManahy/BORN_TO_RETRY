@@ -31,6 +31,7 @@ import './test-gravity-sean';
 import './test-sean-moves';
 import './test-sean-grab';
 import './test-sean-ultimates';
+import './test-sean-unstable';
 import './test-swarm-stare';
 import './test-seams';
 import './test-floor5';

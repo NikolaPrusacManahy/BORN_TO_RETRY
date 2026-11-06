@@ -78,7 +78,7 @@ export interface HudState {
   unstable: boolean;
   instab: number;
   seanSig: number;
-  /** Update 0.3.82 — right click's next: 0 Grab or Fling, 1 holding a piece, 2 holding an enemy. */
+  /** Update 0.3.82 — right click's next: 0 Grab or Black Hole, 1 holding a piece, 2 Black Hole in his palm. */
   seanHold: number;
   /** Update 0.3.73 — its sword's thrown. */
   bladeOut: boolean;

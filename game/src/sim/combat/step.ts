@@ -54,9 +54,10 @@ import { stepDemonFire } from './demonFire';
 import { feedOnFallen, landPlunge, stepLunge, tickCleave, tickDemon, tryBrand } from './demonMoves';
 import { addHeat } from './heat';
 import { landPlunge as landSeanPlunge, punchRate, shapePunch, stepDashPull, switchStance, tickGravity, trySeanSlam } from './gravity';
-import { dropCaught, stepFling, stepFlung } from './gravityFling';
 import { dropPiece, stepRocks, stepSeanGrab } from './gravityGrab';
-import { slowBosses, stepHole, stepMeteor, tryUltimate } from './gravityUlt';
+import { dropPalm, slowBosses, stepHole, stepPalm } from './gravityHole';
+import { stepShock, tryShock } from './gravityShock';
+import { stepMeteor, tryUltimate } from './gravityUlt';
 import { stepVerdict, tryVerdict } from './lastVerdict';
 import { WEAPONS } from '../../tuning/weapons';
 import { updateDummy } from './dummy';
@@ -283,29 +284,26 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   const sean = state.sean && w === null;
   if (sean) {
     tickGravity(state, player, dt);
-    // (Update 0.3.83 — Q: an ultimate. Black Hole has him for as long as it runs.)
+    // (Update 0.3.83 — Q: an ultimate.)
     tryUltimate(state, player, intent.throwPressed, intent.yaw, intent.pitch, world);
-    stepHole(state, player, intent.yaw, intent.pitch, world, dt);
-    if (state.grav.hole) {
-      fistIntent = Object.assign(NO_SWING, fistIntent);
-      NO_SWING.attackPressed = NO_SWING.attackHeld = false;
+    if (intent.interactPressed && !clasped) switchStance(state, player);
+    player.unstable = state.grav.unstable;
+    stepDashPull(state, player);
+    // (Update 0.3.84 — by his stance. Right click: Grab, or Black Hole in his palm. Ctrl: Ground Slam, or Shockwave Punch. Switching drops what the other had.)
+    if (state.grav.unstable) {
+      dropPiece(state);
+      stepPalm(state, player, intent.heavyPressed, intent.heavyHeld, intent.yaw, intent.pitch, dt);
+      tryShock(state, player, intent.slamPressed && !clasped);
     } else {
-      player.floatY = -1;
-      if (intent.interactPressed && !clasped) switchStance(state, player);
+      dropPalm(state);
+      stepSeanGrab(state, player, intent.heavyPressed, intent.yaw, intent.pitch, world, dt);
       trySeanSlam(state, player, intent.slamPressed && !clasped);
-      stepDashPull(state, player);
-      // (Update 0.3.82 — right click: Grab, or in Unstable mode Fling. Switching drops what the other had.)
-      if (state.grav.unstable) {
-        dropPiece(state);
-        stepFling(state, player, intent.heavyPressed, intent.heavyHeld, intent.yaw, intent.pitch, world, dt);
-      } else {
-        dropCaught(state);
-        stepSeanGrab(state, player, intent.heavyPressed, intent.yaw, intent.pitch, world, dt);
-      }
     }
+    stepShock(state, player, intent.yaw, intent.pitch, dt);
+    stepHole(state, world, dt);
     fistIntent = Object.assign(NO_HEAVY, fistIntent);
     NO_HEAVY.heavyHeld = false;
-  } else if (state.grav.caught >= 0) dropCaught(state);
+  }
   // (Update 0.3.5 — barehanded, right click is the parry: Hair Trigger's longer window, Giant Killer's no wait.)
   const times = parryTimes(state);
   let swung = axe || volley || gun || clasped ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, sean ? rate * punchRate(state.grav) : rate, chargeRate(state), times);
@@ -399,7 +397,6 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   // (Update 0.3.82 — what Gravity Sean's thrown.)
   if (state.sean) {
     stepRocks(state, world, dt);
-    stepFlung(state, dt);
     slowBosses(state);
   }
   // (Update 0.3.10 — a melee blow parried: the long wait, as after a shot.)

@@ -1,4 +1,4 @@
-// Update 0.3.83 — Gravity Sean's ultimates in the world (sim/combat/gravityUlt.ts). Made in code, placeholders. Black Hole: a black sphere with a bright rim, its disk turning round it, growing as it opens and
+// Update 0.3.83 — Gravity Sean's big moves in the world (sim/combat/gravityHole.ts, gravityUlt.ts). Made in code, placeholders. Black Hole: a black sphere with a bright rim, its disk turning round it, an orb in flight, growing as it opens and
 // collapsing as it bursts. Meteor: the zone on the floor, following your aim; a burning rock coming down out of the sky onto it.
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
@@ -8,11 +8,12 @@ const RIM = 0xa79dff;
 const DISK = 0xff7ad9;
 const ZONE = 0xff5a2a;
 const FIRE = 0xffa040;
-/** The hole's look (m): the sphere, its disk at most, how long it takes to open (s). */
+/** The hole's look (m): the sphere open, the orb in flight, how long it takes to open (s). */
 const HOLE_R = 1.15;
+const ORB_R = 0.34;
 const OPEN_FOR = 0.3;
-/** The meteor: its size (m), where it starts over the zone (m). */
-const ROCK_R = 2.6;
+/** The meteor: its size, a share of its zone's; where it starts over the zone (m). */
+const ROCK_SHARE = 0.37;
 const FROM = new THREE.Vector3(14, 46, 9);
 /** Over the floor (m), so the zone doesn't flicker into it. */
 const ZONE_UP = 0.06;
@@ -65,13 +66,12 @@ export class UltimatesView {
 
   private hole(state: CombatState) {
     const h = state.grav.hole;
-    const on = !!h && !h.charging;
-    this.group.visible = on;
-    if (!h || !on) return;
+    this.group.visible = !!h;
+    if (!h) return;
     const v = SEAN.v;
-    const open = Math.min(1, h.t / OPEN_FOR);
-    const closing = Math.max(0, (h.t - v.holeTime + OPEN_FOR) / OPEN_FOR);
-    const s = HOLE_R * open * (1 - 0.7 * closing) * (1 + 0.03 * Math.sin(this.time * 19));
+    const open = h.flying ? 0 : Math.min(1, h.t / OPEN_FOR);
+    const closing = h.flying ? 0 : Math.max(0, (h.t - v.holeTime + OPEN_FOR) / OPEN_FOR);
+    const s = (ORB_R + (HOLE_R - ORB_R) * open) * (1 - 0.7 * closing) * (1 + 0.03 * Math.sin(this.time * 19));
     this.group.position.set(h.x, h.y, h.z);
     this.ball.scale.setScalar(s);
     this.rim.scale.setScalar(s * 1.12);
@@ -95,12 +95,13 @@ export class UltimatesView {
     const fall = k * k;
     inFront.set(m.x + FROM.x * (1 - fall), m.y + FROM.y * (1 - fall), m.z + FROM.z * (1 - fall));
     this.rock.position.copy(inFront);
-    this.rock.scale.setScalar(ROCK_R);
+    const rock = v.meteorRadius * ROCK_SHARE;
+    this.rock.scale.setScalar(rock);
     this.rock.rotation.set(this.time * 2, this.time * 1.3, 0);
     // Its fire streams back the way it came.
     this.tail.position.copy(inFront);
     this.tail.quaternion.setFromUnitVectors(THREE.Object3D.DEFAULT_UP, FROM.clone().normalize());
-    this.tail.scale.set(ROCK_R * 0.95, 16 + 14 * k, ROCK_R * 0.95);
+    this.tail.scale.set(rock * 0.95, 16 + 14 * k, rock * 0.95);
   }
 
   dispose() {

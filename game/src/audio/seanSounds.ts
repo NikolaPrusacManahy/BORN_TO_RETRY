@@ -44,33 +44,29 @@ export function playSean(a: AudioEngine, kind: CombatEvent, value: number, far: 
     case 'seanBlock':
       noise(a, { dur: 0.12, gain: 0.2, filter: 'highpass', from: 1200, to: 3000 });
       return true;
-    case 'seanMiss':
-      tone(a, { from: 220, to: 160, dur: 0.08, gain: 0.05, type: 'triangle' });
+    case 'seanHoleCharge':
+      tone(a, { from: 60, to: 240, dur: 0.3, gain: 0.16, type: 'sawtooth' });
       return true;
-    case 'seanCatch':
-      tone(a, { from: 120, to: 460, dur: 0.22, gain: 0.14, type: 'sawtooth' });
-      return true;
-    case 'seanFling':
+    case 'seanHoleThrow':
       a.clips.play('hellWhoosh', 0.7, 1.2);
       return true;
-    case 'seanSlamInto':
-      a.clips.play('demonSlam', 0.6 * far, 1.3);
-      return true;
-    case 'seanLand':
-      noise(a, { dur: 0.14, gain: 0.12 * far, filter: 'lowpass', from: 700, to: 300 });
-      return true;
-    case 'seanHoleCharge':
-      tone(a, { from: 50, to: 220, dur: 1, gain: 0.2, type: 'sawtooth' });
-      return true;
     case 'seanHoleOpen':
-      a.clips.play('bossBurst', 0.7, 0.7);
-      tone(a, { from: 90, to: 34, dur: 1.2, gain: 0.3 });
+      a.clips.play('bossBurst', 0.6 * far, 0.7);
+      tone(a, { from: 90, to: 34, dur: 1, gain: 0.26 * far });
+      return true;
+    case 'seanShockUp':
+      tone(a, { from: 90, to: 260, dur: 0.14, gain: 0.14, type: 'sawtooth' });
+      return true;
+    case 'seanShock':
+      a.clips.play('demonSlam', 1, 0.85);
+      a.clips.play('hellWhoosh', 0.8, 0.7);
+      noise(a, { dur: 0.4, gain: 0.3, filter: 'lowpass', from: 3200, to: 240 });
       return true;
     case 'seanHoleHit':
       return true;
     case 'seanHoleBurst':
-      a.clips.play('bossBurst', 1, 0.85);
-      noise(a, { dur: 0.7, gain: 0.34, filter: 'lowpass', from: 3000, to: 200 });
+      a.clips.play('bossBurst', 0.8 * far, 0.85);
+      noise(a, { dur: 0.6, gain: 0.3 * far, filter: 'lowpass', from: 3000, to: 200 });
       return true;
     case 'seanMeteorCall':
       tone(a, { from: 700, to: 120, dur: 1.2, gain: 0.14, type: 'triangle' });

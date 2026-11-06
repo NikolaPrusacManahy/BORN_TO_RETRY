@@ -1,13 +1,11 @@
-// Update 0.3.82 — Gravity Sean's right click (enemy_bibles/Born to Retry — Gravity Sean.docx). Grab: a pillar or, with nothing else, the floor (a crater, and it always works); held, a
-// shield from the front; thrown, small fast, big slow and hard; the outline. Fling: caught, lifted, flown where you look; more into a wall or another enemy; the too big only hit. His hand's pose,
-// its wrist. Through stepCombat with real blows.
+// Update 0.3.82 — Gravity Sean's right click in normal mode (enemy_bibles/Born to Retry — Gravity Sean.docx). Grab: a pillar or, with nothing else, the floor (a crater, and it always works); held, a
+// shield from the front; thrown, small fast, big slow and hard; the outline. His hand's pose, its wrist. Through stepCombat with real blows.
 import * as THREE from 'three';
 import { check, near, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
 import { parseUntextured } from './fakes/glb';
 import { emptyCombatIntent, type CombatIntent } from '../src/sim/combat/fists';
 import { seanHand } from '../src/sim/combat/gravityMeter';
-import { liftable } from '../src/sim/combat/gravityFling';
 import { fireOrb } from '../src/sim/combat/orbs';
 import { pillarsOf } from '../src/sim/combat/pillars';
 import { createCombat, type CombatState } from '../src/sim/combat/state';
@@ -15,7 +13,6 @@ import { stepCombat } from '../src/sim/combat/step';
 import { isLive, spawnEnemy } from '../src/sim/enemies/enemy';
 import type { EnemyKind } from '../src/sim/enemies/kinds';
 import { createPlayer } from '../src/sim/player/state';
-import { CAMERA } from '../src/tuning/camera';
 import { SEAN } from '../src/tuning/sean';
 import { ArmsRig } from '../src/engine/viewmodel/armsRig';
 import { SEAN_ARMS_URL, Viewmodel } from '../src/engine/viewmodel/viewmodel';
@@ -157,110 +154,6 @@ section('RMB again throws it: size matters');
   check('going Unstable, it falls apart', dropped.c.grav.held === null && dropped.c.grav.unstable && had(dropped.c, 'seanShatter'));
 }
 
-section('Fling — aim at an enemy and choose where they go flying');
-{
-  const { c, p, step } = room(bare, true);
-  const e = foe(c, 0, -6);
-  step({ heavyPressed: true, heavyHeld: true });
-  check('caught: held, nothing it’s doing goes on', c.grav.caught === c.enemies.indexOf(e) && e.phase === 'held' && had(c, 'seanCatch'));
-  step({ heavyHeld: true }, 0.5);
-  check(`lifted (${e.pos.y.toFixed(2)} m)`, near(e.pos.y, v.flingLift, 0.1));
-  const yaw = -Math.PI / 2;
-  step({ heavyHeld: false, yaw, pitch: -0.2 });
-  check('let go: it flies where you look (to your right)', c.grav.caught < 0 && c.grav.flung[0].index >= 0 && c.grav.flung[0].dx > 0.5 && had(c, 'seanFling'));
-  const hp = e.hp;
-  const x0 = e.pos.x;
-  step({ yaw, pitch: -0.2 }, 1);
-  check(`it got there, and came down (${e.pos.x.toFixed(1)} m along, ${(hp - e.hp).toFixed(0)} damage)`, e.pos.x > x0 + 2 && near(e.pos.y, 0, 0.05) && hp - e.hp >= v.flingDamage && c.grav.flung.every((f) => f.index < 0));
-  check('it’s walking again', e.phase !== 'held');
-  void p;
-}
-
-section('Fling — held too long it goes anyway; nothing there; the too big');
-{
-  const a = room(bare, true);
-  foe(a.c, 0, -6);
-  a.step({ heavyPressed: true, heavyHeld: true });
-  a.step({ heavyHeld: true }, v.flingHold + 0.1);
-  check('thrown after a while', a.c.grav.caught < 0);
-  const b = room(bare, true);
-  b.step({ heavyPressed: true, heavyHeld: true });
-  check('nobody on your aim: nothing', b.c.grav.caught < 0 && had(b.c, 'seanMiss'));
-  const far = room(bare, true);
-  foe(far.c, 0, -(v.flingRange + 3));
-  far.step({ heavyPressed: true, heavyHeld: true });
-  check('out of range: nothing', far.c.grav.caught < 0);
-  for (const kind of ['dragon', 'bigMushnub'] as const) {
-    const r = room(bare, true);
-    const e = foe(r.c, 0, -6, kind);
-    pin(r.c);
-    check(`a ${kind} can’t be lifted`, !liftable(e));
-    r.step({ heavyPressed: true, heavyHeld: true });
-    check('it only takes a blow', r.c.grav.caught < 0 && e.hp < 5000 && e.phase !== 'held');
-  }
-  const out = room(bare, true);
-  const g = foe(out.c, 0, -6);
-  out.step({ heavyPressed: true, heavyHeld: true });
-  out.step({ interactPressed: true, heavyHeld: true });
-  check('leaving Unstable mode lets it go', out.c.grav.caught < 0 && g.phase !== 'held' && near(g.pos.y, 0, 0.01));
-  const dies = room(bare, true);
-  const k = foe(dies.c, 0, -2);
-  dies.step({ heavyPressed: true, heavyHeld: true });
-  k.hp = 1;
-  dies.step({ attackPressed: true, heavyHeld: true });
-  dies.step({ heavyHeld: true }, 0.2);
-  check('killed in your grip, you’re holding nothing', !isLive(k) && dies.c.grav.caught < 0);
-}
-
-section('Fling — into something, it takes more (an open decision: a placeholder)');
-{
-  const throwAt = (other: boolean) => {
-    const r = room(bare, true);
-    const e = foe(r.c, 0, -3);
-    const o = other ? foe(r.c, 6, -3) : null;
-    if (o) pin(r.c);
-    e.frozen = 0;
-    r.step({ heavyPressed: true, heavyHeld: true });
-    r.step({ heavyHeld: true }, 0.1);
-    // At the other's feet: its middle, 6.7 m off.
-    const yaw = -Math.atan2(6, 3);
-    const pitch = -Math.atan2(CAMERA.v.eyeHeight, Math.hypot(6, 3));
-    r.step({ heavyHeld: false, yaw, pitch });
-    r.step({ yaw, pitch }, 1.5);
-    return { taken: 5000 - e.hp, otherTaken: o ? 5000 - o.hp : 0, c: r.c };
-  };
-  const clear = throwAt(false);
-  const into = throwAt(true);
-  check(`into another: both hurt, more than a clear landing (${into.taken.toFixed(0)}, ${into.otherTaken.toFixed(0)} against ${clear.taken.toFixed(0)})`, into.otherTaken > 0 && into.taken > clear.taken * 1.5);
-  const floorBox = { x: 0, y: -0.5, z: 0, w: 60, h: 1, d: 60, kind: 'floor' as const };
-  const wallBox = { x: 0, y: 2, z: -12, w: 60, h: 4, d: 1, kind: 'block' as const };
-  const walled: Arena = { ...bare, boxes: [floorBox, wallBox] };
-  const c = createCombat(walled, true);
-  c.sean = true;
-  const p = createPlayer(0, 0, 0, 0);
-  p.sean = true;
-  p.grounded = true;
-  const step = (intent: Partial<CombatIntent>, secs = DT) => {
-    for (let i = 0; i < ticks(secs); i++) {
-      c.hitStop.remaining = 0;
-      stepCombat(c, p, { ...emptyCombatIntent(), ...intent }, world, DT);
-    }
-  };
-  step({ interactPressed: true });
-  const e = foe(c, 0, -3);
-  step({ heavyPressed: true, heavyHeld: true });
-  step({ heavyHeld: true }, 0.1);
-  step({ heavyHeld: false });
-  let hitWall = false;
-  // (It gets up and comes back after: where it was as it struck is what counts.)
-  for (let i = 0; i < ticks(1.5) && !hitWall; i++) {
-    step({});
-    hitWall = had(c, 'seanSlamInto');
-    c.events.clear();
-  }
-  check(`into a wall: it stops there, and takes more (${(5000 - e.hp).toFixed(0)}, against ${clear.taken.toFixed(0)}; hit ${hitWall}, at ${e.pos.z.toFixed(2)})`, hitWall && e.pos.z > -12 && e.pos.z < -8 && 5000 - e.hp > clear.taken * 1.5);
-}
-
 section('His hand');
 {
   const scene = (await parseUntextured(new URL(`../public${SEAN_ARMS_URL}`, import.meta.url))).scene;
@@ -287,9 +180,6 @@ section('His hand');
   const rest = rig.arms.R.hand.bone.getWorldPosition(new THREE.Vector3());
   const c = createCombat(bare);
   check('with nothing held: none', seanHand(c.grav) === 'none');
-  c.grav.caught = 2;
-  check('an enemy caught: it’s reaching', seanHand(c.grav) === 'reach');
-  c.grav.caught = -1;
   vm.seanHands.set('reach');
   play(1);
   const out = rig.arms.R.hand.bone.getWorldPosition(new THREE.Vector3());

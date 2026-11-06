@@ -134,14 +134,21 @@ export class CombatFeedback {
           this.f.rig.shake.add(0.7);
           this.f.rig.kick(2.4);
           break;
-        case 'seanHoleOpen':
+        case 'seanHoleThrow':
           this.f.arms.seanHands.shove();
-          this.f.rig.shake.add(0.3);
+          this.f.rig.kick(0.6);
+          break;
+        case 'seanHoleOpen':
+          this.f.rig.shake.add(0.2);
           break;
         case 'seanHoleBurst':
-          this.f.chunks.spawn(at, UP, 30, 1.6);
-          this.f.rig.shake.add(0.6);
-          this.f.rig.kick(1.6);
+          this.f.chunks.spawn(at, UP, 24, 1.4);
+          this.f.rig.shake.add(0.4);
+          break;
+        case 'seanShock':
+          this.f.arms.seanHands.strike();
+          this.f.rig.shake.add(0.55);
+          this.f.rig.kick(2);
           break;
         case 'seanMeteorHit':
           this.f.chunks.spawn(at.set(at.x, at.y + 0.2, at.z), UP, 50, 2);
@@ -159,14 +166,6 @@ export class CombatFeedback {
         case 'seanShatter':
           this.f.chunks.spawn(at, UP, e.value === 1 ? 30 : 12, 1.2);
           this.f.rig.shake.add(e.value === 1 ? 0.25 : 0.06);
-          break;
-        case 'seanSlamInto':
-          this.f.chunks.spawn(at, UP, 10, 1);
-          this.f.rig.shake.add(0.16);
-          break;
-        case 'seanFling':
-          this.f.arms.seanHands.shove();
-          this.f.rig.kick(0.5);
           break;
         case 'seanSlam':
           this.f.arms.slam.start();

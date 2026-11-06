@@ -103,6 +103,10 @@ export function tickGravity(state: CombatState, player: PlayerState, dt: number)
   g.switchWait = Math.max(0, g.switchWait - dt);
   g.slamWait = Math.max(0, g.slamWait - dt);
   g.clash = Math.max(0, g.clash - dt);
+  // (Update 0.3.84 — all of them run in either stance: you switch knowing what's ready.)
+  g.holeWait = Math.max(0, g.holeWait - dt);
+  g.shockWait = Math.max(0, g.shockWait - dt);
+  g.grabWait = Math.max(0, g.grabWait - dt);
   if (!g.unstable) return;
   g.instab = Math.min(1, g.instab + SEAN.v.instabRise * dt);
   if (g.instab >= 1) overload(state, player);

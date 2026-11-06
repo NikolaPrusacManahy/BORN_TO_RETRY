@@ -147,7 +147,6 @@ export function dropPiece(state: CombatState) {
 /** Right click in normal mode, each tick. */
 export function stepSeanGrab(state: CombatState, player: PlayerState, pressed: boolean, yaw: number, pitch: number, world: CollisionWorld, dt: number) {
   const g = state.grav;
-  g.grabWait = Math.max(0, g.grabWait - dt);
   if (g.held) {
     if (pressed && g.grabWait <= 0) throwPiece(state, player, yaw, pitch, world);
     else holdPiece(state, player, yaw, pitch, world, dt);

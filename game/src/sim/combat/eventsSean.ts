@@ -16,17 +16,15 @@ export type SeanEvent =
   | 'seanThrow'
   | 'seanShatter'
   | 'seanBlock'
-  // Fling: nothing there, caught, thrown (value: which), slammed into something, set down.
-  | 'seanMiss'
-  | 'seanCatch'
-  | 'seanFling'
-  | 'seanSlamInto'
-  | 'seanLand'
-  // Update 0.3.83 — Black Hole: gathering, open, a tick of its damage (value: how much), its end. Meteor: called, on its way, down (value: its radius).
+  // Update 0.3.84 — Black Hole: in his palm, thrown, open, a tick of its damage (value: how much), its end. Shockwave Punch: drawn back; out (value: 1 on the ground; where: the end of its reach).
   | 'seanHoleCharge'
+  | 'seanHoleThrow'
   | 'seanHoleOpen'
   | 'seanHoleHit'
   | 'seanHoleBurst'
+  | 'seanShockUp'
+  | 'seanShock'
+  // Update 0.3.83 — Meteor: called, on its way, down (value: its radius).
   | 'seanMeteorCall'
   | 'seanMeteorFall'
   | 'seanMeteorHit'
