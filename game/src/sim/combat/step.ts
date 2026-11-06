@@ -48,7 +48,7 @@ import { updateAxeCharge } from '../weapons/axeThrow';
 import { axeOut, callBack } from '../weapons/recall';
 import { startWave, updateSmashWaves } from '../weapons/smashWaves';
 import { throwWeapon, tryPickup, updateStands } from '../weapons/weapons';
-import { landBlade, startThrow, updateBlade } from './bladeSwing';
+import { landBlade, startThrow, switchMode, updateBlade } from './bladeSwing';
 import { bladeAway, blinkToBlade, regainBlade, stepThrown } from './bladeThrow';
 import { stepDemonFire } from './demonFire';
 import { feedOnFallen, landPlunge, stepLunge, tickCleave, tickDemon, tryBrand } from './demonMoves';
@@ -242,7 +242,11 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
       if (intent.heavyPressed) regainBlade(state);
       if (intent.interactPressed) blinkToBlade(state, player, intent.yaw, intent.pitch, world);
       if (bladeAway(state)) stepThrown(state, player, intent.yaw, intent.pitch, world, dt);
-    } else if (intent.heavyPressed && (b.step < 0 || b.struck) && !clasped && b.plant <= 0 && !b.verdict) startThrow(state);
+    } else {
+      if (intent.heavyPressed && (b.step < 0 || b.struck) && !clasped && b.plant <= 0 && !b.verdict) startThrow(state);
+      // (Update 0.3.78 — with it in hand, E's Mode Switch.)
+      if (intent.interactPressed && !clasped && !b.verdict) switchMode(state);
+    }
     fistIntent = Object.assign(NO_HEAVY, fistIntent);
     NO_HEAVY.heavyHeld = false;
   }

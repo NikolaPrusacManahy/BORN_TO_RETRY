@@ -292,10 +292,10 @@ export class Run extends RunBase {
     const f = this.combat.fists;
     const choosing = this.treasure.choosing >= 0 ? this.combat.items.keyPick : null;
     this.arms.palm.update(choosing, this.keyLook, real);
-    // (Update 0.3.72 — the Demon's: its Ember Wave's charge.)
     const b = this.combat.blade;
     this.arms.setHeat(this.combat.demon ? b.heat : 0);
-    this.arms.update(gameDt, real, mouseDx, mouseDy, p, b.charging ? b.charge / DEMON.v.chargeTime : f.charging ? f.charge / FISTS.v.chargeTime : -1);
+    this.arms.setRanged(this.combat.demon && b.ranged);
+    this.arms.update(gameDt, real, mouseDx, mouseDy, p, f.charging ? f.charge / FISTS.v.chargeTime : -1);
 
     renderer.render(this.scene, this.camera);
     if (!shot.cinematic && !chestShot && !away && capture.armsShown) this.arms.render(renderer, aspect);

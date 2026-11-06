@@ -31,7 +31,6 @@ export function stepLunge(state: CombatState, player: PlayerState) {
     b.lungeStart.copy(player.pos);
     b.lungeStruck.clear();
     b.step = -1;
-    b.charging = b.full = false;
     state.events.push('demonLunge', 0, player.pos.x, player.pos.y + CHEST, player.pos.z);
   }
   if (!b.lunging) return;
@@ -60,7 +59,6 @@ export function tryBrand(state: CombatState, player: PlayerState, pressed: boole
   const b = state.blade;
   const v = DEMON.v;
   if (!pressed || !player.grounded || b.brandWait > 0 || b.plant > 0 || b.step >= 0) return false;
-  b.charging = b.full = false;
   b.plant = v.plantFor;
   b.brandWait = v.brandWait;
   player.invuln = Math.max(player.invuln, v.plantFor);

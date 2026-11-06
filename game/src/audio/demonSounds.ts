@@ -16,7 +16,8 @@ export function playDemon(a: AudioEngine, kind: CombatEvent, value: number, far:
       noise(a, { dur: 0.4, gain: 0.2, filter: 'lowpass', from: 2400, to: 500 });
       return true;
     case 'emberWave':
-      a.clips.play('hellWhoosh', 1, 0.95);
+      // (Update 0.3.78 — one after another: each swing a little different.)
+      a.clips.play('hellWhoosh', 0.6, value === 1 ? 1.12 : 0.98);
       return true;
     case 'emberPop':
       noise(a, { dur: 0.3, gain: 0.3 * far, filter: 'highpass', from: 700, to: 2400 });
@@ -66,6 +67,10 @@ export function playDemon(a: AudioEngine, kind: CombatEvent, value: number, far:
     case 'demonCleave':
       // A boss dying: its fall and its burst, each the recording picked for it, or else the one made for it.
       for (const k of ['bossDown', 'bossBurst'] as const) if (!playClip(a, k, 1, 1, '')) playBoss(a, k, 1, 1);
+      return true;
+    // Update 0.3.78 — Mode Switch: the hilt shifting in the hand, up into ranged mode and down out of it.
+    case 'demonMode':
+      a.clips.play('hellClamp', 0.55, value === 1 ? 1.4 : 1.1);
       return true;
     case 'bladeNoWay':
       tone(a, { from: 180, to: 110, dur: 0.14, gain: 0.16, type: 'square' });

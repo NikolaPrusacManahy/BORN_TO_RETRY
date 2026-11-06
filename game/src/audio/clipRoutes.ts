@@ -8,7 +8,7 @@
 // ground slam's clip and thud). False: no clip, the caller plays its own.
 // Update 0.3.1 (the designer, in the Lab's Sounds: "punch finisher is bad") — a finisher's hit plays the jab's, louder
 // and lower (its own clip is no longer played).
-import { VERDICT } from '../sim/combat/bladeSwing';
+import { isShot, SHOT_A, VERDICT } from '../sim/combat/bladeSwing';
 import type { CombatEvent } from '../sim/combat/state';
 import { kiFull } from '../sim/weapons/kiCharge';
 import { BLOWS } from '../sim/combat/execMoves';
@@ -56,6 +56,8 @@ export function playClip(a: AudioEngine, kind: CombatEvent, value: number, far: 
     case 'bladeSwing': {
       // (Update 0.3.73 — Last Verdict's is silence: demonSounds.ts.)
       if (value === VERDICT) return true;
+      // (Update 0.3.78 — ranged mode's slash: lighter, its crescent has its own whoosh, and they come fast.)
+      if (isShot(value)) return a.clips.play('slash', 0.75, value === SHOT_A ? 0.82 : 0.94);
       const big = value === 2;
       a.clips.play('hellScrape', big ? 0.4 : 0.28, big ? 1.25 : 1.55);
       a.clips.play(big ? 'hammerSwing' : 'slash', 1, big ? 0.8 : 0.72, big ? 0.1 : 0.04);

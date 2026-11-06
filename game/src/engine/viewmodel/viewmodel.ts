@@ -57,7 +57,8 @@ const CHARGE_EASE = 14;
 const RELEASE = 0.6;
 /** Update 0.3.74 — where the left hand closes on the hilt for Last Verdict: this far along it from the right fist (m; below it). */
 const VERDICT_LEFT = -0.17;
-/** Update 0.3.73 — how much of the blade's flare its heat gives it, at full. */
+/** Update 0.3.73 — how much of the blade's flare its heat gives it, at full. Update 0.3.78 — and ranged mode. */
+const RANGED_GLOW = 0.35;
 const HEAT_GLOW = 0.55;
 
 const ease = (rate: number, dt: number) => 1 - Math.exp(-rate * dt);
@@ -232,6 +233,11 @@ export class Viewmodel {
     this.bladeOut = out;
   }
 
+  /** Update 0.3.78 — the Demon's Mode Switch: its ranged mode's stance. */
+  setRanged(on: boolean) {
+    this.swordAnim.setRanged(on);
+  }
+
   /** Update 0.3.73 — how hot the Demon's sword is (0 … 1). */
   setHeat(heat: number) {
     this.heat = heat;
@@ -388,8 +394,8 @@ export class Viewmodel {
     this.trail.stretch = long * (this.heat >= d.heatHigh ? d.hotArc : 1);
     const inHand = !!blade && this.bladed && blade.visible;
     const cutting = inHand && this.swordAnim.slicing && gameDt > 0;
-    // (Update 0.3.72 — and it burns brighter as Ember Wave charges. Update 0.3.73 — and as it heats.)
-    this.trail.update(realDt, cutting && blade ? blade.matrixWorld : null, this.bladed ? Math.max(this.swordAnim.flare, this.chargeVis * 0.8, this.heat * HEAT_GLOW) : 0);
+    // (Update 0.3.73 — and it burns brighter as it heats. Update 0.3.78 — and in ranged mode, so you can see you're in it.)
+    this.trail.update(realDt, cutting && blade ? blade.matrixWorld : null, this.bladed ? Math.max(this.swordAnim.flare, this.swordAnim.stance * RANGED_GLOW, this.heat * HEAT_GLOW) : 0);
     this.fire?.update(realDt, inHand && blade ? blade.matrixWorld : null, this.heat, this.trail.root, this.trail.tip * long);
   }
 

@@ -35,7 +35,6 @@ export function tryVerdict(state: CombatState, player: PlayerState, pressed: boo
   b.verdictT = 0;
   b.verdictStruck = false;
   b.verdictSeen.clear();
-  b.charging = b.full = false;
   b.lunging = false;
   b.plant = 0;
   b.queued = 0;

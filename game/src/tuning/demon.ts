@@ -6,6 +6,7 @@
 // Update 0.3.73 — phase 3 (the designer: "start phase 3"): its heat, Forged from the Fallen, Blade Throw and Last Verdict.
 // Update 0.3.74 — the designer gave right click to the throw and chose no parry for it: Verdict Parry, its block and its counter-slash are gone.
 // Update 0.3.75 — phase 4 (the designer: "start phase 4"): how it feels. Update 0.3.76 — its sword's light.
+// Update 0.3.78 — Mode Switch (the designer): holding left click no longer charges; E's ranged stance sends slash after slash.
 import { group, knob } from './schema';
 
 export const DEMON = group('demon', 'The Demon', {
@@ -39,18 +40,18 @@ export const DEMON = group('demon', 'The Demon', {
   wallTick: knob(0.45, 0.1, 2, 0.05, 'Fire wall: burn', 'It burns what’s in it once in so many seconds.'),
   wallDamage: knob(10, 1, 80, 1, 'Fire wall: damage', 'Each burn.'),
 
-  chargeAfter: knob(0.34, 0.1, 1, 0.01, 'Ember Wave: hold', 'Left click held this long, its swing done, and it starts to charge.'),
-  chargeTime: knob(0.55, 0.1, 2, 0.01, 'Ember Wave: charge', 'Seconds it takes to fill.'),
-  emberWindup: knob(0.12, 0.03, 0.5, 0.005, 'Ember Wave: wind-up', 'Seconds from letting go to the wave leaving.'),
-  emberStrike: knob(0.07, 0.02, 0.3, 0.005, 'Ember Wave: strike', 'The end of that: the swing itself.'),
-  emberFollow: knob(0.15, 0.03, 0.5, 0.005, 'Ember Wave: follow-through', 'Seconds its weight carries it on.'),
-  emberBack: knob(0.5, 0.1, 1.2, 0.01, 'Ember Wave: return', 'Seconds back to ready.'),
-  emberNext: knob(0.3, 0.02, 1.2, 0.01, 'Ember Wave: to the next', 'After it’s gone, seconds till you can swing again.'),
-  waveSpeed: knob(30, 5, 80, 1, 'Ember Wave: speed', 'm/s.'),
-  waveRange: knob(26, 5, 80, 1, 'Ember Wave: range', 'How far it goes (m).'),
-  waveWidth: knob(2.4, 0.5, 6, 0.1, 'Ember Wave: width', 'How far either side of its line it hits (m).'),
-  waveDamage: knob(40, 1, 300, 1, 'Ember Wave: damage', 'To everything it passes through.'),
-  waveKnock: knob(6, 0, 40, 0.5, 'Ember Wave: knock', 'm/s.'),
+  shotWindup: knob(0.16, 0.05, 0.5, 0.005, 'Ember Slash: wind-up', 'Ranged mode: seconds from one starting to its crescent leaving.'),
+  shotStrike: knob(0.06, 0.02, 0.3, 0.005, 'Ember Slash: strike', 'The end of that: the swing itself.'),
+  shotFollow: knob(0.1, 0.03, 0.5, 0.005, 'Ember Slash: follow-through', 'Seconds its weight carries it on.'),
+  shotBack: knob(0.28, 0.1, 1.2, 0.01, 'Ember Slash: return', 'Seconds back to its stance, if no slash follows.'),
+  shotNext: knob(0.1, 0.02, 1.2, 0.01, 'Ember Slash: to the next', 'After one leaves, seconds till the next can start (quicker with green rings).'),
+  shotStop: knob(15, 0, 100, 5, 'Hit-stop: Ember Slash (ms)', 'Each thing a crescent hits. Short: they come fast.'),
+  waveSpeed: knob(34, 5, 80, 1, 'Ember Slash: speed', 'How fast its crescent flies (m/s).'),
+  waveRange: knob(26, 5, 80, 1, 'Ember Slash: range', 'How far it goes (m).'),
+  waveWidth: knob(2, 0.5, 6, 0.1, 'Ember Slash: width', 'How far either side of its line it hits (m).'),
+  waveDamage: knob(16, 1, 300, 1, 'Ember Slash: damage', 'To everything it passes through. A stream of them hurts less than the combo: you’re safe out there.'),
+  waveKnock: knob(3, 0, 40, 0.5, 'Ember Slash: knock', 'm/s.'),
+  waveTilt: knob(0.6, 0, 1.4, 0.05, 'Ember Slash: slant', 'How far each crescent leans, one way and then the other (rad).'),
 
   lungeSpeed: knob(85, 20, 200, 1, 'Hellfire Lunge: speed', 'm/s: too fast to see past.'),
   lungeTime: knob(0.13, 0.05, 0.5, 0.01, 'Hellfire Lunge: length', 'Seconds. (Joseph’s dash goes 5.6 m; this about twice as far.)'),

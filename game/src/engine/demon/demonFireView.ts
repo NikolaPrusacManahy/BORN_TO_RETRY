@@ -12,17 +12,16 @@ import { VerdictView } from './verdictView';
 
 const FLAMES = 360;
 const LINES = 16;
-const WAVES = 4;
+const WAVES = 8;
 /** A wall's flames this far apart (m), this high; how long it takes to die down. A pillar's height. */
 const WALL_GAP = 0.8;
 const WALL_HIGH = 2.2;
 const WALL_DIE = 0.5;
 const PILLAR_HIGH = 6;
-/** A crescent's reach (m), how far round it goes either side (rad), how deep. It's slanted, as the swing that threw it. */
+/** A crescent's reach (m), how far round it goes either side (rad), how deep. (Update 0.3.78 — it leans as the swing that threw it did.) */
 const WAVE_R = 3.2;
 const WAVE_ROUND = 1.15;
 const WAVE_DEEP = 0.9;
-const WAVE_SLANT = -0.5;
 const WAVE_FADE = 0.15;
 
 const mat = new THREE.Matrix4();
@@ -159,7 +158,7 @@ export class DemonFireView {
       if (!w) continue;
       o.position.copy(w.pos);
       o.lookAt(look.copy(w.pos).add(w.dir));
-      o.rotateZ(WAVE_SLANT);
+      o.rotateZ(w.tilt);
       this.waveMats[i].color.setScalar(Math.min(1, w.life / WAVE_FADE));
       HALOS.add(w.pos.x, w.pos.y, w.pos.z, 6, 0xff7a20, 0.7);
     }

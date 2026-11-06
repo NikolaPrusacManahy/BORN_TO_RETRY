@@ -7,6 +7,7 @@
 // The weapon slots sit a row above (HudSlots.tsx).
 // Update 0.3.74 — the Playable Demon's (the designer: "shows the inputs for this character on the right bottom screen"): what each of its keys does now, a line each. With its sword out
 // its right click says Regain and its E wakes; Q wakes with its heat full; Brand of Ruin fills back from its wait.
+// Update 0.3.78 — E, with it in hand, is Mode Switch, lit while it's in ranged mode, and left click says what it does then.
 import type { CSSProperties } from 'react';
 import type { HudState } from '../engine/hudStore';
 import { FistIcon, SlotIcon } from './HudSlots';
@@ -80,10 +81,9 @@ export function DemonControls({ s }: { s: HudState }) {
   const waiting = !out && !s.inAir && s.brandFill < 1;
   return (
     <div className="rb-inputs">
-      <Input cap={s.attackKey} name={out ? 'Claws' : 'Blazing Arc'} />
-      <Input cap={`Hold ${s.attackKey}`} name="Ember Wave" state={out ? 'is-off' : ''} />
+      <Input cap={s.attackKey} name={out ? 'Claws' : s.ranged ? 'Ember Slashes' : 'Blazing Arc'} state={!out && s.ranged ? 'is-lit' : ''} />
       <Input cap={s.heavyKey} name={out ? 'Regain Blade' : 'Blade Throw'} state={out ? 'is-lit' : ''} />
-      <Input cap={s.interactKey} name="Teleport" state={s.canBlink ? 'is-lit' : 'is-off'} />
+      {out ? <Input cap={s.interactKey} name="Teleport" state={s.canBlink ? 'is-lit' : 'is-off'} /> : <Input cap={s.interactKey} name="Mode Switch" state={s.ranged ? 'is-lit' : ''} />}
       <Input cap={s.dashKey} name={out ? 'Dash' : 'Hellfire Lunge'} />
       <Input cap={s.slamKey} name={brand} state={waiting ? 'is-off' : ''} fill={waiting ? s.brandFill : 1} />
       <Input cap={s.throwKey} name="Last Verdict" state={s.execution >= 1 ? 'is-ready' : 'is-off'} fill={s.execution} />

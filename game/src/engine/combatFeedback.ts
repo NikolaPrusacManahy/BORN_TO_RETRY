@@ -115,9 +115,13 @@ export class CombatFeedback {
         case 'demonErupt':
           this.f.rig.shake.add(0.05);
           break;
+        // (Update 0.3.78 — they come fast now: a light jolt each.)
         case 'emberWave':
-          this.f.rig.shake.add(0.12);
-          this.f.rig.kick(0.8);
+          this.f.rig.shake.add(0.05);
+          this.f.rig.kick(0.25);
+          break;
+        case 'demonMode':
+          this.f.rig.shake.add(0.08);
           break;
         case 'demonWall':
           this.f.rig.shake.add(0.08);

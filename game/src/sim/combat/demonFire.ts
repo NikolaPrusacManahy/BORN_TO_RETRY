@@ -1,6 +1,5 @@
 // Update 0.3.72 — the Playable Demon's fire (enemy_bibles/Born to Retry — Playable Demon.docx; the designer: "continue phase 2"): what its
-// moves leave behind them. Its overhead's short wall of fire on the floor; its Ember Wave, a flaming crescent, the only thing it
-// throws; its Brand of Ruin, pillars erupting outward along lines, from a sword planted or from a dive (the higher the fall,
+// moves leave behind them. Its overhead's short wall of fire on the floor; its Ember Slash, a flaming crescent; its Brand of Ruin, pillars erupting outward along lines, from a sword planted or from a dive (the higher the fall,
 // the more lines and the wider they go). The boss's own moves, hurting what's in front of you instead. Pure.
 import { Vector3 } from 'three';
 import { DEMON } from '../../tuning/demon';
@@ -30,6 +29,8 @@ export interface EmberWave {
   /** Seconds left of it, and what it's been through. */
   life: number;
   struck: Set<string>;
+  /** Update 0.3.78 — how it leans, seen from behind it (rad; above 0, its left end high). */
+  tilt: number;
 }
 
 export interface BrandFire {
@@ -71,7 +72,8 @@ export const createDemonFire = (): DemonFire => ({ walls: [], waves: [], brands:
 
 /** At most so many at once (the oldest goes). */
 const MAX_WALLS = 4;
-const MAX_WAVES = 4;
+// (Update 0.3.78 — a stream of them: more than can ever be in the air.)
+const MAX_WAVES = 8;
 const MAX_BRANDS = 2;
 /** A wall burns what's this far off its line (m), and this high over its floor. */
 const WALL_WIDE = 0.9;
@@ -119,11 +121,11 @@ export function leaveBurn(state: CombatState, ax: number, az: number, bx: number
 }
 
 /** Ember Wave: the flaming crescent, from your eye along your aim. */
-export function launchWave(state: CombatState, eye: Vector3, dir: Vector3) {
+export function launchWave(state: CombatState, eye: Vector3, dir: Vector3, tilt = 0) {
   const v = DEMON.v;
-  state.demonFire.waves.push({ pos: eye.clone().addScaledVector(dir, 1), dir: dir.clone(), life: v.waveRange / v.waveSpeed, struck: new Set() });
+  state.demonFire.waves.push({ pos: eye.clone().addScaledVector(dir, 1), dir: dir.clone(), life: v.waveRange / v.waveSpeed, struck: new Set(), tilt });
   lastN(state.demonFire.waves, MAX_WAVES);
-  state.events.push('emberWave', 0, eye.x, eye.y, eye.z);
+  state.events.push('emberWave', tilt > 0 ? 1 : 0, eye.x, eye.y, eye.z);
 }
 
 /** Brand of Ruin at (x, y, z), its first line along `yaw`. `drop`: how far you fell (0: planted standing). */
@@ -198,7 +200,7 @@ function stepWaves(state: CombatState, world: CollisionWorld, dt: number) {
       o.struck.add(id);
       const killed = landHit(state, t, v.waveDamage, v.waveKnock, fx, fz, 'hitSlash', v.waveDamage);
       if (killed && t.kind === 'enemy') launch(state.enemies[t.index], fx, fz);
-      state.hitStop.request(v.farStop);
+      state.hitStop.request(v.shotStop);
     });
     o.pos.copy(next);
     if (wall <= step + 0.2 || o.life <= 0) {

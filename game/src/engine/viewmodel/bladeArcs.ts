@@ -10,7 +10,7 @@ import type { SwordPose } from './armsRig';
 import { emptySword, mixSword, slashPose } from './swordPoses';
 
 export interface BladeArc {
-  /** Which (0 slash, 1 backslash, 2 overhead, 3 Ember Wave, 4 the throw, 5 Last Verdict). */
+  /** Which (0 slash, 1 backslash, 2 overhead, 3 and 4 ranged mode's slashes, 5 the throw, 6 Last Verdict). */
   step: number;
   /** Cocked first, on through its contact, to where its weight carries it. */
   keys: readonly SwordPose[];

@@ -231,7 +231,8 @@ section('Teleport (the designer: "the E is the simple teleport … when the blad
   const inHand = room([]);
   inHand.step({ interactPressed: true });
   inHand.step({}, 0.5);
-  check('in your hand, E does nothing', !bladeAway(inHand.c) && !inHand.has('bladeBlink') && !inHand.has('bladeSwing') && inHand.p.pos.z === 0);
+  // (Update 0.3.78 — it's Mode Switch then: test-demon-ranged.ts.)
+  check('in your hand, E takes you nowhere', !bladeAway(inHand.c) && !inHand.has('bladeBlink') && !inHand.has('bladeSwing') && inHand.p.pos.z === 0);
   const r = room([]);
   thrown(r);
   r.step({}, 0.4);
@@ -576,7 +577,7 @@ section('The arms: its own punch');
 section('The arms: Last Verdict (the designer: "demon holds the blade with 2 hands and unleash the powerful attack that traverse the whole room horizontally")');
 {
   const x = await arms();
-  check('six swings', DEMON_ARCS.length === 6 && DEMON_ARCS[THROW].step === THROW && DEMON_ARCS[VERDICT].step === VERDICT);
+  check('seven swings', DEMON_ARCS.length === 7 && DEMON_ARCS[THROW].step === THROW && DEMON_ARCS[VERDICT].step === VERDICT);
   const tipOf = () => {
     let top = 0;
     x.blade.traverse((o) => {
@@ -721,16 +722,16 @@ section('Its inputs, bottom right (the designer: "shows the inputs for this char
   const show = (over: Partial<typeof base>) => renderToStaticMarkup(createElement(DemonControls, { s: { ...base, ...over } }));
   const line = (html: string, name: string) => (new RegExp(`<span class="rb-input ([^"]*)"[^>]*><span class="rb-input-name">${name}</span><i class="rb-cap">([^<]*)</i>`).exec(html) ?? []).slice(1);
   const hand = show({ execution: 0.3 });
-  for (const [name, key] of [['Blazing Arc', 'LMB'], ['Ember Wave', 'Hold LMB'], ['Blade Throw', 'RMB'], ['Teleport', 'E'], ['Hellfire Lunge', 'Shift'], ['Brand of Ruin', 'Ctrl'], ['Last Verdict', 'Q']]) {
+  for (const [name, key] of [['Blazing Arc', 'LMB'], ['Blade Throw', 'RMB'], ['Mode Switch', 'E'], ['Hellfire Lunge', 'Shift'], ['Brand of Ruin', 'Ctrl'], ['Last Verdict', 'Q']]) {
     check(`${name} on ${key}`, line(hand, name)[1] === key);
   }
   check('no parry among them', !hand.includes('arry'));
-  check('its sword in hand: Teleport asleep', line(hand, 'Teleport')[0] === 'is-off');
+  check('its sword in hand: no Teleport to offer', line(hand, 'Teleport').length === 0);
   check('heat not full: Last Verdict asleep, filling', line(hand, 'Last Verdict')[0] === 'is-off' && hand.includes('--ctl:0.3'));
   const out = show({ bladeOut: true, canBlink: true });
   check('thrown: right click says Regain Blade', line(out, 'Regain Blade')[1] === 'RMB' && line(out, 'Regain Blade')[0] === 'is-lit');
   check('and Teleport wakes', line(out, 'Teleport')[0] === 'is-lit');
-  check('the rest as they are then', line(out, 'Claws').length > 0 && line(out, 'Dash').length > 0 && line(out, 'Slam').length > 0 && line(out, 'Ember Wave')[0] === 'is-off');
+  check('the rest as they are then', line(out, 'Claws').length > 0 && line(out, 'Dash').length > 0 && line(out, 'Slam').length > 0);
   check('out of sight: Teleport asleep again', line(show({ bladeOut: true, canBlink: false }), 'Teleport')[0] === 'is-off');
   check('in the air: Plunge', line(show({ inAir: true }), 'Plunge').length > 0);
   check('Brand’s wait: asleep, filling', line(show({ brandFill: 0.4 }), 'Brand of Ruin')[0] === 'is-off');

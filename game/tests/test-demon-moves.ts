@@ -1,12 +1,12 @@
 // Update 0.3.72 — the rest of the Playable Demon's phase 2 (the bible; the designer: "continue phase 2"). Its overhead's fire wall; holding left
-// click for Ember Wave; Shift's Hellfire Lunge; Ctrl's Brand of Ruin on
+// click for its charge, gone in 0.3.78 (test-demon-ranged.ts); Shift's Hellfire Lunge; Ctrl's Brand of Ruin on
 // the ground, and in the air its Plunge, bigger the further you fall. And the arms: each move's pose, wrists straight, and the sword's
 // fire drawn. Joseph keeps every one of his own.
 import * as THREE from 'three';
 import { check, near, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
 import { parseUntextured } from './fakes/glb';
-import { bladeWindup, EMBER, landBlade, OVERHEAD } from '../src/sim/combat/bladeSwing';
+import { landBlade, OVERHEAD } from '../src/sim/combat/bladeSwing';
 import { brandAt, leaveWall, plantBrand, stepDemonFire } from '../src/sim/combat/demonFire';
 import { emptyCombatIntent } from '../src/sim/combat/fists';
 import { CombatState, createCombat } from '../src/sim/combat/state';
@@ -19,7 +19,6 @@ import { stepPlayer } from '../src/sim/player/step';
 import { ArmsRig } from '../src/engine/viewmodel/armsRig';
 import { DEMON_HAND } from '../src/engine/viewmodel/handPose';
 import { DEMON_ARMS_URL, DEMON_BLADE_URL, Viewmodel } from '../src/engine/viewmodel/viewmodel';
-import { DEMON_ARCS } from '../src/engine/viewmodel/demonPoses';
 import { DemonFireView } from '../src/engine/demon/demonFireView';
 import { DEMON } from '../src/tuning/demon';
 import { DASH, SLAM } from '../src/tuning/movement';
@@ -76,51 +75,6 @@ section('The overhead’s fire wall (the bible: "the 3rd hit leaves a short fire
   const was = hp(clear.c);
   clear.step({}, d.wallFor);
   check('what’s off its end doesn’t', hp(clear.c) === was);
-}
-
-section('Hold left click: Ember Wave (the bible: "charged swing that launches a flaming crescent")');
-{
-  const r = room([{ x: 0, z: -15 }, { x: 0, z: -22 }]);
-  r.step({ attackPressed: true, attackHeld: true });
-  check('a click swings at once', r.seen.filter((e) => e.kind === 'bladeSwing').length === 1);
-  r.step({ attackHeld: true }, d.chargeAfter * 0.6);
-  check('held, no more swings, and no charge yet', r.seen.filter((e) => e.kind === 'bladeSwing').length === 1 && !r.c.blade.charging);
-  r.step({ attackHeld: true }, d.chargeAfter * 0.5);
-  check('on past it: it charges', r.c.blade.charging && r.has('chargeStart'));
-  r.step({}, DT * 2);
-  check('let go too soon: called off, no wave', !r.c.blade.charging && r.has('chargeCancel') && r.c.demonFire.waves.length === 0);
-
-  const f = room([{ x: 0, z: -15 }, { x: 0, z: -22 }]);
-  f.step({ attackPressed: true, attackHeld: true });
-  f.step({ attackHeld: true }, d.chargeAfter + d.chargeTime + 0.05);
-  check('full', f.c.blade.full && f.has('chargeReady'));
-  const a0 = hp(f.c, 0);
-  const a1 = hp(f.c, 1);
-  f.step({});
-  check('let go: its swing', f.seen.some((e) => e.kind === 'bladeSwing' && e.value === EMBER));
-  check('no wave till the blade’s through', f.c.demonFire.waves.length === 0);
-  f.step({}, bladeWindup(EMBER) + DT);
-  check('then it leaves', f.c.demonFire.waves.length === 1 && f.has('emberWave'));
-  f.step({}, 0.3);
-  check('near things aren’t hit before it gets there', hp(f.c, 0) === a0);
-  f.step({}, d.waveRange / d.waveSpeed);
-  check(`through the first, and on to the second (${d.waveDamage} each)`, hp(f.c, 0) === a0 - d.waveDamage && hp(f.c, 1) === a1 - d.waveDamage);
-  f.step({}, 0.1);
-  check(`gone past ${d.waveRange} m`, f.c.demonFire.waves.length === 0);
-  const far = room([{ x: 0, z: -(d.waveRange + d.waveWidth + 4) }]);
-  far.c.demonFire.waves.length = 0;
-  const left = hp(far.c);
-  landBlade(far.c, EMBER, EYE(), AHEAD(), world);
-  far.step({}, d.waveRange / d.waveSpeed + 0.2);
-  check('nothing past its range', hp(far.c) === left);
-  // (What a slash would reach, off to the side, it doesn't: all it does is throw.)
-  const beside = room([{ x: -3.4, z: -2.8 }]);
-  const whole = hp(beside.c);
-  landBlade(beside.c, EMBER, EYE(), AHEAD(), world);
-  beside.step({}, d.waveRange / d.waveSpeed + 0.2);
-  check('no swing’s fan: what’s off to the side is safe', hp(beside.c) === whole);
-  landBlade(beside.c, 0, EYE(), AHEAD(), world);
-  check('where a slash would have reached it', hp(beside.c) < whole);
 }
 
 /** Runs the player and the fight together, as the Run does. */
@@ -267,18 +221,6 @@ function wrist(rig: ArmsRig): number {
 
 section('The arms: each move’s pose');
 {
-  check('Ember Wave’s swing has its keys', DEMON_ARCS[EMBER].step === EMBER);
-  for (const step of [EMBER]) {
-    const { vm, rig, run } = await arms();
-    vm.arc(step);
-    let worst = 0;
-    for (let t = 0; t < bladeWindup(step) + 0.2; t += STEP) {
-      run(STEP);
-      vm.scene.updateMatrixWorld(true);
-      worst = Math.max(worst, wrist(rig));
-    }
-    check(`Ember Wave: the wrist at ${Math.round(worst)}° at most`, worst < 50);
-  }
   const lunge = await arms();
   lunge.vm.thrust();
   lunge.run(0.08);
@@ -296,17 +238,6 @@ section('The arms: each move’s pose');
   check(`its wrist at ${Math.round(wrist(dive.rig))}°`, wrist(dive.rig) < 50);
   dive.run(d.plantFor + 0.6);
   check('landed, it comes back up', dive.vm.swordAnim.current === 'ready');
-  const charging = await arms();
-  let glowing: THREE.MeshStandardMaterial | null = null;
-  charging.blade.traverse((o) => {
-    if (o instanceof THREE.Mesh && o.material.emissive) glowing = o.material;
-  });
-  const glowOf = () => glowing!.emissiveIntensity;
-  const cold = glowOf();
-  charging.run(0.8, 0.9);
-  check(`charging: the blade burns brighter (${cold.toFixed(2)} to ${glowOf().toFixed(2)})`, glowOf() > cold * 1.5);
-  charging.run(0.8);
-  check('let go, it cools', near(glowOf(), cold, 0.05));
 }
 
 section('Its fire, drawn');

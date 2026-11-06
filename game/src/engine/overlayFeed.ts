@@ -126,7 +126,8 @@ export class HudFeed {
     const canBlink = combat.demon && bladeAway(combat) && combat.blade.flying.canBlink;
     const brandFill = combat.demon ? Math.round((1 - combat.blade.brandWait / Math.max(0.01, DEMON.v.brandWait)) * 20) / 20 : 1;
     const inAir = !p.grounded;
-    const demonSig = combat.demon ? (bladeAway(combat) ? 1 : 0) + (canBlink ? 2 : 0) + (inAir ? 4 : 0) + 8 * Math.round(brandFill * 20) : 0;
+    const ranged = combat.demon && combat.blade.ranged;
+    const demonSig = combat.demon ? (bladeAway(combat) ? 1 : 0) + (canBlink ? 2 : 0) + (inAir ? 4 : 0) + (ranged ? 8 : 0) + 16 * Math.round(brandFill * 20) : 0;
     // (Update 0.3.4 — the style rank: its fill in steps of 2%, its feed by its newest line.)
     const style = fb.style;
     const styleRank = style.rank;
@@ -205,6 +206,7 @@ export class HudFeed {
       demon: combat.demon,
       bladeOut: combat.demon && bladeAway(combat),
       canBlink,
+      ranged,
       brandFill,
       inAir,
       interactKey: this.interactKey,

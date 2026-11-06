@@ -35,6 +35,8 @@ const THRUST_OUT = 0.04;
 const THRUST_BACK = 0.26;
 const PLANT_IN = 0.08;
 const PLANT_BACK = 0.36;
+/** Update 0.3.78 — how long it takes to shift into or out of ranged mode's stance (s). */
+const STANCE = 0.18;
 /** A slash reaches its contact (the middle of the path) this far through its swing's ease. */
 const CONTACT = 0.5;
 
@@ -64,6 +66,19 @@ export class SwordAnim {
   private readonly glow = { k: 0 };
   /** Update 0.3.72 — falling in a dive, the sword held point down. */
   private plantHeld = false;
+  /** Update 0.3.78 — the Demon's ranged mode: wanted, and how far into its stance (0 … 1). */
+  private rangedWanted = false;
+  private stanceAt = 0;
+
+  /** Update 0.3.78 — into or out of ranged mode's stance. */
+  setRanged(on: boolean) {
+    this.rangedWanted = on;
+  }
+
+  /** How far into it (0 … 1). */
+  get stance(): number {
+    return this.stanceAt;
+  }
 
   /** A weapon taken in hand: its moves from now on. */
   use(moves: MoveSet) {
@@ -178,6 +193,7 @@ export class SwordAnim {
 
   /** `gameDt` stops in hit-stop; until a swing reaches its contact it runs on `realDt`, so it freezes on impact. */
   update(gameDt: number, realDt: number) {
+    this.stanceAt = clamp01(this.stanceAt + ((this.rangedWanted ? 1 : -1) * realDt) / STANCE);
     // (Update 0.3.71 — an arc's hit lands at its contact, by the same clock.)
     if (this.move === 'arc') {
       this.t += gameDt;
@@ -293,7 +309,9 @@ export class SwordAnim {
 
   /** Ready, drawn towards the charged blow's pose by the charge. */
   private ready(charge: number, out: SwordPose) {
-    return mixSword(this.moves.ready, this.moves.heavyReady, smooth(clamp01(charge)), out);
+    mixSword(this.moves.ready, this.moves.heavyReady, smooth(clamp01(charge)), out);
+    if (this.stanceAt > 0 && this.moves.ranged) mixSword(out, this.moves.ranged, smooth(this.stanceAt), out);
+    return out;
   }
 
   /** The move is over: ready again. */

@@ -71,7 +71,7 @@ section('Blazing Arc — a hit lands when the blade gets there');
 
 section('Blazing Arc — the combo: slash, backslash, overhead');
 {
-  // (Update 0.3.72 — a deliberate change: held no longer repeats it. The bible gives Hold to Ember Wave: test-demon-moves.ts.)
+  // (Update 0.3.78 — held goes round by itself again, the designer's word: test-demon-ranged.ts.)
   const r = room([{ x: 0, z: -3 }]);
   for (let i = 0; i < 4; i++) {
     r.step({ attackPressed: true });
@@ -171,11 +171,11 @@ const backOf = bladeBack;
 
 section('Blazing Arc — each swing has a body (frame by frame, the real arms)');
 {
-  // (Update 0.3.72 — and Ember Wave's swing. Update 0.3.73 — and the throw's and Last Verdict's. Update 0.3.74 — the counter's gone with the parry.)
-  check('six swings, in order', DEMON_ARCS.length === 6 && DEMON_ARCS.every((a, i) => a.step === i));
+  // (Update 0.3.73 — the throw's and Last Verdict's. Update 0.3.78 — and ranged mode's two.)
+  check('seven swings, in order', DEMON_ARCS.length === 7 && DEMON_ARCS.every((a, i) => a.step === i));
   check('each cocked, through its contact, to its end', DEMON_ARCS.every((a) => a.keys.length >= 4 && a.hit > 0.3 && a.hit < 0.8));
   for (const arc of DEMON_ARCS) {
-    const name = ['The slash', 'The backslash', 'The overhead', 'Ember Wave', 'The throw', 'Last Verdict'][arc.step];
+    const name = ['The slash', 'The backslash', 'The overhead', 'Slash east', 'Slash west', 'The throw', 'Last Verdict'][arc.step];
     const { vm, rig, blade, play } = await arms();
     vm.arc(arc.step);
     const windup = bladeWindup(arc.step);

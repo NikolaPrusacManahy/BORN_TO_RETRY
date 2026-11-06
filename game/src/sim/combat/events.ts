@@ -42,6 +42,8 @@ export type CombatEvent =
   | 'bladeCaught'
   | 'bladeBlink'
   | 'bladeNoWay'
+  // Update 0.3.78 — Mode Switch (value 1: to ranged).
+  | 'demonMode'
   | 'demonVerdict'
   | 'demonCleave'
   // What a punch or swing did; x, y, z = where.
