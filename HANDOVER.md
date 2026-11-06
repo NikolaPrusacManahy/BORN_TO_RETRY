@@ -2,9 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-06, after Update 0.3.87)
-- **Version 0.3.87** (Gravity Sean's HUD: his cooldowns), committed. 0.3.58 to 0.3.87 are committed; the designer pushes.
-- **Gravity Sean** (`enemy_bibles/Born to Retry — Gravity Sean.docx`, specs `MD_UPDATES/U0380_GRAVITY_SEAN.md`, `U0381_SEAN_STANCES.md`, `U0382_SEAN_GRAB.md`, `U0383_SEAN_ULTIMATES.md`, `U0384_SEAN_UNSTABLE.md`, `U0385_SEAN_TIME_STOP.md`, `U0386_SEAN_GATHER_PUNCHES.md`, `U0387_SEAN_HUD.md`): the space suit, earned by winning a whole run on any difficulty. His kit is in, placeholders throughout, reworked by the designer, which overrides the bible (Fling is gone; Black Hole's on right click, thrown; Time Stop's the normal mode ultimate; Shockwave Punch on Ctrl in Unstable; Grab gathers while held, and letting go throws it). Nothing's been played, and his moves in the world have only been seen as plain meshes, with no glow (`tools/sean-world-shots.ts`), and his HUD's look not at all. To decide with the designer: hover on held jump, and Unstable's dash pulling to an enemy, both taken as placeholders.
+## Where things stand (2026-11-06, after Update 0.3.88)
+- **Version 0.3.88** (Gravity Sean: kills heal in Unstable mode, new timings), built, **not committed** until the designer says "commit". 0.3.58 to 0.3.87 are committed; the designer pushes.
+- **Gravity Sean** (`enemy_bibles/Born to Retry — Gravity Sean.docx`, specs `MD_UPDATES/U0380_GRAVITY_SEAN.md`, `U0381_SEAN_STANCES.md`, `U0382_SEAN_GRAB.md`, `U0383_SEAN_ULTIMATES.md`, `U0384_SEAN_UNSTABLE.md`, `U0385_SEAN_TIME_STOP.md`, `U0386_SEAN_GATHER_PUNCHES.md`, `U0387_SEAN_HUD.md`, `U0388_SEAN_NUMBERS.md`): the space suit, earned by winning a whole run on any difficulty. His kit is in, placeholders throughout, reworked by the designer, which overrides the bible (Fling is gone; Black Hole's on right click, thrown; Time Stop's the normal mode ultimate; Shockwave Punch on Ctrl in Unstable; Grab gathers while held, and letting go throws it). Nothing's been played, and his moves in the world have only been seen as plain meshes, with no glow (`tools/sean-world-shots.ts`), and his HUD's look not at all. To decide with the designer: hover on held jump, and Unstable's dash pulling to an enemy, both taken as placeholders.
 - **The Playable Demon is under way** (`enemy_bibles/Born to Retry — Playable Demon.docx`, specs `MD_UPDATES/U0370_PLAYABLE_DEMON_1.md`, `U0371_BLAZING_ARC.md`, `U0372_DEMON_MOVES.md`, `U0373_DEMON_BIG_MOVES.md`, `U0374_DEMON_REWORK.md`, which overrides the bible on Q and right click, `U0375_DEMON_FEEL.md`, `U0376_SWORD_LIGHT.md`, `U0378_MODE_SWITCH.md`, which replaces its Hold left click, `U0379_HAND_SIGN.md`): phases 1 to 4 are done. The sword's light is stable on the designer's PC ("perfectly stable"), and stays. The forge hiss is out, on their word. Next, when the designer says: phase 5 (balance). Waiting on the designer: floor 10 in public runs (the unlock can't be earned there while it's closed), Victory lap or Demon Mode, HP 100 or lower.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
@@ -66,7 +66,11 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-06, Update 0.3.87: Gravity Sean's HUD: his cooldowns)
+## Last update (2026-11-06, Update 0.3.88: Gravity Sean: kills heal in Unstable mode, new timings)
+- The designer's: in Unstable mode a kill gives 3 HP, a mini-boss 10 (a boss 10 too, my call). Black Hole's cooldown is 18 s, Time Stop 7 s.
+- Tests: `test-sean-moves.ts`, `test-sean-stop.ts`, `test-sean-unstable.ts`. Not played by me.
+
+## Before (2026-11-06, Update 0.3.87: Gravity Sean's HUD: his cooldowns)
 - The designer: "his UI needs to correspond better since there is a lot of cooldown on his kit". What's waiting: name dimmed, a clock filling back round with the seconds in it, a flash as it's back and a soft note for the long ones. Beside a key, what the other stance's move on it still has to wait. Q's clock is the meter, or Time Stop's seconds; Grab's is how far it's gathered. A bar and violet edges through Time Stop.
 - Tests: `test-sean-hud.ts`, on the numbers and the HTML. **Its look has never been seen**: I don't run a browser.
 

@@ -344,6 +344,57 @@ section('Gravity Sean — his hands are his moves');
   check('a punch thrown just now meets it (no parry of his own)', parryBossBlow(p, c as unknown as EnemyWorld, e, idx));
 }
 
+section('Unstable mode: kills give health back');
+{
+  /** One kill of this kind with his fists, hurt first; how much it gave back. */
+  const kill = (kind: EnemyKind, unstable: boolean, sean = true) => {
+    const r = room(sean);
+    if (unstable) r.step({ interactPressed: true });
+    r.p.hp = 40;
+    const e = foe(r.c, 0, -1.8, kind);
+    e.hp = 1;
+    pin(r.c);
+    r.step({ attackPressed: true });
+    r.step({}, 0.05);
+    return { healed: r.p.hp - 40, dead: !isLive(e), r };
+  };
+  const a = kill('grunt', true);
+  check(`a kill: ${a.healed} HP, the designer’s 3`, a.dead && a.healed === 3 && a.healed === v.mendKill && had(a.r.c, 'seanMend'));
+  const b = kill('bigMushnub', true);
+  check(`a mini-boss: ${b.healed} HP, the designer’s 10`, b.dead && b.healed === 10 && b.healed === v.mendBig);
+  const n = kill('grunt', false);
+  check('in normal mode: nothing', n.dead && n.healed === 0);
+  const j = kill('grunt', false, false);
+  check('Joseph: nothing', j.dead && j.healed === 0);
+  const top = room();
+  top.step({ interactPressed: true });
+  const hp = top.p.hp;
+  const f = foe(top.c, 0, -1.8);
+  f.hp = 1;
+  pin(top.c);
+  top.step({ attackPressed: true });
+  top.step({}, 0.05);
+  check('it doesn’t go over your maximum', !isLive(f) && top.p.hp === hp);
+  const blast = room();
+  blast.step({ interactPressed: true });
+  blast.p.hp = 40;
+  for (const x of [-1, 0, 1]) {
+    const g = foe(blast.c, x, -3);
+    g.hp = 1;
+  }
+  pin(blast.c);
+  blast.step({ slamPressed: true });
+  blast.step({}, v.shockWindup + 0.05);
+  check(`three at a blow: ${blast.p.hp - 40} HP`, blast.p.hp - 40 === 3 * v.mendKill);
+  const dead = room();
+  dead.step({ interactPressed: true });
+  dead.c.grav.mend = 3;
+  dead.p.dead = true;
+  dead.p.hp = 0;
+  dead.step({});
+  check('none for the dead', dead.p.hp === 0);
+}
+
 section('The meter his ultimates share');
 {
   const { c, step } = room();

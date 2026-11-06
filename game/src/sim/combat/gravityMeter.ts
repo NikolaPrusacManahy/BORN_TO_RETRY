@@ -121,8 +121,10 @@ export interface GravityState {
   /** Seconds till E works again (after an overload), and till Ground Slam does. */
   switchWait: number;
   slamWait: number;
-  /** The meter Black Hole and Meteor share (0 … 1). */
+  /** The meter his ultimates share (0 … 1). */
   ult: number;
+  /** Update 0.3.88 — health owed him by kills in Unstable mode: step.ts pays it, having the player. */
+  mend: number;
   /** Seconds a punch just thrown still meets the boss blows only a parry answers. */
   clash: number;
   /** A dash under way has had its pull settled. */
@@ -155,6 +157,7 @@ export function createGravity(): GravityState {
     switchWait: 0,
     slamWait: 0,
     ult: 0,
+    mend: 0,
     clash: 0,
     dashing: false,
     held: null,
@@ -218,8 +221,11 @@ export function storeHit(state: Fed, kind: TargetKind, index: number, part: numb
 /** Nothing in the world moves: Time Stop, Meteor. The enemies' look holds still too. */
 export const worldHeld = (g: GravityState) => g.stop !== null || g.meteor !== null;
 
-/** A kill of his. */
-export const gravKill = (state: Fed) => addUlt(state, SEAN.v.ultKill);
+/** A kill of his. `big`: a mini-boss or a boss. Update 0.3.88 — in Unstable mode it gives health back. */
+export function gravKill(state: Fed, big: boolean) {
+  addUlt(state, SEAN.v.ultKill);
+  if (state.grav.unstable) state.grav.mend += big ? SEAN.v.mendBig : SEAN.v.mendKill;
+}
 
 /** Update 0.3.86 — how many rocks a piece can gather, and how far it's got (0 … 1). */
 export const gatherMax = () => Math.max(1, Math.floor(SEAN.v.gatherTime / SEAN.v.gatherEvery));

@@ -109,6 +109,9 @@ export function playSean(a: AudioEngine, kind: CombatEvent, value: number, far: 
       a.clips.play('demonSlam', 1, 0.7);
       noise(a, { dur: 1, gain: 0.4, filter: 'lowpass', from: 2600, to: 120 });
       return true;
+    case 'seanMend':
+      tone(a, { from: 420, to: 640, dur: 0.12, gain: 0.07, type: 'sine' });
+      return true;
     case 'seanReady':
       tone(a, { from: value === 1 ? 300 : 240, to: value === 1 ? 460 : 380, dur: 0.14, gain: 0.07, type: 'triangle' });
       return true;

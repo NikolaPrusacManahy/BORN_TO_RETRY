@@ -32,6 +32,9 @@ export const SEAN = group('sean', 'Gravity Sean', {
   overloadKnock: knob(18, 0, 40, 0.5, 'Overload knock', 'm/s.'),
   overloadSelf: knob(12, 0, 60, 1, 'Overload hurts you', 'Health it costs you.'),
   overloadWait: knob(3, 0, 15, 0.25, 'Overload cooldown', 'Forced back to normal mode: E waits this long.'),
+  // Update 0.3.88 — the designer: "on unstable mode, every kill restore 3 HP, if it's a mini boss then it's 10".
+  mendKill: knob(3, 0, 50, 1, 'Unstable kill heals', 'Health back for each kill in Unstable mode.'),
+  mendBig: knob(10, 0, 100, 1, 'Unstable big kill heals', 'And for a mini-boss or a boss.'),
   // Ctrl.
   slamRadius: knob(5, 1, 15, 0.25, 'Ground Slam radius', 'Ctrl on the ground (m).'),
   slamDamage: knob(20, 0, 200, 1, 'Ground Slam damage', 'At the centre.'),
@@ -92,7 +95,7 @@ export const SEAN = group('sean', 'Gravity Sean', {
   punchShockDamage: knob(5, 0, 100, 1, 'Gravity Punch third: wave damage', 'At its centre.'),
   punchShockKnock: knob(7, 0, 40, 0.5, 'Gravity Punch third: wave knock', 'm/s.'),
   // Update 0.3.84 — Unstable mode's right click: Black Hole, in his palm, thrown (the designer: "just holding it in his palm and throw it, gathering enemies that are not mini bosses, 7 sec cooldown").
-  holeWait: knob(7, 0, 30, 0.25, 'Black Hole cooldown', 'From the throw (s).'),
+  holeWait: knob(18, 0, 60, 0.25, 'Black Hole cooldown', 'From the throw (s).'),
   palmMin: knob(0.15, 0, 2, 0.05, 'Black Hole in hand', 'A tap: it forms for this long before it’s thrown (s).'),
   holeSpeed: knob(28, 5, 80, 1, 'Black Hole throw speed', 'm/s.'),
   holeRange: knob(30, 3, 80, 1, 'Black Hole range', 'It opens where it strikes, or this far off (m).'),
@@ -119,7 +122,7 @@ export const SEAN = group('sean', 'Gravity Sean', {
   shockRecoil: knob(4, 0, 20, 0.5, 'Shockwave Punch recoil', 'It throws you back this fast (m/s).'),
   shockLift: knob(2.5, 0, 10, 0.25, 'Shockwave Punch in the air', 'Mid-air it holds you up: you’re rising at least this fast after it (m/s).'),
   // Update 0.3.85 — Q in normal mode: Time Stop (the designer: "a gravity zone that covers the whole room and act like a time stop").
-  stopTime: knob(5, 0.5, 20, 0.25, 'Time Stop time', 'The world holds still and you don’t, this long (s).'),
+  stopTime: knob(7, 0.5, 20, 0.25, 'Time Stop time', 'The world holds still and you don’t, this long (s).'),
   stopKnockMax: knob(26, 0, 60, 1, 'Time Stop knock', 'A target’s stored blows push it this hard at most, when they land (m/s).'),
   stopGrey: knob(0.75, 0, 1, 0.05, 'Time Stop grey', 'How drained of colour the stopped world is.'),
   // Q in Unstable mode: Meteor, for bosses.

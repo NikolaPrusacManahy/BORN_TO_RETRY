@@ -71,6 +71,17 @@ section('Time Stop — Q in normal mode');
   check('Unstable, Q’s Meteor', !u.c.grav.stop && !!u.c.grav.meteor);
 }
 
+section('Time Stop — 7 s, the designer’s: 2 more than it had');
+{
+  const r = room();
+  r.step({ throwPressed: true });
+  check(`${v.stopTime} s`, v.stopTime === 7);
+  r.step({}, v.stopTime - 0.05);
+  check('still on near its end', !!r.c.grav.stop);
+  r.step({}, 0.1);
+  check('then it’s over', !r.c.grav.stop);
+}
+
 section('Time Stop — nothing moves but him');
 {
   const r = room();

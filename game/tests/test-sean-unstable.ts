@@ -106,7 +106,7 @@ section('Black Hole — right click held: in his palm');
   r.step({ pitch: -0.25 });
   const h = r.c.grav.hole!;
   check('let go: thrown along your aim', !!h && h.flying && r.c.grav.palm < 0 && h.dz < -0.9 && had(r.c, 'seanHoleThrow'));
-  check(`and the cooldown starts: ${v.holeWait} s, the designer’s`, r.c.grav.holeWait === v.holeWait && v.holeWait === 7);
+  check(`and the cooldown starts: ${v.holeWait} s, the designer’s`, r.c.grav.holeWait === v.holeWait && v.holeWait === 18);
   const tap = room();
   tap.step({ heavyPressed: true, heavyHeld: true });
   tap.step({});
@@ -144,7 +144,7 @@ section('Black Hole — it opens where it strikes');
   check(`and open at its range (${v.holeRange} m), down over the floor`, !sky.c.grav.hole!.flying && near(sky.c.grav.hole!.y, v.holeHeight, 0.01));
 }
 
-section('Black Hole — 7 s to the next, in either stance');
+section('Black Hole — 18 s to the next, in either stance');
 {
   const r = room();
   opened(r);

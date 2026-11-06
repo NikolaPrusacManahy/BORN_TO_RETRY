@@ -37,6 +37,8 @@ export type SeanEvent =
   | 'seanMeteorCall'
   | 'seanMeteorFall'
   | 'seanMeteorHit'
+  // Update 0.3.88 — health back from a kill in Unstable mode.
+  | 'seanMend'
   // The shared meter's full. Update 0.3.87 — a long wait's over (value: 0 Black Hole, 1 Shockwave Punch).
   | 'seanUltReady'
   | 'seanReady';

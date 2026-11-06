@@ -235,7 +235,10 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   state.hitStop.request(FEEDBACK.v.stopKill);
   if (t.kind !== 'enemy') return true;
   state.kills++;
-  if (state.sean) gravKill(state);
+  if (state.sean) {
+    const k = state.enemies[t.index].kind;
+    gravKill(state, MINI_BOSSES.includes(k) || ENEMY_STATS[k]().boss);
+  }
   // (Update 0.3.73 — its heat again, and Forged from the Fallen: every kill gives a little health back.)
   if (state.demon) {
     addHeat(state, DEMON.v.heatKill);

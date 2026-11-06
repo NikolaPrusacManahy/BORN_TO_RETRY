@@ -26,7 +26,7 @@
 // Its sandstorm blows itself out (or ends with it).
 // Update 0.2.4 — the Pistol: its shots, aim and reloads (gun.ts) instead of swings; right click aims, so only a click
 // throws one with no bullets left.
-import { damagePlayer } from '../player/health';
+import { damagePlayer, healPlayer } from '../player/health';
 import { updatePuddles } from './puddles';
 import { stepGrab, tickGrab } from './grab';
 import { stepPin, tickPin } from './pin';
@@ -286,6 +286,12 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   const sean = state.sean && w === null;
   if (sean) {
     tickGravity(state, player, dt);
+    // (Update 0.3.88 — what his kills in Unstable mode gave back.)
+    if (state.grav.mend > 0) {
+      healPlayer(player, state.grav.mend);
+      state.grav.mend = 0;
+      events.push('seanMend', 0, player.pos.x, player.pos.y, player.pos.z);
+    }
     // (Update 0.3.83 — Q: an ultimate.)
     tryUltimate(state, player, intent.throwPressed, intent.yaw, intent.pitch, world);
     if (intent.interactPressed && !clasped) switchStance(state, player);
