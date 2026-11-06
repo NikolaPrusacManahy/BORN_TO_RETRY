@@ -37,6 +37,7 @@ import { BlockArms } from './blockArms';
 import { movesOf } from './weaponMoves';
 import type { CharacterId } from '../../sim/characters';
 import { ArmsWardrobe } from './armsWardrobe';
+import { GravityArms, type GravityMode } from './gravityArms';
 import { BladeTrail } from './bladeTrail';
 import { BladeGrow } from './bladeGrow';
 import { BladeHeat } from './bladeHeat';
@@ -123,6 +124,9 @@ export class Viewmodel {
   private heat = 0;
   fire: BladeHeat | null = null;
   private grow: BladeGrow | null = null;
+  /** Update 0.3.81 — Gravity Sean's gravity on his arms (made the first time it's wanted). */
+  gravity: GravityArms | null = null;
+  private readonly eyeAt = new THREE.Vector3();
 
   /** `loadModel`: fetch the arms (tests attach a parsed model instead). `demon`: the Demon's (Update 0.3.70). */
   constructor(loadModel = true, who: CharacterId = 'adventurer') {
@@ -245,6 +249,12 @@ export class Viewmodel {
     this.swordAnim.setRanged(on);
   }
 
+  /** Update 0.3.81 — Gravity Sean's stance (0: anyone else; 1: normal; 2: Unstable), and his Instability (0 … 1). */
+  setGravity(mode: GravityMode, instab: number) {
+    if (mode === 0 && !this.gravity) return;
+    (this.gravity ??= new GravityArms(this.scene)).set(mode, instab);
+  }
+
   /** Update 0.3.73 — how hot the Demon's sword is (0 … 1). */
   setHeat(heat: number) {
     this.heat = heat;
@@ -333,6 +343,7 @@ export class Viewmodel {
     // (Put away, the second dagger's arm eases back to the guard, as the hammer's left hand does.)
     const pair = held && this.swordAnim.moves.pair ? armed * (1 - palm) : 0;
     const left = fistArm(rig, this.anim, this.time, 'L', this.chargeVis, charge >= 1, (armed - book - hands - pair) * (1 - palm), this.live.L);
+    this.gravity?.shake('L', left);
     if (book > 0) mixArm(left, this.book.pose(rig, 'L', this.bookPose), book, left);
     if (hands > 0) mixArm(left, leftGrip(rig, this.swordPose, fixed !== 0 ? fixed : VERDICT_LEFT, this.twoPose), hands, left);
     if (pair > 0) mixArm(left, this.off.pose(rig, this.chargeVis, tremble, this.time), pair, left);
@@ -349,6 +360,7 @@ export class Viewmodel {
     const wrap = pair > 0 ? wrapOf(this.off.moves, this.flip) : hands > 0 ? moves.grip() : ROPE;
     rig.openHand('L', Math.max(palm, book * this.book.open('L'), this.grip.open('L'), pair * Math.max(RELEASE * this.off.anim.letGo, turnOpen(this.off.moves, this.flip))), wrap, Math.max(hands, pair) || this.grip.rope('L'), pair > 0 ? this.off.sword.tilt : this.swordPose.tilt);
     const right = fistArm(rig, this.anim, this.time, 'R', this.chargeVis, charge >= 1, armed, this.live.R);
+    this.gravity?.shake('R', right);
     if (book > 0) {
       mixArm(right, this.book.pose(rig, 'R', this.bookPose), book, right);
       rig.apply('R', right, v.wristBend + (1 - v.wristBend) * book);
@@ -377,6 +389,7 @@ export class Viewmodel {
     this.off.place(rig, reach < 0.2 && palm < 0.2, this.flip);
     this.camera.updateMatrixWorld(true);
     this.burn(gameDt, realDt);
+    this.gravity?.update(realDt, rig, this.camera.getWorldPosition(this.eyeAt));
     this.book.update(gameDt, book, rig, this.camera);
     this.palm.place(rig);
     if (this.chest.weight > 0) this.chest.settle(this.camera.worldToLocal(rig.knuckle('L', this.knuckleL)), this.camera.worldToLocal(rig.knuckle('R', this.knuckleR)));

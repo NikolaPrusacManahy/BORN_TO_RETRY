@@ -239,7 +239,7 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
     c.key = free ? null : useKey(inv);
     c.loot = c.boss ? { rarity: 'mythic', item: null, coins: coinsFor(bossCoins(c.boss) * ITEMS.v.chestGold, state, state.rng) } : c.spot.gold ? goldLoot(c.rolls) : rollLoot(c.key!, c.rolls, { better: holds(state, 'fortune'), worse: holds(state, 'blackCat'), up: holds(state, 'fragileFortune') });
     // (Update 0.3.70 — a weapon's coins to the Demon.)
-    if (state.demon && c.loot.item && isWeaponItem(c.loot.item)) c.loot = { ...goldLoot(c.rolls), rarity: c.loot.rarity };
+    if ((state.demon || state.sean) && c.loot.item && isWeaponItem(c.loot.item)) c.loot = { ...goldLoot(c.rolls), rarity: c.loot.rarity };
     c.state = 'opening';
     c.t = 0;
     t.choosing = -1;

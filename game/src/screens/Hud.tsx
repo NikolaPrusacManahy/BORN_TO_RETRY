@@ -30,7 +30,7 @@ import { PinQte } from './PinQte';
 import { JawCue } from './JawCue';
 import { KeyIcon, KeyPicker } from './KeyPicker';
 import { Bonuses, WeaponSlots } from './HudSlots';
-import { Controls, DemonControls } from './HudControls';
+import { Controls, DemonControls, SeanControls } from './HudControls';
 import { Minimap } from './Minimap';
 
 /** At or below this share of max health the bar pulses. */
@@ -82,7 +82,7 @@ function Carried({ n, children }: { n: number; children: JSX.Element }) {
 export function Hud({ store }: { store: HudStore }) {
   const s = useSyncExternalStore(store.subscribe, store.get, store.get);
   return (
-    <div className={`rb-hud${s.cine ? ' is-cine' : ''}${s.demon ? ' is-demon' : ''}`}>
+    <div className={`rb-hud${s.cine ? ' is-cine' : ''}${s.demon ? ' is-demon' : ''}${s.sean ? ' is-sean' : ''}${s.unstable ? ' is-unstable' : ''}`}>
       <div className="rb-hud-cross" />
       {s.hits > 0 && <div key={`m${s.hits}`} className={`rb-hud-marker is-${s.marker}`} />}
       {s.hurts > 0 && <div key={`h${s.hurts}`} className="rb-hud-hurt" />}
@@ -150,8 +150,13 @@ export function Hud({ store }: { store: HudStore }) {
           <span>{Math.max(0, s.uses - s.mag)}</span>
         </div>
       )}
-      {!s.demon && <WeaponSlots slots={s.slots} slot={s.slot} keys={s.slotKeys} />}
-      {s.demon ? <DemonControls s={s} /> : <Controls s={s} />}
+      {!s.demon && !s.sean && <WeaponSlots slots={s.slots} slot={s.slot} keys={s.slotKeys} />}
+      {s.demon ? <DemonControls s={s} /> : s.sean ? <SeanControls s={s} /> : <Controls s={s} />}
+      {s.unstable && (
+        <div className={`rb-hud-instab${s.instab >= 0.8 ? ' is-high' : ''}`} style={{ '--fill': s.instab } as CSSProperties}>
+          <i />
+        </div>
+      )}
       <Bonuses left={s.bonusLeft} />
       {s.demon && s.execution >= 1 && <i className="rb-demon-eye" />}
       <div className={`rb-hud-exec${s.execution >= 1 ? ' is-full' : ''}`} style={{ '--fill': s.execution } as CSSProperties}>

@@ -295,6 +295,8 @@ export class Run extends RunBase {
     const b = this.combat.blade;
     this.arms.setHeat(this.combat.demon ? b.heat : 0);
     this.arms.setRanged(this.combat.demon && b.ranged);
+    // (Update 0.3.81 — Gravity Sean's gravity on his arms.)
+    this.arms.setGravity(!this.combat.sean ? 0 : this.combat.grav.unstable ? 2 : 1, this.combat.grav.instab);
     this.arms.update(gameDt, real, mouseDx, mouseDy, p, f.charging ? f.charge / FISTS.v.chargeTime : -1);
 
     renderer.render(this.scene, this.camera);
@@ -304,7 +306,7 @@ export class Run extends RunBase {
     this.hudFeed.keysOf(input.bindings);
     // (Update 0.3.20 — a ground pound ready.)
     // (Update 0.3.72 — the Demon's sword: Ctrl on the ground too.)
-    this.hudFeed.slamReady = !p.dead && (canSlam(p, this.level.physics) || (p.demon && p.grounded && b.brandWait <= 0));
+    this.hudFeed.slamReady = !p.dead && (canSlam(p, this.level.physics) || (p.demon && p.grounded && b.brandWait <= 0) || (p.sean && p.grounded && this.combat.grav.slamWait <= 0));
     // (Update 0.3.19 — the floor's fight music, while a fight is on: audio/music.ts.)
     setFloorMusic(d && combatMusicOn(d, p.dead) ? floorTrack(d) : null);
     // (Update 0.3.49 — a boss's ultimate cuts it.)

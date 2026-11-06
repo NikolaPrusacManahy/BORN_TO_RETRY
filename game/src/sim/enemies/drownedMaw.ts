@@ -65,7 +65,7 @@ export function stepMaw(k: Enemy, index: number, player: PlayerState, w: EnemyWo
     k.shots = MAW_PULL;
     k.t = 0;
     const state = w as CombatState;
-    openUltimate(u, state.demon ? MAW_CUE_BLADE : MAW_CUE, v.mawWindow, 1);
+    openUltimate(u, state.demon || state.sean ? MAW_CUE_BLADE : MAW_CUE, v.mawWindow, 1);
     if (state.slot) selectSlot(state, 0);
     if (state.demon) catchBlade(state);
     w.events.push('drownedMawOpen', index, k.pos.x, k.pos.y + v.kingHeight * 0.4, k.pos.z);

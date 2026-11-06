@@ -12,6 +12,7 @@ import { airMove, applyGravity } from './air';
 import { refillDash, tryStartDash, updateDash } from './dash';
 import { groundMove } from './ground';
 import type { PlayerIntent } from './intent';
+import { stepHover } from './hover';
 import { updateKneel } from './kneel';
 import { tryAirJump, tryGroundJump, updateJumpTimers } from './jump';
 import { checkPads } from './jumpPad';
@@ -91,6 +92,8 @@ function steer(p: PlayerState, intent: PlayerIntent, world: CollisionWorld, dt: 
       applyGravity(p.vel, dt, p.gravity);
       applyWallSlide(p, wish);
     }
+    // (Update 0.3.81 — Gravity Sean's sinks slowly.)
+    stepHover(p, !!intent.jumpHeld, dt);
   }
 }
 

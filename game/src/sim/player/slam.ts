@@ -6,6 +6,7 @@
 import { Vector3 } from 'three';
 import { SLAM } from '../../tuning/movement';
 import { BUILDS } from '../../tuning/builds';
+import { SEAN } from '../../tuning/sean';
 import { lit } from '../cards/builds';
 import type { CollisionWorld } from '../collisionWorld';
 import type { PlayerState } from './state';
@@ -22,7 +23,8 @@ export function heightAboveGround(p: PlayerState, world: CollisionWorld): number
 }
 
 /** Update 0.2.22 — how high up you can slam from (the Slam build's bonus: lower, a jump is enough). */
-export const slamFloor = (p: PlayerState) => (lit(p.cards, 'slam') ? Math.min(SLAM.v.minHeight, BUILDS.v.slamHeight) : SLAM.v.minHeight);
+// (Update 0.3.81 — Gravity Sean plunges from any real height: his bible, "in the air, plunge".)
+export const slamFloor = (p: PlayerState) => (p.sean ? Math.min(SLAM.v.minHeight, SEAN.v.plungeHeight) : lit(p.cards, 'slam') ? Math.min(SLAM.v.minHeight, BUILDS.v.slamHeight) : SLAM.v.minHeight);
 
 /** Update 0.3.20 — a slam could start now (the HUD lights the ground pound's key). */
 export function canSlam(p: PlayerState, world: CollisionWorld): boolean {

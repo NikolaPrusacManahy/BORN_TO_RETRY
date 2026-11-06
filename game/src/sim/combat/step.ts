@@ -53,6 +53,7 @@ import { bladeAway, blinkToBlade, regainBlade, stepThrown } from './bladeThrow';
 import { stepDemonFire } from './demonFire';
 import { feedOnFallen, landPlunge, stepLunge, tickCleave, tickDemon, tryBrand } from './demonMoves';
 import { addHeat } from './heat';
+import { landPlunge as landSeanPlunge, punchRate, shapePunch, stepDashPull, switchStance, tickGravity, trySeanSlam } from './gravity';
 import { stepVerdict, tryVerdict } from './lastVerdict';
 import { WEAPONS } from '../../tuning/weapons';
 import { updateDummy } from './dummy';
@@ -134,7 +135,10 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   if (state.fullMeter) state.execution = 1;
   // (Update 0.3.73 — the Demon executes nothing: E is its own, and the bar's its heat. The Lab's Meter keeps that full instead.)
   if (state.fullMeter && state.demon) addHeat(state, 1);
-  state.execTarget = state.demon ? -1 : execTarget(state, player, intent.yaw);
+  // (Update 0.3.81 — nor does Gravity Sean: E's his stance, and the bar's the meter his ultimates share.)
+  if (state.fullMeter && state.sean) state.grav.ult = 1;
+  const ownKit = state.demon || state.sean;
+  state.execTarget = ownKit ? -1 : execTarget(state, player, intent.yaw);
   if (state.execTarget >= 0) {
     if (state.execAway >= EXEC_QUIET) {
       const e = state.enemies[state.execTarget];
@@ -142,7 +146,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     }
     state.execAway = 0;
   } else state.execAway += dt;
-  const executing = !state.demon && intent.interactPressed && !throwing && tryExecute(state, player, intent.yaw, intent.pitch);
+  const executing = !ownKit && intent.interactPressed && !throwing && tryExecute(state, player, intent.yaw, intent.pitch);
   if (execHeld(state.exec)) {
     // The world holds still while you hold it (and a Grimoire's charge or a volley is dropped).
     dropKi(state.ki);
@@ -155,7 +159,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   // (Update 0.2.18 — wave 2's bleeds, burns, bolts and blasts: not while an execution holds the world.)
   tickPowers(state, player, dt);
   // (Update 0.3.70 — the Demon takes no other weapon.)
-  if (intent.interactPressed && !throwing && !executing && !state.demon) {
+  if (intent.interactPressed && !throwing && !executing && !ownKit) {
     const got = tryPickup(state.pickups, state.stands, player, events);
     if (got) giveWeapon(state, got, player.pos);
   }
@@ -267,9 +271,19 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     stepLunge(state, player);
     tryBrand(state, player, intent.slamPressed && !clasped);
   }
+  // (Update 0.3.81 — Gravity Sean: E's his stance, right click's his own, not the parry; Ctrl on the ground's his slam; his fists keep their combo.)
+  const sean = state.sean && w === null;
+  if (sean) {
+    tickGravity(state, player, dt);
+    if (intent.interactPressed && !clasped) switchStance(state, player);
+    trySeanSlam(state, player, intent.slamPressed && !clasped);
+    stepDashPull(state, player);
+    fistIntent = Object.assign(NO_HEAVY, fistIntent);
+    NO_HEAVY.heavyHeld = false;
+  }
   // (Update 0.3.5 — barehanded, right click is the parry: Hair Trigger's longer window, Giant Killer's no wait.)
   const times = parryTimes(state);
-  let swung = axe || volley || gun || clasped ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, rate, chargeRate(state), times);
+  let swung = axe || volley || gun || clasped ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, sean ? rate * punchRate(state.grav) : rate, chargeRate(state), times);
   // (With the fists not in play — a weapon's own right click, the slam's clasp — the window shuts; a click held meanwhile
   // isn't a press after.)
   if (axe || volley || gun || clasped) state.fists.parryHeld = intent.heavyHeld;
@@ -291,6 +305,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
       landBlade(state, b.step, eye, dir, world, fistFactor(state));
     }
   }
+  if (swung && sean) shapePunch(state.grav, punch);
   // (Update 0.2.16 — All In, a Fate Card: your fists hit twice as hard.)
   if (swung) punch.damage *= fistFactor(state);
   if (axe && w) {
@@ -318,6 +333,11 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   if (swung) {
     aim(player, intent.yaw, intent.pitch, eye, dir);
     const landed = resolvePunch(punch, state, eye, dir, world);
+    // (Update 0.3.81 — Gravity Punch: you see it run out to where it ended.)
+    if (sean && !state.grav.unstable) {
+      const far = landed >= 0 ? landed : Math.min(punch.reach, world.rayDistance(eye, dir, punch.reach));
+      events.push('seanRipple', far, eye.x + dir.x * far, eye.y + dir.y * far, eye.z + dir.z * far);
+    }
     const smash = w !== null && punch.kind === 'pierce' && SMASHES[w.kind];
     if (smash) startWave(state, player, dir, world);
     if ((landed >= 0 || smash) && w && (punch.kind === 'slash' || punch.kind === 'pierce')) {
@@ -335,6 +355,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   if (player.slamImpact > 0) {
     // (Update 0.3.72 — the Demon's dive: Brand of Ruin, from however far it fell.)
     if (sworded) landPlunge(state, player, player.slamImpact);
+    // (Update 0.3.81 — Gravity Sean's plunge knocks back as it lands, with or without Tremor.)
+    else if (sean) landSeanPlunge(state, player, player.slamImpact);
     // (Update 0.2.15 — Pogo: a slam that kills bounces you back up. Update 0.2.22 — its blast: Tremor's.)
     else if (tremors(state)) pogo(state, player, slamImpact(state, player.pos, player.slamImpact));
     player.slamImpact = 0;

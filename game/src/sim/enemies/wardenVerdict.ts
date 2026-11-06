@@ -51,7 +51,7 @@ export function stepVerdict(e: Enemy, index: number, player: PlayerState, w: Ene
     e.shots = VERDICT_CHARGE;
     e.t = 0;
     const state = w as CombatState;
-    openUltimate(u, state.demon ? VERDICT_CUE_BLADE : VERDICT_CUE, v.verdictWindow, 1);
+    openUltimate(u, state.demon || state.sean ? VERDICT_CUE_BLADE : VERDICT_CUE, v.verdictWindow, 1);
     if (state.slot) selectSlot(state, 0);
     if (state.demon) catchBlade(state);
     w.events.push('wardenCharge', index, e.pos.x, e.pos.y + 4, e.pos.z);

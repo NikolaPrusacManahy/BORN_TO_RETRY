@@ -38,7 +38,8 @@ export function settleHand(state: CombatState) {
  *  falls at `at`). Returns its slot (index). */
 export function giveWeapon(state: CombatState, w: HeldWeapon, at: Vector3): number {
   // (Update 0.3.70 — the Demon's sword is always in hand.)
-  if (state.demon) return state.slot;
+  // (Update 0.3.81 — Gravity Sean's hands are his moves.)
+  if (state.demon || state.sean) return state.slot;
   settleHand(state);
   let slot = state.bag.indexOf(null, 1);
   if (slot < 0) {

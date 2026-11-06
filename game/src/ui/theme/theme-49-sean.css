@@ -1,0 +1,66 @@
+/* theme-49 — Update 0.3.81: Gravity Sean's HUD. A cool violet, going hot in Unstable mode, and the Instability meter over the shared meter. Only for him (.rb-hud.is-sean).
+   The inputs bottom right are the Demon's (theme-48), in his colours. Drawn in code: no image files. */
+.rb-hud.is-sean {
+  --rb-brass: #5b4fd6;
+  --rb-brass-hi: #a79dff;
+  --rb-brass-lo: #1e1a55;
+  --rb-accent: #7f73ff;
+  --rb-accent-hi: #b9b0ff;
+  --rb-frame: 0 0 0 2px #05040f, 0 0 8px rgba(127, 115, 255, 0.35);
+}
+
+.rb-hud.is-sean.is-unstable {
+  --rb-brass: #c21fa0;
+  --rb-brass-hi: #ff8ae8;
+  --rb-brass-lo: #4d0a3e;
+  --rb-accent: #ff2fd0;
+  --rb-accent-hi: #ff9ceb;
+  --rb-frame: 0 0 0 2px #0f0410, 0 0 10px rgba(255, 47, 208, 0.45);
+}
+
+.rb-hud.is-sean .rb-hud-exec {
+  background: #12102e;
+}
+
+.rb-hud.is-sean .rb-hud-exec-fill {
+  background: linear-gradient(90deg, #4c3fd0, #a79dff);
+}
+
+/* The Instability meter: over the shared one, only while it's in play. */
+.rb-hud-instab {
+  --fill: 0;
+  position: absolute;
+  left: 50%;
+  bottom: 86px;
+  width: 300px;
+  height: 8px;
+  transform: translateX(-50%);
+  background: #1c0a1c;
+  border: 2px solid var(--rb-brass);
+  box-shadow: var(--rb-frame);
+}
+
+.rb-hud-instab > i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  transform: scaleX(var(--fill));
+  background: linear-gradient(90deg, #ff2fd0, #fff2ff);
+}
+
+.rb-hud-instab.is-high {
+  animation: rb-instab-shake 0.09s linear infinite;
+}
+
+@keyframes rb-instab-shake {
+  0% {
+    margin-left: -2px;
+  }
+  50% {
+    margin-left: 2px;
+  }
+  100% {
+    margin-left: -1px;
+  }
+}

@@ -123,6 +123,23 @@ export class CombatFeedback {
         case 'demonMode':
           this.f.rig.shake.add(0.08);
           break;
+        // Update 0.3.81 — Gravity Sean.
+        case 'seanUnstable':
+          this.f.rig.shake.add(0.1);
+          break;
+        case 'seanVent':
+          this.f.rig.shake.add(0.1 + 0.2 * e.value);
+          break;
+        case 'seanOverload':
+          this.f.rig.shake.add(0.7);
+          this.f.rig.kick(2.4);
+          break;
+        case 'seanSlam':
+          this.f.arms.slam.start();
+          this.f.arms.slam.land();
+          this.f.rig.shake.add(0.3);
+          this.f.rig.kick(1.1);
+          break;
         case 'demonWall':
           this.f.rig.shake.add(0.08);
           break;

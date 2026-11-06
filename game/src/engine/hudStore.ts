@@ -73,6 +73,11 @@ export interface HudState {
   slot: number;
   /** Update 0.3.70 — you're the Demon: slot 1 is its blade, not fists. */
   demon: boolean;
+  /** Update 0.3.81 — you're Gravity Sean; in Unstable mode; his Instability (0 … 1); all that changes his inputs, as one number. */
+  sean: boolean;
+  unstable: boolean;
+  instab: number;
+  seanSig: number;
   /** Update 0.3.73 — its sword's thrown. */
   bladeOut: boolean;
   /** Update 0.3.74 — its inputs, bottom right (HudControls.tsx): you could go to its sword now; how far Brand of Ruin's wait has filled back (0 … 1); off the ground; their keys; a number for all that. */
@@ -164,7 +169,7 @@ export interface HudStore {
 }
 
 export function createHudStore(): HudStore {
-  let state: HudState = { dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, mag: -1, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, tealRings: 0, cards: 0, slots: [], slot: 0, demon: false, bladeOut: false, canBlink: false, ranged: false, brandFill: 1, inAir: false, interactKey: '', throwKey: '', demonSig: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, skip: '', bossName: '', bossTitle: '', bossLine: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, chestHere: false, styleRank: -1, styleFill: 0, styleFeed: [], execution: 0, bossMark: -1, ultCue: '', ultFill: 0, ultLeft: 0, bloodMist: 0, grabHits: -1, grabNeed: 0, grabLeft: 0, grabEnd: '', attackKey: '', jawCue: 0, leftKey: '', rightKey: '', ...createRaptorHud(), dashKey: '', slotKeys: '', ...createControlsHud() };
+  let state: HudState = { sean: false, unstable: false, instab: 0, seanSig: 0, dashCharges: 0, dashMax: 0, mode: 'ground', hits: 0, marker: 'hit', hurts: 0, hp: 0, maxHp: 0, weapon: '', uses: 0, mag: -1, money: 0, shield: 0, shields: 0, keys: 0, redRings: 0, blueRings: 0, whiteKeys: 0, goldKeys: 0, keyPick: '', greenRings: 0, tealRings: 0, cards: 0, slots: [], slot: 0, demon: false, bladeOut: false, canBlink: false, ranged: false, brandFill: 1, inAir: false, interactKey: '', throwKey: '', demonSig: 0, slotSig: 0, bonusLeft: {}, map: null, mapX: 0, mapZ: 0, mapYaw: 0, cine: false, card: false, skip: '', bossName: '', bossTitle: '', bossLine: '', bossHp: -1, veil: false, floorName: '', poisoned: false, enemiesLeft: -1, chestHere: false, styleRank: -1, styleFill: 0, styleFeed: [], execution: 0, bossMark: -1, ultCue: '', ultFill: 0, ultLeft: 0, bloodMist: 0, grabHits: -1, grabNeed: 0, grabLeft: 0, grabEnd: '', attackKey: '', jawCue: 0, leftKey: '', rightKey: '', ...createRaptorHud(), dashKey: '', slotKeys: '', ...createControlsHud() };
   const subs = new Set<() => void>();
   return {
     get: () => state,

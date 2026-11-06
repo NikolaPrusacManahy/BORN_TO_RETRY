@@ -46,7 +46,7 @@ export type MoveEvent =
 /** Update 0.1.14 — what hurt you (the death screen names what killed you): an enemy's kind, or the world. */
 // (Update 0.3.11 — and floor 7's icicles. Update 0.3.13 — floor 8's presses and fire vents. Update 0.3.14 — floor 6's
 // sea and powder kegs.)
-export type Cause = EnemyKind | 'turret' | 'spikes' | 'lava' | 'fall' | 'icicle' | 'crusher' | 'vent' | 'sea' | 'keg' | 'meteor';
+export type Cause = EnemyKind | 'turret' | 'spikes' | 'lava' | 'fall' | 'icicle' | 'crusher' | 'vent' | 'sea' | 'keg' | 'meteor' | 'overload';
 
 export interface PlayerState {
   /** Feet position. */
@@ -63,6 +63,10 @@ export interface PlayerState {
   dashCharges: number;
   /** Update 0.3.72 — you're the Playable Demon: your dash is Hellfire Lunge. And the share of a blow your blade takes off, held up (0: none). */
   demon: boolean;
+  /** Update 0.3.81 — you're Gravity Sean: holding jump, you sink slowly (hover.ts), for this many seconds more; you are now. */
+  sean: boolean;
+  hover: number;
+  hovering: boolean;
   /** Time left in the current dash (0 = not dashing). */
   dashTime: number;
   dashDir: Vector3;
@@ -157,6 +161,9 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     jumpBuffer: 0,
     dashCharges: DASH.v.charges,
     demon: false,
+    sean: false,
+    hover: 0,
+    hovering: false,
     dashTime: 0,
     dashDir: new Vector3(0, 0, -1),
     wallJumpsLeft: WALL.v.count,

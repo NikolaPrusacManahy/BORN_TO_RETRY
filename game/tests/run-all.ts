@@ -28,6 +28,7 @@ import './test-demon-big';
 import './test-demon-feel';
 import './test-demon-ranged';
 import './test-gravity-sean';
+import './test-sean-moves';
 import './test-swarm-stare';
 import './test-seams';
 import './test-floor5';

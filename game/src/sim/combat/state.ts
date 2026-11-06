@@ -39,6 +39,7 @@ import { Waves, createWaves } from '../enemies/waves';
 import { FistState, createFists } from './fists';
 import { BladeSwing, createBladeSwing } from './bladeSwing';
 import { createDemonFire, DemonFire } from './demonFire';
+import { createGravity, GravityState } from './gravityMeter';
 import { HitStop } from './hitStop';
 import { Dummy, Orb, Turret, createDummy, createOrbs, createTurret } from './targets';
 import { Hive, resetHives } from '../dungeon/hives';
@@ -142,6 +143,9 @@ export interface CombatState {
   /** Update 0.3.70 — you're the Playable Demon: the sword's always in hand, so no other weapon's yours. And Hellwarden's
    *  just fallen (for the Run to tell the App: the Demon's earned, whatever the difficulty). */
   demon: boolean;
+  /** Update 0.3.81 — you're Gravity Sean: his hands are his moves, so no other weapon's yours and E's his stance; and his gravity. */
+  sean: boolean;
+  grav: GravityState;
   wardenBeaten: boolean;
   /** Update 0.2.17 — Fate Cards are on this run (the lobby's stand): chests deal them. */
   fate: boolean;
@@ -238,6 +242,8 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     betterKeys: false,
     bare: false,
     demon: false,
+    sean: false,
+    grav: createGravity(),
     wardenBeaten: false,
     fate: true,
     inAir: false,
@@ -264,6 +270,7 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.fists = createFists();
   state.blade = createBladeSwing();
   state.demonFire = createDemonFire();
+  state.grav = createGravity();
   state.dummies = arena.dummies.map(createDummy);
   state.turrets = arena.turrets.map(createTurret);
   for (const o of state.orbs) o.alive = false;

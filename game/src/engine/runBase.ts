@@ -62,6 +62,8 @@ export abstract class RunBase {
   protected readonly arms: Viewmodel;
   /** Update 0.3.70 — you're the Playable Demon. */
   protected demon: boolean;
+  /** Update 0.3.81 — Gravity Sean. */
+  protected sean: boolean;
   protected readonly hudFeed: HudFeed;
   protected readonly death = new DeathFlow();
   protected readonly prev = new THREE.Vector3();
@@ -120,6 +122,7 @@ export abstract class RunBase {
     character: CharacterId = 'adventurer',
   ) {
     this.demon = character === 'demon';
+    this.sean = character === 'spacesuit';
     this.arms = new Viewmodel(true, character);
     // Loading the same models again (each floor) comes from memory.
     THREE.Cache.enabled = true;
@@ -128,6 +131,7 @@ export abstract class RunBase {
     const s = level.arena.playerStart;
     this.player = createPlayer(s.x, s.y, s.z, s.yaw);
     this.player.demon = this.demon;
+    this.player.sean = this.sean;
     this.hudFeed = new HudFeed(hud);
     this.prompts = new PromptView(renderer.domElement.parentElement);
     this.load(level, false);
@@ -167,6 +171,7 @@ export abstract class RunBase {
     this.combat.rng = createRng(level.fightSeed);
     this.combat.bare = this.difficulty === 'human';
     this.combat.demon = this.demon;
+    this.combat.sean = this.sean;
     this.combat.fate = this.cards;
     this.combatScene = new CombatScene(this.scene, this.combat, this.audio, this.rig, this.arms, levelKinds(this.everyone, level.dungeon, !!level.lobby));
     this.restartHere();
@@ -177,7 +182,7 @@ export abstract class RunBase {
     }
     // (Update 0.2.20 — the shop's Fate Card, by what you carry down; then the shop and chests are drawn.)
     stockShop(this.treasure, this.combat);
-    if (this.demon) noWeaponsOffered(this.treasure, level.floor);
+    if (this.demon || this.sean) noWeaponsOffered(this.treasure, level.floor);
     this.treasureView = new TreasureView(this.scene, this.treasure);
     this.makeReady();
   }
@@ -276,6 +281,7 @@ export abstract class RunBase {
    *  Update 0.3.80 — whoever you are: only the Demon has its own rules. */
   protected playAs(who: CharacterId) {
     this.demon = this.combat.demon = this.player.demon = who === 'demon';
+    this.sean = this.combat.sean = this.player.sean = who === 'spacesuit';
     this.arms.setCharacter(who);
   }
 

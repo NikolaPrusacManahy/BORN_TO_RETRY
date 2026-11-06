@@ -11,5 +11,7 @@ export function carryOver(from: CombatState, to: CombatState) {
   to.money = from.money;
   to.items = from.items;
   to.execution = from.execution;
+  // (Update 0.3.81 — Gravity Sean's shared meter.)
+  to.grav.ult = from.grav.ult;
   to.kills = from.kills;
 }

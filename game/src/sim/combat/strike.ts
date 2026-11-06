@@ -36,6 +36,7 @@ import { hitTurret } from './turretDamage';
 import { HIVE_RADIUS, hitHive } from '../dungeon/hives';
 import { DEMON } from '../../tuning/demon';
 import { addHeat } from './heat';
+import { gravHit, gravKill } from './gravityMeter';
 
 export type TargetKind = 'dummy' | 'turret' | 'enemy' | 'hive' | 'wormling' | 'spine' | 'knee' | 'head' | 'chain';
 
@@ -221,11 +222,14 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   state.events.push(event, value, p.x, p.y, p.z);
   // (Update 0.3.73 — the Playable Demon's heat. A burn's ticks don't feed it: it'd never go out.)
   if (state.demon && !steady) addHeat(state, DEMON.v.heatHit);
+  // (Update 0.3.81 — Gravity Sean's meters.)
+  if (state.sean && !steady) gravHit(state);
   if (!killed) return false;
   state.events.push('kill', 0, p.x, p.y, p.z);
   state.hitStop.request(FEEDBACK.v.stopKill);
   if (t.kind !== 'enemy') return true;
   state.kills++;
+  if (state.sean) gravKill(state);
   // (Update 0.3.73 — its heat again, and Forged from the Fallen: every kill gives a little health back.)
   if (state.demon) {
     addHeat(state, DEMON.v.heatKill);
@@ -242,7 +246,7 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   // (Update 0.2.12 — ARE YOU EVEN HUMAN?: nothing comes of a kill but the meter.)
   if (state.bare) return true;
   // (Update 0.2.15 — Collector, a Fate Card: more uses.)
-  if (e.kind === 'grunt' && state.rng() < ENEMIES.v.gruntDrop && !state.demon) dropWeapon(state.pickups, 'sword', e.pos, state.events, newUses(state, 'sword'));
+  if (e.kind === 'grunt' && state.rng() < ENEMIES.v.gruntDrop && !state.demon && !state.sean) dropWeapon(state.pickups, 'sword', e.pos, state.events, newUses(state, 'sword'));
   if (MINI_BOSSES.includes(e.kind) && state.keyDrops > 0) {
     state.keyDrops--;
     // Update 0.1.20 — a challenge room's is white or gold.

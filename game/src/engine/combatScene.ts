@@ -47,6 +47,7 @@ import { RocFx } from './norse/rocFx';
 import { SharkFx } from './boss/sharkFx';
 import { WardenFx } from './hell/wardenFx';
 import { DemonFireView } from './demon/demonFireView';
+import { GravityView } from './sean/gravityView';
 import { SwordLight } from './demon/swordLight';
 import { EchoesView } from './hell/echoesView';
 import { TideFx } from './moon/tideFx';
@@ -106,6 +107,8 @@ export class CombatScene {
   private readonly wardenFx: WardenFx;
   /** Update 0.3.72 — the Demon's fire: made when you are the Demon. */
   private demonFire: DemonFireView | null = null;
+  /** Update 0.3.81 — Gravity Sean's gravity in the world. */
+  private gravity: GravityView | null = null;
   /** Update 0.3.76 — its sword's light. In the scene from the start, when you're the Demon as the level loads: a light coming in later makes every shader build again. */
   private swordLight: SwordLight | null = null;
   private readonly arms: Viewmodel;
@@ -191,6 +194,8 @@ export class CombatScene {
     this.bossFx.update(state, gameDt);
     if (state.demon && !this.demonFire) this.demonFire = new DemonFireView(this.world);
     this.demonFire?.update(state, gameDt);
+    if (state.sean && !this.gravity) this.gravity = new GravityView(this.world, this.camera);
+    this.gravity?.update(state, gameDt);
     if (state.demon && !this.swordLight) this.swordLight = new SwordLight(this.world);
     this.swordLight?.update(state, this.arms.heldWeapon, this.arms.swordAnim.flare, this.camera, gameDt);
     this.gun.update(state, gameDt);

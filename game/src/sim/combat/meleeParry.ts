@@ -24,7 +24,8 @@ export function parryBossBlow(player: PlayerState, w: EnemyWorld, e: Enemy, inde
   const state = w as CombatState;
   // (Update 0.3.74 — the Playable Demon has no parry, the designer's choice: its blade, in a left-click swing of either mode as the blow lands, meets it. The two the
   // bible's bosses ask a parry for, or Hellwarden's Last Verdict could never be lived through.)
-  const clash = !!state.demon && state.blade.step >= 0 && state.blade.step <= SHOT_B;
+  // (Update 0.3.81 — Gravity Sean's right click is his own too: a punch meets them.)
+  const clash = (!!state.demon && state.blade.step >= 0 && state.blade.step <= SHOT_B) || (!!state.sean && state.grav.clash > 0);
   if (!f || (f.parryWindow <= 0 && !clash)) return false;
   const s = ENEMY_STATS[e.kind]();
   f.parryWindow = 0;

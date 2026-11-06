@@ -81,6 +81,7 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   okami: 'Yokai : Okami',
   icicle: 'An icicle',
   meteor: 'A meteor',
+  overload: 'Your own gravity',
   crusher: 'A press',
   vent: 'A fire vent',
   sea: 'The sea',

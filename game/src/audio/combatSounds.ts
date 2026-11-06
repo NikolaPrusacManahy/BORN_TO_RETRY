@@ -30,6 +30,7 @@ import { playCove } from './coveSounds';
 import { playShark } from './sharkSounds';
 import { playWarden } from './wardenSounds';
 import { playDemon } from './demonSounds';
+import { playSean } from './seanSounds';
 import { playMoon } from './moonSounds';
 import { playShrine } from './shrineSounds';
 import { playNorse } from './norseSounds';
@@ -69,6 +70,7 @@ export class CombatSounds {
     impactLayer(a, kind, value);
     // (Update 0.3.72 — the Playable Demon's fire.)
     if (playDemon(a, kind, value, far)) return;
+    if (playSean(a, kind, value, far)) return;
     const layer = layerOf(kind);
     if (layer && OFF.has(layer)) return;
     if (playClip(a, kind, value, far, this.swung)) return;

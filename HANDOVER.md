@@ -2,9 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-06, after Update 0.3.80)
-- **Version 0.3.80** (Gravity Sean: his arms, the dais, the unlock), committed. 0.3.58 to 0.3.80 are committed; the designer pushes.
-- **Gravity Sean** (`MD_UPDATES/U0380_GRAVITY_SEAN.md`): the space suit, in the Fallen King's and William Rich's place. Earned by winning a whole run on any difficulty (`SaveData.won`). He fights as Joseph until the designer designs his abilities.
+## Where things stand (2026-11-06, after Update 0.3.81)
+- **Version 0.3.81** (Gravity Sean, 1 of 3: stances, fists, Instability, gravity on his arms), built, **not committed** until the designer says "commit". 0.3.58 to 0.3.80 are committed; the designer pushes.
+- **Gravity Sean** (`enemy_bibles/Born to Retry — Gravity Sean.docx`, specs `MD_UPDATES/U0380_GRAVITY_SEAN.md`, `U0381_SEAN_STANCES.md`): the space suit, earned by winning a whole run on any difficulty. His kit is being built, placeholders throughout: the designer, "open suggestion, just put place holders". Nothing's been played.
 - **The Playable Demon is under way** (`enemy_bibles/Born to Retry — Playable Demon.docx`, specs `MD_UPDATES/U0370_PLAYABLE_DEMON_1.md`, `U0371_BLAZING_ARC.md`, `U0372_DEMON_MOVES.md`, `U0373_DEMON_BIG_MOVES.md`, `U0374_DEMON_REWORK.md`, which overrides the bible on Q and right click, `U0375_DEMON_FEEL.md`, `U0376_SWORD_LIGHT.md`, `U0378_MODE_SWITCH.md`, which replaces its Hold left click, `U0379_HAND_SIGN.md`): phases 1 to 4 are done. The sword's light is stable on the designer's PC ("perfectly stable"), and stays. The forge hiss is out, on their word. Next, when the designer says: phase 5 (balance). Waiting on the designer: floor 10 in public runs (the unlock can't be earned there while it's closed), Victory lap or Demon Mode, HP 100 or lower.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
@@ -66,7 +66,12 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-06, Update 0.3.80: Gravity Sean: his arms, the dais, the unlock)
+## Last update (2026-11-06, Update 0.3.81: Gravity Sean, 1 of 3: stances, fists, Instability, gravity on his arms)
+- The designer's bible and "gravity effects on his arms for mode 1 and different unstable gravity for mode 2": E switches stance; Gravity Punch at 8 m, Gravity Fists up close; the Instability meter, its overload and its vent; Ground Slam and its plunge; calm orbits on his arms in normal mode, broken ones, crackle and shake in Unstable (`gravityArms.ts`).
+- My calls: no weapons or executions for him, as the Demon; a punch meets the blows only a parry answers. Open decisions as placeholders with F1 switches: hover on held jump, Unstable dash pulls to an enemy.
+- Tests: `test-sean-moves.ts`. Not played or seen moving by me.
+
+## Before (2026-11-06, Update 0.3.80: Gravity Sean: his arms, the dais, the unlock)
 - The designer's new character: the space suit in the Fallen King's and William Rich's place, earned by winning a whole run on any difficulty (`saveRunEnd`, `SaveData.won`). His abilities are to come, so he fights as Joseph.
 - His arms are Joseph's skeleton to the millimetre: `public/models/arms/spacesuit.glb`, worn through `ArmsWardrobe` (`who`, `ARMS_OF`). The lobby kit rebuilt: every other piece identical, 680 KB lighter.
 - Rendered through the game's rig and on the dais. Not seen moving by me. Tests: `test-gravity-sean.ts`.

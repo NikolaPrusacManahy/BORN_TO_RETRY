@@ -103,7 +103,8 @@ export function focusOf(t: Treasure, state: CombatState, p: PlayerState, fightin
   best = -1;
   bestD = reach;
   // (Update 0.3.70 — the Demon takes no other weapon: no card for one.)
-  for (let i = 0; i < state.pickups.length && !state.demon; i++) {
+  // (Update 0.3.81 — nor does Gravity Sean.)
+  for (let i = 0; i < state.pickups.length && !state.demon && !state.sean; i++) {
     const w = state.pickups[i];
     if (!w.alive || Math.abs(w.pos.y - p.pos.y) > PICK_HEIGHT || flat(p, w.pos.x, w.pos.z) > bestD) continue;
     bestD = flat(p, w.pos.x, w.pos.z);

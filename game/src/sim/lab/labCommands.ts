@@ -107,6 +107,7 @@ export function runLab(cmd: LabCommand, state: CombatState, player: PlayerState,
       return 0;
     case 'demon':
       state.demon = cmd.on;
+      state.sean = false;
       if (cmd.on) {
         state.weapon = null;
         state.bag.fill(null);
@@ -115,6 +116,10 @@ export function runLab(cmd: LabCommand, state: CombatState, player: PlayerState,
       return 0;
     case 'sean':
       state.demon = false;
+      state.sean = true;
+      state.weapon = null;
+      state.bag.fill(null);
+      state.slot = 0;
       return 0;
   }
 }
