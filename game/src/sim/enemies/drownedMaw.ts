@@ -6,6 +6,7 @@
 // asks for one. Enemy.shots: its tell, its pull, its bite. Pure.
 import { DROWNED } from '../../tuning/drowned';
 import type { CombatState } from '../combat/state';
+import { catchBlade } from '../combat/bladeThrow';
 import { parryBossBlow } from '../combat/meleeParry';
 import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
@@ -17,6 +18,8 @@ import { openUltimate, stepUltimate } from './ultimate';
 
 /** What the screen says. */
 export const MAW_CUE = 'PARRY THE BITE';
+/** Update 0.3.74 — the Playable Demon's: it has no parry, its blade meets it (meleeParry.ts). */
+export const MAW_CUE_BLADE = 'STRIKE THE BITE';
 export const MAW_TELL = 0;
 export const MAW_PULL = 1;
 export const MAW_BITE = 2;
@@ -61,9 +64,10 @@ export function stepMaw(k: Enemy, index: number, player: PlayerState, w: EnemyWo
     if (k.t < v.mawTell) return false;
     k.shots = MAW_PULL;
     k.t = 0;
-    openUltimate(u, MAW_CUE, v.mawWindow, 1);
     const state = w as CombatState;
+    openUltimate(u, state.demon ? MAW_CUE_BLADE : MAW_CUE, v.mawWindow, 1);
     if (state.slot) selectSlot(state, 0);
+    if (state.demon) catchBlade(state);
     w.events.push('drownedMawOpen', index, k.pos.x, k.pos.y + v.kingHeight * 0.4, k.pos.z);
     return false;
   }

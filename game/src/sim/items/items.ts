@@ -145,7 +145,7 @@ export const moveFactor = (state: CombatState) => {
 };
 
 /** Update 0.3.72 — how fast the Demon can move, its sword in the floor or held up to block. */
-const bladeSlow = (state: CombatState) => (state.blade.plant > 0 ? DEMON.v.plantSlow : state.blade.guard ? DEMON.v.guardSlow : 1);
+const bladeSlow = (state: CombatState) => (state.blade.plant > 0 ? DEMON.v.plantSlow : 1);
 
 /** Would taking it do anything? A heart at full health or armour with a full shield wouldn't. */
 export function useful(kind: ItemKind, p: PlayerState): boolean {

@@ -57,7 +57,7 @@ section('Blazing Arc — a hit lands when the blade gets there');
   const hp = r.c.dummies[0].hp;
   r.step({ attackPressed: true });
   check('the click starts a swing', r.steps.join() === '0');
-  check('no punch: its fists’ rules keep only the parry', !r.seen.includes('jabL') && !r.seen.includes('jabR'));
+  check('no punch', !r.seen.includes('jabL') && !r.seen.includes('jabR'));
   check('nothing’s hit yet: the blade’s on its way', r.c.dummies[0].hp === hp && !r.seen.includes('hitSlash'));
   r.step({}, bladeWindup(0) * 0.8);
   check('still not, most of its wind-up on', r.c.dummies[0].hp === hp);
@@ -127,17 +127,6 @@ section('Blazing Arc — it hits all it sweeps through');
   check('its bite is a hit-stop', once.c.hitStop.remaining > 0);
 }
 
-section('Blazing Arc — the parry comes first');
-{
-  const r = room([{ x: 0, z: -3 }]);
-  const hp = r.c.dummies[0].hp;
-  r.step({ attackPressed: true });
-  r.step({ heavyHeld: true });
-  check('right click opens the parry', r.seen.includes('guard'));
-  r.step({}, bladeWindup(0) + 0.05);
-  check('and calls off the swing: nothing lands', r.c.dummies[0].hp === hp);
-}
-
 section('Blazing Arc — its sounds are a blade’s');
 {
   const played: string[] = [];
@@ -182,11 +171,11 @@ const backOf = bladeBack;
 
 section('Blazing Arc — each swing has a body (frame by frame, the real arms)');
 {
-  // (Update 0.3.72 — and Ember Wave's swing and the counter's. Update 0.3.73 — and the throw's and Last Verdict's.)
-  check('seven swings, in order', DEMON_ARCS.length === 7 && DEMON_ARCS.every((a, i) => a.step === i));
+  // (Update 0.3.72 — and Ember Wave's swing. Update 0.3.73 — and the throw's and Last Verdict's. Update 0.3.74 — the counter's gone with the parry.)
+  check('six swings, in order', DEMON_ARCS.length === 6 && DEMON_ARCS.every((a, i) => a.step === i));
   check('each cocked, through its contact, to its end', DEMON_ARCS.every((a) => a.keys.length >= 4 && a.hit > 0.3 && a.hit < 0.8));
   for (const arc of DEMON_ARCS) {
-    const name = ['The slash', 'The backslash', 'The overhead', 'Ember Wave', 'The counter', 'The throw', 'Last Verdict'][arc.step];
+    const name = ['The slash', 'The backslash', 'The overhead', 'Ember Wave', 'The throw', 'Last Verdict'][arc.step];
     const { vm, rig, blade, play } = await arms();
     vm.arc(arc.step);
     const windup = bladeWindup(arc.step);

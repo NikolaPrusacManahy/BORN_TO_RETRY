@@ -5,6 +5,8 @@
 // hand. The parry: drained of colour while it waits, its icon and its ring filling back round like a clock; a flash
 // once it's ready; dimmed with a weapon in hand (no parry then). The ground pound: lit while you're high enough to pound.
 // The weapon slots sit a row above (HudSlots.tsx).
+// Update 0.3.74 — the Playable Demon's (the designer: "shows the inputs for this character on the right bottom screen"): what each of its keys does now, a line each. With its sword out
+// its right click says Regain and its E wakes; Q wakes with its heat full; Brand of Ruin fills back from its wait.
 import type { CSSProperties } from 'react';
 import type { HudState } from '../engine/hudStore';
 import { FistIcon, SlotIcon } from './HudSlots';
@@ -40,7 +42,7 @@ export function Controls({ s }: { s: HudState }) {
   return (
     <div className="rb-ctls">
       <span className="rb-ctl is-jab">
-        <span className="rb-ctl-badge">{hand ? <SlotIcon kind={hand.kind} /> : s.demon && !s.bladeOut ? <SlotIcon kind="sword" /> : <FistIcon />}</span>
+        <span className="rb-ctl-badge">{hand ? <SlotIcon kind={hand.kind} /> : <FistIcon />}</span>
         <i className="rb-cap">{s.attackKey}</i>
       </span>
       <span className={`rb-ctl is-parry${parry}`} style={{ '--ctl': s.parryOff ? 0 : s.parryFill } as CSSProperties}>
@@ -57,6 +59,34 @@ export function Controls({ s }: { s: HudState }) {
         </span>
         <i className="rb-cap">{s.slamKey}</i>
       </span>
+    </div>
+  );
+}
+
+/** One of the Demon's inputs: its key, what it does; `fill`: its wait filling back, or what's filling it (0 … 1). */
+function Input({ cap, name, state = '', fill = 1 }: { cap: string; name: string; state?: '' | 'is-off' | 'is-lit' | 'is-ready'; fill?: number }) {
+  return (
+    <span className={`rb-input ${state}`} style={{ '--ctl': fill } as CSSProperties}>
+      <span className="rb-input-name">{name}</span>
+      <i className="rb-cap">{cap}</i>
+    </span>
+  );
+}
+
+/** What each of the Demon's keys does right now. */
+export function DemonControls({ s }: { s: HudState }) {
+  const out = s.bladeOut;
+  const brand = out ? 'Slam' : s.inAir ? 'Plunge' : 'Brand of Ruin';
+  const waiting = !out && !s.inAir && s.brandFill < 1;
+  return (
+    <div className="rb-inputs">
+      <Input cap={s.attackKey} name={out ? 'Claws' : 'Blazing Arc'} />
+      <Input cap={`Hold ${s.attackKey}`} name="Ember Wave" state={out ? 'is-off' : ''} />
+      <Input cap={s.heavyKey} name={out ? 'Regain Blade' : 'Blade Throw'} state={out ? 'is-lit' : ''} />
+      <Input cap={s.interactKey} name="Teleport" state={s.canBlink ? 'is-lit' : 'is-off'} />
+      <Input cap={s.dashKey} name={out ? 'Dash' : 'Hellfire Lunge'} />
+      <Input cap={s.slamKey} name={brand} state={waiting ? 'is-off' : ''} fill={waiting ? s.brandFill : 1} />
+      <Input cap={s.throwKey} name="Last Verdict" state={s.execution >= 1 ? 'is-ready' : 'is-off'} fill={s.execution} />
     </div>
   );
 }

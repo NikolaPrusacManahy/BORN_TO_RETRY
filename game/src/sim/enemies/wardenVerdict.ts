@@ -5,6 +5,7 @@
 // bare-handed, and the cue asks for one. Enemy.shots: its tell, its charge. Pure.
 import { HELLWARDEN } from '../../tuning/hellwarden';
 import type { CombatState } from '../combat/state';
+import { catchBlade } from '../combat/bladeThrow';
 import { parryBossBlow } from '../combat/meleeParry';
 import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
@@ -15,6 +16,8 @@ import { VERDICT } from './wardenMoves';
 
 /** What the screen says. */
 export const VERDICT_CUE = 'PARRY THE CLEAVE';
+/** Update 0.3.74 — the Playable Demon's: it has no parry, its blade meets it (meleeParry.ts). */
+export const VERDICT_CUE_BLADE = 'STRIKE THE CLEAVE';
 export const VERDICT_TELL = 0;
 export const VERDICT_CHARGE = 1;
 /** How high it rises (m). More than any health. */
@@ -47,9 +50,10 @@ export function stepVerdict(e: Enemy, index: number, player: PlayerState, w: Ene
     if (e.t < v.verdictTell) return false;
     e.shots = VERDICT_CHARGE;
     e.t = 0;
-    openUltimate(u, VERDICT_CUE, v.verdictWindow, 1);
     const state = w as CombatState;
+    openUltimate(u, state.demon ? VERDICT_CUE_BLADE : VERDICT_CUE, v.verdictWindow, 1);
     if (state.slot) selectSlot(state, 0);
+    if (state.demon) catchBlade(state);
     w.events.push('wardenCharge', index, e.pos.x, e.pos.y + 4, e.pos.z);
     e.struck = false;
     return false;

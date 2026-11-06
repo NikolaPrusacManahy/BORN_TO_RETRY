@@ -19,6 +19,8 @@
 // Update 0.3.16 — the look (theme-01-base.css, theme-41-look.css): the dash's key on a cap beside its bars.
 // Update 0.3.20 — the controls bottom right (HudControls.tsx): the jab, the parry filling back, the ground pound; the
 // weapon slots a row above.
+// Update 0.3.74 — the Playable Demon's own (the designer: "shows the inputs for this character on the right bottom screen … the design of the UI to be overhaul more like a demon boss
+// look"): its inputs bottom right in place of the controls and the slots, it has no other weapon; all of it re-dressed (theme-48-demon.css).
 import { StyleRank } from './StyleRank';
 import { CSSProperties, useSyncExternalStore } from 'react';
 import type { HudStore } from '../engine/hudStore';
@@ -28,7 +30,7 @@ import { PinQte } from './PinQte';
 import { JawCue } from './JawCue';
 import { KeyIcon, KeyPicker } from './KeyPicker';
 import { Bonuses, WeaponSlots } from './HudSlots';
-import { Controls } from './HudControls';
+import { Controls, DemonControls } from './HudControls';
 import { Minimap } from './Minimap';
 
 /** At or below this share of max health the bar pulses. */
@@ -78,9 +80,9 @@ function Carried({ n, children }: { n: number; children: JSX.Element }) {
 }
 
 export function Hud({ store }: { store: HudStore }) {
-  const s = useSyncExternalStore(store.subscribe, store.get);
+  const s = useSyncExternalStore(store.subscribe, store.get, store.get);
   return (
-    <div className={`rb-hud${s.cine ? ' is-cine' : ''}`}>
+    <div className={`rb-hud${s.cine ? ' is-cine' : ''}${s.demon ? ' is-demon' : ''}`}>
       <div className="rb-hud-cross" />
       {s.hits > 0 && <div key={`m${s.hits}`} className={`rb-hud-marker is-${s.marker}`} />}
       {s.hurts > 0 && <div key={`h${s.hurts}`} className="rb-hud-hurt" />}
@@ -148,12 +150,14 @@ export function Hud({ store }: { store: HudStore }) {
           <span>{Math.max(0, s.uses - s.mag)}</span>
         </div>
       )}
-      <WeaponSlots slots={s.slots} slot={s.slot} keys={s.slotKeys} demon={s.demon && !s.bladeOut} />
-      <Controls s={s} />
+      {!s.demon && <WeaponSlots slots={s.slots} slot={s.slot} keys={s.slotKeys} />}
+      {s.demon ? <DemonControls s={s} /> : <Controls s={s} />}
       <Bonuses left={s.bonusLeft} />
       {s.demon && s.execution >= 1 && <i className="rb-demon-eye" />}
-      <div className={`rb-hud-exec${s.execution >= 1 ? ' is-full' : ''}${s.demon ? ' is-heat' : ''}`} style={{ '--fill': s.execution } as CSSProperties}>
+      <div className={`rb-hud-exec${s.execution >= 1 ? ' is-full' : ''}`} style={{ '--fill': s.execution } as CSSProperties}>
         <i className="rb-hud-exec-fill" />
+        {s.demon && <i className="rb-heat-horn is-l" />}
+        {s.demon && <i className="rb-heat-horn is-r" />}
       </div>
       <div className={`rb-hud-dash${s.dashLocked ? ' is-locked' : ''}`} style={{ '--n': s.dashMax } as CSSProperties}>
         {s.dashKey && <span className="rb-cap">{s.dashKey}</span>}

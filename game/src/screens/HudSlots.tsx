@@ -88,14 +88,14 @@ export function SlotIcon({ kind }: { kind: HudSlot['kind'] }) {
 }
 
 /** `keys`: each slot's key, as bound ('|' between them). */
-export function WeaponSlots({ slots, slot, keys, demon = false }: { slots: (HudSlot | null)[]; slot: number; keys: string; demon?: boolean }) {
+export function WeaponSlots({ slots, slot, keys }: { slots: (HudSlot | null)[]; slot: number; keys: string }) {
   const key = keys.split('|');
   const cap = (i: number) => <i className={`rb-slot-n rb-cap${slot === i ? ' is-lit' : ''}`}>{key[i] ?? i + 1}</i>;
   return (
     <div className="rb-slots">
       <span className={`rb-slot${slot === 0 ? ' is-on' : ''}`}>
         {cap(0)}
-        {demon ? <SwordIcon gold={false} /> : <FistIcon />}
+        <FistIcon />
       </span>
       {slots.map((s, i) =>
         s ? (

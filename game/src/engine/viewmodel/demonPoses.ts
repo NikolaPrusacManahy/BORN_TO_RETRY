@@ -22,6 +22,8 @@ type V = [number, number, number];
 const OUT: V = [1, 0.05, 0.3];
 /** A chop's: the elbow lifted, the forearm coming down behind the blow. */
 const HIGH: V = [0.85, 0.2, 0.25];
+/** Update 0.3.74 — dropped, the forearm rising to the fist: for a blade held out level (and it keeps the vambrace low on the screen). */
+const LOW: V = [0.7, -0.8, 0.15];
 /** Thrown up over your head: the elbow high. */
 const OVER: V = [0.8, 1, 0.1];
 /** How far the blade leans in the fist (degrees), in every key. */
@@ -130,24 +132,9 @@ const ARC_EMBER: BladeArc = {
   through: new Vector3(-0.05, 0.14, 0.09),
 };
 
-/** Update 0.3.72 — Verdict Parry's counter-slash: from the block, straight back across. */
-const ARC_COUNTER: BladeArc = {
-  step: 4,
-  keys: [
-    key([0.14, -0.13, -0.44], [-0.52, 0.76, -0.38]),
-    key([0.08, -0.14, -0.46], [-0.42, 0.72, -0.52]),
-    key([0.13, -0.11, -0.46], [0, 0.86, -0.5]),
-    key([0.2, -0.07, -0.42], [0.3, 0.86, -0.42]),
-    key([0.22, -0.05, -0.4], [0.38, 0.84, -0.38]),
-  ],
-  hit: 0.5,
-  cocked: new Vector3(-0.02, 0.08, 0.05),
-  through: new Vector3(0.05, -0.12, -0.07),
-};
-
 /** Update 0.3.73 — Blade Throw: from over the right shoulder, slung across and away; it leaves as the arm comes through the middle. */
 const ARC_THROW: BladeArc = {
-  step: 5,
+  step: 4,
   keys: [
     key([0.24, 0, -0.34], [0.46, 0.84, -0.1]),
     key([0.2, -0.05, -0.42], [0.1, 0.95, -0.28]),
@@ -159,27 +146,29 @@ const ARC_THROW: BladeArc = {
   through: new Vector3(-0.06, 0.12, 0.06),
 };
 
-/** Update 0.3.73 — Last Verdict: towering away ahead of you as it grows, so you see how big it is (straight up, it'd only leave the screen); a heave higher, then down
- *  the middle. (It ends a fencer's, as the thrust does: a blade this long has to lie along the arm to reach the floor.) */
+/** Update 0.3.74 — Last Verdict (the designer: "holds the blade with 2 hands and unleash the powerful attack that traverse the whole room horizontally"): drawn back to the right,
+ *  the blade grown along the horizon, running off the side of the screen; right across the view to off the other. It lands past the middle: pointing straight ahead, a blade this long looks small. (Through the middle it leans
+ *  further in the fist: the wrist couldn't hold it upright with the blade along the arm.) */
 const ARC_VERDICT: BladeArc = {
-  step: 6,
+  step: 5,
   keys: [
-    key([0.17, -0.13, -0.42], [-0.16, 0.62, -0.77]),
-    key([0.15, -0.1, -0.44], [-0.12, 0.78, -0.62]),
-    key([0.11, -0.13, -0.48], [-0.09, 0.5, -0.86], HIGH),
-    key([0.08, -0.18, -0.52], [-0.07, 0.2, -0.98], HIGH, 40),
-    key([0.06, -0.2, -0.52], [-0.06, -0.05, -0.99], HIGH, 48),
+    key([0.08, -0.16, -0.52], [0.82, 0.14, -0.55], LOW),
+    key([0.07, -0.17, -0.53], [0.45, 0.12, -0.88], LOW),
+    key([0.06, -0.18, -0.53], [-0.02, 0.1, -0.99], OUT, 44),
+    key([0.04, -0.18, -0.52], [-0.42, 0.12, -0.9], LOW, 52),
+    key([0.02, -0.17, -0.5], [-0.78, 0.14, -0.6], LOW, 46),
   ],
-  // (It lands still rising to the eye: past that, a blade this long points away from you and looks small.)
-  hit: 0.6,
-  cocked: new Vector3(0.1, 0, 0),
-  through: new Vector3(-0.12, 0.01, 0),
+  hit: 0.72,
+  cocked: new Vector3(0.02, -0.08, 0),
+  through: new Vector3(0, 0.1, 0),
+  // (Straight back to ready from over there, the hand would have to turn over at the wrist.)
+  retrace: true,
 };
 
-export const DEMON_ARCS: readonly BladeArc[] = [ARC_SLASH, ARC_BACK, ARC_OVER, ARC_EMBER, ARC_COUNTER, ARC_THROW, ARC_VERDICT];
+export const DEMON_ARCS: readonly BladeArc[] = [ARC_SLASH, ARC_BACK, ARC_OVER, ARC_EMBER, ARC_THROW, ARC_VERDICT];
 
-/** Update 0.3.72 — the block: the blade up across you, over the crosshair: you still have to see. */
-export const DEMON_GUARD = key([0.2, -0.14, -0.42], [-0.52, 0.78, -0.34]);
+/** Update 0.3.74 — caught: the blade's weight in your hand, up across you and back. */
+export const DEMON_CAUGHT = key([0.2, -0.14, -0.42], [-0.52, 0.78, -0.34]);
 /** Hellfire Lunge: the arm straight out, the blade on what you're looking at (a thrust's a fencer's, this once: the wrist couldn't do it). */
 export const DEMON_THRUST = key([0.1, -0.17, -0.54], [-0.1, 0.12, -0.99], OUT, 48);
 /** The sword going into the floor. */

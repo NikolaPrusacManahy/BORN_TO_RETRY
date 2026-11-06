@@ -1,18 +1,17 @@
 // Update 0.3.72 — the rest of the Playable Demon's phase 2 (the bible; the designer: "continue phase 2"). Its overhead's fire wall; holding left
-// click for Ember Wave; right click's block and Verdict Parry's counter-slash in slow motion; Shift's Hellfire Lunge; Ctrl's Brand of Ruin on
+// click for Ember Wave; Shift's Hellfire Lunge; Ctrl's Brand of Ruin on
 // the ground, and in the air its Plunge, bigger the further you fall. And the arms: each move's pose, wrists straight, and the sword's
 // fire drawn. Joseph keeps every one of his own.
 import * as THREE from 'three';
 import { check, near, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
 import { parseUntextured } from './fakes/glb';
-import { bladeWindup, COUNTER, EMBER, landBlade, OVERHEAD, startCounter } from '../src/sim/combat/bladeSwing';
+import { bladeWindup, EMBER, landBlade, OVERHEAD } from '../src/sim/combat/bladeSwing';
 import { brandAt, leaveWall, plantBrand, stepDemonFire } from '../src/sim/combat/demonFire';
 import { emptyCombatIntent } from '../src/sim/combat/fists';
 import { CombatState, createCombat } from '../src/sim/combat/state';
 import { stepCombat } from '../src/sim/combat/step';
 import { spawnEnemy } from '../src/sim/enemies/enemy';
-import { damagePlayer } from '../src/sim/player/health';
 import { moveFactor } from '../src/sim/items/items';
 import { createPlayer, PlayerState } from '../src/sim/player/state';
 import { emptyIntent } from '../src/sim/player/intent';
@@ -24,7 +23,6 @@ import { DEMON_ARCS } from '../src/engine/viewmodel/demonPoses';
 import { DemonFireView } from '../src/engine/demon/demonFireView';
 import { DEMON } from '../src/tuning/demon';
 import { DASH, SLAM } from '../src/tuning/movement';
-import { FISTS } from '../src/tuning/combat';
 import type { Arena } from '../src/world/arena';
 
 const d = DEMON.v;
@@ -123,62 +121,6 @@ section('Hold left click: Ember Wave (the bible: "charged swing that launches a 
   check('no swing’s fan: what’s off to the side is safe', hp(beside.c) === whole);
   landBlade(beside.c, 0, EYE(), AHEAD(), world);
   check('where a slash would have reached it', hp(beside.c) < whole);
-}
-
-section('Right click: block, and Verdict Parry (the bible: "a perfect parry triggers an instant counter-slash with slow-mo")');
-{
-  const r = room([{ x: 0, z: -3 }]);
-  r.step({ heavyHeld: true });
-  check('pressed: the window opens', r.c.fists.parryWindow > 0 && r.has('guard'));
-  check('and the block’s up', r.c.blade.guard && near(r.p.guard, d.guardShare, 1e-9));
-  check(`you move at ${d.guardSlow * 100}%`, near(moveFactor(r.c), d.guardSlow, 1e-6));
-  const hurt = createPlayer(0, 0, 0, 0);
-  hurt.guard = d.guardShare;
-  damagePlayer(hurt, 40);
-  check(`it takes ${d.guardShare * 100}% off a blow`, near(hurt.hp, 100 - 40 * (1 - d.guardShare), 1e-6));
-  r.step({ attackPressed: true });
-  check('no swinging behind it', r.c.blade.step < 0);
-  r.step({}, DT * 2);
-  check('let go: down, back to full speed', !r.c.blade.guard && r.p.guard === 0 && near(moveFactor(r.c), 1, 1e-6));
-  const j = room([], false);
-  j.step({ heavyHeld: true });
-  check('Joseph’s press is his parry, no block', j.c.fists.parryWindow > 0 && j.p.guard === 0 && near(moveFactor(j.c), 1, 1e-6));
-
-  const v = room([{ x: 0, z: -3 }]);
-  startCounter(v.c);
-  check('a parry landed: the world slows', near(v.c.slowMo, d.counterSlow, 1e-9));
-  const before = hp(v.c);
-  v.step({ heavyHeld: true }, bladeWindup(COUNTER) + 2 * DT);
-  // (A dummy's a dummy: 70 breaks it.)
-  check(`the counter lands at once, even with right click held (${d.counterDamage})`, hp(v.c) < before && v.has('hitPierce'));
-
-  // A real blow, parried: an orb flying at you, the window open.
-  const o = room([{ x: 0, z: -3 }]);
-  o.step({ heavyHeld: true });
-  const orb = o.c.orbs[0];
-  orb.alive = true;
-  orb.parried = false;
-  orb.look = 'orb' as typeof orb.look;
-  orb.pos.set(0, 1.6, -1);
-  orb.vel.set(0, 0, 8);
-  orb.life = 2;
-  orb.damage = 5;
-  o.step({ heavyHeld: true });
-  check('a shot parried: the clang', o.has('parry'));
-  check('and the counter answers', o.seen.some((e) => e.kind === 'bladeSwing' && e.value === COUNTER) && o.c.slowMo > 0);
-  check(`a short wait (${d.parryWait} s, Joseph’s ${FISTS.v.parryCooldown})`, o.c.fists.parryCooldown <= d.parryWait + 1e-6);
-  const jo = room([], false);
-  jo.step({ heavyHeld: true });
-  const jorb = jo.c.orbs[0];
-  jorb.alive = true;
-  jorb.parried = false;
-  jorb.look = 'orb' as typeof jorb.look;
-  jorb.pos.set(0, 1.6, -1);
-  jorb.vel.set(0, 0, 8);
-  jorb.life = 2;
-  jorb.damage = 5;
-  jo.step({ heavyHeld: true });
-  check('Joseph’s parry is as it was: no counter, the long wait', jo.has('parry') && !jo.has('bladeSwing') && jo.c.slowMo === 0 && near(jo.c.fists.parryCooldown, FISTS.v.parryCooldown, 0.02));
 }
 
 /** Runs the player and the fight together, as the Run does. */
@@ -325,8 +267,8 @@ function wrist(rig: ArmsRig): number {
 
 section('The arms: each move’s pose');
 {
-  check('Ember Wave’s swing and the counter have their keys', DEMON_ARCS[EMBER].step === EMBER && DEMON_ARCS[COUNTER].step === COUNTER);
-  for (const step of [EMBER, COUNTER]) {
+  check('Ember Wave’s swing has its keys', DEMON_ARCS[EMBER].step === EMBER);
+  for (const step of [EMBER]) {
     const { vm, rig, run } = await arms();
     vm.arc(step);
     let worst = 0;
@@ -335,17 +277,8 @@ section('The arms: each move’s pose');
       vm.scene.updateMatrixWorld(true);
       worst = Math.max(worst, wrist(rig));
     }
-    check(`${step === EMBER ? 'Ember Wave' : 'The counter'}: the wrist at ${Math.round(worst)}° at most`, worst < 50);
+    check(`Ember Wave: the wrist at ${Math.round(worst)}° at most`, worst < 50);
   }
-  const held = await arms();
-  held.vm.setBlock(true);
-  held.run(1);
-  check('blocking: it stays up as long as you hold it', held.vm.swordAnim.current === 'guard');
-  held.vm.scene.updateMatrixWorld(true);
-  check(`its wrist at ${Math.round(wrist(held.rig))}°`, wrist(held.rig) < 50);
-  held.vm.setBlock(false);
-  held.run(0.5);
-  check('let go, down', held.vm.swordAnim.current === 'ready');
   const lunge = await arms();
   lunge.vm.thrust();
   lunge.run(0.08);

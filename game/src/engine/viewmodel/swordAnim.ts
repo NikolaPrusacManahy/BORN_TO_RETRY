@@ -19,18 +19,17 @@ import { MoveSet, SWORD_MOVES } from './weaponMoves';
 
 // Update 0.1.9 — a toss (the Dual Daggers' volley): the charged blow's path, quicker, a dagger gone from the hand till
 // it's half-way back, and no wait for a hit.
-// Update 0.3.70 — a guard (the Playable Demon's right click, its blade its parry): up to the charged blow's pose and back.
 // Update 0.3.71 — an arc: one of the Demon's Blazing Arc (bladeArcs.ts plays it), on the game's clock, hit-stop and all.
-// Update 0.3.72 — its block, held as long as you hold it; its lunge's thrust; the sword going into the floor.
-export type SwordMove = 'ready' | 'forehand' | 'backhand' | 'pierce' | 'throw' | 'toss' | 'guard' | 'arc' | 'thrust' | 'plant';
+// Update 0.3.72 — its lunge's thrust; the sword going into the floor. Update 0.3.74 — a catch (its 'guard' was its parry's: gone).
+export type SwordMove = 'ready' | 'forehand' | 'backhand' | 'pierce' | 'throw' | 'toss' | 'caught' | 'arc' | 'thrust' | 'plant';
 
 /** A new move takes over from wherever the sword was over this long (s). */
 const BLEND = 0.04;
 /** Of a throw's wind-up, the part spent drawing back (the rest is the thrust that lets go). */
 const THROW_DRAW = 0.6;
-/** A guard goes up over this long, and back over this long (s). */
-const GUARD_UP = 0.07;
-const GUARD_DOWN = 0.22;
+/** A catch: its weight takes it up over this long, and it's back over this long (s). */
+const CAUGHT_UP = 0.07;
+const CAUGHT_DOWN = 0.22;
 /** Update 0.3.72 — a thrust goes out over this long, and back over this; the sword goes into the floor and comes back. */
 const THRUST_OUT = 0.04;
 const THRUST_BACK = 0.26;
@@ -63,8 +62,7 @@ export class SwordAnim {
   private arcStep = 0;
   private phase: ArcPhase = 'done';
   private readonly glow = { k: 0 };
-  /** Update 0.3.72 — right click held; falling in a dive, the sword held point down. */
-  private blocking = false;
+  /** Update 0.3.72 — falling in a dive, the sword held point down. */
   private plantHeld = false;
 
   /** A weapon taken in hand: its moves from now on. */
@@ -84,12 +82,6 @@ export class SwordAnim {
     this.arcStep = step;
     this.leanFrom.copy(this.lean);
     this.start('arc');
-  }
-
-  /** Update 0.3.72 — the block: up as you press it, and held till you let go. */
-  block(on: boolean) {
-    if (on && this.move !== 'guard') this.start('guard');
-    this.blocking = on;
   }
 
   /** Update 0.3.72 — Hellfire Lunge. */
@@ -112,6 +104,16 @@ export class SwordAnim {
   get flare(): number {
     if (this.move === 'thrust') return this.t < THRUST_OUT + DEMON.v.lungeTime ? 1 : 0;
     return this.move === 'arc' ? Math.max(this.glow.k, this.grown) : 0;
+  }
+
+  /** Update 0.3.74 — how far the left hand's come to the hilt for Last Verdict (0 … 1): early in its rise, till its heave back. */
+  get twoHanded(): number {
+    if (!this.inVerdict) return 0;
+    const windup = bladeWindup(VERDICT);
+    const reach = windup * 0.35;
+    if (this.t < reach) return smooth(this.t / reach);
+    const after = this.t - windup - bladeFollow(VERDICT);
+    return after <= 0 ? 1 : 1 - smooth(clamp01(after / (bladeBack(VERDICT) * 0.5)));
   }
 
   /** Update 0.3.73 — in Last Verdict's swing. */
@@ -183,8 +185,7 @@ export class SwordAnim {
     }
     this.lean.multiplyScalar(Math.exp(-14 * gameDt));
     this.t += this.t < this.contact() ? realDt : gameDt;
-    // (Update 0.3.72 — held up, or falling point down: it stays.)
-    if (this.move === 'guard' && this.blocking) this.t = Math.min(this.t, GUARD_UP);
+    // (Update 0.3.72 — falling point down: it stays.)
     if (this.move === 'plant' && this.plantHeld) this.t = Math.min(this.t, PLANT_IN);
   }
 
@@ -252,11 +253,11 @@ export class SwordAnim {
         if (this.phase === 'done') this.toReady(charge, out);
         return;
       }
-      case 'guard': {
+      case 'caught': {
         this.pathNow = 0;
-        if (t >= GUARD_UP + GUARD_DOWN) return this.toReady(charge, out);
-        const up = t < GUARD_UP ? t / GUARD_UP : 1 - (t - GUARD_UP) / GUARD_DOWN;
-        mixSword(this.ready(charge, scratch), m.guard ?? m.heavyReady, smooth(up), out);
+        if (t >= CAUGHT_UP + CAUGHT_DOWN) return this.toReady(charge, out);
+        const up = t < CAUGHT_UP ? t / CAUGHT_UP : 1 - (t - CAUGHT_UP) / CAUGHT_DOWN;
+        mixSword(this.ready(charge, scratch), m.caught ?? m.heavyReady, smooth(up), out);
         return;
       }
       case 'thrust': {

@@ -9,6 +9,7 @@ import { launch } from '../enemies/flight';
 import { ENEMY_STATS, MINI_BOSSES } from '../enemies/kinds';
 import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
+import { OVERHEAD } from './bladeSwing';
 import type { CombatState } from './state';
 import { emptyTargetHit, landHit } from './strike';
 
@@ -20,9 +21,12 @@ const hit = emptyTargetHit();
  *  bite): your window open, it doesn't touch you and your fist answers. True if parried; what comes of it is the boss's. */
 export function parryBossBlow(player: PlayerState, w: EnemyWorld, e: Enemy, index: number): boolean {
   const f = w.fists;
-  if (!f || f.parryWindow <= 0) return false;
-  const s = ENEMY_STATS[e.kind]();
   const state = w as CombatState;
+  // (Update 0.3.74 — the Playable Demon has no parry, the designer's choice: its blade, in a swing of the combo as the blow lands, meets it. The two the
+  // bible's bosses ask a parry for, or Hellwarden's Last Verdict could never be lived through.)
+  const clash = !!state.demon && state.blade.step >= 0 && state.blade.step <= OVERHEAD;
+  if (!f || (f.parryWindow <= 0 && !clash)) return false;
+  const s = ENEMY_STATS[e.kind]();
   f.parryWindow = 0;
   f.parried = true;
   const dx = e.pos.x - player.pos.x;

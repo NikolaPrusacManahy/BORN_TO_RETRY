@@ -141,25 +141,18 @@ if (demon) {
     play(vm, p, [bladeWindup(step) * 0.5, bladeWindup(step), bladeWindup(step) + bladeFollow(step) * 0.5][at]);
   };
   MOMENTS.push({ name: 'charging', run: (vm, p) => play(vm, p, 0.8, 1) });
-  for (const [name, step] of [['ember', 3], ['counter', 4]] as const) {
+  for (const [name, step] of [['ember', 3]] as const) {
     MOMENTS.push({ name: `${name}_0`, run: swing(step, 0) }, { name: `${name}_1`, run: swing(step, 1) }, { name: `${name}_2`, run: swing(step, 2) });
   }
-  MOMENTS.push({
-    name: 'block',
-    run: (vm, p) => {
-      vm.setBlock(true);
-      play(vm, p, 0.3);
-    },
-  });
   MOMENTS.push({ name: 'thrust', run: (vm, p) => (vm.thrust(), play(vm, p, 0.08)) });
   MOMENTS.push({ name: 'plant', run: (vm, p) => (vm.plant(), play(vm, p, 0.15)) });
   // (Update 0.3.73 — the throw, Last Verdict's rise and fall, the sword grown; the gauntlets alone, it thrown.)
-  for (const [name, step] of [['throw', 5]] as const) {
+  for (const [name, step] of [['throw', 4]] as const) {
     MOMENTS.push({ name: `${name}_0`, run: swing(step, 0) }, { name: `${name}_1`, run: swing(step, 1) });
   }
-  const verdict = (at: number) => (vm: Viewmodel, p: P) => (vm.arc(6), play(vm, p, at));
-  const w6 = bladeWindup(6);
-  MOMENTS.push({ name: 'verdict_rise', run: verdict(w6 * 0.45) }, { name: 'verdict_top', run: verdict(w6 * 0.86) }, { name: 'verdict_fall', run: verdict(w6 * 0.96) }, { name: 'verdict_contact', run: verdict(w6) }, { name: 'verdict_through', run: verdict(w6 + bladeFollow(6)) });
+  const verdict = (at: number) => (vm: Viewmodel, p: P) => (vm.arc(5), play(vm, p, at));
+  const w6 = bladeWindup(5);
+  MOMENTS.push({ name: 'verdict_rise', run: verdict(w6 * 0.45) }, { name: 'verdict_top', run: verdict(w6 * 0.86) }, { name: 'verdict_fall', run: verdict(w6 * 0.94) }, { name: 'verdict_contact', run: verdict(w6) }, { name: 'verdict_through', run: verdict(w6 + bladeFollow(5)) });
   const bare = (vm: Viewmodel, p: P) => (vm.setBladeOut(true), vm.setWeapon(null), play(vm, p, 1.2));
   MOMENTS.push({ name: 'fists', run: bare }, { name: 'punch_r', run: (vm, p) => (bare(vm, p), vm.punch('R', 'jab'), play(vm, p, 0.05)) }, { name: 'punch_l', run: (vm, p) => (bare(vm, p), vm.punch('L', 'jab'), play(vm, p, 0.05)) });
 }

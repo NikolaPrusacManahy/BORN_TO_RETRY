@@ -51,13 +51,12 @@ export interface BrandFire {
   struck: Set<string>;
 }
 
-/** Update 0.3.73 — Last Verdict's cleave, for its view: from where, to where, and how much longer it shows (s). */
+/** Update 0.3.73 — Last Verdict's slash, for its view and how far it's got: from where, how far out (m), and how much longer it shows (s). */
 export interface Cleave {
-  ax: number;
-  az: number;
-  bx: number;
-  bz: number;
+  x: number;
   y: number;
+  z: number;
+  r: number;
   left: number;
 }
 
@@ -113,7 +112,7 @@ export function leaveWall(state: CombatState, eye: Vector3, dir: Vector3, world:
   state.events.push('demonWall', 0, cx, y, cz);
 }
 
-/** Update 0.3.73 — fire along a line on the floor: a hot Lunge's trail, Last Verdict's mark. */
+/** Update 0.3.73 — fire along a line on the floor: a hot Lunge's trail. */
 export function leaveBurn(state: CombatState, ax: number, az: number, bx: number, bz: number, y: number) {
   state.demonFire.walls.push({ ax, az, bx, bz, y, left: DEMON.v.wallFor, burn: 0 });
   lastN(state.demonFire.walls, MAX_WALLS);

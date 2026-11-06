@@ -58,7 +58,7 @@ export function stepLunge(state: CombatState, player: PlayerState) {
 export function tryBrand(state: CombatState, player: PlayerState, pressed: boolean): boolean {
   const b = state.blade;
   const v = DEMON.v;
-  if (!pressed || !player.grounded || b.brandWait > 0 || b.plant > 0 || b.step >= 0 || b.guard) return false;
+  if (!pressed || !player.grounded || b.brandWait > 0 || b.plant > 0 || b.step >= 0) return false;
   b.charging = b.full = false;
   b.plant = v.plantFor;
   b.brandWait = v.brandWait;
@@ -81,10 +81,11 @@ export function feedOnFallen(state: CombatState, player: PlayerState) {
   b.fallen = 0;
 }
 
-/** Last Verdict's sheet fading (it runs while the world holds still, too). */
+/** Last Verdict's slash running out and fading (it runs while the world holds still, too). */
 export function tickCleave(state: CombatState, dt: number) {
   const c = state.demonFire.cleave;
   if (!c) return;
+  c.r += DEMON.v.verdictSpeed * dt;
   c.left -= dt;
   if (c.left <= 0) state.demonFire.cleave = null;
 }
@@ -100,5 +101,3 @@ export function tickDemon(state: CombatState, player: PlayerState, dt: number) {
   tickCleave(state, dt);
 }
 
-/** How fast you can move, with the sword in the floor or held up to block. */
-export const bladeSlow = (state: CombatState) => (state.blade.plant > 0 ? DEMON.v.plantSlow : state.blade.guard ? DEMON.v.guardSlow : 1);

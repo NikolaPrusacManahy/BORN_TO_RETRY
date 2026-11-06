@@ -1,19 +1,27 @@
-// Update 0.3.73 — the Playable Demon's phase 3 (the bible; the designer: "start phase 3"). Its heat: hits, kills and parries heat the sword, it drains when you stop,
-// high makes its moves bigger, full readies Last Verdict. Forged from the Fallen: every kill gives back a little health. Blade Throw: thrown through what it meets, E calls it back
-// through what's on its way, twice quickly goes to it, the gauntlets meanwhile. Last Verdict: the world holds still, the sword grows, one cleave kills everything along your way.
+// Update 0.3.73 — the Playable Demon's phase 3 (the bible; the designer: "start phase 3"). Its heat: hits and kills heat the sword, it drains when you stop, high makes its moves bigger,
+// full readies Last Verdict. Forged from the Fallen: every kill gives back a little health. Blade Throw: thrown through what it meets, the gauntlets meanwhile.
+// Update 0.3.74 — the designer's changes. Right click throws it and regains it; with it out, E goes to it. No parry: its blade, swinging, answers the boss blows only a parry could. Last
+// Verdict: a horizontal slash in both hands, across the whole arena, sounding as a boss dying does. Its own inputs and look on the HUD.
+import { readFileSync } from 'node:fs';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import * as THREE from 'three';
 import { check, near, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
 import { parseUntextured } from './fakes/glb';
+import { playDemon } from '../src/audio/demonSounds';
+import type { AudioEngine } from '../src/audio/audio';
 import { bladeWindup, landBlade, THROW, VERDICT } from '../src/sim/combat/bladeSwing';
 import { bladeAway } from '../src/sim/combat/bladeThrow';
 import { emptyCombatIntent } from '../src/sim/combat/fists';
 import { addHeat, isHot } from '../src/sim/combat/heat';
 import { verdictShade } from '../src/sim/combat/lastVerdict';
+import { meleeHit, parryBossBlow } from '../src/sim/combat/meleeParry';
 import { CombatState, createCombat } from '../src/sim/combat/state';
 import { stepCombat } from '../src/sim/combat/step';
 import { dealable } from '../src/sim/cards/builds';
 import { spawnEnemy } from '../src/sim/enemies/enemy';
+import { startVerdict, stepVerdict as stepWardenVerdict, VERDICT_CHARGE, VERDICT_CUE, VERDICT_CUE_BLADE } from '../src/sim/enemies/wardenVerdict';
 import { createPlayer } from '../src/sim/player/state';
 import { ArmsRig } from '../src/engine/viewmodel/armsRig';
 import { BladeGrow } from '../src/engine/viewmodel/bladeGrow';
@@ -21,8 +29,12 @@ import { DEMON_HAND } from '../src/engine/viewmodel/handPose';
 import { DEMON_ARCS } from '../src/engine/viewmodel/demonPoses';
 import { DEMON_ARMS_URL, DEMON_BLADE_URL, Viewmodel } from '../src/engine/viewmodel/viewmodel';
 import { DemonFireView } from '../src/engine/demon/demonFireView';
+import { createHudStore } from '../src/engine/hudStore';
+import { DemonControls } from '../src/screens/HudControls';
+import { Hud } from '../src/screens/Hud';
 import { DEMON } from '../src/tuning/demon';
 import { DASH } from '../src/tuning/movement';
+import { HELLWARDEN } from '../src/tuning/hellwarden';
 import type { Arena } from '../src/world/arena';
 
 const d = DEMON.v;
@@ -52,14 +64,15 @@ function room(dummies: { x: number; z: number }[], demon = true, w: FlatWorld = 
 const EYE = () => new THREE.Vector3(0, 1.6, 0);
 const AHEAD = () => new THREE.Vector3(0, 0, -1);
 const hp = (c: CombatState, i = 0) => c.dummies[i].hp;
-/** E, and let it fly. */
-const thrown = (r: ReturnType<typeof room>) => {
-  r.step({ interactPressed: true });
-  r.step({}, bladeWindup(THROW) + DT);
+/** Right click, and let it fly. */
+const thrown = (r: ReturnType<typeof room>, how: Partial<ReturnType<typeof emptyCombatIntent>> = {}) => {
+  r.step({ heavyPressed: true, heavyHeld: true, ...how });
+  r.step(how, bladeWindup(THROW) + DT);
 };
 const foe = (c: CombatState, x: number, z: number, kind: Parameters<typeof spawnEnemy>[1] = 'grunt') => c.enemies[spawnEnemy(c.enemies, kind, new THREE.Vector3(x, 0, z), 0)];
+const LEFT = { yaw: -Math.PI / 2 };
 
-section('Heat (the bible: "hits, kills and parries heat the sword; heat drains when you stop attacking")');
+section('Heat (the bible: "hits, kills and parries heat the sword; heat drains when you stop attacking"; it has no parry)');
 {
   const r = room([{ x: 0, z: -3 }, { x: 1.5, z: -3 }]);
   check('it starts cold', r.c.blade.heat === 0);
@@ -94,7 +107,6 @@ section('Heat (the bible: "hits, kills and parries heat the sword; heat drains w
 
 section('High heat (the bible: "bigger arcs, longer fire walls, Hellfire Lunge leaves a burning trail")');
 {
-  // A dummy just past a cold swing's reach, and one just past its sweep.
   const far = { x: 0, z: -(d.reach + 0.9 + d.width) };
   const cold = room([far]);
   const was = hp(cold.c);
@@ -135,7 +147,6 @@ section('Forged from the Fallen (the bible: "every kill restores a little HP")')
   r.p.hp = 50;
   const e = foe(r.c, 0, -3);
   e.hp = 1;
-  r.c.fists.parryHeld = false;
   r.step({ attackPressed: true });
   // (It lands at the end of a tick; the health comes the next.)
   r.step({}, d.slashWindup + 2 * DT);
@@ -151,17 +162,17 @@ section('Forged from the Fallen (the bible: "every kill restores a little HP")')
   const je = foe(j.c, 0, -1.2);
   je.hp = 1;
   j.step({ attackPressed: true }, 0.1);
-  check('Joseph’s kills give nothing: he heals at the shop', !je.alive || je.hp <= 1 ? j.p.hp === 50 : false);
+  check('Joseph’s kills give nothing: he heals at the shop', j.p.hp === 50);
 }
 
-section('Blade Throw (the bible: "throw the sword; it spins through enemies")');
+section('Blade Throw (the designer: "right mouse click is the throw and regain blade button")');
 {
   const r = room([{ x: 0, z: -8 }, { x: 0, z: -14 }, { x: 8, z: -8 }]);
   const a = hp(r.c, 0);
   const b = hp(r.c, 1);
   const off = hp(r.c, 2);
-  r.step({ interactPressed: true });
-  check('E: the arm draws back', r.seen.some((e) => e.kind === 'bladeSwing' && e.value === THROW) && !bladeAway(r.c));
+  r.step({ heavyPressed: true, heavyHeld: true });
+  check('right click: the arm draws back', r.seen.some((e) => e.kind === 'bladeSwing' && e.value === THROW) && !bladeAway(r.c));
   r.step({}, bladeWindup(THROW) + DT);
   check('and it’s gone', bladeAway(r.c) && r.c.blade.flying.stage === 'flying' && r.has('bladeThrown'));
   r.step({}, 0.1);
@@ -173,40 +184,39 @@ section('Blade Throw (the bible: "throw the sword; it spins through enemies")');
   r.step({}, d.throwRange / d.throwSpeed);
   check('it hangs at the end of its flight', r.c.blade.flying.stage === 'hanging' && near(r.c.blade.flying.pos.z, -d.throwRange - 1, 1.5));
   check('it’s not coming back by itself', bladeAway(r.c) && hp(r.c, 0) === before);
-  // Hanging, it goes on cutting what's touching it.
   const hang = room([{ x: 0, z: -(d.throwRange + 1) }]);
   thrown(hang);
   hang.step({}, d.throwRange / d.throwSpeed + 0.1);
   const first = hp(hang.c);
   hang.step({}, d.hangTick * 1.5);
   check('hanging, it keeps cutting what touches it', hp(hang.c) < first);
-  // A wall stops it.
   const w = new FlatWorld();
   w.walls.push({ x: 6, normalX: -1 });
   const s = room([], true, w);
-  s.step({ interactPressed: true, yaw: -Math.PI / 2 });
-  s.step({ yaw: -Math.PI / 2 }, bladeWindup(THROW) + DT);
-  s.step({ yaw: -Math.PI / 2 }, 0.5);
+  thrown(s, LEFT);
+  s.step(LEFT, 0.5);
   check('a wall stops it, its point in', s.c.blade.flying.stage === 'stuck' && s.c.blade.flying.pos.x < 6 && s.c.blade.flying.pos.x > 5 && s.has('bladeStuck'));
-  // The floor too.
   const down = room([]);
-  down.step({ interactPressed: true, pitch: -0.8 });
-  down.step({ pitch: -0.8 }, bladeWindup(THROW) + DT);
+  thrown(down, { pitch: -0.8 });
   down.step({ pitch: -0.8 }, 0.4);
   check('so does the floor', down.c.blade.flying.stage === 'stuck' && down.c.blade.flying.pos.y > 0);
+  const held = room([]);
+  held.step({ heavyPressed: true, heavyHeld: true });
+  held.step({ heavyHeld: true }, bladeWindup(THROW) + DT);
+  check('one press is one throw, however long it’s held', held.count('bladeThrown') === 1);
+  held.step({ heavyHeld: true }, 1);
+  check('and held on, it stays out', bladeAway(held.c) && held.c.blade.flying.stage !== 'back');
 }
 
-section('Its recall (the bible: "press E again to recall it, hits on the way back")');
+section('Regaining it (the bible: "hits on the way back")');
 {
   const r = room([{ x: 0, z: -8 }]);
   thrown(r);
   r.step({}, 0.7);
   const was = hp(r.c);
-  r.step({ interactPressed: true });
-  check('E: it waits a moment, for a second press', r.c.blade.flying.stage !== 'back' && r.c.blade.flying.tap > 0);
-  r.step({}, d.throwTap + DT);
-  check('then it’s called back', r.c.blade.flying.stage === 'back' && r.has('bladeRecall'));
-  r.step({}, 0.4);
+  r.step({ heavyPressed: true, heavyHeld: true });
+  check('right click again: it’s coming, at once', r.c.blade.flying.stage === 'back' && r.has('bladeRecall'));
+  r.step({}, 0.6);
   // (A dummy has 60: the throw and this break it.)
   check(`and cuts what’s on its way (${d.recallDamage})`, hp(r.c) === Math.max(0, was - d.recallDamage));
   r.step({}, 1.5);
@@ -216,61 +226,54 @@ section('Its recall (the bible: "press E again to recall it, hits on the way bac
   check('and you can throw it again', r.count('bladeThrown') === again + 1);
 }
 
-section('Going to it (the bible: "double-tap to teleport to it")');
+section('Teleport (the designer: "the E is the simple teleport … when the blade is thrown the E key becomes available")');
 {
+  const inHand = room([]);
+  inHand.step({ interactPressed: true });
+  inHand.step({}, 0.5);
+  check('in your hand, E does nothing', !bladeAway(inHand.c) && !inHand.has('bladeBlink') && !inHand.has('bladeSwing') && inHand.p.pos.z === 0);
   const r = room([]);
   thrown(r);
   r.step({}, 0.4);
+  check('thrown, it’s awake', r.c.blade.flying.canBlink);
   const at = r.c.blade.flying.pos.clone();
   r.step({ interactPressed: true });
-  r.step({}, 0.05);
-  r.step({ interactPressed: true });
-  check('twice: you’re there', r.p.pos.distanceTo(new THREE.Vector3(at.x, 0, at.z)) < 3.5 && r.has('bladeBlink'));
+  check('E, once: you’re there', r.p.pos.distanceTo(new THREE.Vector3(at.x, 0, at.z)) < 3 && r.has('bladeBlink'));
   check('and it’s in your hand', !bladeAway(r.c));
   check('a moment nothing can touch you', r.p.invuln > 0);
-  // Into a wall: short of it.
   const w = new FlatWorld();
   w.walls.push({ x: 6, normalX: -1 });
   const s = room([], true, w);
-  const left = { yaw: -Math.PI / 2 };
-  s.step({ interactPressed: true, ...left });
-  s.step(left, bladeWindup(THROW) + DT);
-  s.step(left, 0.5);
-  s.step({ interactPressed: true, ...left });
-  s.step({ interactPressed: true, ...left });
+  thrown(s, LEFT);
+  s.step(LEFT, 0.5);
+  s.step({ interactPressed: true, ...LEFT });
   check('stopped in a wall: you arrive short of it', s.has('bladeBlink') && s.p.pos.x < 6 - 0.3 && s.p.pos.x > 3);
-  // In the air: you hang there, your eye at it.
   const up = room([]);
   const above = { pitch: 0.5 };
-  up.step({ interactPressed: true, ...above });
-  up.step(above, bladeWindup(THROW) + DT);
+  thrown(up, above);
   up.step(above, 0.4);
   const y = up.c.blade.flying.pos.y;
   up.step({ interactPressed: true, ...above });
-  up.step({ interactPressed: true, ...above });
   check('in the air: you’re up there with it', up.has('bladeBlink') && up.p.pos.y > 1 && up.p.pos.y < y && !up.p.grounded);
-  // Under the floor it never puts you.
   const low = room([]);
-  low.step({ interactPressed: true, pitch: -0.5 });
-  low.step({ pitch: -0.5 }, bladeWindup(THROW) + DT);
+  thrown(low, { pitch: -0.5 });
   low.step({ pitch: -0.5 }, 0.5);
   low.step({ interactPressed: true, pitch: -0.5 });
-  low.step({ interactPressed: true, pitch: -0.5 });
   check('stuck in the floor: you’re on the floor', low.has('bladeBlink') && near(low.p.pos.y, 0, 0.01));
-  // Out of sight: no. (Thrown, and then a wall's up between: a gate shut.)
+  // Out of sight: a wall's up between you, a gate shut.
   const gate = new FlatWorld();
   const g = room([], true, gate);
-  const way = { yaw: -Math.PI / 2 };
-  g.step({ interactPressed: true, ...way });
-  g.step(way, bladeWindup(THROW) + DT);
-  g.step(way, 0.4);
+  thrown(g, LEFT);
+  g.step(LEFT, 0.4);
   const start = g.p.pos.clone();
   gate.walls.push({ x: 4, normalX: -1 });
-  g.step({ interactPressed: true, ...way });
-  g.step({ interactPressed: true, ...way });
-  check('out of sight, through a shut gate: no. It’s called back', g.p.pos.distanceTo(start) < 1e-6 && !g.has('bladeBlink') && g.c.blade.flying.stage === 'back');
-  g.step(way, 2);
-  check('it comes through the gate to you', !bladeAway(g.c));
+  g.step(LEFT, 0.2);
+  check('through a shut gate: not awake', !g.c.blade.flying.canBlink);
+  g.step({ interactPressed: true, ...LEFT });
+  check('and E does nothing but say so', g.p.pos.distanceTo(start) < 1e-6 && !g.has('bladeBlink') && g.has('bladeNoWay') && bladeAway(g.c) && g.c.blade.flying.stage !== 'back');
+  g.step({ heavyPressed: true, heavyHeld: true, ...LEFT });
+  g.step(LEFT, 2);
+  check('right click brings it through the gate to you', !bladeAway(g.c));
 }
 
 section('While it’s out (the bible: "fight with the clawed gauntlets, reuse fist animations")');
@@ -284,30 +287,85 @@ section('While it’s out (the bible: "fight with the clawed gauntlets, reuse fi
   r.step({ attackPressed: true });
   check('left click punches', r.seen.some((e) => e.kind === 'hitJab' || e.kind === 'jabL' || e.kind === 'jabR') && hp(r.c) < was);
   check('no swing', !r.seen.some((e) => e.kind === 'bladeSwing'));
-  r.seen.length = 0;
-  r.step({ heavyHeld: true });
-  check('right click’s a parry, no block', r.has('guard') && !r.c.blade.guard && r.p.guard === 0);
   r.step({}, 0.5);
   r.seen.length = 0;
   r.step({ slamPressed: true });
   check('Ctrl plants nothing', !r.has('demonBrand') && r.c.demonFire.brands.length === 0);
   const back = room([]);
   thrown(back);
-  back.step({ interactPressed: true });
+  back.step({ heavyPressed: true, heavyHeld: true });
   back.step({}, 1.5);
   check('caught: the Demon’s again', back.p.demon && !bladeAway(back.c));
-  const j = room([], false);
-  j.step({ interactPressed: true }, 0.5);
-  check('Joseph’s E throws nothing', !bladeAway(j.c) && !j.has('bladeThrown'));
 }
 
-section('Executions and its bar (the bible gives the Demon’s E and its bar to the sword)');
+section('No parry for it (the designer’s choice)');
+{
+  const r = room([]);
+  r.step({ heavyPressed: true, heavyHeld: true });
+  check('right click opens no parry', !r.has('guard') && r.c.fists.parryWindow === 0);
+  const out = room([]);
+  thrown(out);
+  out.step({ heavyPressed: true, heavyHeld: true });
+  check('nor with it out', !out.has('guard') && out.c.fists.parryWindow === 0);
+  const blow = room([]);
+  const g = foe(blow.c, 0, -1.2);
+  blow.step({ heavyPressed: true, heavyHeld: true });
+  check('so a blow lands', meleeHit(blow.p, blow.c, g, 0, 10) && blow.p.hp === 90);
+  check('a parry card’s no use to it', dealable(r.c, 'hairTrigger') === null);
+  const j = room([], false);
+  check('Joseph’s still has it', dealable(j.c, 'hairTrigger') !== null);
+  j.step({ heavyPressed: true, heavyHeld: true });
+  check('and his parry', j.has('guard') && j.c.fists.parryWindow > 0);
+  j.step({ interactPressed: true, heavyHeld: true });
+  check('and neither of his keys throws anything', !bladeAway(j.c) && !j.has('bladeThrown'));
+}
+
+section('What only a parry answered: its blade, swinging, answers (or Hellwarden’s Last Verdict could never be lived through)');
+{
+  const still = room([]);
+  const a = foe(still.c, 0, -5, 'hellwarden');
+  check('standing there: no', !parryBossBlow(still.p, still.c, a, 0));
+  const swing = room([]);
+  const b = foe(swing.c, 0, -5, 'hellwarden');
+  swing.step({ attackPressed: true });
+  check('in a swing: it’s met', parryBossBlow(swing.p, swing.c, b, 0) && swing.c.events.length > 0);
+  const w = room([]);
+  const e = foe(w.c, 0, -5, 'hellwarden');
+  thrown(w);
+  w.step({}, 0.1);
+  startVerdict(e, 0, w.c);
+  e.t = HELLWARDEN.v.verdictTell;
+  stepWardenVerdict(e, 0, w.p, w.c, DT);
+  check(`its cue says so (${e.ult.cue})`, e.ult.cue === VERDICT_CUE_BLADE);
+  check('and your sword’s back in your hand for it', !bladeAway(w.c));
+  w.step({ attackPressed: true });
+  e.shots = VERDICT_CHARGE;
+  e.t = HELLWARDEN.v.verdictWindow;
+  stepWardenVerdict(e, 0, w.p, w.c, DT);
+  check('swinging as it lands: you live, and its sword shatters', !w.p.dead && e.warden!.shattered);
+  const n = room([]);
+  const k = foe(n.c, 0, -5, 'hellwarden');
+  startVerdict(k, 0, n.c);
+  k.t = HELLWARDEN.v.verdictTell;
+  stepWardenVerdict(k, 0, n.p, n.c, DT);
+  k.t = HELLWARDEN.v.verdictWindow;
+  stepWardenVerdict(k, 0, n.p, n.c, DT);
+  check('not swinging: dead, as ever', n.p.dead);
+  const jo = room([], false);
+  const q = foe(jo.c, 0, -5, 'hellwarden');
+  startVerdict(q, 0, jo.c);
+  q.t = HELLWARDEN.v.verdictTell;
+  stepWardenVerdict(q, 0, jo.p, jo.c, DT);
+  check('Joseph’s cue is his', q.ult.cue === VERDICT_CUE);
+}
+
+section('Executions and its bar (the bible gives the Demon’s bar to the sword)');
 {
   const r = room([]);
   r.c.execution = 1;
   const e = foe(r.c, 0, -1.4);
   r.step({ interactPressed: true });
-  check('E near one with the meter full throws: no execution', !r.c.exec.active && r.seen.some((s) => s.kind === 'bladeSwing' && s.value === THROW) && e.alive);
+  check('E near one with the meter full: no execution', !r.c.exec.active && e.alive);
   check('no skull over it', r.c.execTarget === -1);
   r.c.fullMeter = true;
   r.step({});
@@ -316,10 +374,9 @@ section('Executions and its bar (the bible gives the Demon’s E and its bar to 
   j.c.demon = false;
   check('a weapon card’s no use to it, nor an execution’s', dealable(r.c, 'collector') === null && dealable(r.c, 'reapersRhythm') === null);
   check('Joseph’s still has them', dealable(j.c, 'collector') !== null);
-  check('a fist card’s its as much as his', dealable(r.c, 'hairTrigger') !== null);
 }
 
-section('Last Verdict (the bible: "screen goes black and white, the sword grows huge, one cleave that kills everything in a line")');
+section('Last Verdict (the designer: "a horizontal dimension slash not vertical, that hits the whole arena")');
 {
   const r = room([{ x: 0, z: -30 }]);
   const near0 = foe(r.c, 0.5, -6);
@@ -328,6 +385,7 @@ section('Last Verdict (the bible: "screen goes black and white, the sword grows 
   const behind = foe(r.c, 0, 8);
   const high = foe(r.c, 0, -10);
   high.pos.y = 25;
+  const beyond = foe(r.c, 300, 300);
   r.step({ throwPressed: true });
   check('not cold: nothing', !r.c.blade.verdict);
   r.c.blade.heat = 0.99;
@@ -336,52 +394,48 @@ section('Last Verdict (the bible: "screen goes black and white, the sword grows 
   r.c.blade.heat = 1;
   r.step({ throwPressed: true });
   check('full, Q: it starts', r.c.blade.verdict && r.has('demonVerdict') && r.seen.some((e) => e.kind === 'bladeSwing' && e.value === VERDICT));
-  const x = near0.pos.x;
-  near0.vel.set(0, 0, 0);
-  // The world holds still.
-  near0.pos.x = x;
   const clock = behind.t;
   r.step({}, d.verdictWindup * 0.5);
   check('the world holds still', behind.t === clock);
   check('the colour’s gone', near(verdictShade(r.c), 1, 1e-6));
   check('nothing’s hurt yet', near0.alive && near0.hp > 0);
-  // You can still aim, up to the moment it lands: back to −z from where you've looked.
-  r.step({ yaw: 0.5 });
-  check('it follows your aim', near(r.c.blade.verdictYaw, 0.5, 1e-9));
-  r.step({ yaw: 0 }, d.verdictWindup * 0.5);
-  check('it lands', r.c.blade.verdictStruck && r.has('demonCleave'));
-  check('near: dead', !near0.alive || near0.phase === 'dead');
+  r.step({}, d.verdictWindup * 0.5 + 2 * DT);
+  check('it’s let go', r.c.blade.verdictStruck && r.has('demonCleave') && r.c.demonFire.cleave !== null);
+  r.step({}, 0.05);
+  check('it runs out from you: what’s near is dead', near0.phase === 'dead' && r.c.demonFire.cleave!.r > 6);
+  check('what’s far isn’t yet', far0.phase !== 'dead');
+  r.step({}, 0.28);
   check('60 m away: dead', far0.phase === 'dead');
+  check('off to the side: dead', beside.phase === 'dead');
+  check('behind you: dead', behind.phase === 'dead');
   check('high in the air: dead', high.phase === 'dead');
-  check('the dummy in line: broken', r.c.dummies[0].broken);
-  check('off to the side: alive', beside.alive && beside.phase !== 'dead');
-  check('behind you: alive', behind.alive && behind.phase !== 'dead');
-  check('heat’s spent', r.c.blade.heat === 0);
-  check('it’s left fire along its way', r.c.demonFire.walls.length === 1 && r.c.demonFire.walls[0].bz < -50);
-  check('the sheet shows', r.c.demonFire.cleave !== null);
-  check('still held a moment', r.c.blade.verdict);
-  r.step({}, d.verdictHold + DT);
+  check('the dummy: broken', r.c.dummies[0].broken);
+  check('still held', r.c.blade.verdict);
+  r.step({}, d.verdictHold);
   check('then it’s over, and the world goes on', !r.c.blade.verdict && r.p.invuln > 0);
-  check('the colour’s coming back', verdictShade(r.c) > 0 && verdictShade(r.c) < 1.01);
-  r.step({}, d.verdictFade + 0.1);
+  check('however far away: the whole arena', beyond.phase === 'dead');
+  check('heat’s spent, whatever it killed', r.c.blade.heat === 0);
+  check('it leaves no line of fire', r.c.demonFire.walls.length === 0);
+  check('the colour’s coming back', verdictShade(r.c) > 0 && verdictShade(r.c) <= 1);
+  r.step({}, d.verdictFade + 0.5);
   check('and it’s back', verdictShade(r.c) === 0);
-  check('the sheet’s gone', r.c.demonFire.cleave === null);
-  // Boss: as the bible says, by its knob.
+  check('the slash is gone', r.c.demonFire.cleave === null);
+  // Boss: a share of its health (the designer's choice), as often as you can fill the sword.
   const b = room([]);
   const boss = foe(b.c, 0, -6, 'hellwarden');
   const full = boss.hp;
   b.c.blade.heat = 1;
   b.step({ throwPressed: true });
-  b.step({}, d.verdictWindup + DT);
-  check('a boss in line dies, as the bible says', boss.phase === 'dead');
+  b.step({}, d.verdictWindup + d.verdictHold + DT);
+  check(`a boss loses ${d.verdictBoss * 100}% of its full health`, boss.alive && boss.phase !== 'dead' && near(boss.hp, full * (1 - d.verdictBoss), 1));
   const was = d.verdictBoss;
-  DEMON.v.verdictBoss = 0.4;
+  DEMON.v.verdictBoss = 1;
   const b2 = room([]);
   const boss2 = foe(b2.c, 0, -6, 'hellwarden');
   b2.c.blade.heat = 1;
   b2.step({ throwPressed: true });
-  b2.step({}, d.verdictWindup + DT);
-  check('its knob can make it a share of its health instead', boss2.alive && near(boss2.hp, full * 0.6, 1));
+  b2.step({}, d.verdictWindup + d.verdictHold + DT);
+  check('its knob at 1: it dies', boss2.phase === 'dead');
   DEMON.v.verdictBoss = was;
   // A kill's a kill: you heal for each.
   const h = room([]);
@@ -390,10 +444,8 @@ section('Last Verdict (the bible: "screen goes black and white, the sword grows 
   foe(h.c, 0, -9);
   h.c.blade.heat = 1;
   h.step({ throwPressed: true });
-  h.step({}, d.verdictWindup + DT);
+  h.step({}, d.verdictWindup + d.verdictHold + DT);
   check(`it heals for each (${2 * d.killHeal})`, near(h.p.hp, 50 + 2 * d.killHeal, 1e-6));
-  check('and whatever it killed, it’s still spent', h.c.blade.heat === 0);
-  // With it thrown: it's back in your hand.
   const t = room([]);
   thrown(t);
   t.step({}, 0.3);
@@ -406,6 +458,20 @@ section('Last Verdict (the bible: "screen goes black and white, the sword grows 
   check('Joseph’s Q is his', !j.c.blade.verdict);
 }
 
+section('Its sound (the designer: "the same sfx when a Boss dies")');
+{
+  const played: string[] = [];
+  const a = { clips: { play: (name: string) => (played.push(name), true) } } as unknown as AudioEngine;
+  check('it’s its own', playDemon(a, 'demonCleave', 0, 1));
+  check('a boss’s fall and its burst', played.includes('bossDown') && played.includes('bossBurst'));
+  check('nothing else', played.length === 2);
+  const src = readFileSync('src/audio/bossSounds.ts', 'utf8');
+  check('those are what a dying boss plays', src.includes("case 'bossDown':") && src.includes("case 'bossBurst':"));
+}
+
+/** The arms' clock, a frame. */
+const STEP = 1 / 120;
+
 async function arms() {
   const a = await parseUntextured(new URL(`../public${DEMON_ARMS_URL}`, import.meta.url));
   const b = await parseUntextured(new URL(`../public${DEMON_BLADE_URL}`, import.meta.url));
@@ -416,7 +482,6 @@ async function arms() {
   vm.setLens(16 / 9);
   const still = createPlayer(0, 0, 0, 0);
   still.grounded = true;
-  const STEP = 1 / 120;
   const run = (s: number, c = -1) => {
     for (let t = 0; t < s - 1e-9; t += STEP) vm.update(STEP, STEP, 0, 0, still, c);
   };
@@ -478,7 +543,7 @@ section('The arms: thrown, the gauntlets, caught');
   x.vm.setBladeOut(false);
   x.vm.setWeapon(null);
   check('caught', x.vm.heldWeapon === x.blade);
-  check('its weight in your hand', x.vm.swordAnim.current === 'guard');
+  check('its weight in your hand', x.vm.swordAnim.current === 'caught');
   x.run(0.6);
   check('then ready', x.vm.swordAnim.current === 'ready');
   // Q with it thrown: the swing's begun as it comes back.
@@ -498,25 +563,20 @@ section('The arms: its own punch');
   x.vm.setBladeOut(true);
   x.vm.setWeapon(null);
   x.run(1);
-  const fistAt = () => {
-    x.vm.scene.updateMatrixWorld(true);
-    return x.rig.arms.R.knuckle.getWorldPosition(new THREE.Vector3()).applyMatrix4(x.vm.camera.matrixWorldInverse);
-  };
-  const cuffAt = () => x.rig.arms.R.hand.bone.getWorldPosition(new THREE.Vector3()).applyMatrix4(x.vm.camera.matrixWorldInverse);
   x.vm.punch('R', 'jab');
   x.run(0.06);
-  const fist = fistAt();
-  const cuff = cuffAt();
-  // Seen from the eye, the fist has to stand clear of the wrist: not straight behind it.
+  x.vm.scene.updateMatrixWorld(true);
+  const fist = x.rig.arms.R.knuckle.getWorldPosition(new THREE.Vector3()).applyMatrix4(x.vm.camera.matrixWorldInverse);
+  const cuff = x.rig.arms.R.hand.bone.getWorldPosition(new THREE.Vector3()).applyMatrix4(x.vm.camera.matrixWorldInverse);
   const apart = Math.hypot(fist.x / -fist.z - cuff.x / -cuff.z, fist.y / -fist.z - cuff.y / -cuff.z);
   check(`the fist stands clear of the vambrace (${apart.toFixed(2)})`, apart > 0.1);
   check(`its wrist at ${Math.round(wrist(x.rig))}°`, wrist(x.rig) < 45);
 }
 
-section('The arms: Last Verdict');
+section('The arms: Last Verdict (the designer: "demon holds the blade with 2 hands and unleash the powerful attack that traverse the whole room horizontally")');
 {
   const x = await arms();
-  check('seven swings', DEMON_ARCS.length === 7 && DEMON_ARCS[THROW].step === THROW && DEMON_ARCS[VERDICT].step === VERDICT);
+  check('six swings', DEMON_ARCS.length === 6 && DEMON_ARCS[THROW].step === THROW && DEMON_ARCS[VERDICT].step === VERDICT);
   const tipOf = () => {
     let top = 0;
     x.blade.traverse((o) => {
@@ -526,30 +586,56 @@ section('The arms: Last Verdict');
     });
     return top;
   };
+  const handsApart = () => {
+    x.vm.scene.updateMatrixWorld(true);
+    return x.rig.arms.L.knuckle.getWorldPosition(new THREE.Vector3()).distanceTo(x.rig.arms.R.knuckle.getWorldPosition(new THREE.Vector3()));
+  };
+  /** Which way the blade's going in the view: guard to tip, as the eye sees it. */
+  const pointing = () => {
+    x.blade.updateMatrixWorld(true);
+    const a = new THREE.Vector3(0, 0.3, 0).applyMatrix4(x.blade.matrixWorld).applyMatrix4(x.vm.camera.matrixWorldInverse);
+    const b = new THREE.Vector3(0, 2, 0).applyMatrix4(x.blade.matrixWorld).applyMatrix4(x.vm.camera.matrixWorldInverse);
+    return b.sub(a).normalize();
+  };
   const rest = tipOf();
+  const apart = handsApart();
+  check(`one hand on it at ready (the hands ${apart.toFixed(2)} m apart)`, x.vm.swordAnim.twoHanded === 0 && apart > 0.3);
   x.vm.arc(VERDICT);
   const rise = bladeWindup(VERDICT) - d.verdictStrike;
   let worst = 0;
   let grew = 0;
-  for (let t = 0; t < rise; t += 0.02) {
-    x.run(0.02);
+  let steady = true;
+  let both = true;
+  for (let t = 0; t < rise - STEP; t += STEP) {
+    x.run(STEP);
     x.vm.scene.updateMatrixWorld(true);
     worst = Math.max(worst, wrist(x.rig));
     const now = x.vm.swordAnim.grown;
-    check(`it only grows as it rises (${now.toFixed(2)})`, now >= grew - 1e-9);
+    if (now < grew - 1e-9) steady = false;
     grew = now;
   }
+  check('it only grows as it rises', steady);
   const top = tipOf();
   check(`it’s grown: its tip from ${rest.toFixed(1)} m to ${top.toFixed(1)} m (${d.verdictGrow} times)`, top > rest * 2.5);
-  for (let t = 0; t < d.verdictStrike + d.verdictFollow; t += 0.01) {
-    x.run(0.01);
+  check('both hands on it', near(x.vm.swordAnim.twoHanded, 1, 1e-6));
+  const close = handsApart();
+  check(`one above the other on the hilt (${close.toFixed(2)} m)`, close < 0.26);
+  const drawn = pointing();
+  check(`drawn back to the right, level (${drawn.x.toFixed(2)}, ${drawn.y.toFixed(2)})`, drawn.x > 0.5 && Math.abs(drawn.y) < 0.3);
+  // On through to the end of its follow-through.
+  for (let t = 0; t < d.verdictStrike + d.verdictFollow - 4 * STEP; t += STEP) {
+    x.run(STEP);
     x.vm.scene.updateMatrixWorld(true);
     worst = Math.max(worst, wrist(x.rig));
+    if (!near(x.vm.swordAnim.twoHanded, 1, 1e-6)) both = false;
   }
+  check('both hands, all the way through', both);
+  const through = pointing();
+  check(`across to the left, level (${through.x.toFixed(2)}, ${through.y.toFixed(2)})`, through.x < -0.5 && Math.abs(through.y) < 0.3);
   check(`its wrist at ${Math.round(worst)}° at most`, worst < 50);
   x.run(d.verdictBack + 0.1);
   check('back to its size', near(tipOf(), rest, 1e-3) && x.vm.swordAnim.grown === 0);
-  check('and ready', x.vm.swordAnim.current === 'ready');
+  check('one hand again, and ready', x.vm.swordAnim.twoHanded === 0 && x.vm.swordAnim.current === 'ready');
 }
 
 section('It only grows above the guard (the hilt has to fit the fist)');
@@ -581,7 +667,7 @@ section('It only grows above the guard (the hilt has to fit the fist)');
   check('back, exactly as it was', same);
 }
 
-section('The view: its sword in the world, the cleave');
+section('The view: its sword in the world, the slash');
 {
   const scene = new THREE.Scene();
   const view = new DemonFireView(scene, false);
@@ -602,9 +688,8 @@ section('The view: its sword in the world, the cleave');
   const w = new FlatWorld();
   w.walls.push({ x: 6, normalX: -1 });
   const s = room([], true, w);
-  s.step({ interactPressed: true, yaw: -Math.PI / 2 });
-  s.step({ yaw: -Math.PI / 2 }, bladeWindup(THROW) + DT);
-  s.step({ yaw: -Math.PI / 2 }, 0.5);
+  thrown(s, LEFT);
+  s.step(LEFT, 0.5);
   view.update(s.c, DT);
   const p1 = view.thrown.pointing.clone();
   view.update(s.c, 0.05);
@@ -615,14 +700,59 @@ section('The view: its sword in the world, the cleave');
   l.step({ throwPressed: true });
   l.step({}, 0.3);
   view.update(l.c, DT);
-  check('rising: its line on the floor', view.verdict.lined && !view.verdict.flashing);
-  l.step({}, d.verdictWindup);
+  check('rising: nothing yet', !view.verdict.flashing);
+  l.step({}, d.verdictWindup - 0.25);
   view.update(l.c, DT);
-  check('landed: the sheet, no line', view.verdict.flashing && !view.verdict.lined);
-  l.step({}, d.verdictHold + 0.5);
+  const first = view.verdict.reach;
+  check('let go: the slash', view.verdict.flashing);
+  l.step({}, 0.1);
   view.update(l.c, DT);
-  check('gone', !view.verdict.flashing && !view.verdict.lined);
+  check(`running out across the room (${first.toFixed(1)} m to ${view.verdict.reach.toFixed(1)} m)`, view.verdict.reach > first + 10);
+  l.step({}, 1.5);
+  view.update(l.c, DT);
+  check('gone', !view.verdict.flashing);
   view.dispose();
+}
+
+section('Its inputs, bottom right (the designer: "shows the inputs for this character on the right bottom screen")');
+{
+  const store = createHudStore();
+  const base = { ...store.get(), demon: true, attackKey: 'LMB', heavyKey: 'RMB', interactKey: 'E', dashKey: 'Shift', slamKey: 'Ctrl', throwKey: 'Q' };
+  const show = (over: Partial<typeof base>) => renderToStaticMarkup(createElement(DemonControls, { s: { ...base, ...over } }));
+  const line = (html: string, name: string) => (new RegExp(`<span class="rb-input ([^"]*)"[^>]*><span class="rb-input-name">${name}</span><i class="rb-cap">([^<]*)</i>`).exec(html) ?? []).slice(1);
+  const hand = show({ execution: 0.3 });
+  for (const [name, key] of [['Blazing Arc', 'LMB'], ['Ember Wave', 'Hold LMB'], ['Blade Throw', 'RMB'], ['Teleport', 'E'], ['Hellfire Lunge', 'Shift'], ['Brand of Ruin', 'Ctrl'], ['Last Verdict', 'Q']]) {
+    check(`${name} on ${key}`, line(hand, name)[1] === key);
+  }
+  check('no parry among them', !hand.includes('arry'));
+  check('its sword in hand: Teleport asleep', line(hand, 'Teleport')[0] === 'is-off');
+  check('heat not full: Last Verdict asleep, filling', line(hand, 'Last Verdict')[0] === 'is-off' && hand.includes('--ctl:0.3'));
+  const out = show({ bladeOut: true, canBlink: true });
+  check('thrown: right click says Regain Blade', line(out, 'Regain Blade')[1] === 'RMB' && line(out, 'Regain Blade')[0] === 'is-lit');
+  check('and Teleport wakes', line(out, 'Teleport')[0] === 'is-lit');
+  check('the rest as they are then', line(out, 'Claws').length > 0 && line(out, 'Dash').length > 0 && line(out, 'Slam').length > 0 && line(out, 'Ember Wave')[0] === 'is-off');
+  check('out of sight: Teleport asleep again', line(show({ bladeOut: true, canBlink: false }), 'Teleport')[0] === 'is-off');
+  check('in the air: Plunge', line(show({ inAir: true }), 'Plunge').length > 0);
+  check('Brand’s wait: asleep, filling', line(show({ brandFill: 0.4 }), 'Brand of Ruin')[0] === 'is-off');
+  check('full: Last Verdict burns', line(show({ execution: 1 }), 'Last Verdict')[0] === 'is-ready');
+  // The keys are whatever you've bound.
+  check('its keys as bound', line(show({ throwKey: 'V', execution: 1 }), 'Last Verdict')[1] === 'V');
+
+  const page = (over: object) => {
+    const st = createHudStore();
+    st.set({ ...st.get(), ...over });
+    return renderToStaticMarkup(createElement(Hud, { store: st }));
+  };
+  const his = page({ demon: false });
+  const its = page({ demon: true, execution: 1 });
+  check('its HUD wears its look', its.includes('rb-hud is-demon'));
+  check('its inputs instead of the controls and the slots', its.includes('rb-inputs') && !its.includes('rb-ctls') && !its.includes('rb-slots'));
+  check('its bar’s heat, horned', its.includes('rb-heat-horn'));
+  check('full: the eye at the edge', its.includes('rb-demon-eye'));
+  check('Joseph’s stays his', !his.includes('is-demon') && his.includes('rb-ctls') && his.includes('rb-slots') && !his.includes('rb-inputs') && !his.includes('rb-demon-eye'));
+  const sheet = readFileSync('src/ui/theme/theme-48-demon.css', 'utf8');
+  check('the sheet’s loaded', readFileSync('src/ui/theme.css', 'utf8').includes('theme-48-demon.css'));
+  check('all of the HUD’s re-dressed only for it', sheet.split('\n').filter((l) => /^\.rb-hud[ .:]/.test(l) && !l.startsWith('.rb-hud.is-demon')).length === 0);
 }
 
 section('Joseph keeps his own');

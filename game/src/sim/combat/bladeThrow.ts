@@ -1,7 +1,8 @@
-// Update 0.3.73 — the Playable Demon's E, Blade Throw (the bible): the sword thrown, spinning through all it meets. E again calls it back, cutting
-// everything on the way; twice quickly and you go to it instead. While it's out you fight with your gauntlets, by the fists' rules. It stops in
-// the first wall it meets, or hangs in the air at the end of its flight, spinning, cutting what touches it. Coming back it goes through anything
-// (it can't be lost); you can only go to it if you can see it (no walking through a shut gate). Pure.
+// Update 0.3.73 — the Playable Demon's Blade Throw (the bible): the sword thrown, spinning through all it meets, and called back, cutting everything on the way.
+// While it's out you fight with your gauntlets, by the fists' rules. It stops in the first wall it meets, or hangs in the air at the end of its flight,
+// spinning, cutting what touches it. Coming back it goes through anything (it can't be lost). Pure.
+// Update 0.3.74 — the designer: "right mouse click is the throw and regain blade button, the E is the simple teleport … when the blade is thrown the E key becomes
+// available". You can only go to it if you can see it (no walking through a shut gate); `canBlink` says so, for the HUD.
 import { Vector3 } from 'three';
 import { CAMERA } from '../../tuning/camera';
 import { DEMON } from '../../tuning/demon';
@@ -23,13 +24,14 @@ export interface ThrownBlade {
   flown: number;
   /** What it's cut on this leg. */
   struck: Set<string>;
-  /** E pressed: seconds left for a second press; then it's called back. */
-  tap: number;
   /** Hanging: till it cuts what's touching it again. */
   burn: number;
+  /** Could you go to it now, and till that's looked at again (s)? */
+  canBlink: boolean;
+  look: number;
 }
 
-export const createThrownBlade = (): ThrownBlade => ({ stage: 'hand', pos: new Vector3(), dir: new Vector3(0, 0, -1), flown: 0, struck: new Set(), tap: 0, burn: 0 });
+export const createThrownBlade = (): ThrownBlade => ({ stage: 'hand', pos: new Vector3(), dir: new Vector3(0, 0, -1), flown: 0, struck: new Set(), burn: 0, canBlink: false, look: 0 });
 
 /** It's out of your hand. */
 export const bladeAway = (state: CombatState) => state.blade.flying.stage !== 'hand';
@@ -45,6 +47,8 @@ const CHEST = 0.4;
 const SHORT = 0.7;
 const ROOM = 0.6;
 const TRIES = 6;
+/** How often the HUD's "can you go to it" is looked at (s). */
+const LOOK_EVERY = 0.1;
 const DOWN = new Vector3(0, -1, 0);
 
 const next = new Vector3();
@@ -62,16 +66,17 @@ export function launchBlade(state: CombatState, from: Vector3, dir: Vector3, wor
   t.pos.copy(from).addScaledVector(dir, Math.min(LEAVES, clear - TIP));
   t.dir.copy(dir);
   t.flown = 0;
-  t.tap = 0;
+  t.look = 0;
   t.struck.clear();
   state.blade.step = -1;
   state.events.push('bladeThrown', 0, t.pos.x, t.pos.y, t.pos.z);
 }
 
-function recall(state: CombatState) {
+/** Right click, with it out: it comes back. */
+export function regainBlade(state: CombatState) {
   const t = state.blade.flying;
+  if (t.stage === 'hand' || t.stage === 'back') return;
   t.stage = 'back';
-  t.tap = 0;
   t.struck.clear();
   state.events.push('bladeRecall', 0, t.pos.x, t.pos.y, t.pos.z);
 }
@@ -81,11 +86,10 @@ export function catchBlade(state: CombatState) {
   const t = state.blade.flying;
   if (t.stage === 'hand') return;
   t.stage = 'hand';
-  t.tap = 0;
   state.events.push('bladeCaught', 0, t.pos.x, t.pos.y, t.pos.z);
 }
 
-/** Where you'd stand going to it: on the floor if it's near one, else in the air with your eye at it. False: no room, or you can't see it. */
+/** Where you'd stand going to it (`feet`): on the floor if it's near one, else in the air with your eye at it. False: no room, or you can't see it. */
 function arrival(player: PlayerState, t: ThrownBlade, yaw: number, pitch: number, world: CollisionWorld): boolean {
   aim(player, yaw, pitch, eye, way);
   way.subVectors(t.pos, eye);
@@ -102,9 +106,14 @@ function arrival(player: PlayerState, t: ThrownBlade, yaw: number, pitch: number
   return false;
 }
 
-/** Going to it. False: you can't, and it's called back. */
-function blink(state: CombatState, player: PlayerState, yaw: number, pitch: number, world: CollisionWorld): boolean {
-  if (!arrival(player, state.blade.flying, yaw, pitch, world)) return false;
+/** E, with it out: you go to it, and it's in your hand. If you can't, nothing but a sound. */
+export function blinkToBlade(state: CombatState, player: PlayerState, yaw: number, pitch: number, world: CollisionWorld): boolean {
+  const t = state.blade.flying;
+  if (t.stage === 'hand') return false;
+  if (!arrival(player, t, yaw, pitch, world)) {
+    state.events.push('bladeNoWay', 0, t.pos.x, t.pos.y, t.pos.z);
+    return false;
+  }
   player.pos.copy(feet);
   player.vel.set(0, 0, 0);
   // (Not on the ground till the next tick says so: no smoothing the view over a step that high.)
@@ -115,17 +124,6 @@ function blink(state: CombatState, player: PlayerState, yaw: number, pitch: numb
   state.events.push('bladeBlink', 0, feet.x, feet.y, feet.z);
   catchBlade(state);
   return true;
-}
-
-/** E, with it out: the first starts the wait for a second; the second goes to it (or, if you can't, calls it back). */
-export function pressBlade(state: CombatState, player: PlayerState, yaw: number, pitch: number, world: CollisionWorld) {
-  const t = state.blade.flying;
-  if (t.stage === 'hand' || t.stage === 'back') return;
-  if (t.tap <= 0) {
-    t.tap = DEMON.v.throwTap;
-    return;
-  }
-  if (!blink(state, player, yaw, pitch, world)) recall(state);
 }
 
 function cut(state: CombatState, t: ThrownBlade, from: Vector3, end: Vector3, damage: number) {
@@ -143,12 +141,13 @@ function cut(state: CombatState, t: ThrownBlade, from: Vector3, end: Vector3, da
 }
 
 /** One tick of it out of your hand. */
-export function stepThrown(state: CombatState, player: PlayerState, world: CollisionWorld, dt: number) {
+export function stepThrown(state: CombatState, player: PlayerState, yaw: number, pitch: number, world: CollisionWorld, dt: number) {
   const t = state.blade.flying;
   const v = DEMON.v;
-  if (t.tap > 0) {
-    t.tap -= dt;
-    if (t.tap <= 0) recall(state);
+  t.look -= dt;
+  if (t.look <= 0) {
+    t.look = LOOK_EVERY;
+    t.canBlink = arrival(player, t, yaw, pitch, world);
   }
   if (t.stage === 'flying') {
     const step = v.throwSpeed * dt;

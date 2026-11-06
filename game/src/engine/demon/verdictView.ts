@@ -1,79 +1,73 @@
-// Update 0.3.73 — the Playable Demon's Last Verdict in the world (sim/combat/lastVerdict.ts): as the sword rises, the line it'll fall along burning out across
-// the floor from your feet, where you're aiming; as it lands, a white sheet through everything, gone in a moment. Made in code.
+// Update 0.3.73 — the Playable Demon's Last Verdict in the world (sim/combat/lastVerdict.ts). Made in code.
+// Update 0.3.74 — the designer: "a horizontal dimension slash … that traverse the whole room horizontally". A band of white light at your eye's height running out from you
+// in every direction, seen edge on as one line right across the screen, thinner as it goes, drawn through the walls; and its ring racing across the floor under it.
 import * as THREE from 'three';
 import { CLEAVE_FOR } from '../../sim/combat/lastVerdict';
 import type { CombatState } from '../../sim/combat/state';
-import { DEMON } from '../../tuning/demon';
+import { CAMERA } from '../../tuning/camera';
 
-/** The sheet's height (m); the bright line in the middle of the band, how wide (m). */
-const SHEET_HIGH = 18;
-const CORE = 0.5;
-/** Over the floor (m), so it doesn't flicker into it. */
+/** The band's height (m): its white core, its orange glow. Near the start it's the width of the screen's middle; far off, a line. */
+const CORE = 0.22;
+const GLOW = 1.1;
+/** Over the floor (m), so the ring doesn't flicker into it. */
 const LIFT = 0.08;
-
-const smooth = (x: number) => x * x * (3 - 2 * x);
+/** It never draws smaller than this (m). */
+const LEAST = 0.5;
 
 export class VerdictView {
   readonly group = new THREE.Group();
-  private readonly flatGeo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2).translate(0, 0, -0.5);
-  private readonly sheetGeo = new THREE.PlaneGeometry(1, 1);
-  private readonly bandMat = new THREE.MeshBasicMaterial({ color: 0xff5a18, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false });
-  private readonly coreMat = new THREE.MeshBasicMaterial({ color: 0xffe8c8, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false });
-  private readonly sheetMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false });
-  private readonly band = new THREE.Mesh(this.flatGeo, this.bandMat);
-  private readonly core = new THREE.Mesh(this.flatGeo, this.coreMat);
-  private readonly sheet = new THREE.Mesh(this.sheetGeo, this.sheetMat);
+  private readonly drumGeo = new THREE.CylinderGeometry(1, 1, 1, 96, 1, true);
+  private readonly ringGeo = new THREE.RingGeometry(0.9, 1, 96).rotateX(-Math.PI / 2);
+  private readonly coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false });
+  private readonly glowMat = new THREE.MeshBasicMaterial({ color: 0xff6a20, transparent: true, opacity: 0, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false });
+  private readonly ringMat = new THREE.MeshBasicMaterial({ color: 0xffa050, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false });
+  private readonly core = new THREE.Mesh(this.drumGeo, this.coreMat);
+  private readonly glow = new THREE.Mesh(this.drumGeo, this.glowMat);
+  private readonly ring = new THREE.Mesh(this.ringGeo, this.ringMat);
 
   constructor(scene: THREE.Scene) {
     scene.add(this.group);
-    this.band.visible = this.core.visible = this.sheet.visible = false;
-    this.band.frustumCulled = this.core.frustumCulled = this.sheet.frustumCulled = false;
-    this.group.add(this.band, this.core, this.sheet);
+    for (const m of [this.core, this.glow, this.ring]) {
+      m.visible = false;
+      m.frustumCulled = false;
+      m.renderOrder = 20;
+      this.group.add(m);
+    }
   }
 
-  /** The line's showing; the sheet is (for the tests). */
-  get lined() {
-    return this.band.visible;
-  }
-
+  /** The slash is showing; how far it's got (for the tests). */
   get flashing() {
-    return this.sheet.visible;
+    return this.core.visible;
+  }
+
+  get reach() {
+    return this.core.scale.x;
   }
 
   update(state: CombatState) {
-    const b = state.blade;
-    const v = DEMON.v;
-    const rising = b.verdict && !b.verdictStruck;
-    this.band.visible = this.core.visible = rising;
-    if (rising) {
-      const k = smooth(Math.min(1, b.verdictT / Math.max(0.05, v.verdictWindup)));
-      for (const m of [this.band, this.core]) {
-        m.position.set(b.verdictX, b.verdictY + LIFT, b.verdictZ);
-        m.rotation.y = b.verdictYaw;
-      }
-      this.band.scale.set(v.verdictWidth * 2, 1, v.verdictLong * k);
-      this.core.scale.set(CORE, 1, v.verdictLong * k);
-      this.bandMat.opacity = 0.16 * k;
-      this.coreMat.opacity = 0.85 * k;
-    }
     const c = state.demonFire.cleave;
-    this.sheet.visible = !!c;
-    if (c) {
-      const dx = c.bx - c.ax;
-      const dz = c.bz - c.az;
-      this.sheet.position.set((c.ax + c.bx) / 2, c.y + SHEET_HIGH / 2 - 1, (c.az + c.bz) / 2);
-      this.sheet.rotation.y = Math.atan2(-dz, dx);
-      this.sheet.scale.set(Math.hypot(dx, dz), SHEET_HIGH, 1);
-      this.sheetMat.opacity = 0.95 * Math.max(0, c.left / CLEAVE_FOR);
-    }
+    this.core.visible = this.glow.visible = this.ring.visible = !!c;
+    if (!c) return;
+    const r = Math.max(LEAST, c.r);
+    const k = Math.max(0, c.left / CLEAVE_FOR);
+    const eye = c.y + CAMERA.v.eyeHeight;
+    this.core.position.set(c.x, eye, c.z);
+    this.glow.position.set(c.x, eye, c.z);
+    this.core.scale.set(r, CORE, r);
+    this.glow.scale.set(r, GLOW, r);
+    this.coreMat.opacity = k;
+    this.glowMat.opacity = 0.55 * k;
+    this.ring.position.set(c.x, c.y + LIFT, c.z);
+    this.ring.scale.set(r, 1, r);
+    this.ringMat.opacity = 0.9 * k;
   }
 
   dispose() {
     this.group.removeFromParent();
-    this.flatGeo.dispose();
-    this.sheetGeo.dispose();
-    this.bandMat.dispose();
+    this.drumGeo.dispose();
+    this.ringGeo.dispose();
     this.coreMat.dispose();
-    this.sheetMat.dispose();
+    this.glowMat.dispose();
+    this.ringMat.dispose();
   }
 }

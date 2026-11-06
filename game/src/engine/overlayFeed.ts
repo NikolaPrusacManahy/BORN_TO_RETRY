@@ -25,9 +25,7 @@ const BONUS_STEP = 50;
 
 /** A number for the weapon slots: changes whenever a slot's weapon or uses do. */
 function slotSig(combat: CombatState): number {
-  // (Update 0.3.70 — and who you are: the Demon's first slot is its blade.)
-  // (Update 0.3.73 — and whether it's thrown.)
-  let sig = combat.slot + (combat.demon ? (bladeAway(combat) ? 32 : 16) : 0);
+  let sig = combat.slot;
   for (let i = 1; i < combat.bag.length; i++) {
     const w = combat.bag[i];
     sig = sig * 1024 + (w ? (WEAPON_KINDS.indexOf(w.kind) + 1) * 256 + Math.min(255, w.uses) : 0);
@@ -56,6 +54,7 @@ import { keyLabel, slotKeysOf } from '../input/keyLabel';
 import { ultimateIn } from '../sim/enemies/ultimate';
 import { markOn } from '../sim/enemies/drownedBody';
 import { bladeAway } from '../sim/combat/bladeThrow';
+import { DEMON } from '../tuning/demon';
 
 /** HUD refresh interval (s); hits, hurts and health changes push at once. */
 const HUD_EVERY = 0.05;
@@ -85,6 +84,8 @@ export class HudFeed {
   /** Update 0.3.36 — the key that skips a boss's show. */
   skipKey = '';
   dashKey = '';
+  interactKey = '';
+  throwKey = '';
   leftKey = '';
   rightKey = '';
   /** Update 0.3.16 — the weapon slots' keys ('|' between them). */
@@ -108,6 +109,8 @@ export class HudFeed {
     this.slotKeys = slotKeysOf(b);
     // (Update 0.3.20 — the controls bottom right: the parry's and the ground pound's keys.)
     [this.heavyKey, this.slamKey] = [keyLabel(b.heavy), keyLabel(b.slam)];
+    // (Update 0.3.74 — the Demon's: its teleport's and Last Verdict's.)
+    [this.interactKey, this.throwKey] = [keyLabel(b.interact), keyLabel(b.throw)];
   }
 
   /** `hits`: how many times you've been hurt, and your shield hit (each new one flashes the screen's edge). */
@@ -119,6 +122,11 @@ export class HudFeed {
     const chestHere = !!run && chestToOpen(run.treasure, run.level, p.pos.x, p.pos.z);
     // (Update 0.3.73 — the Demon's bar is its heat.)
     const execution = Math.round((combat.demon ? combat.blade.heat : combat.execution) * 100) / 100;
+    // (Update 0.3.74 — its inputs: what changes them, as one number.)
+    const canBlink = combat.demon && bladeAway(combat) && combat.blade.flying.canBlink;
+    const brandFill = combat.demon ? Math.round((1 - combat.blade.brandWait / Math.max(0.01, DEMON.v.brandWait)) * 20) / 20 : 1;
+    const inAir = !p.grounded;
+    const demonSig = combat.demon ? (bladeAway(combat) ? 1 : 0) + (canBlink ? 2 : 0) + (inAir ? 4 : 0) + 8 * Math.round(brandFill * 20) : 0;
     // (Update 0.3.4 — the style rank: its fill in steps of 2%, its feed by its newest line.)
     const style = fb.style;
     const styleRank = style.rank;
@@ -162,7 +170,7 @@ export class HudFeed {
     const jaw = shark ? jawCue(shark) : 0;
     const ctl = controlsHud(combat, this.heavyKey, this.slamKey, this.slamReady, this.parryClock, this.controls);
     const grab = cur.grabHits === grabHits && cur.grabLeft === grabLeft && cur.grabEnd === grabEnd && cur.bossMark === bossMark && cur.ultCue === ultCue && cur.ultFill === ultFill && cur.ultLeft === ultLeft && cur.bloodMist === bloodMist && cur.attackKey === this.attackKey && sameRaptor(cur, raptor) && cur.dashKey === this.dashKey && cur.jawCue === jaw && cur.leftKey === this.leftKey && cur.rightKey === this.rightKey && cur.slotKeys === this.slotKeys;
-    if (this.timer > 0 && same && shown && grab && keys && rings && cur.slotSig === sig && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution && cur.chestHere === chestHere && cur.styleRank === styleRank && this.styleTop === styleTop && sameControls(cur, ctl)) return;
+    if (this.timer > 0 && same && shown && grab && keys && rings && cur.slotSig === sig && cur.demonSig === demonSig && cur.interactKey === this.interactKey && cur.throwKey === this.throwKey && this.bonus === bonus && cur.map === map && cur.enemiesLeft === left && cur.execution === execution && cur.chestHere === chestHere && cur.styleRank === styleRank && this.styleTop === styleTop && sameControls(cur, ctl)) return;
     this.styleTop = styleTop;
     this.bonus = bonus;
     const bonusLeft: Record<string, number> = {};
@@ -196,6 +204,12 @@ export class HudFeed {
       slot: combat.slot,
       demon: combat.demon,
       bladeOut: combat.demon && bladeAway(combat),
+      canBlink,
+      brandFill,
+      inAir,
+      interactKey: this.interactKey,
+      throwKey: this.throwKey,
+      demonSig,
       slotSig: sig,
       bonusLeft,
       map,

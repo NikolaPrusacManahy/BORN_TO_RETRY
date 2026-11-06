@@ -2,9 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-06, after Update 0.3.73)
-- **Version 0.3.73** (the Demon's big moves), built, **not committed** until the designer says "commit", nor are 0.3.70 to 0.3.72. 0.3.58 to 0.3.69 are committed; the designer pushes.
-- **The Playable Demon is under way** (`enemy_bibles/Born to Retry — Playable Demon.docx`, specs `MD_UPDATES/U0370_PLAYABLE_DEMON_1.md`, `U0371_BLAZING_ARC.md`, `U0372_DEMON_MOVES.md`, `U0373_DEMON_BIG_MOVES.md`): phases 1 to 3 are done, 2 and 3 not yet played. Next, when the designer says: phase 4 (feel: the sword as a light, alone, re-checking the frame rate) and 5 (balance). Waiting on the designer: floor 10 in public runs (the unlock can't be earned there while it's closed), Victory lap or Demon Mode, HP 100 or lower, and whether Last Verdict really kills bosses (the bible says so; F1 has a knob).
+## Where things stand (2026-11-06, after Update 0.3.74)
+- **Version 0.3.74** (the Demon's Q, keys and HUD reworked by the designer), built, **not committed** until the designer says "commit", nor are 0.3.70 to 0.3.73. 0.3.58 to 0.3.69 are committed; the designer pushes.
+- **The Playable Demon is under way** (`enemy_bibles/Born to Retry — Playable Demon.docx`, specs `MD_UPDATES/U0370_PLAYABLE_DEMON_1.md`, `U0371_BLAZING_ARC.md`, `U0372_DEMON_MOVES.md`, `U0373_DEMON_BIG_MOVES.md`, `U0374_DEMON_REWORK.md`, which overrides the bible on Q and right click): phases 1 to 3 are done. Next, when the designer says: phase 4 (feel: the sword as a light, alone, re-checking the frame rate) and 5 (balance). Waiting on the designer: floor 10 in public runs (the unlock can't be earned there while it's closed), Victory lap or Demon Mode, HP 100 or lower.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
@@ -65,7 +65,13 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-06, Update 0.3.73: the Demon's big moves)
+## Last update (2026-11-06, Update 0.3.74: the Demon's Q, keys and HUD)
+- The designer's rework. Q: a horizontal slash in both hands across the whole arena, sounding as a boss dying does; everything dies, a boss loses 40%. Right click throws and regains the sword; E teleports to it, only with it out and in sight.
+- **No parry for the Demon, the designer's choice:** Verdict Parry, block and counter-slash are gone. My call: the boss blows only a parry answers (Hellwarden's cleave, the Drowned King's bite and claw), it meets with a left-click swing as they land, or floor 10 couldn't be beaten by it.
+- Its HUD: inputs bottom right (`DemonControls`), a demon boss's look (`theme-48-demon.css`), only for it.
+- Poses rendered through the game's own arms, wrists 36° at most through the slash, frame by frame. Not seen moving or heard by me; **the HUD has never been seen by me at all.** Tests: `test-demon-big.ts`.
+
+## Before (2026-11-06, Update 0.3.73: the Demon's big moves)
 - Phase 3 of 5, all of it: heat on the bar and the blade, its high-heat effects, heal on kill, Blade Throw with its recall, teleport and gauntlets, Last Verdict.
 - **Its executions are gone**, deliberately: the bible gives E and the orange bar to the sword. Weapon and execution Fate Cards aren't dealt to it. Its punch is its own (`HandFit.strike`).
 - Rules in `sim/combat/` (`heat.ts`, `bladeThrow.ts`, `lastVerdict.ts`), numbers in `tuning/demon.ts`. The Lab's Meter keeps its heat full. Joseph's E, Q and kills are tested as unchanged.

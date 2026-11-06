@@ -56,7 +56,6 @@ export interface CombatState {
    *  counter-slash: the Run slows it). */
   blade: BladeSwing;
   demonFire: DemonFire;
-  slowMo: number;
   dummies: Dummy[];
   turrets: Turret[];
   orbs: Orb[];
@@ -187,7 +186,6 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     fists: createFists(),
     blade: createBladeSwing(),
     demonFire: createDemonFire(),
-    slowMo: 0,
     dummies: arena.dummies.map(createDummy),
     turrets: arena.turrets.map(createTurret),
     orbs: createOrbs(),
@@ -266,7 +264,6 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.fists = createFists();
   state.blade = createBladeSwing();
   state.demonFire = createDemonFire();
-  state.slowMo = 0;
   state.dummies = arena.dummies.map(createDummy);
   state.turrets = arena.turrets.map(createTurret);
   for (const o of state.orbs) o.alive = false;

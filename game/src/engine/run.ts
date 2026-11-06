@@ -212,9 +212,7 @@ export class Run extends RunBase {
     const frozen = this.combat.hitStop.tick(real) || this.hold || this.told || this.chestShot.locked || capture.frozen;
     if (this.chestShot.locked) riseChests(this.treasure, real * LAB.v.timeScale);
     if (locked && !p.dead) this.played += real;
-    // (Update 0.3.72 — the Demon's counter-slash: the world slows for it.)
-    this.combat.slowMo = Math.max(0, this.combat.slowMo - real);
-    const scale = LAB.v.timeScale * this.death.timeScale * this.show.timeScale * this.combatScene.timeScale * capture.timeScale * (this.combat.slowMo > 0 ? DEMON.v.counterScale : 1);
+    const scale = LAB.v.timeScale * this.death.timeScale * this.show.timeScale * this.combatScene.timeScale * capture.timeScale;
     const gameDt = frozen ? 0 : real * scale;
     const steps = frozen ? 0 : this.tick(gameDt, input);
     // (Update 0.2.16 — a chest dealt Fate Cards: the world holds still, the page's deal screen shows them.)
@@ -294,9 +292,8 @@ export class Run extends RunBase {
     const f = this.combat.fists;
     const choosing = this.treasure.choosing >= 0 ? this.combat.items.keyPick : null;
     this.arms.palm.update(choosing, this.keyLook, real);
-    // (Update 0.3.72 — the Demon's: its Ember Wave's charge, its block.)
+    // (Update 0.3.72 — the Demon's: its Ember Wave's charge.)
     const b = this.combat.blade;
-    this.arms.setBlock(b.guard);
     this.arms.setHeat(this.combat.demon ? b.heat : 0);
     this.arms.update(gameDt, real, mouseDx, mouseDy, p, b.charging ? b.charge / DEMON.v.chargeTime : f.charging ? f.charge / FISTS.v.chargeTime : -1);
 

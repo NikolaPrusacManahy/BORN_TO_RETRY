@@ -62,8 +62,6 @@ export function damagePlayer(p: PlayerState, amount: number, by: Cause | null = 
   }
   p.hits++;
   amount *= takenFactor(p);
-  // (Update 0.3.72 — the Demon's blade, held up to block.)
-  amount *= 1 - p.guard;
   // (Festering: it festers, a while.)
   if (bears(p, 'festering')) poisonPlayer(p, CARDS.v.festerDps, CARDS.v.festerFor, by);
   const blocked = Math.min(p.shield, amount);

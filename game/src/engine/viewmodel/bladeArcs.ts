@@ -10,7 +10,7 @@ import type { SwordPose } from './armsRig';
 import { emptySword, mixSword, slashPose } from './swordPoses';
 
 export interface BladeArc {
-  /** Which (0 slash, 1 backslash, 2 overhead, 3 Ember Wave, 4 the counter, 5 the throw, 6 Last Verdict). */
+  /** Which (0 slash, 1 backslash, 2 overhead, 3 Ember Wave, 4 the throw, 5 Last Verdict). */
   step: number;
   /** Cocked first, on through its contact, to where its weight carries it. */
   keys: readonly SwordPose[];
@@ -19,6 +19,8 @@ export interface BladeArc {
   /** How the shoulders are turned (x up, y left, z rolled anticlockwise; rad): cocked, and as it goes through. */
   cocked: Vector3;
   through: Vector3;
+  /** Update 0.3.74 — it goes back the way it came, then to ready (none: straight to ready). */
+  retrace?: boolean;
 }
 
 export type ArcPhase = 'wind' | 'strike' | 'follow' | 'back' | 'done';
@@ -28,6 +30,8 @@ const smooth = (x: number) => x * x * (3 - 2 * x);
 const settle = (x: number) => (x < 0.7 ? 1.05 * smooth(x / 0.7) : 1.05 - 0.05 * smooth((x - 0.7) / 0.3));
 
 const end = emptySword();
+/** Of a return that retraces, the share spent going back along its keys. */
+const RETRACE = 0.6;
 
 /** The arc `t` seconds in, from the pose it began in, to `ready`. Writes the pose and the shoulders' `lean` (from `leanFrom`).
  *  Returns its phase, and how hot the blade burns (`glow.k`, 0 … 1). */
@@ -65,7 +69,9 @@ export function arcAt(a: BladeArc, t: number, from: SwordPose, ready: SwordPose,
     return 'done';
   }
   slashPose(a.keys, 1, end);
-  mixSword(end, ready, settle(r), out);
+  if (a.retrace && r < RETRACE) slashPose(a.keys, 1 - smooth(r / RETRACE), out);
+  else if (a.retrace) mixSword(a.keys[0], ready, settle((r - RETRACE) / (1 - RETRACE)), out);
+  else mixSword(end, ready, settle(r), out);
   lean.copy(a.through).multiplyScalar(1 - smooth(r));
   return 'back';
 }

@@ -10,7 +10,7 @@ import { ARMS } from '../../tuning/arms';
 import type { SwordPose } from './armsRig';
 import { AXE_COCKED, AXE_READY, AXE_SLASH, AXE_THROWN } from './axePoses';
 import type { BladeArc } from './bladeArcs';
-import { DEMON_ARCS, DEMON_DOWN, DEMON_GUARD, DEMON_PLANT, DEMON_READY, DEMON_SLASH, DEMON_THRUST, DEMON_UP } from './demonPoses';
+import { DEMON_ARCS, DEMON_DOWN, DEMON_CAUGHT, DEMON_PLANT, DEMON_READY, DEMON_SLASH, DEMON_THRUST, DEMON_UP } from './demonPoses';
 import { DAGGER_COCKED, DAGGER_COCKED_L, DAGGER_CUT, DAGGER_CUT_L, DAGGER_READY, DAGGER_READY_L, DAGGER_TIP, DAGGER_TOSSED, DAGGER_TOSSED_L } from './daggerPoses';
 import { HAMMER_READY, HAMMER_SLASH, HAMMER_SMASH, HAMMER_UP } from './hammerPoses';
 import { PIERCE_OUT, PIERCE_READY, READY, SLASH } from './swordPoses';
@@ -44,7 +44,7 @@ export interface MoveSet {
   /** Update 0.3.71 — the Demon's Blazing Arc: its three swings (bladeArcs.ts). Update 0.3.72 — and Ember Wave's and the counter's; its
    *  block, its lunge's thrust, the sword going into the floor. */
   arcs?: readonly BladeArc[];
-  guard?: SwordPose;
+  caught?: SwordPose;
   thrust?: SwordPose;
   plant?: SwordPose;
 }
@@ -158,7 +158,7 @@ export const DEMON_MOVES: MoveSet = {
   pair: null,
   tip: null,
   arcs: DEMON_ARCS,
-  guard: DEMON_GUARD,
+  caught: DEMON_CAUGHT,
   thrust: DEMON_THRUST,
   plant: DEMON_PLANT,
 };

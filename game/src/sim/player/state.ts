@@ -61,7 +61,6 @@ export interface PlayerState {
   dashCharges: number;
   /** Update 0.3.72 — you're the Playable Demon: your dash is Hellfire Lunge. And the share of a blow your blade takes off, held up (0: none). */
   demon: boolean;
-  guard: number;
   /** Time left in the current dash (0 = not dashing). */
   dashTime: number;
   dashDir: Vector3;
@@ -156,7 +155,6 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     jumpBuffer: 0,
     dashCharges: DASH.v.charges,
     demon: false,
-    guard: 0,
     dashTime: 0,
     dashDir: new Vector3(0, 0, -1),
     wallJumpsLeft: WALL.v.count,

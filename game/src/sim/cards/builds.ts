@@ -43,8 +43,8 @@ export const lit = (cards: ReadonlySet<CardKind>, b: Build) => countOf(cards, b)
 export function dealable(state: CombatState, k: CardKind): 'new' | 'twice' | null {
   const { cards, twice } = state.items;
   const f = CARD[k];
-  // (Update 0.3.73 — the Playable Demon takes no weapons and executes nothing: those cards would do nothing for it.)
-  if (state.demon && (f.move === 'Weapons' || f.move === 'Executions')) return null;
+  // (Update 0.3.73 — the Playable Demon takes no weapons, executes nothing and, since 0.3.74, doesn't parry: those cards would do nothing for it.)
+  if (state.demon && (f.move === 'Weapons' || f.move === 'Executions' || k === 'hairTrigger')) return null;
   if (cards.has(k)) return f.up && !twice.has(k) ? 'twice' : null;
   if (f.needs && !cards.has(f.needs)) return null;
   if (f.pair && !f.pair.every((b) => countOf(cards, b) > 0)) return null;

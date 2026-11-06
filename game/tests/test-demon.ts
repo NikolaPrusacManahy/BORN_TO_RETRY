@@ -202,10 +202,6 @@ section('The Demon — its blade in the game’s own arms');
   check('left click swings it', vm.swordAnim.current === 'forehand');
   play(1.2);
   check('and it comes back to ready', vm.swordAnim.current === 'ready');
-  vm.guard();
-  check('right click raises it', vm.swordAnim.current === 'guard');
-  play(0.6);
-  check('and that’s over quickly', vm.swordAnim.current === 'ready');
 
   const moments: [string, () => void][] = [
     ['ready', () => {}],

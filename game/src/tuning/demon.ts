@@ -4,6 +4,7 @@
 // Update 0.3.72 — and the rest of phase 2 (the designer: "continue"): its fire wall, Ember Wave, Verdict Parry, Hellfire Lunge, Brand of
 // Ruin and its Plunge.
 // Update 0.3.73 — phase 3 (the designer: "start phase 3"): its heat, Forged from the Fallen, Blade Throw and Last Verdict.
+// Update 0.3.74 — the designer gave right click to the throw and chose no parry for it: Verdict Parry, its block and its counter-slash are gone.
 import { group, knob } from './schema';
 
 export const DEMON = group('demon', 'The Demon', {
@@ -27,7 +28,7 @@ export const DEMON = group('demon', 'The Demon', {
   overheadNext: knob(0.3, 0.02, 1.2, 0.01, 'Overhead to the next', 'After its contact, seconds till you can start again.'),
   combo: knob(0.5, 0.1, 2, 0.05, 'Combo window', 'Swing again within this and the combo goes on.'),
   stop: knob(45, 0, 200, 5, 'Hit-stop: slash (ms)', 'The blade biting: 2 to 4 frames, the bible says.'),
-  overheadStop: knob(110, 0, 300, 5, 'Hit-stop: overhead (ms)', 'Its third, and the counter.'),
+  overheadStop: knob(110, 0, 300, 5, 'Hit-stop: overhead (ms)', 'Its third, and Last Verdict.'),
   view: knob(0.18, 0, 1, 0.01, 'Swing view lean', 'How much the view turns with the swing (the arms turn this much more).'),
   flare: knob(1.6, 0, 5, 0.05, 'Blade flare', 'How much brighter the blade burns through a strike.'),
 
@@ -49,19 +50,6 @@ export const DEMON = group('demon', 'The Demon', {
   waveWidth: knob(2.4, 0.5, 6, 0.1, 'Ember Wave: width', 'How far either side of its line it hits (m).'),
   waveDamage: knob(40, 1, 300, 1, 'Ember Wave: damage', 'To everything it passes through.'),
   waveKnock: knob(6, 0, 40, 0.5, 'Ember Wave: knock', 'm/s.'),
-
-  guardShare: knob(0.5, 0, 1, 0.05, 'Block', 'Share of a blow the blade takes off while you hold right click.'),
-  guardSlow: knob(0.6, 0.1, 1, 0.05, 'Block: speed', 'How fast you move holding it, times your speed.'),
-  parryWait: knob(1.5, 0, 6, 0.1, 'Verdict Parry: wait', 'After one lands, seconds till you can parry again (Joseph’s Parry cooldown is much longer).'),
-  counterDamage: knob(70, 1, 300, 1, 'Counter-slash damage', 'To everything in its arc.'),
-  counterArc: knob(60, 10, 120, 1, 'Counter-slash sweep', 'Degrees each side of your aim.'),
-  counterSlow: knob(0.45, 0, 2, 0.05, 'Counter-slash: slow motion', 'Real seconds the world slows for.'),
-  counterScale: knob(0.3, 0.05, 1, 0.05, 'Counter-slash: how slow', 'The world’s speed meanwhile.'),
-  counterWindup: knob(0.05, 0.02, 0.3, 0.005, 'Counter-slash: wind-up', 'Seconds to its contact: instant.'),
-  counterStrike: knob(0.04, 0.01, 0.2, 0.005, 'Counter-slash: strike', 'The end of that.'),
-  counterFollow: knob(0.12, 0.03, 0.5, 0.005, 'Counter-slash: follow-through', 'Seconds its weight carries it on.'),
-  counterBack: knob(0.4, 0.1, 1.2, 0.01, 'Counter-slash: return', 'Seconds back to ready.'),
-  counterNext: knob(0.15, 0.02, 0.8, 0.01, 'Counter-slash: to the next', 'After contact, seconds till you can swing again.'),
 
   lungeSpeed: knob(85, 20, 200, 1, 'Hellfire Lunge: speed', 'm/s: too fast to see past.'),
   lungeTime: knob(0.13, 0.05, 0.5, 0.01, 'Hellfire Lunge: length', 'Seconds. (Joseph’s dash goes 5.6 m; this about twice as far.)'),
@@ -85,7 +73,6 @@ export const DEMON = group('demon', 'The Demon', {
 
   heatHit: knob(0.03, 0, 0.3, 0.005, 'Heat: a hit', 'How much each thing you hit heats the sword (1 is full).'),
   heatKill: knob(0.06, 0, 0.5, 0.005, 'Heat: a kill', 'And each kill, on top.'),
-  heatParry: knob(0.2, 0, 1, 0.01, 'Heat: a parry', 'And a parry that lands.'),
   heatWait: knob(2.5, 0, 10, 0.1, 'Heat: holds', 'Seconds after your last hit before it starts to drain.'),
   heatDrain: knob(0.1, 0, 1, 0.01, 'Heat: drain', 'How much drains each second after that (0.1: ten seconds from full).'),
   heatHigh: knob(0.6, 0.1, 1, 0.05, 'Heat: high', 'From here: bigger arcs, longer fire walls, a Lunge that leaves fire.'),
@@ -106,18 +93,16 @@ export const DEMON = group('demon', 'The Demon', {
   hangDamage: knob(12, 1, 100, 1, 'Blade Throw: hanging damage', 'Each cut.'),
   recallSpeed: knob(52, 10, 120, 1, 'Recall: speed', 'm/s. It comes through anything.'),
   recallDamage: knob(44, 1, 300, 1, 'Recall: damage', 'To everything on its way back.'),
-  throwTap: knob(0.2, 0.05, 0.6, 0.01, 'Double-tap', 'E again within this goes to the sword; the recall waits this long to see.'),
   blinkGuard: knob(0.25, 0, 1, 0.05, 'Going to it: safe', 'Seconds nothing can touch you once you’re there.'),
 
-  verdictWindup: knob(0.85, 0.2, 2.5, 0.01, 'Last Verdict: rise', 'Seconds from Q to the cleave landing. The world holds still, and you can still aim.'),
-  verdictStrike: knob(0.1, 0.02, 0.4, 0.005, 'Last Verdict: strike', 'The end of that: the blade coming down.'),
+  verdictWindup: knob(0.85, 0.2, 2.5, 0.01, 'Last Verdict: rise', 'Seconds from Q to the slash. The world holds still.'),
+  verdictStrike: knob(0.1, 0.02, 0.4, 0.005, 'Last Verdict: strike', 'The end of that: the blade coming across.'),
   verdictFollow: knob(0.2, 0.03, 0.8, 0.01, 'Last Verdict: follow-through', 'Seconds its weight carries it on.'),
   verdictBack: knob(0.8, 0.1, 2, 0.01, 'Last Verdict: return', 'Seconds to heave it back up, shrinking.'),
-  verdictHold: knob(0.22, 0, 1, 0.01, 'Last Verdict: after', 'Seconds the world stays still after it lands.'),
+  verdictHold: knob(0.35, 0, 1, 0.01, 'Last Verdict: after', 'Seconds the world stays still as the slash crosses the room.'),
+  verdictSpeed: knob(200, 20, 600, 5, 'Last Verdict: slash speed', 'How fast it runs out from you (m/s). What it hasn’t reached when the world starts again, it hits then.'),
   verdictFade: knob(0.5, 0, 2, 0.05, 'Last Verdict: colour back', 'Seconds.'),
-  verdictLong: knob(70, 10, 200, 1, 'Last Verdict: length', 'How far the cleave goes (m), through anything.'),
-  verdictWidth: knob(3, 0.5, 10, 0.1, 'Last Verdict: width', 'How far either side of your aim it kills (m).'),
-  verdictBoss: knob(1, 0.05, 1, 0.05, 'Last Verdict: on a boss', 'Share of its full health it takes. 1: it dies, as the bible says.'),
+  verdictBoss: knob(0.4, 0.05, 1, 0.05, 'Last Verdict: on a boss', 'Share of its full health it takes. 1: it dies.'),
   verdictGrow: knob(3, 1, 5, 0.1, 'Last Verdict: sword length', 'How many times longer the blade grows.'),
   verdictBroad: knob(2.4, 1, 5, 0.1, 'Last Verdict: sword width', 'How many times wider.'),
 });

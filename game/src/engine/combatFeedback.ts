@@ -122,7 +122,7 @@ export class CombatFeedback {
         case 'demonWall':
           this.f.rig.shake.add(0.08);
           break;
-        // Update 0.3.73 — its sword thrown, caught, gone to; Last Verdict landing.
+        // Update 0.3.73 — its sword thrown, caught, gone to; Last Verdict's slash.
         case 'bladeThrown':
           this.f.rig.shake.add(0.1);
           this.f.rig.kick(0.6);

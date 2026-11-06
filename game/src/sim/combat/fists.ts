@@ -50,6 +50,8 @@ export interface CombatIntent {
   attackHeld: boolean;
   attackPressed: boolean;
   heavyHeld: boolean;
+  /** Update 0.3.74 — its press (the Playable Demon's throw and regain). */
+  heavyPressed: boolean;
   /** M2 — Q: throw the held weapon; E: pick one up. */
   throwPressed: boolean;
   /** Update 0.2.4 — R: reload the gun in hand. */
@@ -85,7 +87,7 @@ export function createFists(): FistState {
 }
 
 export function emptyCombatIntent(): CombatIntent {
-  return { attackHeld: false, attackPressed: false, heavyHeld: false, throwPressed: false, reloadPressed: false, interactPressed: false, slotPressed: -1, switchKeyPressed: false, dodgePressed: false, slamPressed: false, yaw: 0, pitch: 0 };
+  return { attackHeld: false, attackPressed: false, heavyHeld: false, heavyPressed: false, throwPressed: false, reloadPressed: false, interactPressed: false, slotPressed: -1, switchKeyPressed: false, dodgePressed: false, slamPressed: false, yaw: 0, pitch: 0 };
 }
 
 export function emptyPunch(): Punch {

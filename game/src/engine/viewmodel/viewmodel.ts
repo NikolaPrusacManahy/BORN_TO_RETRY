@@ -19,6 +19,7 @@
 // Update 0.3.70 — the Playable Demon (design bible): its own arms, its blade in the hand whenever nothing else is. They're
 // fetched only for it (armsWardrobe.ts), so nobody else pays for them. Left click swings the blade, right click raises it.
 // Update 0.3.73 — thrown, it's out of the hand and the gauntlets take over, both of them; heat burns on it (bladeHeat.ts); Last Verdict grows it (bladeGrow.ts).
+// Update 0.3.74 — and takes both hands.
 import * as THREE from 'three';
 import { ARMS } from '../../tuning/arms';
 import { DEMON } from '../../tuning/demon';
@@ -54,6 +55,8 @@ export { ARMS_URL, DEMON_ARMS_URL, DEMON_BLADE_URL } from './armsWardrobe';
 const CHARGE_EASE = 14;
 /** Update 0.1.9 — how far a hand opens as it throws a dagger (0 … 1). */
 const RELEASE = 0.6;
+/** Update 0.3.74 — where the left hand closes on the hilt for Last Verdict: this far along it from the right fist (m; below it). */
+const VERDICT_LEFT = -0.17;
 /** Update 0.3.73 — how much of the blade's flare its heat gives it, at full. */
 const HEAT_GLOW = 0.55;
 
@@ -164,7 +167,7 @@ export class Viewmodel {
     // (Update 0.3.73 — caught: its weight in your hand, up and back; unless it's for Last Verdict, whose swing's already begun.)
     const verdict = this.swordAnim.inVerdict;
     if (model && !this.weapon && !verdict) this.swordAnim.reset();
-    if (model && this.catching && !verdict) this.swordAnim.start('guard');
+    if (model && this.catching && !verdict) this.swordAnim.start('caught');
     this.catching = false;
     this.off.take(model?.userData.pair ?? null, model ? movesOf(model).pair : null);
     this.gun.use(model?.userData.hold === 'gun' ? model : null);
@@ -218,15 +221,9 @@ export class Viewmodel {
     return this.swordAnim.lean;
   }
 
-  /** Right click pressed, the parry: the right fist snaps up (Update 0.3.70 — or the Demon's blade). */
+  /** Right click pressed, the parry: the right fist snaps up. */
   guard() {
-    if (this.bladed) this.swordAnim.start('guard');
-    else this.block.raise();
-  }
-
-  /** Update 0.3.72 — the Demon's: right click held, its blade held up. */
-  setBlock(on: boolean) {
-    if (this.bladed) this.swordAnim.block(on);
+    this.block.raise();
   }
 
   /** Update 0.3.73 — the Demon's sword is out of your hand (the next `setWeapon` puts it away, or back). */
@@ -316,12 +313,15 @@ export class Viewmodel {
     // A weapon in the right fist (posed first: a two-handed one's haft is where the left hand goes).
     const tremble = this.time < this.steadyUntil ? 0 : charge >= 1 ? 2 : 1;
     const held = book === 0 && gun === 0 && armed > 0 ? swordArm(rig, this.swordAnim, this.chargeVis, tremble, this.time, this.swordPose, this.swordArm) : null;
-    const hands = held && this.swordAnim.moves.hands() !== 0 ? armed * (1 - palm) : 0;
+    // (Update 0.3.74 — the Demon's Last Verdict takes both.)
+    const two = held ? this.swordAnim.twoHanded : 0;
+    const fixed = this.swordAnim.moves.hands();
+    const hands = held && (fixed !== 0 || two > 0) ? armed * (1 - palm) * (fixed !== 0 ? 1 : two) : 0;
     // (Put away, the second dagger's arm eases back to the guard, as the hammer's left hand does.)
     const pair = held && this.swordAnim.moves.pair ? armed * (1 - palm) : 0;
     const left = fistArm(rig, this.anim, this.time, 'L', this.chargeVis, charge >= 1, (armed - book - hands - pair) * (1 - palm), this.live.L);
     if (book > 0) mixArm(left, this.book.pose(rig, 'L', this.bookPose), book, left);
-    if (hands > 0) mixArm(left, leftGrip(rig, this.swordPose, this.swordAnim.moves.hands(), this.twoPose), hands, left);
+    if (hands > 0) mixArm(left, leftGrip(rig, this.swordPose, fixed !== 0 ? fixed : VERDICT_LEFT, this.twoPose), hands, left);
     if (pair > 0) mixArm(left, this.off.pose(rig, this.chargeVis, tremble, this.time), pair, left);
     // (Update 0.1.7 — barehanded, a slam's clasped fists.)
     const clasp = this.slam.weight * (1 - armed) * (1 - reach);

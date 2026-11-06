@@ -1,9 +1,12 @@
 // Update 0.3.72 — the Playable Demon's fire, heard: from the recordings already in the game (the boss's own), and made sounds under them.
 // Returns true if `kind` is one of its.
-// Update 0.3.73 — its sword thrown, called back and caught; its heat at full; Last Verdict: a hard cut to silence, the boss's own heartbeat, the cleave.
+// Update 0.3.73 — its sword thrown, called back and caught; its heat at full; Last Verdict: a hard cut to silence, the boss's own heartbeat.
+// Update 0.3.74 — the designer: its slash sounds as a boss dying does.
 import type { AudioEngine } from './audio';
 import type { CombatEvent } from '../sim/combat/state';
 import { DEMON } from '../tuning/demon';
+import { playBoss } from './bossSounds';
+import { playClip } from './clipRoutes';
 import { noise, tone } from './synth';
 
 export function playDemon(a: AudioEngine, kind: CombatEvent, value: number, far: number): boolean {
@@ -61,9 +64,11 @@ export function playDemon(a: AudioEngine, kind: CombatEvent, value: number, far:
       return true;
     }
     case 'demonCleave':
-      a.clips.play('demonCrash', 1);
-      a.clips.play('hellBoom', 1);
-      noise(a, { dur: 0.6, gain: 0.7, filter: 'bandpass', from: 400, to: 3000, q: 0.7 });
+      // A boss dying: its fall and its burst, each the recording picked for it, or else the one made for it.
+      for (const k of ['bossDown', 'bossBurst'] as const) if (!playClip(a, k, 1, 1, '')) playBoss(a, k, 1, 1);
+      return true;
+    case 'bladeNoWay':
+      tone(a, { from: 180, to: 110, dur: 0.14, gain: 0.16, type: 'square' });
       return true;
     default:
       return false;
