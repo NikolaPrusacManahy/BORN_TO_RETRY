@@ -4,11 +4,15 @@
 import { Vector3 } from 'three';
 import { SEAN } from '../../tuning/sean';
 import type { CombatEvent } from './state';
+import type { TargetKind } from './strike';
 import type { EventQueue } from '../../core/eventQueue';
 
 /** Update 0.3.82 — how many pieces can be in the air, how many craters a floor keeps (the oldest goes). */
 export const ROCKS = 8;
 export const CRATERS = 12;
+/** Update 0.3.85 — Time Stop: how many blows it holds, and how long both his palms are out as it goes (s). */
+export const STORED = 128;
+export const STOP_CAST = 0.35;
 
 /** What his hands are doing that isn't the fists' (viewmodel/seanHands.ts). */
 export type SeanHand = 'none' | 'reach' | 'palm' | 'wind' | 'raise' | 'sky';
@@ -55,6 +59,25 @@ export interface Hole {
   pulled: number[];
 }
 
+/** Update 0.3.85 — what Time Stop's holding back for one target: all its blows' damage, the sum of their pushes, how many, where the last landed. */
+export interface StoredHit {
+  kind: TargetKind;
+  index: number;
+  part: number;
+  point: Vector3;
+  damage: number;
+  dx: number;
+  dz: number;
+  hits: number;
+}
+
+/** Time Stop: how long, what it's holding back, and whether that's landing now. */
+export interface TimeStop {
+  t: number;
+  stored: StoredHit[];
+  releasing: boolean;
+}
+
 /** Meteor: how long the world's held, where its zone is, whether it's on its way. */
 export interface Meteor {
   t: number;
@@ -92,6 +115,8 @@ export interface GravityState {
   /** Shockwave Punch: how far through its wind-up (−1: not winding up), its wait. */
   shock: number;
   shockWait: number;
+  /** Update 0.3.85 — Time Stop, under way. */
+  stop: TimeStop | null;
   /** Update 0.3.83 — Meteor, under way. */
   meteor: Meteor | null;
 }
@@ -116,6 +141,7 @@ export function createGravity(): GravityState {
     hole: null,
     shock: -1,
     shockWait: 0,
+    stop: null,
     meteor: null,
   };
 }
@@ -140,6 +166,30 @@ export function gravHit(state: Fed) {
   if (g.unstable) g.instab = Math.min(1, g.instab + SEAN.v.instabHit);
 }
 
+/** Update 0.3.85 — a hit of his in stopped time: held back, for when it ends (gravityStop.ts). The meters don't wait, and nor does your sight of it; the enemy doesn't react at all. Plain targets add theirs up;
+ *  the parts that only count blows (a knee, a chain) keep each. */
+export function storeHit(state: Fed, kind: TargetKind, index: number, part: number, point: Vector3, damage: number, knock: number, dirX: number, dirZ: number) {
+  const s = state.grav.stop;
+  if (!s) return;
+  gravHit(state);
+  const adds = kind === 'enemy' || kind === 'dummy' || kind === 'turret' || kind === 'hive' || kind === 'wormling';
+  let h = adds ? s.stored.find((o) => o.kind === kind && o.index === index) : undefined;
+  if (!h) {
+    if (s.stored.length >= STORED) return;
+    h = { kind, index, part, point: new Vector3(), damage: 0, dx: 0, dz: 0, hits: 0 };
+    s.stored.push(h);
+  }
+  h.point.copy(point);
+  h.damage += damage;
+  h.dx += dirX * knock;
+  h.dz += dirZ * knock;
+  h.hits++;
+  state.events.push('seanStopHit', h.damage, point.x, point.y, point.z);
+}
+
+/** Nothing in the world moves: Time Stop, Meteor. The enemies' look holds still too. */
+export const worldHeld = (g: GravityState) => g.stop !== null || g.meteor !== null;
+
 /** A kill of his. */
 export const gravKill = (state: Fed) => addUlt(state, SEAN.v.ultKill);
 
@@ -147,6 +197,7 @@ export const gravKill = (state: Fed) => addUlt(state, SEAN.v.ultKill);
 export function seanHand(g: GravityState): SeanHand {
   if (g.meteor) return 'sky';
   if (g.shock >= 0) return 'wind';
+  if (g.stop && g.stop.t < STOP_CAST) return 'raise';
   if (g.palm >= 0) return 'palm';
   return g.held ? 'reach' : 'none';
 }

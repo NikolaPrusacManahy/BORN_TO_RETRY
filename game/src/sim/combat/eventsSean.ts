@@ -24,6 +24,11 @@ export type SeanEvent =
   | 'seanHoleBurst'
   | 'seanShockUp'
   | 'seanShock'
+  // Update 0.3.85 — Time Stop: it starts; a hit held back (value: all it's holding on that target); it ends (value: how many it held); a target's blows land (value: their sum).
+  | 'seanStopStart'
+  | 'seanStopHit'
+  | 'seanStopEnd'
+  | 'seanStopPop'
   // Update 0.3.83 — Meteor: called, on its way, down (value: its radius).
   | 'seanMeteorCall'
   | 'seanMeteorFall'

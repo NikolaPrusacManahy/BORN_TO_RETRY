@@ -74,6 +74,7 @@ import { verdictGrey } from '../sim/enemies/wardenVerdict';
 import { verdictShade } from '../sim/combat/lastVerdict';
 import { seanHand } from '../sim/combat/gravityMeter';
 import { meteorShade } from '../sim/combat/gravityUlt';
+import { stopShade } from '../sim/combat/gravityStop';
 import { wardenDark, wardenFreezeGrey, wardenSilent } from '../sim/dungeon/wardenShow';
 import { Lobby, lobbyFocus, stepLobby } from '../sim/lobby/lobby';
 import { styleOf } from '../world/dungeon/styles';
@@ -148,8 +149,11 @@ export class Run extends RunBase {
       if (d) {
         // (Update 0.3.36 — SPACE skips a boss's show.)
         if (d.boss.beat === 'intro' && input.locked && input.actionPressed('jump') && !capture.flying) d.boss.skip = true;
-        if (d.level.tide.length > 0 && !bossOn) stepTide(d.tide, this.combat.events, stepDt);
-        stepRooms(d, p, this.combat, this.combat.rng, stepDt);
+        // (Update 0.3.85 — Gravity Sean's Time Stop: the rooms wait too, their hazards and their waves. A room walked into starts when it ends.)
+        if (!this.combat.grav.stop) {
+          if (d.level.tide.length > 0 && !bossOn) stepTide(d.tide, this.combat.events, stepDt);
+          stepRooms(d, p, this.combat, this.combat.rng, stepDt);
+        }
         this.level.physics.setGates(d.shut);
       }
       // (Update 0.3.53 — the Bone King's arm down, or up: what you can stand on of it. Update 0.3.56 — the Frost Roc's slabs.)
@@ -228,7 +232,7 @@ export class Run extends RunBase {
     applyMoveEvents(p.events, this.rig, this.sounds, this.arms, this.hits);
     p.events.clear();
     // (Update 0.2.11 — under water, muffled.)
-    this.audio.muffle(p.swimTop > 0);
+    this.audio.muffle(p.swimTop > 0 || this.combat.grav.stop !== null);
     if (p.dead && !this.death.active) {
       this.death.start();
       this.cb.onDeath();
@@ -270,7 +274,7 @@ export class Run extends RunBase {
     // (Update 0.3.63 — Hellwarden's Last Verdict: the screen drained of colour.)
     const warden = this.combat.enemies.find((e) => e.alive && e.kind === 'hellwarden');
     // (Update 0.3.73 — and the Demon's own.)
-    const grey = Math.round(Math.max(warden ? Math.max(verdictGrey(warden), d ? wardenFreezeGrey(d.boss) : 0) : 0, verdictShade(this.combat), meteorShade(this.combat)) * 20) / 20;
+    const grey = Math.round(Math.max(warden ? Math.max(verdictGrey(warden), d ? wardenFreezeGrey(d.boss) : 0) : 0, verdictShade(this.combat), meteorShade(this.combat), stopShade(this.combat)) * 20) / 20;
     if (grey !== this.grey) {
       this.grey = grey;
       renderer.domElement.style.filter = grey > 0 ? `grayscale(${grey}) contrast(${1 + 0.15 * grey})` : '';
@@ -314,7 +318,7 @@ export class Run extends RunBase {
     // (Update 0.3.19 — the floor's fight music, while a fight is on: audio/music.ts.)
     setFloorMusic(d && combatMusicOn(d, p.dead) ? floorTrack(d) : null);
     // (Update 0.3.49 — a boss's ultimate cuts it.)
-    cutMusic(ultimateIn(this.combat.enemies) !== null || (!!this.level.dungeon && wardenSilent(this.level.dungeon.boss)) || b.verdict);
+    cutMusic(ultimateIn(this.combat.enemies) !== null || (!!this.level.dungeon && wardenSilent(this.level.dungeon.boss)) || b.verdict || this.combat.grav.stop !== null);
     this.hudFeed.push(real, p, this.combatScene.feedback, this.hits, this.combat, d, this.look.yaw, this.show.hud, choosing ?? '');
     // Dead: once it's black, the death screen (the dungeon: Retry is a new run) or the lab's start. The way down: the
     // next floor (Update 0.2.2: off the last, the run is won; Update 0.3.23: behind the loader).

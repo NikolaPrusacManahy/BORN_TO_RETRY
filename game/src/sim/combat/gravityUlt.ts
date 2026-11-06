@@ -1,7 +1,7 @@
 // Update 0.3.83 — Gravity Sean's ultimates, on Q (enemy_bibles/Born to Retry — Gravity Sean.docx): "both use one shared meter, so choosing your stance before you fire is part of the decision".
 // Meteor, Unstable mode, for bosses: "aim at the sky, freeze everyone in place and call a meteor down onto the room"; "one huge hit on a target zone"; "bosses freeze briefly and take full
 // damage". The world holds still for it, as for the Demon's Last Verdict; only your aim's your own, and the zone follows it till the meteor's on its way. Pure.
-// Update 0.3.84 — the designer: Black Hole's right click's now (gravityHole.ts), and "the meteor range is 50% bigger".
+// Update 0.3.84 — the designer: Black Hole's right click's now (gravityHole.ts), and "the meteor range is 50% bigger". Update 0.3.85 — normal mode's ultimate is Time Stop (gravityStop.ts).
 import { Vector3 } from 'three';
 import { SEAN } from '../../tuning/sean';
 import type { CollisionWorld } from '../collisionWorld';
@@ -10,6 +10,7 @@ import { ENEMY_STATS } from '../enemies/kinds';
 import type { PlayerState } from '../player/state';
 import { gravBlast } from './gravity';
 import { dropPalm, floorUnder } from './gravityHole';
+import { startStop } from './gravityStop';
 import { aim } from './punch';
 import type { CombatState } from './state';
 
@@ -19,12 +20,19 @@ const dir = new Vector3();
 /** Q, if the meter's full: by your stance. */
 export function tryUltimate(state: CombatState, player: PlayerState, pressed: boolean, yaw: number, pitch: number, world: CollisionWorld): boolean {
   const g = state.grav;
-  if (!pressed || g.ult < 1 || g.meteor || !g.unstable) return false;
+  if (!pressed || g.ult < 1 || g.meteor || g.stop) return false;
+  // (Update 0.3.85 — normal mode's: gravityStop.ts.)
+  if (!g.unstable) {
+    g.ult = 0;
+    startStop(state, player);
+    return true;
+  }
   dropPalm(state);
   g.ult = 0;
   g.shock = -1;
   player.slamming = false;
   player.dashTime = 0;
+  for (const e of state.enemies) e.prev.copy(e.pos);
   g.meteor = { t: 0, x: player.pos.x, y: player.pos.y, z: player.pos.z, falling: false };
   aimZone(state, player, yaw, pitch, world);
   state.events.push('seanMeteorCall', 0, player.pos.x, player.pos.y, player.pos.z);

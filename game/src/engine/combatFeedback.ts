@@ -134,6 +134,21 @@ export class CombatFeedback {
           this.f.rig.shake.add(0.7);
           this.f.rig.kick(2.4);
           break;
+        case 'seanStopStart':
+          this.f.rig.shake.add(0.4);
+          this.f.rig.kick(1);
+          break;
+        case 'seanStopHit':
+          this.f.rig.kick(0.12);
+          break;
+        case 'seanStopEnd':
+          this.f.rig.shake.add(e.value > 0 ? 0.7 : 0.25);
+          this.f.rig.kick(e.value > 0 ? 2 : 0.6);
+          break;
+        case 'seanStopPop':
+          this.f.chunks.spawn(at, UP, 10, 1);
+          this.f.sparks.spawn(at, back, 24, 1.3);
+          break;
         case 'seanHoleThrow':
           this.f.arms.seanHands.shove();
           this.f.rig.kick(0.6);

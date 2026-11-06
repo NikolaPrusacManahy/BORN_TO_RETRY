@@ -57,6 +57,7 @@ import { landPlunge as landSeanPlunge, punchRate, shapePunch, stepDashPull, swit
 import { dropPiece, stepRocks, stepSeanGrab } from './gravityGrab';
 import { dropPalm, slowBosses, stepHole, stepPalm } from './gravityHole';
 import { stepShock, tryShock } from './gravityShock';
+import { endStop, stepStop } from './gravityStop';
 import { stepMeteor, tryUltimate } from './gravityUlt';
 import { stepVerdict, tryVerdict } from './lastVerdict';
 import { WEAPONS } from '../../tuning/weapons';
@@ -166,7 +167,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   }
   stepExecution(state, dt, player);
   // (Update 0.2.18 — wave 2's bleeds, burns, bolts and blasts: not while an execution holds the world.)
-  tickPowers(state, player, dt);
+  // (Update 0.3.85 — nor through Gravity Sean's Time Stop.)
+  if (!state.grav.stop) tickPowers(state, player, dt);
   // (Update 0.3.70 — the Demon takes no other weapon.)
   if (intent.interactPressed && !throwing && !executing && !ownKit) {
     const got = tryPickup(state.pickups, state.stands, player, events);
@@ -300,10 +302,12 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
       trySeanSlam(state, player, intent.slamPressed && !clasped);
     }
     stepShock(state, player, intent.yaw, intent.pitch, dt);
-    stepHole(state, world, dt);
+    // (Update 0.3.85 — a Black Hole he's thrown stops with everything else.)
+    if (state.grav.stop) stepStop(state, player, dt);
+    else stepHole(state, world, dt);
     fistIntent = Object.assign(NO_HEAVY, fistIntent);
     NO_HEAVY.heavyHeld = false;
-  }
+  } else endStop(state, player);
   // (Update 0.3.5 — barehanded, right click is the parry: Hair Trigger's longer window, Giant Killer's no wait.)
   const times = parryTimes(state);
   let swung = axe || volley || gun || clasped ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, sean ? rate * punchRate(state.grav) : rate, chargeRate(state), times);
@@ -370,11 +374,14 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     }
   }
 
-  for (const d of state.dummies) updateDummy(d, events, dt);
-  for (const t of state.turrets) updateTurret(t, player.pos, world, state.orbs, events, dt);
-  updateOrbs(state.orbs, player, world, events, dt, state.puddles);
-  // (Update 0.3.3 — shots you punched back.)
-  stepParried(state, world, dt);
+  const still = state.grav.stop !== null;
+  if (!still) {
+    for (const d of state.dummies) updateDummy(d, events, dt);
+    for (const t of state.turrets) updateTurret(t, player.pos, world, state.orbs, events, dt);
+    updateOrbs(state.orbs, player, world, events, dt, state.puddles);
+    // (Update 0.3.3 — shots you punched back.)
+    stepParried(state, world, dt);
+  }
   if (player.slamImpact > 0) {
     // (Update 0.3.72 — the Demon's dive: Brand of Ruin, from however far it fell.)
     if (sworded) landPlunge(state, player, player.slamImpact);
@@ -383,6 +390,13 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     // (Update 0.2.15 — Pogo: a slam that kills bounces you back up. Update 0.2.22 — its blast: Tremor's.)
     else if (tremors(state)) pogo(state, player, slamImpact(state, player.pos, player.slamImpact));
     player.slamImpact = 0;
+  }
+  // (Update 0.3.85 — Gravity Sean's Time Stop: he and what he's thrown go on, and your coins come to you; nothing else does.)
+  if (still) {
+    stepRocks(state, world, dt);
+    state.money = updateCoins(state.coins, player, state.money, events, dt);
+    updateDrops(state, player, dt);
+    return;
   }
   stepDemonFire(state, world, dt);
   // (Update 0.2.10 — an Urchin's thorns: your blows on it with its spikes out hurt you.)

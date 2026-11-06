@@ -33,6 +33,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import type { CombatState } from '../sim/combat/state';
+import { worldHeld } from '../sim/combat/gravityMeter';
 import { ENEMY_POOL, EnemyPhase } from '../sim/enemies/enemy';
 import { ENEMY_KINDS, ENEMY_STATS, EnemyKind, flies } from '../sim/enemies/kinds';
 import { ENEMIES } from '../tuning/enemies';
@@ -207,6 +208,7 @@ export class EnemiesView {
 
   /** `alpha`: how far between the last two sim ticks this frame is. `dt`: game time (stops in hit-stop). */
   update(state: CombatState, alpha: number, dt: number) {
+    const stopped = worldHeld(state.grav);
     this.tongues.update(state);
     for (let i = 0; i < this.slots.length; i++) {
       const slot = this.slots[i];
@@ -308,7 +310,8 @@ export class EnemiesView {
       if (b.actions.rise !== idle) b.actions.rise.timeScale = b.actions.rise.getClip().duration / Math.max(0.1, king ? (e.phase === 'intro' ? BONE_KING.v.showBuild : BONE_KING.v.kingRise) : e.phase === 'intro' ? FOES_NORSE.v.riseTime : FOES3.v.skeletonRise);
       b.actions.move.timeScale = e.phase === 'held' ? 3 : dash ? 2 : flies(e.kind) ? 1 : Math.min(PACE_HIGH, Math.max(PACE_LOW, slot.pace / full));
       const ice = e.frozen > 0 ? 1 : 0;
-      if (!ice && !b.root.userData.kept && !(e.pinned > 0 && e.t > PIN_POSE)) b.mixer.update(dt);
+      // (Update 0.3.85 — and with the world held by Gravity Sean, as it's in no other way: they stand as they were, unfazed.)
+      if (!ice && !stopped && !b.root.userData.kept && !(e.pinned > 0 && e.t > PIN_POSE)) b.mixer.update(dt);
       // Update 0.1.1 — you could execute it: a crimson pulse.
       const mark = state.execTarget === i ? 0.5 + 0.5 * Math.sin(e.t * 12) : 0;
       // (Update 0.3.8 — a pinned body flickers till it drops, or till you take it.)

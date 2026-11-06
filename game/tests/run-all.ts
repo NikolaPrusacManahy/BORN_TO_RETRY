@@ -32,6 +32,7 @@ import './test-sean-moves';
 import './test-sean-grab';
 import './test-sean-ultimates';
 import './test-sean-unstable';
+import './test-sean-stop';
 import './test-swarm-stare';
 import './test-seams';
 import './test-floor5';

@@ -101,6 +101,10 @@ export const SEAN = group('sean', 'Gravity Sean', {
   shockKnock: knob(20, 0, 60, 1, 'Shockwave Punch knock', 'm/s.'),
   shockRecoil: knob(4, 0, 20, 0.5, 'Shockwave Punch recoil', 'It throws you back this fast (m/s).'),
   shockLift: knob(2.5, 0, 10, 0.25, 'Shockwave Punch in the air', 'Mid-air it holds you up: you’re rising at least this fast after it (m/s).'),
+  // Update 0.3.85 — Q in normal mode: Time Stop (the designer: "a gravity zone that covers the whole room and act like a time stop").
+  stopTime: knob(5, 0.5, 20, 0.25, 'Time Stop time', 'The world holds still and you don’t, this long (s).'),
+  stopKnockMax: knob(26, 0, 60, 1, 'Time Stop knock', 'A target’s stored blows push it this hard at most, when they land (m/s).'),
+  stopGrey: knob(0.75, 0, 1, 0.05, 'Time Stop grey', 'How drained of colour the stopped world is.'),
   // Q in Unstable mode: Meteor, for bosses.
   meteorAim: knob(1.3, 0.1, 5, 0.05, 'Meteor aim', 'The world holds still and the zone follows your aim, this long (s).'),
   meteorFall: knob(0.55, 0.1, 3, 0.05, 'Meteor fall', 'Then it comes down, the zone fixed (s).'),

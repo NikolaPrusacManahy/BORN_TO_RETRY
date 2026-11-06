@@ -36,7 +36,7 @@ import { hitTurret } from './turretDamage';
 import { HIVE_RADIUS, hitHive } from '../dungeon/hives';
 import { DEMON } from '../../tuning/demon';
 import { addHeat } from './heat';
-import { gravHit, gravKill } from './gravityMeter';
+import { gravHit, gravKill, storeHit } from './gravityMeter';
 
 export type TargetKind = 'dummy' | 'turret' | 'enemy' | 'hive' | 'wormling' | 'spine' | 'knee' | 'head' | 'chain';
 
@@ -210,7 +210,13 @@ export function hitTarget(state: CombatState, t: TargetHit, damage: number, knoc
  *  Update 0.0.13 — every hit you land is stronger with each red ring you carry. Update 0.2.18 — `steady`: a bleed's or a
  *  burn's tick (no dodging it, no stagger, no Fire and Ice). */
 export function landHit(state: CombatState, t: TargetHit, damage: number, knock: number, dirX: number, dirZ: number, event: CombatEvent, value: number, steady = false): boolean {
-  if (t.kind === 'enemy' && !steady && dodges(state, t.index, dirX, dirZ)) return false;
+  // (Update 0.3.85 — Gravity Sean's Time Stop: it's held back, and they look unfazed. As it lands there's no dodging it.)
+  const stop = state.grav.stop;
+  if (stop && !stop.releasing) {
+    storeHit(state, t.kind, t.index, t.part, t.point, damage, knock, dirX, dirZ);
+    return false;
+  }
+  if (t.kind === 'enemy' && !steady && !stop && dodges(state, t.index, dirX, dirZ)) return false;
   // (Update 0.2.16 — Mercy Kill, a Fate Card: a hit leaving it under the line finishes it.)
   // (Update 0.2.19 — Blood Pact, a Traitor Card: harder.)
   if (t.kind === 'enemy' && holds(state, 'bloodPact')) damage *= 1 + CARDS.v.bloodPact;
@@ -223,7 +229,7 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   // (Update 0.3.73 — the Playable Demon's heat. A burn's ticks don't feed it: it'd never go out.)
   if (state.demon && !steady) addHeat(state, DEMON.v.heatHit);
   // (Update 0.3.81 — Gravity Sean's meters.)
-  if (state.sean && !steady) gravHit(state);
+  if (state.sean && !steady && !stop) gravHit(state);
   if (!killed) return false;
   state.events.push('kill', 0, p.x, p.y, p.z);
   state.hitStop.request(FEEDBACK.v.stopKill);

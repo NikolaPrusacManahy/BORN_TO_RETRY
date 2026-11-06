@@ -68,6 +68,20 @@ export function playSean(a: AudioEngine, kind: CombatEvent, value: number, far: 
       a.clips.play('bossBurst', 0.8 * far, 0.85);
       noise(a, { dur: 0.6, gain: 0.3 * far, filter: 'lowpass', from: 3000, to: 200 });
       return true;
+    case 'seanStopStart':
+      a.clips.play('bossBurst', 0.8, 0.55);
+      tone(a, { from: 520, to: 30, dur: 0.9, gain: 0.26, type: 'sawtooth' });
+      return true;
+    case 'seanStopHit':
+      tone(a, { from: 150, to: 90, dur: 0.07, gain: 0.1, type: 'triangle' });
+      return true;
+    case 'seanStopEnd':
+      a.clips.play('hellWhoosh', 1, 0.6);
+      tone(a, { from: 40, to: 480, dur: 0.3, gain: 0.24, type: 'sawtooth' });
+      return true;
+    case 'seanStopPop':
+      a.clips.play('demonSlam', Math.min(1, 0.35 + value / 300) * far, 1.1);
+      return true;
     case 'seanMeteorCall':
       tone(a, { from: 700, to: 120, dur: 1.2, gain: 0.14, type: 'triangle' });
       return true;

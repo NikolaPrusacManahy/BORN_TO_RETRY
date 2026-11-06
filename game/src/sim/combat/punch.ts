@@ -67,6 +67,8 @@ export function resolvePunch(punch: Punch, state: CombatState, eye: Vector3, dir
   const flat = Math.hypot(dir.x, dir.z) || 1;
   const charged = punch.kind === 'heavy' || punch.kind === 'pierce';
   const killed = landHit(state, hit, punch.damage, punch.knock, dir.x / flat, dir.z / flat, HIT_EVENT[punch.kind], charged ? punch.charge : punch.damage);
+  // (Update 0.3.85 — Gravity Sean's Time Stop: held back. It comes to nothing yet, not even a stop in your swing.)
+  if (state.grav.stop) return eye.distanceTo(hit.point);
   if (hit.kind === 'enemy' && (punch.kind === 'jab' || punch.kind === 'finisher')) {
     stall(state, hit.index);
     jabPowers(state, hit.index);
