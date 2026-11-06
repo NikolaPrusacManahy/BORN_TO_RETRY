@@ -78,8 +78,9 @@ section('Alpha — checkpoints');
   const cp = f.run.checkpoint!;
   const lava = [{ x: f.p.pos.x, y: -2, z: f.p.pos.z, w: 4, h: 1, d: 4, kind: 'lava' as const }];
   f.p.pos.y = -1.4;
-  const back = lavaStep(f.p, lava, cp, f.run, f.c);
-  check('in the lava, you’re burnt and sent back to it; the fight there starts over', back && f.p.pos.x === cp.x && f.p.pos.z === cp.z && f.run.rooms[f.i].state === 'idle' && f.level.rooms[f.i].gates.every((g) => !f.run.shut[g]));
+  const thrown = lavaStep(f.p, lava, cp, f.run);
+  // (Update 0.3.67 — a pit no longer sends you there: the checkpoint's for a respawn.)
+  check('in a pit, you’re thrown back out; the fight there goes on, the checkpoint where it was', thrown && f.p.bounce > 0 && f.run.rooms[f.i].state === 'fighting' && f.run.checkpoint === cp);
   const a = inFirstRoom(9);
   stepRooms(a.run, a.p, a.c, a.c.rng, 1 / 60);
   spawnEnemy(a.c.enemies, 'grunt', new Vector3(a.mid.x, 0, a.mid.z), 0);

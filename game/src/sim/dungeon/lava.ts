@@ -5,6 +5,8 @@
 // Update 0.2.23 — floor 2's pits hold sludge (world/dungeon/styles.ts `pit`): it burns the same, and poisons you too.
 // Update 0.3.14 — floor 6's hold the sea (`calm`): it hurts the same and takes you back ("The sea" if it kills you); only
 // sludge poisons (`poisons`). And a body knocked over any pit sinks: a live one dies (your kill), out of sight.
+// Update 0.3.67 (the designer: "when falling in them, just take a few amount of damage and bounce back out, not teleporting away, just take damage and bounce out") — every pit, lava, sludge,
+// the sea or a pond: a small burn (with that or less left, you still die) and you're thrown back to where you last stood on solid ground (player/pitBounce.ts). Your fight goes on.
 import type { ArenaBox, Spot } from '../../world/arena';
 import { LAVA_DEPTH } from '../../world/dungeon/assemble';
 import { isLive } from '../enemies/enemy';
@@ -15,6 +17,7 @@ import { LAB } from '../../tuning/lab';
 import { clearQuakes } from '../combat/quakes';
 import type { CombatState } from '../combat/state';
 import { killPlayer, poisonPlayer } from '../player/health';
+import { startBounce } from '../player/pitBounce';
 import { styleOf } from '../../world/dungeon/styles';
 import { FOES2 } from '../../tuning/foes2';
 import { GARDEN } from '../../tuning/garden';
@@ -23,6 +26,8 @@ import type { DungeonRun } from './roomLoop';
 
 /** Feet this close above lava (m) are in it. */
 const IN_LAVA = 0.3;
+/** Thrown this far past where you last stood (m), well onto it. */
+const PAST = 0.4;
 
 /** Are your feet in a pit's lava? */
 export function inLava(p: PlayerState, lava: readonly ArenaBox[]): boolean {
@@ -33,9 +38,21 @@ export function inLava(p: PlayerState, lava: readonly ArenaBox[]): boolean {
   return false;
 }
 
-/** One tick: in the lava, you're burnt (or killed) and sent back to `start`. Returns true if you were sent back. */
-export function lavaStep(p: PlayerState, lava: readonly ArenaBox[], start: Spot, run: DungeonRun | null, combat: CombatState): boolean {
-  if (p.dead || lava.length === 0 || !inLava(p, lava)) return false;
+/** Is this spot over a pit? */
+function overPit(x: number, z: number, lava: readonly ArenaBox[]): boolean {
+  for (const b of lava) if (Math.abs(x - b.x) <= b.w / 2 && Math.abs(z - b.z) <= b.d / 2) return true;
+  return false;
+}
+
+/** One tick: on solid ground, that's where you'd be thrown back to; in the pit, you're burnt (or killed) and thrown back there (`start`, if you've stood nowhere yet). Returns true if you
+ *  were thrown. */
+export function lavaStep(p: PlayerState, lava: readonly ArenaBox[], start: Spot, run: DungeonRun | null): boolean {
+  if (p.dead || lava.length === 0) return false;
+  if (p.grounded && !overPit(p.pos.x, p.pos.z, lava)) {
+    p.solid.copy(p.pos);
+    p.solidSet = true;
+  }
+  if (!inLava(p, lava)) return false;
   const burn = HEALTH.v.lavaDamage;
   const pit = run ? styleOf(run.level.plan.level).pit : undefined;
   if (LAB.v.god < 1) {
@@ -48,15 +65,17 @@ export function lavaStep(p: PlayerState, lava: readonly ArenaBox[], start: Spot,
   }
   p.events.push(pit?.calm ? 'seaFall' : 'lavaBurn');
   if (pit?.poisons) poisonPlayer(p, FOES2.v.poisonDps, GARDEN.v.sludgePoison, 'lava');
-  p.pos.set(start.x, start.y, start.z);
-  p.vel.set(0, 0, 0);
-  p.grounded = false;
-  if (run) abandonFights(run, combat);
+  // Clear of its surface (or the next tick would burn you again), and over to solid ground, a little past where you stood.
+  for (const b of lava) if (Math.abs(p.pos.x - b.x) <= b.w / 2 && Math.abs(p.pos.z - b.z) <= b.d / 2) p.pos.y = Math.max(p.pos.y, b.y + b.h / 2 + IN_LAVA + 0.01);
+  const toX = p.solidSet ? p.solid.x : start.x;
+  const toY = p.solidSet ? p.solid.y : start.y;
+  const toZ = p.solidSet ? p.solid.z : start.z;
+  const far = Math.max(0.01, Math.hypot(toX - p.pos.x, toZ - p.pos.z));
+  startBounce(p, toX + ((toX - p.pos.x) / far) * PAST, toY, toZ + ((toZ - p.pos.z) / far) * PAST);
   return true;
 }
 
-/** A fight you left by the lava stops: its enemies, shots and quakes go, its gates open, and it starts over when you
- *  go back in. (Not the boss room's.) */
+/** A fight you left stops: its enemies, shots and quakes go, its gates open, and it starts over when you go back in. (Not the boss room's. Update 0.3.67 — a respawn's; a pit doesn't.) */
 export function abandonFights(run: DungeonRun, combat: CombatState) {
   run.rooms.forEach((rr, i) => {
     const room = run.level.rooms[i];

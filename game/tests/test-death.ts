@@ -84,7 +84,7 @@ section('Death screen — the world');
   check('spikes', q.hurtBy === 'spikes');
   const r = createPlayer(0, -2, 0, 0);
   r.hp = 10;
-  lavaStep(r, [boxAt(-1, -3, -1, 2, 1, 2, 'lava')], { x: 0, y: 0, z: 0 }, null, createCombat(OPEN_ARENA, false));
+  lavaStep(r, [boxAt(-1, -3, -1, 2, 1, 2, 'lava')], { x: 0, y: 0, z: 0 }, null);
   check('lava', r.dead && r.hurtBy === 'lava');
 }
 

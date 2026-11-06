@@ -1,6 +1,6 @@
 // Update 0.0.20 — lava rooms and floor 3's look (the designer: "new layouts with pits, like some rooms with lava pits
 // in the middle; players lose 50 health and respawn at the starting point of the current floor; falling in with 50 or
-// less, the player loses"; "make proper use of wall run in some of the rooms"; "floor 3 needs a new look: the other
+// less, the player loses" (Update 0.3.67: a small burn and bounced back out); "make proper use of wall run in some of the rooms"; "floor 3 needs a new look: the other
 // type of walls, the other type of gate; they close and open as you enter or win a room").
 import * as THREE from 'three';
 import { parseUntextured } from './fakes/glb';
@@ -13,7 +13,11 @@ import { createDungeonRun, stepRooms } from '../src/sim/dungeon/roomLoop';
 import { inLava, lavaStep } from '../src/sim/dungeon/lava';
 import { spawnEnemy } from '../src/sim/enemies/enemy';
 import { GRID_RADIUS } from '../src/sim/enemies/kinds';
-import { createPlayer } from '../src/sim/player/state';
+import type { CollisionWorld, MoveResult } from '../src/sim/collisionWorld';
+import { damagePlayer } from '../src/sim/player/health';
+import { emptyIntent } from '../src/sim/player/intent';
+import { createPlayer, resetPlayer } from '../src/sim/player/state';
+import { stepPlayer } from '../src/sim/player/step';
 import { HEALTH } from '../src/tuning/health';
 import { LAB } from '../src/tuning/lab';
 import { setKnob } from '../src/tuning/schema';
@@ -121,16 +125,135 @@ section('Lava rooms — falling in');
   p.pos.set(cellX(lc), -LAVA_DEPTH, cellZ(lr));
   check('feet on the lava are in it', inLava(p, lava));
   const start = level.arena.playerStart;
-  const sent = lavaStep(p, lava, start, run, c);
-  check(`in the lava: ${HEALTH.v.lavaDamage} health gone, back at the floor’s start`, sent && p.hp === 100 - HEALTH.v.lavaDamage && near(p.pos.x, start.x, 1e-6) && near(p.pos.z, start.z, 1e-6) && p.events.length > 0);
-  check('the fight you left stops (its enemies gone, its gates open) and starts again when you go back', run.rooms[lakeIndex].state === 'idle' && room.gates.every((g) => !run.shut[g]) && !c.enemies.some((e) => e.alive));
+  const thrown = lavaStep(p, lava, start, run);
+  check(`in the lava: ${HEALTH.v.lavaDamage} health gone, thrown up out of it`, thrown && p.hp === 100 - HEALTH.v.lavaDamage && p.vel.y > 0 && p.bounce > 0 && p.events.length > 0);
+  check('not teleported: still there', near(p.pos.x, cellX(lc), 1e-6) && near(p.pos.z, cellZ(lr), 1e-6));
+  check('your fight goes on: its enemies alive, its gates shut', run.rooms[lakeIndex].state === 'fighting' && room.gates.every((g) => run.shut[g]) && c.enemies.some((e) => e.alive));
+  check('clear of it: the next tick doesn’t burn you again', !inLava(p, lava) && !lavaStep(p, lava, start, run) && p.hp === 100 - HEALTH.v.lavaDamage);
+  p.hp = HEALTH.v.lavaDamage;
   p.pos.set(cellX(lc), -LAVA_DEPTH, cellZ(lr));
-  lavaStep(p, lava, start, run, c);
-  check('falling in with 50 or less: you die', p.dead);
+  lavaStep(p, lava, start, run);
+  check(`falling in with ${HEALTH.v.lavaDamage} or less: you die`, p.dead);
   setKnob(LAB, 'god', 1);
   const q = createPlayer(cellX(lc), -LAVA_DEPTH, cellZ(lr), 0);
-  check('invincible (the Lab’s God): no burn, but still sent back', lavaStep(q, lava, start, null, c) && q.hp === 100);
+  check('invincible (the Lab’s God): no burn, but still thrown out', lavaStep(q, lava, start, null) && q.hp === 100);
   setKnob(LAB, 'god', 0);
+}
+
+/** A pit: floor at 0 for x <= 0 and x >= 12, a pit's walls down to its lava at -1.6 between them, and (`post`) something tall on the way out. */
+class PitWorld implements CollisionWorld {
+  post = false;
+  movePlayer(pos: THREE.Vector3, delta: THREE.Vector3, _crouched: boolean, out: MoveResult) {
+    out.grounded = out.hitCeiling = out.wall = false;
+    out.wallNormal.set(0, 0, 0);
+    const wasX = pos.x;
+    pos.add(delta);
+    // The pit's walls, below the floor.
+    if (pos.y < 0) {
+      if (wasX >= 0.4 && pos.x < 0.4) {
+        pos.x = 0.4;
+        out.wall = true;
+        out.wallNormal.set(1, 0, 0);
+      }
+      if (wasX <= 11.6 && pos.x > 11.6) {
+        pos.x = 11.6;
+        out.wall = true;
+        out.wallNormal.set(-1, 0, 0);
+      }
+    }
+    // Something tall, 6 m high, at x = 3.
+    if (this.post && pos.y < 6 && wasX >= 3 && pos.x < 3) {
+      pos.x = 3;
+      out.wall = true;
+      out.wallNormal.set(1, 0, 0);
+    }
+    const onFloor = pos.x <= 0 || pos.x >= 12;
+    const under = onFloor ? 0 : -1.6;
+    if (pos.y <= under && delta.y <= 0) {
+      pos.y = under;
+      out.grounded = true;
+    }
+  }
+  probeWall() {
+    return false;
+  }
+  canStand() {
+    return true;
+  }
+  rayDistance() {
+    return Infinity;
+  }
+}
+
+section('Pits — bounced back out, frame by frame');
+{
+  const box = [{ x: 6, y: -2.1, z: 0, w: 12, h: 1, d: 40, kind: 'lava' as const }];
+  const start = { x: 99, y: 0, z: 99 };
+  /** A run of it: on its bank at x = -2, then in the pit at (x, 0); till it's over. */
+  const fall = (world: PitWorld, atX: number, hold = 0, gravity = 1) => {
+    const p = createPlayer(-2, 0, 0, 0);
+    p.gravity = gravity;
+    p.grounded = true;
+    lavaStep(p, box, start, null);
+    p.grounded = false;
+    p.pos.set(atX, -1.6, 0);
+    p.vel.set(9, -20, 0);
+    const out = { p, secs: 0, burns: 0, jump: 0, peak: -9 };
+    const intent = emptyIntent();
+    intent.moveZ = hold;
+    for (let i = 0; i < 1200 && (i === 0 || !p.grounded || p.pos.y < -1); i++) {
+      const was = p.pos.x;
+      const hp = p.hp;
+      lavaStep(p, box, start, null);
+      if (p.hp < hp) out.burns++;
+      stepPlayer(p, intent, world, [], DT);
+      out.jump = Math.max(out.jump, Math.abs(p.pos.x - was));
+      out.peak = Math.max(out.peak, p.pos.y);
+      out.secs += DT;
+    }
+    return out;
+  };
+  const a = fall(new PitWorld(), 3);
+  check(`back on the ground where you stood, on your feet (${a.secs.toFixed(2)} s)`, a.p.grounded && a.p.pos.y === 0 && a.p.pos.x < -1.9 && a.p.pos.x > -3);
+  check('one burn', a.burns === 1 && a.p.hp === 100 - HEALTH.v.lavaDamage);
+  check('it’s an arc, not a teleport: no jump anywhere along it', a.jump < 0.5, a.jump.toFixed(3));
+  check('quick', a.secs < 1.5);
+  check('it stops where it lands', a.p.vel.x === 0 && a.p.vel.z === 0 && a.p.bounce === 0);
+  const b = fall(new PitWorld(), 11);
+  check(`from the middle of the pit too, past its wall (${b.secs.toFixed(2)} s)`, b.p.grounded && b.p.pos.y === 0 && b.p.pos.x < -1.9 && b.burns === 1);
+  const c = fall(new PitWorld(), 3, 1);
+  check('pressing to move changes nothing till it’s over', c.p.pos.x < -1.9 && c.burns === 1);
+  const moon = fall(new PitWorld(), 3, 0, 0.2);
+  check(`on the moon: the same, floatier (${moon.secs.toFixed(2)} s)`, moon.p.grounded && moon.p.pos.y === 0 && moon.p.pos.x < -1.9 && moon.burns === 1 && moon.secs > a.secs);
+  // Something in the way: burnt again, thrown higher, over it.
+  const world = new PitWorld();
+  world.post = true;
+  const d = fall(world, 8);
+  check(`something tall in the way: thrown higher till it’s over it (${d.burns} burns)`, d.p.grounded && d.p.pos.y === 0 && d.p.pos.x < 0 && d.burns >= 2 && d.burns <= 3 && d.peak > 6);
+  // Nothing can hurt you while you've no control.
+  const e = createPlayer(-2, 0, 0, 0);
+  e.grounded = true;
+  lavaStep(e, box, start, null);
+  e.pos.set(3, -1.6, 0);
+  lavaStep(e, box, start, null);
+  const hp = e.hp;
+  damagePlayer(e, 40, 'grunt');
+  check('nothing can hurt you through it', e.hp === hp && e.invuln > 0);
+  // Stood nowhere yet.
+  const f = createPlayer(3, -1.6, 0, 0);
+  lavaStep(f, box, start, null);
+  check('stood nowhere yet: to the checkpoint', near(f.bounceTo.x, 99, 1) && near(f.bounceTo.z, 99, 1));
+  // A respawn forgets it.
+  resetPlayer(e, 0, 0, 0, 0);
+  check('a respawn forgets all that', e.bounce === 0 && !e.solidSet);
+  // A slam into it is over.
+  const g = createPlayer(-2, 0, 0, 0);
+  g.grounded = true;
+  lavaStep(g, box, start, null);
+  g.pos.set(3, -1.6, 0);
+  g.slamming = true;
+  lavaStep(g, box, start, null);
+  check('a slam into it ends there', !g.slamming);
 }
 
 section('Floor 3 — its look');

@@ -44,7 +44,7 @@ export function applyMoveEvents(events: EventQueue<MoveEvent>, rig: CameraRig, s
       rig.shake.add(HEALTH.v.shakeHurt * 0.6);
       hits.shields++;
     } else if (kind === 'lavaBurn' || kind === 'seaFall') {
-      // Update 0.0.20 — taken by the lava: a hard jolt.
+      // Update 0.0.20 — burnt by a pit: a hard jolt.
       rig.shake.add(0.8);
     } else if (kind === 'death') {
       rig.shake.add(1);

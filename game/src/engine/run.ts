@@ -131,9 +131,8 @@ export class Run extends RunBase {
       if (lobby && stepLobby(lobby, p, ci.interactPressed && free)) ci.interactPressed = false;
       stepPlayer(p, this.intent, this.level.physics, this.level.arena.pads, stepDt);
       checkHazards(p, this.hazards);
-      // (Update 0.2.12 — back to the checkpoint: outside the room you were in.)
-      const back = d?.checkpoint ?? this.level.arena.playerStart;
-      if (lavaStep(p, this.lava, back, d, this.combat)) this.look.yaw = back.yaw;
+      // (Update 0.3.67 — thrown back out of a pit, to where you last stood; that or, if you've stood nowhere yet, the checkpoint.)
+      lavaStep(p, this.lava, d?.checkpoint ?? this.level.arena.playerStart, d);
       // (Update 0.2.10 — the water's level where the fight is: floor 5's enemies use it. Update 0.2.11 — under water,
       // its top: floor 6's fish swim under it.)
       this.combat.tide = p.swimTop > 0 ? p.swimTop : bossOn ? this.combat.flood : d && d.level.tide.length > 0 ? d.tide.level : 0;

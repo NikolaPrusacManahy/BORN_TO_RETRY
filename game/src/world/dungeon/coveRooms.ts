@@ -1,6 +1,6 @@
 // Update 0.3.14 — floor 6 reworked: Skull Cove, a pirate floor (the designer: "time to rework floor 6 entirely … it
 // becomes a Pirate themed floor"; the plan, MD/FLOOR6_PIRATE_PLAN.md; the rooms are Claude's). Nine, each round its own
-// idea: L the sea (deep water: fall in and you're hurt and back at the door; an enemy knocked in sinks), = a boardwalk
+// idea: L the sea (deep water: fall in and you're hurt and bounced back out; an enemy knocked in sinks), = a boardwalk
 // over it, * a powder keg (it blows up when hit), Y a palm in the sand, b a rock for low cover; set pieces, each a
 // rectangle of one letter: Z a beached wreck (its deck a 2.5 m platform; p and P steps up to it), z a small boat up on
 // the sand (high cover), M a house, r a rock outcrop, X giant bones (2×2 a skull, bigger an arch of ribs to walk

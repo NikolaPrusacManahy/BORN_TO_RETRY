@@ -103,19 +103,18 @@ section('Venom Garden — webs and sludge');
   check('not in the air over it', webSlow(p, webs) === 1);
   p.pos.set(level!.arena.playerStart.x, 0, level!.arena.playerStart.z);
   check('nor off it', webSlow(p, webs) === 1);
-  // Falling into the sludge: burnt as by lava, sent back, and poisoned.
+  // Falling into the sludge: burnt as by lava, thrown back out, and poisoned.
   const pitted = buildDungeon(planFloor(2, FLOOR.garden));
   const pits = lavaOf(pitted.arena);
   const run = createDungeonRun(pitted);
-  const combat = createCombat(pitted.arena, false);
   const q = createPlayer(pits[0].x, pits[0].y, pits[0].z, 0);
   const start = pitted.arena.playerStart;
-  const back = lavaStep(q, pits, start, run, combat);
-  check('sludge burns you, sends you back and poisons you', back && q.poison === GARDEN.v.sludgePoison && q.poisonBy === 'lava' && q.hp < 100);
+  const back = lavaStep(q, pits, start, run);
+  check('sludge burns you, throws you back out and poisons you', back && q.bounce > 0 && q.poison === GARDEN.v.sludgePoison && q.poisonBy === 'lava' && q.hp < 100);
   const lava3 = buildDungeon(planFloor(2, FLOOR.keep));
   const pits3 = lavaOf(lava3.arena);
   const r = createPlayer(pits3[0]?.x ?? 0, pits3[0]?.y ?? 0, pits3[0]?.z ?? 0, 0);
-  lavaStep(r, pits3, lava3.arena.playerStart, createDungeonRun(lava3), createCombat(lava3.arena, false));
+  lavaStep(r, pits3, lava3.arena.playerStart, createDungeonRun(lava3));
   check('floor 3’s lava doesn’t poison', pits3.length === 0 || r.poison === 0);
 }
 

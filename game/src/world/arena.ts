@@ -3,7 +3,7 @@
 import { Euler, Matrix4, Quaternion, Vector3 } from 'three';
 
 /** M1 step 8 — 'hazard': spikes; solid like a block, and touching its top hurts (sim/player/hazards.ts). */
-// Update 0.0.20 — 'lava': a pit's bottom (solid; landing on it burns you: sim/dungeon/lava.ts).
+// Update 0.0.20 — 'lava': a pit's bottom (solid; landing on it burns you and throws you back out: sim/dungeon/lava.ts).
 export type BoxKind = 'floor' | 'wall' | 'block' | 'ramp' | 'accent' | 'hazard' | 'lava';
 
 export interface ArenaBox {

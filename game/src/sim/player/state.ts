@@ -125,6 +125,13 @@ export interface PlayerState {
   /** Update 0.3.17 — gravity, this share of the usual (floor 8's moon: Moon gravity; set by the run each tick). Your
    *  jump's speed stays the usual, so it goes higher and hangs longer. */
   gravity: number;
+  /** Update 0.3.67 — thrown back out of a pit (pitBounce.ts): seconds left of it, where to, how long till another's a new one, how many in a row; and the last solid ground you stood on. */
+  bounce: number;
+  bounceTo: Vector3;
+  bounceAgain: number;
+  bounceTries: number;
+  solid: Vector3;
+  solidSet: boolean;
   /** Update 0.1.14 — what last took your health (null: nothing yet), and who poisoned you. */
   hurtBy: Cause | null;
   poisonBy: Cause | null;
@@ -182,6 +189,12 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     strafe: 0,
     strafePressed: 0,
     gravity: 1,
+    bounce: 0,
+    bounceTo: new Vector3(),
+    bounceAgain: 0,
+    bounceTries: 0,
+    solid: new Vector3(),
+    solidSet: false,
     dashLock: 0,
     hurtBy: null,
     poisonBy: null,
@@ -204,6 +217,8 @@ export function resetPlayer(p: PlayerState, x: number, y: number, z: number, yaw
   p.shield = p.kneel = p.hpBonus = p.poison = p.poisonDps = p.blind = p.dashLock = p.ink = p.freeDash = p.shrug = p.airJumps = 0;
   p.dead = false;
   p.hurtBy = p.poisonBy = null;
+  p.bounce = p.bounceAgain = p.bounceTries = 0;
+  p.solidSet = false;
   p.dashCharges = DASH.v.charges;
   p.slamming = p.onWall = p.wallRunning = p.lastWallSet = false;
   p.wallJumpsLeft = WALL.v.count;

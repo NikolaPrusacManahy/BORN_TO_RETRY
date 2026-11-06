@@ -2,7 +2,7 @@
 // thing, loads of sakura leaves"; the plan, MD/FLOOR8_SHRINE_PLAN.md; the rooms are Claude's). Nine, each round its own
 // idea: a sakura in a bed of earth, a carpet of its petals round it; + a bed of moss; e a maple; j a pine; i a clump
 // of bamboo; l a stone lantern; % a small shrine; ! a training dummy and | a weapon rack (a dojo's); N raked gravel and
-// : a dojo's planks (floor); L a pond (deep water: what falls in drowns) and = a bridge over it (its railing along the
+// : a dojo's planks (floor); L a pond (deep water: you're hurt and bounced back out; an enemy knocked in drowns) and = a bridge over it (its railing along the
 // water); U a perch (a high ledge); set pieces, each a rectangle of one letter: t a torii (across its long side: walk
 // under it), @ the shrine hall, $ a pagoda, & a bell tower. A torii stands inside every doorway too (shrine.ts). Floor
 // cells always join every door; lanes 4 m wide at least between blocks (the enemies' pathing). Drawn as quarters like

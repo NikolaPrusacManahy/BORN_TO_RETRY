@@ -15,6 +15,7 @@ import type { PlayerIntent } from './intent';
 import { updateKneel } from './kneel';
 import { tryAirJump, tryGroundJump, updateJumpTimers } from './jump';
 import { checkPads } from './jumpPad';
+import { landBounce, stepBounce } from './pitBounce';
 import { landSlam, tryStartSlam, updateSlam } from './slam';
 import type { PlayerState } from './state';
 import { swim, swimCeiling } from './swim';
@@ -55,13 +56,17 @@ export function stepPlayer(p: PlayerState, intent: PlayerIntent, world: Collisio
   p.wallRunCooldown = Math.max(0, p.wallRunCooldown - dt);
   refillDash(p, p.swimTop > 0 ? dt / SWIM.v.kickRefill : dt);
   wishDirection(intent.moveX, intent.moveZ, p.yaw, wish);
-  if (p.swimTop > 0) {
+  p.bounceAgain = Math.max(0, p.bounceAgain - dt);
+  // (Update 0.3.67 — thrown back out of a pit: nothing else moves you.)
+  if (p.bounce > 0) stepBounce(p, dt);
+  else if (p.swimTop > 0) {
     if (tryStartSlam(p, intent.slamPressed, world)) endWallRun(p);
     if (p.slamming) updateSlam(p);
     else swim(p, intent, dt);
   } else steer(p, intent, world, dt);
   checkPads(p, pads);
   collide(p, world, dt);
+  landBounce(p);
 }
 
 /** On foot: the actions, then the velocity. */

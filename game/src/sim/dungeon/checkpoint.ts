@@ -1,7 +1,7 @@
 // Update 0.2.12 — checkpoints (the designer: "respawns from lava pit and dying in general, you just respawn just in front
 // of the room you just died, where is says "Room" or "Boss", maybe add a saving checkpoint, much better for the easier
 // difficulty and players falling to the lava"). Going into a fight room or the boss room saves a checkpoint: just
-// outside the door you came in by, under its sign, facing in. Falling in lava sends you there (any difficulty); dying on
+// outside the door you came in by, under its sign, facing in. (Update 0.3.67 — falling in a pit no longer sends you there.) Dying on
 // WEAKLING EXPERIENCE does too (runBase.ts), the fight you died in starting over when you go back in: the boss's too.
 // Pure.
 import type { CombatState } from '../combat/state';

@@ -2,8 +2,8 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-06, after Update 0.3.66)
-- **Versions 0.3.65 and 0.3.66** (Hellwarden's intro rebuilt to the designer's shot list; its mask and swing fixed), built, **not committed** until the designer says "commit". 0.3.58 to 0.3.64 are committed; the designer pushes.
+## Where things stand (2026-11-06, after Update 0.3.67)
+- **Version 0.3.67** (pits burn you and bounce you back out), built, **not committed** until the designer says "commit". 0.3.58 to 0.3.66 are committed; the designer pushes.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
@@ -64,14 +64,19 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-05, Update 0.3.66: Hellwarden's mask and swing fixed)
+## Last update (2026-11-06, Update 0.3.67: pits burn you and bounce you back out)
+- **The designer:** "let's change the rules of the lava pool and water pool ... just take damage and bounce out". Spec `MD_UPDATES/U0367_PIT_BOUNCE.md`.
+- **Built:** every pit costs 10 health instead of 50 and throws you back to the last solid ground you stood on, in a guided arc of about 0.9 s (`sim/player/pitBounce.ts`). No teleport, no fight reset. Still kills at 10 health or less. Enemies knocked in still die.
+- **Unseen:** not played. Tested in rules with a stand-in pit (`test-lava.ts`), not on the real collision.
+
+## Before (2026-11-06, Update 0.3.66: Hellwarden's mask and swing fixed)
 - **The designer**, playing 0.3.65: "he is supposed to have his skull face on here" and "like he is faking the swing". Spec `MD_UPDATES/U0366_HELLWARDEN_FIXES.md`.
 - **Mask:** its head was folding back behind its collar. Its look had no `rise` clip, so its idle was its rise too: one action, played once and sped up. Then the mixer stopped writing its neck, and `turnBone` built up every frame. Its idle now loops and `wardenPose.ts` starts each frame from the clip's pose.
 - **Swing:** its Blazing Arc played `Sword_Heavy_B`, a combo's second hit, with its blow at 42%. Now `Sword_Heavy_A`, its blow mid-sweep; B is its second swing once risen. Its Brand's sword stays in the floor while it's there to be hit.
 - **Also:** the eye's flare is just the eye's now, the embers are round and small, and the mask shot allows for your field of view.
 - **Unseen:** not played. A single posed still can't show this kind of bug: `test-warden-show.ts` now plays the show frame by frame. **Elsewhere:** every other look with no `rise` clip shares the same idle-plays-once fault.
 
-## Before (2026-11-05, Update 0.3.65: Hellwarden forged from your dead)
+## Before (2026-11-06, Update 0.3.65: Hellwarden forged from your dead)
 - **The designer** sent a revised shot list: "make it memorable and spectacular". Spec `MD_UPDATES/U0365_HELLWARDEN_FORGED.md`.
 - **Built:** door and torches, bones dragged into a river of lava, a bare molten rise, armor flying on piece by piece, the sword heating along its claws, the skull becoming its mask, the eye igniting, silence, a frozen leap with its name and your death count, and a landing that's its first attack. At half health its mask cracks and its second eye lights. The sky stays down through the fight. Test: `test-warden-show.ts`.
 - **New:** the save counts your deaths (`SaveData.deaths`). Its bones left the floor's dressing. Clips `hell*` from the Sonniss library (`tools/sfx/recipes/warden.json`), picked by name and measurement.

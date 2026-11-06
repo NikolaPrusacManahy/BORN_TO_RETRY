@@ -126,12 +126,12 @@ section('Floor 6 — the sea');
   p.pos.set(pit.x, -1.6, pit.z);
   const back = { x: 5, y: 0, z: 5, yaw: 0 };
   const seen: string[] = [];
-  lavaStep(p, pits, back, run, c);
+  lavaStep(p, pits, back, run);
   for (let i = 0; i < p.events.length; i++) seen.push(p.events.at(i).kind);
-  check(`fall in: hurt (${HEALTH.v.lavaDamage}) and back where you came in; a splash, no poison`, p.hp === 100 - HEALTH.v.lavaDamage && near(p.pos.x, 5, 1e-9) && seen.includes('seaFall') && !seen.includes('lavaBurn') && !(p.poison > 0));
-  p.hp = 10;
+  check(`fall in: hurt (${HEALTH.v.lavaDamage}) and thrown back out, not moved; a splash, no poison`, p.hp === 100 - HEALTH.v.lavaDamage && p.bounce > 0 && near(p.pos.x, pit.x, 1e-9) && seen.includes('seaFall') && !seen.includes('lavaBurn') && !(p.poison > 0));
+  p.hp = HEALTH.v.lavaDamage;
   p.pos.set(pit.x, -1.6, pit.z);
-  lavaStep(p, pits, back, run, c);
+  lavaStep(p, pits, back, run);
   check('falling in with too little left kills you: “The sea”', p.dead && p.hurtBy === 'sea' && causeName('sea') === 'The sea');
   // A body knocked out over the sea.
   const i = spawnEnemy(c.enemies, 'grunt', new Vector3(pit.x, 0, pit.z), 0);
