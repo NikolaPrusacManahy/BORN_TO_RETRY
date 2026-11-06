@@ -134,6 +134,20 @@ export class CombatFeedback {
           this.f.rig.shake.add(0.7);
           this.f.rig.kick(2.4);
           break;
+        case 'seanHoleOpen':
+          this.f.arms.seanHands.shove();
+          this.f.rig.shake.add(0.3);
+          break;
+        case 'seanHoleBurst':
+          this.f.chunks.spawn(at, UP, 30, 1.6);
+          this.f.rig.shake.add(0.6);
+          this.f.rig.kick(1.6);
+          break;
+        case 'seanMeteorHit':
+          this.f.chunks.spawn(at.set(at.x, at.y + 0.2, at.z), UP, 50, 2);
+          this.f.rig.shake.add(1);
+          this.f.rig.kick(3);
+          break;
         case 'seanGrab':
           this.f.chunks.spawn(at, UP, e.value === 1 ? 26 : 14, 1);
           this.f.rig.shake.add(e.value === 1 ? 0.3 : 0.12);

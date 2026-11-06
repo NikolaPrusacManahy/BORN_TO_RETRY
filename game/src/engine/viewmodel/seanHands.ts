@@ -16,7 +16,7 @@ interface Key {
 const REACH: Key = { fist: [0.19, -0.05, -0.38], knuckles: [-0.18, 0.74, -0.65], back: [0.02, 0.66, 0.75] };
 const GATHER_R: Key = { fist: [0.12, -0.12, -0.33], knuckles: [-0.34, 0.47, -0.82], back: [0.84, 0.54, 0] };
 const RAISE_R: Key = { fist: [0.2, -0.03, -0.38], knuckles: [-0.12, 0.76, -0.64], back: [0.03, 0.64, 0.77] };
-const SKY_R: Key = { fist: [0.17, 0.08, -0.3], knuckles: [-0.06, 0.95, -0.3], back: [0, 0.3, 0.95] };
+const SKY_R: Key = { fist: [0.17, 0.02, -0.33], knuckles: [-0.06, 0.93, -0.36], back: [0, 0.36, 0.93] };
 const KEYS: Record<Exclude<SeanHand, 'none'>, { R: Key; both: boolean }> = {
   reach: { R: REACH, both: false },
   gather: { R: GATHER_R, both: true },
@@ -39,6 +39,11 @@ export class SeanHands {
   set(hand: SeanHand) {
     this.want = hand;
     if (hand !== 'none') this.last = hand;
+  }
+
+  /** How far both palms have come in, gathering (0 … 1): Black Hole's. */
+  get gathering(): number {
+    return this.last === 'gather' ? this.weight.L : 0;
   }
 
   /** Right hand: a throw's shove, out along the arm. */

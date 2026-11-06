@@ -85,6 +85,7 @@ export function SeanControls({ s }: { s: HudState }) {
       <Input cap={s.interactKey} name={s.unstable ? 'Vent' : 'Unstable'} state={s.unstable ? 'is-lit' : ''} />
       <Input cap={s.dashKey} name="Dash" />
       <Input cap={s.slamKey} name={s.inAir ? 'Plunge' : 'Ground Slam'} state={waiting ? 'is-off' : ''} fill={waiting ? s.brandFill : 1} />
+      <Input cap={s.throwKey} name={s.unstable ? 'Meteor' : 'Black Hole'} state={s.execution >= 1 ? 'is-ready' : 'is-off'} fill={s.execution} />
     </div>
   );
 }

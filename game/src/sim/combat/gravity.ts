@@ -27,11 +27,11 @@ const hit = emptyTargetHit();
 const dummyAt = new Vector3();
 
 /** One target in a blast: half as hard at its edge, thrown outward. Whether it died. */
-function blastOne(state: CombatState, x: number, y: number, z: number, kind: TargetKind, index: number, pos: Vector3, r: number, height: number, radius: number, damage: number, knock: number): boolean {
+function blastOne(state: CombatState, x: number, y: number, z: number, kind: TargetKind, index: number, pos: Vector3, r: number, height: number, radius: number, damage: number, knock: number, open: boolean): boolean {
   const dx = pos.x - x;
   const dz = pos.z - z;
   const dist = Math.hypot(dx, dz);
-  if (dist > radius + r || Math.abs(pos.y - y) > LEVEL || wallBetween(state.nav.small, x, z, pos.x, pos.z)) return false;
+  if (dist > radius + r || (!open && (Math.abs(pos.y - y) > LEVEL || wallBetween(state.nav.small, x, z, pos.x, pos.z)))) return false;
   const len = Math.max(dist, 1e-3);
   const fx = dist > 1e-3 ? dx / len : 0;
   const fz = dist > 1e-3 ? dz / len : -1;
@@ -46,17 +46,17 @@ function blastOne(state: CombatState, x: number, y: number, z: number, kind: Tar
   return killed;
 }
 
-/** Everything near (x, y, z) and not behind a wall takes it. How many it killed. */
-export function gravBlast(state: CombatState, x: number, y: number, z: number, radius: number, damage: number, knock: number): number {
+/** Everything near (x, y, z) and not behind a wall takes it. How many it killed. Update 0.3.83 — `open`: it comes from the sky: no wall stops it, and height doesn't count. */
+export function gravBlast(state: CombatState, x: number, y: number, z: number, radius: number, damage: number, knock: number, open = false): number {
   state.events.push('seanBlast', radius, x, y, z);
   let kills = 0;
   state.dummies.forEach((d, i) => {
     if (d.broken) return;
     dummyAt.set(d.home.x + d.offset.x, d.home.y, d.home.z + d.offset.z);
-    if (blastOne(state, x, y, z, 'dummy', i, dummyAt, TARGET_SHAPES.dummy.radius, TARGET_SHAPES.dummy.height, radius, damage, knock)) kills++;
+    if (blastOne(state, x, y, z, 'dummy', i, dummyAt, TARGET_SHAPES.dummy.radius, TARGET_SHAPES.dummy.height, radius, damage, knock, open)) kills++;
   });
   state.enemies.forEach((e, i) => {
-    if (isLive(e) && blastOne(state, x, y, z, 'enemy', i, e.pos, radiusOf(e), ENEMY_STATS[e.kind]().height, radius, damage, knock)) kills++;
+    if (isLive(e) && blastOne(state, x, y, z, 'enemy', i, e.pos, radiusOf(e), ENEMY_STATS[e.kind]().height, radius, damage, knock, open)) kills++;
   });
   return kills;
 }

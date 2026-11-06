@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
 import { PiecesView } from './piecesView';
+import { UltimatesView } from './ultimatesView';
 
 const RINGS = 10;
 const RIPPLES = 8;
@@ -15,6 +16,7 @@ const RIPPLE_FROM = 0.25;
 const RIPPLE_GROW = 0.9;
 const COOL = 0x8f83ff;
 const HOT = 0xff40d8;
+const FIRE = 0xffa040;
 const Z = new THREE.Vector3(0, 0, 1);
 
 interface Ring {
@@ -41,12 +43,14 @@ export class GravityView {
   private nextRing = 0;
   private nextRipple = 0;
   private readonly pieces: PiecesView;
+  private readonly ultimates: UltimatesView;
 
   constructor(
     private readonly scene: THREE.Scene,
     private readonly camera: THREE.Camera,
   ) {
     this.pieces = new PiecesView(scene);
+    this.ultimates = new UltimatesView(scene);
     const make = (geo: THREE.BufferGeometry, side: THREE.Side) => {
       const mat = new THREE.MeshBasicMaterial({ color: COOL, transparent: true, opacity: 0, side, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
       const mesh = new THREE.Mesh(geo, mat);
@@ -69,9 +73,11 @@ export class GravityView {
     for (let i = 0; i < state.events.length; i++) {
       const e = state.events.at(i);
       if (e.kind === 'seanBlast') this.ring(e.value, e.x, e.y, e.z, state.grav.unstable || e.value > 6 ? HOT : COOL);
+      else if (e.kind === 'seanMeteorHit') this.ring(e.value * 1.4, e.x, e.y, e.z, FIRE);
       else if (e.kind === 'seanRipple') this.ripple(e.x, e.y, e.z);
     }
     this.pieces.update(state, dt);
+    this.ultimates.update(state, dt);
     for (const r of this.rings) {
       if (!r.mesh.visible) continue;
       r.t += dt / RING_LIFE;
@@ -118,6 +124,7 @@ export class GravityView {
 
   dispose() {
     this.pieces.dispose();
+    this.ultimates.dispose();
     for (const r of [...this.rings, ...this.ripples]) {
       this.scene.remove(r.mesh);
       r.mat.dispose();

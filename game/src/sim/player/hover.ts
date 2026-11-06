@@ -3,6 +3,20 @@
 import { SEAN } from '../../tuning/sean';
 import type { PlayerState } from './state';
 
+/** How fast he rises to it (m/s, and per metre to go). */
+const RISE = 4;
+const RISE_RATE = 7;
+
+/** Update 0.3.83 — Black Hole has him: he rises to `p.floatY` and hangs there, drifting if he's asked to, with none of his other moves. */
+export function stepFloat(p: PlayerState, wishX: number, wishZ: number) {
+  const v = SEAN.v;
+  p.vel.x = wishX * v.floatMove;
+  p.vel.z = wishZ * v.floatMove;
+  p.vel.y = Math.max(-RISE, Math.min(RISE, (p.floatY - p.pos.y) * RISE_RATE));
+  p.slamming = false;
+  p.dashTime = 0;
+}
+
 /** One tick of falling. */
 export function stepHover(p: PlayerState, held: boolean, dt: number) {
   if (!p.sean) return;

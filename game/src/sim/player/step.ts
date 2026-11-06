@@ -12,7 +12,7 @@ import { airMove, applyGravity } from './air';
 import { refillDash, tryStartDash, updateDash } from './dash';
 import { groundMove } from './ground';
 import type { PlayerIntent } from './intent';
-import { stepHover } from './hover';
+import { stepFloat, stepHover } from './hover';
 import { updateKneel } from './kneel';
 import { tryAirJump, tryGroundJump, updateJumpTimers } from './jump';
 import { checkPads } from './jumpPad';
@@ -72,6 +72,11 @@ export function stepPlayer(p: PlayerState, intent: PlayerIntent, world: Collisio
 
 /** On foot: the actions, then the velocity. */
 function steer(p: PlayerState, intent: PlayerIntent, world: CollisionWorld, dt: number) {
+  // (Update 0.3.83 — Gravity Sean, floating for Black Hole.)
+  if (p.floatY >= 0) {
+    stepFloat(p, wish.x, wish.z);
+    return;
+  }
   // Actions. Update 0.0.12 — the slam has its own key (Update 0.3.20: Ctrl).
   if (tryStartDash(p, intent.dashPressed, wish)) endWallRun(p);
   if (tryStartSlam(p, intent.slamPressed, world)) endWallRun(p);

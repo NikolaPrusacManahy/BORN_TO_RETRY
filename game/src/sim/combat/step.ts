@@ -56,6 +56,7 @@ import { addHeat } from './heat';
 import { landPlunge as landSeanPlunge, punchRate, shapePunch, stepDashPull, switchStance, tickGravity, trySeanSlam } from './gravity';
 import { dropCaught, stepFling, stepFlung } from './gravityFling';
 import { dropPiece, stepRocks, stepSeanGrab } from './gravityGrab';
+import { slowBosses, stepHole, stepMeteor, tryUltimate } from './gravityUlt';
 import { stepVerdict, tryVerdict } from './lastVerdict';
 import { WEAPONS } from '../../tuning/weapons';
 import { updateDummy } from './dummy';
@@ -119,6 +120,11 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     stepVerdict(state, player, dt);
     feedOnFallen(state, player);
     tickCleave(state, dt);
+    return;
+  }
+  // (Update 0.3.83 — Gravity Sean's Meteor: so it does for that.)
+  if (state.grav.meteor) {
+    stepMeteor(state, player, intent.yaw, intent.pitch, world, dt);
     return;
   }
   tickGrab(state.grab, dt);
@@ -277,16 +283,25 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   const sean = state.sean && w === null;
   if (sean) {
     tickGravity(state, player, dt);
-    if (intent.interactPressed && !clasped) switchStance(state, player);
-    trySeanSlam(state, player, intent.slamPressed && !clasped);
-    stepDashPull(state, player);
-    // (Update 0.3.82 — right click: Grab, or in Unstable mode Fling. Switching drops what the other had.)
-    if (state.grav.unstable) {
-      dropPiece(state);
-      stepFling(state, player, intent.heavyPressed, intent.heavyHeld, intent.yaw, intent.pitch, world, dt);
+    // (Update 0.3.83 — Q: an ultimate. Black Hole has him for as long as it runs.)
+    tryUltimate(state, player, intent.throwPressed, intent.yaw, intent.pitch, world);
+    stepHole(state, player, intent.yaw, intent.pitch, world, dt);
+    if (state.grav.hole) {
+      fistIntent = Object.assign(NO_SWING, fistIntent);
+      NO_SWING.attackPressed = NO_SWING.attackHeld = false;
     } else {
-      dropCaught(state);
-      stepSeanGrab(state, player, intent.heavyPressed, intent.yaw, intent.pitch, world, dt);
+      player.floatY = -1;
+      if (intent.interactPressed && !clasped) switchStance(state, player);
+      trySeanSlam(state, player, intent.slamPressed && !clasped);
+      stepDashPull(state, player);
+      // (Update 0.3.82 — right click: Grab, or in Unstable mode Fling. Switching drops what the other had.)
+      if (state.grav.unstable) {
+        dropPiece(state);
+        stepFling(state, player, intent.heavyPressed, intent.heavyHeld, intent.yaw, intent.pitch, world, dt);
+      } else {
+        dropCaught(state);
+        stepSeanGrab(state, player, intent.heavyPressed, intent.yaw, intent.pitch, world, dt);
+      }
     }
     fistIntent = Object.assign(NO_HEAVY, fistIntent);
     NO_HEAVY.heavyHeld = false;
@@ -385,6 +400,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   if (state.sean) {
     stepRocks(state, world, dt);
     stepFlung(state, dt);
+    slowBosses(state);
   }
   // (Update 0.3.10 — a melee blow parried: the long wait, as after a shot.)
   if (state.fists.parried) {

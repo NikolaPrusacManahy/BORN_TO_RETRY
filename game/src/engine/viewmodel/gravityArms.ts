@@ -17,7 +17,7 @@ const JOINTS = 5;
 /** Round the forearm (m): how far out they orbit, at the wrist and up the arm; rings' sizes. */
 const ORBIT = 0.09;
 const ORBIT_UP = 0.115;
-const RING_SIZES = [0.082, 0.112];
+const RING_SIZES = [0.066, 0.092];
 /** Where along the forearm, from the wrist (a share of it). */
 const RING_ALONG = [-0.08, 0.5];
 const COOL = new THREE.Color(0x7f73ff);
@@ -60,6 +60,12 @@ export class GravityArms {
   private readonly arcGeo = new THREE.BufferGeometry();
   private readonly arcMat = new THREE.MeshBasicMaterial({ color: HOT, transparent: true, opacity: 0.95, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
   readonly arcs = new THREE.Mesh(this.arcGeo, this.arcMat);
+  /** Update 0.3.83 — Black Hole gathering, between his palms. */
+  private readonly orbGeo = new THREE.SphereGeometry(1, 20, 14);
+  private readonly orbMat = new THREE.MeshBasicMaterial({ color: 0x000000, toneMapped: false });
+  private readonly orbRimMat = new THREE.MeshBasicMaterial({ color: COOL, transparent: true, opacity: 0.7, side: THREE.BackSide, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
+  readonly orb = new THREE.Mesh(this.orbGeo, this.orbMat);
+  private readonly orbRim = new THREE.Mesh(this.orbGeo, this.orbRimMat);
   private time = 0;
   private crackle = 0;
   private mode: GravityMode = 0;
@@ -82,7 +88,9 @@ export class GravityArms {
     this.arcGeo.setIndex(idx);
     this.arcGeo.setDrawRange(0, 0);
     this.arcs.visible = false;
-    scene.add(this.stones, this.arcs, ...this.rings);
+    this.orb.visible = this.orbRim.visible = false;
+    this.orb.frustumCulled = this.orbRim.frustumCulled = false;
+    scene.add(this.stones, this.arcs, this.orb, this.orbRim, ...this.rings);
   }
 
   /** The stance, and the meter. */
@@ -108,9 +116,10 @@ export class GravityArms {
     return this.arcGeo.drawRange.count;
   }
 
-  /** Each frame, the arms posed; `eye`: the arms camera. */
-  update(dt: number, rig: ArmsRig, eye: THREE.Vector3) {
+  /** Each frame, the arms posed; `eye`: the arms camera; `gather`: how far both palms have come in, gathering (0 … 1). */
+  update(dt: number, rig: ArmsRig, eye: THREE.Vector3, gather = 0) {
     this.time += dt;
+    this.gather(rig, gather);
     const on = this.mode > 0;
     this.wild += ((this.mode === 2 ? 1 : 0) - this.wild) * (1 - Math.exp(-14 * dt));
     if (this.mode === 2 && this.wild > 0.995) this.wild = 1;
@@ -143,6 +152,21 @@ export class GravityArms {
     this.stones.count = n;
     this.stones.instanceMatrix.needsUpdate = true;
     if (this.mode === 2 && snap) this.bolts(rig, eye);
+  }
+
+  /** The orb between his palms. */
+  private gather(rig: ArmsRig, k: number) {
+    const on = this.mode > 0 && k > 0.2;
+    this.orb.visible = this.orbRim.visible = on;
+    if (!on) return;
+    rig.knuckle('L', a);
+    rig.knuckle('R', b);
+    at.addVectors(a, b).multiplyScalar(0.5);
+    const s = 0.04 * k * (1 + 0.08 * Math.sin(this.time * 31));
+    this.orb.position.copy(at);
+    this.orbRim.position.copy(at);
+    this.orb.scale.setScalar(s);
+    this.orbRim.scale.setScalar(s * 1.3);
   }
 
   /** This arm's rings: `axis`, `u`, `w` are its forearm's. */
@@ -199,7 +223,7 @@ export class GravityArms {
         a.x += (Math.random() - 0.5) * 0.08;
         a.y += (Math.random() - 0.5) * 0.08;
         a.z += (Math.random() - 0.5) * 0.08;
-        const reach = 0.06 + 0.14 * this.instab * Math.random() + 0.05 * Math.random();
+        const reach = 0.04 + 0.07 * this.instab * Math.random() + 0.03 * Math.random();
         seg.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize().multiplyScalar(reach / JOINTS);
         for (let j = 0; j < JOINTS; j++) {
           b.copy(a).add(seg);
@@ -230,6 +254,11 @@ export class GravityArms {
   dispose() {
     this.stones.removeFromParent();
     this.arcs.removeFromParent();
+    this.orb.removeFromParent();
+    this.orbRim.removeFromParent();
+    this.orbGeo.dispose();
+    this.orbMat.dispose();
+    this.orbRimMat.dispose();
     for (const r of this.rings) r.removeFromParent();
     this.stones.dispose();
     this.stoneGeo.dispose();

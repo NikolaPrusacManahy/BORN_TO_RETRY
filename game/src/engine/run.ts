@@ -73,6 +73,7 @@ import { floodSlow, stepTide, tideSlow } from '../sim/dungeon/tide';
 import { verdictGrey } from '../sim/enemies/wardenVerdict';
 import { verdictShade } from '../sim/combat/lastVerdict';
 import { seanHand } from '../sim/combat/gravityMeter';
+import { meteorShade } from '../sim/combat/gravityUlt';
 import { wardenDark, wardenFreezeGrey, wardenSilent } from '../sim/dungeon/wardenShow';
 import { Lobby, lobbyFocus, stepLobby } from '../sim/lobby/lobby';
 import { styleOf } from '../world/dungeon/styles';
@@ -110,7 +111,8 @@ export class Run extends RunBase {
       // The dead don't steer or punch; nor does anyone during the boss room's show.
       const free = !p.dead && !this.show.locked && !this.chestShot.locked && !execHeld(this.combat.exec) && !capture.flying;
       // (Update 0.3.73 — the Demon's Last Verdict: you hang where you are, the world holding still; only your aim's your own.)
-      const verdict = this.combat.blade.verdict;
+      // (Update 0.3.83 — so too his Meteor.)
+      const verdict = this.combat.blade.verdict || this.combat.grav.meteor !== null;
       const held = this.combat.grab.on || this.combat.pin.on || verdict;
       readPlayerIntent(input, this.look, this.intent, free && !held);
       readCombatIntent(input, this.look, this.combatIntent, free);
@@ -268,7 +270,7 @@ export class Run extends RunBase {
     // (Update 0.3.63 — Hellwarden's Last Verdict: the screen drained of colour.)
     const warden = this.combat.enemies.find((e) => e.alive && e.kind === 'hellwarden');
     // (Update 0.3.73 — and the Demon's own.)
-    const grey = Math.round(Math.max(warden ? Math.max(verdictGrey(warden), d ? wardenFreezeGrey(d.boss) : 0) : 0, verdictShade(this.combat)) * 20) / 20;
+    const grey = Math.round(Math.max(warden ? Math.max(verdictGrey(warden), d ? wardenFreezeGrey(d.boss) : 0) : 0, verdictShade(this.combat), meteorShade(this.combat)) * 20) / 20;
     if (grey !== this.grey) {
       this.grey = grey;
       renderer.domElement.style.filter = grey > 0 ? `grayscale(${grey}) contrast(${1 + 0.15 * grey})` : '';

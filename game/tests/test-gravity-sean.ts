@@ -30,7 +30,7 @@ section('Gravity Sean — on the roster, in the King’s and William Rich’s pl
   check('on the roster, after Joseph', ROSTER[1] === sean && sean.name === 'Gravity Sean');
   check('the Fallen King and William Rich are gone', !ROSTER.some((c) => /king|rich/i.test(c.name)) && !canPlay('king', true, true) && !canPlay('suit', true, true));
   check('a place for each on the dais, with room', FIGURES.length === ROSTER.length && FIGURES.every((f, i) => f.z > DAIS.z0 && f.z < DAIS.z1 && (i === 0 || FIGURES[i - 1].z - f.z >= 2)));
-  check('Joseph’s kit for now: his abilities come later', sean.kit === ROSTER[0].kit);
+  check('his own kit (Update 0.3.81: test-sean-moves.ts)', sean.kit !== ROSTER[0].kit && sean.kit.length > 0);
 }
 
 section('Gravity Sean — earned by winning a whole run');
@@ -95,7 +95,7 @@ section('Gravity Sean — the Lab');
   c.demon = true;
   const t: Treasure = { shop: -1, offers: [], chests: [], choosing: -1 };
   runLab({ kind: 'sean' }, c, createPlayer(0, 0, 0, 0), 0, t);
-  check('from the Demon: Joseph’s rules', !c.demon);
+  check('from the Demon: his own', !c.demon && c.sean);
 }
 
 section('Gravity Sean — his arms');

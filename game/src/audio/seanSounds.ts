@@ -59,6 +59,30 @@ export function playSean(a: AudioEngine, kind: CombatEvent, value: number, far: 
     case 'seanLand':
       noise(a, { dur: 0.14, gain: 0.12 * far, filter: 'lowpass', from: 700, to: 300 });
       return true;
+    case 'seanHoleCharge':
+      tone(a, { from: 50, to: 220, dur: 1, gain: 0.2, type: 'sawtooth' });
+      return true;
+    case 'seanHoleOpen':
+      a.clips.play('bossBurst', 0.7, 0.7);
+      tone(a, { from: 90, to: 34, dur: 1.2, gain: 0.3 });
+      return true;
+    case 'seanHoleHit':
+      return true;
+    case 'seanHoleBurst':
+      a.clips.play('bossBurst', 1, 0.85);
+      noise(a, { dur: 0.7, gain: 0.34, filter: 'lowpass', from: 3000, to: 200 });
+      return true;
+    case 'seanMeteorCall':
+      tone(a, { from: 700, to: 120, dur: 1.2, gain: 0.14, type: 'triangle' });
+      return true;
+    case 'seanMeteorFall':
+      a.clips.play('hellWhoosh', 1, 0.55);
+      return true;
+    case 'seanMeteorHit':
+      a.clips.play('bossDown', 1);
+      a.clips.play('demonSlam', 1, 0.7);
+      noise(a, { dur: 1, gain: 0.4, filter: 'lowpass', from: 2600, to: 120 });
+      return true;
     case 'seanUltReady':
       tone(a, { from: 180, to: 720, dur: 0.45, gain: 0.1, type: 'triangle' });
       return true;

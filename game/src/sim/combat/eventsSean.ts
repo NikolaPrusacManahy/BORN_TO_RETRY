@@ -22,5 +22,13 @@ export type SeanEvent =
   | 'seanFling'
   | 'seanSlamInto'
   | 'seanLand'
+  // Update 0.3.83 — Black Hole: gathering, open, a tick of its damage (value: how much), its end. Meteor: called, on its way, down (value: its radius).
+  | 'seanHoleCharge'
+  | 'seanHoleOpen'
+  | 'seanHoleHit'
+  | 'seanHoleBurst'
+  | 'seanMeteorCall'
+  | 'seanMeteorFall'
+  | 'seanMeteorHit'
   // The shared meter's full.
   | 'seanUltReady';

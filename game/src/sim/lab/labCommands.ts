@@ -33,7 +33,7 @@ export type LabCommand =
   | { kind: 'heal' }
   | { kind: 'meter'; on: boolean }
   | { kind: 'demon'; on: boolean }
-  // (Update 0.3.80 — Gravity Sean's arms, on Joseph's rules.)
+  // (Update 0.3.80 — Gravity Sean.)
   | { kind: 'sean' };
 
 /** How far in front of you (m) things appear: an enemy by its size (a boss further), items, a weapon, a chest. */

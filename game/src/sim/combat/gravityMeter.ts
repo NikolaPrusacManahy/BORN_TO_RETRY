@@ -50,6 +50,27 @@ export interface Flung {
   from: number;
 }
 
+/** Update 0.3.83 — Black Hole: gathering or running, how long, its next damage, where, the floor under it, who it has. */
+export interface Hole {
+  charging: boolean;
+  t: number;
+  tick: number;
+  x: number;
+  y: number;
+  z: number;
+  floor: number;
+  pulled: number[];
+}
+
+/** Meteor: how long the world's held, where its zone is, whether it's on its way. */
+export interface Meteor {
+  t: number;
+  x: number;
+  y: number;
+  z: number;
+  falling: boolean;
+}
+
 export interface GravityState {
   /** E: in Unstable mode. */
   unstable: boolean;
@@ -77,6 +98,9 @@ export interface GravityState {
   caughtY: number;
   flingWait: number;
   flung: Flung[];
+  /** Update 0.3.83 — his ultimates, under way. */
+  hole: Hole | null;
+  meteor: Meteor | null;
 }
 
 export function createGravity(): GravityState {
@@ -99,6 +123,8 @@ export function createGravity(): GravityState {
     caughtY: 0,
     flingWait: 0,
     flung: Array.from({ length: FLUNG }, () => ({ index: -1, dx: 0, dz: 0, left: 0, total: 0, from: 0 })),
+    hole: null,
+    meteor: null,
   };
 }
 
@@ -126,7 +152,11 @@ export function gravHit(state: Fed) {
 export const gravKill = (state: Fed) => addUlt(state, SEAN.v.ultKill);
 
 /** What his open hands are doing now. */
-export const seanHand = (g: GravityState): SeanHand => (g.held || g.caught >= 0 ? 'reach' : 'none');
+export function seanHand(g: GravityState): SeanHand {
+  if (g.meteor) return 'sky';
+  if (g.hole) return g.hole.charging ? 'gather' : 'raise';
+  return g.held || g.caught >= 0 ? 'reach' : 'none';
+}
 
 /** How much harder Unstable mode hits, now. */
 export const instabFactor = (g: GravityState) => 1 + SEAN.v.instabDamage * g.instab;

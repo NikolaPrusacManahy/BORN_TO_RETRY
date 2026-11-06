@@ -2,9 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-06, after Update 0.3.82)
-- **Version 0.3.82** (Gravity Sean, 2 of 3: Grab and Fling), built, **not committed** until the designer says "commit", nor is 0.3.81. 0.3.58 to 0.3.80 are committed; the designer pushes.
-- **Gravity Sean** (`enemy_bibles/Born to Retry — Gravity Sean.docx`, specs `MD_UPDATES/U0380_GRAVITY_SEAN.md`, `U0381_SEAN_STANCES.md`, `U0382_SEAN_GRAB.md`): the space suit, earned by winning a whole run on any difficulty. His kit is being built, placeholders throughout: the designer, "open suggestion, just put place holders". Nothing's been played.
+## Where things stand (2026-11-06, after Update 0.3.83)
+- **Version 0.3.83** (Gravity Sean, 3 of 3: Black Hole and Meteor), built, **not committed** until the designer says "commit", nor are 0.3.81 and 0.3.82. 0.3.58 to 0.3.80 are committed; the designer pushes.
+- **Gravity Sean** (`enemy_bibles/Born to Retry — Gravity Sean.docx`, specs `MD_UPDATES/U0380_GRAVITY_SEAN.md`, `U0381_SEAN_STANCES.md`, `U0382_SEAN_GRAB.md`, `U0383_SEAN_ULTIMATES.md`): the space suit, earned by winning a whole run on any difficulty. His whole kit is in, placeholders throughout: the designer, "open suggestion, just put place holders". Nothing's been played, and the look of Black Hole and Meteor in the world hasn't been seen at all: renders cover only his arms. To decide with the designer: all four of the bible's open decisions, taken as placeholders.
 - **The Playable Demon is under way** (`enemy_bibles/Born to Retry — Playable Demon.docx`, specs `MD_UPDATES/U0370_PLAYABLE_DEMON_1.md`, `U0371_BLAZING_ARC.md`, `U0372_DEMON_MOVES.md`, `U0373_DEMON_BIG_MOVES.md`, `U0374_DEMON_REWORK.md`, which overrides the bible on Q and right click, `U0375_DEMON_FEEL.md`, `U0376_SWORD_LIGHT.md`, `U0378_MODE_SWITCH.md`, which replaces its Hold left click, `U0379_HAND_SIGN.md`): phases 1 to 4 are done. The sword's light is stable on the designer's PC ("perfectly stable"), and stays. The forge hiss is out, on their word. Next, when the designer says: phase 5 (balance). Waiting on the designer: floor 10 in public runs (the unlock can't be earned there while it's closed), Victory lap or Demon Mode, HP 100 or lower.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
@@ -66,7 +66,12 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-06, Update 0.3.82: Gravity Sean, 2 of 3: Grab and Fling)
+## Last update (2026-11-06, Update 0.3.83: Gravity Sean, 3 of 3: Black Hole and Meteor)
+- One meter, on Q, by his stance. Black Hole: he floats, vulnerable for its first second, then untouchable while it pulls in all but bosses and mini-bosses for 4 s and bursts. Meteor: the world holds still, the zone follows your aim, one huge hit from the sky; a boss stays frozen a moment.
+- His open hands rendered through the game's rig (`tools/sean-shots.ts`): that found a hand clipped by the screen's top, arcs too long, rings too big. Fixed.
+- Tests: `test-sean-ultimates.ts`. Not played by me; the ultimates' look in the world has never been seen.
+
+## Before (2026-11-06, Update 0.3.82: Gravity Sean, 2 of 3: Grab and Fling)
 - Right click in normal mode pulls a pillar or a chunk of floor to his hand; again throws it. Small fast, big slow and hard; a shield from the front while held; a crater; a faint outline. In Unstable mode it catches an enemy, and letting go flies it where you look, for more into a wall or another enemy.
 - My calls: a boss, mini-boss or large enemy can't be lifted and just takes a blow. Only pillars and the floor can be grabbed for now: the floor's other pieces have no rules to tear them from.
 - Tests: `test-sean-grab.ts`. Not played or seen moving by me.

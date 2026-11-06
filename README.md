@@ -206,7 +206,7 @@ from Google Fonts, and saves stay in your browser.
 - Floor 10, Hell on Earth: its own enemies and its boss, Hellwarden
 - The rest of The Swarm's attacks and phases
 - Cinematic intros for the remaining bosses
-- Gravity Sean's abilities, and Alpha Team as a playable character
+- Alpha Team as a playable character
 - A Steam release, through Electron
 
 ## Credits

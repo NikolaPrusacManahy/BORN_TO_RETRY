@@ -398,7 +398,7 @@ export class Viewmodel {
     this.off.place(rig, reach < 0.2 && palm < 0.2, this.flip);
     this.camera.updateMatrixWorld(true);
     this.burn(gameDt, realDt);
-    this.gravity?.update(realDt, rig, this.camera.getWorldPosition(this.eyeAt));
+    this.gravity?.update(realDt, rig, this.camera.getWorldPosition(this.eyeAt), this.seanHands.gathering);
     this.book.update(gameDt, book, rig, this.camera);
     this.palm.place(rig);
     if (this.chest.weight > 0) this.chest.settle(this.camera.worldToLocal(rig.knuckle('L', this.knuckleL)), this.camera.worldToLocal(rig.knuckle('R', this.knuckleR)));
