@@ -31,6 +31,34 @@ export function playSean(a: AudioEngine, kind: CombatEvent, value: number, far: 
     case 'seanRipple':
       tone(a, { from: 300, to: 140, dur: 0.12, gain: 0.07, type: 'triangle' });
       return true;
+    case 'seanGrab':
+      a.clips.play('demonSlam', value === 1 ? 0.7 : 0.35, value === 1 ? 0.9 : 1.5);
+      noise(a, { dur: 0.25, gain: 0.14, filter: 'lowpass', from: 900, to: 2400 });
+      return true;
+    case 'seanThrow':
+      a.clips.play('hellWhoosh', value === 1 ? 0.7 : 0.5, value === 1 ? 0.8 : 1.4);
+      return true;
+    case 'seanShatter':
+      noise(a, { dur: value === 1 ? 0.45 : 0.22, gain: (value === 1 ? 0.34 : 0.2) * far, filter: 'lowpass', from: 2600, to: 300 });
+      return true;
+    case 'seanBlock':
+      noise(a, { dur: 0.12, gain: 0.2, filter: 'highpass', from: 1200, to: 3000 });
+      return true;
+    case 'seanMiss':
+      tone(a, { from: 220, to: 160, dur: 0.08, gain: 0.05, type: 'triangle' });
+      return true;
+    case 'seanCatch':
+      tone(a, { from: 120, to: 460, dur: 0.22, gain: 0.14, type: 'sawtooth' });
+      return true;
+    case 'seanFling':
+      a.clips.play('hellWhoosh', 0.7, 1.2);
+      return true;
+    case 'seanSlamInto':
+      a.clips.play('demonSlam', 0.6 * far, 1.3);
+      return true;
+    case 'seanLand':
+      noise(a, { dur: 0.14, gain: 0.12 * far, filter: 'lowpass', from: 700, to: 300 });
+      return true;
     case 'seanUltReady':
       tone(a, { from: 180, to: 720, dur: 0.45, gain: 0.1, type: 'triangle' });
       return true;

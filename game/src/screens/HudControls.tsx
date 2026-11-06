@@ -81,6 +81,7 @@ export function SeanControls({ s }: { s: HudState }) {
   return (
     <div className="rb-inputs">
       <Input cap={s.attackKey} name={s.unstable ? 'Gravity Fists' : 'Gravity Punch'} state={s.unstable ? 'is-lit' : ''} />
+      <Input cap={s.heavyKey} name={s.seanHold === 1 ? 'Throw' : s.unstable ? 'Fling' : 'Grab'} state={s.seanHold > 0 ? 'is-lit' : ''} />
       <Input cap={s.interactKey} name={s.unstable ? 'Vent' : 'Unstable'} state={s.unstable ? 'is-lit' : ''} />
       <Input cap={s.dashKey} name="Dash" />
       <Input cap={s.slamKey} name={s.inAir ? 'Plunge' : 'Ground Slam'} state={waiting ? 'is-off' : ''} fill={waiting ? s.brandFill : 1} />

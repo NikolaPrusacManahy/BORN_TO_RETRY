@@ -54,6 +54,8 @@ import { stepDemonFire } from './demonFire';
 import { feedOnFallen, landPlunge, stepLunge, tickCleave, tickDemon, tryBrand } from './demonMoves';
 import { addHeat } from './heat';
 import { landPlunge as landSeanPlunge, punchRate, shapePunch, stepDashPull, switchStance, tickGravity, trySeanSlam } from './gravity';
+import { dropCaught, stepFling, stepFlung } from './gravityFling';
+import { dropPiece, stepRocks, stepSeanGrab } from './gravityGrab';
 import { stepVerdict, tryVerdict } from './lastVerdict';
 import { WEAPONS } from '../../tuning/weapons';
 import { updateDummy } from './dummy';
@@ -278,9 +280,17 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     if (intent.interactPressed && !clasped) switchStance(state, player);
     trySeanSlam(state, player, intent.slamPressed && !clasped);
     stepDashPull(state, player);
+    // (Update 0.3.82 — right click: Grab, or in Unstable mode Fling. Switching drops what the other had.)
+    if (state.grav.unstable) {
+      dropPiece(state);
+      stepFling(state, player, intent.heavyPressed, intent.heavyHeld, intent.yaw, intent.pitch, world, dt);
+    } else {
+      dropCaught(state);
+      stepSeanGrab(state, player, intent.heavyPressed, intent.yaw, intent.pitch, world, dt);
+    }
     fistIntent = Object.assign(NO_HEAVY, fistIntent);
     NO_HEAVY.heavyHeld = false;
-  }
+  } else if (state.grav.caught >= 0) dropCaught(state);
   // (Update 0.3.5 — barehanded, right click is the parry: Hair Trigger's longer window, Giant Killer's no wait.)
   const times = parryTimes(state);
   let swung = axe || volley || gun || clasped ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, sean ? rate * punchRate(state.grav) : rate, chargeRate(state), times);
@@ -371,6 +381,11 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   bumpEnemies(state, player);
   staticStep(state, player);
   updateEnemies(state.enemies, player, state, world, dt);
+  // (Update 0.3.82 — what Gravity Sean's thrown.)
+  if (state.sean) {
+    stepRocks(state, world, dt);
+    stepFlung(state, dt);
+  }
   // (Update 0.3.10 — a melee blow parried: the long wait, as after a shot.)
   if (state.fists.parried) {
     state.fists.parried = false;

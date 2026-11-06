@@ -10,5 +10,17 @@ export type SeanEvent =
   | 'seanPull'
   // Gravity Punch's ripple, out to where it ended (value: how far from the eye).
   | 'seanRipple'
+  // Update 0.3.82 — Grab: a piece taken (value: 1 big), a pillar torn out (value: which), thrown (value: 1 big), broken up (value: 1 big), a shot stopped.
+  | 'seanGrab'
+  | 'seanPillar'
+  | 'seanThrow'
+  | 'seanShatter'
+  | 'seanBlock'
+  // Fling: nothing there, caught, thrown (value: which), slammed into something, set down.
+  | 'seanMiss'
+  | 'seanCatch'
+  | 'seanFling'
+  | 'seanSlamInto'
+  | 'seanLand'
   // The shared meter's full.
   | 'seanUltReady';

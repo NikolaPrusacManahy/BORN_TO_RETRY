@@ -58,6 +58,11 @@ export function pillarEvents(combat: CombatState, level: Level, view: LevelView)
       const top = view.breaks?.uproot(e.value, pillar);
       if (top) of(combat).set(e.value, { top, flying: false, t: 0 });
     }
+    // (Update 0.3.82 — Gravity Sean tears one out: its stump's collision left, the rest out of the floor's view: his hand holds a chunk.)
+    if (e.kind === 'seanPillar' && pillar) {
+      if (pillar.box && pillar.stump) level.physics.swap(pillar.box, [pillar.stump]);
+      view.breaks?.uproot(e.value, pillar)?.removeFromParent();
+    }
     const c = of(combat).get(e.value);
     if (e.kind === 'tideHurl' && c) c.flying = true;
   }

@@ -72,6 +72,7 @@ import { caltropSlow } from '../sim/combat/smoke';
 import { floodSlow, stepTide, tideSlow } from '../sim/dungeon/tide';
 import { verdictGrey } from '../sim/enemies/wardenVerdict';
 import { verdictShade } from '../sim/combat/lastVerdict';
+import { seanHand } from '../sim/combat/gravityMeter';
 import { wardenDark, wardenFreezeGrey, wardenSilent } from '../sim/dungeon/wardenShow';
 import { Lobby, lobbyFocus, stepLobby } from '../sim/lobby/lobby';
 import { styleOf } from '../world/dungeon/styles';
@@ -297,6 +298,7 @@ export class Run extends RunBase {
     this.arms.setRanged(this.combat.demon && b.ranged);
     // (Update 0.3.81 — Gravity Sean's gravity on his arms.)
     this.arms.setGravity(!this.combat.sean ? 0 : this.combat.grav.unstable ? 2 : 1, this.combat.grav.instab);
+    this.arms.seanHands.set(this.combat.sean ? seanHand(this.combat.grav) : 'none');
     this.arms.update(gameDt, real, mouseDx, mouseDy, p, f.charging ? f.charge / FISTS.v.chargeTime : -1);
 
     renderer.render(this.scene, this.camera);

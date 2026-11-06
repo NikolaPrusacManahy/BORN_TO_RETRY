@@ -38,6 +38,7 @@ import { movesOf } from './weaponMoves';
 import type { CharacterId } from '../../sim/characters';
 import { ArmsWardrobe } from './armsWardrobe';
 import { GravityArms, type GravityMode } from './gravityArms';
+import { SeanHands } from './seanHands';
 import { BladeTrail } from './bladeTrail';
 import { BladeGrow } from './bladeGrow';
 import { BladeHeat } from './bladeHeat';
@@ -126,6 +127,8 @@ export class Viewmodel {
   private grow: BladeGrow | null = null;
   /** Update 0.3.81 — Gravity Sean's gravity on his arms (made the first time it's wanted). */
   gravity: GravityArms | null = null;
+  /** Update 0.3.82 — his open hands. */
+  readonly seanHands = new SeanHands();
   private readonly eyeAt = new THREE.Vector3();
 
   /** `loadModel`: fetch the arms (tests attach a parsed model instead). `demon`: the Demon's (Update 0.3.70). */
@@ -318,6 +321,7 @@ export class Viewmodel {
     this.pivot.rotation.y += lean.y;
     this.pivot.rotation.z += lean.z;
     this.gun.update(gameDt);
+    this.seanHands.update(realDt);
     this.armedVis = Math.max(0, Math.min(1, this.armedVis + ((this.weapon ? 1 : -1) * gameDt) / v.armedSwap));
     this.flip = Math.max(0, Math.min(1, this.flip + ((charge >= 0 ? 1 : -1) * gameDt) / v.daggerFlip));
 
@@ -343,7 +347,6 @@ export class Viewmodel {
     // (Put away, the second dagger's arm eases back to the guard, as the hammer's left hand does.)
     const pair = held && this.swordAnim.moves.pair ? armed * (1 - palm) : 0;
     const left = fistArm(rig, this.anim, this.time, 'L', this.chargeVis, charge >= 1, (armed - book - hands - pair) * (1 - palm), this.live.L);
-    this.gravity?.shake('L', left);
     if (book > 0) mixArm(left, this.book.pose(rig, 'L', this.bookPose), book, left);
     if (hands > 0) mixArm(left, leftGrip(rig, this.swordPose, fixed !== 0 ? fixed : VERDICT_LEFT, this.twoPose), hands, left);
     if (pair > 0) mixArm(left, this.off.pose(rig, this.chargeVis, tremble, this.time), pair, left);
@@ -352,15 +355,18 @@ export class Viewmodel {
     if (clasp > 0) mixArm(left, this.slam.pose(rig, 'L', this.slamPose.L), clasp, left);
     const blocking = (1 - armed) * (1 - palm) * (1 - reach) * (1 - clasp);
     if (palm > 0) mixArm(left, this.palm.pose(rig), palm, left);
+    // (Update 0.3.82 — Gravity Sean's open hands; Update 0.3.81 — and, all the same, his shake.)
+    const handL = this.seanHands.weight.L;
+    if (handL > 0) mixArm(left, this.seanHands.pose(rig, 'L'), smooth(handL), left);
+    this.gravity?.shake('L', left);
     if (reach > 0) this.chest.pull(rig, 'L', left, reach, this.grip, this.holder, this.camera);
-    rig.apply('L', left, v.wristBend + (1 - v.wristBend) * Math.max(palm, book, hands, pair, clasp, this.grip.bend('L')), this.off.pole(pair, this.elbowL));
+    rig.apply('L', left, v.wristBend + (1 - v.wristBend) * Math.max(palm, book, hands, pair, clasp, this.grip.bend('L'), handL), this.off.pole(pair, this.elbowL));
     // (Update 0.1.6 — a fist, or the fingers round a two-handed haft, its own handle or something an execution holds:
     // handPose.ts.)
     const moves = this.swordAnim.moves;
     const wrap = pair > 0 ? wrapOf(this.off.moves, this.flip) : hands > 0 ? moves.grip() : ROPE;
-    rig.openHand('L', Math.max(palm, book * this.book.open('L'), this.grip.open('L'), pair * Math.max(RELEASE * this.off.anim.letGo, turnOpen(this.off.moves, this.flip))), wrap, Math.max(hands, pair) || this.grip.rope('L'), pair > 0 ? this.off.sword.tilt : this.swordPose.tilt);
+    rig.openHand('L', Math.max(palm, handL, book * this.book.open('L'), this.grip.open('L'), pair * Math.max(RELEASE * this.off.anim.letGo, turnOpen(this.off.moves, this.flip))), wrap, Math.max(hands, pair) || this.grip.rope('L'), pair > 0 ? this.off.sword.tilt : this.swordPose.tilt);
     const right = fistArm(rig, this.anim, this.time, 'R', this.chargeVis, charge >= 1, armed, this.live.R);
-    this.gravity?.shake('R', right);
     if (book > 0) {
       mixArm(right, this.book.pose(rig, 'R', this.bookPose), book, right);
       rig.apply('R', right, v.wristBend + (1 - v.wristBend) * book);
@@ -375,9 +381,12 @@ export class Viewmodel {
       if (clasp > 0) mixArm(right, this.slam.pose(rig, 'R', this.slamPose.R), clasp, right);
       if (reach > 0) this.chest.pull(rig, 'R', right, reach, this.grip, this.holder, this.camera);
       this.block.mix(rig, right, blocking);
-      rig.apply('R', right, v.wristBend + (1 - v.wristBend) * Math.max(clasp, this.grip.bend('R')), this.block.pole(this.elbow.copy(GUARD.R.pole), blocking));
+      const handR = this.seanHands.weight.R;
+      if (handR > 0) mixArm(right, this.seanHands.pose(rig, 'R'), smooth(handR), right);
+      this.gravity?.shake('R', right);
+      rig.apply('R', right, v.wristBend + (1 - v.wristBend) * Math.max(clasp, this.grip.bend('R'), handR), this.block.pole(this.elbow.copy(GUARD.R.pole), blocking));
     }
-    rig.openHand('R', Math.max(book * this.book.open('R'), this.grip.open('R'), held ? Math.max(RELEASE * this.swordAnim.letGo, turnOpen(moves, this.flip)) : 0), held ? wrapOf(moves, this.flip) : gun > 0 ? GUN_GRIP : ROPE, held ? armed : gun || this.grip.rope('R'), held ? this.swordPose.tilt : gun > 0 ? this.gun.tilt : undefined, held ? this.swordAnim.handSign : 0);
+    rig.openHand('R', Math.max(this.seanHands.weight.R, book * this.book.open('R'), this.grip.open('R'), held ? Math.max(RELEASE * this.swordAnim.letGo, turnOpen(moves, this.flip)) : 0), held ? wrapOf(moves, this.flip) : gun > 0 ? GUN_GRIP : ROPE, held ? armed : gun || this.grip.rope('R'), held ? this.swordPose.tilt : gun > 0 ? this.gun.tilt : undefined, held ? this.swordAnim.handSign : 0);
     if (this.weapon) {
       // (Update 0.3.79 — and not with the Demon's sword put away.)
       this.weapon.visible = reach < 0.2 && !this.swordAnim.empty && this.swordAnim.swordGoing < 1;
@@ -450,6 +459,7 @@ export class Viewmodel {
     this.slam.reset();
     this.block.reset();
     this.gun.clear();
+    this.seanHands.reset();
     this.armedVis = this.weapon ? 1 : 0;
     this.motion.reset();
     this.chargeVis = this.flip = this.steadyUntil = 0;

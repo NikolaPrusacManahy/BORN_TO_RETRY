@@ -2,6 +2,7 @@
 // Gravity Punch to where it ended.
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
+import { PiecesView } from './piecesView';
 
 const RINGS = 10;
 const RIPPLES = 8;
@@ -39,11 +40,13 @@ export class GravityView {
   private readonly ripples: Ripple[] = [];
   private nextRing = 0;
   private nextRipple = 0;
+  private readonly pieces: PiecesView;
 
   constructor(
     private readonly scene: THREE.Scene,
     private readonly camera: THREE.Camera,
   ) {
+    this.pieces = new PiecesView(scene);
     const make = (geo: THREE.BufferGeometry, side: THREE.Side) => {
       const mat = new THREE.MeshBasicMaterial({ color: COOL, transparent: true, opacity: 0, side, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
       const mesh = new THREE.Mesh(geo, mat);
@@ -68,6 +71,7 @@ export class GravityView {
       if (e.kind === 'seanBlast') this.ring(e.value, e.x, e.y, e.z, state.grav.unstable || e.value > 6 ? HOT : COOL);
       else if (e.kind === 'seanRipple') this.ripple(e.x, e.y, e.z);
     }
+    this.pieces.update(state, dt);
     for (const r of this.rings) {
       if (!r.mesh.visible) continue;
       r.t += dt / RING_LIFE;
@@ -113,6 +117,7 @@ export class GravityView {
   }
 
   dispose() {
+    this.pieces.dispose();
     for (const r of [...this.rings, ...this.ripples]) {
       this.scene.remove(r.mesh);
       r.mat.dispose();
