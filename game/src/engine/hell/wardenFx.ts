@@ -10,6 +10,7 @@ import { wardenWindup } from '../../sim/enemies/hellwarden';
 import { VERDICT_CHARGE } from '../../sim/enemies/wardenVerdict';
 import { HELLWARDEN } from '../../tuning/hellwarden';
 import { HALOS } from '../halos';
+import { poseWarden } from './wardenPose';
 
 const FLAMES = 420;
 const SPOKES = 16;
@@ -94,6 +95,14 @@ export class WardenFx {
     }
     const root = rootOf(i);
     const b = e.warden;
+    // (Its tip's measured from its clip's pose, then it's posed.)
+    if (root && !hiddenWarden(e)) {
+      const sword = root.getObjectByName('Hellwarden_Sword') as THREE.SkinnedMesh | undefined;
+      const hand = root.getObjectByName('hand_r');
+      root.updateMatrixWorld(true);
+      if (sword && hand && !this.tipLocal) this.tipLocal = this.measureTip(sword, hand);
+      poseWarden(root, e, this.tipLocal);
+    }
     const v = HELLWARDEN.v;
     let n = 0;
     // Its walls of fire.

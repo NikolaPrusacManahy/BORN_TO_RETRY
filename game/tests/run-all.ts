@@ -100,6 +100,7 @@ import './test-drowned-show';
 import './test-dino-show';
 import './test-shark-arena';
 import './test-hellwarden';
+import './test-warden-show';
 import './test-tidebreaker';
 import './test-tidebreaker-view';
 import './test-tidebreaker-show';

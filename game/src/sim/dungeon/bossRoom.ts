@@ -53,6 +53,7 @@ import { stepKingIntro } from './kingShow';
 import { stepRocIntro } from './rocShow';
 import { stepDrownedIntro } from './drownedShow';
 import { stepDinoIntro } from './dinoShow';
+import { stepWardenIntro } from './wardenShow';
 import { setSharkArena } from '../enemies/sharkBody';
 
 export type BossBeat = 'waiting' | 'intro' | 'fight' | 'dying' | 'loot' | 'open';
@@ -89,7 +90,7 @@ const CALL_CLEAR = 8;
 const FIRST_MOVE = 1;
 
 export function createBossRun(kind: EnemyKind = 'dragon'): BossRun {
-  return { kind, stance: false, beat: 'waiting', t: 0, slot: -1, summon: 0, calling: false, skip: false, eyeYaw: 0, ownShow: kind === 'dragon' || kind === 'swarm' || kind === 'boneKing' || kind === 'frostRoc' || kind === 'drownedKing' || kind === 'dino' };
+  return { kind, stance: false, beat: 'waiting', t: 0, slot: -1, summon: 0, calling: false, skip: false, eyeYaw: 0, ownShow: kind === 'dragon' || kind === 'swarm' || kind === 'boneKing' || kind === 'frostRoc' || kind === 'drownedKing' || kind === 'dino' || kind === 'hellwarden' };
 }
 
 /** Update 0.0.18 — who a boss calls once it rages, how many and how often (s) (Update 0.0.21: only the Demon called;
@@ -187,6 +188,11 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
       // (Update 0.3.57 — the Frost Roc's: rocShow.ts.)
       if (b.kind === 'frostRoc' && b.ownShow && level) {
         stepRocIntro(b, level, player, combat, dt);
+        break;
+      }
+      // (Update 0.3.64 — Hellwarden's: wardenShow.ts.)
+      if (b.kind === 'hellwarden' && b.ownShow && level) {
+        stepWardenIntro(b, level, player, combat, dt);
         break;
       }
       // (Update 0.3.61 — the Velociraptor's: dinoShow.ts.)

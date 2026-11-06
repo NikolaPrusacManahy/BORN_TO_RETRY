@@ -22,8 +22,8 @@ Tuning is in F1 → Hellwarden, "Show:".
 - The show's sounds are code-made, plus the library's. Its dust is the shared `ShowDust`. Its rift is a plain lit strip of lava, made in code.
 
 ## Files
-- **Changed:** `sim/dungeon/bossRoom.ts`, `bossBeats.ts`; `engine/boss/bossShow.ts`, `showViews.ts`; `tools/boss-shots.ts`; `tests/run-all.ts`.
-- **New:** `tests/test-warden-show.ts`.
+- **Changed:** `sim/dungeon/bossRoom.ts`, `bossBeats.ts`; `engine/boss/bossShow.ts`, `showViews.ts`; `engine/hell/throneView.ts`, `wardenFx.ts`, `wardenLook.ts`; `tools/boss-shots.ts`; `tests/run-all.ts`.
+- **New:** `engine/hell/wardenPose.ts`, `tests/test-warden-show.ts`.
 
 ## Unseen
 - Not played. The shots were checked in Blender renders of the real camera positions.

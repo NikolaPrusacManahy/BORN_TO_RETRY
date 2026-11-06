@@ -11,6 +11,7 @@ import { kingWalls } from './kingShow';
 import { rocWalls } from './rocShow';
 import { drownedWalls } from './drownedShow';
 import { dinoWalls } from './dinoShow';
+import { wardenWalls } from './wardenShow';
 
 /** The show's beats, in seconds from stepping in. */
 export interface IntroBeats {
@@ -60,13 +61,14 @@ export function wallsOpen(b: BossRun): number {
   if (b.kind === 'frostRoc' && b.ownShow) return rocWalls(b.t);
   if (b.kind === 'drownedKing' && b.ownShow) return drownedWalls(b.t);
   if (b.kind === 'dino' && b.ownShow) return dinoWalls(b.t);
+  if (b.kind === 'hellwarden' && b.ownShow) return wardenWalls(b.t);
   const s = introBeats();
   return smooth((b.t - s.wallsFrom) / (s.wallsTo - s.wallsFrom));
 }
 
 /** How open the portal is (0..1): it opens, holds while the boss rises, then closes. */
 export function portalOpen(b: BossRun): number {
-  if (b.beat !== 'intro' || b.kind === 'bigShark' || b.kind === 'tidebreaker' || b.kind === 'okami' || ((b.kind === 'dragon' || b.kind === 'swarm' || b.kind === 'boneKing' || b.kind === 'frostRoc' || b.kind === 'drownedKing' || b.kind === 'dino') && b.ownShow)) return 0;
+  if (b.beat !== 'intro' || b.kind === 'bigShark' || b.kind === 'tidebreaker' || b.kind === 'okami' || ((b.kind === 'dragon' || b.kind === 'swarm' || b.kind === 'boneKing' || b.kind === 'frostRoc' || b.kind === 'drownedKing' || b.kind === 'dino' || b.kind === 'hellwarden') && b.ownShow)) return 0;
   const s = introBeats();
   if (b.t < s.riseTo) return smooth((b.t - s.portalFrom) / (s.portalTo - s.portalFrom));
   return 1 - smooth((b.t - s.riseTo) / 0.8);

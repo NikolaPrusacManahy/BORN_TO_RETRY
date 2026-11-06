@@ -22,6 +22,8 @@ import { bossOf, ENEMY_STATS } from '../src/sim/enemies/kinds';
 import { DROWNED } from '../src/tuning/drowned';
 import { HELLWARDEN } from '../src/tuning/hellwarden';
 import { WardenFx } from '../src/engine/hell/wardenFx';
+import { WardenCinema } from '../src/engine/hell/wardenCinema';
+import { SHOW_DRAG as WARDEN_SHOW_DRAG, SHOW_RAISE as WARDEN_SHOW_RAISE, SHOW_ROAR as WARDEN_SHOW_ROAR, SHOW_WALK as WARDEN_SHOW_WALK, wardenAt, wardenBeats, wardenWalls } from '../src/sim/dungeon/wardenShow';
 import { ThroneView } from '../src/engine/hell/throneView';
 import { ARC as WARDEN_ARC, BRAND as WARDEN_BRAND, VERDICT as WARDEN_VERDICT } from '../src/sim/enemies/wardenMoves';
 import { SharkFx } from '../src/engine/boss/sharkFx';
@@ -522,6 +524,32 @@ if (kind === 'hellwarden') {
     clipName = 'Jump_Air';
     clipAt = 0.2;
   }
+  // (Update 0.3.64 — its show: `--beat=show-high|show-walk|show-sword|show-name|show-roar`.)
+  const wb = wardenBeats();
+  const wShow: Record<string, number> = { 'show-high': wb.walkFrom - 0.1, 'show-walk': wb.walkFrom + (wb.walkTo - wb.walkFrom) * 0.6, 'show-sword': wb.slowFrom - 0.1, 'show-name': (wb.slowFrom + wb.slowTo) / 2, 'show-roar': wb.roarAt + 0.3 };
+  let wShot: { name: string; at: number[]; to: number[] } | null = null;
+  let wShown: BossRun | null = null;
+  if (beat in wShow) {
+    const t = wShow[beat];
+    const toX = eye.x - mid.x;
+    const toZ = eye.z - mid.z;
+    const d = Math.hypot(toX, toZ);
+    wardenAt(mid.x, mid.z, t, toX / d, toZ / d, e.pos);
+    e.phase = 'intro';
+    e.move = t < wb.walkTo ? WARDEN_SHOW_WALK : t < wb.slowFrom ? WARDEN_SHOW_DRAG : t < wb.slowTo ? WARDEN_SHOW_RAISE : WARDEN_SHOW_ROAR;
+    clipName = t < wb.walkTo ? 'Walk_Carry_Loop' : t < wb.slowTo ? 'Sword_Idle' : 'MonsterTransformation';
+    e.t = 1;
+    clipAt = 0.5;
+    // (`--clip=name@seconds`: to try a clip for a beat.)
+    const tryClip = process.argv.find((a) => a.startsWith('--clip='))?.slice(7);
+    if (tryClip) [clipName, clipAt] = [tryClip.split('@')[0], Number(tryClip.split('@')[1])];
+    k2.value = wardenWalls(t);
+    const wc = new WardenCinema(level);
+    wc.start(eye, new THREE.Vector3(-ex, 0, -ez));
+    wc.intro(t, eye, shot);
+    wShot = { name: 'hw-show', at: shot.pos.toArray(), to: shot.look.toArray() };
+    wShown = { kind: 'hellwarden', ownShow: true, beat: 'intro', t, eyeYaw: e.facing } as unknown as BossRun;
+  }
   const box0 = new THREE.Box3().setFromObject(root, true);
   const mixer = new THREE.AnimationMixer(root);
   mixer.clipAction(gltf.animations.find((a: THREE.AnimationClip) => a.name === clipName)!).play();
@@ -539,11 +567,13 @@ if (kind === 'hellwarden') {
   scene.updateMatrixWorld(true);
   bake(scene);
   const tv = new ThroneView(level);
+  if (wShown) tv.update(wShown, eye);
   bake(tv.group);
   const fx0 = -Math.sin(e.facing);
   const fz0 = -Math.cos(e.facing);
   const look = (name: string, f: number, r: number, u: number, to = 0.5) => ({ name, at: [e.pos.x + fx0 * f * h - fz0 * r * h, u * h, e.pos.z + fz0 * f * h + fx0 * r * h], to: [e.pos.x, to * h + e.pos.y, e.pos.z] });
   cams.splice(1, 2, look('hw-front', 2.2, 0.5, 0.5), look('hw-side', 0.4, 2.4, 0.55), look('hw-high', 3.4, 1.8, 2, 0.1), { name: 'hw-room', at: [mid.x + (room.max.x - room.min.x) * 0.5, 30, mid.z + (room.max.z - room.min.z) * 0.5], to: [mid.x, 0, mid.z] });
+  if (wShot) cams.splice(1, 4, wShot);
   demon.height = 0;
 }
 if (kind === 'bigShark') {

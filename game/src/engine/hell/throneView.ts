@@ -26,8 +26,8 @@ const CHAIN_LINKS = 14;
 const CHAIN_OUT = 40;
 const CHAIN_TOP = 60;
 /** Its rift: how long (m), how wide at its widest. Embers. */
-const RIFT_LONG = 44;
-const RIFT_WIDE = 6;
+const RIFT_LONG = 36;
+const RIFT_WIDE = 3.4;
 const EMBERS = 200;
 const EMBER_RANGE = 30;
 
@@ -56,6 +56,27 @@ function box(x: number, y: number, z: number, w: number, h: number, d: number, y
   return painted(g, () => c);
 }
 
+/** The rift: a jagged crack lying flat, along z, 1 long, up to 1 wide, its ends coming to points; seeded, so every run the same. */
+function riftGeometry(): THREE.BufferGeometry {
+  let s = 4409;
+  const rnd = () => {
+    s = (s * 16807) % 2147483647;
+    return s / 2147483647;
+  };
+  const n = 16;
+  const left: THREE.Vector2[] = [];
+  const right: THREE.Vector2[] = [];
+  for (let i = 0; i <= n; i++) {
+    const u = i / n;
+    const w = Math.sin(u * Math.PI) ** 0.7 * 0.5;
+    left.push(new THREE.Vector2(-w * (0.55 + rnd() * 0.45), u - 0.5));
+    right.push(new THREE.Vector2(w * (0.55 + rnd() * 0.45), u - 0.5));
+  }
+  const g = new THREE.ShapeGeometry(new THREE.Shape([...left, ...right.reverse()]));
+  g.rotateX(-Math.PI / 2);
+  return g;
+}
+
 function clearOfRooms(plan: FloorPlan, x: number, z: number, clear: number): boolean {
   for (const dx of [-clear, 0, clear]) {
     for (const dz of [-clear, 0, clear]) {
@@ -69,10 +90,10 @@ export class ThroneView implements ShowView {
   readonly group = new THREE.Group();
   private readonly geo: THREE.BufferGeometry | null;
   private readonly mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, flatShading: true, emissive: 0x200804 });
-  private readonly riftGeo = new THREE.BoxGeometry(1, 1, 1);
-  private readonly lavaMat = new THREE.MeshBasicMaterial({ color: 0xff6a18, toneMapped: false });
+  private readonly riftGeo = riftGeometry();
+  private readonly lavaMat = new THREE.MeshBasicMaterial({ color: 0xff6a18, toneMapped: false, side: THREE.DoubleSide });
   private readonly rift: THREE.Mesh;
-  private readonly riftGlowMat = new THREE.MeshBasicMaterial({ color: 0xff4a10, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
+  private readonly riftGlowMat = new THREE.MeshBasicMaterial({ color: 0xff4a10, transparent: true, opacity: 0.4, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, side: THREE.DoubleSide });
   private readonly riftGlow: THREE.Mesh;
   private readonly dust: ShowDust;
   private readonly emberGeo = new THREE.BufferGeometry();
@@ -150,10 +171,10 @@ export class ThroneView implements ShowView {
     // Its show: the rift across its middle, along the way to you.
     this.rift = new THREE.Mesh(this.riftGeo, this.lavaMat);
     this.rift.name = 'rift';
-    this.rift.position.set(mx, 0.02, mz);
+    this.rift.position.set(mx, 0.04, mz);
     this.rift.rotation.y = yaw;
     this.riftGlow = new THREE.Mesh(this.riftGeo, this.riftGlowMat);
-    this.riftGlow.position.copy(this.rift.position);
+    this.riftGlow.position.set(mx, 0.06, mz);
     this.riftGlow.rotation.y = yaw;
     this.rift.visible = this.riftGlow.visible = false;
     const b0 = wardenBeats();
@@ -188,8 +209,8 @@ export class ThroneView implements ShowView {
     const k = on ? riftOpen(t) : 0;
     this.rift.visible = this.riftGlow.visible = k > 0;
     if (k > 0) {
-      this.rift.scale.set(RIFT_WIDE * k, 0.05, RIFT_LONG * Math.min(1, k * 1.6));
-      this.riftGlow.scale.set(RIFT_WIDE * k * 1.6, 1.4 * k, RIFT_LONG * Math.min(1, k * 1.6));
+      this.rift.scale.set(RIFT_WIDE * k, 1, RIFT_LONG * Math.min(1, k * 1.6));
+      this.riftGlow.scale.set(RIFT_WIDE * k * 1.7, 1, RIFT_LONG * 1.04 * Math.min(1, k * 1.6));
     }
     this.embers.visible = on;
     if (!on) return;
