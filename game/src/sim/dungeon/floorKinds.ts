@@ -8,7 +8,7 @@ import { calledBy } from './bossRoom';
 import type { DungeonRun } from './roomLoop';
 
 /** What a kind becomes (brought down) or lets out. */
-export const BRINGS: Partial<Record<EnemyKind, readonly EnemyKind[]>> = { crewman: ['headless'], beeMech: ['beeNaut'], flamingoMech: ['flamingoNaut'], foxMech: ['foxNaut'], frogMech: ['frogNaut'], greenBlob: ['blobling'], bigMushnub: ['mushnub'], boneKing: ['skeleton'], shadow: ['shadowClone'] };
+export const BRINGS: Partial<Record<EnemyKind, readonly EnemyKind[]>> = { dino: ['dinoBlob'], crewman: ['headless'], beeMech: ['beeNaut'], flamingoMech: ['flamingoNaut'], foxMech: ['foxNaut'], frogMech: ['frogNaut'], greenBlob: ['blobling'], bigMushnub: ['mushnub'], boneKing: ['skeleton'], shadow: ['shadowClone'] };
 
 export function floorKinds(run: DungeonRun): EnemyKind[] {
   const out = new Set<EnemyKind>();

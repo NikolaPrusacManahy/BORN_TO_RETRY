@@ -55,8 +55,8 @@ export const BOSS_NAMES: Partial<Record<EnemyKind, string>> = { dragon: BOSS_NAM
 /** Update 0.2.3 — a boss bar's mark: where it rages (the Demon, the Dragon), or the Bone King's final blast (its second
  *  life only). */
 function markOf(boss: Enemy): number {
-  // (Update 0.2.8 — the Velociraptor: where its frenzy starts, then its blitz.)
-  if (boss.kind === 'dino') return boss.stage >= 2 ? -1 : boss.stage > 0 ? DINO.v.blitzAt : DINO.v.frenzyAt;
+  // (Update 0.2.8 — the Velociraptor: where phase 2 starts.)
+  if (boss.kind === 'dino') return boss.stage > 0 ? -1 : DINO.v.frenzyAt;
   // (Update 0.2.10 — the Drowned King: where it rises for good.)
   if (boss.kind === 'drownedKing') return boss.stage > 0 ? -1 : DROWNED.v.risenAt;
   // (Update 0.2.11 — the Old Whale: where it turns on you.)

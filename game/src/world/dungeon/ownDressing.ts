@@ -8,6 +8,7 @@
 // Update 0.3.43 — and floor 10's Hell (hell.ts: the fires in its braziers). Pure.
 import { dressPit } from './pit';
 import { dressTemple } from './temple';
+import { dressRuins } from './ruins';
 import type { Rng } from '../../core/rng';
 import { colAt, FloorPlan, rowAt } from './floorPlan';
 import type { Put, SandCell } from './dressExtras';
@@ -99,6 +100,7 @@ export function dressOwnRooms(K: DungeonStyle, plan: FloorPlan, inRoom: Int16Arr
     dressPit(plan, rng, put);
   }
   if (K.id === 'drowned') dressTemple(plan, rng, put);
+  if (K.id === 'sand') dressRuins(plan, rng, put);
   if (K.id === 'cove') dressCove(plan, rng, put);
   if (K.id === 'moon') dressMoon(plan, rng, put);
   if (K.id === 'shrine') dressShrine(plan, rng, put);

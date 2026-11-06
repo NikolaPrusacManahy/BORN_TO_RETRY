@@ -21,6 +21,8 @@ import { kingTell } from '../sim/enemies/boneKing';
 import { FOES4 } from '../tuning/foes4';
 import { windupOf as bigWindup } from '../sim/enemies/cactoroBig';
 import { dinoWindup } from '../sim/enemies/dino';
+import { EMERGE as DINO_EMERGE, FEINT as DINO_FEINT, PACK as DINO_PACK, ROAR as DINO_ROAR, SICKLE as DINO_SICKLE, TAIL as DINO_TAIL } from '../sim/enemies/dinoMoves';
+import { SHOW_AIR as DINO_SHOW_AIR, SHOW_CROUCH as DINO_SHOW_CROUCH, SHOW_LAND as DINO_SHOW_LAND, SHOW_ROAR as DINO_SHOW_ROAR, SHOW_RUN as DINO_SHOW_RUN } from '../sim/dungeon/dinoShow';
 import { orcWindup } from '../sim/enemies/skullOrc';
 import { FOES5 } from '../tuning/foes5';
 import { deepWindup } from '../sim/enemies/deepOne';
@@ -151,7 +153,7 @@ export const LOOKS: Record<EnemyKind, Look | null> = {
   skullWraith: { url: '/models/enemies/skull_wraith.glb', clips: { idle: 'Flying_Idle', move: 'Flying_Idle', attack: 'Punch', hit: 'HitReact', death: 'Death', air: 'Flying_Idle' }, lands: 12 / 30, windup: () => FOES.v.wraithWindup, glow: [0.95, 0.9, 0.7] },
   rabbit: { url: '/models/enemies/rabbit.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 15 / 30, windup: rabbitWindup, glow: [1, 0.6, 0.2] },
   bigMushnub: { url: '/models/enemies/mushroom_king.glb', clips: { idle: 'Idle', move: 'Walk', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 15 / 30, windup: mushWindup, glow: [0.3, 0.75, 1] },
-  dino: { url: '/models/enemies/velociraptor.glb', clips: { idle: 'Velociraptor_Idle', move: 'Velociraptor_Run', attack: 'Velociraptor_Attack', hit: 'Velociraptor_Idle', death: 'Velociraptor_Death', air: 'Velociraptor_Jump' }, lands: 10 / 24, windup: dinoWindup, glow: [1, 0.3, 0.08], posed: true },
+  dino: { url: '/models/enemies/velociraptor.glb', clips: { idle: 'Velociraptor_Idle', move: 'Velociraptor_Run', attack: 'Velociraptor_Attack', hit: 'Velociraptor_Idle', death: 'Velociraptor_Death', air: 'Velociraptor_Jump' }, lands: 10 / 24, windup: dinoWindup, glow: [1, 0.3, 0.08], posed: true, moveClips: { [`windup:${DINO_SICKLE}`]: ['Velociraptor_Idle'], [`windup:${DINO_FEINT}`]: ['Velociraptor_Idle'], [`windup:${DINO_EMERGE}`]: ['Velociraptor_Idle'], [`windup:${DINO_TAIL}`]: ['Velociraptor_Idle'], [`dive:${DINO_TAIL}`]: ['Velociraptor_Idle'], [`windup:${DINO_PACK}`]: ['Velociraptor_Attack', true], [`windup:${DINO_ROAR}`]: ['Velociraptor_Attack', true], [`intro:${DINO_SHOW_RUN}`]: ['Velociraptor_Run'], [`intro:${DINO_SHOW_CROUCH}`]: ['Velociraptor_Idle'], [`intro:${DINO_SHOW_AIR}`]: ['Velociraptor_Jump'], [`intro:${DINO_SHOW_LAND}`]: ['Velociraptor_Idle'], [`intro:${DINO_SHOW_ROAR}`]: ['Velociraptor_Attack', true] } },
   ninja: { url: '/models/enemies/ninja.glb', clips: { idle: 'Idle', move: 'Run', attack: 'Weapon', hit: 'HitReact', death: 'Death', air: 'Jump_Idle' }, lands: 20 / 30, windup: () => FOES3.v.ninjaWindup, glow: [1, 0.1, 0.35] },
   // Update 0.2.10 — floor 5's.
   snapper: { url: '/models/enemies/snapper.glb', clips: BLOB, lands: 7 / 30, windup: (move) => (move === 1 ? FOES5.v.snapperRise : FOES5.v.snapperWindup), glow: [0.3, 0.9, 1] },

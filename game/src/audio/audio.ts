@@ -26,6 +26,10 @@ export class AudioEngine {
   private muffled = false;
   /** Two seconds of white noise, shared by every noise-based sound. */
   noise: AudioBuffer | null = null;
+  /** Update 0.3.60 — left (−1) to right (+1), the way the event being played came from as you face; and your right (flat, length 1). */
+  pan = 0;
+  rightX = 1;
+  rightZ = 0;
   /** Update 0.1.17 — the recorded clips, the music, and the game's engine. */
   readonly clips = new ClipBank(this);
   readonly tracks = new MusicPlayer(this);

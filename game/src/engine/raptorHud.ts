@@ -28,7 +28,7 @@ export const createRaptorHud = (): RaptorHud => ({ blind: 0, dashLocked: false, 
 /** This frame's (into `out`). */
 export function raptorHud(p: PlayerState, combat: CombatState, out: RaptorHud): RaptorHud {
   const pin = combat.pin;
-  out.blind = p.dead || p.blind <= 0 ? 0 : Math.ceil(Math.min(1, p.blind / Math.max(0.1, DINO.v.kickBlind)) * BLIND_STEP) / BLIND_STEP;
+  out.blind = p.dead || p.blind <= 0 ? 0 : Math.ceil(Math.min(1, p.blind / 2) * BLIND_STEP) / BLIND_STEP;
   out.dashLocked = p.dashLock > 0 && !p.dead;
   out.ink = p.dead || p.ink <= 0 ? 0 : Math.ceil(Math.min(1, p.ink / Math.max(0.1, FOES5.v.inkTime)) * BLIND_STEP) / BLIND_STEP;
   out.pinDodges = pin.on ? pin.dodges : -1;

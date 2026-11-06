@@ -20,6 +20,10 @@ import { WoodGate } from '../src/engine/boss/woodGate';
 import { introBeats } from '../src/sim/dungeon/bossRoom';
 import { bossOf, ENEMY_STATS } from '../src/sim/enemies/kinds';
 import { DROWNED } from '../src/tuning/drowned';
+import { DINO } from '../src/tuning/dino';
+import { RuinsView } from '../src/engine/boss/ruinsView';
+import { poseRaptor } from '../src/engine/boss/raptorPose';
+import { APEX as DINO_APEX, PACK as DINO_PACK, SICKLE as DINO_SICKLE, TAIL as DINO_TAIL } from '../src/sim/enemies/dinoMoves';
 import { DrownedFx } from '../src/engine/drownedFx';
 import { TempleView } from '../src/engine/temple/templeView';
 import { clawAt } from '../src/sim/enemies/drownedJaws';
@@ -464,6 +468,61 @@ if (kind === 'frostRoc') {
   const fz0 = -Math.cos(e.facing);
   const look = (name: string, f: number, r: number, u: number, to = 0.5) => ({ name, at: [e.pos.x + fx0 * f * h - fz0 * r * h, u * h, e.pos.z + fz0 * f * h + fx0 * r * h], to: [e.pos.x, to * h, e.pos.z] });
   if (!(beat in showAt)) cams.splice(1, 2, look('roc-front', 2.1, 0.45, 0.55), look('roc-side', 0.5, 2.2, 0.6), look('roc-high', 3.6, 2.2, 2.3, 0.1), { name: 'roc-pit', at: [mid.x - R.cliffX * 26, 6, mid.z - R.cliffZ * 26], to: [mid.x + R.cliffX * 30, 13, mid.z + R.cliffZ * 30] });
+  demon.height = 0;
+}
+if (kind === 'dino' && floor === 6) {
+  // (Update 0.3.60 — it posed for a move, by the game's own pose code, baked: `--beat=stand|crouch|tail|bark|flip`.)
+  const beat = process.argv.find((a) => a.startsWith('--beat='))?.slice(7) ?? 'stand';
+  const gltf = await parseUntextured(new URL('../public/models/enemies/velociraptor.glb', import.meta.url));
+  const root = gltf.scene as THREE.Object3D;
+  const combat = createCombat(level.arena, false);
+  const mid = new THREE.Vector3(b.portal.x, 0, b.portal.z);
+  const slot = spawnEnemy(combat.enemies, 'dino', mid, Math.atan2(-(eye.x - mid.x), -(eye.z - mid.z)));
+  const e = combat.enemies[slot];
+  const set = (phase: Enemy['phase'], move: number, t: number, shots = 0) => {
+    e.phase = phase;
+    e.move = move;
+    e.t = t;
+    e.shots = shots;
+  };
+  let clipName = 'Velociraptor_Idle';
+  let clipAt = 0.3;
+  if (beat === 'crouch') set('windup', DINO_SICKLE, DINO.v.tell * 0.9);
+  if (beat === 'tail') {
+    set('windup', DINO_TAIL, DINO.v.tell * 0.5);
+    e.facing += Math.PI / 2;
+  }
+  if (beat === 'bark') {
+    set('windup', DINO_PACK, DINO.v.tell * 0.4);
+    clipName = 'Velociraptor_Attack';
+    clipAt = 0.2;
+  }
+  if (beat === 'flip') {
+    set('stun', DINO_APEX, 1);
+    e.raptor!.flipped = true;
+  }
+  const box0 = new THREE.Box3().setFromObject(root, true);
+  const mixer = new THREE.AnimationMixer(root);
+  mixer.clipAction(gltf.animations.find((a: THREE.AnimationClip) => a.name === clipName)!).play();
+  mixer.update(clipAt);
+  const h = DINO.v.dinoHeight;
+  const sc0 = h / (box0.max.y - box0.min.y);
+  root.scale.setScalar(sc0);
+  root.position.copy(e.pos);
+  root.position.y -= box0.min.y * sc0;
+  root.rotation.set(0, e.facing + Math.PI, 0);
+  root.updateMatrixWorld(true);
+  poseRaptor(root, e, 1);
+  const scene = new THREE.Scene();
+  scene.add(root);
+  scene.updateMatrixWorld(true);
+  bake(scene);
+  const ruins = new RuinsView(level);
+  bake(ruins.group);
+  const fx0 = -Math.sin(e.facing);
+  const fz0 = -Math.cos(e.facing);
+  const look = (name: string, f: number, r: number, u: number, to = 0.5) => ({ name, at: [e.pos.x + fx0 * f * h - fz0 * r * h, u * h, e.pos.z + fz0 * f * h + fx0 * r * h], to: [e.pos.x, to * h + e.pos.y, e.pos.z] });
+  cams.splice(1, 2, look('dino-front', 2.4, 0.5, 0.5), look('dino-side', 0.3, 2.6, 0.5), { name: 'dino-room', at: [mid.x + (room.max.x - room.min.x) * 0.5, 30, mid.z + (room.max.z - room.min.z) * 0.5], to: [mid.x, 0, mid.z] }, { name: 'dino-low', at: [mid.x + (eye.x - mid.x) * 0.5, 1.6, mid.z + (eye.z - mid.z) * 0.5], to: [mid.x, 3, mid.z] });
   demon.height = 0;
 }
 if (kind === 'drownedKing') {

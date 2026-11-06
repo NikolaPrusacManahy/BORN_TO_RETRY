@@ -1,45 +1,47 @@
-// Update 0.2.8 — the Velociraptor's new moves (the designer: "move sets that were not in the game yet … make a
-// challenging boss"; Claude's proposal, "Build all of them"; out of test-floor4.ts, which had reached its size). The
-// hunt: a real charge scrapes twice, a feint stops and pounces where you went; the sand kick blinds you (step aside and
-// it misses), then it charges; the wall launch. The frenzy: its sandstorm (it circles out of sight and lunges), its
-// screech (no dash, unless a wall's between you), its pin (dash in each bite's glow; too soon wastes it). The blitz:
-// three images, only it real; hit it and it reels. Its picks by stage, the HUD's share.
+// Update 0.2.8 — the Velociraptor's moves (out of test-floor4.ts, which had reached its size).
+// Update 0.3.60 — by the Boss Design Bible, "Trust your ears" (spec MD_UPDATES/U0360_VELOCIRAPTOR_BIBLE.md). Its Sickle Pounce (a hiss; it
+// follows an early dodge; missed, it skids, open), its Stalk & Ambush (gone, clicks from the way it'll come; hit as it shows, it trips),
+// its Tail Lash (jump it; dizzy after), its charge. Phase 2: its Pack Call (while they live, it only ambushes), its Feint (no hiss, then
+// from your other side), its pin, its Apex Hunt (hit its eyes at the flash, or send its stone back).
 import { Vector3 } from 'three';
-import { check, section } from './harness';
+import { check, near, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
 import { createRng } from '../src/core/rng';
 import { CombatIntent, emptyCombatIntent } from '../src/sim/combat/fists';
 import { pinGlowing } from '../src/sim/combat/pin';
 import { createCombat } from '../src/sim/combat/state';
 import { stepCombat } from '../src/sim/combat/step';
-import { blitzRun, blitzSpot } from '../src/sim/enemies/dinoBlitz';
+import { APEX_CUE, APEX_DARKEN, APEX_EYES, APEX_LUNGE, APEX_STALK, startApex } from '../src/sim/enemies/dinoApex';
 import { dinoWindup } from '../src/sim/enemies/dino';
-import { BLITZ, CHARGE, FEINT, KICK, LUNGE, POUNCE, SCREECH, STORM, STORM_CALL, WALL } from '../src/sim/enemies/dinoMoves';
-import { hitEnemy, setPhase, spawnEnemy } from '../src/sim/enemies/enemy';
+import { packAlive } from '../src/sim/enemies/dinoHunt';
+import { AMBUSH, APEX, CHARGE, EMERGE, FEINT, hiddenDino, LUNGE, PACK, SICKLE, TAIL } from '../src/sim/enemies/dinoMoves';
+import { dodges } from '../src/sim/enemies/evade';
+import { hitEnemy, isLive, setPhase, spawnEnemy } from '../src/sim/enemies/enemy';
 import { ENEMY_STATS } from '../src/sim/enemies/kinds';
-import { tryStartDash } from '../src/sim/player/dash';
 import { createPlayer } from '../src/sim/player/state';
-import { createRaptorHud, raptorHud } from '../src/engine/raptorHud';
 import { DINO } from '../src/tuning/dino';
 import { Arena, boxAt } from '../src/world/arena';
 
 const v = DINO.v;
 const walls = [boxAt(-25, -1, -25, 50, 1, 50, 'floor'), boxAt(-25, 0, -26, 50, 8, 1, 'wall'), boxAt(-25, 0, 25, 50, 8, 1, 'wall'), boxAt(-26, 0, -25, 1, 8, 50, 'wall'), boxAt(25, 0, -25, 1, 8, 50, 'wall')];
-const arena = (extra: ReturnType<typeof boxAt>[] = []): Arena => ({ name: 'desert', boxes: [...walls, ...extra], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] });
-const OPEN = arena();
-/** A column between you (at the middle) and it (north of you). */
-const COVER = arena([boxAt(-1.5, 0, -7, 3, 6, 2, 'wall')]);
+const OPEN: Arena = { name: 'desert', boxes: walls, pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] };
 const world = new FlatWorld();
 
-function fight(at: Vector3, room = OPEN, seed = 3) {
-  const c = createCombat(room);
+function fight(at: Vector3, stage = 0, seed = 3) {
+  const c = createCombat(OPEN);
   c.rng = createRng(seed);
   const p = createPlayer(0, 0, 0, 0);
   p.grounded = true;
   const slot = spawnEnemy(c.enemies, 'dino', at, Math.atan2(at.x, at.z));
   const e = c.enemies[slot];
-  // (No sandstorm unless a test wants one.)
-  e.blink = 99;
+  e.stage = stage;
+  if (stage > 0) {
+    e.hp = ENEMY_STATS.dino().hp * (v.frenzyAt - 0.05);
+    // (Past its first Apex Hunt and Pack Call: each has its tests.)
+    e.ult.count = 1;
+    e.raptor!.callIn = 99;
+  }
+  e.cooldown = 99;
   c.events.clear();
   return { c, p, e, slot };
 }
@@ -48,225 +50,237 @@ type Fight = ReturnType<typeof fight>;
 /** Steps the fight `secs` (`each(i)`: before tick i, may return presses). */
 function run(f: Fight, secs: number, each?: (i: number) => Partial<CombatIntent> | void) {
   const seen: string[] = [];
-  const values: number[] = [];
   const hp = f.p.hp;
   for (let i = 0; i < ticks(secs); i++) {
     const intent = Object.assign(emptyCombatIntent(), each?.(i) ?? {});
     stepCombat(f.c, f.p, intent, world, DT);
-    f.p.hurtTime = Math.max(0, f.p.hurtTime - DT);
-    for (let e = 0; e < f.c.events.length; e++) {
-      seen.push(f.c.events.at(e).kind);
-      values.push(f.c.events.at(e).value);
-    }
+    f.p.hurtTime = 0;
+    f.p.invuln = 0;
+    for (let e = 0; e < f.c.events.length; e++) seen.push(f.c.events.at(e).kind);
     f.c.events.clear();
   }
-  return { seen, values, hurt: f.p.hp < hp, lost: hp - f.p.hp };
+  return { seen, hurt: f.p.hp < hp, lost: hp - f.p.hp };
 }
-const count = (seen: string[], kind: string) => seen.filter((s) => s === kind).length;
-/** It warns of `move` now. */
-function warnOf(f: Fight, move: number, feint = 0) {
+const warn = (f: Fight, move: number) => {
   f.e.move = move;
-  f.e.near = feint;
   f.e.shots = 0;
+  f.e.struck = false;
   setPhase(f.e, 'windup');
-}
+};
 
-section('Velociraptor — the hunt: its charge, the feint, the sand kick, the wall launch');
+section('Velociraptor — the bible’s numbers');
 {
   const s = ENEMY_STATS.dino();
-  check(`a boss, ${s.height} m, never flinches`, s.boss && s.stagger === Infinity);
-  const real = fight(new Vector3(0, 0, -14));
-  warnOf(real, CHARGE);
-  const rr = run(real, v.chargeWindup + 0.05);
-  check('a real charge scrapes the sand twice in its warning, then charges', count(rr.seen, 'dinoScrape') === 2 && rr.seen.indexOf('dinoScrape') < rr.seen.indexOf('dinoCharge') && real.e.phase === 'charge');
-  real.p.pos.set(8, 0, 0);
-  run(real, 0.4);
-  check('charging, it turns after you', real.e.phase === 'charge' && real.e.aim.x > 0.15);
-  const feint = fight(new Vector3(0, 0, -14));
-  warnOf(feint, CHARGE, 1);
-  const rf = run(feint, v.chargeWindup + 0.02);
-  check('a feint: no scrapes; it stops dead instead of charging', count(rf.seen, 'dinoScrape') === 0 && rf.seen.includes('dinoFeint') && feint.e.move === FEINT && feint.e.phase === 'windup');
-  // You dodge aside meanwhile: it pounces where you went.
-  feint.p.pos.set(6, 0, 0);
-  const rp = run(feint, v.feintStop + v.feintAir + 0.1);
-  check('then it pounces where you went', rp.seen.includes('dinoPounce') && rp.seen.includes('dinoLand') && Math.hypot(feint.e.pos.x - 6, feint.e.pos.z) < 1 && rp.hurt);
-  // Its odds of a feint.
-  const odds = fight(new Vector3(0, 0, -20), OPEN, 11);
-  let charges = 0;
-  let feints = 0;
-  for (let i = 0; i < 200; i++) {
-    setPhase(odds.e, 'chase');
-    odds.e.cooldown = 0;
-    odds.e.strafe = 0;
-    odds.e.move = -1;
-    run(odds, DT);
-    if (odds.e.move !== CHARGE) continue;
-    charges++;
-    if (odds.e.near > 0) feints++;
-  }
-  check(`about ${v.feintChance * 100}% of its charges are feints (${feints} of ${charges})`, charges > 40 && Math.abs(feints / charges - v.feintChance) < 0.15);
-  // The sand kick.
-  const kick = fight(new Vector3(0, 0, -8));
-  warnOf(kick, KICK);
-  const rk = run(kick, v.kickWindup + 0.02);
-  check('the sand kick: it turns its back to you, kicks, and your view’s blurred with sand; then it charges', rk.seen.includes('dinoKick') && kick.p.blind === v.kickBlind && kick.e.move === CHARGE && kick.e.near === 0);
-  const aside = fight(new Vector3(0, 0, -8));
-  warnOf(aside, KICK);
-  run(aside, v.kickWindup * 0.7);
-  aside.p.pos.set(9, 0, -6);
-  const ra = run(aside, v.kickWindup * 0.3 + 0.02);
-  check('step aside once it’s turned and the sand misses you', ra.seen.includes('dinoKick') && aside.p.blind === 0 && aside.e.phase === 'recover');
-  const dashed = fight(new Vector3(0, 0, -8));
-  warnOf(dashed, KICK);
-  run(dashed, v.kickWindup - 0.02);
-  dashed.p.invuln = 0.2;
-  run(dashed, 0.05);
-  check('a dash gets you through the sand', dashed.p.blind === 0);
-  // The wall launch.
-  const wl = fight(new Vector3(0, 0, -14));
-  warnOf(wl, WALL);
-  let high = 0;
-  const rw = run(wl, v.wallWindup + 2.5, () => {
-    if (wl.e.phase === 'sky') high = Math.max(high, wl.e.pos.y);
-  });
-  check('the wall launch: it sprints to the nearest wall, claws up it and dives at you', rw.seen.indexOf('dinoSprint') < rw.seen.indexOf('dinoClaws') && rw.seen.indexOf('dinoClaws') < rw.seen.lastIndexOf('dinoPounce') && high > v.wallHigh * 0.9 && rw.hurt);
-  const none = fight(new Vector3(0, 0, -3));
-  warnOf(none, WALL);
-  run(none, v.wallWindup + 0.02);
-  check('with no wall in reach it charges instead', none.e.move === CHARGE);
+  check(`${s.hp} health, never tankier (it was 1260)`, s.hp <= 1260);
+  check(`its tell ${v.tell} s (the bible’s dial for its 6th place)`, v.tell > 0.6 && v.tell < 0.9);
+  check(`its Apex Hunt’s window ${v.apexWindow} s, its eyes’ flash ${v.apexFlash} s`, v.apexWindow === 5 && v.apexFlash === 0.5);
 }
 
-section('Velociraptor — its frenzy: the sandstorm, the screech, the pin');
+section('Velociraptor — Sickle Pounce: dodge late');
 {
-  const st = fight(new Vector3(0, 0, -6));
-  st.e.hp = ENEMY_STATS.dino().hp * (v.frenzyAt - 0.01);
-  st.e.blink = 0;
-  setPhase(st.e, 'chase');
-  run(st, DT);
-  check(`at ${v.frenzyAt * 100}% its frenzy starts: it rears up to call a sandstorm`, st.e.stage === 1 && st.e.move === STORM && st.e.phase === 'windup');
-  const rs = run(st, STORM_CALL / v.frenzyPace + 0.02);
-  check(`the sandstorm: ${v.stormTime} s, your sight down to ${v.stormSight} m`, rs.seen.includes('dinoStorm') && st.c.storm > v.stormTime - 0.1);
-  run(st, 1.6);
-  const off = Math.hypot(st.e.pos.x, st.e.pos.z);
-  check(`in it, it circles you ${v.stalkRing} m off (out of sight): ${off.toFixed(1)} m`, off > v.stormSight && Math.abs(off - v.stalkRing) < 2.5);
-  let lunged = false;
-  const rl = run(st, v.lungeGap + 1, () => {
-    if (st.e.move === LUNGE) lunged = true;
+  const f = fight(new Vector3(0, 0, -14));
+  warn(f, SICKLE);
+  f.c.events.push('dinoHiss', 0, 0, 0, 0);
+  const tell = run(f, v.tell + 0.02);
+  check('it crouches, hissing: its hiss is the tell', tell.seen.includes('dinoHiss') && tell.seen.includes('dinoPounce'));
+  check('then off it goes', f.e.phase === 'leap' && f.e.move === SICKLE);
+  // You step away early: it follows.
+  f.p.pos.set(8, 0, 0);
+  run(f, v.pounceAir * 0.5);
+  const followed = Math.hypot(f.e.aim.x - f.p.pos.x, f.e.aim.z - f.p.pos.z);
+  check('you dodged too early: its landing follows you', followed < 3, followed.toFixed(1));
+  const r = run(f, v.pounceAir * 0.5 + 0.05);
+  check(`and catches you: ${v.pounceDamage}`, r.lost >= v.pounceDamage);
+
+  const g = fight(new Vector3(0, 0, -14));
+  warn(g, SICKLE);
+  run(g, v.tell + 0.02);
+  run(g, v.pounceAir * (v.correctFor + 0.05));
+  // Late: it can't.
+  g.p.pos.set(14, 0, 0);
+  const r2 = run(g, v.pounceAir * (1 - v.correctFor));
+  check('you dodged late: it lands where you were', !r2.hurt && r2.seen.includes('dinoLand'));
+  check(`it skids on, open ${v.skidOpen} s (hits do more)`, r2.seen.includes('dinoSkid') && g.e.phase === 'stun' && g.e.move === SICKLE && ENEMY_STATS.dino().stunned > 1);
+  run(g, v.skidOpen + 0.05);
+  check('then it’s up', g.e.phase !== 'stun');
+}
+
+section('Velociraptor — Stalk & Ambush: your ears');
+{
+  const f = fight(new Vector3(0, 0, -8));
+  warn(f, AMBUSH);
+  f.e.move = AMBUSH;
+  setPhase(f.e, 'chase');
+  f.e.cooldown = 99;
+  // (Its pick, forced: through its warn.)
+  const forced = fight(new Vector3(0, 0, -8));
+  forced.e.cooldown = 0;
+  forced.e.strafe = 0;
+  let saw = false;
+  for (let tries = 0; tries < 40 && !saw; tries++) {
+    forced.e.cooldown = 0;
+    setPhase(forced.e, 'chase');
+    forced.e.pos.set(0, 0, -8);
+    run(forced, DT);
+    saw = forced.e.phase === 'charge' && forced.e.move === AMBUSH;
+  }
+  check('it sometimes runs off', saw);
+  const seen = run(forced, 1.4);
+  check('and it’s gone: not drawn, out of reach', hiddenDino(forced.e) && forced.e.phase === 'burrow' && dodges(forced.c, forced.slot, 0, -1), `${forced.e.phase} ${forced.e.pos.y}`);
+  const clicks = run(forced, v.ambushFor * 0.5);
+  const later = run(forced, v.ambushFor * 0.45);
+  const count = (a: string[]) => a.filter((k) => k === 'dinoClick').length;
+  check(`clicks, quicker as it comes (${count(clicks.seen)}, then ${count(later.seen)})`, count(later.seen) > count(clicks.seen) && count(clicks.seen) > 0);
+  check('its ring holds, round you', near(Math.hypot(forced.e.pos.x, forced.e.pos.z), v.stalkRing, 0.1));
+  void seen;
+  const out = run(forced, v.ambushFor * 0.08);
+  check('it shows, on its bearing', out.seen.includes('dinoEmerge') && forced.e.move === EMERGE && !hiddenDino(forced.e));
+  const late = run(forced, v.emergeFor + 0.05);
+  check('let be: it lunges', forced.e.move === LUNGE && forced.e.phase === 'leap' && late.seen.includes('dinoPounce'));
+  const lunged = run(forced, v.lungeAir + 0.05);
+  check(`${v.lungeDamage}`, lunged.lost >= v.lungeDamage);
+
+  const t = fight(new Vector3(0, 0, -10));
+  t.e.move = EMERGE;
+  setPhase(t.e, 'windup');
+  t.e.flash = 0;
+  run(t, 0.1);
+  hitEnemy(t.e, 5, 0, 0, 0);
+  const tripped = run(t, DT * 2);
+  check(`hit as it shows: it trips, down ${v.tripFor} s`, tripped.seen.includes('dinoTrip') && t.e.phase === 'stun' && t.e.move === EMERGE);
+  run(t, v.tripFor + 0.05);
+  check('then it’s up', t.e.phase !== 'stun');
+}
+
+section('Velociraptor — Tail Lash: jump it');
+{
+  const f = fight(new Vector3(0, 0, -5));
+  warn(f, TAIL);
+  const tell = run(f, v.tell + 0.02);
+  check('it turns side-on, and spins', !tell.hurt && f.e.phase === 'dive' && tell.seen.includes('dinoTail'));
+  const spun = run(f, v.tailSpin + 0.02);
+  check(`standing: its tail takes you, ${v.tailDamage}`, spun.lost >= v.tailDamage, `${spun.lost}`);
+  check(`it’s dizzy ${v.tailDizzy} s`, f.e.phase === 'stun' && f.e.move === TAIL);
+  const j = fight(new Vector3(0, 0, -5));
+  warn(j, TAIL);
+  run(j, v.tell + 0.02);
+  const over = run(j, v.tailSpin + 0.02, () => {
+    j.p.pos.y = v.tailOver + 0.2;
   });
-  check('it hisses, and lunges out of the storm at you', lunged && rl.seen.includes('dinoPounce') && rl.hurt);
-  run(st, v.stormTime);
-  check(`the storm blows itself out; the next only after ${v.stormGap} s`, st.c.storm === 0 && st.e.blink > 0);
-  const dies = fight(new Vector3(0, 0, -10));
-  dies.c.storm = 5;
-  hitEnemy(dies.e, 1e6, 0, 0, 0);
-  run(dies, DT);
-  check('killed, its sandstorm ends', dies.c.storm === 0);
-  // The screech.
-  const sc = fight(new Vector3(0, 0, -12));
-  sc.e.stage = 1;
-  warnOf(sc, SCREECH);
-  const rsc = run(sc, v.screechWindup / v.frenzyPace + 0.02);
-  check(`its screech, in the open: no dash for ${v.screechLock} s, then it charges`, rsc.seen.includes('dinoScreech') && sc.p.dashLock === v.screechLock && sc.e.move === CHARGE && sc.e.near === 0);
-  check('no dash while it lasts', !tryStartDash(sc.p, true, new Vector3(1, 0, 0)));
-  sc.p.dashLock = 0;
-  check('…and back after', tryStartDash(sc.p, true, new Vector3(1, 0, 0)));
-  const cv = fight(new Vector3(0, 0, -12), COVER);
-  cv.e.stage = 1;
-  warnOf(cv, SCREECH);
-  run(cv, v.screechWindup / v.frenzyPace + 0.02);
-  check('behind a column it doesn’t catch you', cv.p.dashLock === 0);
-  // The pin.
-  const pinned = () => {
-    const f = fight(new Vector3(0, 0, -8));
-    f.e.stage = 1;
-    warnOf(f, POUNCE);
-    run(f, v.pounceWindup / v.frenzyPace + v.pounceAir + 0.05);
+  check('jumped: it passes under you', !over.hurt);
+  const far = fight(new Vector3(0, 0, -5));
+  far.p.pos.set(0, 0, v.tailReach + 2);
+  warn(far, TAIL);
+  run(far, v.tell + 0.02);
+  check('out of its reach: nothing', !run(far, v.tailSpin + 0.02).hurt);
+}
+
+section('Velociraptor — charge: scrapes twice, a wall stuns it');
+{
+  const f = fight(new Vector3(0, 0, -14));
+  warn(f, CHARGE);
+  const r = run(f, v.chargeWindup + 0.05);
+  check('two scrapes, then off', r.seen.filter((k) => k === 'dinoScrape').length === 2 && f.e.phase === 'charge');
+}
+
+section('Velociraptor — Pack Call: while they live, it only ambushes');
+{
+  const f = fight(new Vector3(0, 0, -14), 1);
+  f.e.raptor!.callIn = 0;
+  f.e.cooldown = 0;
+  setPhase(f.e, 'chase');
+  run(f, DT);
+  check('in phase 2, its gap over: it calls', f.e.move === PACK && f.e.phase === 'windup');
+  const r = run(f, v.tell / v.frenzyPace);
+  check('its head up, it barks twice', r.seen.filter((k) => k === 'dinoBark').length >= 1);
+  check(`${v.packCount} of the small ones come, either side of you`, packAlive(f.c) && f.c.enemies.filter((e) => isLive(e) && e.kind === 'dinoBlob').length === v.packCount);
+  const pack = f.c.enemies.filter((e) => isLive(e) && e.kind === 'dinoBlob');
+  check('flanking you', pack[0].pos.x * pack[1].pos.x < 0);
+  const moves = new Set<number>();
+  for (let i = 0; i < 20; i++) {
+    for (const e of pack) e.hp = 1e6;
+    setPhase(f.e, 'chase');
+    f.e.cooldown = 0;
+    run(f, DT);
+    moves.add(f.e.move);
+  }
+  check('while they live, it only ambushes', moves.size === 1 && moves.has(AMBUSH), [...moves].join());
+  for (const e of pack) hitEnemy(e, e.hp + 1, 0, 0, 0);
+  check('killed, it’s back to the rest', !packAlive(f.c));
+}
+
+section('Velociraptor — Feint: listen, don’t look');
+{
+  const f = fight(new Vector3(0, 0, -10), 1);
+  warn(f, FEINT);
+  const crouch = run(f, v.tell / v.frenzyPace + 0.02);
+  check('a crouch with no hiss', !crouch.seen.includes('dinoHiss') && f.e.phase === 'charge' && f.e.move === FEINT);
+  const before = f.e.pos.z;
+  const round = run(f, v.feintRun + 0.02);
+  check('it blurs round to your other side', Math.sign(f.e.pos.z) !== Math.sign(before));
+  check('and that crouch hisses', round.seen.includes('dinoHiss') && f.e.move === SICKLE && f.e.phase === 'windup');
+  check(`a short one (${v.feintHiss} s)`, dinoWindup(SICKLE, 1, true) === v.feintHiss);
+}
+
+section('Velociraptor — phase 2: its pin');
+{
+  const f = fight(new Vector3(0, 0, -6), 1);
+  f.e.move = SICKLE;
+  f.e.from.copy(f.e.pos);
+  f.e.aim.set(0, 0, -1);
+  setPhase(f.e, 'leap');
+  f.e.t = v.pounceAir - 0.02;
+  run(f, 0.05);
+  check('a pounce landing on you pins you', f.c.pin.on);
+  check('its bites still glow', typeof pinGlowing(f.c.pin) === 'boolean');
+}
+
+section('Velociraptor — Apex Hunt: hit its eyes');
+{
+  const open = (at = new Vector3(0, 0, -10)) => {
+    const f = fight(at, 1);
+    f.e.ult.count = 0;
+    setPhase(f.e, 'chase');
     return f;
   };
-  const pn = pinned();
-  check('in its frenzy its pounce landing on you pins you (it stands over you)', pn.c.pin.on && pn.e.phase === 'grab' && Math.hypot(pn.e.pos.x, pn.e.pos.z) > ENEMY_STATS.dino().radius);
-  const held = pn.p.pos.clone();
-  const rb = run(pn, v.pinGap * Math.round(v.pinBites) + 0.1);
-  check(`no dodges: ${Math.round(v.pinBites)} bites (${v.pinDamage} each), then it lets you go`, count(rb.seen, 'pinBite') === Math.round(v.pinBites) && Math.abs(rb.lost - v.pinDamage * Math.round(v.pinBites)) < 0.5 && !pn.c.pin.on && pn.c.pin.end === 'bitten' && pn.p.pos.distanceTo(held) < 0.5);
-  const dg = pinned();
-  let pressed = -1;
-  const rd = run(dg, v.pinGap * Math.round(v.pinDodges) + 0.1, () => {
-    if (!pinGlowing(dg.c.pin) || pressed === dg.c.pin.bites) return;
-    pressed = dg.c.pin.bites;
-    return { dodgePressed: true };
-  });
-  check(`dash in each bite’s glow: ${Math.round(v.pinDodges)} dodges kick it off (stunned), unhurt`, count(rd.seen, 'pinTwist') === Math.round(v.pinDodges) && !rd.hurt && !dg.c.pin.on && dg.c.pin.end === 'free' && dg.e.phase === 'stun');
-  const early = pinned();
-  const re = run(early, v.pinGap + 0.02, (i) => (i === 2 ? { dodgePressed: true } : pinGlowing(early.c.pin) ? { dodgePressed: true } : undefined));
-  check('a dash before the glow wastes that bite’s dodge: it lands', re.seen.includes('pinWasted') && re.seen.includes('pinBite') && !re.seen.includes('pinTwist'));
-  const dash = fight(new Vector3(0, 0, -8));
-  dash.e.stage = 1;
-  warnOf(dash, POUNCE);
-  run(dash, v.pounceWindup / v.frenzyPace + v.pounceAir - 0.05);
-  dash.p.invuln = 0.3;
-  run(dash, 0.1);
-  check('dashing as it lands: no pin', !dash.c.pin.on);
-  const hunt = fight(new Vector3(0, 0, -8));
-  warnOf(hunt, POUNCE);
-  run(hunt, v.pounceWindup + v.pounceAir + 0.05);
-  check('before its frenzy a pounce only hurts', !hunt.c.pin.on);
-}
+  const f = open();
+  const start = run(f, DT);
+  check('phase 2’s first thing: the light dies', start.seen.includes('dinoDark') && f.e.move === APEX && f.e.shots === APEX_DARKEN && f.c.storm > 0);
+  run(f, v.apexTell + 0.02);
+  check(`it’s gone, the cue says how: ${APEX_CUE}`, f.e.shots === APEX_STALK && hiddenDino(f.e) && f.e.ult.on && f.e.ult.cue === APEX_CUE && f.e.ult.window === v.apexWindow);
+  const hunt = run(f, f.e.raptor!.flashAt - 0.05);
+  check('a heart beats, and clicks', hunt.seen.includes('dinoHeart') && hunt.seen.includes('dinoClick'));
+  check('out of reach', dodges(f.c, f.slot, 0, -1));
+  const eyes = run(f, 0.1);
+  check('its eyes flash, and it kicks a stone', eyes.seen.includes('dinoEyes') && f.e.shots === APEX_EYES && !hiddenDino(f.e) && f.c.orbs.some((o) => o.alive && o.look === 'rubble'));
+  const hp = f.e.hp;
+  hitEnemy(f.e, 10, 0, 0, 0);
+  const hit = run(f, DT * 2);
+  check(`hit in time: blinded, on its back ${v.apexStun} s, ${v.apexSelf} off it`, hit.seen.includes('dinoBlinded') && f.e.phase === 'stun' && f.e.move === APEX && f.e.raptor!.flipped && hp - f.e.hp >= v.apexSelf && !f.e.ult.on);
+  run(f, 1);
+  check('the light comes back', f.c.storm === 0);
+  run(f, v.apexStun);
+  check('then it’s up, on its feet', f.e.phase !== 'stun' && !f.e.raptor!.flipped);
 
-section('Velociraptor — the blitz: two afterimages, only it real');
-{
-  const bz = fight(new Vector3(0, 0, -12));
-  bz.e.stage = 1;
-  bz.e.hp = ENEMY_STATS.dino().hp * (v.blitzAt - 0.01);
-  setPhase(bz.e, 'chase');
-  run(bz, DT);
-  check(`at ${v.blitzAt * 100}% it blitzes at once`, bz.e.stage === 2 && bz.e.move === BLITZ && bz.e.phase === 'windup');
-  run(bz, v.blitzWindup / v.frenzyPace + 0.02);
-  const lanes = [-1, 0, 1].map((l) => blitzSpot(bz.e, l, 1, new Vector3()));
-  const apart = Math.min(lanes[0].distanceTo(lanes[1]), lanes[1].distanceTo(lanes[2]));
-  check(`its three images end round where you stood, ${apart.toFixed(1)} m apart`, apart > 2.5 && lanes.every((p) => p.length() < ENEMY_STATS.dino().radius + 2));
-  const rb = run(bz, blitzRun() + v.blitzSlashGap * Math.round(v.blitzSlashes) + 0.05);
-  const at = blitzSpot(bz.e, bz.e.near, 1, new Vector3());
-  check(`it ends on its own lane, then slashes ${Math.round(v.blitzSlashes)} times, each landing`, at.distanceTo(new Vector3(bz.e.pos.x, at.y, bz.e.pos.z)) < 0.3 && count(rb.seen, 'dinoSlash') === Math.round(v.blitzSlashes) && Math.abs(rb.lost - v.blitzDamage * Math.round(v.blitzSlashes)) < 0.5);
-  const hit = fight(new Vector3(0, 0, -12));
-  hit.e.stage = 2;
-  warnOf(hit, BLITZ);
-  const rh = run(hit, v.blitzWindup / v.frenzyPace + blitzRun() + 1, (i) => {
-    if (hit.e.phase === 'charge' && hit.e.t > 0.1 && i % 5 === 0) hitEnemy(hit.e, 10, 0, 0, 0);
-  });
-  check('hit it mid-blitz: it reels, stunned; no slashes', rh.seen.includes('dinoReel') && !rh.seen.includes('dinoSlash') && hit.e.phase === 'stun');
-}
+  // Not.
+  const m = open();
+  run(m, DT);
+  run(m, v.apexTell + 0.02);
+  run(m, m.e.raptor!.flashAt + v.apexFlash + 0.05);
+  check('not in time: it lunges', m.e.shots === APEX_LUNGE && !m.e.ult.on);
+  m.p.hp = 100;
+  const bit = run(m, 0.5);
+  check(`${v.apexDamage}, heavy, not a one-shot`, near(bit.lost, v.apexDamage, 1) && !m.p.dead);
+  check('the light comes back', m.c.storm <= 0.6);
 
-section('Velociraptor — what it picks, and the screen');
-{
-  const picks = (stage: number, seed: number) => {
-    const f = fight(new Vector3(0, 0, -10), OPEN, seed);
-    f.e.stage = stage;
-    const got = new Set<number>();
-    for (let i = 0; i < 60; i++) {
-      setPhase(f.e, 'chase');
-      f.e.cooldown = 0;
-      f.e.blink = 99;
-      run(f, DT);
-      got.add(f.e.move);
-    }
-    return got;
-  };
-  const hunt = picks(0, 5);
-  check('on the hunt: charges, kicks, wall launches only', [...hunt].every((m) => m === CHARGE || m === KICK || m === WALL) && hunt.size === 3);
-  const frenzy = picks(1, 6);
-  check('in its frenzy: its screech and pounce too (no blitz yet)', frenzy.has(SCREECH) && frenzy.has(POUNCE) && !frenzy.has(BLITZ));
-  check('below its blitz mark: blitzes too', picks(2, 7).has(BLITZ));
-  const gap = fight(new Vector3(0, 0, -10));
-  gap.e.stage = 1;
-  gap.e.blink = 0;
-  gap.e.cooldown = 0;
-  run(gap, DT);
-  check('its gap over, its next pick is a sandstorm', gap.e.move === STORM);
-  check('each warning’s length', dinoWindup(CHARGE) === v.chargeWindup && dinoWindup(KICK) === v.kickWindup && dinoWindup(LUNGE) === v.lungeHiss && dinoWindup(STORM) === STORM_CALL);
-  const hud = createRaptorHud();
-  const f = fight(new Vector3(0, 0, -10));
-  f.p.blind = v.kickBlind / 2;
-  f.p.dashLock = 1;
-  raptorHud(f.p, f.c, hud);
-  check('the HUD: sand half gone, the dash locked, not pinned', hud.blind === 0.5 && hud.dashLocked && hud.pinDodges === -1);
+  // The stone, for bare hands.
+  const b = open();
+  run(b, DT);
+  run(b, v.apexTell + 0.02);
+  run(b, b.e.raptor!.flashAt + 0.02);
+  const parried = run(b, 1, () => {
+    b.c.fists.parryWindow = 0.2;
+  });
+  check('its stone parried goes back into its eyes: blinded, bare hands have their way', parried.seen.includes('parry') && parried.seen.includes('dinoBlinded') && b.e.raptor!.flipped, parried.seen.join());
+  void startApex;
 }

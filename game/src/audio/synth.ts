@@ -10,6 +10,8 @@ interface Tone {
   gain: number;
   type?: OscillatorType;
   delay?: number;
+  /** Update 0.3.60 — left (−1) to right (+1): for a sound that says where something is. */
+  pan?: number;
 }
 
 interface Noise {
@@ -20,6 +22,19 @@ interface Noise {
   to: number;
   q?: number;
   delay?: number;
+  /** Update 0.3.60 — left (−1) to right (+1). */
+  pan?: number;
+}
+
+/** Into the mix, panned if it's asked for. */
+function out(a: AudioEngine, g: AudioNode, pan: number | undefined) {
+  if (!pan || !a.ctx) {
+    g.connect(a.sfx!);
+    return;
+  }
+  const p = a.ctx.createStereoPanner();
+  p.pan.value = Math.max(-1, Math.min(1, pan));
+  g.connect(p).connect(a.sfx!);
 }
 
 export function tone(a: AudioEngine, t: Tone) {
@@ -33,7 +48,8 @@ export function tone(a: AudioEngine, t: Tone) {
   osc.frequency.exponentialRampToValueAtTime(Math.max(1, t.to), now + t.dur);
   g.gain.setValueAtTime(t.gain, now);
   g.gain.exponentialRampToValueAtTime(0.0001, now + t.dur);
-  osc.connect(g).connect(a.sfx);
+  osc.connect(g);
+  out(a, g, t.pan);
   osc.start(now);
   osc.stop(now + t.dur + 0.02);
 }
@@ -52,7 +68,8 @@ export function noise(a: AudioEngine, n: Noise) {
   const g = ctx.createGain();
   g.gain.setValueAtTime(n.gain, now);
   g.gain.exponentialRampToValueAtTime(0.0001, now + n.dur);
-  src.connect(f).connect(g).connect(a.sfx);
+  src.connect(f).connect(g);
+  out(a, g, n.pan);
   src.start(now, Math.random() * 1.5);
   src.stop(now + n.dur + 0.02);
 }

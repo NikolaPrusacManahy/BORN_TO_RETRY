@@ -4,6 +4,7 @@
 import type * as THREE from 'three';
 import type { BossRun } from '../../sim/dungeon/bossRoom';
 import { bossOf } from '../../sim/enemies/kinds';
+import { FLOOR } from '../../world/dungeon/floorOrder';
 import type { DungeonLevel } from '../../world/dungeon/assemble';
 import type { DepthsView } from '../depthsView';
 import { TideShowView } from '../moon/tideShowView';
@@ -18,6 +19,7 @@ import { swarmWide } from '../swarm/swarmCinema';
 import { kingWide } from './kingCinema';
 import { PlateauView } from '../norse/plateauView';
 import { TempleView } from '../temple/templeView';
+import { RuinsView } from './ruinsView';
 import { rocWide } from '../norse/rocCinema';
 import { drownedWide } from '../temple/drownedCinema';
 
@@ -40,6 +42,7 @@ export function showViewOf(level: DungeonLevel, depths: DepthsView): ShowView | 
   if (boss === 'swarm') return new SwarmShowView(level);
   if (boss === 'frostRoc') return new PlateauView(level);
   if (boss === 'drownedKing') return new TempleView(level);
+  if (boss === 'dino' && level.plan.level === FLOOR.desert) return new RuinsView(level);
   if (boss === 'okami' && level.okami && depths.sky) return new OkamiShowView(level, depths.sky);
   return null;
 }

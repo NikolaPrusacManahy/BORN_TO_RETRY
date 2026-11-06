@@ -27,6 +27,7 @@
 // Update 0.3.37 — the capture kit (dev builds; capture/capture.ts): its free camera flown (you held), its dolly's view
 // or the free camera's in place of yours, its slow motion and freeze, its field of view, the arms shown or not.
 import * as THREE from 'three';
+import { AudioEngine } from '../audio/audio';
 import type { FrameStats } from '../core/frameStats';
 import type { Input } from '../input/input';
 import { stepCombat } from '../sim/combat/step';
@@ -81,6 +82,9 @@ const GRAB_TURN = 10;
 const STEP_MIN = 0.1;
 /** Fall below this and you die (m). */
 const KILL_Y = -20;
+
+/** Update 0.3.60 — where you face, for your right. */
+const rightOf = new THREE.Vector3();
 
 export class Run extends RunBase {
   private readonly skull = new THREE.Vector3();
@@ -244,7 +248,15 @@ export class Run extends RunBase {
     this.prompts.update(focus, this.camera, renderer, keyLabel(input.bindings.interact), free, this.combatScene.markAt());
     const d = this.level.dungeon;
     // (Update 0.3.51 — The Swarm's stare darkens the room.)
-    this.view.darkWanted = this.combat.enemies.some((e) => e.alive && e.kind === 'swarm' && e.phase === 'blast') ? 1 : 0;
+    // (Update 0.3.60 — so does the Velociraptor's Apex Hunt.)
+    this.view.darkWanted = this.combat.storm > 0 || this.combat.enemies.some((e) => e.alive && e.kind === 'swarm' && e.phase === 'blast') ? 1 : 0;
+    // (Update 0.3.60 — your right, for the sounds that say which side they came from.)
+    if (AudioEngine.current) {
+      this.camera.getWorldDirection(rightOf);
+      const flat = Math.max(1e-3, Math.hypot(rightOf.x, rightOf.z));
+      AudioEngine.current.rightX = -rightOf.z / flat;
+      AudioEngine.current.rightZ = rightOf.x / flat;
+    }
     if (d) this.view.update?.(gameDt, d, this.camera.position, this.combat.flood, this.hits.kicks);
     else this.view.frame?.(real, this.camera.position);
     if (lobby) this.lobbyNews(lobby);

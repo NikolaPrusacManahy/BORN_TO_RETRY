@@ -8,6 +8,7 @@
 import { FOES5 } from '../../tuning/foes5';
 import { spiked } from './urchin';
 import { submerged } from './drownedKingMoves';
+import { hiddenDino } from './dinoMoves';
 import { Vector3 } from 'three';
 import { FOES4 } from '../../tuning/foes4';
 import { FOES3B } from '../../tuning/foes3b';
@@ -122,6 +123,9 @@ export function dodges(state: CombatState, i: number, dirX: number, dirZ: number
       }
       return false;
     }
+    // (Update 0.3.60 — the Velociraptor unseen: out of reach.)
+    case 'dino':
+      return hiddenDino(e);
     case 'dinoBlob':
       // Open after its bite, or committed mid-pounce: your blows land.
       if (e.phase === 'recover' || e.phase === 'leap' || e.blink > 0 || state.rng() >= v.dinoBlobDodge) return false;

@@ -71,6 +71,9 @@ export function parry(state: CombatState, eye: Vector3, dir: Vector3): number {
   // (Update 0.3.58 — a Drowned King's head goes back to it, big damage: the lesson's the timing, not the aim.)
   const king = o.look === 'head' ? state.enemies.find((e) => isLive(e) && e.kind === 'drownedKing' && !submerged(e)) : null;
   if (king) toward.set(king.pos.x - o.pos.x, king.pos.y + ENEMY_STATS.drownedKing().height * 0.45 - o.pos.y, king.pos.z - o.pos.z).normalize();
+  // (Update 0.3.60 — so does the stone the Velociraptor kicks in its Apex Hunt: into its eyes.)
+  const raptor = o.look === 'rubble' && o.by === 'dino' ? state.enemies.find((e) => isLive(e) && e.kind === 'dino') : null;
+  if (raptor) toward.set(raptor.pos.x - o.pos.x, raptor.pos.y + ENEMY_STATS.dino().height * 0.6 - o.pos.y, raptor.pos.z - o.pos.z).normalize();
   state.fists.quick = o.look === 'head';
   o.vel.copy(toward).multiplyScalar(Math.max(o.vel.length() * FISTS.v.parrySpeed, FISTS.v.parryMinSpeed));
   o.parried = true;

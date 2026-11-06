@@ -24,6 +24,7 @@ import { createUltimate, resetUltimate, type Ultimate, ultimateTakes } from './u
 import { createKingBody, type KingBody, skullY } from './kingBody';
 import { createRocBody, type RocBody } from './rocBody';
 import { createDrownedBody, type DrownedBody } from './drownedBody';
+import { createDinoBody, type DinoBody } from './dinoBody';
 import { BONE_KING } from '../../tuning/boneKing';
 import { onPupil } from './swarmMoves';
 import type { Wormling } from './wormlings';
@@ -115,6 +116,8 @@ export interface Enemy {
   roc: RocBody | null;
   /** Update 0.3.58 — the Drowned King's heads, its mark on you, its maw (drownedBody.ts; null: anything else). */
   drowned: DrownedBody | null;
+  /** Update 0.3.60 — the Velociraptor's clicks, its eyes, its pack (dinoBody.ts; null: anything else). */
+  raptor: DinoBody | null;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -195,6 +198,7 @@ export function createEnemies(): Enemy[] {
     king: null,
     roc: null,
     drowned: null,
+    raptor: null,
   }));
 }
 
@@ -239,6 +243,7 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   e.king = kind === 'boneKing' ? createKingBody() : null;
   e.roc = kind === 'frostRoc' ? createRocBody() : null;
   e.drowned = kind === 'drownedKing' ? createDrownedBody() : null;
+  e.raptor = kind === 'dino' ? createDinoBody() : null;
   return i;
 }
 

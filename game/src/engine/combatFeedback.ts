@@ -11,6 +11,7 @@
 import { StyleMeter } from './styleMeter';
 import * as THREE from 'three';
 import type { CombatSounds } from '../audio/combatSounds';
+import { AudioEngine } from '../audio/audio';
 import type { CombatState } from '../sim/combat/state';
 import { FEEDBACK } from '../tuning/combat';
 import type { CameraRig } from './cameraRig';
@@ -74,6 +75,12 @@ export class CombatFeedback {
       const e = ev.at(i);
       at.set(e.x, e.y, e.z);
       back.subVectors(listener, at).normalize();
+      // (Update 0.3.60 — which side it came from, as you face.)
+      const au = AudioEngine.current;
+      if (au) {
+        const flat = Math.max(0.5, Math.hypot(at.x - listener.x, at.z - listener.z));
+        au.pan = ((at.x - listener.x) * au.rightX + (at.z - listener.z) * au.rightZ) / flat;
+      }
       this.f.sounds.play(e.kind, e.value, at.distanceTo(listener));
       this.style.event(e.kind, e.value);
       switch (e.kind) {

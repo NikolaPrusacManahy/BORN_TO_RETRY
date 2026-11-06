@@ -45,7 +45,7 @@ section('Venom Garden — the floor');
   const venom = VENOM_ROOMS.map((t) => t.id);
   check('nine rooms of its own, and only those (floor 1 and 3 have none of them)', venom.length === 9 && on(2).every((id) => venom.includes(id)) && on(2).length === 9 && !on(1).some((id) => venom.includes(id)) && !on(3).some((id) => venom.includes(id)));
   check('no lava rooms on floors 1–2', !on(1).includes('lava lake') && !on(2).includes('lava lake') && !on(2).includes('bone bridges'));
-  check('its boss room is The Swarm’s nest (Update 0.3.52); the others keep theirs', bossRoomOf(FLOOR.garden).id === 'the nest' && bossRoomOf(FLOOR.dungeon).id === 'the burnt courtyard' && bossRoomOf(FLOOR.desert).id === 'boss');
+  check('its boss room is The Swarm’s nest (Update 0.3.52); the others keep theirs', bossRoomOf(FLOOR.garden).id === 'the nest' && bossRoomOf(FLOOR.dungeon).id === 'the burnt courtyard' && bossRoomOf(FLOOR.desert).id === 'the sunken ruins' && bossRoomOf(FLOOR.hell).id === 'boss');
   const living = new Set([...VENOM_PIECES.plants, ...VENOM_PIECES.tall, ...VENOM_PIECES.trees]);
   const charred = new Set([...VENOM_PIECES.burnt, ...VENOM_PIECES.ash]);
   let bad = '';
