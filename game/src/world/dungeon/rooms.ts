@@ -40,6 +40,7 @@
 // earth), + a bed of moss, i bamboo, l a stone lantern, % a small shrine, ! a training dummy, | a weapon rack, N raked
 // gravel, : a dojo's planks; L its ponds and = its bridges; set pieces drawn as rectangles of one letter: t a torii,
 // @ the shrine hall, $ a pagoda, & a bell tower.
+// Update 0.3.58 — the Drowned King's temple (temple.ts): _ a low stone (0.6 m: just over its first water, under its second).
 import type { Rng } from '../../core/rng';
 import { FIGHT_ROOMS as FIRST_ROOMS, quarter } from './fightRooms';
 import { KEEP_ROOMS } from './keepRooms';
@@ -49,6 +50,7 @@ import { VENOM_ROOMS } from './venomRooms';
 import { BONE_ROOMS } from './boneRooms';
 import { PIT_ROOM } from './pit';
 import { PLATEAU_ROOM } from './plateau';
+import { TEMPLE_ROOM } from './temple';
 import { FROZEN_ROOMS } from './frozenRooms';
 import { FORGE_ROOMS } from './forgeRooms';
 import { COVE_ROOMS, SHARK_ROOM } from './coveRooms';
@@ -64,7 +66,7 @@ export const FIGHT_ROOMS: readonly RoomTemplate[] = [...FIRST_ROOMS, ...VENOM_RO
 /** Update 0.0.21 — the rooms floor `floor` has. */
 export const onFloor = (t: RoomTemplate, floor: number) => (t.from ?? 1) <= floor && floor <= (t.until ?? Infinity);
 
-export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed' | 'bed' | 'grass' | 'tree' | 'web' | 'grave' | 'shroom' | 'burrow' | 'crystal' | 'ice' | 'pine' | 'snow' | 'crusher' | 'vent' | 'belt' | 'bench' | 'boardwalk' | 'keg' | 'wreck' | 'boat' | 'house' | 'outcrop' | 'bones' | 'crater' | 'flora' | 'alienTree' | 'module' | 'dome' | 'rover' | 'solar' | 'boulder' | 'sakura' | 'maple' | 'jpine' | 'bamboo' | 'lantern' | 'torii' | 'gravel' | 'dojo' | 'hall' | 'pagoda' | 'bell' | 'hokora' | 'moss' | 'dummy' | 'rack';
+export type Cell = 'void' | 'floor' | 'wall' | 'column' | 'low' | 'high' | 'ledge' | 'highLedge' | 'stone' | 'spikes' | 'pad' | 'door' | 'dark' | 'tile' | 'chest' | 'lava' | 'sand' | 'palm' | 'cactus' | 'willow' | 'snag' | 'weed' | 'bed' | 'grass' | 'tree' | 'web' | 'grave' | 'shroom' | 'burrow' | 'crystal' | 'ice' | 'pine' | 'snow' | 'crusher' | 'vent' | 'belt' | 'bench' | 'boardwalk' | 'keg' | 'wreck' | 'boat' | 'house' | 'outcrop' | 'bones' | 'crater' | 'flora' | 'alienTree' | 'module' | 'dome' | 'rover' | 'solar' | 'boulder' | 'sakura' | 'maple' | 'jpine' | 'bamboo' | 'lantern' | 'torii' | 'gravel' | 'dojo' | 'hall' | 'pagoda' | 'bell' | 'hokora' | 'moss' | 'dummy' | 'rack';
 export type RoomKind = 'start' | 'fight' | 'boss' | 'shop';
 
 export interface RoomTemplate {
@@ -87,6 +89,7 @@ const CHAR: Record<string, Cell> = {
   b: 'low',
   B: 'high',
   p: 'ledge',
+  _: 'stone',
   P: 'highLedge',
   '^': 'spikes',
   J: 'pad',
@@ -198,7 +201,8 @@ export const bossRoomOf = (floor: number): RoomTemplate => {
   // (Update 0.3.52 — the Venom Garden's, The Swarm's nest: nest.ts.)
   // (Update 0.3.53 — the Bone Keep's, the Bone King's pit: pit.ts.)
   // (Update 0.3.56 — Frozen Depths', the Frost Roc's plateau: plateau.ts.)
-  return r === 'garden' ? NEST_ROOM : r === 'keep' ? PIT_ROOM : r === 'frozen' ? PLATEAU_ROOM : r === 'cove' ? SHARK_ROOM : r === 'moon' ? MOON_BOSS_ROOM : r === 'shrine' ? SHRINE_BOSS_ROOM : BOSS_ROOM;
+  // (Update 0.3.58 — the Drowned Temple's, the Drowned King's flooded temple: temple.ts.)
+  return r === 'garden' ? NEST_ROOM : r === 'keep' ? PIT_ROOM : r === 'frozen' ? PLATEAU_ROOM : r === 'temple' ? TEMPLE_ROOM : r === 'cove' ? SHARK_ROOM : r === 'moon' ? MOON_BOSS_ROOM : r === 'shrine' ? SHRINE_BOSS_ROOM : BOSS_ROOM;
 };
 
 /** Update 0.0.13 — the shop (the designer: a room with five floor tiles, each showing something to buy). */

@@ -235,7 +235,8 @@ export function stepBoss(b: BossRun, portal: { x: number; z: number }, spawns: r
         break;
       }
       // Once it rages, it calls grunts: at once, then every so often while few are left.
-      if (calls && boss.stage > 0 && !b.calling) {
+      // (Update 0.3.58 — the Drowned King's after its first Maw of Many is done with.)
+      if (calls && boss.stage > 0 && !b.calling && (b.kind !== 'drownedKing' || (boss.ult.count > 0 && boss.phase === 'chase'))) {
         b.calling = true;
         b.summon = 0;
       }

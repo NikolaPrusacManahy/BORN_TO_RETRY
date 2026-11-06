@@ -68,3 +68,12 @@
     transform: translateX(-50%) scale(1);
   }
 }
+
+/* Update 0.3.58 — the Drowned King's mark on you, Blood Frenzy: red mist at your screen's edges. */
+.rb-blood-mist {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--mist);
+  background: radial-gradient(ellipse at center, transparent 52%, rgba(150, 10, 18, 0.28) 74%, rgba(170, 8, 16, 0.72) 100%);
+}

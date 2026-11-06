@@ -48,8 +48,8 @@ import { OkamiArena, okamiArenaOf } from './okamiIsles';
 // tree's trunk is a willow's block.
 
 /** Heights of what stands on a cell (m); the floor's top is y = 0. */
-export const HEIGHT: Partial<Record<Cell, number>> = { wall: 6, column: 4.9, low: 1.3, high: 2.85, ledge: 1, highLedge: 2.5, spikes: 0.3, chest: 0.9, bench: 0.9 };
-const BOX_KIND: Partial<Record<Cell, BoxKind>> = { wall: 'wall', column: 'block', low: 'block', high: 'block', ledge: 'block', highLedge: 'block', spikes: 'hazard', bench: 'block' };
+export const HEIGHT: Partial<Record<Cell, number>> = { wall: 6, column: 4.9, low: 1.3, high: 2.85, ledge: 1, highLedge: 2.5, stone: 0.6, spikes: 0.3, chest: 0.9, bench: 0.9 };
+const BOX_KIND: Partial<Record<Cell, BoxKind>> = { wall: 'wall', column: 'block', low: 'block', high: 'block', ledge: 'block', highLedge: 'block', stone: 'block', spikes: 'hazard', bench: 'block' };
 /** Update 0.0.20 — a lava pit's depth: its lava's top under the floor's (m). */
 export const LAVA_DEPTH = 1.6;
 /** How far a jump pad throws you (m/s up): onto the high ledges with room to spare. */

@@ -23,6 +23,7 @@ import { swarmEyeHeight, swarmTakes } from './swarmHits';
 import { createUltimate, resetUltimate, type Ultimate, ultimateTakes } from './ultimate';
 import { createKingBody, type KingBody, skullY } from './kingBody';
 import { createRocBody, type RocBody } from './rocBody';
+import { createDrownedBody, type DrownedBody } from './drownedBody';
 import { BONE_KING } from '../../tuning/boneKing';
 import { onPupil } from './swarmMoves';
 import type { Wormling } from './wormlings';
@@ -112,6 +113,8 @@ export interface Enemy {
   king: KingBody | null;
   /** Update 0.3.56 — the Frost Roc's (rocBody.ts; null: anything else). */
   roc: RocBody | null;
+  /** Update 0.3.58 — the Drowned King's heads, its mark on you, its maw (drownedBody.ts; null: anything else). */
+  drowned: DrownedBody | null;
 }
 
 /** What an enemy's tick works with: the walk grids and the way to the player per size, the orbs, the events.
@@ -191,6 +194,7 @@ export function createEnemies(): Enemy[] {
     ult: createUltimate(),
     king: null,
     roc: null,
+    drowned: null,
   }));
 }
 
@@ -234,6 +238,7 @@ export function spawnEnemy(enemies: Enemy[], kind: EnemyKind, at: Vector3, facin
   if (kind === 'swarm') (e.swarm ??= createSwarmBody()).seeded = false;
   e.king = kind === 'boneKing' ? createKingBody() : null;
   e.roc = kind === 'frostRoc' ? createRocBody() : null;
+  e.drowned = kind === 'drownedKing' ? createDrownedBody() : null;
   return i;
 }
 

@@ -33,7 +33,7 @@ import { TARGET_SHAPES, dummyAxis, turretAxis } from './targets';
 import { hitTurret } from './turretDamage';
 import { HIVE_RADIUS, hitHive } from '../dungeon/hives';
 
-export type TargetKind = 'dummy' | 'turret' | 'enemy' | 'hive' | 'wormling' | 'spine' | 'knee';
+export type TargetKind = 'dummy' | 'turret' | 'enemy' | 'hive' | 'wormling' | 'spine' | 'knee' | 'head';
 
 export interface TargetHit {
   kind: TargetKind;
@@ -49,13 +49,15 @@ const a = new Vector3();
 const b = new Vector3();
 const at = new Vector3();
 const sOut = { s: 0 };
+/** Update 0.3.58 — a Drowned King's head is this big to hit (m). */
+const HEAD_R = 0.5;
 
 export function emptyTargetHit(): TargetHit {
   return { kind: 'dummy', index: -1, s: 0, point: new Vector3(), part: 0 };
 }
 
 /** The nearest target whose capsule comes within `radius` of the segment `from`→`to`. Writes it to `out`. */
-export function nearestTarget(state: CombatState, from: Vector3, to: Vector3, radius: number, out: TargetHit): boolean {
+export function nearestTarget(state: CombatState, from: Vector3, to: Vector3, radius: number, out: TargetHit, heads = true): boolean {
   out.index = -1;
   let nearest = Infinity;
   const consider = (kind: TargetKind, index: number, r: number) => {
@@ -94,6 +96,15 @@ export function nearestTarget(state: CombatState, from: Vector3, to: Vector3, ra
     b.set(q.x, q.top, q.z);
     consider('wormling', i, WORMLING_RADIUS);
   });
+  // (Update 0.3.58 — the Drowned King's heads flying at you: shot or punched, they pop; parrying's the bonus.)
+  if (heads) {
+    state.orbs.forEach((o, i) => {
+      if (!o.alive || o.parried || o.look !== 'head') return;
+      a.copy(o.pos);
+      b.copy(o.pos);
+      consider('head', i, HEAD_R);
+    });
+  }
   // (Update 0.3.53 — the Bone King's vertebra, through its Colossus: for a blow from up on its body, ahead of its body itself.)
   state.enemies.forEach((e, i) => {
     if (!isLive(e) || !e.king || !e.ult.on || from.y < spineFrom(e)) return;
@@ -144,6 +155,12 @@ export function hitTarget(state: CombatState, t: TargetHit, damage: number, knoc
       const eye = state.enemies.find((e) => isLive(e) && e.kind === 'swarm');
       if (eye && !eye.swarm?.shield) eye.hp = Math.max(1, eye.hp - SWARM.v.bigWormBar);
       return true;
+    }
+    case 'head': {
+      const o = state.orbs[t.index];
+      o.alive = false;
+      state.events.push('orbPop', 0, o.pos.x, o.pos.y, o.pos.z);
+      return false;
     }
     case 'knee': {
       const r = state.enemies[t.index];

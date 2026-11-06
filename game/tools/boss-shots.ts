@@ -20,6 +20,11 @@ import { WoodGate } from '../src/engine/boss/woodGate';
 import { introBeats } from '../src/sim/dungeon/bossRoom';
 import { bossOf, ENEMY_STATS } from '../src/sim/enemies/kinds';
 import { DROWNED } from '../src/tuning/drowned';
+import { DrownedFx } from '../src/engine/drownedFx';
+import { TempleView } from '../src/engine/temple/templeView';
+import { clawAt } from '../src/sim/enemies/drownedJaws';
+import { FRENZY as KING_FRENZY, JAWS as KING_JAWS, LUNGE as KING_LUNGE, MAW as KING_MAW, RIPTIDE as KING_RIPTIDE } from '../src/sim/enemies/drownedKingMoves';
+import { MAW_BITE, MAW_PULL, MAW_TELL } from '../src/sim/enemies/drownedMaw';
 import { BIG_SHARK } from '../src/tuning/bigShark';
 import { SharkCinema } from '../src/engine/boss/sharkCinema';
 import { OkamiCinema } from '../src/engine/shrine/okamiCinema';
@@ -457,6 +462,84 @@ if (kind === 'frostRoc') {
   if (!(beat in showAt)) cams.splice(1, 2, look('roc-front', 2.1, 0.45, 0.55), look('roc-side', 0.5, 2.2, 0.6), look('roc-high', 3.6, 2.2, 2.3, 0.1), { name: 'roc-pit', at: [mid.x - R.cliffX * 26, 6, mid.z - R.cliffZ * 26], to: [mid.x + R.cliffX * 30, 13, mid.z + R.cliffZ * 30] });
   demon.height = 0;
 }
+if (kind === 'drownedKing') {
+  // (Update 0.3.58 — it posed for a move, by the game's own pose and view code, baked: `--beat=stand|jaws|frenzy|third|lean|wave|air|maw|flash|jam`.)
+  const beat = process.argv.find((a) => a.startsWith('--beat='))?.slice(7) ?? 'stand';
+  const gltf = await parseUntextured(new URL('../public/models/enemies/drowned_king.glb', import.meta.url));
+  const root = gltf.scene as THREE.Object3D;
+  const combat = createCombat(level.arena, false);
+  combat.flood = DROWNED.v.shallow;
+  const mid = new THREE.Vector3(b.portal.x, 0, b.portal.z);
+  const slot = spawnEnemy(combat.enemies, 'drownedKing', mid, Math.atan2(-(eye.x - mid.x), -(eye.z - mid.z)));
+  const e = combat.enemies[slot];
+  const set = (phase: Enemy['phase'], move: number, t: number, shots = 0) => {
+    e.phase = phase;
+    e.move = move;
+    e.t = t;
+    e.shots = shots;
+  };
+  let clipName = 'Idle';
+  let clipAt = 0.3;
+  if (beat === 'jaws') set('windup', KING_JAWS, DROWNED.v.tell * 0.25);
+  if (beat === 'frenzy') set('windup', KING_FRENZY, DROWNED.v.tell * 0.9);
+  if (beat === 'third') set('dive', KING_FRENZY, clawAt(e, 2) - 0.1, 2);
+  if (beat === 'lean') {
+    e.stage = 1;
+    set('windup', KING_RIPTIDE, DROWNED.v.tell * 0.7);
+  }
+  if (beat === 'wave') {
+    e.stage = 1;
+    combat.flood = DROWNED.v.risenDeep;
+    set('blast', KING_RIPTIDE, 0.9);
+    e.from.copy(e.pos);
+    e.aim.set(eye.x - mid.x, 0, eye.z - mid.z).normalize();
+  }
+  if (beat === 'air') {
+    set('leap', KING_LUNGE, DROWNED.v.finAir * 0.5);
+    e.pos.y = DROWNED.v.finUp;
+    clipName = 'Jump_Idle';
+    clipAt = 0.2;
+  }
+  if (beat === 'maw' || beat === 'flash') {
+    e.stage = 1;
+    combat.flood = DROWNED.v.risenDeep;
+    set('blast', KING_MAW, beat === 'flash' ? DROWNED.v.mawFlash * 0.6 : 1, beat === 'flash' ? MAW_BITE : MAW_PULL);
+    openUltimate(e.ult, 'x', 6, 1);
+  }
+  if (beat === 'merge') {
+    e.stage = 1;
+    set('blast', KING_MAW, DROWNED.v.mawTell * 0.5, MAW_TELL);
+  }
+  if (beat === 'jam') {
+    e.stage = 1;
+    set('stun', KING_MAW, 1);
+    e.drowned!.jammed = true;
+  }
+  const box0 = new THREE.Box3().setFromObject(root, true);
+  const mixer = new THREE.AnimationMixer(root);
+  mixer.clipAction(gltf.animations.find((a: THREE.AnimationClip) => a.name === clipName)!).play();
+  mixer.update(clipAt);
+  const h = DROWNED.v.kingHeight;
+  const sc0 = h / (box0.max.y - box0.min.y);
+  root.scale.setScalar(sc0);
+  root.position.copy(e.pos);
+  root.position.y -= box0.min.y * sc0;
+  root.rotation.set(0, e.facing + Math.PI, 0);
+  root.updateMatrixWorld(true);
+  const scene = new THREE.Scene();
+  scene.add(root);
+  const fx = new DrownedFx(scene);
+  fx.update(combat, 0.016, () => root);
+  scene.updateMatrixWorld(true);
+  bake(scene);
+  const temple = new TempleView(level);
+  bake(temple.group);
+  const fx0 = -Math.sin(e.facing);
+  const fz0 = -Math.cos(e.facing);
+  const look = (name: string, f: number, r: number, u: number, to = 0.5) => ({ name, at: [e.pos.x + fx0 * f * h - fz0 * r * h, u * h, e.pos.z + fz0 * f * h + fx0 * r * h], to: [e.pos.x, to * h + e.pos.y, e.pos.z] });
+  cams.splice(1, 2, look('dk-front', 2.1, 0.45, 0.5), look('dk-close', 1.2, 0.5, 0.42, 0.42), look('dk-side', 0.4, 2.2, 0.6), look('dk-high', 3.6, 2.2, 2.3, 0.1), { name: 'dk-room', at: [mid.x + (room.max.x - room.min.x) * 0.48, 26, mid.z + (room.max.z - room.min.z) * 0.48], to: [mid.x, 0, mid.z] });
+  demon.height = 0;
+}
 if (kind === 'dragon') {
   // (Update 0.3.50 — its show's own shots, it placed for one of them: `--beat=pass|high|low|climb|fall|scream`.)
   const dc = new DragonCinema(level);
@@ -474,6 +557,6 @@ const extent = { min: { x: room.min.x - 8, z: room.min.z - 8 }, max: { x: room.m
 const floors = level.arena.boxes.filter((x) => x.kind === 'floor').map((x) => ({ x: x.x, z: x.z, w: x.w, d: x.d }));
 // (The Drowned King's room in its flood.)
 const end = b.end;
-const water = kind === 'drownedKing' || kind === 'bigShark' ? { level: kind === 'bigShark' ? BIG_SHARK.v.floodTop : DROWNED.v.floodDeep, rooms: [{ x: (end.min.x + end.max.x) / 2, z: (end.min.z + end.max.z) / 2, w: end.max.x - end.min.x, d: end.max.z - end.min.z }] } : null;
+const water = kind === 'drownedKing' || kind === 'bigShark' ? { level: kind === 'bigShark' ? BIG_SHARK.v.floodTop : DROWNED.v.shallow, rooms: [{ x: (end.min.x + end.max.x) / 2, z: (end.min.z + end.max.z) / 2, w: end.max.x - end.min.x, d: end.max.z - end.min.z }] } : null;
 writeFileSync(join(out, 'dungeon.json'), JSON.stringify({ meshes, seed, floor, pieces, water, gates: d.gates, torches: d.torches, cores, pads: level.arena.pads, exit: level.exit, cams, extent, style: d.style, sand: d.sand, boxes, demon, floors }));
 console.log(`seed ${seed}: boss room ${b.room} (entrance ${b.entrance}), walls at ${k}, gate ${open ? 'open' : 'shut'}, ${pieces.length} pieces, ${boxes.length} gate boxes`);

@@ -170,6 +170,15 @@ export class ShotsView {
           g.quaternion.setFromAxisAngle(UP, spin * 3);
           g.scale.setScalar(1);
           break;
+        // (Update 0.3.58 — the Drowned King's head, nose first, biting: gold on the way back.)
+        case 'head': {
+          g.quaternion.copy(q);
+          g.scale.setScalar(0.85);
+          const bite = (0.5 + 0.5 * Math.sin(this.time * 22 + i * 2)) * 0.7;
+          s.jaws[0].rotation.x = bite * 0.6;
+          s.jaws[1].rotation.x = -bite * 0.4;
+          break;
+        }
         // (Update 0.3.56 — the Frost Roc's shard, tumbling.)
         case 'shard':
           g.quaternion.setFromAxisAngle(UP, spin * 1.4);

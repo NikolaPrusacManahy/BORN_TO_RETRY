@@ -17,6 +17,8 @@ import { chill } from '../cards/cardMoves';
 import { tearStruck } from '../enemies/swarmMoves';
 import { ribStruck } from '../enemies/boneKingMoves';
 import { shardStruck } from '../enemies/rocMoves';
+import { submerged } from '../enemies/drownedKingMoves';
+import { DROWNED } from '../../tuning/drowned';
 import { heavyPowers } from '../cards/cardPowers';
 import { segmentDistance } from './geometry';
 import type { CombatState } from './state';
@@ -66,11 +68,15 @@ export function parry(state: CombatState, eye: Vector3, dir: Vector3): number {
       toward.copy(way).divideScalar(d);
     }
   }
+  // (Update 0.3.58 — a Drowned King's head goes back to it, big damage: the lesson's the timing, not the aim.)
+  const king = o.look === 'head' ? state.enemies.find((e) => isLive(e) && e.kind === 'drownedKing' && !submerged(e)) : null;
+  if (king) toward.set(king.pos.x - o.pos.x, king.pos.y + ENEMY_STATS.drownedKing().height * 0.45 - o.pos.y, king.pos.z - o.pos.z).normalize();
+  state.fists.quick = o.look === 'head';
   o.vel.copy(toward).multiplyScalar(Math.max(o.vel.length() * FISTS.v.parrySpeed, FISTS.v.parryMinSpeed));
   o.parried = true;
   o.arc = 0;
   o.life = LIFE;
-  o.damage = FISTS.v.parryDamage;
+  o.damage = o.look === 'head' ? DROWNED.v.headBack : FISTS.v.parryDamage;
   state.events.push('parry', best, o.pos.x, o.pos.y, o.pos.z);
   state.hitStop.request(FEEDBACK.v.stopParry);
   return eye.distanceTo(o.pos);
@@ -88,7 +94,8 @@ export function stepParried(state: CombatState, world: CollisionWorld, dt: numbe
       continue;
     }
     next.copy(o.pos).addScaledVector(o.vel, dt);
-    if (nearestTarget(state, o.pos, next, r, hit)) {
+    // (Update 0.3.58 — one head sent back doesn't stop at another.)
+    if (nearestTarget(state, o.pos, next, r, hit, false)) {
       o.alive = false;
       const flat = Math.hypot(o.vel.x, o.vel.z) || 1;
       // (Update 0.3.51 — a tear sent back goes through The Swarm's worms to its eye, and it reels.)
@@ -100,6 +107,8 @@ export function stepParried(state: CombatState, world: CollisionWorld, dt: numbe
       if (o.look === 'shard' && hit.kind === 'enemy' && !killed && state.enemies[hit.index].kind === 'frostRoc') shardStruck(state.enemies[hit.index], hit.index, state);
       // (Update 0.3.53 — a rib sent back into the Bone King: it staggers.)
       if (o.look === 'rib' && hit.kind === 'enemy' && !killed && state.enemies[hit.index].kind === 'boneKing') ribStruck(state.enemies[hit.index], hit.index, state);
+      // (Update 0.3.58 — a head sent back into the Drowned King.)
+      if (o.look === 'head' && hit.kind === 'enemy' && state.enemies[hit.index].kind === 'drownedKing') state.events.push('drownedHeadBack', hit.index, hit.point.x, hit.point.y, hit.point.z);
       // (Update 0.3.5 — Cold Snap's freeze, Thunderclap's lightning, Powder Keg's blast.)
       if (hit.kind === 'enemy') {
         chill(state, hit.index);

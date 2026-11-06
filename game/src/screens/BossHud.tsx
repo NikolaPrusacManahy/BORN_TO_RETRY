@@ -30,6 +30,7 @@ export function BossHud({ s }: { s: HudState }) {
           </div>
         </div>
       )}
+      {s.bloodMist > 0 && !s.cine && <div className="rb-blood-mist" style={{ '--mist': s.bloodMist } as CSSProperties} />}
       {s.ultCue && !s.cine && (
         <div className="rb-ult" style={{ '--fill': s.ultFill, '--left': s.ultLeft } as CSSProperties}>
           <span className="rb-ult-cue">{s.ultCue}</span>

@@ -51,23 +51,33 @@ export type DrownedEvent =
   | 'bogLeap'
   | 'bogSlam'
   // Update 0.2.10 — floor 5's boss, the Drowned King (drownedKing.ts): its roar as it takes its stance, and as it rises
-  // for good; sinking under; the water ringing where it'll come up, and it bursting up; its undertow taking hold (x, z:
-  // its ring); coming up for its jet, rearing, its jet; its tidal wall rising, rolling; sinking into a wave, surfing;
-  // opening its jaws, its bite; calling its geysers, each one bursting up (bombs.ts).
+  // for good; sinking under; the water ringing where it'll come up, and it bursting up; coming up; sinking into a wave, surfing.
+  // Update 0.3.58 — by the Boss Design Bible: its heads snapping, one leaving it, one sent back into it; its fin cutting the water,
+  // gone, its landing; its shoulders hunching, a claw (value: which), the third parried; leaning back, its Riptide; its mark on you;
+  // its Maw of Many's tell, opening, its flash, its jaw jammed, its bite. (A geyser's burst: bombs.ts, the Prince's.)
   | 'drownedRoar'
   | 'drownedRisen'
   | 'drownedDive'
   | 'drownedRiseWarn'
   | 'drownedRise'
-  | 'drownedUndertow'
   | 'drownedSurface'
-  | 'drownedSpoutWindup'
-  | 'drownedSpout'
-  | 'drownedTideWindup'
-  | 'drownedTide'
   | 'drownedSurfWindup'
   | 'drownedSurf'
-  | 'drownedBiteWindup'
-  | 'drownedBite'
-  | 'drownedGeyserCall'
+  | 'drownedSnap'
+  | 'drownedHead'
+  | 'drownedHeadBack'
+  | 'drownedFinCut'
+  | 'drownedFinGone'
+  | 'drownedLand'
+  | 'drownedHunch'
+  | 'drownedClaw'
+  | 'drownedClawParried'
+  | 'drownedRiptideTell'
+  | 'drownedRiptide'
+  | 'drownedMarked'
+  | 'drownedMawTell'
+  | 'drownedMawOpen'
+  | 'drownedMawFlash'
+  | 'drownedMawJam'
+  | 'drownedMawBite'
   | 'geyserBurst';

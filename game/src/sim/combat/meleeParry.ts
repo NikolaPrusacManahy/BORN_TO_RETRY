@@ -16,6 +16,27 @@ import { emptyTargetHit, landHit } from './strike';
 const KNOCK = 8;
 const hit = emptyTargetHit();
 
+/** Update 0.3.58 — the few boss blows that can be parried (the Boss Design Bible marks them: the Drowned King's third claw, its Maw's
+ *  bite): your window open, it doesn't touch you and your fist answers. True if parried; what comes of it is the boss's. */
+export function parryBossBlow(player: PlayerState, w: EnemyWorld, e: Enemy, index: number): boolean {
+  const f = w.fists;
+  if (!f || f.parryWindow <= 0) return false;
+  const s = ENEMY_STATS[e.kind]();
+  const state = w as CombatState;
+  f.parryWindow = 0;
+  f.parried = true;
+  const dx = e.pos.x - player.pos.x;
+  const dz = e.pos.z - player.pos.z;
+  const d = Math.hypot(dx, dz) || 1;
+  hit.kind = 'enemy';
+  hit.index = index;
+  hit.point.set(e.pos.x - (dx / d) * s.radius, e.pos.y + s.height * 0.45, e.pos.z - (dz / d) * s.radius);
+  landHit(state, hit, FISTS.v.parryDamage, 0, dx / d, dz / d, 'hitFinisher', FISTS.v.parryDamage, true);
+  w.events.push('parry', index, (player.pos.x + hit.point.x) / 2, hit.point.y, (player.pos.z + hit.point.z) / 2);
+  state.hitStop.request(FEEDBACK.v.stopParry);
+  return true;
+}
+
 /** Enemy `e` (slot `index`) lands a melee blow of `damage` on you. Returns true if it hurt you. */
 export function meleeHit(player: PlayerState, w: EnemyWorld, e: Enemy, index: number, damage: number): boolean {
   const f = w.fists;

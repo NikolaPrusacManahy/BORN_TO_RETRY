@@ -66,6 +66,7 @@ import { parry, stepParried } from './parry';
 import { wallSplats } from './splat';
 import { execHeld, execTarget, stepExecution, tryExecute } from './execution';
 import { stepFlood } from '../enemies/drownedKingMoves';
+import { DROWNED } from '../../tuning/drowned';
 import { breakCage } from '../enemies/boneKingMoves';
 import { updateTurret } from './turret';
 import { bumpEnemies, chargeRate, fistFactor, frenzyFactor, parryTimes, pogo, tickCards } from '../cards/cardMoves';
@@ -221,7 +222,9 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     // (Update 0.3.6 — one that lands: the long wait, Parry cooldown.)
     if (parry(state, eye, dir) >= 0) {
       state.fists.parryWindow = 0;
-      state.fists.parryCooldown = times.cooldown;
+      // (Update 0.3.58 — a Drowned King's head: its short wait, or you could parry only one in a volley.)
+      state.fists.parryCooldown = state.fists.quick ? Math.min(times.cooldown, DROWNED.v.headWait) : times.cooldown;
+      state.fists.quick = false;
     }
   }
   // (Update 0.2.16 — All In, a Fate Card: your fists hit twice as hard.)

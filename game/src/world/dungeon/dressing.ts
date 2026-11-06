@@ -208,6 +208,7 @@ export function dress(plan: FloorPlan): Dressing {
           put(KIT.spikes, x, 0, z, 0, 1, 0.35, 1);
           break;
         case 'ledge':
+        case 'stone':
         case 'highLedge': {
           const h = height(c);
           put(K.floor, x, h + K.floorY, z);

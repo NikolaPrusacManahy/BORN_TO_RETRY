@@ -13,6 +13,7 @@ import { ENEMY_STATS } from '../../src/sim/enemies/kinds';
 import { createPlayer } from '../../src/sim/player/state';
 import { DROWNED } from '../../src/tuning/drowned';
 import { Arena, boxAt } from '../../src/world/arena';
+import { holding } from '../../src/sim/weapons/weapons';
 
 const v = DROWNED.v;
 const walls = [boxAt(-25, -1, -25, 50, 1, 50, 'floor'), boxAt(-25, 0, -26, 50, 8, 1, 'wall'), boxAt(-25, 0, 25, 50, 8, 1, 'wall'), boxAt(-26, 0, -25, 1, 8, 50, 'wall'), boxAt(25, 0, -25, 1, 8, 50, 'wall')];
@@ -31,10 +32,20 @@ export function fight(at: Vector3, stage = 0, flood = stage > 0 ? v.risenDeep : 
   e.stage = stage;
   if (stage > 0) e.hp = ENEMY_STATS.drownedKing().hp * (v.risenAt - 0.05);
   e.cooldown = 99;
+  // (Past its opening volley; risen, past its first Maw of Many: each has its own tests.)
+  e.drowned!.opened = true;
+  if (stage > 0) e.ult.count = 1;
   c.events.clear();
   return { c, p, e, slot };
 }
 export type Fight = ReturnType<typeof fight>;
+/** A sword in your second slot, in your hand. */
+export function swordInBag(c: Fight['c']) {
+  const w = holding('sword', 9);
+  c.bag[1] = w;
+  c.slot = 1;
+  c.weapon = w;
+}
 
 /** Steps the fight `secs` (`each(i)`: before tick i). Its water is the tide, as in its room (Run). */
 export function run(f: Fight, secs: number, each?: (i: number) => void) {

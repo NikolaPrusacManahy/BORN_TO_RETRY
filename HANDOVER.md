@@ -2,13 +2,13 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-05, after Update 0.3.57)
-- **Versions 0.3.56 and 0.3.57** (the Frost Roc by the Boss Design Bible, its plateau; its intro), built and copied to main,
-  **not committed** until the designer says "commit". 0.3.55 is committed (`3513059`), not pushed; the designer pushes through GitHub Desktop.
+## Where things stand (2026-11-05, after Update 0.3.58)
+- **Version 0.3.58** (the Drowned King by the Boss Design Bible, its temple), built, **not committed** until the designer says "commit".
+  The designer (asleep, 2026-11-05): "do all of the bosses, but do not touch boss 8 & 9 … do floor 5, 6, 7 & 10 * Arena / Moves / Intro".
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
-  ("Keep them, adapt"). In floor order. **The Dragon is done (0.3.49, 0.3.50). The Swarm is done (0.3.51, 0.3.52). The Bone King is done (0.3.53, 0.3.54). The Frost Roc is done (0.3.56, 0.3.57). The Drowned King is next.**
+  ("Keep them, adapt"). In floor order. **The Dragon is done (0.3.49, 0.3.50). The Swarm is done (0.3.51, 0.3.52). The Bone King is done (0.3.53, 0.3.54). The Frost Roc is done (0.3.56, 0.3.57). The Drowned King's moves and temple are done (0.3.58). Floors 8 and 9 stay as they are (the designer: "they are fine").**
   Its ultimate is on `sim/enemies/ultimate.ts`, for the rest to share. Kit clashes still to meet: the slide (gone since
   0.3.20; the bible's Sky Clap, Pillar Swing, Tail Lash), boss melee can't be parried and parry is bare-handed, four
   ultimates cancel by shooting (count any ranged hit, and give fists a parryable shot), the audio has no left/right (the
@@ -40,8 +40,8 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
     - then the other executions (the Ghost's 16, the old Yeti punch's 11), the same way.
   - **Okami's rage and frenzy:** not built. The plan's first idea, in `MD/FLOOR8_SHRINE_PLAN.md`, is a petal storm with
     shadow clones, its markings blazing.
-  - **Each boss its own room (the designer, 0.3.50):** done for the Dragon, The Swarm, the Bone King and the Frost Roc; the Big
-    Shark, Okami and Tidebreaker already had their own; still on the shared `BOSS_ROOM`: the Drowned King, the Velociraptor,
+  - **Each boss its own room (the designer, 0.3.50):** done for the Dragon, The Swarm, the Bone King, the Frost Roc and the Drowned King; the Big
+    Shark, Okami and Tidebreaker already had their own; still on the shared `BOSS_ROOM`: the Velociraptor,
     floor 10.
   - **Boss intros at Tidebreaker's quality:**
     - done for the Big Shark, Tidebreaker, Okami, the Dragon, The Swarm, the Bone King and the Frost Roc;
@@ -68,7 +68,12 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-05, Update 0.3.57: the Frost Roc's intro)
+## Last update (2026-11-05, Update 0.3.58: the Drowned King by the Boss Design Bible)
+- **The designer**: "Keep them, adapt"; "do floor 5, 6, 7 & 10 * Arena / Moves / Intro". Spec `MD_UPDATES/U0358_DROWNED_KING_BIBLE.md`.
+- **Built:** its Jaw Launch, Fin Dive, Frenzy Combo; risen, Blood Frenzy, Riptide; Maw of Many (`sim/enemies/drownedJaws.ts`, `drownedMaw.ts`, `drownedKingMoves.ts`, `drownedRisen.ts`); its temple (`world/dungeon/temple.ts`).
+- **Unseen:** not played. Checked in Blender renders; the flash, glint, rings, mist and all motion not seen.
+
+## Before (2026-11-05, Update 0.3.57: the Frost Roc's intro)
 - **The designer**: "Next boss, floor 4 * Arena / moves / intro". Spec `MD_UPDATES/U0357_FROST_ROC_SHOW.md`.
 - **Built:** `sim/dungeon/rocShow.ts`, `engine/norse/rocCinema.ts`; `plateauView.ts` draws its glacier. Test: `test-roc-show.ts`.
 - **Unseen:** not played. Checked in Blender renders; the ice, the Roc through it and its motion not seen.

@@ -13,7 +13,7 @@ import { ROWS, rowsAt, tallRing, WALL_PIECE } from './tallWalls';
  *  wall's caps, or a ledge's top tiles (0.25 thick). */
 export const CORE_INSET = 0.2;
 export const CORE_BOTTOM = -0.5;
-const CORE_TOP_GAP: Partial<Record<Cell, number>> = { wall: 0.02, ledge: 0.3, highLedge: 0.3 };
+const CORE_TOP_GAP: Partial<Record<Cell, number>> = { wall: 0.02, ledge: 0.3, highLedge: 0.3, stone: 0.3 };
 
 /** Ground you can see from (not the void outside, a wall, the dark beyond the wooden gate). */
 export const surface = (c: Cell) => c !== 'void' && c !== 'wall' && c !== 'dark';
@@ -44,7 +44,7 @@ export function coresOf(plan: FloorPlan): ArenaBox[] {
 }
 
 /** How high a wall or ledge cell's top is (0: not one). */
-const solidTop = (c: Cell) => (c === 'wall' ? HEIGHT.wall! : c === 'ledge' || c === 'highLedge' ? height(c) : 0);
+const solidTop = (c: Cell) => (c === 'wall' ? HEIGHT.wall! : c === 'ledge' || c === 'highLedge' || c === 'stone' ? height(c) : 0);
 
 /** A wall or ledge cell's side has faces when the cell beside it is lower ground (as the faces are placed above: not the
  *  void outside, not a doorway, whose arch covers it). */

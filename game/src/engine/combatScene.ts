@@ -186,7 +186,7 @@ export class CombatScene {
     this.bombs.update(state, gameDt);
     this.king.update(state, gameDt, (i) => this.enemies.rootOf(i));
     this.desert.update(state, gameDt);
-    this.drowned.update(state, gameDt);
+    this.drowned.update(state, gameDt, (i) => this.enemies.rootOf(i));
     this.fish.update(state, gameDt);
     this.crew.update(state, playerChest, gameDt);
     this.moonMarks.update(state);

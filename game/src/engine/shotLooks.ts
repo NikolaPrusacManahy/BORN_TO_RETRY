@@ -9,10 +9,12 @@
 // Update 0.3.22 — floor 7's Axe Thrower's axe (a hand axe, spinning flat: a wooden haft, a steel head).
 // Update 0.3.33 — floor 8's: a shuriken (a dark steel star, spinning flat), a kunai and an arrow (nose first, the arrow
 // fletched red and white), the Sensei's ki (a big blue fireball).
+// Update 0.3.58 — the Drowned King's little heads, nose first, biting (temple/headGeometry.ts).
 import * as THREE from 'three';
 import type { Orb } from '../sim/combat/targets';
+import { jawMaterial, lowerJaw, upperJaw } from './temple/headGeometry';
 
-export type ShotStyle = 'fire' | 'blueFire' | 'acid' | 'water' | 'spear' | 'spine' | 'feather' | 'carrot' | 'laser' | 'missile' | 'axe' | 'shuriken' | 'kunai' | 'arrow' | 'rubble' | 'rib' | 'shard';
+export type ShotStyle = 'fire' | 'blueFire' | 'acid' | 'water' | 'spear' | 'spine' | 'feather' | 'carrot' | 'laser' | 'missile' | 'axe' | 'shuriken' | 'kunai' | 'arrow' | 'rubble' | 'rib' | 'shard' | 'head';
 
 /** A shot's style: by who fired it, then by its look. */
 export function shotStyle(o: Orb): ShotStyle {
@@ -23,6 +25,7 @@ export function shotStyle(o: Orb): ShotStyle {
   if (o.look === 'rubble') return 'rubble';
   if (o.look === 'rib') return 'rib';
   if (o.look === 'shard') return 'shard';
+  if (o.look === 'head') return 'head';
   if (o.look === 'tear') return 'acid';
   if (o.look === 'ki') return 'blueFire';
   return o.look === 'water' ? 'water' : o.look === 'spear' ? 'spear' : o.look === 'spine' ? 'spine' : o.look === 'carrot' ? 'carrot' : 'fire';
@@ -63,6 +66,8 @@ export const TRAILS: Record<ShotStyle, ShotTrail> = {
   rib: { rate: 12, color: 0xd8ccb0, falls: true, burst: 10, burstColor: 0xe0d4b8, flash: null },
   // (Update 0.3.56 — the Frost Roc's shard of ice.)
   shard: { rate: 14, color: 0xcff4ff, falls: true, burst: 10, burstColor: 0xcff4ff, flash: null },
+  // (Update 0.3.58 — the Drowned King's head: dripping, and it bursts wet.)
+  head: { rate: 16, color: 0x9fe8ff, falls: true, burst: 14, burstColor: 0x7ad0e0, flash: null },
 };
 
 /** Every style's meshes for one shot's slot (each hidden but its own: shotsView.ts shows one). Geometries and
@@ -73,6 +78,8 @@ export class ShotMeshes {
   /** A fireball's core and two shells (they flicker). */
   readonly flame: THREE.Mesh[] = [];
   readonly blue: THREE.Mesh[] = [];
+  /** Update 0.3.58 — a Drowned King's head's two jaws (they bite as it flies). */
+  readonly jaws: THREE.Mesh[] = [];
 
   constructor(kit: ShotKit) {
     const fireball = (core: THREE.Material, inner: THREE.Material, outer: THREE.Material, into: THREE.Mesh[]) => {
@@ -175,7 +182,15 @@ export class ShotMeshes {
     // (Update 0.3.56 — a shard of ice, a long crystal.)
     const shard = new THREE.Mesh(kit.shell, kit.ice);
     shard.scale.set(0.3, 0.75, 0.3);
+    // (Update 0.3.58 — a little head: two jaws on one hinge, behind its middle.)
+    const biter = new THREE.Group();
+    const jawUp = new THREE.Mesh(kit.jawUp, kit.jaw);
+    const jawDown = new THREE.Mesh(kit.jawDown, kit.jaw);
+    biter.add(jawUp, jawDown);
+    jawUp.position.y = jawDown.position.y = -0.45;
+    this.jaws.push(jawUp, jawDown);
     this.parts = {
+      head: biter,
       shard,
       rib,
       rubble,
@@ -239,6 +254,9 @@ export class ShotKit {
   readonly rib = new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(new THREE.Vector3(-1.7, 0, -0.5), new THREE.Vector3(0, 0, 1.3), new THREE.Vector3(1.7, 0, -0.5)), 12, 0.16, 6);
   readonly bone = new THREE.MeshStandardMaterial({ color: 0xccb899, roughness: 0.8 });
   readonly ice = new THREE.MeshStandardMaterial({ color: 0xcff4ff, emissive: 0x2a7aa0, emissiveIntensity: 0.6, roughness: 0.1, flatShading: true });
+  readonly jawUp = upperJaw();
+  readonly jawDown = lowerJaw();
+  readonly jaw = jawMaterial();
 
   dispose() {
     for (const v of Object.values(this)) if (v instanceof THREE.BufferGeometry || v instanceof THREE.Material) v.dispose();

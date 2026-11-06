@@ -3,12 +3,14 @@
 // ring spreading on the water (its bite's reach, or the Bog Brute's) until it does. The Bog Brute's leap: a ring where
 // it'll land. An Urchin with its spikes out: a red shell round it. A Jelly glowing: the reach of its shock coming, on
 // the water (far while you're wading). The Deep One's lash: its line glowing on the floor, brighter as it comes. The
-// Drowned King: its great fin under the water, the ring where it'll come up (its ambush's, its undertow's, swirling);
-// its jet and its tidal wall are drownedKingFx.ts's.
+// Drowned King: its great fin under the water, the ring where it'll come up; its Riptide, its claws' reach, its pull are
+// drownedKingFx.ts's, its heads and its maw temple/drownedHeads.ts's.
+// Update 0.3.58 — its fin is gone when its Fin Dive is about to land: that's your cue to dash. Then, the ring.
 import * as THREE from 'three';
 import type { CombatState } from '../sim/combat/state';
 import { WADE_MIN } from '../sim/dungeon/tide';
-import { RISE, submerged, UNDERTOW } from '../sim/enemies/drownedKingMoves';
+import { goneFor, lockAt, RISE, submerged } from '../sim/enemies/drownedKingMoves';
+import { DrownedHeads } from './temple/drownedHeads';
 import { DrownedKingFx } from './drownedKingFx';
 import { ENEMY_POOL, isLive } from '../sim/enemies/enemy';
 import { EnemyKind, RADIUS } from '../sim/enemies/kinds';
@@ -39,6 +41,7 @@ export class DrownedFx {
   private readonly finMat = new THREE.MeshStandardMaterial({ color: 0x1c3a40, roughness: 0.5 });
   private readonly marks: Marks[] = [];
   private readonly king: DrownedKingFx;
+  private readonly heads: DrownedHeads;
   private time = 0;
 
   constructor(scene: THREE.Scene) {
@@ -50,11 +53,14 @@ export class DrownedFx {
       this.marks.push(m);
     }
     this.king = new DrownedKingFx(this.group);
+    this.heads = new DrownedHeads(this.group);
   }
 
-  update(state: CombatState, dt: number) {
+  /** `rootOf`: the body drawn for an enemy slot, its clip applied this frame. */
+  update(state: CombatState, dt: number, rootOf: (i: number) => THREE.Object3D | null = () => null) {
     this.time += dt;
     this.king.update(state, dt);
+    this.heads.update(state, dt, rootOf);
     const water = Math.max(state.tide, 0);
     for (let i = 0; i < this.marks.length; i++) {
       const e = state.enemies[i];
@@ -62,7 +68,7 @@ export class DrownedFx {
       m.fin.visible = m.ring.visible = m.shell.visible = m.line.visible = false;
       if (!isLive(e)) continue;
       // Under the water: its fin.
-      if (submerged(e)) {
+      if (submerged(e) && !(e.kind === 'drownedKing' && e.move === RISE)) {
         m.fin.visible = true;
         const big = FINS[e.kind] ?? 1;
         m.fin.position.set(e.pos.x, water - 0.05, e.pos.z);
@@ -84,20 +90,17 @@ export class DrownedFx {
       } else if (e.phase === 'windup' && e.kind === 'jelly') {
         reach = state.tide >= WADE_MIN ? FOES5.v.jellyFar : FOES5.v.jellyNear;
         k = e.t / FOES5.v.jellyGlow;
-      } else if (e.kind === 'drownedKing' && e.phase === 'windup' && e.move === RISE) {
+      } else if (e.kind === 'drownedKing' && e.phase === 'windup' && e.move === RISE && e.t >= lockAt(e)) {
         reach = DROWNED.v.lungeReach;
-        k = e.t / DROWNED.v.lungeWarn;
-      } else if (e.kind === 'drownedKing' && e.phase === 'windup' && e.move === UNDERTOW) {
-        reach = DROWNED.v.lungeReach * (1 + 0.06 * Math.sin(this.time * 14));
-        k = e.t / DROWNED.v.undertowTime;
+        k = (e.t - lockAt(e)) / Math.max(0.05, goneFor(e) - lockAt(e));
       }
       if (reach > 0) {
         const lit = Math.min(1, k);
         m.ring.visible = true;
-        const at = e.phase === 'leap' || (e.kind === 'drownedKing' && e.move === UNDERTOW) ? e.aim : e.pos;
+        const at = e.phase === 'leap' ? e.aim : e.pos;
         m.ring.position.set(at.x, water + 0.04, at.z);
         m.ring.scale.setScalar(reach * (0.3 + 0.7 * lit));
-        (m.ring.material as THREE.MeshBasicMaterial).color.setHex(e.kind === 'jelly' ? 0xff70e0 : e.kind === 'bogBrute' ? 0xff6a30 : e.kind === 'drownedKing' && e.move === UNDERTOW ? 0x30ffc0 : 0x7af0ff);
+        (m.ring.material as THREE.MeshBasicMaterial).color.setHex(e.kind === 'jelly' ? 0xff70e0 : e.kind === 'bogBrute' ? 0xff6a30 : 0x7af0ff);
         (m.ring.material as THREE.MeshBasicMaterial).opacity = 0.35 + 0.55 * lit;
       }
       // An Urchin with its spikes out.
@@ -122,12 +125,14 @@ export class DrownedFx {
 
   clear() {
     this.king.clear();
+    this.heads.clear();
     for (const m of this.marks) m.fin.visible = m.ring.visible = m.shell.visible = m.line.visible = false;
   }
 
   dispose() {
     this.group.removeFromParent();
     this.king.dispose();
+    this.heads.dispose();
     this.finGeo.dispose();
     this.ringGeo.dispose();
     this.shellGeo.dispose();

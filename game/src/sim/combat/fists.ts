@@ -34,6 +34,8 @@ export interface FistState {
   parryCooldown: number;
   /** Update 0.3.10 — a melee blow parried this tick (meleeParry.ts): the long wait starts (step.ts). */
   parried: boolean;
+  /** Update 0.3.58 — the parry that just landed took a Drowned King's head: its short wait (step.ts). */
+  quick: boolean;
 }
 
 /** Update 0.3.5 — how long a press of the parry stays open and the wait after it (s: Hair Trigger and Giant Killer,
@@ -77,7 +79,7 @@ export interface Punch {
 }
 
 export function createFists(): FistState {
-  return { combo: 0, comboTimer: 0, jabCooldown: 0, charging: false, charge: 0, chargeReady: false, slamClick: false, parryHeld: false, parryWindow: 0, parryCooldown: 0, parried: false };
+  return { combo: 0, comboTimer: 0, jabCooldown: 0, charging: false, charge: 0, chargeReady: false, slamClick: false, parryHeld: false, parryWindow: 0, parryCooldown: 0, parried: false, quick: false };
 }
 
 export function emptyCombatIntent(): CombatIntent {
