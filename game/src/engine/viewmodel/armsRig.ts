@@ -10,7 +10,7 @@ import { ARMS } from '../../tuning/arms';
 import { aimBone, solveElbow } from './armsMath';
 import { gripNow, gripPose, HoldRest, holdMatrix, holdOf } from './armsHold';
 import { EYE_FROM_HEAD, FIST_REACH, GUARD, REF_REACH, REST_BACK, Side } from './guard';
-import { HandBones } from './handPose';
+import { HandBones, type HandFit } from './handPose';
 
 interface BoneRest {
   bone: THREE.Bone;
@@ -85,7 +85,7 @@ export class ArmsRig {
   private readonly hands: Record<Side, HandBones>;
   private readonly backLocal: Record<Side, THREE.Vector3>;
 
-  private constructor(root: THREE.Object3D) {
+  private constructor(root: THREE.Object3D, fit?: HandFit) {
     this.root = root;
     root.updateMatrixWorld(true);
     const find = (name: string) => {
@@ -111,7 +111,7 @@ export class ArmsRig {
     find('Head').getWorldPosition(this.eye).add(EYE_FROM_HEAD);
     this.between.addVectors(this.arms.L.upper.pos, this.arms.R.upper.pos).multiplyScalar(0.5);
     // M2 — the right fist's hold (Update 0.1.1 — and the left's: both hold an execution's tail): armsHold.ts.
-    const holdFor = (side: Side) => holdOf((name) => find(boneName(name, side)), this.arms[side].hand.bone, this.arms[side].hand.pos, this.arms[side].hand.dir);
+    const holdFor = (side: Side) => holdOf((name) => find(boneName(name, side)), this.arms[side].hand.bone, this.arms[side].hand.pos, this.arms[side].hand.dir, fit?.hole);
     this.holds = { L: holdFor('L'), R: holdFor('R') };
     // Update 0.0.16 — the fingers: which way opens them is the way that takes the middle finger's tip from the wrist.
     const fingersOf = (side: Side): Finger[] => ['Index', 'Middle', 'Ring', 'Pinky'].flatMap((f) => [2, 3, 4].map((j) => find(boneName(`${f}${j}`, side)))).map((bone) => ({ bone, rest: bone.quaternion.clone() }));
@@ -128,7 +128,7 @@ export class ArmsRig {
       root.updateMatrixWorld(true);
       return d;
     };
-    const handOf = (side: Side) => new HandBones(side, fingers[side], thumbOf(side), reachOf(side, 0.5) > reachOf(side, -0.5) ? 1 : -1, this.holds[side].grip, this.holds[side].thumb, this.holds[side].y);
+    const handOf = (side: Side) => new HandBones(side, fingers[side], thumbOf(side), reachOf(side, 0.5) > reachOf(side, -0.5) ? 1 : -1, this.holds[side].grip, this.holds[side].thumb, this.holds[side].y, fit);
     this.hands = { L: handOf('L'), R: handOf('R') };
     this.backLocal = {
       L: REST_BACK.clone().applyQuaternion(this.arms.L.hand.quat.clone().invert()),
@@ -144,14 +144,14 @@ export class ArmsRig {
     });
   }
 
-  static async load(url: string): Promise<ArmsRig> {
+  static async load(url: string, fit?: HandFit): Promise<ArmsRig> {
     const gltf = await new GLTFLoader().loadAsync(url);
-    return new ArmsRig(gltf.scene);
+    return new ArmsRig(gltf.scene, fit);
   }
 
   /** From an already-loaded model (tests parse the .glb themselves). */
-  static fromScene(root: THREE.Object3D): ArmsRig {
-    return new ArmsRig(root);
+  static fromScene(root: THREE.Object3D, fit?: HandFit): ArmsRig {
+    return new ArmsRig(root, fit);
   }
 
   /** Update 0.0.13 — where a fist's middle knuckle is now (world space of the arms' scene) into `out`. */

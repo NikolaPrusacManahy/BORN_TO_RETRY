@@ -15,12 +15,16 @@ import { MoveSet, SWORD_MOVES } from './weaponMoves';
 
 // Update 0.1.9 — a toss (the Dual Daggers' volley): the charged blow's path, quicker, a dagger gone from the hand till
 // it's half-way back, and no wait for a hit.
-export type SwordMove = 'ready' | 'forehand' | 'backhand' | 'pierce' | 'throw' | 'toss';
+// Update 0.3.70 — a guard (the Playable Demon's right click, its blade its parry): up to the charged blow's pose and back.
+export type SwordMove = 'ready' | 'forehand' | 'backhand' | 'pierce' | 'throw' | 'toss' | 'guard';
 
 /** A new move takes over from wherever the sword was over this long (s). */
 const BLEND = 0.04;
 /** Of a throw's wind-up, the part spent drawing back (the rest is the thrust that lets go). */
 const THROW_DRAW = 0.6;
+/** A guard goes up over this long, and back over this long (s). */
+const GUARD_UP = 0.07;
+const GUARD_DOWN = 0.22;
 /** A slash reaches its contact (the middle of the path) this far through its swing's ease. */
 const CONTACT = 0.5;
 
@@ -152,6 +156,13 @@ export class SwordAnim {
           if (k >= 1) return this.toReady(charge, out);
           mixSword(out, this.ready(charge, scratch), smooth(k), out);
         }
+        return;
+      }
+      case 'guard': {
+        this.pathNow = 0;
+        if (t >= GUARD_UP + GUARD_DOWN) return this.toReady(charge, out);
+        const up = t < GUARD_UP ? t / GUARD_UP : 1 - (t - GUARD_UP) / GUARD_DOWN;
+        mixSword(this.ready(charge, scratch), m.heavyReady, smooth(up), out);
         return;
       }
       case 'throw': {

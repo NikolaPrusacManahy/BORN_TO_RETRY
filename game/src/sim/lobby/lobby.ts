@@ -9,10 +9,12 @@
 // closer"): each weapon's and each item's pedestal, each card on the cards gallery's walls, a station that only shows
 // its card (its name, rarity and what it does) as you come near, on its own floor (upstairs or down); E does nothing
 // there.
+// Update 0.3.70 — the Demon, on the dais with the rest: a silhouette till you've beaten the final boss (`Lobby.demon`), and
+// its card says so.
 import type { CardKind } from '../cards/cards';
 import type { CharacterId } from '../characters';
 import type { InfoKind } from '../items/itemInfo';
-import { ROSTER } from '../characters';
+import { isPlayable, ROSTER } from '../characters';
 import type { Focus } from '../items/focus';
 import type { PlayerState } from '../player/state';
 import { ALTAR_H, ALTARS, CARD_FLOAT, CARD_STAND, DAIS, FIGURES, GATE, GATE_LINE } from '../../world/lobby/spots';
@@ -49,6 +51,8 @@ export interface Lobby {
   character: CharacterId;
   /** Update 0.2.17 — your runs deal Fate Cards. */
   cards: boolean;
+  /** Update 0.3.70 — you've beaten the final boss. */
+  demon: boolean;
   /** The station in reach (−1: none). */
   near: number;
   /** You stand in the gateway (walking in sends you through once each time). */
@@ -67,7 +71,7 @@ const SAME_FLOOR = 2.5;
 const GATE_CARD = 3.2;
 const HEAD = 2.55;
 
-export function createLobby(difficulty: Difficulty, character: CharacterId, cards = true): Lobby {
+export function createLobby(difficulty: Difficulty, character: CharacterId, cards = true, demon = false): Lobby {
   const stations: Station[] = [
     ...ALTARS.map((a, i): Station => ({ kind: 'difficulty', index: i, x: a.x, z: a.z, y: ALTAR_H + 0.95, reach: REACH.difficulty, level: 0 })),
     ...FIGURES.map((f, i): Station => ({ kind: 'character', index: i, x: f.x, z: f.z, y: DAIS.h + HEAD, reach: REACH.character, level: 0 })),
@@ -76,7 +80,7 @@ export function createLobby(difficulty: Difficulty, character: CharacterId, card
     ...[...WEAPON_STANDS, ...ITEM_STANDS].map((s, i): Station => ({ kind: 'exhibit', index: i, x: s.x, z: s.z, y: PEDESTAL.top + 1.25, reach: REACH.exhibit, level: 0, item: s.kind })),
     ...cardSlots().map((c, i): Station => ({ kind: 'gallery', index: i, x: c.x, z: c.z, y: c.y + 0.75, reach: REACH.gallery, level: c.y - CARD_SIZE.y, card: c.kind })),
   ];
-  return { stations, difficulty, character, cards, near: -1, inGate: false, opening: false, events: [] };
+  return { stations, difficulty, character, cards, demon, near: -1, inGate: false, opening: false, events: [] };
 }
 
 /** The nearest station in its reach (−1: none). */
@@ -114,7 +118,7 @@ export function stepLobby(l: Lobby, p: PlayerState, interact: boolean): boolean 
     }
   } else {
     const c = ROSTER[s.index];
-    if (!c.available) l.events.push('locked');
+    if (!isPlayable(c, l.demon)) l.events.push('locked');
     else if (c.id !== l.character) {
       l.character = c.id;
       l.events.push('pick');
@@ -151,8 +155,9 @@ export function lobbyFocus(l: Lobby, out: Focus): Focus {
     out.act = d.id === l.difficulty ? 'chosen' : 'choose';
   } else {
     const c = ROSTER[s.index];
-    out.label = c.available ? c.name : '';
-    out.act = !c.available ? 'unavailable' : c.id === l.character ? 'chosen' : 'choose';
+    const playable = isPlayable(c, l.demon);
+    out.label = playable ? c.name : '';
+    out.act = !playable ? (c.earned ? 'sealed' : 'unavailable') : c.id === l.character ? 'chosen' : 'choose';
   }
   return out;
 }

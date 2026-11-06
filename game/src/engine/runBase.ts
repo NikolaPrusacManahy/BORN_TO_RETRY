@@ -7,6 +7,7 @@
 // checkpoint (`respawn`); on ARE YOU EVEN HUMAN? there's nothing to find (`CombatState.bare`) and no shop.
 // Update 0.3.23 — every level made ready before it shows (levelLoad.ts): till then the world (the floor's name too)
 // waits and the App shows the loader (RunCallbacks.onLoading).
+// Update 0.3.70 — who you play as: the Playable Demon's arms and rules (`playAs`).
 import { groundOf } from '../sim/dungeon/ground';
 import * as THREE from 'three';
 import { FixedStep } from '../core/fixedStep';
@@ -16,7 +17,8 @@ import { MoveSounds } from '../audio/moveSounds';
 import type { MoveResult } from '../sim/collisionWorld';
 import { CombatIntent, emptyCombatIntent } from '../sim/combat/fists';
 import { carryOver, CombatState, createCombat, resetCombat } from '../sim/combat/state';
-import { emptyTreasure, Treasure } from '../sim/dungeon/treasure';
+import { emptyTreasure, noWeaponsOffered, Treasure } from '../sim/dungeon/treasure';
+import type { CharacterId } from '../sim/characters';
 import { stockShop } from '../sim/cards/shopCard';
 import { LabCommand, runLab } from '../sim/lab/labCommands';
 import type { KeyKind } from '../sim/items/items';
@@ -56,7 +58,9 @@ export abstract class RunBase {
   protected readonly clock = new FixedStep();
   protected readonly sounds: MoveSounds;
   protected readonly player: PlayerState;
-  protected readonly arms = new Viewmodel();
+  protected readonly arms: Viewmodel;
+  /** Update 0.3.70 — you're the Playable Demon. */
+  protected demon: boolean;
   protected readonly hudFeed: HudFeed;
   protected readonly death = new DeathFlow();
   protected readonly prev = new THREE.Vector3();
@@ -112,7 +116,10 @@ export abstract class RunBase {
     readonly cards = true,
     /** Update 0.3.24 — the Lab's (any enemy can be called up there: every enemy's model loaded; floorKinds.ts). */
     private readonly everyone = false,
+    character: CharacterId = 'adventurer',
   ) {
+    this.demon = character === 'demon';
+    this.arms = new Viewmodel(true, this.demon);
     // Loading the same models again (each floor) comes from memory.
     THREE.Cache.enabled = true;
     this.scene.add(this.camera);
@@ -157,6 +164,7 @@ export abstract class RunBase {
     this.combat.ground = groundOf(level.dungeon?.level);
     this.combat.rng = createRng(level.fightSeed);
     this.combat.bare = this.difficulty === 'human';
+    this.combat.demon = this.demon;
     this.combat.fate = this.cards;
     this.combatScene = new CombatScene(this.scene, this.combat, this.audio, this.rig, this.arms, levelKinds(this.everyone, level.dungeon, !!level.lobby));
     this.restartHere();
@@ -167,6 +175,7 @@ export abstract class RunBase {
     }
     // (Update 0.2.20 — the shop's Fate Card, by what you carry down; then the shop and chests are drawn.)
     stockShop(this.treasure, this.combat);
+    if (this.demon) noWeaponsOffered(this.treasure, level.floor);
     this.treasureView = new TreasureView(this.scene, this.treasure);
     this.makeReady();
   }
@@ -257,6 +266,13 @@ export abstract class RunBase {
   /** Update 0.0.19 — the Lab's panel asked for something (in front of where you look). */
   labCommand(cmd: LabCommand) {
     runLab(cmd, this.combat, this.player, this.look.yaw, this.treasure);
+    if (cmd.kind === 'demon') this.playAs(cmd.on);
+  }
+
+  /** Update 0.3.70 — from now on you're the Demon (its arms, its rules) or not (a choice on the lobby's dais, the Lab). */
+  protected playAs(demon: boolean) {
+    this.demon = this.combat.demon = demon;
+    this.arms.setDemon(demon);
   }
 
   /** Update 0.2.16 — the deal's card `i` is taken (the deal screen still shows it flying to your coins). */

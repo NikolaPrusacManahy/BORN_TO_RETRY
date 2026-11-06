@@ -312,6 +312,8 @@ function down(b: BossRun, slot: number, combat: CombatState) {
   b.beat = 'dying';
   b.t = 0;
   ev.push('bossDown', slot, boss.pos.x, boss.pos.y + ENEMY_STATS[boss.kind]().height * 0.5, boss.pos.z);
+  // (Update 0.3.70 — the final boss: the Demon's earned.)
+  if (boss.kind === 'hellwarden') combat.wardenBeaten = true;
   combat.enemies.forEach((e, i) => {
     if (i === slot || !isLive(e)) return;
     hitEnemy(e, e.hp, 0, 0, 0);

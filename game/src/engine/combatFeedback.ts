@@ -94,7 +94,7 @@ export class CombatFeedback {
         }
         // Update 0.3.6 — right click pressed (barehanded): the right fist snaps up; a parry landed: it punches the shot.
         case 'guard':
-          this.f.arms.block.raise();
+          this.f.arms.guard();
           break;
         case 'parry':
           this.f.arms.block.parried();

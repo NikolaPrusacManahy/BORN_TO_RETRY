@@ -18,8 +18,8 @@ import { anyKey } from './items';
 
 /** What E does here: take it, buy it, open the chest, execute; 'locked': a chest and no key; null: nothing. Update
  *  0.2.9 — the lobby's (sim/lobby/lobby.ts): choose it, it's already chosen, go through the gate, a locked character.
- *  Update 0.2.17 — and turn Fate Cards on or off. */
-export type FocusAct = 'pick' | 'buy' | 'open' | 'locked' | 'execute' | 'choose' | 'chosen' | 'enter' | 'unavailable' | 'turnOn' | 'turnOff' | null;
+ *  Update 0.2.17 — and turn Fate Cards on or off. Update 0.3.70 — 'sealed': the Demon, not yet earned. */
+export type FocusAct = 'pick' | 'buy' | 'open' | 'locked' | 'execute' | 'choose' | 'chosen' | 'enter' | 'unavailable' | 'sealed' | 'turnOn' | 'turnOff' | null;
 
 export interface Focus {
   /** The item it's about (its card), or null (a chest, an execution, nothing). */
@@ -101,7 +101,8 @@ export function focusOf(t: Treasure, state: CombatState, p: PlayerState, fightin
   }
   best = -1;
   bestD = reach;
-  for (let i = 0; i < state.pickups.length; i++) {
+  // (Update 0.3.70 — the Demon takes no other weapon: no card for one.)
+  for (let i = 0; i < state.pickups.length && !state.demon; i++) {
     const w = state.pickups[i];
     if (!w.alive || Math.abs(w.pos.y - p.pos.y) > PICK_HEIGHT || flat(p, w.pos.x, w.pos.z) > bestD) continue;
     bestD = flat(p, w.pos.x, w.pos.z);

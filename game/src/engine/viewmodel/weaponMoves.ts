@@ -9,6 +9,7 @@ import type { WeaponKind } from '../../sim/weapons/catalog';
 import { ARMS } from '../../tuning/arms';
 import type { SwordPose } from './armsRig';
 import { AXE_COCKED, AXE_READY, AXE_SLASH, AXE_THROWN } from './axePoses';
+import { DEMON_DOWN, DEMON_READY, DEMON_SLASH, DEMON_UP } from './demonPoses';
 import { DAGGER_COCKED, DAGGER_COCKED_L, DAGGER_CUT, DAGGER_CUT_L, DAGGER_READY, DAGGER_READY_L, DAGGER_TIP, DAGGER_TOSSED, DAGGER_TOSSED_L } from './daggerPoses';
 import { HAMMER_READY, HAMMER_SLASH, HAMMER_SMASH, HAMMER_UP } from './hammerPoses';
 import { PIERCE_OUT, PIERCE_READY, READY, SLASH } from './swordPoses';
@@ -130,11 +131,34 @@ export const DAGGER_MOVES: MoveSet = {
   pair: DAGGER_LEFT,
 };
 
+/** Update 0.3.70 — the Playable Demon's blade. It isn't a weapon of the catalog (no uses, never dropped, and its model's
+ *  loaded only for the Demon): the model carries this set itself, `userData.moves`. */
+export const DEMON_MOVES: MoveSet = {
+  ready: DEMON_READY,
+  heavyReady: DEMON_UP,
+  heavyOut: DEMON_DOWN,
+  slash: DEMON_SLASH,
+  swing: () => a().demonSwing,
+  rest: () => 0,
+  recover: () => a().demonRecover,
+  out: () => a().demonOut,
+  hold: () => a().demonHold,
+  back: () => a().demonBack,
+  slide: () => 0,
+  hands: () => -a().demonHands,
+  scale: () => 1,
+  grip: () => 0.023,
+  pair: null,
+  tip: null,
+};
+
 /** (The Grimoire is held its own way, bookArms.ts, and the Pistol, gunArms.ts; the sword's set stands in.) */
 export const MOVES: Record<WeaponKind, MoveSet> = { sword: SWORD_MOVES, goldSword: SWORD_MOVES, grimoire: SWORD_MOVES, goldAxe: AXE_MOVES, hammer: HAMMER_MOVES, daggers: DAGGER_MOVES, goldHammer: HAMMER_MOVES, goldDaggers: DAGGER_MOVES, pistol: SWORD_MOVES };
 
 /** The moves of the weapon model in hand (the sword's if it doesn't say). */
 export function movesOf(model: Object3D | null): MoveSet {
+  const own = model?.userData.moves as MoveSet | undefined;
+  if (own) return own;
   const kind = model?.userData.kind as WeaponKind | undefined;
   return kind ? MOVES[kind] : SWORD_MOVES;
 }

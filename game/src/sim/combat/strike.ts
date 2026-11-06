@@ -233,7 +233,7 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   // (Update 0.2.12 — ARE YOU EVEN HUMAN?: nothing comes of a kill but the meter.)
   if (state.bare) return true;
   // (Update 0.2.15 — Collector, a Fate Card: more uses.)
-  if (e.kind === 'grunt' && state.rng() < ENEMIES.v.gruntDrop) dropWeapon(state.pickups, 'sword', e.pos, state.events, newUses(state, 'sword'));
+  if (e.kind === 'grunt' && state.rng() < ENEMIES.v.gruntDrop && !state.demon) dropWeapon(state.pickups, 'sword', e.pos, state.events, newUses(state, 'sword'));
   if (MINI_BOSSES.includes(e.kind) && state.keyDrops > 0) {
     state.keyDrops--;
     // Update 0.1.20 — a challenge room's is white or gold.

@@ -16,11 +16,13 @@
 // Update 0.2.4 — the Pistol: the right arm follows the gun's pose (gunArms.ts), the left out of view.
 // Update 0.3.5 — barehanded, right click raises the fists into a block (blockArms.ts): the parry. Update 0.3.6 — the
 // right fist only, a quick move.
+// Update 0.3.70 — the Playable Demon (design bible): its own arms, its blade in the hand whenever nothing else is. They're
+// fetched only for it (armsWardrobe.ts), so nobody else pays for them. Left click swings the blade, right click raises it.
 import * as THREE from 'three';
 import { ARMS } from '../../tuning/arms';
 import { WEAPONS } from '../../tuning/weapons';
 import type { PlayerState } from '../../sim/player/state';
-import { ArmsRig } from './armsRig';
+import type { ArmsRig } from './armsRig';
 import { ArmsAnim, PunchStyle } from './armsAnim';
 import { mixArm, pose } from './armsMath';
 import { ArmsMotion } from './armsMotion';
@@ -30,6 +32,7 @@ import { leftGrip } from './twoHand';
 import { SlamArms } from './slamArms';
 import { BlockArms } from './blockArms';
 import { movesOf } from './weaponMoves';
+import { ArmsWardrobe } from './armsWardrobe';
 import { ChestReach } from './chestReach';
 import { BookArms } from './bookArms';
 import { HeldGrip, ROPE } from './heldGrip';
@@ -41,7 +44,7 @@ import { SwordAnim, SwordMove } from './swordAnim';
 import { GUN_GRIP, GunArms } from './gunArms';
 import { emptySword } from './swordPoses';
 
-export const ARMS_URL = '/models/arms/adventurer.glb';
+export { ARMS_URL, DEMON_ARMS_URL, DEMON_BLADE_URL } from './armsWardrobe';
 /** How fast the charge draw-back follows the charge (per second). */
 const CHARGE_EASE = 14;
 /** Update 0.1.9 — how far a hand opens as it throws a dagger (0 … 1). */
@@ -91,9 +94,11 @@ export class Viewmodel {
   private steadyUntil = 0;
   private time = 0;
   private weapon: THREE.Object3D | null = null;
+  /** Update 0.3.70 — whose arms you have on (armsWardrobe.ts). */
+  private readonly wardrobe: ArmsWardrobe;
 
-  /** `loadModel`: fetch the arms (tests attach a parsed model instead). */
-  constructor(loadModel = true) {
+  /** `loadModel`: fetch the arms (tests attach a parsed model instead). `demon`: the Demon's (Update 0.3.70). */
+  constructor(loadModel = true, demon = false) {
     this.scene.add(new THREE.HemisphereLight(0xcfc6dd, 0x2a2026, 1.1));
     const key = new THREE.DirectionalLight(0xffe2c8, 1.6);
     key.position.set(-1, 2, 1.5);
@@ -102,22 +107,41 @@ export class Viewmodel {
     this.pivot.add(this.holder);
     // The model faces +z; the camera looks down −z.
     this.holder.rotation.y = Math.PI;
-    if (loadModel) {
-      void ArmsRig.load(ARMS_URL)
-        .then((rig) => this.attach(rig))
-        .catch((err) => console.error('arms failed to load', err));
-    }
+    this.wardrobe = new ArmsWardrobe(
+      loadModel,
+      (rig) => this.attach(rig),
+      (old) => this.setWeapon(this.weapon === old ? null : this.weapon),
+    );
+    this.wardrobe.dress(demon);
+  }
+
+  /** Update 0.3.70 — whose arms: the Demon's with its blade (`on`) or Joseph's. */
+  setDemon(on: boolean) {
+    if (on !== this.wardrobe.demon) this.wardrobe.dress(on);
+  }
+
+  get isDemon() {
+    return this.wardrobe.demon;
+  }
+
+  /** Update 0.3.70 — the Demon's blade, in the hand whenever nothing else is (tests give it parsed). */
+  holdBlade(model: THREE.Object3D) {
+    this.wardrobe.hold(model);
   }
 
   attach(rig: ArmsRig) {
+    if (this.rig && this.rig !== rig) this.rig.root.removeFromParent();
     this.rig = rig;
+    this.wardrobe.keep(rig);
     this.holder.add(rig.root);
     if (this.weapon) rig.holdBone().add(this.weapon);
     this.off.attach(rig);
   }
 
   /** M2 — the weapon in the right fist (null: barehanded). A new one starts in the ready pose. */
-  setWeapon(model: THREE.Object3D | null) {
+  setWeapon(given: THREE.Object3D | null) {
+    // (Update 0.3.70 — nothing else in the hand: the Demon's blade.)
+    const model = given ?? this.wardrobe.blade;
     if (this.weapon === model) return;
     this.weapon?.removeFromParent();
     if (model) this.swordAnim.use(movesOf(model));
@@ -150,12 +174,24 @@ export class Viewmodel {
   }
 
   get loaded() {
-    return this.rig !== null;
+    return this.rig !== null && this.wardrobe.ready;
   }
 
-  /** A punch was thrown. */
+  /** The Demon's blade is in the hand (its fists' moves are the blade's). */
+  private get bladed() {
+    return this.wardrobe.blade !== null && this.weapon === this.wardrobe.blade;
+  }
+
+  /** A punch was thrown. (Update 0.3.70 — with the Demon's blade in the hand, a swing.) */
   punch(side: Side, style: PunchStyle) {
-    this.anim.punch(side, style);
+    if (this.bladed) this.slash();
+    else this.anim.punch(side, style);
+  }
+
+  /** Right click pressed, the parry: the right fist snaps up (Update 0.3.70 — or the Demon's blade). */
+  guard() {
+    if (this.bladed) this.swordAnim.start('guard');
+    else this.block.raise();
   }
 
   /** M2 — the sword arm's next move. */

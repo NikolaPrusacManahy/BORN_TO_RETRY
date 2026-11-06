@@ -71,3 +71,11 @@ uncomfortable to play with.
 - Fist placement was first tuned against a reference photo of a first-person boxing guard. It looked right but
   covered the crosshair in play, so the guard was moved to the lower corners. The spots were found by measuring
   where the knuckles land through the game's own arms camera (`test-arms.ts` now keeps the centre clear).
+
+## Lessons from the Demon (Update 0.3.70)
+- A Bestiary monster's rig isn't Quaternius's humanoid: `--rig ual` takes it to the names the arms know. Its thumb starts at the wrist with its own axes: it's solved, not turned (`tuck_thumb`), and `HandFit` in `handPose.ts` holds its own numbers.
+- **Judge a grip from the eye and from all round it.** The designer's reference showed what the fist was missing: fingers wrapped round the handle, hiding it, the whole fist in frame. Render from every side (`weapon-shots.ts` plus an orbit) before guessing.
+- **Measure the hand against the handle.** The first grip failed because the handle was too thin for the hand, and the fix that first came to mind (thinner still) was backwards. Print the finger joints in the hand's own frame (`tools/grip-probe.ts`): the loop they close is the handle's size.
+- Keep one hammer grip through every pose. Leaned to a fencer's the fingers open to clear the handle, and it shows in front of them. Move the arm instead, and print the wrist per frame.
+- A blade pointing away from your eye looks short however long it is. To feel big it has to stand across the view. Grow the blade, not the guard (`export_weapon.py --blade`).
+- Look at key frames at full size, not only on a contact sheet: the handle coming back in front of the fingers didn't show on one.

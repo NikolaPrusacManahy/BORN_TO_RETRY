@@ -4,15 +4,19 @@
 // (tools/blender/render_view.py). Shots are only as true as the code they run; the motion needs the game.
 // Update 0.1.9 — a pair (the Dual Daggers) holds its second in the left fist; the left hand's cut and the volley's
 // throws are shot too.
-//   npx tsx tools/weapon-shots.ts <goldAxe|hammer|sword|daggers> <out folder>
+// Update 0.3.70 — another character's arms, another model in hand, and their texture (the Playable Demon's: the shots
+// carry UVs, and render_view.py `--image` draws them textured).
+//   npx tsx tools/weapon-shots.ts <goldAxe|hammer|sword|daggers|demon> <out folder> [arms.glb] [weapon.glb]
 //   blender --background --python tools/blender/render_view.py -- --json <out folder>/shots.json --out <out folder>
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { parseUntextured } from '../tests/fakes/glb';
 import { ArmsRig } from '../src/engine/viewmodel/armsRig';
+import { DEMON_HAND } from '../src/engine/viewmodel/handPose';
 import { Viewmodel } from '../src/engine/viewmodel/viewmodel';
-import { MOVES } from '../src/engine/viewmodel/weaponMoves';
+import { DEMON_MOVES, MOVES } from '../src/engine/viewmodel/weaponMoves';
 import { WEAPON_URL } from '../src/engine/weaponsView';
 import type { WeaponKind } from '../src/sim/weapons/catalog';
 import { createPlayer } from '../src/sim/player/state';
@@ -21,17 +25,19 @@ import { WEAPONS } from '../src/tuning/weapons';
 
 const ASPECT = 16 / 9;
 const STEP = 1 / 120;
-const kind = process.argv[2] as WeaponKind;
+const demon = process.argv[2] === 'demon';
+if (process.env.DEMON_HANDS) ARMS.v.demonHands = Number(process.env.DEMON_HANDS);
+const kind = (demon ? 'sword' : process.argv[2]) as WeaponKind;
 const out = process.argv[3];
 if (!kind || !out) throw new Error('usage: npx tsx tools/weapon-shots.ts <kind> <out folder>');
 mkdirSync(out, { recursive: true });
 
-async function load(path: string) {
-  const b = readFileSync(new URL(path, import.meta.url));
-  return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer, '');
-}
+const ARMS_FILE = process.argv[4];
+const WEAPON_FILE = process.argv[5];
 
-type Mesh = { color: number[]; pos: number[]; idx: number[] };
+const load = (path: string | URL) => parseUntextured(typeof path === 'string' ? pathToFileURL(path) : path);
+
+type Mesh = { color: number[]; pos: number[]; idx: number[]; uv?: number[]; smooth?: boolean };
 const v = new THREE.Vector3();
 
 /** The arms' scene in its camera's space. */
@@ -52,7 +58,8 @@ function grab(vm: Viewmodel): Mesh[] {
     }
     const idx = g.index ? Array.from(g.index.array) : Array.from({ length: g.attributes.position.count }, (_, i) => i);
     const col = (o.material as THREE.MeshStandardMaterial).color;
-    meshes.push({ color: [col.r, col.g, col.b], pos, idx });
+    const uv = g.attributes.uv ? Array.from(g.attributes.uv.array, (n) => +n.toFixed(5)) : undefined;
+    meshes.push({ color: [col.r, col.g, col.b], pos, idx, uv, smooth: !!uv });
   });
   return meshes;
 }
@@ -84,23 +91,42 @@ if (MOVES[kind].pair) {
   MOMENTS.push({ name: 'toss_right', run: toss }, { name: 'toss_left', run: (vm, p) => (toss(vm, p), play(vm, p, WEAPONS.v.volleyInterval - vm.swordAnim.moves.out(), 1), vm.toss(1), play(vm, p, vm.off.moves.out(), 1)) });
 }
 
+if (demon) {
+  // (In between the keys, a swing's wrist; and the gauntlets alone, the blade thrown.)
+  MOMENTS.push({ name: 'swing_12', run: swingTo(0.12) }, { name: 'swing_38', run: swingTo(0.38) }, { name: 'swing_62', run: swingTo(0.62) }, { name: 'swing_80', run: swingTo(0.8) });
+  const bare = (vm: Viewmodel, p: P) => (vm.setWeapon(null), play(vm, p, 1.2));
+  MOMENTS.push({ name: 'fists', run: bare }, { name: 'punch_r', run: (vm, p) => (bare(vm, p), vm.punch('R', 'jab'), play(vm, p, 0.05)) }, { name: 'punch_l', run: (vm, p) => (bare(vm, p), vm.punch('L', 'jab'), play(vm, p, 0.05)) });
+}
+
 const shots = [];
 for (const moment of MOMENTS) {
-  const arms = await load('../public/models/arms/adventurer.glb');
-  const weapon = await load(`../public${WEAPON_URL[kind]}`);
+  const arms = await load(ARMS_FILE ?? new URL('../public/models/arms/adventurer.glb', import.meta.url));
+  const weapon = await load(WEAPON_FILE ?? new URL(`../public${WEAPON_URL[kind]}`, import.meta.url));
   const vm = new Viewmodel(false);
-  vm.attach(ArmsRig.fromScene(arms.scene));
+  const rig = ArmsRig.fromScene(arms.scene, demon ? DEMON_HAND : undefined);
+  vm.attach(rig);
   vm.setLens(ASPECT);
   const held = weapon.scene.clone();
   held.userData.kind = kind;
+  if (demon) held.userData.moves = DEMON_MOVES;
   if (MOVES[kind].pair) held.userData.pair = weapon.scene.clone();
   vm.setWeapon(held);
   const p = createPlayer(0, 0, 0, 0);
   p.grounded = true;
   play(vm, p, 1.2);
   moment.run(vm, p);
-  shots.push({ name: `${kind}_${moment.name}`, meshes: grab(vm) });
-  console.log(`posed ${kind}_${moment.name}`);
+  const meshes = grab(vm);
+  shots.push({ name: `${process.argv[2]}_${moment.name}`, meshes });
+  // (How far the wrist bends from the forearm's line: the designer's rule is under about 40°.)
+  const r = rig.arms.R;
+  const elbowAt = r.fore.bone.getWorldPosition(new THREE.Vector3());
+  const wristAt = r.hand.bone.getWorldPosition(new THREE.Vector3());
+  const knuckleAt = r.knuckle.getWorldPosition(new THREE.Vector3());
+  const bend = wristAt.clone().sub(elbowAt).angleTo(knuckleAt.sub(wristAt));
+  const view = (b: THREE.Object3D) => b.getWorldPosition(new THREE.Vector3()).applyMatrix4(vm.camera.matrixWorldInverse);
+  const show = (o: THREE.Vector3) => `${o.x.toFixed(2)},${o.y.toFixed(2)},${o.z.toFixed(2)}`;
+  const fore = view(r.hand.bone).sub(view(r.fore.bone)).normalize();
+  console.log(`posed ${process.argv[2]}_${moment.name}: wrist ${Math.round((bend * 180) / Math.PI)}°  shoulder ${show(view(r.upper.bone))} elbow ${show(view(r.fore.bone))} wrist ${show(view(r.hand.bone))} forearm ${show(fore)}`);
 }
 writeFileSync(join(out, 'shots.json'), JSON.stringify({ aspect: ASPECT, fov: ARMS.v.fov, shots }));
 console.log(`wrote ${join(out, 'shots.json')}`);

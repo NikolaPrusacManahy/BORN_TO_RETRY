@@ -25,7 +25,7 @@ import { capOf, FramePacer } from '../core/framePacer';
 import { requestLock, releaseLock } from '../platform/pointerLock';
 import { FullscreenState, enterFullscreen, exitFullscreen, state as fullscreenState } from '../platform/fullscreen';
 import { setLeaveGuard } from '../platform/leaveGuard';
-import { CharacterId, ROSTER } from '../sim/characters';
+import { canPlay, CharacterId } from '../sim/characters';
 import type { Difficulty } from '../sim/lobby/difficulty';
 import { createLobby } from '../sim/lobby/lobby';
 import { GATE_BACK } from '../world/lobby/spots';
@@ -47,12 +47,14 @@ export interface LobbyChoice {
   character: CharacterId;
   /** Update 0.2.17 — runs deal Fate Cards. */
   cards: boolean;
+  /** Update 0.3.70 — you've beaten the final boss. */
+  demon: boolean;
 }
 
 export class Game extends GameBase {
   private readonly menus: MenuScenes;
   /** Update 0.2.9 — what you chose in the lobby last (the run's difficulty: GameBase.runDifficulty). */
-  private choice: LobbyChoice = { difficulty: 'real', character: 'adventurer', cards: true };
+  private choice: LobbyChoice = { difficulty: 'real', character: 'adventurer', cards: true, demon: false };
   private readonly resizeObs: ResizeObserver;
   private raf = 0;
   private last = performance.now();
@@ -123,7 +125,8 @@ export class Game extends GameBase {
   private enterLobby() {
     this.inLab = false;
     this.mode = 'play';
-    this.newRun(lobbyLevel(createLobby(this.choice.difficulty, this.choice.character, this.choice.cards)));
+    this.runCharacter = this.choice.character;
+    this.newRun(lobbyLevel(createLobby(this.choice.difficulty, this.choice.character, this.choice.cards, this.choice.demon)));
     this.input.clear();
   }
 
@@ -150,7 +153,8 @@ export class Game extends GameBase {
   /** Into a new dungeon run as `character` (only playable ones) on `difficulty`, with Fate Cards or not (`cards`). Call
    *  once the screen is black. */
   startRun(character: CharacterId, difficulty: Difficulty, cards = true) {
-    if (!ROSTER.find((c) => c.id === character)?.available) return;
+    if (!canPlay(character, this.choice.demon)) return;
+    this.runCharacter = character;
     this.runDifficulty = difficulty;
     this.runCards = cards;
     this.covered(() => {

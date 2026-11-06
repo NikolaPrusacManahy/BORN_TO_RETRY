@@ -2,8 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-06, after Update 0.3.69)
-- **Version 0.3.69** (the Bone King and the Velociraptor stop spinning), built, **not committed** until the designer says "commit". 0.3.58 to 0.3.68 are committed; the designer pushes.
+## Where things stand (2026-11-06, after Update 0.3.70)
+- **Version 0.3.70** (the Playable Demon, phase 1: its arms, its blade, the unlock), built, **not committed** until the designer says "commit". 0.3.58 to 0.3.69 are committed; the designer pushes.
+- **The Playable Demon is under way** (`enemy_bibles/Born to Retry — Playable Demon.docx`, spec `MD_UPDATES/U0370_PLAYABLE_DEMON_1.md`): phase 1 of 5 is done. Next: phase 2, the main moves. Waiting on the designer: opening floor 10 to public runs (they can't earn the Demon till then), Victory lap or Demon Mode, its HP.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
@@ -64,7 +65,13 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-06, Update 0.3.69: the Bone King and the Velociraptor stop spinning)
+## Last update (2026-11-06, Update 0.3.70: the Playable Demon, phase 1)
+- Hellwarden's arms in first person, your eye where it was, and a massive 2.8 m blade always in hand: `public/models/arms/demon.glb`, `public/models/weapons/demon_blade.glb`, fetched only for the Demon.
+- The designer corrected the grip twice, from a reference: a hammer grip with the fingers wrapped round the handle, the sword big enough to fill the hand. See the spec and the pipeline doc's lessons.
+- Beating Hellwarden on any difficulty earns it (`SaveData.demon`); the fifth figure on the dais; no other weapon for it; the Lab's Items → Play as.
+- It fights by the fists' rules till phase 2. Tests: `test-demon.ts`; `test-lobby.ts` changed on purpose (five characters).
+
+## Before (2026-11-06, Update 0.3.69: the Bone King and the Velociraptor stop spinning)
 - **The designer:** "Yes, fix them", on the bugs reported in `MD_UPDATES/U0368_IDLE_STANDS.md`. Spec `MD_UPDATES/U0369_POSES_STOP_SPINNING.md`.
 - **Built:** `engine/poseBase.ts`: each frame starts from the clip's pose, shared by `kingPose.ts`, `raptorPose.ts` and `wardenPose.ts`. Test: `test-poses-settle.ts` plays each pose at 60 fps, at 144 fps and in one frame, and all three must agree.
 - **Unseen:** not played. Their poses now match the stills checked when they were built.

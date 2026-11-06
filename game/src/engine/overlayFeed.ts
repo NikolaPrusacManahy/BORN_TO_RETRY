@@ -25,7 +25,8 @@ const BONUS_STEP = 50;
 
 /** A number for the weapon slots: changes whenever a slot's weapon or uses do. */
 function slotSig(combat: CombatState): number {
-  let sig = combat.slot;
+  // (Update 0.3.70 — and who you are: the Demon's first slot is its blade.)
+  let sig = combat.slot + (combat.demon ? 16 : 0);
   for (let i = 1; i < combat.bag.length; i++) {
     const w = combat.bag[i];
     sig = sig * 1024 + (w ? (WEAPON_KINDS.indexOf(w.kind) + 1) * 256 + Math.min(255, w.uses) : 0);
@@ -190,6 +191,7 @@ export class HudFeed {
       cards: it.cards.size,
       slots: combat.bag.slice(1).map((w) => (w ? { kind: w.kind, uses: w.uses } : null)),
       slot: combat.slot,
+      demon: combat.demon,
       slotSig: sig,
       bonusLeft,
       map,

@@ -151,12 +151,12 @@ def shoot(engine, path, at, look, size=(1600, 800), vfov=60):
     print(f'rendered {path}')
 
 
-def export_glb(path):
+def export_glb(path, **textures):
     """Exports the scene's meshes and markers (the game lights it itself), y up."""
     bpy.ops.object.select_all(action='DESELECT')
     for o in bpy.context.scene.objects:
         if o.type in ('MESH', 'EMPTY'):
             o.select_set(True)
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
-    bpy.ops.export_scene.gltf(filepath=path, export_format='GLB', use_selection=True, export_apply=True, export_yup=True, export_lights=False, export_cameras=False)
+    bpy.ops.export_scene.gltf(filepath=path, export_format='GLB', use_selection=True, export_apply=True, export_yup=True, export_lights=False, export_cameras=False, **textures)
     print(f'exported {path}')

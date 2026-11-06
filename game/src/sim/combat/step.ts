@@ -137,7 +137,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   stepExecution(state, dt, player);
   // (Update 0.2.18 — wave 2's bleeds, burns, bolts and blasts: not while an execution holds the world.)
   tickPowers(state, player, dt);
-  if (intent.interactPressed && !throwing && !executing) {
+  // (Update 0.3.70 — the Demon takes no other weapon.)
+  if (intent.interactPressed && !throwing && !executing && !state.demon) {
     const got = tryPickup(state.pickups, state.stands, player, events);
     if (got) giveWeapon(state, got, player.pos);
   }

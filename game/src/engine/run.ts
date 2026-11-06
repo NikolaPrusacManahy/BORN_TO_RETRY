@@ -274,6 +274,11 @@ export class Run extends RunBase {
     if (d) this.view.update?.(gameDt, d, this.camera.position, this.combat.flood, this.hits.kicks);
     else this.view.frame?.(real, this.camera.position);
     if (lobby) this.lobbyNews(lobby);
+    // (Update 0.3.70 — the final boss has fallen, on whatever difficulty: the Demon's yours.)
+    if (this.combat.wardenBeaten) {
+      this.combat.wardenBeaten = false;
+      this.cb.onDemonEarned?.();
+    }
     // (The Velociraptor's sandstorm over the dungeon's haze.)
     this.combatScene.raptor.sky(this.scene, this.combat);
     const f = this.combat.fists;
@@ -310,7 +315,11 @@ export class Run extends RunBase {
   private lobbyNews(l: Lobby) {
     for (const e of l.events) {
       playLobby(this.audio, e);
-      if (e === 'pick') this.cb.onLobbyPick(l.difficulty, l.character, l.cards);
+      if (e === 'pick') {
+        this.cb.onLobbyPick(l.difficulty, l.character, l.cards);
+        // (Update 0.3.70 — chosen on the dais, you look down at its hands at once.)
+        this.playAs(l.character === 'demon');
+      }
       else if (e === 'gate') this.cb.onLobbyGate();
     }
     l.events.length = 0;

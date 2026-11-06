@@ -39,7 +39,8 @@ import { FLOOR } from '../src/world/dungeon/floorOrder';
 
 section('Lobby — the roster and the difficulties');
 {
-  check('four characters, in the designer’s order', ROSTER.map((c) => c.name).join(', ') === 'Joseph, Fallen King, William Rich, Alpha Team');
+  // (Update 0.3.70 — the designer: the Playable Demon, last. It's earned, so still only Joseph at first.)
+  check('five characters, in the designer’s order', ROSTER.map((c) => c.name).join(', ') === 'Joseph, Fallen King, William Rich, Alpha Team, The Demon');
   check('only Joseph (the Adventurer) is playable', ROSTER.filter((c) => c.available).map((c) => c.id).join() === 'adventurer');
   check('Joseph: fists only, picks up used weapons', /fists only/i.test(ROSTER[0].kit) && /used weapons/i.test(ROSTER[0].kit));
   check('character ids are all different', new Set(ROSTER.map((c) => c.id)).size === ROSTER.length);
@@ -293,7 +294,8 @@ section('Lobby — its models');
   const pieces = new Set([...dressHall().pieces, ...dressHall().ceiling, dressHall().bars].map((p) => p.piece));
   const missing = [...pieces].filter((n) => !own.getObjectByName(n) && !kit.getObjectByName(n));
   check('every piece the manor uses is in the kits (the crystal too)', missing.length === 0 && !!own.getObjectByName('lobby_r_Crystal1'), missing.join(', '));
-  for (const c of ROSTER) {
+  // (Update 0.3.70 — the Demon's figure is its own file: test-demon.ts.)
+  for (const c of ROSTER.filter((r) => r.id !== 'demon')) {
     const body = own.getObjectByName(`Char_${c.id}`);
     const b = body ? new Box3().setFromObject(body) : null;
     const h = b ? b.max.y - b.min.y : 0;

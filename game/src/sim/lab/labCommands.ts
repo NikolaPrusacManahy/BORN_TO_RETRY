@@ -6,6 +6,7 @@
 // Update 0.1.1 — Meter (the designer: "max execution gauge, only inside the Lab"): on, the Execution Power meter stays
 // full.
 // Update 0.2.16 — Fate Cards: a deal (as a chest's), or one card given to you.
+// Update 0.3.70 — play as the Demon (and it's earned, for the lobby), or as Joseph.
 import { Vector3 } from 'three';
 import type { CombatState } from '../combat/state';
 import { clearQuakes } from '../combat/quakes';
@@ -30,7 +31,8 @@ export type LabCommand =
   | { kind: 'card'; card: CardKind }
   | { kind: 'clear' }
   | { kind: 'heal' }
-  | { kind: 'meter'; on: boolean };
+  | { kind: 'meter'; on: boolean }
+  | { kind: 'demon'; on: boolean };
 
 /** How far in front of you (m) things appear: an enemy by its size (a boss further), items, a weapon, a chest. */
 const AHEAD = { small: 7, large: 10, air: 8, boss: 16, item: 2.5, weapon: 2.5, chest: 3 };
@@ -100,6 +102,14 @@ export function runLab(cmd: LabCommand, state: CombatState, player: PlayerState,
     case 'meter':
       state.fullMeter = cmd.on;
       if (cmd.on) state.execution = 1;
+      return 0;
+    case 'demon':
+      state.demon = cmd.on;
+      if (cmd.on) {
+        state.weapon = null;
+        state.bag.fill(null);
+        state.slot = 0;
+      }
       return 0;
   }
 }

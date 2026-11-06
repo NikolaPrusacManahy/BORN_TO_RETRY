@@ -30,7 +30,7 @@ import { ITEMS } from '../../tuning/items';
 import type { ChestSpot, DungeonLevel } from '../../world/dungeon/assemble';
 import { burstCoins } from '../combat/coins';
 import type { CombatState } from '../combat/state';
-import { anyKey, checkPick, ITEM_KINDS, ItemKind, keyFor, KeyKind, nextKey, priceOf, takeItem, useful, useKey } from '../items/items';
+import { anyKey, checkPick, isWeaponItem, ITEM_KINDS, ItemKind, keyFor, KeyKind, nextKey, priceOf, takeItem, useful, useKey } from '../items/items';
 import { startKneel } from '../player/kneel';
 import type { PlayerState } from '../player/state';
 import { dropItem, takeWaiting } from '../items/drops';
@@ -126,6 +126,19 @@ export function createTreasure(level: DungeonLevel, rng: Rng, boss: EnemyKind = 
   // (Update 0.2.20 — the card's roll last: the rest roll as they did.)
   const card = shop ? placeCard(shop, rng()) : null;
   return { shop: shop ? shop.index : -1, offers, chests, choosing: -1, card };
+}
+
+/** Update 0.3.70 — the Demon has no use for a weapon: what the shop would sell of them, armour, rings and keys in their
+ *  place. */
+const NOT_WEAPONS: readonly ItemKind[] = ['goldPlate', 'redRing', 'blueRing', 'greenRing', 'tealRing', 'key'];
+
+export function noWeaponsOffered(t: Treasure, floor: number) {
+  let next = 0;
+  for (const o of t.offers) {
+    if (!isWeaponItem(o.kind)) continue;
+    o.kind = NOT_WEAPONS[next++ % NOT_WEAPONS.length];
+    o.price = priceOf(o.kind, floor);
+  }
 }
 
 /** Update 0.0.19 — no shop and no chests yet (the Lab's: its panel adds chests). */
@@ -225,6 +238,8 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
     }
     c.key = free ? null : useKey(inv);
     c.loot = c.boss ? { rarity: 'mythic', item: null, coins: coinsFor(bossCoins(c.boss) * ITEMS.v.chestGold, state, state.rng) } : c.spot.gold ? goldLoot(c.rolls) : rollLoot(c.key!, c.rolls, { better: holds(state, 'fortune'), worse: holds(state, 'blackCat'), up: holds(state, 'fragileFortune') });
+    // (Update 0.3.70 — a weapon's coins to the Demon.)
+    if (state.demon && c.loot.item && isWeaponItem(c.loot.item)) c.loot = { ...goldLoot(c.rolls), rarity: c.loot.rarity };
     c.state = 'opening';
     c.t = 0;
     t.choosing = -1;

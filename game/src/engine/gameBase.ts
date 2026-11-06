@@ -15,6 +15,7 @@ import type { DealView, InventoryView } from './fateView';
 import { bossRoomLevel, dungeonLevel, labLevel, Level, newSeed } from './level';
 import { Run } from './run';
 import type { Levels, RunCallbacks } from './runLinks';
+import type { CharacterId } from '../sim/characters';
 import type { Difficulty } from '../sim/lobby/difficulty';
 import { createRenderer } from './renderer';
 import { FLOOR } from '../world/dungeon/floorOrder';
@@ -53,6 +54,9 @@ export abstract class GameBase {
   runDifficulty: Difficulty = 'real';
   /** Update 0.2.17 — the run deals Fate Cards (the lobby's stand; the Lab's always do). */
   runCards = true;
+  /** Update 0.3.70 — who you play as (the lobby's choice), and in the Lab whether you're the Demon (its panel). */
+  runCharacter: CharacterId = 'adventurer';
+  private labDemon = false;
   /** Update 0.3.23 — the loader's going up before a build: nothing else runs meanwhile; the game's gone (no build). */
   protected covering = false;
   protected gone = false;
@@ -124,7 +128,12 @@ export abstract class GameBase {
 
   /** Update 0.0.19 — the Lab's panel asked for something. */
   labCommand(cmd: LabCommand) {
-    if (this.lab) this.run?.labCommand(cmd);
+    if (!this.lab) return;
+    if (cmd.kind === 'demon') {
+      this.labDemon = cmd.on;
+      if (cmd.on) this.cb.onDemonEarned?.();
+    }
+    this.run?.labCommand(cmd);
   }
 
   /** Update 0.0.19 — the Demon's (floor 1) or the Dragon's (floor 2) boss room, from the Lab (Update 0.3.41 — the Demon
@@ -194,7 +203,7 @@ export abstract class GameBase {
 
   protected newRun(level: Level) {
     this.run?.dispose();
-    this.run = new Run(level, this.audio, this.renderer, this.hud, this.cb, this.levels, this.inLab ? 'real' : this.runDifficulty, this.inLab || this.runCards, this.inLab);
+    this.run = new Run(level, this.audio, this.renderer, this.hud, this.cb, this.levels, this.inLab ? 'real' : this.runDifficulty, this.inLab || this.runCards, this.inLab, this.inLab ? (this.labDemon ? 'demon' : 'adventurer') : this.runCharacter);
     this.run.waves = !this.inLab || this.labWaves;
     this.run.paused = this.paused;
     if (this.inLab) this.run.labCommand({ kind: 'meter', on: this.labMeter });

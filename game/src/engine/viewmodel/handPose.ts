@@ -39,14 +39,10 @@ export const PUNCH = shape(
 
 /** Round a handle the tip joint bends this much of the middle joint's bend. */
 const TIP_SHARE = 0.75;
-/** The knuckle's bend is tried up to this (rad) in this step; the middle joint's up to this, found by halving (to
- *  1.9 / 2⁸ rad). Worked out at load: ~80 ms for both hands. */
-const MAX_KNUCKLE = 1.7;
+/** The knuckle's bend is tried up to a rig's most (HandFit.most) in this step; the middle joint's up to its, found by
+ *  halving (to a 2⁸th of it). Worked out at load: ~80 ms for both hands. */
 const KNUCKLE_STEP = 0.1;
-const MAX_MIDDLE = 1.9;
 const HALVINGS = 8;
-/** Half a finger's thickness (m): its bone line wraps this far outside the handle. */
-const FINGER = 0.004;
 /** The grip's thumb: closed over the handle. */
 export const GRIP_THUMB = [0.2, -1.0, 0, 0.5, -0.2, 0];
 /** How far the handle leans across the palm from the knuckles' line towards them (rad: armsRig.holdMatrix's tilt, 15°
@@ -54,6 +50,24 @@ export const GRIP_THUMB = [0.2, -1.0, 0, 0.5, -0.2, 0];
 const TILTS = [0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2];
 /** …and these handle thicknesses (radius, m); between them they're blended. */
 const RADII = [0.008, 0.012, 0.016, 0.02, 0.024];
+
+/** Update 0.3.70 — how a rig's hand closes. A thumb's axes are its rig's own, so its turns from the baked tuck are too
+ *  (closed in a punch, closed on a handle, out); so are how thick its fingers are and how deep in the fist a handle sits. */
+export interface HandFit {
+  punch: readonly number[];
+  grip: readonly number[];
+  open: readonly number[];
+  /** Half a finger's thickness (m): its bone line wraps this far outside the handle. */
+  finger: number;
+  /** A handle's place from the middle of the baked fingers (m): back towards the wrist, in towards the palm. */
+  hole: { wrist: number; palm: number };
+  /** The most a finger bends round a handle (rad). */
+  most: { knuckle: number; middle: number };
+}
+export const QUATERNIUS_HAND: HandFit = { punch: PUNCH.thumb, grip: GRIP_THUMB, open: OPEN.thumb, finger: 0.004, hole: { wrist: 0, palm: 0 }, most: { knuckle: 1.7, middle: 1.9 } };
+/** The Playable Demon's (a Universal Animation Library rig: cut_arms.py solves its tuck over the fingers, right as baked;
+ *  thick gauntlet fingers, closing a loop about 5 × 9 cm that its big hilt fills: the handle goes in the loop's middle). */
+export const DEMON_HAND: HandFit = { punch: [0, 0, 0, 0, 0, 0], grip: [0, 0, 0, 0, 0, 0], open: [0, 0, 0, 0, 0, 0], finger: 0.008, hole: { wrist: 0.01, palm: 0.015 }, most: { knuckle: 1.7, middle: 1.65 } };
 
 interface Joint {
   bone: THREE.Bone;
@@ -87,6 +101,7 @@ export class HandBones {
     hole: THREE.Vector3,
     through: THREE.Vector3,
     up: THREE.Vector3,
+    private readonly fit: HandFit = QUATERNIUS_HAND,
   ) {
     this.grips = TILTS.map((t) => {
       const axis = through.clone().multiplyScalar(Math.cos(t)).addScaledVector(up, Math.sin(t)).normalize();
@@ -109,9 +124,11 @@ export class HandBones {
    *  `hold`, 0 … 1), then opened by `open` (0 … 1). */
   pose(open: number, grip = 0, hold = 0, tilt = 0.4) {
     const s = this.live;
-    const g = hold > 0 && grip > 0 ? this.grip(grip, tilt) : PUNCH;
+    const held = hold > 0 && grip > 0;
+    const g = held ? this.grip(grip, tilt) : PUNCH;
+    const t = this.fit;
     for (let i = 0; i < JOINTS; i++) s.curl[i] = lerp(lerp(PUNCH.curl[i], g.curl[i], hold), OPEN.curl[i], open);
-    for (let i = 0; i < 6; i++) s.thumb[i] = lerp(lerp(PUNCH.thumb[i], g.thumb[i], hold), OPEN.thumb[i], open);
+    for (let i = 0; i < 6; i++) s.thumb[i] = lerp(lerp(t.punch[i], held ? t.grip[i] : t.punch[i], hold), t.open[i], open);
     this.set(s);
   }
 
@@ -142,7 +159,7 @@ export class HandBones {
       this.fingers[f * 3 + 2].bone.getWorldPosition(p4);
       tip.subVectors(p4, p3).multiplyScalar(0.9).add(p4);
       mid.addVectors(p3, p4).multiplyScalar(0.5);
-      return Math.min(off(p3, hole, through), off(p4, hole, through), off(tip, hole, through), off(mid, hole, through)) >= r + FINGER;
+      return Math.min(off(p3, hole, through), off(p4, hole, through), off(tip, hole, through), off(mid, hole, through)) >= r + this.fit.finger;
     };
     for (let f = 0; f < 4; f++) {
       // Each knuckle bend, and for it the most middle-joint bend that still clears the handle: the pair that closes the
@@ -151,6 +168,7 @@ export class HandBones {
       let best = 0;
       let bestK = 0;
       let bestM = 0;
+      const { knuckle: MAX_KNUCKLE, middle: MAX_MIDDLE } = this.fit.most;
       for (let k = MAX_KNUCKLE; k >= -1e-9; k -= KNUCKLE_STEP) {
         if (!clears(f, k, 0)) continue;
         // The most middle-joint bend that clears: it clears less the more it bends.

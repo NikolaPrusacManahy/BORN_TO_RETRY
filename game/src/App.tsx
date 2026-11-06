@@ -137,6 +137,16 @@ export default function App() {
     [getGame, go],
   );
 
+  /** Update 0.3.70 — the final boss beaten, on any difficulty: the Demon's yours, for good. */
+  const onDemonEarned = useCallback(() => {
+    setSave((old) => {
+      if (old.demon) return old;
+      const next = { ...old, demon: true };
+      writeSave(next);
+      return next;
+    });
+  }, []);
+
   /** The death screen's Retry: a new run (it clears the black); if the browser won't lock the mouse yet, paused. */
   const retry = useCallback(() => {
     const g = getGame();
@@ -159,8 +169,8 @@ export default function App() {
     if (!g || phaseRef.current !== 'menu') return;
     go('intro');
     void g.lock();
-    g.startIntro({ difficulty: save.difficulty, character: save.character, cards: save.cards });
-  }, [getGame, go, save.difficulty, save.character]);
+    g.startIntro({ difficulty: save.difficulty, character: save.character, cards: save.cards, demon: save.demon });
+  }, [getGame, go, save.difficulty, save.character, save.cards, save.demon]);
 
   /** Update 0.0.19 — the main menu's Lab: straight into the Lab. */
   const startLab = useCallback(() => {
@@ -258,6 +268,7 @@ export default function App() {
       onRespawn={() => setBlack(null)}
       onDeathScreen={onDeathScreen}
       onLobbyPick={gate.onPick}
+      onDemonEarned={onDemonEarned}
       onLobbyGate={gate.onGate}
       onReady={() => setReady(true)}
     >

@@ -48,6 +48,8 @@ export interface RunCallbacks {
   onDeal(deal: DealView): void;
   /** Update 0.2.16 — TAB: show what you carry (`Game.inventory`). */
   onInventory(): void;
+  /** Update 0.3.70 — you beat the final boss (or, in the Lab, played as the Demon): it's yours to play. */
+  onDemonEarned?(): void;
   /** Update 0.3.23 — a level is being made ready (`true`: the loader up, the world waiting) or is ready (`false`). */
   onLoading?(on: boolean): void;
 }

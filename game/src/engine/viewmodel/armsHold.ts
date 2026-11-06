@@ -34,13 +34,15 @@ const through = new THREE.Vector3();
 /** The fingers are baked closed, so the grip goes where they curl round: the middle of their twelve joints. The way
  *  through the fist runs from the little finger's knuckle to the index finger's. `bone`: a finger bone by its name
  *  (`Index2` …); `hand`: the hand bone, its rest position and its rest direction to the knuckles. */
-export function holdOf(bone: (name: string) => THREE.Bone, hand: THREE.Bone, pos: THREE.Vector3, dir: THREE.Vector3): HoldRest {
+export function holdOf(bone: (name: string) => THREE.Bone, hand: THREE.Bone, pos: THREE.Vector3, dir: THREE.Vector3, shift?: { wrist: number; palm: number }): HoldRest {
   const grip = new THREE.Vector3();
   for (const f of ['Index', 'Middle', 'Ring', 'Pinky']) for (const j of [2, 3, 4]) grip.add(bone(`${f}${j}`).getWorldPosition(at));
   grip.divideScalar(12);
   const y = dir.clone();
   const z = REST_BACK.clone().addScaledVector(y, -REST_BACK.dot(y)).normalize();
   const x = new THREE.Vector3().crossVectors(y, z);
+  // (Update 0.3.70 — a rig's handle can sit deeper in its fist: HandFit.hole.)
+  if (shift) grip.addScaledVector(y, -shift.wrist).addScaledVector(z, shift.palm);
   const thumb = bone('Index2').getWorldPosition(new THREE.Vector3()).sub(bone('Pinky2').getWorldPosition(at));
   thumb.addScaledVector(y, -thumb.dot(y)).addScaledVector(z, -thumb.dot(z)).normalize();
   const off = grip.clone().sub(pos);

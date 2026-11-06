@@ -16,7 +16,7 @@ import { ITEMS } from '../../tuning/items';
 import type { CombatState } from '../combat/state';
 import { addShield, healPlayer, maxHpOf, maxShield } from '../player/health';
 import type { PlayerState } from '../player/state';
-import { HASTE } from '../weapons/catalog';
+import { HASTE, WEAPON_KINDS } from '../weapons/catalog';
 import { giveWeapon } from '../weapons/slots';
 import { holding } from '../weapons/weapons';
 import { hasteFactor } from './bonuses';
@@ -124,6 +124,9 @@ export const PRICE: Record<ItemKind, () => number> = {
 export function priceOf(kind: ItemKind, floor: number): number {
   return Math.round(PRICE[kind]() * (1 + ITEMS.v.priceRise) ** Math.max(0, floor - 1) + 1e-6);
 }
+
+/** Update 0.3.70 — it's a weapon (the Demon has no use for one). */
+export const isWeaponItem = (kind: ItemKind) => (WEAPON_KINDS as readonly string[]).includes(kind);
 
 export const isKey = (kind: ItemKind): kind is KeyKind => kind === 'key' || kind === 'whiteKey' || kind === 'goldKey';
 

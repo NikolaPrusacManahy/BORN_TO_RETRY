@@ -4,8 +4,9 @@
 // Update 0.2.26 — Blood: on, less or off (engine/bloodFx.ts).
 // Update 0.3.0 — Glow (engine/glowPass.ts) and Effects: high or low (engine/effectsLevel.ts).
 // Update 0.3.38 — the frame-rate cap (core/framePacer.ts).
+// Update 0.3.70 — you've beaten the final boss: the Playable Demon's yours.
 import { Bindings, DEFAULT_BINDINGS, hydrateBindings } from '../input/bindings';
-import { CharacterId, ROSTER } from '../sim/characters';
+import { canPlay, CharacterId, ROSTER } from '../sim/characters';
 import { DEFAULT_DIFFICULTY, Difficulty, isDifficulty } from '../sim/lobby/difficulty';
 import { DEFAULT_FRAME_CAP, FRAME_CAPS } from '../core/framePacer';
 import { DEFAULT_FPS_KEY } from '../input/fpsKey';
@@ -52,6 +53,8 @@ export interface SaveData {
   cards: boolean;
   /** Update 0.3.65 — how many times you've died, all runs (Hellwarden's forged from them). */
   deaths: number;
+  /** Update 0.3.70 — you've beaten the final boss, on any difficulty: the Demon's yours to play. */
+  demon: boolean;
 }
 
 /** Named after the working title; kept when the game became Born To Retry so saved settings carry over. */
@@ -66,12 +69,11 @@ export const UI_SIZE_MAX = 1.4;
 export const DEFAULT_SETTINGS: Settings = { sensitivity: 1, invertY: false, fov: 100, volume: 0.8, sfxVolume: 1, musicVolume: 0.7, uiSize: 1, blood: 'on', glow: true, effects: 'high', frameCap: DEFAULT_FRAME_CAP, fpsKey: DEFAULT_FPS_KEY, showFps: false, bindings: DEFAULT_BINDINGS };
 
 export function defaultSave(): SaveData {
-  return { version: 1, settings: { ...DEFAULT_SETTINGS, bindings: { ...DEFAULT_BINDINGS } }, difficulty: DEFAULT_DIFFICULTY, character: DEFAULT_CHARACTER, cards: true, deaths: 0 };
+  return { version: 1, settings: { ...DEFAULT_SETTINGS, bindings: { ...DEFAULT_BINDINGS } }, difficulty: DEFAULT_DIFFICULTY, character: DEFAULT_CHARACTER, cards: true, deaths: 0, demon: false };
 }
 
 /** Update 0.2.9 — the character a new save has (the first playable one). */
 export const DEFAULT_CHARACTER: CharacterId = ROSTER.find((c) => c.available)!.id;
-const playable = (v: unknown): v is CharacterId => ROSTER.some((c) => c.id === v && c.available);
 
 const clamp = (v: unknown, lo: number, hi: number, d: number) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d);
 
@@ -80,13 +82,15 @@ export function hydrateSave(raw: unknown): SaveData {
   const base = defaultSave();
   if (!raw || typeof raw !== 'object') return base;
   const s: Partial<Settings> = (raw as { settings?: Partial<Settings> }).settings ?? {};
-  const { difficulty, character, cards, deaths } = raw as Partial<Record<'difficulty' | 'character' | 'cards' | 'deaths', unknown>>;
+  const { difficulty, character, cards, deaths, demon } = raw as Partial<Record<'difficulty' | 'character' | 'cards' | 'deaths' | 'demon', unknown>>;
+  const beaten = demon === true;
   return {
     version: 1,
     difficulty: isDifficulty(difficulty) ? difficulty : DEFAULT_DIFFICULTY,
-    character: playable(character) ? character : DEFAULT_CHARACTER,
+    character: canPlay(character, beaten) ? (character as CharacterId) : DEFAULT_CHARACTER,
     cards: typeof cards === 'boolean' ? cards : true,
     deaths: Math.floor(clamp(deaths, 0, 1e7, 0)),
+    demon: beaten,
     settings: {
       sensitivity: clamp(s.sensitivity, SENS_MIN, SENS_MAX, DEFAULT_SETTINGS.sensitivity),
       invertY: typeof s.invertY === 'boolean' ? s.invertY : DEFAULT_SETTINGS.invertY,

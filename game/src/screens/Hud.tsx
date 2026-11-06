@@ -148,7 +148,7 @@ export function Hud({ store }: { store: HudStore }) {
           <span>{Math.max(0, s.uses - s.mag)}</span>
         </div>
       )}
-      <WeaponSlots slots={s.slots} slot={s.slot} keys={s.slotKeys} />
+      <WeaponSlots slots={s.slots} slot={s.slot} keys={s.slotKeys} demon={s.demon} />
       <Controls s={s} />
       <Bonuses left={s.bonusLeft} />
       <div className={`rb-hud-exec${s.execution >= 1 ? ' is-full' : ''}`} style={{ '--fill': s.execution } as CSSProperties}>

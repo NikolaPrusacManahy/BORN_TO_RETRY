@@ -133,6 +133,10 @@ export interface CombatState {
   /** Update 0.2.12 — ARE YOU EVEN HUMAN? (the designer: "just fists and nothing else"): nothing is dropped or found (no
    *  swords, coins, keys, bonuses, chests, rewards); executions still heal (the designer: "executions always heals"). */
   bare: boolean;
+  /** Update 0.3.70 — you're the Playable Demon: the sword's always in hand, so no other weapon's yours. And Hellwarden's
+   *  just fallen (for the Run to tell the App: the Demon's earned, whatever the difficulty). */
+  demon: boolean;
+  wardenBeaten: boolean;
   /** Update 0.2.17 — Fate Cards are on this run (the lobby's stand): chests deal them. */
   fate: boolean;
   /** Update 0.2.15 — the Scars'. Update 0.2.16 — the Fate Cards' (sim/cards/): you're off the ground this tick (Air
@@ -225,6 +229,8 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     keyDrops: 0,
     betterKeys: false,
     bare: false,
+    demon: false,
+    wardenBeaten: false,
     fate: true,
     inAir: false,
     bumped: [],

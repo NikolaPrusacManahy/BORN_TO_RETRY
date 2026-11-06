@@ -10,6 +10,11 @@
 # one the fist is shaped round (thicker, it pokes through the fingers).
 # Update 0.1.9 — `--edge-out` looks only at the top half (the head or blade), so a dagger's wide guard doesn't decide
 # it: the dagger's serrated belly goes to +x, the way the knuckles face.
+# Update 0.3.70 — `--only NAME`: a weapon that's one mesh of a character's file (the Demon's blade, in Hellwarden.blend);
+# `--flip`: its blade points down its long axis' negative end; `--tex N`: its textures no bigger than N px;
+# `--blade LONG,WIDE,TOP,RAMP`: the blade above TOP m up the weapon LONG times as long and WIDE times as broad, the guard and
+# hilt below as they are (a massive blade on a hilt that still fits the fist; grown whole, the guard balloons, and the
+# blade, which runs away from your eye, hardly seems longer), broadening over RAMP m so there's no step.
 #
 # Run (from game/):
 #   blender --background --disable-autoexec --python tools/blender/export_weapon.py -- \
@@ -39,6 +44,10 @@ def parse_args():
     p.add_argument('--handle-center', action='store_true', help='centre x and y on the handle at the grip')
     p.add_argument('--edge-out', action='store_true', help='turn the side the head reaches furthest to +x')
     p.add_argument('--thin', default=None, help='TOP,RMAX,K: the handle below TOP and within RMAX of the middle, K times as thick')
+    p.add_argument('--only', default=None, help='only this mesh is the weapon')
+    p.add_argument('--flip', action='store_true', help='its blade points the negative way along its long axis')
+    p.add_argument('--tex', type=int, default=0, help='its textures no bigger than this (px)')
+    p.add_argument('--blade', default=None, help='LONG,WIDE,TOP,RAMP: above TOP m up the weapon, that much longer and broader; the guard and hilt as they are')
     return p.parse_args(argv)
 
 
@@ -62,10 +71,23 @@ def find_grip(vs, axis):
 def main():
     args = parse_args()
     bpy.ops.wm.open_mainfile(filepath=os.path.abspath(args.blend), load_ui=False, use_scripts=False)
-    meshes = [o for o in bpy.data.objects if o.type == 'MESH']
-    for o in bpy.data.objects:
-        if o.type != 'MESH':
+    meshes = [o for o in bpy.data.objects if o.type == 'MESH' and (not args.only or o.name == args.only)]
+    for o in list(bpy.data.objects):
+        if o not in meshes:
             bpy.data.objects.remove(o, do_unlink=True)
+    for o in meshes:
+        o.modifiers.clear()
+        o.vertex_groups.clear()
+    if args.tex:
+        for m in bpy.data.materials:
+            if m.use_nodes:
+                for n in list(m.node_tree.nodes):
+                    if n.type == 'SEPARATE_COLOR' or (n.type == 'TEX_IMAGE' and n.image and 'ORM' in n.image.name):
+                        m.node_tree.nodes.remove(n)
+        for im in bpy.data.images:
+            wanted = args.tex // 2 if 'Normal' in im.name else args.tex
+            if im.size[0] > wanted:
+                im.scale(wanted, wanted)
     for o in meshes:
         o.data.transform(o.matrix_world)
         o.matrix_world = Matrix.Identity(4)
@@ -82,6 +104,8 @@ def main():
         w.data.transform(Matrix.Rotation(math.radians(-90), 4, 'Y'))
     elif axis == 1:
         w.data.transform(Matrix.Rotation(math.radians(90), 4, 'X'))
+    if args.flip:
+        w.data.transform(Matrix.Rotation(math.radians(180), 4, 'X'))
     vs = [v.co.copy() for v in w.data.vertices]
     if (max(v.y for v in vs) - min(v.y for v in vs)) > (max(v.x for v in vs) - min(v.x for v in vs)):
         w.data.transform(Matrix.Rotation(math.radians(90), 4, 'Z'))
@@ -115,6 +139,17 @@ def main():
                 v.co.y *= k
                 n += 1
         print(f'thinned {n} handle vertices by {k}')
+    if args.blade:
+        long, broad, top, ramp = (float(x) for x in args.blade.split(','))
+        for v in w.data.vertices:
+            if v.co.z > top:
+                t = min(1.0, (v.co.z - top) / ramp)
+                wide = 1 + (broad - 1) * t * t * (3 - 2 * t)
+                v.co.x *= wide
+                v.co.y *= wide
+                v.co.z = top + (v.co.z - top) * long
+        zs = [v.co.z for v in w.data.vertices]
+        print(f'blade {long} times as long, {broad} as broad: {max(zs) - min(zs):.2f} m in all, {max(zs):.2f} m above the fist')
 
     setup_previews(args.engine, args.previews)
     world = bpy.context.scene.world or bpy.data.worlds.new('World')
@@ -124,7 +159,7 @@ def main():
     bpy.context.scene.collection.objects.link(sun)
     shoot(args.engine, os.path.join(args.previews, 'weapon.png'), Vector((1.6, -1.6, 0.4)), Vector((0, 0, 0.25)), size=(900, 900), vfov=40)
     bpy.data.objects.remove(sun, do_unlink=True)
-    export_glb(args.glb)
+    export_glb(args.glb, **(dict(export_image_format='JPEG', export_jpeg_quality=88) if args.tex else {}))
 
 
 main()

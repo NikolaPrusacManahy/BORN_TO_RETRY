@@ -21,6 +21,8 @@ def parse_args():
     # Update 0.1.6 — the game draws only the front of each face (three.js FrontSide): this draws it the same, so a
     # face seen from behind vanishes here as it does there (the fingers once looked whole here and were gone in game).
     p.add_argument('--cull', action='store_true', help='hide faces seen from behind, as the game does')
+    # Update 0.3.70 — a character whose colours are in its texture (the Playable Demon): the shots carry UVs.
+    p.add_argument('--image', default=None, help="draw every mesh with UVs with this texture")
     return p.parse_args(argv)
 
 
@@ -40,7 +42,19 @@ def clear():
             bpy.data.objects.remove(o, do_unlink=True)
 
 
-def add_mesh(m):
+def textured(path):
+    mat = bpy.data.materials.get('textured')
+    if mat:
+        return mat
+    mat = bpy.data.materials.new('textured')
+    mat.use_nodes = True
+    node = mat.node_tree.nodes.new('ShaderNodeTexImage')
+    node.image = bpy.data.images.load(os.path.abspath(path))
+    mat.node_tree.nodes.active = node
+    return mat
+
+
+def add_mesh(m, image=None):
     pos = m['pos']
     verts = [(pos[i], pos[i + 1], pos[i + 2]) for i in range(0, len(pos), 3)]
     idx = m['idx']
@@ -52,7 +66,13 @@ def add_mesh(m):
     if m.get('smooth'):
         me.shade_smooth()
     o = bpy.data.objects.new('shot', me)
-    o.data.materials.append(material(m['color']))
+    uv = m.get('uv') if image else None
+    if uv:
+        layer = me.uv_layers.new(name='UV')
+        for loop in me.loops:
+            i = loop.vertex_index
+            layer.data[loop.index].uv = (uv[i * 2], 1 - uv[i * 2 + 1])  # (glTF's v runs down)
+    o.data.materials.append(textured(image) if uv else material(m['color']))
     bpy.context.scene.collection.objects.link(o)
 
 
@@ -70,7 +90,7 @@ def main():
     scene = bpy.context.scene
     scene.render.engine = 'BLENDER_WORKBENCH'
     scene.display.shading.light = 'STUDIO'
-    scene.display.shading.color_type = 'MATERIAL'
+    scene.display.shading.color_type = 'TEXTURE' if args.image else 'MATERIAL'
     scene.display.shading.show_shadows = False
     scene.display.shading.show_backface_culling = args.cull
     scene.view_settings.view_transform = 'Standard'
@@ -94,7 +114,7 @@ def main():
     for shot in data['shots']:
         clear()
         for m in shot['meshes']:
-            add_mesh(m)
+            add_mesh(m, args.image)
         # (Update 0.2.4 — a shot may have its own lens: the Pistol aimed narrows the arms'.)
         cam.data.angle = math.radians(shot.get('fov', data['fov']))
         crosshair()

@@ -7,9 +7,10 @@
 // card facing it from the east wall; the great crystal floating and turning over its dais, glowing cold; each floor's
 // painting in a gilt frame with a brass plaque under it; the windows' daylight behind their frames; the galleries'
 // exhibits (galleryView.ts).
+// Update 0.3.70 — the Demon's figure, from its own file: a silhouette till it's earned.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { ROSTER } from '../../sim/characters';
+import { isPlayable, ROSTER } from '../../sim/characters';
 import { DIFFICULTIES } from '../../sim/lobby/difficulty';
 import type { Lobby } from '../../sim/lobby/lobby';
 import { BRICK } from '../../world/dungeon/styles';
@@ -25,6 +26,7 @@ import { GalleryView } from './galleryView';
 import { ITEMS_URL } from '../treasureView';
 
 export const LOBBY_KIT_URL = '/models/menu/lobby.glb';
+export const DEMON_FIGURE_URL = '/models/menu/demon_figure.glb';
 /** What shows through any gap (nothing should): the dark of the stone. */
 const BACKDROP = 0x120e0c;
 const WOOD = 0x3b2615;
@@ -45,7 +47,7 @@ const DAYLIGHT = 0xdff0ff;
 export function preloadLobby(): Promise<void> {
   THREE.Cache.enabled = true;
   const files = new THREE.FileLoader().setResponseType('arraybuffer');
-  return Promise.all([KIT_URL, LOBBY_KIT_URL, ITEMS_URL].map((url) => files.loadAsync(url))).then(
+  return Promise.all([KIT_URL, LOBBY_KIT_URL, DEMON_FIGURE_URL, ITEMS_URL].map((url) => files.loadAsync(url))).then(
     () => undefined,
     (err) => console.error('lobby models failed to load', err),
   );
@@ -93,8 +95,8 @@ export class LobbyView implements LevelView {
     this.solids();
     const loader = new GLTFLoader();
     const own = loadModels
-      ? Promise.all([loader.loadAsync(KIT_URL), loader.loadAsync(LOBBY_KIT_URL)])
-          .then(([kit, lobbyKit]) => this.build(kit.scene, lobbyKit.scene))
+      ? Promise.all([loader.loadAsync(KIT_URL), loader.loadAsync(LOBBY_KIT_URL), loader.loadAsync(DEMON_FIGURE_URL)])
+          .then(([kit, lobbyKit, figure]) => this.build(kit.scene, lobbyKit.scene, figure.scene))
           .catch((err) => console.error('lobby models failed to load', err))
       : Promise.resolve();
     this.loaded = Promise.all([own, this.gallery.loaded]).then(() => undefined);
@@ -113,7 +115,7 @@ export class LobbyView implements LevelView {
   }
 
   /** The pieces from both kits, the roof's tiles (casting no shadow), the portcullis and the characters. */
-  build(kit: THREE.Object3D, own: THREE.Object3D) {
+  build(kit: THREE.Object3D, own: THREE.Object3D, demon?: THREE.Object3D) {
     const d = this.dressing;
     const missing = instancePieces(this.group, [kit, own], d.pieces, this.mats, (piece) => !piece.includes('Floor'));
     missing.push(...instancePieces(this.group, [kit], d.ceiling, this.mats, () => false));
@@ -134,14 +136,14 @@ export class LobbyView implements LevelView {
     const shade = new THREE.MeshStandardMaterial({ color: SILHOUETTE, roughness: 0.6, metalness: 0 });
     this.mats.push(shade);
     ROSTER.forEach((c, i) => {
-      const body = own.getObjectByName(`Char_${c.id}`)?.clone();
+      const body = (own.getObjectByName(`Char_${c.id}`) ?? demon?.getObjectByName(`Char_${c.id}`))?.clone();
       if (!body) return;
       body.position.set(FIGURES[i].x, DAIS.h, FIGURES[i].z);
       body.rotation.set(0, Math.PI / 2, 0);
       body.scale.setScalar(1);
       body.traverse((o) => {
         if (!(o instanceof THREE.Mesh)) return;
-        o.material = c.available ? kitMaterial(o.material as THREE.MeshStandardMaterial, this.mats) : shade;
+        o.material = isPlayable(c, this.lobby.demon) ? kitMaterial(o.material as THREE.MeshStandardMaterial, this.mats) : shade;
         o.castShadow = o.receiveShadow = true;
       });
       this.group.add(body);

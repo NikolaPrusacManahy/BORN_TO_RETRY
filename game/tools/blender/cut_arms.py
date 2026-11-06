@@ -13,6 +13,11 @@
 # Run (from game/):
 #   blender --background --disable-autoexec <character.blend> --python tools/blender/cut_arms.py -- \
 #     --glb <out.glb> --previews <folder> [--keep 0.5] [--thumb 0,0,0.9]
+# Update 0.3.70 — a Bestiary monster (the Playable Demon: Hellwarden): `--rig ual` takes its Universal Animation Library
+# skeleton to the names the game's arms know; `--reach` scales it so its arms are that long (its 2 m body to a
+# character's height, your eye being where it is); `--only` keeps just those meshes; `--tex` shrinks its textures;
+# `--hand-scale` makes its hands bigger about the wrists (a Bestiary hand is small for its arm: the fingers couldn't
+# get round a handle).
 import argparse
 import json
 import math
@@ -40,11 +45,135 @@ def parse_args():
     # The game poses only the arms, so the export's rest pose has the fists already closed.
     p.add_argument('--open-hands', dest='bake_fists', action='store_false', help='export open hands (T-pose) instead of baked fists')
     p.add_argument('--guard-json', default=None, help='a JSON file overriding GUARD entries, to preview other guards: {"L": {"fist": [x, y, z], ...}}')
+    p.add_argument('--rig', default='quaternius', choices=['quaternius', 'ual'], help="its skeleton's naming")
+    p.add_argument('--reach', type=float, default=0, help='scale it so upper arm + forearm is this long (m; 0: as it is)')
+    p.add_argument('--only', default='', help='keep only these meshes (comma-separated)')
+    p.add_argument('--tex', type=int, default=0, help='its textures no bigger than this (px; 0: as they are)')
+    p.add_argument('--hand-scale', type=float, default=1, help='ual: its hands this many times bigger, about the wrists')
+    p.add_argument('--thumb-off', type=float, default=0.024, help="ual: how far outside the closed middle finger the thumb's tip rests (m)")
+    p.add_argument('--thumb-along', type=float, default=0.5, help='ual: where along that finger (0: its middle joint, 1: its tip joint)')
     return p.parse_args(argv)
 
 
 def is_arm_group(name):
     return name.startswith(ARM_PREFIXES)
+
+
+# Update 0.3.70 — where the eye is from between the shoulders on the Adventurer (his Head bone: the guard's framed from it).
+REF_EYE_FROM_SHOULDERS = Vector((0, 0.017, 0.155))
+
+
+def ual_names():
+    """Universal Animation Library's bones to Quaternius's. Its finger's first joint is the knuckle, as Quaternius's 2 is; its thumb's first is the metacarpal, as Quaternius's 1."""
+    names = {}
+    for ual, side in (('l', 'L'), ('r', 'R')):
+        names[f'upperarm_{ual}'] = f'UpperArm.{side}'
+        names[f'lowerarm_{ual}'] = f'LowerArm.{side}'
+        names[f'hand_{ual}'] = f'Hand.{side}'
+        names[f'clavicle_{ual}'] = f'Shoulder.{side}'
+        for finger, name in (('index', 'Index'), ('middle', 'Middle'), ('ring', 'Ring'), ('pinky', 'Pinky')):
+            for k in (1, 2, 3):
+                names[f'{finger}_0{k}_{ual}'] = f'{name}{k + 1}.{side}'
+            names[f'{finger}_04_leaf_{ual}'] = f'{name}5.{side}'
+        for k in (1, 2, 3):
+            names[f'thumb_0{k}_{ual}'] = f'Thumb{k}.{side}'
+        names[f'thumb_04_leaf_{ual}'] = f'Thumb4.{side}'
+    return names
+
+
+def edit_armature(arm):
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.object.mode_set(mode='EDIT')
+
+
+def scale_hands(arm, meshes, k):
+    """Both hands `k` times bigger about their wrists, the mesh as far as its weight on them says (so the cuff blends)."""
+    hand_bones = ('Hand', 'Index', 'Middle', 'Ring', 'Pinky', 'Thumb')
+    for side in 'LR':
+        wrist = arm.data.bones[f'Hand.{side}'].head_local.copy()
+        names = {b.name for b in arm.data.bones if b.name.startswith(hand_bones) and b.name.endswith(f'.{side}')}
+        for o in meshes:
+            ids = {g.index for g in o.vertex_groups if g.name in names}
+            for v in o.data.vertices:
+                w = min(1.0, sum(g.weight for g in v.groups if g.group in ids))
+                if w > 0:
+                    v.co = wrist + (v.co - wrist) * (1 + (k - 1) * w)
+        edit_armature(arm)
+        for name in names:
+            b = arm.data.edit_bones[name]
+            head, tail = wrist + (b.head - wrist) * k, wrist + (b.tail - wrist) * k
+            b.head, b.tail = head, tail
+        bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.context.view_layer.update()
+
+
+def prepare_ual(arm, reach, only, hand_scale=1):
+    """A rigged Bestiary monster, made ready for the cut: its control rig gone (the skinning bones left, free of their constraints), its bones named as the game's arms know them, scaled, and its
+    Head put where the guard's framed from, for its proportions aren't a person's (nothing's skinned to it once the cut's done)."""
+    for o in [o for o in bpy.data.objects if o.type == 'ARMATURE' and o is not arm]:
+        bpy.data.objects.remove(o, do_unlink=True)
+    meshes = skinned_meshes(arm)
+    keep = set(only)
+    for o in [o for o in meshes if keep and o.name not in keep]:
+        bpy.data.objects.remove(o, do_unlink=True)
+    meshes = skinned_meshes(arm)
+    deform = {g.name for o in meshes for g in o.vertex_groups} | {'Head'}
+    arm.animation_data_clear()
+    arm.data.animation_data_clear()
+    for pb in arm.pose.bones:
+        for c in list(pb.constraints):
+            pb.constraints.remove(c)
+        pb.matrix_basis = Matrix.Identity(4)
+    edit_armature(arm)
+    for b in list(arm.data.edit_bones):
+        if b.name not in deform:
+            arm.data.edit_bones.remove(b)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    for old, new in ual_names().items():
+        if old in arm.data.bones:
+            arm.data.bones[old].name = new
+    length = bone_length(arm, 'UpperArm.L') + bone_length(arm, 'LowerArm.L')
+    k = reach / length if reach > 0 else 1
+    print(f'ual: arms {length:.3f} m long, scaled by {k:.3f}')
+    scale = Matrix.Scale(k, 4)
+    arm.data.transform(scale)
+    for o in meshes:
+        o.data.transform(scale)
+    if hand_scale != 1:
+        scale_hands(arm, meshes, hand_scale)
+    between = (arm.data.bones['UpperArm.L'].head_local + arm.data.bones['UpperArm.R'].head_local) / 2
+    ratio = (reach / REF_REACH) if reach > 0 else length / REF_REACH
+    edit_armature(arm)
+    head = arm.data.edit_bones['Head']
+    head.use_connect = False
+    at = between + REF_EYE_FROM_SHOULDERS * ratio
+    head.head = at
+    head.tail = at + Vector((0, 0, 0.1))
+    bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.context.view_layer.update()
+
+
+def shrink_textures(size):
+    for im in bpy.data.images:
+        # (Relief at half the colour's size: nobody can tell, and it's the biggest of them.)
+        wanted = size // 2 if 'Normal' in im.name else size
+        if im.size[0] > wanted:
+            print(f'texture {im.name}: {im.size[0]} down to {wanted}')
+            im.scale(wanted, wanted)
+
+
+def strip_maps():
+    """Only the colour and the relief stay on a UAL monster's arms: ArmsRig sets their roughness and metalness itself (and they don't glow). Its vertex colours go too (no material of it reads them, and three.js would multiply them in)."""
+    for m in bpy.data.materials:
+        if not m.use_nodes:
+            continue
+        for n in list(m.node_tree.nodes):
+            if n.type == 'SEPARATE_COLOR' or (n.type == 'TEX_IMAGE' and n.image and ('ORM' in n.image.name or 'Emissive' in n.image.name)):
+                m.node_tree.nodes.remove(n)
+    for o in bpy.data.objects:
+        if o.type == 'MESH':
+            while o.data.color_attributes:
+                o.data.color_attributes.remove(o.data.color_attributes[0])
 
 
 def skinned_meshes(arm):
@@ -149,6 +278,40 @@ def curl_sign(arm, side):
     return sign
 
 
+def aim(arm, name, to):
+    """Turns a bone the least it takes to point at `to` (armature space): its roll comes along."""
+    bpy.context.view_layer.update()
+    pb = arm.pose.bones[name]
+    now = pb.matrix.to_3x3()
+    turn = (now @ Vector((0, 1, 0))).rotation_difference((to - pb.head).normalized())
+    m = (turn.to_matrix() @ now).to_4x4()
+    m.translation = pb.head.copy()
+    pb.matrix = m
+    bpy.context.view_layer.update()
+
+
+# Update 0.3.70 — a UAL thumb starts at the wrist, its axes its own: no one turn tucks it (six were tried), so it's solved.
+THUMB_SOLVE = {'on': False, 'off': 0.024, 'along': 0.5}
+
+
+def tuck_thumb(arm, side):
+    """Wraps a UAL thumb over the closed fingers: its tip outside the middle finger's second phalanx, its knuckle out to the thumb side. The fingers are closed already."""
+    bpy.context.view_layer.update()
+    b = arm.pose.bones
+    near, far = b[f'Middle3.{side}'], b[f'Middle4.{side}']
+    knuckle = b[f'Middle2.{side}'].head
+    out = (near.head - knuckle).normalized()  # the first phalanx, bent square: from the palm, outwards
+    across = (b[f'Index2.{side}'].head - b[f'Pinky2.{side}'].head).normalized()  # to the thumb's side
+    tip = near.head.lerp(far.head, THUMB_SOLVE['along']) + out * THUMB_SOLVE['off']
+    base = b[f'Thumb1.{side}'].head.copy()
+    first = bone_length(arm, f'Thumb1.{side}')
+    rest = bone_length(arm, f'Thumb2.{side}') + bone_length(arm, f'Thumb3.{side}')
+    joint = solve_elbow(base, tip, first, rest, across + out * 0.5)
+    aim(arm, f'Thumb1.{side}', joint)
+    aim(arm, f'Thumb2.{side}', tip)
+    aim(arm, f'Thumb3.{side}', tip)
+
+
 def pose_fingers(arm, side, curl, thumb):
     """Closes one hand into a fist. `curl` already carries this hand's sign; `thumb` is the left thumb's
     rotation (mirrored on the right)."""
@@ -164,6 +327,8 @@ def pose_fingers(arm, side, curl, thumb):
         if pb:
             pb.rotation_mode = 'XYZ'
             pb.rotation_euler = (thumb[0], thumb[1] * sx, thumb[2] * sx)
+    if THUMB_SOLVE['on']:
+        tuck_thumb(arm, side)
 
 
 def bake_fists(arm, meshes, signs, curl, thumb):
@@ -253,11 +418,18 @@ def shoot(cam, path, location, target, fov_deg=100, vertical=False, size=(1280, 
 
 def main():
     args = parse_args()
+    THUMB_SOLVE.update(on=args.rig == 'ual', off=args.thumb_off, along=args.thumb_along)
     if args.guard_json:
         with open(args.guard_json, encoding='utf-8') as f:
             for side, entry in json.load(f).items():
                 GUARD[side].update({k: tuple(v) for k, v in entry.items()})
     arm = next(o for o in bpy.data.objects if o.type == 'ARMATURE')
+    if args.rig == 'ual':
+        prepare_ual(arm, args.reach, [n for n in args.only.split(',') if n], args.hand_scale)
+    if args.rig == 'ual':
+        strip_maps()
+    if args.tex > 0:
+        shrink_textures(args.tex)
     missing = [b for b in REQUIRED_BONES if b not in arm.data.bones]
     if missing:
         sys.exit(f'cut_arms: this rig is missing {missing} (expected Quaternius humanoid bone names)')
@@ -279,6 +451,14 @@ def main():
 
     os.makedirs(args.previews, exist_ok=True)
     cam = setup_render()
+    if args.rig == 'ual':
+        # (Its colours are in its texture: the base colour's the one to show.)
+        bpy.context.scene.display.shading.color_type = 'TEXTURE'
+        for o in kept_meshes:
+            for m in o.data.materials:
+                for n in m.node_tree.nodes:
+                    if n.type == 'TEX_IMAGE' and n.image and 'BaseColor' in n.image.name:
+                        m.node_tree.nodes.active = n
     eye = arm.matrix_world @ arm.pose.bones['Head'].head
     eye = Vector((0, eye.y - 0.06 + VIEW_BACK, eye.z + 0.03))  # eye level, pulled back by VIEW_BACK
     shoulders = (arm.matrix_world @ arm.pose.bones['UpperArm.L'].head).z
@@ -304,7 +484,8 @@ def main():
         o.select_set(True)
     bpy.context.view_layer.objects.active = arm
     os.makedirs(os.path.dirname(os.path.abspath(args.glb)), exist_ok=True)
-    bpy.ops.export_scene.gltf(filepath=args.glb, export_format='GLB', use_selection=True, export_animations=False, export_skins=True, export_yup=True)
+    textures = dict(export_image_format='JPEG', export_jpeg_quality=88) if args.rig == 'ual' else {}
+    bpy.ops.export_scene.gltf(filepath=args.glb, export_format='GLB', use_selection=True, export_animations=False, export_skins=True, export_yup=True, **textures)
     print(f'exported {args.glb}')
 
 

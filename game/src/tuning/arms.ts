@@ -64,6 +64,13 @@ export const ARMS = group('arms', 'Arms', {
   smashOut: knob(0.11, 0.03, 0.4, 0.005, 'Hammer smash down', 'Seconds the smash takes to come down.'),
   smashHold: knob(0.22, 0, 0.8, 0.01, 'Hammer smash hold', 'Seconds it stays on the floor.'),
   smashBack: knob(0.5, 0.1, 1.2, 0.01, 'Hammer smash return', 'Seconds back to the ready pose.'),
+  // Update 0.3.70 — the Playable Demon's blade (viewmodel/demonPoses.ts).
+  demonHands: knob(0, 0, 0.3, 0.005, 'Demon: hands apart', 'How far below the right hand the left holds the hilt (m); 0: one-handed, as the boss does.'),
+  demonSwing: knob(0.24, 0.05, 0.6, 0.005, 'Demon swing', 'Seconds a swing takes to heave across: heavy.'),
+  demonRecover: knob(0.42, 0.1, 1.2, 0.01, 'Demon swing return', 'Seconds back to the ready pose after a swing.'),
+  demonOut: knob(0.12, 0.03, 0.4, 0.005, 'Demon blow', 'Seconds the charged blow takes to come down.'),
+  demonHold: knob(0.16, 0, 0.8, 0.01, 'Demon blow hold', 'Seconds it stays down.'),
+  demonBack: knob(0.46, 0.1, 1.2, 0.01, 'Demon blow return', 'Seconds back to the ready pose.'),
   // Update 0.1.7 — the ground slam's clasped fists (viewmodel/slamArms.ts).
   slamRaise: knob(0.1, 0.02, 0.4, 0.01, 'Slam fists up', 'Seconds for the clasped fists to come up as a slam drops.'),
   slamDown: knob(0.06, 0.02, 0.3, 0.005, 'Slam fists down', 'Seconds for them to come down as it lands.'),

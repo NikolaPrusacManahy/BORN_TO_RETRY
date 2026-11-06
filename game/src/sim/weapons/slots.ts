@@ -37,6 +37,8 @@ export function settleHand(state: CombatState) {
 /** A weapon is yours: into the next free slot and into your hand (all full: in place of the one in your hand, which
  *  falls at `at`). Returns its slot (index). */
 export function giveWeapon(state: CombatState, w: HeldWeapon, at: Vector3): number {
+  // (Update 0.3.70 — the Demon's sword is always in hand.)
+  if (state.demon) return state.slot;
   settleHand(state);
   let slot = state.bag.indexOf(null, 1);
   if (slot < 0) {
