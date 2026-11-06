@@ -17,8 +17,9 @@ export interface SeanHud {
   /** Seconds left on right click and on Ctrl in the other stance (0: ready). */
   otherRmb: number;
   otherCtrl: number;
-  /** Holding a piece: how far it's gathered (0 … 1). */
+  /** Holding a piece: how far it's gathered (0 … 1). Update 0.3.89 — and whether it's lifted. */
   gather: number;
+  lifted: boolean;
   /** Time Stop running: seconds left (0: it isn't), and how much of it's left (0 … 1). */
   stopLeft: number;
   stopFill: number;
@@ -26,7 +27,7 @@ export interface SeanHud {
 
 const wait = (): SeanWait => ({ left: 0, fill: 1 });
 
-export const createSeanHud = (): SeanHud => ({ rmb: wait(), ctrl: wait(), e: wait(), otherRmb: 0, otherCtrl: 0, gather: 0, stopLeft: 0, stopFill: 0 });
+export const createSeanHud = (): SeanHud => ({ rmb: wait(), ctrl: wait(), e: wait(), otherRmb: 0, otherCtrl: 0, gather: 0, lifted: false, stopLeft: 0, stopFill: 0 });
 
 /** Up to the next tenth: never says 0 while there's still some to go. */
 const tenths = (s: number) => (s <= 0 ? 0 : Math.ceil(s * 10) / 10);
@@ -53,6 +54,7 @@ export function seanHud(g: GravityState, inAir: boolean, out: SeanHud): SeanHud 
   }
   setWait(out.e, g.switchWait, v.overloadWait);
   out.gather = g.held ? Math.round(gatherK(g.held) * 40) / 40 : 0;
+  out.lifted = !!g.held?.lifted;
   const left = g.stop ? v.stopTime - g.stop.t : 0;
   out.stopLeft = tenths(left);
   out.stopFill = g.stop ? Math.round((left / Math.max(0.01, v.stopTime)) * 40) / 40 : 0;
@@ -63,7 +65,7 @@ const sameWait = (a: SeanWait, b: SeanWait) => a.left === b.left && a.fill === b
 
 /** The HUD shows these already. */
 export const sameSeanHud = (a: SeanHud, b: SeanHud) =>
-  sameWait(a.rmb, b.rmb) && sameWait(a.ctrl, b.ctrl) && sameWait(a.e, b.e) && a.otherRmb === b.otherRmb && a.otherCtrl === b.otherCtrl && a.gather === b.gather && a.stopLeft === b.stopLeft && a.stopFill === b.stopFill;
+  sameWait(a.rmb, b.rmb) && sameWait(a.ctrl, b.ctrl) && sameWait(a.e, b.e) && a.otherRmb === b.otherRmb && a.otherCtrl === b.otherCtrl && a.gather === b.gather && a.lifted === b.lifted && a.stopLeft === b.stopLeft && a.stopFill === b.stopFill;
 
 /** A copy to hand on. */
 export const copySeanHud = (h: SeanHud): SeanHud => ({ ...h, rmb: { ...h.rmb }, ctrl: { ...h.ctrl }, e: { ...h.e } });

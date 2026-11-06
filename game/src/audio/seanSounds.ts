@@ -40,11 +40,23 @@ export function playSean(a: AudioEngine, kind: CombatEvent, value: number, far: 
       tone(a, { from: value & 1 ? 110 : 150, to: 50, dur: value & 1 ? 0.2 : 0.11, gain: (value & 1 ? 0.2 : 0.11) * far });
       return true;
     case 'seanTear':
-      noise(a, { dur: 0.22, gain: 0.12 * far, filter: 'lowpass', from: 600, to: 1800 });
+      noise(a, { dur: 0.22, gain: 0.08 * far, filter: 'lowpass', from: 600, to: 1800 });
       return true;
     case 'seanGathered':
-      tone(a, { from: 70 + 90 * value, to: 50 + 70 * value, dur: 0.13, gain: 0.12 });
-      noise(a, { dur: 0.09, gain: 0.09, filter: 'lowpass', from: 1200, to: 500 });
+      tone(a, { from: 46 + 40 * value, to: 34 + 30 * value, dur: 0.3, gain: 0.08 + 0.1 * value });
+      return true;
+    case 'seanJoin':
+      a.clips.play('demonSlam', 0.9, 0.6);
+      tone(a, { from: 90, to: 36, dur: 1.2, gain: 0.3 });
+      noise(a, { dur: 0.9, gain: 0.2, filter: 'lowpass', from: 300, to: 900 });
+      return true;
+    case 'seanDrop':
+      a.clips.play('hellWhoosh', 1, 0.5 + 0.2 * (1 - value));
+      return true;
+    case 'seanCrash':
+      a.clips.play('bossDown', Math.min(1, 0.5 + 0.5 * value));
+      a.clips.play('demonSlam', 1, 0.65);
+      noise(a, { dur: 0.5 + 0.7 * value, gain: 0.26 + 0.14 * value, filter: 'lowpass', from: 2600, to: 120 });
       return true;
     case 'seanGrab':
       a.clips.play('demonSlam', value === 1 ? 0.7 : 0.35, value === 1 ? 0.9 : 1.5);
@@ -69,6 +81,9 @@ export function playSean(a: AudioEngine, kind: CombatEvent, value: number, far: 
     case 'seanHoleOpen':
       a.clips.play('bossBurst', 0.6 * far, 0.7);
       tone(a, { from: 90, to: 34, dur: 1, gain: 0.26 * far });
+      // Its hum, as long as it runs: rising as it draws them in.
+      tone(a, { from: 38, to: 62, dur: value, gain: 0.2 * far });
+      noise(a, { dur: value, gain: 0.06 * far, filter: 'bandpass', from: 400, to: 1500 });
       return true;
     case 'seanShockUp':
       tone(a, { from: 90, to: 260, dur: 0.14, gain: 0.14, type: 'sawtooth' });

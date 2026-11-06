@@ -1,6 +1,9 @@
 // Update 0.3.81 — Gravity Sean's gravity in the world (sim/combat/gravity.ts). Made in code, placeholders: a ring rolling out from a blast. Update 0.3.86 — his punches: punchView.ts.
 import * as THREE from 'three';
 import type { CombatState } from '../../sim/combat/state';
+import { crashBlast } from '../../sim/combat/gravityMeter';
+import { HoleView } from './holeView';
+import { MassView } from './massView';
 import { PiecesView } from './piecesView';
 import { PunchView } from './punchView';
 import { StopView } from './stopView';
@@ -13,6 +16,9 @@ const OVER_FLOOR = 0.12;
 const COOL = 0x8f83ff;
 const HOT = 0xff40d8;
 const FIRE = 0xffa040;
+/** Update 0.3.89 — the ring as his palms join (m); the one as the sphere lands, beyond its own blast's (a share of its reach). */
+const JOIN_RING = 14;
+const CRASH_RING = 1.5;
 /** Update 0.3.85 — Time Stop's ring over the floor (m), and one for a target's blows landing (m). */
 const STOP_RING = 45;
 const POP_MIN = 1.2;
@@ -33,12 +39,16 @@ export class GravityView {
   private readonly ultimates: UltimatesView;
   private readonly stop: StopView;
   private readonly punches: PunchView;
+  private readonly mass: MassView;
+  private readonly hole: HoleView;
 
   constructor(
     private readonly scene: THREE.Scene,
     camera: THREE.Camera,
   ) {
     this.punches = new PunchView(scene, camera);
+    this.mass = new MassView(scene);
+    this.hole = new HoleView(scene, camera);
     this.pieces = new PiecesView(scene);
     this.ultimates = new UltimatesView(scene);
     this.stop = new StopView(scene);
@@ -64,6 +74,8 @@ export class GravityView {
       const e = state.events.at(i);
       if (e.kind === 'seanBlast') this.ring(e.value, e.x, e.y, e.z, state.grav.unstable || e.value > 6 ? HOT : COOL);
       else if (e.kind === 'seanMeteorHit') this.ring(e.value * 1.4, e.x, e.y, e.z, FIRE);
+      else if (e.kind === 'seanJoin') this.ring(JOIN_RING, e.x, e.y, e.z, COOL);
+      else if (e.kind === 'seanCrash') this.ring(crashBlast(e.value) * CRASH_RING, e.x, e.y, e.z, COOL);
       else if (e.kind === 'seanStopStart') this.ring(STOP_RING, e.x, e.y, e.z, COOL);
       else if (e.kind === 'seanStopEnd' && e.value > 0) this.ring(STOP_RING * 0.6, e.x, e.y, e.z, COOL);
       else if (e.kind === 'seanStopPop') this.ring(Math.min(POP_MAX, POP_MIN + Math.sqrt(e.value) * 0.28), e.x, Math.max(0, e.y - 1), e.z, HOT);
@@ -72,6 +84,8 @@ export class GravityView {
     this.ultimates.update(state, dt);
     this.stop.update(state, dt);
     this.punches.update(state, dt);
+    this.mass.update(state, dt);
+    this.hole.update(state, dt);
     for (const r of this.rings) {
       if (!r.mesh.visible) continue;
       r.t += dt / RING_LIFE;
@@ -100,6 +114,8 @@ export class GravityView {
     this.ultimates.dispose();
     this.stop.dispose();
     this.punches.dispose();
+    this.mass.dispose();
+    this.hole.dispose();
     for (const r of this.rings) {
       this.scene.remove(r.mesh);
       r.mat.dispose();

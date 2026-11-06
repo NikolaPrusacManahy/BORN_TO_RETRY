@@ -18,6 +18,8 @@ import type { CameraRig } from './cameraRig';
 import type { Burst } from './fx/burst';
 import type { Shockwaves } from './fx/shockwave';
 import { CAMERA } from '../tuning/camera';
+import { SEAN } from '../tuning/sean';
+import { gatherK } from '../sim/combat/gravityMeter';
 import { ENEMIES } from '../tuning/enemies';
 import { FOES } from '../tuning/foes';
 import { foes2Feedback } from './foeFeedback';
@@ -72,6 +74,9 @@ export class CombatFeedback {
   /** `listener`: the camera position (sparks fly back towards it; far sounds are quieter). */
   apply(state: CombatState, listener: THREE.Vector3) {
     const fb = FEEDBACK.v;
+    // (Update 0.3.89 — while his palms are joined the ground shakes, harder as the sphere grows.)
+    const mass = state.grav.held;
+    if (mass?.lifted) this.f.rig.shake.hold(SEAN.v.gatherShake * (0.35 + 0.65 * gatherK(mass)));
     const ev = state.events;
     this.listener = listener;
     for (let i = 0; i < ev.length; i++) {
@@ -193,7 +198,20 @@ export class CombatFeedback {
           break;
         case 'seanGathered':
           this.f.chunks.spawn(at, UP, 5, 0.6);
-          this.f.rig.shake.add(0.03 + 0.09 * e.value);
+          break;
+        // Update 0.3.89 — his palms join, and the ground shakes; it comes down.
+        case 'seanJoin':
+          this.f.chunks.spawn(at, UP, 40, 1.4);
+          this.f.rig.shake.add(0.6);
+          this.f.rig.kick(1.4);
+          break;
+        case 'seanDrop':
+          this.f.rig.shake.add(0.2);
+          break;
+        case 'seanCrash':
+          this.f.chunks.spawn(at.set(at.x, at.y + 0.2, at.z), UP, 30 + Math.round(70 * e.value), 1.4 + 1.4 * e.value);
+          this.f.rig.shake.add(0.5 + 0.5 * e.value);
+          this.f.rig.kick(1 + 2.4 * e.value);
           break;
         // Gravity Punch's kick, the third's harder; a blow landing.
         case 'seanRipple':

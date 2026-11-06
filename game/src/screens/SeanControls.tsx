@@ -38,7 +38,7 @@ export function SeanControls({ s }: { s: HudState }) {
     <div className="rb-inputs rb-sean-inputs">
       <Row cap={s.attackKey} name={s.unstable ? 'Gravity Fists' : 'Gravity Punch'} state={s.unstable ? 'is-lit' : ''} />
       {s.seanHold === 1 ? (
-        <Row cap={s.heavyKey} name="Throw" state={h.gather >= 1 ? 'is-ready' : 'is-lit'} ring={h.gather} />
+        <Row cap={s.heavyKey} name={h.lifted ? 'Bring Down' : 'Throw'} state={h.gather >= 1 ? 'is-ready' : 'is-lit'} ring={h.gather} />
       ) : s.seanHold === 2 ? (
         <Row cap={s.heavyKey} name="Throw" state="is-lit" />
       ) : (

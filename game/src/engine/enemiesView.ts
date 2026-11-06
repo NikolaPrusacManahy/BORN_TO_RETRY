@@ -34,6 +34,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import type { CombatState } from '../sim/combat/state';
 import { worldHeld } from '../sim/combat/gravityMeter';
+import { pullPose } from './sean/holePull';
 import { ENEMY_POOL, EnemyPhase } from '../sim/enemies/enemy';
 import { ENEMY_KINDS, ENEMY_STATS, EnemyKind, flies } from '../sim/enemies/kinds';
 import { ENEMIES } from '../tuning/enemies';
@@ -250,6 +251,9 @@ export class EnemiesView {
       b.root.rotation.set(0, turn, 0);
       // (Update 0.2.11 — a fish tips, wriggles and dies belly up.)
       fishPose(b.root, e, dt);
+      // (Update 0.3.89 — what Gravity Sean's Black Hole has hold of is drawn out and leans in.)
+      const hole = state.grav.hole;
+      if (hole && !hole.flying && e.phase === 'held' && hole.pulled.includes(i)) pullPose(b.root, e, hole, scale);
       const attack = b.actions.attack;
       const idle = b.actions.idle;
       // A clip restarts when it changes, or when the same phase starts over (hit again mid-flinch); a wind-up's

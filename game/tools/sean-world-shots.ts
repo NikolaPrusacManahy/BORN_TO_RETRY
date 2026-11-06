@@ -1,7 +1,8 @@
-// Update 0.3.86 — Gravity Sean's moves as they look in the world, through the game's own views and rules: a floor, stand-ins for enemies (red), what he makes. Only as plain meshes (no glow; the faintest see-through parts are
-// left out), to check sizes and what they hide of your view, such as whether a full mass of rocks hides your aim.
-//   npx tsx tools/sean-world-shots.ts <out folder> [vertical fov]
-//   blender --background --python tools/blender/render_view.py -- --json <out folder>/pov.json --out <out folder>
+// Update 0.3.86 — Gravity Sean's moves as they look in the world, through the game's own views and rules: a floor, stand-ins for enemies (red), what he makes, to check sizes and what they hide of your view, such as whether a
+// full mass of rocks hides your aim. Update 0.3.89 — and how they look: two passes, the solid things and what the game adds over them, which you add together. No bloom, no fog, no real lighting.
+//   npx tsx tools/sean-world-shots.ts <out folder> [vertical fov] [only the shots starting with this]
+//   blender --background --python tools/blender/render_view.py -- --json <out folder>/pov.json --out <out folder>/solid --pass vsolid
+//   blender --background --python tools/blender/render_view.py -- --json <out folder>/pov.json --out <out folder>/glow --pass trail
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as THREE from 'three';
@@ -19,12 +20,15 @@ import type { Arena } from '../src/world/arena';
 const out = process.argv[2];
 if (!out) throw new Error('usage: npx tsx tools/sean-world-shots.ts <out folder> [vertical fov]');
 const fov = Number(process.argv[3] ?? 68);
+const only = process.argv[4];
 mkdirSync(out, { recursive: true });
 
-type Mesh = { color: number[]; pos: number[]; idx: number[] };
+type Mesh = { color: number[]; pos: number[]; idx: number[]; colors?: number[]; vcol?: number[] };
 const v3 = new THREE.Vector3();
 const inst = new THREE.Matrix4();
 const col = new THREE.Color();
+const tint = new THREE.Color();
+const FLOOR = new THREE.Color(0xb0a488);
 const v = SEAN.v;
 const world = new FlatWorld();
 const bare: Arena = { name: 't', boxes: [], pads: [], playerStart: { x: 0, y: 0, z: 0, yaw: 0 }, spawns: [], dummies: [], turrets: [] };
@@ -38,12 +42,19 @@ function grab(scene: THREE.Object3D, cam: THREE.Camera): Mesh[] {
     if (!(o instanceof THREE.Mesh)) return;
     for (let a: THREE.Object3D | null = o; a; a = a.parent) if (!a.visible) return;
     const mat = o.material as THREE.MeshBasicMaterial;
-    if (mat.transparent && mat.opacity < 0.3) return;
     const g = o.geometry as THREE.BufferGeometry;
-    const idx = g.index ? Array.from(g.index.array) : Array.from({ length: g.attributes.position.count }, (_, i) => i);
+    const idxAll = g.index ? Array.from(g.index.array) : Array.from({ length: g.attributes.position.count }, (_, i) => i);
+    const vc = g.attributes.color as THREE.BufferAttribute | undefined;
+    // What the game adds over the rest, or fades by its vertices: its own pass, in colours scaled by how strong it is.
+    const glows = mat.blending === THREE.AdditiveBlending || (!!vc && vc.itemSize === 4);
+    if (glows && mat.opacity < 0.01) return;
+    if (mat.transparent && !glows && mat.opacity < 0.05) return;
     const copies = o instanceof THREE.InstancedMesh ? o.count : 1;
     for (let c = 0; c < copies; c++) {
       const pos: number[] = [];
+      const colors: number[] = [];
+      if (o instanceof THREE.InstancedMesh && o.instanceColor) o.getColorAt(c, tint);
+      else tint.setRGB(1, 1, 1);
       for (let i = 0; i < g.attributes.position.count; i++) {
         v3.fromBufferAttribute(g.attributes.position as THREE.BufferAttribute, i);
         if (o instanceof THREE.InstancedMesh) {
@@ -52,10 +63,35 @@ function grab(scene: THREE.Object3D, cam: THREE.Camera): Mesh[] {
         }
         v3.applyMatrix4(o.matrixWorld).applyMatrix4(toCam);
         pos.push(+v3.x.toFixed(4), +v3.y.toFixed(4), +v3.z.toFixed(4));
+        if (vc) {
+          const al = vc.itemSize === 4 ? vc.getW(i) : 1;
+          colors.push(vc.getX(i) * al, vc.getY(i) * al, vc.getZ(i) * al);
+        } else colors.push(1, 1, 1);
       }
-      if (o instanceof THREE.InstancedMesh && o.instanceColor) o.getColorAt(c, col);
-      else col.copy(mat.color);
-      meshes.push({ color: [col.r, col.g, col.b], pos, idx });
+      col.copy(mat.color);
+      // (A dark decal the game blends over the floor: mixed with the floor's colour here, as it's no light.)
+      if (vc && vc.itemSize === 4 && mat.blending !== THREE.AdditiveBlending && vc.getX(0) + vc.getY(0) + vc.getZ(0) < 0.5) {
+        const vcol: number[] = [];
+        for (let i = 0; i < vc.count; i++) {
+          const al = vc.getW(i) * mat.opacity;
+          vcol.push(FLOOR.r + (vc.getX(i) - FLOOR.r) * al, FLOOR.g + (vc.getY(i) - FLOOR.g) * al, FLOOR.b + (vc.getZ(i) - FLOOR.b) * al);
+        }
+        meshes.push({ color: [col.r, col.g, col.b], pos, idx: idxAll, vcol });
+        continue;
+      }
+      if (glows) {
+        const k = mat.opacity;
+        for (let i = 0; i < colors.length; i += 3) {
+          colors[i] *= col.r * tint.r * k;
+          colors[i + 1] *= col.g * tint.g * k;
+          colors[i + 2] *= col.b * tint.b * k;
+        }
+        meshes.push({ color: [col.r, col.g, col.b], pos, idx: idxAll, colors });
+      } else if (vc) meshes.push({ color: [col.r, col.g, col.b], pos, idx: idxAll, vcol: colors });
+      else {
+        if ((mat as unknown as THREE.MeshStandardMaterial).emissiveIntensity > 0) col.lerp((mat as unknown as THREE.MeshStandardMaterial).emissive, Math.min(1, (mat as unknown as THREE.MeshStandardMaterial).emissiveIntensity * 0.5));
+        meshes.push({ color: [col.r * tint.r, col.g * tint.g, col.b * tint.b], pos, idx: idxAll });
+      }
     }
   });
   return meshes;
@@ -75,7 +111,7 @@ function setup(foes: [number, number][], unstable = false): Scene {
   p.sean = true;
   p.grounded = true;
   const scene = new THREE.Scene();
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(120, 120, 1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xb0a488 }));
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(120, 120, 1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: FLOOR }));
   scene.add(floor);
   // Lines on the floor, for scale: every 5 m.
   const lineMat = new THREE.MeshBasicMaterial({ color: 0x8a7f66 });
@@ -111,7 +147,9 @@ function setup(foes: [number, number][], unstable = false): Scene {
     }
   };
   if (unstable) step({ interactPressed: true });
-  return { c, step, shot: (name) => shots.push({ name, meshes: grab(scene, cam) }) };
+  return { c, step, shot: (name) => {
+    if (!only || name.startsWith(only)) shots.push({ name, meshes: grab(scene, cam) });
+  } };
 }
 
 const FOES: [number, number][] = [
@@ -121,19 +159,27 @@ const FOES: [number, number][] = [
   [-2, -7],
 ];
 
-// Grab, held.
+// Grab, held: in his hand, his palms joined, growing, coming down, landing.
 {
   const s = setup(FOES);
-  s.step({ pitch: -0.3, heavyPressed: true, heavyHeld: true });
-  s.step({ heavyHeld: true }, 0.3);
-  s.shot('grab_0s');
-  s.step({ heavyHeld: true }, 1.4);
-  s.shot('grab_2s');
-  s.step({ heavyHeld: true }, v.gatherTime);
-  s.shot('grab_full');
-  s.step({});
-  s.step({}, 0.2);
-  s.shot('grab_thrown');
+  const pitch = -0.14;
+  s.step({ pitch, heavyPressed: true, heavyHeld: true });
+  s.step({ pitch, heavyHeld: true }, 0.7);
+  s.shot('a_in_hand');
+  s.step({ pitch, heavyHeld: true }, 1);
+  s.shot('b_joined');
+  s.step({ pitch, heavyHeld: true }, 3);
+  s.shot('c_half');
+  s.step({ pitch, heavyHeld: true }, 5);
+  s.shot('d_full');
+  s.step({ pitch });
+  s.step({ pitch }, 0.65);
+  s.shot('e_falling');
+  s.step({ pitch }, 0.3);
+  s.step({ pitch }, 0.1);
+  s.shot('f_landed');
+  s.step({ pitch }, 1);
+  s.shot('g_after');
 }
 // Gravity Punch, its third.
 {

@@ -4,7 +4,11 @@
 // other pieces have no rules of their own to tear them from: a placeholder.
 // Update 0.3.86 — the designer: "rmb when holding gather more rocks up to 5 sec, you see rocks being gathered from random close area in the room and makes the attack bigger". Right click pressed takes a piece, as ever. Held, a
 // rock tears out of the floor somewhere near you every half second, each with its crater, and flies in to join it, for up to 5 s: the mass grows, and so does all it does. Let go: it's thrown. That's the same rule as Black
-// Hole's on right click in Unstable mode, in place of the bible's "RMB again". A tap throws what you took as soon as it's up. Pure.
+// Hole's on right click in Unstable mode, in place of the bible's "RMB again". A tap throws what you took as soon as it's up.
+// Update 0.3.89 — the designer, with three pictures: "make the RMB on normal mode look like" a great sphere of cracked stone, "it will float above the arena and hit the arena ... rocks start to assemble it from the hand holding and
+// then he joins the palms as the ground shakes and screen shake at the power", "up to 10 sec if the player wants". So: in his hand first, rocks coming to it, and let go now it's a plain throw, the bible's. Held on, his palms join
+// (`lifted`): it rises to float over the arena, ahead of him, growing as the rocks come, the ground shaking, for up to 10 s. Let go, or its time's up: it comes down where you're aiming, and it's as big a blow as it's grown, from
+// the sky: no wall stops it. Lifted, it's no shield any more, and he has no fist free: that's what it costs. Pure.
 import { Vector3 } from 'three';
 import { SEAN } from '../../tuning/sean';
 import { freeAt, wallBetween } from '../../world/navGrid';
@@ -12,7 +16,8 @@ import type { CollisionWorld } from '../collisionWorld';
 import { launch } from '../enemies/flight';
 import type { PlayerState } from '../player/state';
 import { gravBlast } from './gravity';
-import { CRATERS, gatherK, gatherMax, type HeldPiece, type Rock } from './gravityMeter';
+import { crashBlast, CRATERS, gatherK, gatherMax, type HeldPiece, type Rock } from './gravityMeter';
+import { floorUnder } from './gravityHole';
 import { pillarBetween, PILLAR_CUT } from './pillars';
 import { aim } from './punch';
 import type { CombatState } from './state';
@@ -22,19 +27,31 @@ import { emptyTargetHit, landHit, nearestTarget } from './strike';
 const HELD_LOW = 0.15;
 /** A tap: thrown once it's this share of the way up. */
 const THROW_AT = 0.7;
-/** As it grows, this much further off and higher up for each metre of it, so you can still see where you're aiming. */
-const GROW_OUT = 3.5;
-const GROW_UP = 1.3;
+/** In his hand: this much bigger for each rock (m). */
+const IN_HAND_GROW = 0.05;
+/** Lifted: how fast it grows to its size (per second); how much it grows early on, as a power of how far it's gathered; what it leaves under a roof (m). */
+const GROW_RATE = 3;
+const GROW_POWER = 0.7;
+const ROOF_SPARE = 0.5;
+/** The crater it leaves, a share of how far its landing reaches; how far into the floor it sinks as it lands, a share of its size. */
+const CRATER_SHARE = 0.45;
+const SINKS_TO = 0.4;
 /** How hard the rocks are to place: how many spots to try; further above or below you than this, a spot's no use (m). */
 const TRIES = 8;
 const LEVEL = 3;
 /** A rock on its way: how high its arc goes (m), how big a burst has to be to count (m). */
 const ARC = 1.2;
 const BURST_MIN = 1;
+/** Thrown from his hand with rocks gathered: its burst, a share of the sphere's damage; how much slower, at the most. */
+const BURST_SHARE = 0.4;
+const HEAVIER = 0.5;
+/** A rock on its way to his hand takes this share of the time one takes to the sphere. */
+const TO_HAND = 0.35;
 /** Rising, the eased share of the way it's come. */
 const smooth = (x: number) => (x >= 1 ? 1 : x * x * (3 - 2 * x));
 const mix = (a: number, b: number, k: number) => a + (b - a) * k;
 const DOWN = new Vector3(0, -1, 0);
+const UP = new Vector3(0, 1, 0);
 const LOW_ENOUGH = 0.7;
 
 const eye = new Vector3();
@@ -104,33 +121,64 @@ function grab(state: CombatState) {
     state.events.push('seanPillar', a.pillar, p.x, p.h * PILLAR_CUT, p.z);
   } else crater(state, a.x, a.y, a.z, v.craterSize);
   const r = big ? v.bigSize : v.smallSize;
-  g.held = { big, r, base: r, t: 0, from: new Vector3(a.x, rise, a.z), at: new Vector3(a.x, rise, a.z), guard: new Vector3(a.x, rise, a.z), gathered: 0, torn: 0, next: v.gatherEvery };
+  g.held = { big, r, base: r, t: 0, from: new Vector3(a.x, rise, a.z), at: new Vector3(a.x, rise, a.z), gathered: 0, torn: 0, next: v.gatherEvery, lifted: false, zone: new Vector3(a.x, a.y, a.z) };
   g.grabWait = v.grabWait;
   state.events.push('seanGrab', big ? 1 : 0, a.x, a.y, a.z);
 }
 
-/** Where it hangs, how big it's grown, and what it stops. */
-function holdPiece(state: CombatState, h: HeldPiece, player: PlayerState, yaw: number, pitch: number, world: CollisionWorld, dt: number) {
+/** In his hand: where it hangs, and what it stops. */
+function inHand(state: CombatState, h: HeldPiece, world: CollisionWorld) {
   const v = SEAN.v;
-  h.t += dt;
-  h.r = Math.max(h.base, mix(h.base, v.gatherSize, Math.sqrt(gatherK(h))));
-  const grown = h.r - h.base;
-  aim(player, yaw, pitch, eye, dir);
-  const want = (h.big ? v.holdBig : v.holdSmall) + grown * GROW_OUT;
+  h.r = h.base + h.gathered * IN_HAND_GROW;
+  const want = h.big ? v.holdBig : v.holdSmall;
   const room = Math.max(h.r + 0.2, Math.min(want, world.rayDistance(eye, dir, want + h.r) - h.r));
-  h.guard.copy(eye).addScaledVector(dir, room);
-  h.guard.y -= HELD_LOW;
-  end.copy(h.guard);
-  end.y += grown * GROW_UP;
+  end.copy(eye).addScaledVector(dir, room);
+  end.y -= HELD_LOW;
   h.at.lerpVectors(h.from, end, smooth(h.t / v.grabRise));
-  // The shield: in front of you, however high it's drawn to leave you your aim.
+  // The shield: from the front, because that's where it is.
   if (h.t < v.grabRise * 0.5) return;
   for (const o of state.orbs) {
-    if (!o.alive || o.parried || o.pos.distanceTo(h.guard) > h.r + v.shieldMargin) continue;
+    if (!o.alive || o.parried || o.pos.distanceTo(h.at) > h.r + v.shieldMargin) continue;
     o.alive = false;
     state.events.push('orbPop', 0, o.pos.x, o.pos.y, o.pos.z);
     state.events.push('seanBlock', 0, o.pos.x, o.pos.y, o.pos.z);
   }
+}
+
+/** Lifted: over the arena ahead of you, heavy to turn, as big as it's gathered, and no bigger than a roof lets it be. Where it would come down, as you aim. */
+function floatOver(h: HeldPiece, player: PlayerState, yaw: number, world: CollisionWorld, dt: number) {
+  const v = SEAN.v;
+  const p = player.pos;
+  from.set(p.x, eye.y, p.z);
+  const up = world.rayDistance(from, UP, 80);
+  const roofed = Number.isFinite(up);
+  const roof = roofed ? eye.y + up - p.y - ROOF_SPARE : Infinity;
+  const size = Math.max(h.base, Math.min(mix(h.base, v.gatherSize, gatherK(h) ** GROW_POWER), roof / 2));
+  h.r += (size - h.r) * (1 - Math.exp(-GROW_RATE * dt));
+  flat.set(-Math.sin(yaw), 0, -Math.cos(yaw));
+  let ahead = v.floatAhead + h.r * 2;
+  // (Under a roof you'd lose sight of it past the wall.)
+  if (roofed) ahead = Math.max(h.r, Math.min(ahead, world.rayDistance(eye, flat, ahead) - h.r));
+  end.set(p.x + flat.x * ahead, p.y + Math.min(v.floatGap, Math.max(0, roof - h.r * 2)) + h.r, p.z + flat.z * ahead);
+  h.at.lerp(end, 1 - Math.exp(-v.floatLag * dt));
+  const d = Math.min(v.crashRange, world.rayDistance(eye, dir, v.crashRange));
+  const out = Number.isFinite(d) ? d : v.crashRange;
+  const zx = eye.x + dir.x * out;
+  const zz = eye.z + dir.z * out;
+  h.zone.set(zx, floorUnder(world, zx, p.y + 0.5, zz), zz);
+}
+
+/** Each tick it's held. His palms join when it's been in his hand long enough. */
+function holdPiece(state: CombatState, h: HeldPiece, player: PlayerState, yaw: number, pitch: number, world: CollisionWorld, dt: number) {
+  const v = SEAN.v;
+  h.t += dt;
+  aim(player, yaw, pitch, eye, dir);
+  if (!h.lifted && h.t >= v.gatherJoin) {
+    h.lifted = true;
+    state.events.push('seanJoin', gatherK(h), player.pos.x, player.pos.y, player.pos.z);
+  }
+  if (h.lifted) floatOver(h, player, yaw, world, dt);
+  else inHand(state, h, world);
 }
 
 /** One more rock tears out somewhere near you, not through a wall, and starts on its way. There's always somewhere: at worst at your feet. */
@@ -160,6 +208,8 @@ function tear(state: CombatState, player: PlayerState, world: CollisionWorld) {
   crater(state, x, y, z, v.gatherCrater);
   slot.on = true;
   slot.t = 0;
+  // (To his hand it's near: it has to get there before his palms join.)
+  slot.fly = g.held?.lifted ? v.gatherFly : v.gatherFly * TO_HAND;
   slot.from.set(x, y, z);
   slot.at.set(x, y, z);
   state.events.push('seanTear', 0, x, y, z);
@@ -178,7 +228,6 @@ function gatherMore(state: CombatState, h: HeldPiece, player: PlayerState, world
 /** The rocks on their way: they join what's held. With nothing held any more they fall apart where they are. */
 function stepComing(state: CombatState, dt: number) {
   const g = state.grav;
-  const v = SEAN.v;
   for (const c of g.coming) {
     if (!c.on) continue;
     if (!g.held) {
@@ -187,7 +236,7 @@ function stepComing(state: CombatState, dt: number) {
       continue;
     }
     c.t += dt;
-    const k = Math.min(1, c.t / v.gatherFly);
+    const k = Math.min(1, c.t / c.fly);
     c.at.lerpVectors(c.from, g.held.at, smooth(k));
     c.at.y += ARC * Math.sin(k * Math.PI);
     if (k < 1) continue;
@@ -197,7 +246,7 @@ function stepComing(state: CombatState, dt: number) {
   }
 }
 
-/** Thrown: along your aim from where it hung, at what you're looking at. The more it gathered, the slower and the harder, and the wider it bursts. */
+/** Thrown from his hand: along your aim from where it hung, at what you're looking at. The more it gathered, the harder and the slower, and it bursts. */
 function throwPiece(state: CombatState, player: PlayerState, yaw: number, pitch: number, world: CollisionWorld) {
   const g = state.grav;
   const h = g.held;
@@ -217,14 +266,61 @@ function throwPiece(state: CombatState, player: PlayerState, yaw: number, pitch:
     r.damage = (h.big ? v.bigDamage : v.smallDamage) + v.gatherDamage * k;
     r.knock = mix(h.big ? v.bigKnock : v.smallKnock, v.gatherKnock, k);
     r.blast = mix(h.big ? v.bigBlast : 0, v.gatherBlast, k);
-    r.blastDamage = mix(h.big ? v.bigBlastDamage : 0, v.gatherBlastDamage, k);
+    r.blastDamage = mix(h.big ? v.bigBlastDamage : 0, v.gatherDamage * BURST_SHARE, k);
     r.drop = mix(h.big ? v.bigDrop : 0, v.bigDrop, k);
     r.pos.copy(h.at);
-    r.vel.subVectors(end, h.at).normalize().multiplyScalar(mix(h.big ? v.bigSpeed : v.smallSpeed, v.gatherSpeed, k));
+    r.vel.subVectors(end, h.at).normalize().multiplyScalar((h.big ? v.bigSpeed : v.smallSpeed) * (1 - HEAVIER * k));
   }
   g.held = null;
   g.grabWait = v.grabWait;
   state.events.push('seanThrow', h.big || k > 0.3 ? 1 : 0, h.at.x, h.at.y, h.at.z);
+}
+
+/** It lands. */
+function crash(state: CombatState) {
+  const g = state.grav;
+  const f = g.fall;
+  if (!f) return;
+  g.fall = null;
+  crater(state, f.to.x, f.to.y, f.to.z, f.blast * CRATER_SHARE);
+  state.events.push('seanCrash', f.k, f.to.x, f.to.y, f.to.z);
+  gravBlast(state, f.to.x, f.to.y, f.to.z, f.blast, f.damage, f.knock, true);
+}
+
+/** Let go of, lifted: it comes down where you aimed. */
+function letFall(state: CombatState, h: HeldPiece) {
+  const g = state.grav;
+  const v = SEAN.v;
+  const k = gatherK(h);
+  // (Only if the knobs let you lift one so soon after another.)
+  crash(state);
+  g.fall = {
+    t: 0,
+    time: mix(v.crashFall, v.crashFallFull, k),
+    from: h.at.clone(),
+    at: h.at.clone(),
+    to: h.zone.clone(),
+    r: h.r,
+    k,
+    damage: mix(h.big ? v.bigDamage : v.smallDamage, v.gatherDamage, k),
+    knock: mix(h.big ? v.bigKnock : v.smallKnock, v.gatherKnock, k),
+    blast: crashBlast(k),
+  };
+  g.held = null;
+  g.grabWait = v.grabWait;
+  state.events.push('seanDrop', k, h.at.x, h.at.y, h.at.z);
+}
+
+/** The sphere on its way down, each tick. */
+export function stepFall(state: CombatState, dt: number) {
+  const f = state.grav.fall;
+  if (!f) return;
+  f.t += dt;
+  const k = Math.min(1, f.t / f.time);
+  const e = k * k;
+  f.at.lerpVectors(f.from, f.to, e);
+  f.at.y += f.r * SINKS_TO * e;
+  if (k >= 1) crash(state);
 }
 
 /** Dropped, by going Unstable or an overload: it falls apart where it hung. */
@@ -233,7 +329,8 @@ export function dropPiece(state: CombatState) {
   const h = g.held;
   if (h) {
     g.held = null;
-    state.events.push('seanShatter', h.big ? 1 : 0, h.at.x, h.at.y, h.at.z);
+    // (Value: how big a sight it is: 0 a chunk, 1 big, 2 lifted.)
+    state.events.push('seanShatter', h.lifted ? 2 : h.big ? 1 : 0, h.at.x, h.at.y, h.at.z);
   }
   for (const c of g.coming) {
     if (!c.on) continue;
@@ -247,9 +344,14 @@ export function stepSeanGrab(state: CombatState, player: PlayerState, pressed: b
   const g = state.grav;
   stepComing(state, dt);
   if (g.held) {
-    holdPiece(state, g.held, player, yaw, pitch, world, dt);
-    if (heldDown) gatherMore(state, g.held, player, world, dt);
-    else if (g.held.t >= SEAN.v.grabRise * THROW_AT) throwPiece(state, player, yaw, pitch, world);
+    const h = g.held;
+    holdPiece(state, h, player, yaw, pitch, world, dt);
+    if (h.lifted) {
+      if (heldDown) gatherMore(state, h, player, world, dt);
+      // (Up to its time, and it comes down anyway.)
+      if (!heldDown || h.t >= SEAN.v.gatherTime) letFall(state, h);
+    } else if (heldDown) gatherMore(state, h, player, world, dt);
+    else if (h.t >= SEAN.v.grabRise * THROW_AT) throwPiece(state, player, yaw, pitch, world);
     return;
   }
   aimGrab(state, player, yaw, pitch, world);
@@ -258,8 +360,7 @@ export function stepSeanGrab(state: CombatState, player: PlayerState, pressed: b
 
 function shatter(state: CombatState, r: Rock) {
   r.alive = false;
-  // (Value: how big a sight it is: 0 a chunk, 1 big, 2 what a long gathering makes.)
-  state.events.push('seanShatter', r.lumps >= gatherMax() / 2 ? 2 : r.big ? 1 : 0, r.pos.x, r.pos.y, r.pos.z);
+  state.events.push('seanShatter', r.big ? 1 : 0, r.pos.x, r.pos.y, r.pos.z);
   // (From its underside: a big one breaks up well over the heads of what's under it.)
   if (r.blast >= BURST_MIN) gravBlast(state, r.pos.x, Math.max(0, r.pos.y - 1 - r.r), r.pos.z, r.blast, r.blastDamage, r.knock * 0.6);
 }

@@ -89,7 +89,8 @@ function openHole(state: CombatState, world: CollisionWorld, x: number, y: numbe
   h.z = z - h.dz * back;
   h.floor = floorUnder(world, h.x, Math.max(y, 0) + 0.5, h.z);
   h.y = h.floor + SEAN.v.holeHeight;
-  state.events.push('seanHoleOpen', 0, h.x, h.y, h.z);
+  // (Value: how long it'll run, for its hum.)
+  state.events.push('seanHoleOpen', SEAN.v.holeTime, h.x, h.y, h.z);
 }
 
 /** In flight, each tick. */

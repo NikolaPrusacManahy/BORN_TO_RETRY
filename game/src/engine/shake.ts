@@ -23,6 +23,11 @@ export class Shake {
     this.trauma = Math.min(1, this.trauma + amount);
   }
 
+  /** Update 0.3.89 — at least this much, for as long as it's asked for each frame: the ground shaking under something. */
+  hold(level: number) {
+    this.trauma = Math.max(this.trauma, level);
+  }
+
   update(dt: number) {
     this.trauma = Math.max(0, this.trauma - SHAKE.v.decay * dt);
     this.t += dt * SHAKE.v.frequency;

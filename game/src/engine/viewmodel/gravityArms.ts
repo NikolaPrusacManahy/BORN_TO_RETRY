@@ -80,6 +80,9 @@ export class GravityArms {
   private readonly orbRimMat = new THREE.MeshBasicMaterial({ color: COOL, transparent: true, opacity: 0.7, side: THREE.BackSide, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
   readonly orb = new THREE.Mesh(this.orbGeo, this.orbMat);
   private readonly orbRim = new THREE.Mesh(this.orbGeo, this.orbRimMat);
+  /** Update 0.3.89 — a ring of light turning round it. */
+  private readonly orbRingMat = new THREE.MeshBasicMaterial({ color: 0xff7ad9, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
+  private readonly orbRing = new THREE.Mesh(this.ringGeo, this.orbRingMat);
   /** Update 0.3.86 — a punch: the gravity on that arm goes with it, and a ring leaves its knuckles. */
   private readonly kick: Record<Side, number> = { L: 0, R: 0 };
   private readonly blastAge: Record<Side, number> = { L: 1, R: 1 };
@@ -107,11 +110,11 @@ export class GravityArms {
     this.arcGeo.setIndex(idx);
     this.arcGeo.setDrawRange(0, 0);
     this.arcs.visible = false;
-    this.orb.visible = this.orbRim.visible = false;
-    this.orb.frustumCulled = this.orbRim.frustumCulled = false;
+    this.orb.visible = this.orbRim.visible = this.orbRing.visible = false;
+    this.orb.frustumCulled = this.orbRim.frustumCulled = this.orbRing.frustumCulled = false;
     this.blasts.L.visible = this.blasts.R.visible = false;
     this.blasts.L.frustumCulled = this.blasts.R.frustumCulled = false;
-    scene.add(this.stones, this.arcs, this.orb, this.orbRim, this.blasts.L, this.blasts.R, ...this.rings);
+    scene.add(this.stones, this.arcs, this.orb, this.orbRim, this.orbRing, this.blasts.L, this.blasts.R, ...this.rings);
   }
 
   /** The stance, and the meter. */
@@ -191,7 +194,7 @@ export class GravityArms {
   /** The orb over his right palm: past the middle of the hand, off the palm's side. */
   private onPalm(rig: ArmsRig, k: number) {
     const on = this.mode > 0 && k > 0.2;
-    this.orb.visible = this.orbRim.visible = on;
+    this.orb.visible = this.orbRim.visible = this.orbRing.visible = on;
     if (!on) return;
     rig.handFrame('R', a, b, u);
     at.lerpVectors(a, b, PALM_ALONG).addScaledVector(u, -PALM_OFF);
@@ -200,6 +203,9 @@ export class GravityArms {
     this.orbRim.position.copy(at);
     this.orb.scale.setScalar(s);
     this.orbRim.scale.setScalar(s * 1.3);
+    this.orbRing.position.copy(at);
+    this.orbRing.scale.setScalar(s * 1.75);
+    this.orbRing.rotation.set(1.2 + 0.25 * Math.sin(this.time * 3), this.time * 1.4, this.time * 5);
   }
 
   /** The ring off each arm's knuckles as it punches, out along where it faces, and the gravity on the arm settling. */
@@ -311,6 +317,8 @@ export class GravityArms {
     this.arcs.removeFromParent();
     this.orb.removeFromParent();
     this.orbRim.removeFromParent();
+    this.orbRing.removeFromParent();
+    this.orbRingMat.dispose();
     this.blasts.L.removeFromParent();
     this.blasts.R.removeFromParent();
     this.blastMat.dispose();

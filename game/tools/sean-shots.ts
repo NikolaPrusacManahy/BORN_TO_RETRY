@@ -86,6 +86,7 @@ const SHOTS: { name: string; mode: GravityMode; instab: number; hand: SeanHand; 
   { name: 'wind', mode: 2, instab: 0.2, hand: 'wind' },
   { name: 'strike', mode: 2, instab: 0.2, hand: 'none', strike: true },
   { name: 'raise', mode: 1, instab: 0, hand: 'raise' },
+  { name: 'join', mode: 1, instab: 0, hand: 'join' },
   { name: 'sky', mode: 2, instab: 0.4, hand: 'sky' },
 ];
 const pov: { name: string; meshes: Mesh[] }[] = [];

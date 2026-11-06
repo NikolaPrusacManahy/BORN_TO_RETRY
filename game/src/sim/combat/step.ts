@@ -54,7 +54,7 @@ import { stepDemonFire } from './demonFire';
 import { feedOnFallen, landPlunge, stepLunge, tickCleave, tickDemon, tryBrand } from './demonMoves';
 import { addHeat } from './heat';
 import { landPlunge as landSeanPlunge, punchRate, punchWaves, shapePunch, stepDashPull, switchStance, tickGravity, trySeanSlam } from './gravity';
-import { dropPiece, stepRocks, stepSeanGrab } from './gravityGrab';
+import { dropPiece, stepFall, stepRocks, stepSeanGrab } from './gravityGrab';
 import { dropPalm, slowBosses, stepHole, stepPalm } from './gravityHole';
 import { stepShock, tryShock } from './gravityShock';
 import { endStop, stepStop } from './gravityStop';
@@ -313,6 +313,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     else stepHole(state, world, dt);
     fistIntent = Object.assign(NO_HEAVY, fistIntent);
     NO_HEAVY.heavyHeld = false;
+    // (Update 0.3.89 — his palms joined, he's no fist free.)
+    if (state.grav.held?.lifted) NO_HEAVY.attackPressed = NO_HEAVY.attackHeld = false;
   } else endStop(state, player);
   // (Update 0.3.5 — barehanded, right click is the parry: Hair Trigger's longer window, Giant Killer's no wait.)
   const times = parryTimes(state);
@@ -397,6 +399,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   // (Update 0.3.85 — Gravity Sean's Time Stop: he and what he's thrown go on, and your coins come to you; nothing else does.)
   if (still) {
     stepRocks(state, world, dt);
+    stepFall(state, dt);
     state.money = updateCoins(state.coins, player, state.money, events, dt);
     updateDrops(state, player, dt);
     return;
@@ -414,6 +417,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   // (Update 0.3.82 — what Gravity Sean's thrown.)
   if (state.sean) {
     stepRocks(state, world, dt);
+    stepFall(state, dt);
     slowBosses(state);
   }
   // (Update 0.3.10 — a melee blow parried: the long wait, as after a shot.)

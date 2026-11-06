@@ -19,16 +19,20 @@ const LUMPS = 14;
 const CORE = 0.74;
 const LUMP_OUT = 0.78;
 const LUMP_SIZE = 0.32;
-/** A rock flying in (m). */
-const COMING_SIZE = 0.3;
+/** A rock flying in (m): from far off it has to show. */
+const COMING_SIZE = 0.42;
 const LUMP_MAX = LUMPS * (ROCKS + 1) + COMING;
 /** The ring round a growing mass: its size, a share of the mass's. */
 const AURA = 1.32;
+/** Update 0.3.89 — a crater this big or bigger has rubble round its rim: how many pieces, at most, in all; how many to each. */
+const RUBBLE_FROM = 1.5;
+const RUBBLE = 96;
+const RUBBLE_EACH = 16;
 /** Golden angle, for spreading lumps round a ball. */
 const TURN = Math.PI * (3 - Math.sqrt(5));
 
 /** A lump of stone: a sphere with its corners pushed about, the same each time. */
-function rockGeometry(): THREE.BufferGeometry {
+export function rockGeometry(): THREE.BufferGeometry {
   const g = new THREE.IcosahedronGeometry(1, 1);
   const p = g.attributes.position as THREE.BufferAttribute;
   const seen = new Map<string, number>();
@@ -59,6 +63,7 @@ export class PiecesView {
   private readonly held = new THREE.Mesh(this.rockGeo, this.stone);
   private readonly flying: THREE.Mesh[] = [];
   private readonly lumps = new THREE.InstancedMesh(this.rockGeo, this.stone, LUMP_MAX);
+  private readonly rubble = new THREE.InstancedMesh(this.rockGeo, this.stone, RUBBLE);
   private readonly auraGeo = new THREE.TorusGeometry(1, 0.03, 6, 48);
   private readonly auraMat = new THREE.MeshBasicMaterial({ color: OUTLINE, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
   private readonly aura = new THREE.Mesh(this.auraGeo, this.auraMat);
@@ -85,7 +90,7 @@ export class PiecesView {
       this.flying.push(r);
       scene.add(r);
     }
-    for (const list of [this.lumps, this.holes, this.rims]) {
+    for (const list of [this.lumps, this.holes, this.rims, this.rubble]) {
       list.count = 0;
       list.frustumCulled = false;
     }
@@ -93,14 +98,15 @@ export class PiecesView {
     this.boxLines.visible = this.ring.visible = this.aura.visible = false;
     // (It turns round the upright, tilted.)
     this.aura.rotation.order = 'YXZ';
-    scene.add(this.lumps, this.holes, this.rims, this.boxLines, this.ring, this.aura);
+    scene.add(this.lumps, this.holes, this.rims, this.rubble, this.boxLines, this.ring, this.aura);
   }
 
   update(state: CombatState, dt: number) {
     const g = state.grav;
     this.spin += dt;
     let n = 0;
-    const h = g.held;
+    // (Update 0.3.89 — lifted, it's massView.ts's.)
+    const h = g.held && !g.held.lifted ? g.held : null;
     this.held.visible = !!h;
     this.aura.visible = !!h && h.gathered > 0;
     if (h) {
@@ -133,7 +139,26 @@ export class PiecesView {
     }
     this.holes.count = this.rims.count = c;
     this.holes.instanceMatrix.needsUpdate = this.rims.instanceMatrix.needsUpdate = true;
+    this.rimRubble(state);
     this.aimed(state);
+  }
+
+  /** Update 0.3.89 — what a big crater threw up round its rim. */
+  private rimRubble(state: CombatState) {
+    let n = 0;
+    state.grav.craters.forEach((k, i) => {
+      if (!k.on || k.r < RUBBLE_FROM) return;
+      for (let j = 0; j < RUBBLE_EACH && n < RUBBLE; j++) {
+        const a = j * TURN + i;
+        const out = k.r * (0.98 + 0.24 * Math.abs(Math.sin(j * 12.9 + i)));
+        const size = k.r * (0.07 + 0.09 * Math.abs(Math.sin(j * 4.1 + i * 2)));
+        at.set(k.x + Math.cos(a) * out, k.y + size * 0.3, k.z + Math.sin(a) * out);
+        e.set(j * 1.7, j * 2.3, i);
+        this.rubble.setMatrixAt(n++, m.compose(at, q.setFromEuler(e), s.setScalar(size)));
+      }
+    });
+    this.rubble.count = n;
+    this.rubble.instanceMatrix.needsUpdate = true;
   }
 
   /** The lumps on a mass, spread round it, turning with it. */
@@ -184,7 +209,8 @@ export class PiecesView {
   }
 
   dispose() {
-    this.scene.remove(this.held, this.boxLines, this.ring, this.aura, this.lumps, this.holes, this.rims, ...this.flying);
+    this.scene.remove(this.held, this.boxLines, this.ring, this.aura, this.lumps, this.holes, this.rims, this.rubble, ...this.flying);
+    this.rubble.dispose();
     this.rockGeo.dispose();
     this.stone.dispose();
     this.lumps.dispose();

@@ -25,7 +25,8 @@ def parse_args():
     p.add_argument('--image', default=None, help="draw every mesh with UVs with this texture")
     # Update 0.3.71 — the Demon's trail (it has its own vertex colours, added over the rest): 'solid' leaves it out, 'trail'
     # draws only it, on black, to add over the solid pass.
-    p.add_argument('--pass', dest='part', default=None, choices=['solid', 'trail'])
+    # Update 0.3.89 — 'vsolid': as 'solid', but a mesh with `vcol` is drawn in those colours (Gravity Sean's stone plates).
+    p.add_argument('--pass', dest='part', default=None, choices=['solid', 'trail', 'vsolid'])
     return p.parse_args(argv)
 
 
@@ -98,7 +99,7 @@ def main():
     scene = bpy.context.scene
     scene.render.engine = 'BLENDER_WORKBENCH'
     scene.display.shading.light = 'STUDIO'
-    scene.display.shading.color_type = 'VERTEX' if args.part == 'trail' else 'TEXTURE' if args.image else 'MATERIAL'
+    scene.display.shading.color_type = 'VERTEX' if args.part in ('trail', 'vsolid') else 'TEXTURE' if args.image else 'MATERIAL'
     if args.part == 'trail':
         scene.display.shading.light = 'FLAT'
     scene.display.shading.show_shadows = False
@@ -124,8 +125,10 @@ def main():
     for shot in data['shots']:
         clear()
         for m in shot['meshes']:
-            if (args.part == 'solid' and m.get('colors')) or (args.part == 'trail' and not m.get('colors')):
+            if (args.part in ('solid', 'vsolid') and m.get('colors')) or (args.part == 'trail' and not m.get('colors')):
                 continue
+            if args.part == 'vsolid':
+                m['colors'] = m.get('vcol') or m['color'] * (len(m['pos']) // 3)
             add_mesh(m, args.image)
         # (Update 0.2.4 — a shot may have its own lens: the Pistol aimed narrows the arms'.)
         cam.data.angle = math.radians(shot.get('fov', data['fov']))

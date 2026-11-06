@@ -41,6 +41,9 @@ export const PUNCH = shape(
  *  thumb's a rig's own, as in the punching fist: it lies across those two.) */
 export const SIGN_CURL = [0.04, 0.06, 0.04, 0.04, 0.06, 0.04, 1.55, 1.78, 1.0, 1.6, 1.8, 1.0];
 
+/** Update 0.3.89 — laying the fingers side by side: tried up to this far each way, in this step (rad). */
+const FLAT_MOST = 0.6;
+const FLAT_STEP = 0.01;
 /** Round a handle the tip joint bends this much of the middle joint's bend. */
 const TIP_SHARE = 0.75;
 /** The knuckle's bend is tried up to a rig's most (HandFit.most) in this step; the middle joint's up to its, found by
@@ -75,8 +78,10 @@ export interface HandFit {
   signThumb?: readonly number[];
   /** And how far its ring and little fingers fold in towards the middle of the palm, to meet the thumb (rad). */
   signFold?: number;
+  /** Update 0.3.89 — a flat hand, palm pressed to palm: its thumb's turns from the baked tuck, lying along the hand. */
+  flatThumb?: readonly number[];
 }
-export const QUATERNIUS_HAND: HandFit = { punch: PUNCH.thumb, grip: GRIP_THUMB, open: OPEN.thumb, finger: 0.004, hole: { wrist: 0, palm: 0 }, most: { knuckle: 1.7, middle: 1.9 } };
+export const QUATERNIUS_HAND: HandFit = { punch: PUNCH.thumb, grip: GRIP_THUMB, open: OPEN.thumb, finger: 0.004, hole: { wrist: 0, palm: 0 }, most: { knuckle: 1.7, middle: 1.9 }, flatThumb: [0, 0, -0.35, 0, 0, -0.15] };
 /** The Playable Demon's (a Universal Animation Library rig: cut_arms.py solves its tuck over the fingers, right as baked;
  *  thick gauntlet fingers, closing a loop about 5 × 9 cm that its big hilt fills: the handle goes in the loop's middle). */
 // (Update 0.3.73 — its punch rises to the middle of the view, the elbow low. Its vambrace flares so wide that a straight one hides the fist behind it.)
@@ -103,6 +108,8 @@ export class HandBones {
   private readonly grips: number[][][];
   private readonly live = shape(new Array(JOINTS).fill(0), new Array(6).fill(0));
   private readonly gripNow = shape(new Array(JOINTS).fill(0), GRIP_THUMB.slice());
+  /** Update 0.3.89 — the sideways turn at each knuckle that lays the four fingers side by side, worked out the first time it's asked for. */
+  private flatTurn: number[] | null = null;
 
   /** `fingers`: 12 joints (index…little × knuckle, middle, tip), `thumbs` 2; `openSign`: which way about x straightens a
    *  finger; `hole`, `through`, `up`: the baked fist's hole, the way through it and the way to the knuckles (the rest
@@ -134,16 +141,51 @@ export class HandBones {
     }
   }
 
+  /** Straight, each finger spreads off its knuckle. How far to turn each so they lie side by side: all along the way they go on average. */
+  private solveFlat(): number[] {
+    this.set(OPEN);
+    const dirOf = (f: number) => {
+      this.fingers[f * 3].bone.updateWorldMatrix(true, true);
+      this.fingers[f * 3].bone.getWorldPosition(p3);
+      this.fingers[f * 3 + 2].bone.getWorldPosition(p4);
+      return new THREE.Vector3().subVectors(p4, p3).normalize();
+    };
+    const along = new THREE.Vector3();
+    for (let f = 0; f < 4; f++) along.add(dirOf(f));
+    along.normalize();
+    const turns: number[] = [];
+    for (let f = 0; f < 4; f++) {
+      const bone = this.fingers[f * 3].bone;
+      const base = bone.quaternion.clone();
+      let best = 0;
+      let most = -2;
+      for (let a = -FLAT_MOST; a <= FLAT_MOST; a += FLAT_STEP) {
+        bone.quaternion.copy(base).multiply(turn.setFromAxisAngle(Z, a));
+        const d = dirOf(f).dot(along);
+        if (d > most) {
+          most = d;
+          best = a;
+        }
+      }
+      bone.quaternion.copy(base);
+      turns.push(best);
+    }
+    return turns;
+  }
+
   /** The hand closed (into the punching fist, or round a handle of radius `grip` m leaning `tilt` rad in the fist by
-   *  `hold`, 0 … 1), then opened by `open` (0 … 1). Update 0.3.79 — and into the hand sign by `sign` (0 … 1). */
-  pose(open: number, grip = 0, hold = 0, tilt = 0.4, sign = 0) {
+   *  `hold`, 0 … 1), then opened by `open` (0 … 1). Update 0.3.79 — and into the hand sign by `sign` (0 … 1).
+   *  Update 0.3.89 — and, open, flat by `flat` (0 … 1): the fingers side by side, the thumb in along the hand. */
+  pose(open: number, grip = 0, hold = 0, tilt = 0.4, sign = 0, flat = 0) {
     const s = this.live;
     const held = hold > 0 && grip > 0;
     const g = held ? this.grip(grip, tilt) : PUNCH;
     const t = this.fit;
     for (let i = 0; i < JOINTS; i++) s.curl[i] = lerp(lerp(lerp(PUNCH.curl[i], g.curl[i], hold), OPEN.curl[i], open), SIGN_CURL[i], sign);
-    for (let i = 0; i < 6; i++) s.thumb[i] = lerp(lerp(lerp(t.punch[i], held ? t.grip[i] : t.punch[i], hold), t.open[i], open), (t.signThumb ?? t.punch)[i], sign);
+    for (let i = 0; i < 6; i++) s.thumb[i] = lerp(lerp(lerp(lerp(t.punch[i], held ? t.grip[i] : t.punch[i], hold), t.open[i], open), (t.signThumb ?? t.punch)[i], sign), (t.flatThumb ?? t.open)[i], flat);
+    if (flat > 0 && !this.flatTurn) this.flatTurn = this.solveFlat();
     this.set(s);
+    if (flat > 0 && this.flatTurn) for (let f = 0; f < 4; f++) this.fingers[f * 3].bone.quaternion.multiply(turn.setFromAxisAngle(Z, this.flatTurn[f] * flat));
     // (The two fingers of its sign, together.)
     if (sign > 0 && t.signClose) {
       const m = this.side === 'L' ? 1 : -1;

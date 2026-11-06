@@ -22,7 +22,8 @@ import { CAMERA } from '../src/tuning/camera';
 import { SEAN } from '../src/tuning/sean';
 import { ArmsRig } from '../src/engine/viewmodel/armsRig';
 import { SEAN_ARMS_URL, Viewmodel } from '../src/engine/viewmodel/viewmodel';
-import { UltimatesView } from '../src/engine/sean/ultimatesView';
+import { HoleView } from '../src/engine/sean/holeView';
+import { pullOn, pullPose } from '../src/engine/sean/holePull';
 import type { Arena } from '../src/world/arena';
 
 const v = SEAN.v;
@@ -393,22 +394,60 @@ section('His hand, for them');
   check('and back', vm.seanHands.weight.R < 0.02);
 }
 
-section('What it shows');
+section('What it shows: it clearly pulls');
 {
-  const view = new UltimatesView(new THREE.Scene());
+  const three = new THREE.Scene();
+  const cam = new THREE.PerspectiveCamera();
+  cam.position.set(0, CAMERA.v.eyeHeight, 0);
+  three.add(cam);
+  const view = new HoleView(three, cam);
   const r = room();
   r.step({ heavyPressed: true, heavyHeld: true });
   view.update(r.c, DT);
-  check('in his palm: nothing in the world yet', !view.showing.hole);
+  check('in his palm: nothing in the world yet', !view.showing.hole && view.showing.streaks === 0);
   r.step({ heavyHeld: true }, v.palmMin);
   r.step({ pitch: -0.25 });
   view.update(r.c, DT);
-  check('in flight: it shows', view.showing.hole);
-  r.step({ pitch: -0.25 }, 1);
+  check(`in flight: it shows, trailing (${view.showing.streaks} streaks), no spiral on the floor yet`, view.showing.hole && view.showing.streaks > 0 && !view.showing.floor);
+  for (let i = 0; i < ticks(2) && r.c.grav.hole!.flying; i++) r.step({ pitch: -0.25 });
+  const h = r.c.grav.hole!;
+  const a = foe(r.c, h.x + 5, h.z);
+  const b = foe(r.c, h.x, h.z + 6);
+  r.step({}, 0.2);
   view.update(r.c, DT);
-  check('open: it shows', view.showing.hole && !r.c.grav.hole!.flying);
+  check(`open: streaks running in (${view.showing.streaks}), stones whirling (${view.showing.stones}), a spiral on the floor`, view.showing.streaks > 100 && view.showing.stones > 10 && view.showing.floor);
+  check(`a beam to each it’s got, beads running down it (${view.showing.beams}, ${view.showing.beads})`, view.showing.beams === 2 && view.showing.beads === 4);
+  // It's drawn out and leans in, more the nearer it's come.
+  const root = new THREE.Object3D();
+  const pose = (e: typeof a) => {
+    root.quaternion.identity();
+    root.scale.setScalar(1);
+    pullPose(root, e, h, 1);
+    return { head: new THREE.Vector3(0, 1, 0).applyQuaternion(root.quaternion), tall: root.scale.y, thin: root.scale.x };
+  };
+  const toIt = (e: typeof a) => new THREE.Vector3(h.x - e.pos.x, 0, h.z - e.pos.z).normalize();
+  const out = pose(a);
+  check(`what it has leans in towards it (${out.head.dot(toIt(a)).toFixed(2)})`, out.head.dot(toIt(a)) > 0.2);
+  check(`and is drawn out (${out.tall.toFixed(2)} tall, ${out.thin.toFixed(2)} wide)`, out.tall > 1.1 && out.thin < 1);
+  check('how hard goes by how near', pullOn(a, h) > 0 && pullOn(a, h) <= 1);
+  const was = { x: a.pos.x, z: a.pos.z };
+  a.pos.set(h.x + 1, a.pos.y, h.z);
+  const inClose = pose(a);
+  check(`right in close: further over, further drawn out (${inClose.tall.toFixed(2)})`, inClose.tall > out.tall && inClose.head.dot(toIt(a)) > out.head.dot(new THREE.Vector3(1, 0, 0).normalize()) - 1);
+  a.pos.x = was.x;
+  a.pos.z = was.z;
+  void b;
+  const t = (r.c.grav.hole as NonNullable<typeof r.c.grav.hole>).t;
+  r.c.grav.stop = { t: 0, stored: [], releasing: false };
+  const before = view.showing.streaks;
+  view.update(r.c, 0.5);
+  check('with time stopped it hangs there', view.showing.streaks === before && r.c.grav.hole!.t === t);
+  r.c.grav.stop = null;
   r.step({}, v.holeTime);
   view.update(r.c, DT);
-  check('burst: gone', !view.showing.hole);
+  check('it’s burst: a flash, and it’s gone', view.showing.flash === true || !view.showing.hole);
+  check('gone', !view.showing.hole && !view.showing.floor && view.showing.streaks === 0);
+  view.update(r.c, 1);
+  check('and the flash after it', !view.showing.flash);
   view.dispose();
 }

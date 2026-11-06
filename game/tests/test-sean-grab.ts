@@ -1,12 +1,12 @@
 // Update 0.3.82 — Gravity Sean's right click in normal mode (enemy_bibles/Born to Retry — Gravity Sean.docx). Grab: a pillar or, with nothing else, the floor (a crater, and it always works); held, a
 // shield from the front; thrown, small fast, big slow and hard; the outline. His hand's pose, its wrist. Through stepCombat with real blows. Update 0.3.86 — the designer's: held, it gathers rocks from round the room for up to
-// 5 s, bigger for it, and letting go throws it.
+// 5 s, bigger for it, and letting go throws it. Update 0.3.89 — the designer's: his palms join, it floats over the arena up to 10 s, and comes down on it. His palms measured on the mesh.
 import * as THREE from 'three';
 import { check, near, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
 import { parseUntextured } from './fakes/glb';
 import { emptyCombatIntent, type CombatIntent } from '../src/sim/combat/fists';
-import { CRATERS, gatherK, gatherMax, seanHand } from '../src/sim/combat/gravityMeter';
+import { CRATERS, gatherMax, seanHand } from '../src/sim/combat/gravityMeter';
 import { fireOrb } from '../src/sim/combat/orbs';
 import { pillarsOf } from '../src/sim/combat/pillars';
 import { createCombat, type CombatState } from '../src/sim/combat/state';
@@ -14,6 +14,7 @@ import { stepCombat } from '../src/sim/combat/step';
 import { isLive, spawnEnemy } from '../src/sim/enemies/enemy';
 import type { EnemyKind } from '../src/sim/enemies/kinds';
 import { createPlayer } from '../src/sim/player/state';
+import { CAMERA } from '../src/tuning/camera';
 import { SEAN } from '../src/tuning/sean';
 import { ArmsRig } from '../src/engine/viewmodel/armsRig';
 import { SEAN_ARMS_URL, Viewmodel } from '../src/engine/viewmodel/viewmodel';
@@ -68,7 +69,7 @@ section('Grab — RMB always works');
   up.step({ pitch: 1.2, heavyPressed: true, heavyHeld: true });
   check('aimed at the sky: the floor just ahead, all the same', !!up.c.grav.held && up.c.grav.craters[0].on && near(up.c.grav.craters[0].z, -v.grabAhead, 0.6));
   const many = room();
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < CRATERS + 6; i++) {
     many.step({ pitch: LOOK_DOWN, heavyPressed: true, heavyHeld: true });
     many.step({ pitch: LOOK_DOWN }, v.grabRise + v.grabWait + 0.1);
   }
@@ -106,14 +107,12 @@ section('Hold it as a shield');
     r.step({ heavyHeld: heldUp }, from.distanceTo(to) / 10 + 0.2);
     return { hurt: hp - r.p.hp, blocked: had(r.c, 'seanBlock') };
   };
-  const front = shot(new THREE.Vector3(0, 1.4, -8), true);
+  const front = shot(new THREE.Vector3(0, 1.4, -5), true);
   check('held: a shot from the front stops on it', front.hurt === 0 && front.blocked);
   const behind = shot(new THREE.Vector3(0, 1.4, 8), true);
   check('from behind it hits you', behind.hurt > 0 && !behind.blocked);
   const none = shot(new THREE.Vector3(0, 1.4, -8), false);
   check('with nothing held it hits you', none.hurt > 0);
-  const grown = shot(new THREE.Vector3(0, 1.4, -8), true, v.gatherTime + 1);
-  check('grown, drawn high to leave you your aim, it still stops what’s coming at you', grown.hurt === 0 && grown.blocked);
 }
 
 section('Let go, it’s thrown: size matters');
@@ -160,7 +159,7 @@ section('Let go, it’s thrown: size matters');
   check('going Unstable, it falls apart', dropped.c.grav.held === null && dropped.c.grav.unstable && had(dropped.c, 'seanShatter'));
 }
 
-section('Held, it gathers more rocks, up to 5 s');
+section('Held: in his hand first, rocks coming to it');
 {
   const r = room();
   r.step({ pitch: LOOK_DOWN, heavyPressed: true, heavyHeld: true });
@@ -170,75 +169,160 @@ section('Held, it gathers more rocks, up to 5 s');
   check('at first, only what you took', h.gathered === 0 && r.c.grav.craters.filter((k) => k.on).length === 1 && !had(r.c, 'seanTear'));
   r.step({ heavyHeld: true }, v.gatherEvery * 0.4);
   check('then a rock tears out of the floor, and you see it', had(r.c, 'seanTear') && r.c.grav.coming.some((c) => c.on) && r.c.grav.craters.filter((k) => k.on).length === 2);
-  r.step({ heavyHeld: true }, v.gatherFly);
-  check('it joins the rest, which grows', h.gathered === 1 && h.r > small && had(r.c, 'seanGathered'));
+  r.step({ heavyHeld: true }, v.gatherJoin - v.gatherEvery * 1.3);
+  check(`it joins what’s in his hand, which grows (${h.gathered} rocks, ${h.r.toFixed(2)} m)`, h.gathered >= 1 && h.r > small && had(r.c, 'seanGathered'));
+  check('still in his hand, one hand', !h.lifted && seanHand(r.c.grav) === 'reach');
+  const thrown = room();
+  thrown.step({ pitch: LOOK_DOWN, heavyPressed: true, heavyHeld: true });
+  thrown.step({ pitch: 0, heavyHeld: true }, v.gatherJoin * 0.8);
+  thrown.step({ pitch: 0 });
+  check('let go now: a plain throw', !thrown.c.grav.held && !thrown.c.grav.fall && thrown.c.grav.rocks.some((k) => k.alive));
+}
+
+section('Held on: his palms join, the ground shakes, and it lifts');
+{
+  const r = room();
+  r.step({ pitch: LOOK_DOWN, heavyPressed: true, heavyHeld: true });
+  const h = r.c.grav.held!;
+  r.c.events.clear();
+  r.step({ heavyHeld: true }, v.gatherJoin + 0.02);
+  check('his palms join', h.lifted && had(r.c, 'seanJoin') && seanHand(r.c.grav) === 'join');
+  const e = foe(r.c, 0, -2);
+  pin(r.c);
+  r.step({ heavyHeld: true, attackPressed: true }, 0.3);
+  check('no fist free', e.hp === 5000);
+  r.step({ heavyHeld: true }, 5);
+  check(`it’s risen over the arena: its underside ${(h.at.y - h.r).toFixed(1)} m up, over the 6 m walls`, h.at.y - h.r > 6);
+  check(`ahead of you (${(-h.at.z).toFixed(1)} m off)`, h.at.z < -8 && Math.abs(h.at.x) < 1);
+  const was = h.at.clone();
+  r.step({ heavyHeld: true, yaw: Math.PI / 2 }, 0.1);
+  const moved = h.at.distanceTo(was);
+  check(`turn away and it follows, heavy (${moved.toFixed(2)} m in 0.1 s)`, moved > 0 && moved < 4);
+  r.step({ heavyHeld: true, yaw: Math.PI / 2 }, 3);
+  check('over where you face now', h.at.x < -6);
+}
+
+section('Up to 10 s, and it grows');
+{
+  const r = room();
+  r.step({ pitch: LOOK_DOWN, heavyPressed: true, heavyHeld: true });
+  const h = r.c.grav.held!;
   const spots: THREE.Vector3[] = [];
-  for (let i = 0; i < ticks(v.gatherTime + 1); i++) {
+  const sizes: number[] = [];
+  for (let i = 0; i < ticks(v.gatherTime - 0.05); i++) {
     r.c.events.clear();
     r.step({ heavyHeld: true });
+    if (i % 120 === 0) sizes.push(h.r);
     for (let k = 0; k < r.c.events.length; k++) if (r.c.events.at(k).kind === 'seanTear') spots.push(new THREE.Vector3(r.c.events.at(k).x, 0, r.c.events.at(k).z));
   }
-  check(`${v.gatherTime} s: ${h.gathered} rocks, and it’s full`, h.gathered === gatherMax() && gatherK(h) === 1 && v.gatherTime === 5);
-  check(`at its biggest: ${h.r} m`, near(h.r, v.gatherSize, 1e-6));
+  check(`the designer’s ${v.gatherTime} s`, v.gatherTime === 10);
+  check(`it keeps growing: ${sizes.map((n) => n.toFixed(1)).join(', ')} m`, sizes.every((n, i) => i === 0 || n >= sizes[i - 1]) && sizes[sizes.length - 1] > sizes[1] * 3);
+  check(`at its end: all ${gatherMax()} rocks, and full size (${h.r.toFixed(1)} m)`, h.gathered >= gatherMax() - 1 && h.r > v.gatherSize * 0.9);
   const off = spots.map((o) => Math.hypot(o.x, o.z));
   check(`from close by (${Math.min(...off).toFixed(1)} to ${Math.max(...off).toFixed(1)} m off)`, off.every((d) => d >= v.gatherNear - 0.01 && d <= v.gatherFar + 0.01));
   const round = spots.map((o) => Math.atan2(o.z, o.x));
   check('from all round you, not all from one place', Math.max(...round) - Math.min(...round) > 2 && new Set(spots.map((o) => `${o.x.toFixed(2)},${o.z.toFixed(2)}`)).size === spots.length);
-  const had_ = r.c.grav.craters.filter((k) => k.on).length;
-  check(`each left its crater (${had_})`, had_ === gatherMax() + 1);
-  r.step({ heavyHeld: true }, 2);
-  check('no more after that, and it stays held', h.gathered === gatherMax() && r.c.grav.held === h && r.c.grav.craters.filter((k) => k.on).length === had_);
-  check('both hands are in it by now', seanHand(r.c.grav) === 'raise');
-  r.step({});
-  const rock = r.c.grav.rocks.find((k) => k.alive);
-  check('let go: all of it thrown', !r.c.grav.held && !!rock && near(rock!.r, v.gatherSize, 1e-6) && rock!.lumps === gatherMax());
-  check(`heavy: ${rock!.vel.length().toFixed(0)} m/s`, near(rock!.vel.length(), v.gatherSpeed, 0.5));
-  const wait = room();
-  wait.step({ pitch: LOOK_DOWN, heavyPressed: true, heavyHeld: true });
-  wait.step({ heavyHeld: true }, v.gatherEvery + 0.05);
-  const flying = wait.c.grav.coming.find((c) => c.on)!;
-  check('(one on its way)', !!flying);
-  wait.step({});
-  wait.step({}, v.grabRise);
-  check('let go with one on its way: it falls apart', !wait.c.grav.coming.some((c) => c.on) && had(wait.c, 'seanShatter'));
+  check(`each left its crater (${r.c.grav.craters.filter((k) => k.on).length})`, r.c.grav.craters.filter((k) => k.on).length === spots.length + 1);
+  r.step({ heavyHeld: true }, 0.1);
+  check('then it comes down, held or not', !r.c.grav.held && !!r.c.grav.fall && had(r.c, 'seanDrop'));
 }
 
-section('Held, the attack gets bigger');
+section('Let go: it comes down where you’re aiming, and hits the arena');
 {
-  /** Held this long, thrown at one 14 m off with another 6 m past it to the side. */
+  const AT = -Math.atan2(CAMERA.v.eyeHeight, 10);
+  /** Held this long, brought down on one 10 m off with another 6 m to its side. */
   const toss = (secs: number) => {
     const r = room();
-    r.step({ pitch: LOOK_DOWN, heavyPressed: true, heavyHeld: true });
-    r.step({ pitch: 0, heavyHeld: true }, secs);
-    const e = foe(r.c, 0, -14);
-    const by = foe(r.c, 6, -14);
+    r.step({ pitch: AT, heavyPressed: true, heavyHeld: true });
+    r.step({ pitch: AT, heavyHeld: true }, secs);
+    const e = foe(r.c, 0, -10);
+    const by = foe(r.c, 6, -10);
     pin(r.c);
-    r.step({ pitch: 0 });
-    r.step({ pitch: 0 }, 2);
-    return { e: 5000 - e.hp, by: 5000 - by.hp, r };
+    const zone = r.c.grav.held!.zone.clone();
+    r.step({ pitch: AT });
+    return { r, e, by, zone };
   };
-  const tap = toss(v.grabRise);
-  const half = toss(v.gatherTime / 2);
-  const full = toss(v.gatherTime + 0.6);
-  check(`what it hits takes more: ${tap.e} → ${half.e.toFixed(0)} → ${full.e.toFixed(0)}`, half.e > tap.e * 2 && full.e > half.e * 1.5 && full.e >= v.smallDamage + v.gatherDamage);
-  check(`and it bursts: none from a chunk, ${full.by.toFixed(0)} on the one beside it`, tap.by === 0 && full.by > 0);
-  check('and you’re told', full.r.c.events.length > 0 && had(full.r.c, 'seanShatter'));
+  const a = toss(3);
+  check(`where you aim: the floor ${(-a.zone.z).toFixed(1)} m off`, near(a.zone.z, -10, 0.5) && near(a.zone.y, 0, 0.01));
+  const f = a.r.c.grav.fall!;
+  check('let go: on its way, nothing hurt yet', !!f && a.e.hp === 5000 && had(a.r.c, 'seanDrop'));
+  a.r.step({}, f.time * 0.5);
+  check('it’s coming down', f.at.y < f.from.y && a.e.hp === 5000);
+  check('both palms push it', seanHand({ ...a.r.c.grav, fall: { ...f, t: 0 } }) === 'raise');
+  a.r.c.events.clear();
+  a.r.step({}, f.time * 0.5 + 0.05);
+  check(`down: the arena’s hit (${5000 - a.e.hp})`, a.r.c.grav.fall === null && a.e.hp < 5000 && had(a.r.c, 'seanCrash') && had(a.r.c, 'seanBlast'));
+  const c = a.r.c.grav.craters.filter((k) => k.on);
+  check(`a great crater (${c[c.length - 1].r.toFixed(1)} m)`, c.some((k) => k.r > 1.5));
+  const small = toss(v.gatherJoin + 0.3);
+  small.r.step({}, 2);
+  const mid = toss(v.gatherTime / 2);
+  mid.r.step({}, 2);
+  const full = toss(v.gatherTime - 0.1);
+  full.r.step({}, 2);
+  const taken = [small, mid, full].map((t) => 5000 - t.e.hp);
+  check(`the longer you hold it, the harder: ${taken.map((n) => n.toFixed(0)).join(' → ')}`, taken[0] < taken[1] && taken[1] < taken[2] && taken[2] > v.gatherDamage * 0.9);
+  check(`and the wider: nothing on the one beside it at first, ${(5000 - full.by.hp).toFixed(0)} at the end`, small.by.hp === 5000 && full.by.hp < 5000);
   const floorBox = { x: 0, y: -0.5, z: 0, w: 60, h: 1, d: 60, kind: 'floor' as const };
   const wallBox = { x: 0, y: 2, z: -5, w: 60, h: 4, d: 1, kind: 'block' as const };
-  const c = createCombat({ ...bare, boxes: [floorBox, wallBox] }, true);
-  c.sean = true;
+  const c2 = createCombat({ ...bare, boxes: [floorBox, wallBox] }, true);
+  c2.sean = true;
   const p = createPlayer(0, 0, 0, 0);
   p.sean = true;
   p.grounded = true;
   const spots: number[] = [];
-  const press = { ...emptyCombatIntent(), pitch: LOOK_DOWN, heavyPressed: true, heavyHeld: true };
-  stepCombat(c, p, press, world, DT);
-  for (let i = 0; i < ticks(v.gatherTime); i++) {
-    c.events.clear();
-    stepCombat(c, p, { ...emptyCombatIntent(), heavyHeld: true }, world, DT);
-    for (let k = 0; k < c.events.length; k++) if (c.events.at(k).kind === 'seanTear') spots.push(c.events.at(k).z);
+  const hidden = foe(c2, 0, -8);
+  pin(c2);
+  stepCombat(c2, p, { ...emptyCombatIntent(), pitch: AT, heavyPressed: true, heavyHeld: true }, world, DT);
+  for (let i = 0; i < ticks(v.gatherTime / 2); i++) {
+    c2.events.clear();
+    stepCombat(c2, p, { ...emptyCombatIntent(), pitch: AT, heavyHeld: true }, world, DT);
+    for (let k = 0; k < c2.events.length; k++) if (c2.events.at(k).kind === 'seanTear') spots.push(c2.events.at(k).z);
   }
-  check(`none from behind a wall (${spots.length} rocks, nearest the wall at z ${Math.min(...spots).toFixed(1)})`, spots.length > 5 && spots.every((z) => z > -4.5));
+  check(`no rock from behind a wall (${spots.length} rocks, nearest it at z ${Math.min(...spots).toFixed(1)})`, spots.length > 5 && spots.every((z) => z > -4.5));
+  stepCombat(c2, p, { ...emptyCombatIntent(), pitch: AT }, world, DT);
+  for (let i = 0; i < ticks(2); i++) stepCombat(c2, p, { ...emptyCombatIntent() }, world, DT);
+  check('from the sky: no wall stops it', hidden.hp < 5000);
+}
+
+section('Under a roof it fits; going Unstable it falls apart; it’s no shield');
+{
+  const c = createCombat(bare);
+  c.sean = true;
+  const p = createPlayer(0, 0, 0, 0);
+  p.sean = true;
+  p.grounded = true;
+  const ROOF = 9;
+  const roofed = { ...new FlatWorld(), rayDistance: (o: THREE.Vector3, d: THREE.Vector3, max: number) => {
+    if (d.y > 0.5) return ROOF - o.y;
+    return world.rayDistance(o, d, max);
+  } } as unknown as FlatWorld;
+  stepCombat(c, p, { ...emptyCombatIntent(), pitch: LOOK_DOWN, heavyPressed: true, heavyHeld: true }, roofed, DT);
+  for (let i = 0; i < ticks(v.gatherTime - 0.1); i++) stepCombat(c, p, { ...emptyCombatIntent(), heavyHeld: true }, roofed, DT);
+  const h = c.grav.held!;
+  check(`under a ${ROOF} m roof: it’s no bigger than fits (${h.r.toFixed(1)} m), and under it (top ${(h.at.y + h.r).toFixed(1)} m)`, h.r < ROOF / 2 && h.at.y + h.r <= ROOF);
+  const d = room();
+  d.step({ pitch: LOOK_DOWN, heavyPressed: true, heavyHeld: true });
+  d.step({ heavyHeld: true }, 3);
+  d.step({ interactPressed: true, heavyHeld: true });
+  check('going Unstable, it falls apart where it is, hurting nobody', !d.c.grav.held && !d.c.grav.fall && d.c.grav.unstable && had(d.c, 'seanShatter'));
+  const s = room();
+  s.step({ pitch: LOOK_DOWN, heavyPressed: true, heavyHeld: true });
+  s.step({ heavyHeld: true }, 2);
+  const from = new THREE.Vector3(0, 1.4, -8);
+  fireOrb(s.c.orbs, from, new THREE.Vector3(0, 1.3, 0).sub(from).normalize(), 10, 10, 'turret');
+  const hp = s.p.hp;
+  s.step({ heavyHeld: true }, 1);
+  check('lifted, it no longer stops shots', s.p.hp < hp);
+  const t = room();
+  t.c.grav.ult = 1;
+  t.step({ throwPressed: true });
+  t.step({ pitch: LOOK_DOWN, heavyPressed: true, heavyHeld: true });
+  t.step({ pitch: LOOK_DOWN, heavyHeld: true }, 2);
+  const e = foe(t.c, 0, -CAMERA.v.eyeHeight / Math.tan(-LOOK_DOWN));
+  t.step({ pitch: LOOK_DOWN });
+  t.step({}, 1.2);
+  check('in stopped time it comes down, and its blow’s held back', e.hp === 5000 && !t.c.grav.fall && (t.c.grav.stop?.stored.length ?? 0) === 1);
 }
 
 section('His hand');
@@ -283,6 +367,100 @@ section('His hand');
   vm.seanHands.shove();
   play(0.09);
   check('a throw’s shove brings it out', vm.seanHands.weight.R > 0.3);
+  play(1);
+
+  // His palms joined: the designer's reference. Measured on the mesh: which vertices are whose hand, by the bone that moves them most.
+  const hands: Record<'L' | 'R', { mesh: THREE.SkinnedMesh; i: number }[]> = { L: [], R: [] };
+  vm.scene.traverse((o) => {
+    if (!(o instanceof THREE.SkinnedMesh)) return;
+    const si = o.geometry.attributes.skinIndex as THREE.BufferAttribute;
+    const sw = o.geometry.attributes.skinWeight as THREE.BufferAttribute;
+    for (let i = 0; i < si.count; i++) {
+      let best = 0;
+      let w = -1;
+      for (let k = 0; k < 4; k++) {
+        if (sw.getComponent(i, k) > w) {
+          w = sw.getComponent(i, k);
+          best = si.getComponent(i, k);
+        }
+      }
+      const n = o.skeleton.bones[best].name;
+      if (/^(Hand|Index|Middle|Ring|Pinky|Thumb)/.test(n)) hands[n.endsWith('R') ? 'R' : 'L'].push({ mesh: o, i });
+    }
+  });
+  const v3 = new THREE.Vector3();
+  const inView = (h: { mesh: THREE.SkinnedMesh; i: number }) => {
+    h.mesh.getVertexPosition(h.i, v3);
+    return vm.camera.worldToLocal(v3.applyMatrix4(h.mesh.matrixWorld));
+  };
+  /** The right hand's nearest the middle, and the left's; through the top half of it, and the bottom. */
+  const edges = () => {
+    const ys = hands.R.map((h) => inView(h).y);
+    const mid = (Math.min(...ys) + Math.max(...ys)) / 2;
+    let top = 9;
+    let low = 9;
+    hands.R.forEach((h, n) => {
+      const x = inView(h).x;
+      if (ys[n] > mid) top = Math.min(top, x);
+      else low = Math.min(low, x);
+    });
+    return { top, low, left: Math.max(...hands.L.map((h) => inView(h).x)) };
+  };
+  /** Does each arm run off the screen, so you can't see where it's cut off? */
+  const offScreen = () => {
+    let most = 0;
+    vm.scene.traverse((o) => {
+      if (!(o instanceof THREE.SkinnedMesh)) return;
+      const n = o.geometry.attributes.position.count;
+      for (let i = 0; i < n; i += 5) {
+        o.getVertexPosition(i, v3);
+        v3.applyMatrix4(o.matrixWorld);
+        most = Math.max(most, Math.abs(v3.clone().project(vm.camera).y), Math.abs(v3.clone().project(vm.camera).x));
+      }
+    });
+    return most;
+  };
+  vm.seanHands.set('join');
+  let least = 9;
+  for (let f = 0; f < 60; f++) {
+    play(1 / 60);
+    least = Math.min(least, offScreen());
+  }
+  play(0.5);
+  check(`on the way there, and there, you never see where his arms are cut off (${least.toFixed(2)} of the screen)`, least > 1);
+  check('both hands in it', vm.seanHands.weight.L > 0.95 && vm.seanHands.weight.R > 0.95 && vm.seanHands.open > 0.9 && vm.seanHands.flat > 0.95);
+  const e = edges();
+  check(`they don’t pass through each other: the right stops at ${(e.top * 1000).toFixed(0)} and ${(e.low * 1000).toFixed(0)} mm off the middle, the left at ${(e.left * 1000).toFixed(0)}`, e.top > -0.003 && e.low > -0.003 && e.left < 0.003);
+  check('they touch, fingertips and heels', e.top < 0.01 && e.low < 0.01);
+  const fingers = ['Index', 'Middle', 'Ring', 'Pinky'].map((n) => {
+    let b: THREE.Object3D | undefined;
+    vm.scene.traverse((o) => {
+      if (o.name === `${n}2R`) b = o;
+    });
+    let t: THREE.Object3D | undefined;
+    vm.scene.traverse((o) => {
+      if (o.name === `${n}4R`) t = o;
+    });
+    return t!.getWorldPosition(new THREE.Vector3()).sub(b!.getWorldPosition(new THREE.Vector3())).normalize();
+  });
+  const spread = Math.max(...fingers.flatMap((a) => fingers.map((b) => THREE.MathUtils.radToDeg(a.angleTo(b)))));
+  check(`the fingers side by side, not spread (${spread.toFixed(0)}° at the most between them)`, spread < 6);
+  const tipR = rig.arms.R.knuckle.getWorldPosition(new THREE.Vector3()).project(vm.camera);
+  check(`up the middle of the view, on screen (${tipR.x.toFixed(2)}, ${tipR.y.toFixed(2)})`, Math.abs(tipR.x) < 0.2 && Math.abs(tipR.y) < 0.6);
+  check(`the wrists bend back, as pressed palms do (${wrist('R').toFixed(0)}°, ${wrist('L').toFixed(0)}°)`, wrist('R') < 90 && wrist('L') < 90);
+  const elbowR = vm.camera.worldToLocal(rig.arms.R.fore.bone.getWorldPosition(new THREE.Vector3()));
+  const wristR = vm.camera.worldToLocal(rig.arms.R.hand.bone.getWorldPosition(new THREE.Vector3()));
+  check(`the forearms come in from the sides, level (${THREE.MathUtils.radToDeg(Math.atan2(Math.abs(elbowR.y - wristR.y), elbowR.x - wristR.x)).toFixed(0)}° off level)`, elbowR.x - wristR.x > 0.15 && Math.abs(elbowR.y - wristR.y) < 0.08);
+  vm.seanHands.strain = 1;
+  const a0 = wristR.clone();
+  play(0.11);
+  const a1 = vm.camera.worldToLocal(rig.arms.R.hand.bone.getWorldPosition(new THREE.Vector3()));
+  const e1 = edges();
+  check(`at full power they shake (${(a1.distanceTo(a0) * 1000).toFixed(1)} mm), still together`, a1.distanceTo(a0) > 0.0005 && Math.abs(e1.top - e.top) < 0.012);
+  vm.seanHands.strain = 0;
+  vm.seanHands.set('none');
+  play(1);
+  check('and back', vm.seanHands.flat < 0.02 && vm.seanHands.away < 0.01);
 }
 
 section('What Grab shows');
@@ -308,13 +486,18 @@ section('What Grab shows');
   f.step({ heavyHeld: true }, v.gatherEvery + 0.05);
   view.update(f.c, DT);
   check('a rock on its way shows', view.showing.lumps === 1 && view.showing.craters === 2);
-  f.step({ heavyHeld: true }, v.gatherFly);
+  f.step({ heavyHeld: true }, v.gatherFly * 0.4);
   view.update(f.c, DT);
   check('joined: a lump on the mass, and a ring round it', view.showing.lumps >= 1 && view.showing.aura);
   f.step({});
   f.step({}, v.grabRise);
   view.update(f.c, DT);
   check('thrown, it keeps its lumps', view.showing.rocks === 1 && view.showing.lumps >= 1 && !view.showing.aura);
+  const l = room();
+  l.step({ pitch: LOOK_DOWN, heavyPressed: true, heavyHeld: true });
+  l.step({ heavyHeld: true }, v.gatherJoin + 0.1);
+  view.update(l.c, DT);
+  check('lifted: not this one’s to draw', !view.showing.held && !view.showing.aura);
   const u = room(bare, true);
   u.step({});
   view.update(u.c, DT);

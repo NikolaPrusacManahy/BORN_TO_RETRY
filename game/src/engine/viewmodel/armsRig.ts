@@ -164,9 +164,9 @@ export class ArmsRig {
 
   /** Update 0.0.16 — opens a hand by `k` (0: closed, 1: open, fingers straight). Update 0.1.6 — closed into the
    *  punching fist, or round a handle of radius `grip` (m) leaning `tilt` (rad) in the fist by `hold` (0 … 1):
-   *  handPose.ts. Update 0.3.79 — `sign`: into the Playable Demon's hand sign (0 … 1). */
-  openHand(side: Side, k: number, grip = 0, hold = 0, tilt?: number, sign = 0) {
-    this.hands[side].pose(k, grip, hold, tilt, sign);
+   *  handPose.ts. Update 0.3.79 — `sign`: into the Playable Demon's hand sign (0 … 1). Update 0.3.89 — `flat`: fingers side by side (0 … 1). */
+  openHand(side: Side, k: number, grip = 0, hold = 0, tilt?: number, sign = 0, flat = 0) {
+    this.hands[side].pose(k, grip, hold, tilt, sign, flat);
   }
 
   /** Update 0.0.16 — where a hand is now (its wrist and its middle knuckle) and which way its back faces (world space

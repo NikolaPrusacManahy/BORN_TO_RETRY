@@ -331,6 +331,9 @@ export class Viewmodel {
     if (!rig) return;
     // The holder puts the model's eye at the camera.
     this.holder.position.add(this.toStrike.set(rig.eye.x, -rig.eye.y, rig.eye.z));
+    // (Update 0.3.89 — Gravity Sean's palms joined: the pair of them further off.)
+    this.holder.position.z -= this.seanHands.away;
+    this.holder.position.y -= this.seanHands.drop;
     const reach = Math.max(this.chest.weight, this.grip.weight);
     if (this.chest.weight > 0) this.chest.aimed();
     const armed = smooth(this.armedVis) * (1 - reach);
@@ -360,12 +363,12 @@ export class Viewmodel {
     if (handL > 0) mixArm(left, this.seanHands.pose(rig, 'L'), smooth(handL), left);
     this.gravity?.shake('L', left);
     if (reach > 0) this.chest.pull(rig, 'L', left, reach, this.grip, this.holder, this.camera);
-    rig.apply('L', left, v.wristBend + (1 - v.wristBend) * Math.max(palm, book, hands, pair, clasp, this.grip.bend('L'), handL), this.off.pole(pair, this.elbowL));
+    rig.apply('L', left, v.wristBend + (1 - v.wristBend) * Math.max(palm, book, hands, pair, clasp, this.grip.bend('L'), handL), this.seanHands.pole('L', this.off.pole(pair, this.elbowL)));
     // (Update 0.1.6 — a fist, or the fingers round a two-handed haft, its own handle or something an execution holds:
     // handPose.ts.)
     const moves = this.swordAnim.moves;
     const wrap = pair > 0 ? wrapOf(this.off.moves, this.flip) : hands > 0 ? moves.grip() : ROPE;
-    rig.openHand('L', Math.max(palm, handL, book * this.book.open('L'), this.grip.open('L'), pair * Math.max(RELEASE * this.off.anim.letGo, turnOpen(this.off.moves, this.flip))), wrap, Math.max(hands, pair) || this.grip.rope('L'), pair > 0 ? this.off.sword.tilt : this.swordPose.tilt);
+    rig.openHand('L', Math.max(palm, handL, book * this.book.open('L'), this.grip.open('L'), pair * Math.max(RELEASE * this.off.anim.letGo, turnOpen(this.off.moves, this.flip))), wrap, Math.max(hands, pair) || this.grip.rope('L'), pair > 0 ? this.off.sword.tilt : this.swordPose.tilt, 0, this.seanHands.flat);
     const right = fistArm(rig, this.anim, this.time, 'R', this.chargeVis, charge >= 1, armed, this.live.R);
     if (book > 0) {
       mixArm(right, this.book.pose(rig, 'R', this.bookPose), book, right);
@@ -384,9 +387,9 @@ export class Viewmodel {
       const handR = this.seanHands.weight.R;
       if (handR > 0) mixArm(right, this.seanHands.pose(rig, 'R'), smooth(handR), right);
       this.gravity?.shake('R', right);
-      rig.apply('R', right, v.wristBend + (1 - v.wristBend) * Math.max(clasp, this.grip.bend('R'), handR), this.block.pole(this.elbow.copy(GUARD.R.pole), blocking));
+      rig.apply('R', right, v.wristBend + (1 - v.wristBend) * Math.max(clasp, this.grip.bend('R'), handR), this.seanHands.pole('R', this.block.pole(this.elbow.copy(GUARD.R.pole), blocking)));
     }
-    rig.openHand('R', Math.max(this.seanHands.open, book * this.book.open('R'), this.grip.open('R'), held ? Math.max(RELEASE * this.swordAnim.letGo, turnOpen(moves, this.flip)) : 0), held ? wrapOf(moves, this.flip) : gun > 0 ? GUN_GRIP : ROPE, held ? armed : gun || this.grip.rope('R'), held ? this.swordPose.tilt : gun > 0 ? this.gun.tilt : undefined, held ? this.swordAnim.handSign : 0);
+    rig.openHand('R', Math.max(this.seanHands.open, book * this.book.open('R'), this.grip.open('R'), held ? Math.max(RELEASE * this.swordAnim.letGo, turnOpen(moves, this.flip)) : 0), held ? wrapOf(moves, this.flip) : gun > 0 ? GUN_GRIP : ROPE, held ? armed : gun || this.grip.rope('R'), held ? this.swordPose.tilt : gun > 0 ? this.gun.tilt : undefined, held ? this.swordAnim.handSign : 0, this.seanHands.flat);
     if (this.weapon) {
       // (Update 0.3.79 — and not with the Demon's sword put away.)
       this.weapon.visible = reach < 0.2 && !this.swordAnim.empty && this.swordAnim.swordGoing < 1;

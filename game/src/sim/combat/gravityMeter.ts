@@ -9,18 +9,19 @@ import type { EventQueue } from '../../core/eventQueue';
 
 /** Update 0.3.82 — how many pieces can be in the air, how many craters a floor keeps (the oldest goes). */
 export const ROCKS = 8;
-export const CRATERS = 24;
+export const CRATERS = 64;
 /** Update 0.3.86 — rocks on their way to what he holds, at most. */
-export const COMING = 6;
+export const COMING = 10;
 /** Update 0.3.85 — Time Stop: how many blows it holds, and how long both his palms are out as it goes (s). */
 export const STORED = 128;
 export const STOP_CAST = 0.35;
 
 /** What his hands are doing that isn't the fists' (viewmodel/seanHands.ts). */
-export type SeanHand = 'none' | 'reach' | 'palm' | 'wind' | 'raise' | 'sky';
+export type SeanHand = 'none' | 'reach' | 'palm' | 'wind' | 'raise' | 'join' | 'sky';
 
 /** A piece he's holding: big (a pillar) or small (a chunk of floor), its size now and as it was taken, how long held, where it came from and where it is.
- *  Update 0.3.86 — where its shield is (in front of you, however high the mass is drawn); how many rocks have joined it, how many have torn out, the wait for the next. */
+ *  Update 0.3.86 — how many rocks have joined it, how many have torn out, the wait for the next.
+ *  Update 0.3.89 — his palms have joined: it's lifted, floating over the arena; where it'd come down now. */
 export interface HeldPiece {
   big: boolean;
   r: number;
@@ -28,16 +29,33 @@ export interface HeldPiece {
   t: number;
   from: Vector3;
   at: Vector3;
-  guard: Vector3;
   gathered: number;
   torn: number;
   next: number;
+  lifted: boolean;
+  zone: Vector3;
+}
+
+/** Update 0.3.89 — the sphere coming down: how long so far and in all, where from, where it is, where it lands, how big, and all it'll do. */
+export interface Falling {
+  t: number;
+  time: number;
+  from: Vector3;
+  at: Vector3;
+  to: Vector3;
+  r: number;
+  k: number;
+  damage: number;
+  knock: number;
+  blast: number;
 }
 
 /** A rock flying in to join what's held. */
 export interface Coming {
   on: boolean;
   t: number;
+  /** How long it takes to get there (s). */
+  fly: number;
   from: Vector3;
   at: Vector3;
 }
@@ -131,6 +149,7 @@ export interface GravityState {
   dashing: boolean;
   /** Update 0.3.82 — Grab: what's held; what would be taken now (`pillar`: which, −1 the floor); its wait; what's flying; the floor's craters. */
   held: HeldPiece | null;
+  fall: Falling | null;
   coming: Coming[];
   aim: { pillar: number; x: number; y: number; z: number };
   grabWait: number;
@@ -161,7 +180,8 @@ export function createGravity(): GravityState {
     clash: 0,
     dashing: false,
     held: null,
-    coming: Array.from({ length: COMING }, () => ({ on: false, t: 0, from: new Vector3(), at: new Vector3() })),
+    fall: null,
+    coming: Array.from({ length: COMING }, () => ({ on: false, t: 0, fly: 1, from: new Vector3(), at: new Vector3() })),
     aim: { pillar: -1, x: 0, y: 0, z: 0 },
     grabWait: 0,
     rocks: Array.from({ length: ROCKS }, () => ({ alive: false, big: false, r: 0, lumps: 0, left: 0, damage: 0, knock: 0, blast: 0, blastDamage: 0, drop: 0, pos: new Vector3(), vel: new Vector3() })),
@@ -227,12 +247,14 @@ export function gravKill(state: Fed, big: boolean) {
   if (state.grav.unstable) state.grav.mend += big ? SEAN.v.mendBig : SEAN.v.mendKill;
 }
 
-/** Update 0.3.86 — how many rocks a piece can gather, and how far it's got (0 … 1). */
-export const gatherMax = () => Math.max(1, Math.floor(SEAN.v.gatherTime / SEAN.v.gatherEvery));
+/** Update 0.3.86 — how many rocks a piece can gather (the last's there as its time's up), and how far it's got (0 … 1). */
+export const gatherMax = () => Math.max(1, Math.floor((SEAN.v.gatherTime - SEAN.v.gatherFly) / SEAN.v.gatherEvery));
 export const gatherK = (h: HeldPiece) => Math.min(1, h.gathered / gatherMax());
+/** Update 0.3.89 — how far its landing reaches, gathered this far. */
+export const crashBlast = (k: number) => SEAN.v.gatherBlastFrom + (SEAN.v.gatherBlast - SEAN.v.gatherBlastFrom) * k;
 
-/** With this many rocks gathered, it takes both hands. */
-const BOTH_HANDS = 3;
+/** Update 0.3.89 — as it starts to come down, both palms push it. */
+const DROP_PUSH = 0.35;
 
 /** What his hands are doing now. */
 export function seanHand(g: GravityState): SeanHand {
@@ -240,8 +262,9 @@ export function seanHand(g: GravityState): SeanHand {
   if (g.shock >= 0) return 'wind';
   if (g.stop && g.stop.t < STOP_CAST) return 'raise';
   if (g.palm >= 0) return 'palm';
+  if (g.fall && g.fall.t < DROP_PUSH) return 'raise';
   if (!g.held) return 'none';
-  return g.held.gathered >= BOTH_HANDS ? 'raise' : 'reach';
+  return g.held.lifted ? 'join' : 'reach';
 }
 
 /** How much harder Unstable mode hits, now. */

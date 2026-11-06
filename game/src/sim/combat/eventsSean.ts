@@ -14,13 +14,17 @@ export type SeanEvent =
   // Grab, held: a rock tears out of the floor; it's reached the rest (value: how far it's gathered, 0 … 1).
   | 'seanTear'
   | 'seanGathered'
+  // Update 0.3.89 — his palms join; the sphere's let go, on its way down; it lands (value for both: how far it had gathered, 0 … 1; where: where it is, where it lands).
+  | 'seanJoin'
+  | 'seanDrop'
+  | 'seanCrash'
   // Update 0.3.82 — Grab: a piece taken (value: 1 big), a pillar torn out (value: which), thrown (value: 1 big), broken up (value: 1 big), a shot stopped.
   | 'seanGrab'
   | 'seanPillar'
   | 'seanThrow'
   | 'seanShatter'
   | 'seanBlock'
-  // Update 0.3.84 — Black Hole: in his palm, thrown, open, a tick of its damage (value: how much), its end. Shockwave Punch: drawn back; out (value: 1 on the ground; where: the end of its reach).
+  // Update 0.3.84 — Black Hole: in his palm, thrown, open (value: how long it'll run), a tick of its damage (value: how much), its end. Shockwave Punch: drawn back; out (value: 1 on the ground; where: the end of its reach).
   | 'seanHoleCharge'
   | 'seanHoleThrow'
   | 'seanHoleOpen'
