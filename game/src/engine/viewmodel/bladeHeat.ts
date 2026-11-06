@@ -1,7 +1,9 @@
 // Update 0.3.73 — the Playable Demon's heat, on its blade (the bible: "the edge glow gets brighter and longer and drips embers as heat rises"). Flames
 // licking off its edges, from the guard up, further the hotter it is; embers dropping off it. In the arms' scene, additive, nothing to sort. Made
 // in code. (How bright the blade itself burns: bladeTrail.ts's glow.)
+// Update 0.3.76 — and its light on your own arms, in their scene (the world's: demon/swordLight.ts).
 import * as THREE from 'three';
+import { DEMON } from '../../tuning/demon';
 
 const FLAMES = 16;
 const EMBERS = 28;
@@ -10,6 +12,10 @@ const EDGE = 0.13;
 const DRIP = 34;
 const LIFE = 0.8;
 const GRAVITY = 2.4;
+/** Its light on the arms: this far up the blade from the guard (m), how far it reaches, how much of its full brightness it has cold. */
+const LIGHT_UP = 0.15;
+const LIGHT_REACH = 3;
+const LIGHT_COLD = 0.2;
 
 const mat = new THREE.Matrix4();
 const pos = new THREE.Vector3();
@@ -29,11 +35,12 @@ export class BladeHeat {
   private readonly left = new Array<number>(EMBERS).fill(0);
   private due = 0;
   private time = 0;
+  readonly light = new THREE.PointLight(0xff8a3a, 0, LIGHT_REACH, 2);
 
   constructor(scene: THREE.Scene) {
     this.flames.frustumCulled = this.drops.frustumCulled = false;
     this.flames.count = this.drops.count = 0;
-    scene.add(this.flames, this.drops);
+    scene.add(this.flames, this.drops, this.light);
   }
 
   /** How many flames are on it, and embers off it (for the tests). */
@@ -60,6 +67,9 @@ export class BladeHeat {
     this.flames.count = n;
     if (n > 0) this.flames.instanceMatrix.needsUpdate = true;
     this.drip(dt, blade, on, root, long);
+    this.light.visible = DEMON.v.lightOn >= 1;
+    if (blade) this.light.position.set(0, root + LIGHT_UP, 0).applyMatrix4(blade);
+    this.light.intensity = blade ? DEMON.v.lightArms * (LIGHT_COLD + (1 - LIGHT_COLD) * heat) : 0;
   }
 
   private drip(dt: number, blade: THREE.Matrix4 | null, on: number, root: number, long: number) {
@@ -85,6 +95,8 @@ export class BladeHeat {
   }
 
   dispose() {
+    this.light.removeFromParent();
+    this.light.dispose();
     this.flames.removeFromParent();
     this.drops.removeFromParent();
     this.flames.dispose();

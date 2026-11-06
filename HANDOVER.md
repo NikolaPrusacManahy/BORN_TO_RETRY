@@ -2,9 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-06, after Update 0.3.75)
-- **Version 0.3.75** (how the Demon feels), built, **not committed** until the designer says "commit", nor are 0.3.70 to 0.3.74. 0.3.58 to 0.3.69 are committed; the designer pushes.
-- **The Playable Demon is under way** (`enemy_bibles/Born to Retry — Playable Demon.docx`, specs `MD_UPDATES/U0370_PLAYABLE_DEMON_1.md`, `U0371_BLAZING_ARC.md`, `U0372_DEMON_MOVES.md`, `U0373_DEMON_BIG_MOVES.md`, `U0374_DEMON_REWORK.md`, which overrides the bible on Q and right click, `U0375_DEMON_FEEL.md`): phases 1 to 3 are done, 4 all but its sword light. Next: that, alone (U0376), then 5 (balance). Waiting on the designer: floor 10 in public runs (the unlock can't be earned there while it's closed), Victory lap or Demon Mode, HP 100 or lower.
+## Where things stand (2026-11-06, after Update 0.3.76)
+- **Version 0.3.76** (the Demon's sword's light), built, **not committed** until the designer says "commit", nor are 0.3.70 to 0.3.75. 0.3.58 to 0.3.69 are committed; the designer pushes.
+- **The Playable Demon is under way** (`enemy_bibles/Born to Retry — Playable Demon.docx`, specs `MD_UPDATES/U0370_PLAYABLE_DEMON_1.md`, `U0371_BLAZING_ARC.md`, `U0372_DEMON_MOVES.md`, `U0373_DEMON_BIG_MOVES.md`, `U0374_DEMON_REWORK.md`, which overrides the bible on Q and right click, `U0375_DEMON_FEEL.md`, `U0376_SWORD_LIGHT.md`): phases 1 to 4 are done, 2 to 4 not fully played. If the sword's light costs frames (F1's Sword light, F2), it comes out. Next, when the designer says: phase 5 (balance). Waiting on the designer: floor 10 in public runs (the unlock can't be earned there while it's closed), Victory lap or Demon Mode, HP 100 or lower.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
   an ultimate with its own cancel. The Frost Roc, the Drowned King and the underwater Big Shark fight stay and are adapted
@@ -65,7 +65,11 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-06, Update 0.3.75: how the Demon feels)
+## Last update (2026-11-06, Update 0.3.76: the Demon's sword is a light)
+- The end of phase 4, alone so its frame rate can be judged: a warm light on the blade, in hand or thrown, brighter with heat and through a strike (`engine/demon/swordLight.ts`), and on your own arms. Only for the Demon, no shadow.
+- F1's Sword light (1, 0) is the comparison, against F2. Not seen or measured by me. Tests: `test-demon-feel.ts`.
+
+## Before (2026-11-06, Update 0.3.75: how the Demon feels)
 - Phase 4 but for the sword light: a freeze on every sword hit, heavy low footsteps with a dip of the view (only the Demon has any), ordinary enemies flinching or backing off as it nears (`sim/combat/presence.ts`), a forge hiss rising with heat.
 - Not heard or felt by me. Tests: `test-demon-feel.ts`.
 

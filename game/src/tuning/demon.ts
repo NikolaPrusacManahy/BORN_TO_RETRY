@@ -5,7 +5,7 @@
 // Ruin and its Plunge.
 // Update 0.3.73 — phase 3 (the designer: "start phase 3"): its heat, Forged from the Fallen, Blade Throw and Last Verdict.
 // Update 0.3.74 — the designer gave right click to the throw and chose no parry for it: Verdict Parry, its block and its counter-slash are gone.
-// Update 0.3.75 — phase 4 (the designer: "start phase 4"): how it feels.
+// Update 0.3.75 — phase 4 (the designer: "start phase 4"): how it feels. Update 0.3.76 — its sword's light.
 import { group, knob } from './schema';
 
 export const DEMON = group('demon', 'The Demon', {
@@ -117,4 +117,11 @@ export const DEMON = group('demon', 'The Demon', {
   presenceBack: knob(9, 0, 30, 0.5, 'Presence: back off', 'How hard they back away (m/s).'),
   presenceWait: knob(7, 0.5, 30, 0.5, 'Presence: wait', 'Seconds before the same enemy can lose its nerve again.'),
   hissVolume: knob(0.09, 0, 0.5, 0.01, 'Forge hiss', 'How loud the sword hisses at full heat. It rises with heat.'),
+
+  lightOn: knob(1, 0, 1, 1, 'Sword light', '1 on, 0 off: to compare the frame rate (F2). Each change makes the floor’s shaders build again: one stutter.'),
+  lightRest: knob(4, 0, 60, 0.5, 'Sword light: cold', 'How bright it is with no heat.'),
+  lightHeat: knob(26, 0, 200, 1, 'Sword light: heat', 'How much brighter at full heat.'),
+  lightFlare: knob(0.6, 0, 3, 0.05, 'Sword light: swing', 'How much brighter through a strike, times.'),
+  lightReach: knob(16, 3, 40, 0.5, 'Sword light: reach', 'How far it reaches (m).'),
+  lightArms: knob(0.25, 0, 2, 0.01, 'Sword light: on the arms', 'How bright it is on your own arms at full heat.'),
 });

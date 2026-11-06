@@ -7,6 +7,8 @@ import { DT, FlatWorld, ticks } from './fakes/flatWorld';
 import { forgeLevel, MoveSounds } from '../src/audio/moveSounds';
 import type { AudioEngine } from '../src/audio/audio';
 import { CameraRig } from '../src/engine/cameraRig';
+import { SwordLight } from '../src/engine/demon/swordLight';
+import { BladeHeat } from '../src/engine/viewmodel/bladeHeat';
 import { Look } from '../src/engine/look';
 import { bladeWindup, EMBER, landBlade, THROW } from '../src/sim/combat/bladeSwing';
 import { launchWave, plantBrand, stepDemonFire } from '../src/sim/combat/demonFire';
@@ -263,6 +265,72 @@ section('Its hiss (the bible: "a forge hiss as heat rises")');
   check(`full: ${d.hissVolume}, under what a wall run’s scrape is`, near(forgeLevel(1), d.hissVolume, 1e-9) && forgeLevel(1) <= 0.1);
   const run = readFileSync('src/engine/run.ts', 'utf8');
   check('only the Demon’s, not paused, not dead, not through Last Verdict', run.includes('this.sounds.setForge(this.combat.demon && !this.paused && !p.dead && !this.combat.blade.verdict ?'));
+}
+
+section('Its light (Update 0.3.76; the bible: "a warm point light on the blade lights the arena as you swing. Its brightness follows the heat meter")');
+{
+  const scene = new THREE.Scene();
+  const light = new SwordLight(scene);
+  const camera = new THREE.PerspectiveCamera();
+  camera.position.set(5, 2, 7);
+  const held = new THREE.Object3D();
+  held.position.set(0.2, -0.1, -0.4);
+  held.updateMatrixWorld(true);
+  const brightness = (heat: number, flare = 0) => {
+    const r = room([]);
+    r.c.blade.heat = heat;
+    light.update(r.c, held, flare, camera, 0);
+    return light.light.intensity;
+  };
+  check('in the scene, warm, casting no shadow', light.light.parent === scene && !light.light.castShadow && light.light.color.r > light.light.color.b);
+  check('alight even cold', brightness(0) > 0);
+  check('brighter with heat', brightness(0.5) > brightness(0) && brightness(1) > brightness(0.5));
+  check(`full: ${(brightness(1) / brightness(0)).toFixed(1)} times as bright as cold`, brightness(1) > brightness(0) * 4);
+  check('brighter through a strike', brightness(0.5, 1) > brightness(0.5));
+  const j = room([], false);
+  j.c.blade.heat = 1;
+  light.update(j.c, held, 1, camera, 0);
+  check('nothing for Joseph', light.light.intensity === 0);
+  const r = room([]);
+  light.update(r.c, held, 0, camera, 0);
+  check('on the blade in your hand, where you are', light.light.position.distanceTo(camera.position) < 2 && light.light.position.distanceTo(camera.position) > 0.3);
+  const before = light.light.position.clone();
+  camera.position.x += 10;
+  light.update(r.c, held, 0, camera, 0);
+  check('it comes with you', near(light.light.position.x - before.x, 10, 1e-6));
+  r.step({ heavyPressed: true });
+  r.step({}, bladeWindup(THROW) + DT);
+  r.step({}, 0.3);
+  light.update(r.c, null, 0, camera, 0);
+  check('thrown: it goes with the sword', light.light.position.distanceTo(r.c.blade.flying.pos) < 1e-6);
+  DEMON.v.lightOn = 0;
+  light.update(r.c, null, 0, camera, 0);
+  check('its switch: off', !light.light.visible);
+  DEMON.v.lightOn = 1;
+  light.update(r.c, null, 0, camera, 0);
+  check('and on', light.light.visible);
+  light.dispose();
+  check('gone with the level', light.light.parent === null);
+  const src = readFileSync('src/engine/combatScene.ts', 'utf8');
+  const made = src.indexOf('this.swordLight = new SwordLight(scene)');
+  const shown = src.indexOf('get loaded()');
+  check('made as the level loads: in place before its shaders are built', made > 0 && made < shown && src.includes('if (state.demon) this.swordLight = new SwordLight(scene)'));
+
+  // On your own arms.
+  const fireScene = new THREE.Scene();
+  const fire = new BladeHeat(fireScene);
+  const blade = new THREE.Matrix4();
+  fire.update(0.01, blade, 0, 0.3, 2.5);
+  const cold = fire.light.intensity;
+  fire.update(0.01, blade, 1, 0.3, 2.5);
+  check('on your arms too, with heat', cold > 0 && fire.light.intensity > cold * 3);
+  fire.update(0.01, null, 1, 0.3, 2.5);
+  check('not with it thrown', fire.light.intensity === 0);
+  DEMON.v.lightOn = 0;
+  fire.update(0.01, blade, 1, 0.3, 2.5);
+  check('its switch turns that off too', !fire.light.visible);
+  DEMON.v.lightOn = 1;
+  fire.dispose();
 }
 
 section('Nothing else of Joseph’s moved');

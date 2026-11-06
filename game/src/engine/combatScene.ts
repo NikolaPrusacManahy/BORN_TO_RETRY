@@ -47,6 +47,7 @@ import { RocFx } from './norse/rocFx';
 import { SharkFx } from './boss/sharkFx';
 import { WardenFx } from './hell/wardenFx';
 import { DemonFireView } from './demon/demonFireView';
+import { SwordLight } from './demon/swordLight';
 import { EchoesView } from './hell/echoesView';
 import { TideFx } from './moon/tideFx';
 import { ShrineFx } from './shrine/shrineFx';
@@ -105,6 +106,9 @@ export class CombatScene {
   private readonly wardenFx: WardenFx;
   /** Update 0.3.72 — the Demon's fire: made when you are the Demon. */
   private demonFire: DemonFireView | null = null;
+  /** Update 0.3.76 — its sword's light. In the scene from the start, when you're the Demon as the level loads: a light coming in later makes every shader build again. */
+  private swordLight: SwordLight | null = null;
+  private readonly arms: Viewmodel;
   private readonly world: THREE.Scene;
   private readonly echoes: EchoesView;
   private readonly tide: TideFx;
@@ -151,6 +155,8 @@ export class CombatScene {
     this.shots = new ShotsView(scene, state, this.blood);
     this.blows = new BlowsFx(scene, rig.camera);
     this.camera = rig.camera;
+    this.arms = arms;
+    if (state.demon) this.swordLight = new SwordLight(scene);
     this.execFx = new ExecFx(scene, rig);
     scene.add(HALOS.mesh);
     this.coins = new CoinsView(scene);
@@ -185,6 +191,8 @@ export class CombatScene {
     this.bossFx.update(state, gameDt);
     if (state.demon && !this.demonFire) this.demonFire = new DemonFireView(this.world);
     this.demonFire?.update(state, gameDt);
+    if (state.demon && !this.swordLight) this.swordLight = new SwordLight(this.world);
+    this.swordLight?.update(state, this.arms.heldWeapon, this.arms.swordAnim.flare, this.camera, gameDt);
     this.gun.update(state, gameDt);
     state.events.clear();
     this.targets.update(state, playerChest, gameDt);
@@ -288,6 +296,7 @@ export class CombatScene {
     this.sharkFx.dispose();
     this.wardenFx.dispose();
     this.demonFire?.dispose();
+    this.swordLight?.dispose();
     this.echoes.dispose();
     this.hives.dispose();
     this.blood.dispose();
