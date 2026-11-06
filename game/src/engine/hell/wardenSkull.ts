@@ -21,6 +21,9 @@ const smooth = (k: number) => {
 };
 const pulse = (age: number, life: number) => (age >= 0 && age < life ? 1 - age / life : 0);
 
+/** Update 0.3.66 — where its mask really is now (its middle, world), for the shot that looks at it (wardenCinema.ts), once it's been drawn. */
+export const WARDEN_FACE = { at: new THREE.Vector3(), on: false };
+
 const v0 = new THREE.Vector3();
 const v2 = new THREE.Vector3();
 const q0 = new THREE.Quaternion();
@@ -35,6 +38,9 @@ export class WardenSkull {
   private readonly skullHold = new Hold();
   private readonly skullAt = new THREE.Vector3();
   private readonly skullFrom = new THREE.Vector3();
+  private readonly middle = new THREE.Vector3();
+  private measured = false;
+  private eyeVertex = -1;
 
   /** Off the pile, up to its neck, its horns growing as it comes; then its own, the socket dark, the eye igniting. */
   update(e: Enemy, p: Parts, t: number, bake: (names: string[], to: THREE.Vector3) => THREE.Mesh | null, flyMat: () => THREE.MeshStandardMaterial | null) {
@@ -47,9 +53,15 @@ export class WardenSkull {
     const eye = t < s.eyeAt ? 0 : 1 + 3 * pulse(t - s.eyeAt, 0.5);
     u.uEye.value.set(eye, 0);
     u.uCrack.value = 0;
-    if (eye > 1) {
-      head.getWorldPosition(v0);
-      HALOS.add(v0.x, v0.y + 0.6, v0.z, 3 * (eye - 1), 0xffffff, 0.5 * (eye - 1));
+    // (Update 0.3.66 — where it really is; its flare just its eye's, not a blast over its whole face.)
+    this.measure(m, head);
+    WARDEN_FACE.at.copy(this.middle);
+    head.localToWorld(WARDEN_FACE.at);
+    WARDEN_FACE.on = true;
+    if (eye > 1 && this.eyeVertex >= 0) {
+      const k = (eye - 1) / 3;
+      m.getVertexPosition(this.eyeVertex, v0).applyMatrix4(m.matrixWorld);
+      HALOS.add(v0.x, v0.y, v0.z, 0.5 + 1.1 * k, 0xffffff, 0.35 + 0.65 * k);
     }
     if (t >= s.skullFrom && !this.skull) {
       this.skull = bake(['Hellwarden_Skull'], this.skullAt);
@@ -72,6 +84,23 @@ export class WardenSkull {
     this.skull.position.y += Math.sin(k * Math.PI) * 1.2;
     this.skull.quaternion.setFromAxisAngle(UP, (1 - k) * 2.6).multiply(q0);
     this.growHorns(k);
+  }
+
+  /** Once: its mask's middle in its head's frame, and a vertex of its lit eye. */
+  private measure(m: THREE.SkinnedMesh, head: THREE.Object3D) {
+    if (this.measured) return;
+    this.measured = true;
+    m.updateMatrixWorld(true);
+    const at = m.geometry.getAttribute('position');
+    const uv = m.geometry.getAttribute('uv');
+    const box = new THREE.Box3();
+    for (let i = 0; i < at.count; i++) {
+      m.getVertexPosition(i, v0).applyMatrix4(m.matrixWorld);
+      head.worldToLocal(v0);
+      box.expandByPoint(v0);
+      if (this.eyeVertex < 0 && uv.getX(i) >= 0.945 && uv.getY(i) >= 0.945 && at.getX(i) > 0) this.eyeVertex = i;
+    }
+    box.getCenter(this.middle);
   }
 
   private skullMat(from: THREE.MeshStandardMaterial): THREE.MeshStandardMaterial {
@@ -132,5 +161,6 @@ export class WardenSkull {
     this.skull = null;
     this.skullRest = null;
     this.hornSide = null;
+    WARDEN_FACE.on = false;
   }
 }

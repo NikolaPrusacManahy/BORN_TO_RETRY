@@ -25,6 +25,7 @@ import { WardenFx } from '../src/engine/hell/wardenFx';
 import { WardenCinema } from '../src/engine/hell/wardenCinema';
 import { LANDED as WARDEN_LANDED, SHOW_AIR as WARDEN_SHOW_AIR, SHOW_CROUCH as WARDEN_SHOW_CROUCH, SHOW_FORGE as WARDEN_SHOW_FORGE, SHOW_HEAT as WARDEN_SHOW_HEAT, SHOW_MASK as WARDEN_SHOW_MASK, SHOW_RISE as WARDEN_SHOW_RISE, SHOW_SLAM as WARDEN_SHOW_SLAM, SHOW_SWORD as WARDEN_SHOW_SWORD, SHOW_UNDER as WARDEN_SHOW_UNDER, wardenAt, wardenBeats, wardenDark, wardenFreezeGrey, wardenVeil, wardenWalls } from '../src/sim/dungeon/wardenShow';
 import { WARDEN_LOOK } from '../src/engine/hell/wardenLook';
+import { posedBounds } from '../src/engine/bodyMeasure';
 import type { WardenUniforms } from '../src/engine/hell/wardenShader';
 import { ThroneView } from '../src/engine/hell/throneView';
 import { ARC as WARDEN_ARC, BRAND as WARDEN_BRAND, VERDICT as WARDEN_VERDICT } from '../src/sim/enemies/wardenMoves';
@@ -571,13 +572,16 @@ if (kind === 'hellwarden') {
     showLight.grey = wardenFreezeGrey(wShown);
   }
   if (!wShown) showLight.veil = hv.fightSky;
+  // (Update 0.3.66 — scaled and placed as enemiesView.ts has it: its feet on the floor, not 0.3 m off it.)
+  const measured = posedBounds(root, gltf.animations.find((a: THREE.AnimationClip) => a.name === WARDEN_LOOK.clips.idle), new THREE.Box3());
   const mixer = new THREE.AnimationMixer(root);
   mixer.clipAction(gltf.animations.find((a: THREE.AnimationClip) => a.name === clipName)!).play();
   mixer.update(clipAt);
   const h = hv.height;
-  const sc0 = h / 2.01;
+  const sc0 = h / (measured.max.y - measured.min.y);
   root.scale.setScalar(sc0);
   root.position.copy(e.pos);
+  root.position.y -= measured.min.y * sc0;
   root.rotation.set(0, e.facing + Math.PI, 0);
   root.updateMatrixWorld(true);
   const scene = new THREE.Scene();
@@ -586,6 +590,13 @@ if (kind === 'hellwarden') {
   // (Its flights bake from the pose as it is, so a piece in flight needs its pose set first.)
   fx.update(combat, 0.016, () => root);
   scene.updateMatrixWorld(true);
+  // (Its shot again, now its mask's where it really is.)
+  if (beat in wShow) {
+    const wc = new WardenCinema(level);
+    wc.start(eye, new THREE.Vector3(-ex, 0, -ez));
+    wc.intro(wShow[beat], eye, shot);
+    wShot = { name: 'hw-show', at: shot.pos.toArray(), to: shot.look.toArray() };
+  }
   if (process.env.HW_WHERE) {
     const headAt = new THREE.Vector3();
     root.getObjectByName('Head')!.getWorldPosition(headAt);

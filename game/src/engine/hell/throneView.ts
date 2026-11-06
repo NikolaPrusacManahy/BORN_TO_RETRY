@@ -151,7 +151,7 @@ export class ThroneView implements ShowView {
   private readonly glow: THREE.Mesh;
   private readonly dust: ShowDust;
   private readonly emberGeo = new THREE.BufferGeometry();
-  private readonly emberMat = new THREE.PointsMaterial({ color: 0xffa040, size: 0.2, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending });
+  private readonly emberMat = new THREE.PointsMaterial({ map: auraTexture(), color: 0xffa040, size: 0.16, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending });
   private readonly embers: THREE.Points;
   private readonly seeds: Float32Array;
   private clock = 0;

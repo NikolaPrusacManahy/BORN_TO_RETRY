@@ -24,13 +24,17 @@ export const TWIN = 4;
 export const VERDICT = 5;
 export const THRUST = 6;
 export const ROAR = 7;
+/** Update 0.3.66 — risen, its Arc's second swing: the clip chained on the first's (engine/hell/wardenLook.ts). */
+export const ARC_TWO = 8;
 /** Its Arc reaches this far either side of its front (rad). */
 export const ARC_HALF = 1.75;
 /** A fire wall burns you this far off its line (m), and again after this long (s). */
 const WALL_WIDE = 0.9;
 const BURN_AGAIN = 0.7;
-/** Risen, its Arc swings twice, this long apart (s). */
-const ARC_AGAIN = 0.4;
+/** Risen, its Arc swings twice, this long apart (s; each divided by its pace): its first swing's clip plays out for this long, then its second's, whose blade lands at the second swing.
+ *  (Update 0.3.66: 0.4 s apart had no swing to show for it.) */
+const ARC_AGAIN = 0.72;
+const ARC_CHAIN = 0.33;
 /** Unseen, it's this far under the floor. */
 export const HIDDEN_AT = -8;
 
@@ -76,6 +80,7 @@ export function swingArc(e: Enemy, index: number, player: PlayerState, w: EnemyW
 /** One tick of its Arc after its first swing (risen, a second). True once it's done. */
 export function stepArc(e: Enemy, index: number, player: PlayerState, w: EnemyWorld): boolean {
   if (e.stage === 0 || e.shots >= 1) return true;
+  if (e.move === ARC && e.t >= ARC_CHAIN / paceOf(e)) e.move = ARC_TWO;
   if (e.t < ARC_AGAIN / paceOf(e)) return false;
   e.shots = 1;
   e.facing = yawTo(e, player.pos.x, player.pos.z);

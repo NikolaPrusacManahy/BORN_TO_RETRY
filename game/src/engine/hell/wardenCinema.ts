@@ -10,7 +10,7 @@ import { CLAMP_BOOTS, CLAMP_GAUNTLETS, CLAMP_HIPS, CLAMP_PAULDRONS, CLAMPS, claw
 import { HELLWARDEN } from '../../tuning/hellwarden';
 import type { DungeonLevel } from '../../world/dungeon/assemble';
 import type { Shot } from '../boss/cinema';
-import { PILE } from './wardenSkull';
+import { PILE, WARDEN_FACE } from './wardenSkull';
 
 /** Its door's shot: how fast the view comes round. */
 const TURN = 0.32;
@@ -42,10 +42,13 @@ const HEAT_ACROSS = 0.1;
 const SWORD_LONG = 4.9;
 /** Following the skull: toward you, across, up. */
 const SKULL_AT: readonly [number, number, number] = [7.6, 5.6, 1.5];
-/** Its face (m on its 6 m, its stance as its mask comes on): toward you, up. Close on it: this far off, across (to its lit eye's side), under. */
+/** Its face (m on its 6 m, its stance as its mask comes on; till it's drawn: WARDEN_FACE): toward you, up. Close on it: this far off, across (to its lit eye's side), under. */
 export const FACE: readonly [number, number] = [0.57, 5.4];
 const FACE_ACROSS = -0.38;
-const MASK_AT: readonly [number, number, number] = [1.45, 0.38, 0.05];
+const MASK_AT: readonly [number, number, number] = [1.3, 0.38, 0.05];
+/** That's for this field of view (vertical, degrees); no closer than this (m). */
+const MASK_VFOV = 67.7;
+const MASK_NEAREST = 0.95;
 /** Coming at you: this far toward you the view starts from its middle, this high; this far in front of your eyes as it stops. */
 const BACK_FROM = 9.5;
 const BACK_UP = 1.45;
@@ -79,6 +82,7 @@ export class WardenCinema {
   private readonly toYou = new THREE.Vector3();
   private readonly aside = new THREE.Vector3();
   private dist = 27;
+  private vfov = MASK_VFOV;
   private yaw0 = 0;
   private pitch0 = 0;
   endYaw = 0;
@@ -133,6 +137,7 @@ export class WardenCinema {
 
   /** The place shaking: its door, the river opening, the lava surging, every clang, its leap. Nothing through the freeze frame. */
   shake(camera: THREE.Camera, t: number) {
+    if (camera instanceof THREE.PerspectiveCamera) this.vfov = camera.fov;
     const s = wardenBeats();
     if (t >= s.freezeFrom && t < s.freezeTo) return;
     let amp = 1.1 * pulse(t - s.doorAt, 0.5);
@@ -259,8 +264,16 @@ export class WardenCinema {
   private mask(t: number, out: Shot): Shot {
     const s = wardenBeats();
     const k = smooth((t - s.skullAt) / Math.max(0.1, s.crouchFrom - s.skullAt));
-    this.place(out.pos, FACE[0] + MASK_AT[0] - 0.2 * k, FACE_ACROSS + MASK_AT[1], FACE[1] - MASK_AT[2]);
-    this.place(out.look, FACE[0], FACE_ACROSS + 0.02, FACE[1] + 0.02);
+    // On its mask where it really is: looking level at it, as it looks down over you.
+    if (WARDEN_FACE.on) at.copy(WARDEN_FACE.at);
+    else this.place(at, FACE[0], FACE_ACROSS, FACE[1]);
+    // (As big in the view whatever your field of view: closer the wider it is, short of its face.)
+    const wide = Math.tan(THREE.MathUtils.degToRad(MASK_VFOV / 2)) / Math.tan(THREE.MathUtils.degToRad(this.vfov / 2));
+    const off = Math.max(MASK_NEAREST, MASK_AT[0] * wide);
+    out.pos.copy(at).addScaledVector(this.toYou, off - 0.15 * k).addScaledVector(this.aside, MASK_AT[1] * Math.min(1, wide + 0.2));
+    out.pos.y -= MASK_AT[2];
+    out.look.copy(at).addScaledVector(this.aside, 0.02);
+    out.look.y += 0.02;
     return out;
   }
 

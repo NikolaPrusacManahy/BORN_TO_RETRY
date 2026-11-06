@@ -41,6 +41,45 @@ const smooth = (k: number) => {
 };
 const pulse = (age: number, life: number) => (age >= 0 && age < life ? (1 - age / life) ** 2 : 0);
 
+/** Update 0.3.66 — the bones it poses. The mixer only writes a bone when its clip's value changes, so where a clip holds still, last frame's pose is still there, and a turn turns it again:
+ *  its head, frame after frame, right round behind its collar (the designer: "he is supposed to have his skull face on here"). So each frame starts from the clip's pose. */
+const POSED = ['spine_02', 'neck_01', 'Head', 'upperarm_r', 'lowerarm_r', 'hand_r', 'upperarm_l', 'lowerarm_l', 'hand_l'];
+
+interface Held {
+  bone: THREE.Object3D;
+  clip: THREE.Quaternion;
+  posed: THREE.Quaternion;
+  on: boolean;
+}
+
+const heldOf = new WeakMap<THREE.Object3D, Held[]>();
+
+/** Back to the clip's pose: what the mixer's just written, or if it hasn't, what it wrote before it was posed. */
+function unpose(root: THREE.Object3D): Held[] {
+  let held = heldOf.get(root);
+  if (!held) {
+    held = [];
+    for (const name of POSED) {
+      const bone = root.getObjectByName(name);
+      if (bone) held.push({ bone, clip: new THREE.Quaternion(), posed: new THREE.Quaternion(), on: false });
+    }
+    heldOf.set(root, held);
+  }
+  for (const h of held) {
+    if (h.on && h.bone.quaternion.equals(h.posed)) h.bone.quaternion.copy(h.clip);
+    h.clip.copy(h.bone.quaternion);
+    h.on = false;
+  }
+  return held;
+}
+
+function remember(held: Held[]) {
+  for (const h of held) {
+    h.posed.copy(h.bone.quaternion);
+    h.on = true;
+  }
+}
+
 function limbOf(root: THREE.Object3D, n1: string, n2: string): Limb | null {
   const upper = root.getObjectByName(n1);
   const lower = root.getObjectByName(n2);
@@ -131,7 +170,7 @@ function poseShow(root: THREE.Object3D, e: Enemy, blade: BladeFrame | null) {
     if (armL) reach(armL, at(0.05, -0.4 + 0.06 * k, 0.68 - 0.1 * k), left(), FORE * size, false, 1);
   } else if ((e.move === SHOW_HEAT || e.move === SHOW_MASK) && blade) {
     // Its sword across it, drawn out through its left claws; it lets go of the pose as the skull comes.
-    const w = e.move === SHOW_HEAT ? smooth(e.t / 0.12) : 1 - smooth(e.t / 0.4);
+    const w = e.move === SHOW_HEAT ? smooth(e.t / 0.12) : 1 - smooth(e.t / 0.3);
     const k = heatShare(t);
     const long = blade.tip.length() * root.scale.y;
     const rightAt = new THREE.Vector3();
@@ -184,8 +223,11 @@ function aimY(bone: THREE.Object3D, target: THREE.Vector3, w: number) {
 export function poseWarden(root: THREE.Object3D, e: Enemy, blade: BladeFrame | null) {
   fw.set(-Math.sin(e.facing), 0, -Math.cos(e.facing));
   rt.set(Math.cos(e.facing), 0, -Math.sin(e.facing));
+  const held = unpose(root);
   if (e.phase === 'intro') {
+    root.updateMatrixWorld(true);
     poseShow(root, e, blade);
+    remember(held);
     return;
   }
   if (e.phase !== 'blast' || e.move !== VERDICT) return;
@@ -216,4 +258,5 @@ export function poseWarden(root: THREE.Object3D, e: Enemy, blade: BladeFrame | n
   handR.parent.getWorldQuaternion(parentQ);
   handR.quaternion.copy(parentQ.invert()).multiply(delta).multiply(handQ);
   root.updateMatrixWorld(true);
+  remember(held);
 }

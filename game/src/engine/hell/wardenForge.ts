@@ -173,7 +173,7 @@ export class WardenForge {
     on(['Hellwarden_Hips', 'Hellwarden_Cuisses'], CLAMP_HIPS);
     on(['Hellwarden_Torso', 'Hellwarden_Gorget'], CLAMP_CHEST);
     on(['Hellwarden_Pauldrons'], CLAMP_PAULDRONS);
-    const rim = smooth((t - s.riseFrom) / 1) * (1.15 - 0.5 * smooth((t - s.landAt + 0.2) / 0.2));
+    const rim = smooth((t - s.riseFrom) / 1) * (0.85 - 0.3 * smooth((t - s.landAt + 0.2) / 0.2));
     for (const u of p.uniforms.values()) u.uRim.value = rim;
     this.flyPieces(e, p, t);
     this.sword.update(e, p, t, tip, (names, to) => this.bake(p, names, -1, 0, to), () => this.flyMat, (at, when) => this.heatFlare(at, when));

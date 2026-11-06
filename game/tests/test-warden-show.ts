@@ -25,6 +25,12 @@ import type { Shot } from '../src/engine/boss/cinema';
 import { rockSpot, ROCKS } from '../src/engine/hell/throneRocks';
 import { RIVER_LONG, RIVER_WIDE, ThroneView } from '../src/engine/hell/throneView';
 import { FACE, WardenCinema } from '../src/engine/hell/wardenCinema';
+import { WardenFx } from '../src/engine/hell/wardenFx';
+import { WARDEN_LOOK } from '../src/engine/hell/wardenLook';
+import { EnemiesView } from '../src/engine/enemiesView';
+import { parseUntextured } from './fakes/glb';
+import { spawnEnemy } from '../src/sim/enemies/enemy';
+import { ARC, ARC_TWO, BRAND } from '../src/sim/enemies/wardenMoves';
 
 const v = HELLWARDEN.v;
 const s = wardenBeats();
@@ -241,6 +247,106 @@ section('Hellwarden’s show — what you see');
   const facing = new THREE.Vector3().subVectors(shot.look, shot.pos).normalize();
   const toBoss = new THREE.Vector3(b.portal.x - eye.x, 0, b.portal.z - eye.z).normalize();
   check('it ends in your eyes, facing it', shot.pos.distanceTo(eye) < 1e-6 && facing.x * toBoss.x + facing.z * toBoss.z > 0.85);
+}
+
+section('Hellwarden’s show — frame by frame, as the game draws it (Update 0.3.66)');
+{
+  // The designer: "he is supposed to have his skull face on here". Its head had turned a little further every frame its clip held still, right round behind its collar. A single posed frame
+  // (every still, and these tests till now) can't show that: this plays all of it.
+  const gltf = await parseUntextured(new URL('../public/models/enemies/hellwarden.glb', import.meta.url));
+  const scene = new THREE.Scene();
+  const view = new EnemiesView(scene, false, ['hellwarden']);
+  view.attach('hellwarden', gltf.scene, gltf.animations);
+  const fx = new WardenFx(scene);
+  const run = createDungeonRun(level);
+  const combat = createCombat(level.arena, false);
+  const st = bossRoomStart(level);
+  const p = createPlayer(st.x, 0, st.z, st.yaw);
+  p.grounded = true;
+  const rng = createRng(3);
+  const eye = new THREE.Vector3(st.x, 1.6, st.z);
+  const dir = new THREE.Vector3(-Math.sin(st.yaw), 0, -Math.cos(st.yaw));
+  const cin = new WardenCinema(level);
+  cin.start(eye, dir);
+  const shot: Shot = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
+  const cam = new THREE.PerspectiveCamera(67, 16 / 9, 0.05, 2000);
+  const at = new THREE.Vector3();
+  const seenAt: number[] = [];
+  let eyeOff = 9;
+  let faceOn = -9;
+  let skullY = 0;
+  let bodyOn = false;
+  let idleMoves = false;
+  for (let i = 0; i < ticks(s.landAt + 1) && run.boss.beat !== 'fight'; i++) {
+    stepRooms(run, p, combat, rng, DT);
+    updateEnemies(combat.enemies, p, combat, OPEN_WORLD, DT);
+    combat.events.clear();
+    if (run.boss.slot < 0 || i % 2) continue;
+    view.update(combat, 1, DT * 2);
+    fx.update(combat, DT * 2, (k) => view.rootOf(k));
+    const t = run.boss.t;
+    if (run.boss.beat !== 'intro' || t < s.skullAt + 0.02 || t > s.crouchFrom - 0.02) continue;
+    const root = view.rootOf(run.boss.slot)!;
+    root.updateMatrixWorld(true);
+    const skull = root.getObjectByName('Hellwarden_Skull') as THREE.SkinnedMesh;
+    bodyOn = skull.visible;
+    seenAt.push(root.getObjectByName('Head')!.getWorldPosition(at).y);
+    const pa = skull.geometry.getAttribute('position');
+    const uv = skull.geometry.getAttribute('uv');
+    let v0 = -1;
+    for (let k = 0; k < pa.count && v0 < 0; k++) if (uv.getX(k) >= 0.945 && uv.getY(k) >= 0.945 && pa.getX(k) > 0) v0 = k;
+    skull.getVertexPosition(v0, at).applyMatrix4(skull.matrixWorld);
+    skullY = at.y;
+    cin.intro(t, eye, shot);
+    cam.position.copy(shot.pos);
+    cam.lookAt(shot.look);
+    cam.updateMatrixWorld(true);
+    const n = at.clone().project(cam);
+    eyeOff = Math.min(eyeOff, 9) === 9 ? Math.max(Math.abs(n.x), Math.abs(n.y)) : Math.max(eyeOff, Math.abs(n.x), Math.abs(n.y));
+    const q = new THREE.Quaternion();
+    root.getObjectByName('Head')!.getWorldQuaternion(q);
+    const front = new THREE.Vector3(0, 0, 1).applyQuaternion(q);
+    const toView = new THREE.Vector3().subVectors(shot.pos, at).normalize();
+    faceOn = faceOn === -9 ? front.dot(toView) : Math.min(faceOn, front.dot(toView));
+  }
+  check('its mask is on', bodyOn);
+  check('its head stays up, on its shoulders, however long the shot', Math.min(...seenAt) > 4.6 && Math.max(...seenAt) < 5.6, `${Math.min(...seenAt).toFixed(2)}..${Math.max(...seenAt).toFixed(2)}`);
+  check('its eye where a face’s eye belongs', skullY > 4.9 && skullY < 5.9, skullY.toFixed(2));
+  check('the shot stays on its lit eye', eyeOff < 0.5, eyeOff.toFixed(2));
+  check('and on the front of its face, not the crown of its head', faceOn > 0.45, faceOn.toFixed(2));
+  // Its idle goes on: it was one action with its rise, played once, sped up, and stopped.
+  const root = view.rootOf(run.boss.slot)!;
+  const head = root.getObjectByName('Head')!;
+  const e = combat.enemies[run.boss.slot];
+  e.phase = 'chase';
+  e.move = 99;
+  e.cooldown = 99;
+  const tried = new THREE.Quaternion();
+  for (let i = 0; i < 40; i++) view.update(combat, 1, 0.1);
+  tried.copy(head.quaternion);
+  for (let i = 0; i < 3; i++) view.update(combat, 1, 0.1);
+  idleMoves = !tried.equals(head.quaternion);
+  check('its idle goes on moving, long after one play of it', idleMoves);
+  fx.dispose();
+  view.dispose();
+}
+
+section('Hellwarden’s moves — they look like what they do (Update 0.3.66)');
+{
+  // The designer: "like he is faking the swing". Sword_Heavy_B is a combo's second hit: it starts with the sword out, goes up, dips, goes up again.
+  const clips = WARDEN_LOOK.moveClips!;
+  check('its Arc opens on the opening swing', clips[`windup:${ARC}`][0] === 'Sword_Heavy_A' && clips[`recover:${ARC}`][0] === 'Sword_Heavy_A');
+  check('its blow falls in the middle of the sweep (Sword_Heavy_A sweeps from 0.30 s to 0.45 s of 0.73 s)', near((clips[`windup:${ARC}`][2] ?? 1) * 0.733, 0.4, 0.04));
+  check('its second swing, risen, is the second hit', clips[`dive:${ARC_TWO}`][0] === 'Sword_Heavy_B');
+  check('its Brand’s blow on its slam (0.41 s of 1.17 s)', near((clips[`windup:${BRAND}`][2] ?? 1) * 1.167, 0.41, 0.03));
+  const e = createCombat(level.arena, false);
+  const slot = spawnEnemy(e.enemies, 'hellwarden', new THREE.Vector3(0, 0, 0), 0);
+  const w = e.enemies[slot];
+  w.phase = 'dive';
+  w.move = BRAND;
+  check('its sword stays in the floor as long as the rules say it’s there', WARDEN_LOOK.clipAt!(w) === 0.41);
+  w.phase = 'windup';
+  check('not before', WARDEN_LOOK.clipAt!(w) === null);
 }
 
 section('The Throne of Cinders — drawn');

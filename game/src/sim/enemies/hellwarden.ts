@@ -14,7 +14,7 @@ import { Enemy, EnemyWorld, radiusOf, setPhase, turn, walk, yawTo } from './enem
 import { ENEMY_STATS } from './kinds';
 import { ultimateDue } from './ultimate';
 import { startEchoes, stepEchoes } from './wardenEchoes';
-import { ARC, bladesOut, BRAND, ECHOES, LUNGE, paceOf, plantBrand, ROAR, stepArc, stepBrand, stepWalls, swingArc, throwBlades, thrust, THRUST, TWIN, vanish, VERDICT } from './wardenMoves';
+import { ARC, ARC_TWO, bladesOut, BRAND, ECHOES, LUNGE, paceOf, plantBrand, ROAR, stepArc, stepBrand, stepWalls, swingArc, throwBlades, thrust, THRUST, TWIN, vanish, VERDICT } from './wardenMoves';
 import { startVerdict, stepVerdict } from './wardenVerdict';
 
 /** It stops walking this far from your body (m). */
@@ -161,7 +161,7 @@ export function updateHellwarden(e: Enemy, index: number, player: PlayerState, w
       break;
     }
     case 'dive':
-      if (e.move === ARC) {
+      if (e.move === ARC || e.move === ARC_TWO) {
         if (stepArc(e, index, player, w)) setPhase(e, 'recover');
       } else if (e.t >= v.brandPlanted / paceOf(e)) setPhase(e, 'recover');
       break;
@@ -182,6 +182,7 @@ export function updateHellwarden(e: Enemy, index: number, player: PlayerState, w
     case 'recover':
       e.facing = turn(e.facing, toward, v.turn * dt);
       if (e.t >= v.recover / paceOf(e)) {
+        if (e.move === ARC_TWO) e.move = ARC;
         setPhase(e, 'chase');
         e.cooldown = pauseOf(e);
       }
