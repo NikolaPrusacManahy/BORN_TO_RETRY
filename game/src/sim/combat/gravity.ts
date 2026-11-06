@@ -12,6 +12,7 @@ import { isLive, radiusOf } from '../enemies/enemy';
 import { launch } from '../enemies/flight';
 import { ENEMY_STATS } from '../enemies/kinds';
 import { damagePlayer } from '../player/health';
+import type { CollisionWorld } from '../collisionWorld';
 import type { PlayerState } from '../player/state';
 import type { Punch } from './fists';
 import { GravityState, instabFactor } from './gravityMeter';
@@ -131,6 +132,21 @@ export function shapePunch(g: GravityState, punch: Punch) {
     punch.radius = v.punchRadius;
   }
   g.clash = v.clashFor;
+}
+
+/** Update 0.3.86 — a punch of his has gone (`landed`: how far off it hit, or −1): what you see of it. Gravity Punch runs out to where it ended; any blow lands with a shock; the combo's third throws a little wave there. */
+export function punchWaves(state: CombatState, player: PlayerState, punch: Punch, landed: number, eye: Vector3, dir: Vector3, world: CollisionWorld) {
+  const g = state.grav;
+  const v = SEAN.v;
+  const last = punch.kind === 'finisher';
+  const far = landed >= 0 ? landed : Math.min(punch.reach, world.rayDistance(eye, dir, punch.reach));
+  const x = eye.x + dir.x * far;
+  const y = eye.y + dir.y * far;
+  const z = eye.z + dir.z * far;
+  if (!g.unstable) state.events.push('seanRipple', last ? 1 : 0, x, y, z);
+  // (Value: 1 the combo's third; 2 his fists.)
+  if (landed >= 0 || far < punch.reach) state.events.push('seanImpact', (last ? 1 : 0) + (g.unstable ? 2 : 0), x, y, z);
+  if (last && !g.unstable && v.punchShock > 0) gravBlast(state, x, Math.max(player.pos.y, y - 1), z, v.punchShock, v.punchShockDamage, v.punchShockKnock);
 }
 
 /** Ctrl on the ground, if it's been long enough. */

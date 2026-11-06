@@ -8,8 +8,12 @@ export type SeanEvent =
   | 'seanBlast'
   | 'seanSlam'
   | 'seanPull'
-  // Gravity Punch's ripple, out to where it ended (value: how far from the eye).
+  // Gravity Punch's ripple, out to where it ended (value: 1 the combo's third). Update 0.3.86 — any punch of his meeting something (value: 1 the combo's third; 2 his fists).
   | 'seanRipple'
+  | 'seanImpact'
+  // Grab, held: a rock tears out of the floor; it's reached the rest (value: how far it's gathered, 0 … 1).
+  | 'seanTear'
+  | 'seanGathered'
   // Update 0.3.82 — Grab: a piece taken (value: 1 big), a pillar torn out (value: which), thrown (value: 1 big), broken up (value: 1 big), a shot stopped.
   | 'seanGrab'
   | 'seanPillar'

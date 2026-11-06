@@ -74,6 +74,23 @@ export const SEAN = group('sean', 'Gravity Sean', {
   bigBlast: knob(3.5, 0.5, 12, 0.25, 'Big throw burst', 'How far its breaking up reaches (m).'),
   bigBlastDamage: knob(30, 0, 300, 1, 'Big throw burst damage', 'At its centre.'),
   rockLife: knob(3, 0.5, 10, 0.25, 'Throw life', 'It breaks up after this long, having hit nothing (s).'),
+  // Update 0.3.86 — Grab, right click held: more rocks (the designer: "gather more rocks up to 5 sec, you see rocks being gathered from random close area in the room and makes the attack bigger").
+  gatherTime: knob(5, 0.5, 15, 0.25, 'Gather time', 'Held this long, it’s at its biggest (s).'),
+  gatherEvery: knob(0.5, 0.1, 2, 0.05, 'Gather rate', 'One more rock tears out every this long (s).'),
+  gatherCrater: knob(0.55, 0.1, 4, 0.05, 'Gather crater', 'Radius of the hole each leaves (m): less than the first chunk’s, or they swallow the floor.'),
+  gatherNear: knob(4, 0.5, 15, 0.25, 'Gather from: nearest', 'How near you a rock can tear out (m).'),
+  gatherFar: knob(11, 1, 30, 0.5, 'Gather from: furthest', 'How far off (m).'),
+  gatherFly: knob(0.45, 0.05, 2, 0.05, 'Gather flight', 'How long a rock takes to get there (s).'),
+  gatherSize: knob(1.9, 0.2, 5, 0.05, 'Full size', 'Radius of the mass at its biggest (m).'),
+  gatherSpeed: knob(18, 5, 100, 1, 'Full throw speed', 'At its biggest it throws this fast (m/s).'),
+  gatherDamage: knob(240, 0, 2000, 5, 'Full damage', 'At its biggest this much is added to what it hits.'),
+  gatherKnock: knob(26, 0, 60, 1, 'Full knock', 'm/s.'),
+  gatherBlast: knob(8, 0.5, 25, 0.25, 'Full burst', 'How far it bursts, at its biggest (m).'),
+  gatherBlastDamage: knob(130, 0, 1000, 5, 'Full burst damage', 'At its centre, at its biggest.'),
+  // Gravity Punch's third.
+  punchShock: knob(2.5, 0, 10, 0.25, 'Gravity Punch third: wave', 'The third throws a shockwave this wide where it ends (m). 0: none.'),
+  punchShockDamage: knob(5, 0, 100, 1, 'Gravity Punch third: wave damage', 'At its centre.'),
+  punchShockKnock: knob(7, 0, 40, 0.5, 'Gravity Punch third: wave knock', 'm/s.'),
   // Update 0.3.84 — Unstable mode's right click: Black Hole, in his palm, thrown (the designer: "just holding it in his palm and throw it, gathering enemies that are not mini bosses, 7 sec cooldown").
   holeWait: knob(7, 0, 30, 0.25, 'Black Hole cooldown', 'From the throw (s).'),
   palmMin: knob(0.15, 0, 2, 0.05, 'Black Hole in hand', 'A tap: it forms for this long before it’s thrown (s).'),

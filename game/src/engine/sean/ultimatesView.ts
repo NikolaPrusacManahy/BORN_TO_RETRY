@@ -12,13 +12,15 @@ const FIRE = 0xffa040;
 const HOLE_R = 1.15;
 const ORB_R = 0.34;
 const OPEN_FOR = 0.3;
-/** The meteor: its size, a share of its zone's; where it starts over the zone (m). */
+/** The meteor: its size, a share of its zone's; where it starts over the zone: this far beyond it from you, this high (m). */
 const ROCK_SHARE = 0.37;
-const FROM = new THREE.Vector3(14, 46, 9);
+const FROM_FAR = 28;
+const FROM_UP = 36;
 /** Over the floor (m), so the zone doesn't flicker into it. */
 const ZONE_UP = 0.06;
 
 const inFront = new THREE.Vector3();
+const from = new THREE.Vector3();
 
 export class UltimatesView {
   private readonly group = new THREE.Group();
@@ -75,8 +77,8 @@ export class UltimatesView {
     this.group.position.set(h.x, h.y, h.z);
     this.ball.scale.setScalar(s);
     this.rim.scale.setScalar(s * 1.12);
-    this.disk.scale.setScalar(s);
-    this.disk2.scale.setScalar(s * 0.8);
+    this.disk.scale.setScalar(s * (0.45 + 0.55 * open));
+    this.disk2.scale.setScalar(s * 0.8 * (0.45 + 0.55 * open));
     this.disk.rotation.set(0.35, this.time * 2.4, 0.15);
     this.disk2.rotation.set(-0.5, -this.time * 3.3, 0.3);
   }
@@ -93,14 +95,15 @@ export class UltimatesView {
     if (!m.falling) return;
     const k = Math.min(1, (m.t - v.meteorAim) / Math.max(0.01, v.meteorFall));
     const fall = k * k;
-    inFront.set(m.x + FROM.x * (1 - fall), m.y + FROM.y * (1 - fall), m.z + FROM.z * (1 - fall));
+    from.set(m.dx * FROM_FAR, FROM_UP, m.dz * FROM_FAR);
+    inFront.set(m.x + from.x * (1 - fall), m.y + from.y * (1 - fall), m.z + from.z * (1 - fall));
     this.rock.position.copy(inFront);
     const rock = v.meteorRadius * ROCK_SHARE;
     this.rock.scale.setScalar(rock);
     this.rock.rotation.set(this.time * 2, this.time * 1.3, 0);
     // Its fire streams back the way it came.
     this.tail.position.copy(inFront);
-    this.tail.quaternion.setFromUnitVectors(THREE.Object3D.DEFAULT_UP, FROM.clone().normalize());
+    this.tail.quaternion.setFromUnitVectors(THREE.Object3D.DEFAULT_UP, from.normalize());
     this.tail.scale.set(rock * 0.95, 16 + 14 * k, rock * 0.95);
   }
 

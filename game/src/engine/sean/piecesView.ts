@@ -1,7 +1,8 @@
 // Update 0.3.82 — what Gravity Sean's Grab shows in the world (sim/combat/gravityGrab.ts). Made in code, placeholders: the piece he holds and those he's thrown, as rough stone; the craters
 // a chunk of floor leaves; the faint outline on what you could take (the bible: "grabbable objects get a faint outline when you aim at them").
+// Update 0.3.86 — held, the rocks flying in from round the room, each staying as a lump on the mass, which turns; a ring of gravity round it once it's growing. Thrown, it keeps its lumps.
 import * as THREE from 'three';
-import { ROCKS, CRATERS } from '../../sim/combat/gravityMeter';
+import { ROCKS, CRATERS, COMING, type Rock } from '../../sim/combat/gravityMeter';
 import type { CombatState } from '../../sim/combat/state';
 import { SEAN } from '../../tuning/sean';
 
@@ -13,6 +14,18 @@ const RING_UP = 0.04;
 /** How bright the outline is: on a pillar, on the floor (which is always there: fainter). */
 const ON_PILLAR = 0.55;
 const ON_FLOOR = 0.16;
+/** The lumps on a mass: at most this many on each; the share of its size the core takes up, how far out they sit, how big each is. */
+const LUMPS = 14;
+const CORE = 0.74;
+const LUMP_OUT = 0.78;
+const LUMP_SIZE = 0.32;
+/** A rock flying in (m). */
+const COMING_SIZE = 0.3;
+const LUMP_MAX = LUMPS * (ROCKS + 1) + COMING;
+/** The ring round a growing mass: its size, a share of the mass's. */
+const AURA = 1.32;
+/** Golden angle, for spreading lumps round a ball. */
+const TURN = Math.PI * (3 - Math.sqrt(5));
 
 /** A lump of stone: a sphere with its corners pushed about, the same each time. */
 function rockGeometry(): THREE.BufferGeometry {
@@ -33,16 +46,28 @@ function rockGeometry(): THREE.BufferGeometry {
   return g;
 }
 
+const m = new THREE.Matrix4();
+const q = new THREE.Quaternion();
+const e = new THREE.Euler();
+const at = new THREE.Vector3();
+const s = new THREE.Vector3();
+const ONE = new THREE.Quaternion();
+
 export class PiecesView {
   private readonly rockGeo = rockGeometry();
   private readonly stone = new THREE.MeshStandardMaterial({ color: STONE, roughness: 0.95, flatShading: true });
   private readonly held = new THREE.Mesh(this.rockGeo, this.stone);
   private readonly flying: THREE.Mesh[] = [];
+  private readonly lumps = new THREE.InstancedMesh(this.rockGeo, this.stone, LUMP_MAX);
+  private readonly auraGeo = new THREE.TorusGeometry(1, 0.03, 6, 48);
+  private readonly auraMat = new THREE.MeshBasicMaterial({ color: OUTLINE, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
+  private readonly aura = new THREE.Mesh(this.auraGeo, this.auraMat);
   private readonly craterGeo = new THREE.CircleGeometry(1, 20).rotateX(-Math.PI / 2);
   private readonly craterRimGeo = new THREE.RingGeometry(0.82, 1.14, 20).rotateX(-Math.PI / 2);
   private readonly craterMat = new THREE.MeshBasicMaterial({ color: 0x0b0908, transparent: true, opacity: 0.86, depthWrite: false });
   private readonly rimMat = new THREE.MeshStandardMaterial({ color: 0x3b352e, roughness: 1, transparent: true, opacity: 0.9, depthWrite: false });
-  private readonly craters: THREE.Group[] = [];
+  private readonly holes = new THREE.InstancedMesh(this.craterGeo, this.craterMat, CRATERS);
+  private readonly rims = new THREE.InstancedMesh(this.craterRimGeo, this.rimMat, CRATERS);
   private readonly outlineMat = new THREE.LineBasicMaterial({ color: OUTLINE, transparent: true, opacity: ON_PILLAR, depthWrite: false, toneMapped: false });
   private readonly boxLines = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1)), this.outlineMat);
   private readonly ringMat = new THREE.MeshBasicMaterial({ color: OUTLINE, transparent: true, opacity: ON_FLOOR, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
@@ -54,50 +79,86 @@ export class PiecesView {
     this.held.castShadow = true;
     scene.add(this.held);
     for (let i = 0; i < ROCKS; i++) {
-      const m = new THREE.Mesh(this.rockGeo, this.stone);
-      m.visible = false;
-      m.castShadow = true;
-      this.flying.push(m);
-      scene.add(m);
+      const r = new THREE.Mesh(this.rockGeo, this.stone);
+      r.visible = false;
+      r.castShadow = true;
+      this.flying.push(r);
+      scene.add(r);
     }
-    for (let i = 0; i < CRATERS; i++) {
-      const g = new THREE.Group();
-      g.add(new THREE.Mesh(this.craterRimGeo, this.rimMat), new THREE.Mesh(this.craterGeo, this.craterMat));
-      g.visible = false;
-      this.craters.push(g);
-      scene.add(g);
+    for (const list of [this.lumps, this.holes, this.rims]) {
+      list.count = 0;
+      list.frustumCulled = false;
     }
-    this.boxLines.visible = this.ring.visible = false;
-    scene.add(this.boxLines, this.ring);
+    this.lumps.castShadow = true;
+    this.boxLines.visible = this.ring.visible = this.aura.visible = false;
+    // (It turns round the upright, tilted.)
+    this.aura.rotation.order = 'YXZ';
+    scene.add(this.lumps, this.holes, this.rims, this.boxLines, this.ring, this.aura);
   }
 
   update(state: CombatState, dt: number) {
     const g = state.grav;
     this.spin += dt;
+    let n = 0;
     const h = g.held;
     this.held.visible = !!h;
+    this.aura.visible = !!h && h.gathered > 0;
     if (h) {
       this.held.position.copy(h.at);
-      this.held.scale.setScalar(h.r);
+      this.held.scale.setScalar(h.r * (h.gathered > 0 ? CORE : 1));
       this.held.rotation.set(this.spin * 0.7, this.spin * 0.45, 0);
+      n = this.onMass(n, h.at, h.r, h.gathered, this.spin * 0.7);
+      this.aura.position.copy(h.at);
+      this.aura.scale.setScalar(h.r * AURA);
+      this.aura.rotation.set(1.25 + 0.2 * Math.sin(this.spin), this.spin * 1.6, 0);
+    }
+    for (const c of g.coming) {
+      if (!c.on || n >= LUMP_MAX) continue;
+      e.set(this.spin * 5 + c.from.x, this.spin * 4 + c.from.z, 0);
+      this.lumps.setMatrixAt(n++, m.compose(c.at, q.setFromEuler(e), s.setScalar(COMING_SIZE)));
     }
     g.rocks.forEach((r, i) => {
-      const m = this.flying[i];
-      m.visible = r.alive;
-      if (!r.alive) return;
-      m.position.copy(r.pos);
-      m.scale.setScalar(r.r);
-      m.rotation.x += dt * 6;
-      m.rotation.z += dt * 4;
+      n = this.flown(n, r, this.flying[i], dt);
     });
-    g.craters.forEach((c, i) => {
-      const m = this.craters[i];
-      m.visible = c.on;
-      if (!c.on) return;
-      m.position.set(c.x, c.y + CRATER_UP, c.z);
-      m.scale.setScalar(c.r);
-    });
+    this.lumps.count = n;
+    this.lumps.instanceMatrix.needsUpdate = true;
+    let c = 0;
+    for (const k of g.craters) {
+      if (!k.on) continue;
+      at.set(k.x, k.y + CRATER_UP, k.z);
+      m.compose(at, ONE, s.setScalar(k.r));
+      this.holes.setMatrixAt(c, m);
+      this.rims.setMatrixAt(c, m);
+      c++;
+    }
+    this.holes.count = this.rims.count = c;
+    this.holes.instanceMatrix.needsUpdate = this.rims.instanceMatrix.needsUpdate = true;
     this.aimed(state);
+  }
+
+  /** The lumps on a mass, spread round it, turning with it. */
+  private onMass(n: number, centre: THREE.Vector3, r: number, count: number, turn: number): number {
+    const shown = Math.min(LUMPS, count);
+    for (let i = 0; i < shown && n < LUMP_MAX; i++) {
+      const y = 1 - ((i + 0.5) / LUMPS) * 2;
+      const round = Math.sqrt(Math.max(0, 1 - y * y));
+      const a = i * TURN + turn;
+      at.set(Math.cos(a) * round, y, Math.sin(a) * round).multiplyScalar(r * LUMP_OUT).add(centre);
+      e.set(i * 1.7 + turn, i * 2.3, 0);
+      this.lumps.setMatrixAt(n++, m.compose(at, q.setFromEuler(e), s.setScalar(r * LUMP_SIZE)));
+    }
+    return n;
+  }
+
+  /** One thrown. */
+  private flown(n: number, r: Rock, mesh: THREE.Mesh, dt: number): number {
+    mesh.visible = r.alive;
+    if (!r.alive) return n;
+    mesh.position.copy(r.pos);
+    mesh.scale.setScalar(r.r * (r.lumps > 0 ? CORE : 1));
+    mesh.rotation.x += dt * 6;
+    mesh.rotation.z += dt * 4;
+    return this.onMass(n, r.pos, r.r, r.lumps, mesh.rotation.x);
   }
 
   /** The faint outline on what you could take. */
@@ -119,13 +180,18 @@ export class PiecesView {
 
   /** (For the tests.) */
   get showing() {
-    return { held: this.held.visible, rocks: this.flying.filter((m) => m.visible).length, craters: this.craters.filter((m) => m.visible).length, onPillar: this.boxLines.visible, onFloor: this.ring.visible };
+    return { held: this.held.visible, rocks: this.flying.filter((r) => r.visible).length, craters: this.holes.count, onPillar: this.boxLines.visible, onFloor: this.ring.visible, lumps: this.lumps.count, aura: this.aura.visible };
   }
 
   dispose() {
-    this.scene.remove(this.held, this.boxLines, this.ring, ...this.flying, ...this.craters);
+    this.scene.remove(this.held, this.boxLines, this.ring, this.aura, this.lumps, this.holes, this.rims, ...this.flying);
     this.rockGeo.dispose();
     this.stone.dispose();
+    this.lumps.dispose();
+    this.holes.dispose();
+    this.rims.dispose();
+    this.auraGeo.dispose();
+    this.auraMat.dispose();
     this.craterGeo.dispose();
     this.craterRimGeo.dispose();
     this.craterMat.dispose();

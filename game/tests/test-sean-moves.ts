@@ -25,6 +25,7 @@ import { FISTS } from '../src/tuning/combat';
 import { SEAN } from '../src/tuning/sean';
 import { ArmsRig } from '../src/engine/viewmodel/armsRig';
 import { SEAN_ARMS_URL, Viewmodel } from '../src/engine/viewmodel/viewmodel';
+import { PunchView } from '../src/engine/sean/punchView';
 import type { Arena } from '../src/world/arena';
 
 const v = SEAN.v;
@@ -99,12 +100,49 @@ section('Gravity Sean — left click, by his stance');
   b.step({ attackPressed: true });
   check('Unstable, it’s up close: the far one’s untouched', away.hp === 5000 && near(5000 - close.hp, v.fistsDamage, 0.2));
   check('no ripple', !had(b.c, 'seanRipple'));
+  check('but its blow lands with a shock, marked as his fists', b.c.events.length > 0 && (() => {
+    for (let i = 0; i < b.c.events.length; i++) if (b.c.events.at(i).kind === 'seanImpact') return (b.c.events.at(i).value & 2) === 2;
+    return false;
+  })());
+  const whiff = room();
+  whiff.step({ attackPressed: true });
+  check('a Gravity Punch at nothing: it runs out, and lands on nothing', had(whiff.c, 'seanRipple') && !had(whiff.c, 'seanImpact'));
   const held = room();
   const dummy = foe(held.c, 0, -5);
   pin(held.c);
   held.step({ attackHeld: true }, 1);
   const hits = (5000 - dummy.hp) / v.punchDamage;
   check(`held, it keeps punching (about ${hits.toFixed(1)} a second's worth), slower than Joseph’s`, hits > 2 && hits < 1 / FISTS.v.jabInterval);
+}
+
+section('Gravity Punch — its third throws a shockwave');
+{
+  const r = room();
+  const e = foe(r.c, 0, -5);
+  const by = foe(r.c, 1.5, -5.5);
+  pin(r.c);
+  const kinds: number[] = [];
+  let blast = false;
+  for (let i = 0; i < ticks(2) && kinds.length < 3; i++) {
+    r.c.events.clear();
+    r.step({ attackHeld: true });
+    for (let k = 0; k < r.c.events.length; k++) {
+      if (r.c.events.at(k).kind === 'seanRipple') kinds.push(r.c.events.at(k).value);
+      if (r.c.events.at(k).kind === 'seanBlast') blast = true;
+    }
+  }
+  check(`the first two plain, the third bigger (${kinds.join(', ')})`, kinds.join() === '0,0,1');
+  check('its wave reaches what’s beside what it hit', by.hp < 5000 && blast);
+  check('what it hit takes it too', 5000 - e.hp > v.punchDamage * 2 + v.punchLast);
+  const off = room();
+  const was = v.punchShock;
+  v.punchShock = 0;
+  const f = foe(off.c, 0, -5);
+  const g2 = foe(off.c, 1.5, -5.5);
+  pin(off.c);
+  off.step({ attackHeld: true }, 1.5);
+  v.punchShock = was;
+  check('its knob off: none', g2.hp === 5000 && f.hp < 5000);
 }
 
 section('Gravity Fists — the last hit knocks back lightly');
@@ -397,4 +435,46 @@ section('Gravity on his arms');
   vm.setGravity(0, 0);
   play(0.1);
   check('as anyone else: all gone', !g.stones.visible && !g.arcs.visible && g.rings.every((r) => !r.visible));
+}
+
+section('A punch shows on his arm, and in the world');
+{
+  const scene = (await parseUntextured(new URL(`../public${SEAN_ARMS_URL}`, import.meta.url))).scene;
+  const vm = new Viewmodel(false);
+  vm.attach(ArmsRig.fromScene(scene));
+  vm.setLens(16 / 9);
+  const p = createPlayer(0, 0, 0, 0);
+  p.grounded = true;
+  const play = (secs: number) => {
+    for (let t = 0; t < secs; t += 1 / 120) vm.update(1 / 120, 1 / 120, 0, 0, p, -1);
+  };
+  vm.setGravity(1, 0);
+  play(0.2);
+  const g = vm.gravity!;
+  check('nothing thrown: no ring off the knuckles', !g.blasts.R.visible && g.kicked('R') === 0);
+  g.punch('R');
+  play(0.03);
+  check('thrown: a ring leaves that fist, its gravity kicked', g.blasts.R.visible && g.kicked('R') > 0.5 && !g.blasts.L.visible && g.kicked('L') === 0);
+  play(0.6);
+  check('and it settles', !g.blasts.R.visible && g.kicked('R') === 0);
+  const r = room();
+  const three = new THREE.Scene();
+  const cam = new THREE.PerspectiveCamera();
+  three.add(cam);
+  const view = new PunchView(three, cam);
+  foe(r.c, 0, -5);
+  pin(r.c);
+  r.step({ attackPressed: true });
+  view.update(r.c, DT);
+  check(`a Gravity Punch that lands: rings, a tube, flashes (${view.showing.waves}, ${view.showing.tubes}, ${view.showing.flashes})`, view.showing.waves >= 5 && view.showing.tubes === 1 && view.showing.flashes === 2);
+  r.c.events.clear();
+  view.update(r.c, 1);
+  check('then gone', view.showing.waves === 0 && view.showing.tubes === 0 && view.showing.flashes === 0);
+  r.c.grav.unstable = true;
+  r.c.grav.shockWait = 0;
+  r.step({ slamPressed: true });
+  r.step({}, v.shockWindup + DT);
+  view.update(r.c, DT);
+  check(`Shockwave Punch: far more (${view.showing.waves} rings, ${view.showing.tubes} tubes)`, view.showing.waves >= 13 && view.showing.tubes === 2);
+  view.dispose();
 }

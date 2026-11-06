@@ -17,6 +17,7 @@ import { FEEDBACK } from '../tuning/combat';
 import type { CameraRig } from './cameraRig';
 import type { Burst } from './fx/burst';
 import type { Shockwaves } from './fx/shockwave';
+import { CAMERA } from '../tuning/camera';
 import { ENEMIES } from '../tuning/enemies';
 import { FOES } from '../tuning/foes';
 import { foes2Feedback } from './foeFeedback';
@@ -28,6 +29,7 @@ import type { TargetsView } from './targetsView';
 import { Viewmodel } from './viewmodel/viewmodel';
 
 const at = new THREE.Vector3();
+const spot = new THREE.Vector3();
 const back = new THREE.Vector3();
 const UP = new THREE.Vector3(0, 1, 0);
 
@@ -90,6 +92,8 @@ export class CombatFeedback {
         case 'heavy': {
           const [side, style] = Viewmodel.styleFor(e.kind);
           this.f.arms.punch(side, style);
+          // (Update 0.3.86 — Gravity Sean's: the gravity on that arm goes with it.)
+          this.f.arms.gravity?.punch(side);
           break;
         }
         // Update 0.3.6 — right click pressed (barehanded): the right fist snaps up; a parry landed: it punches the shot.
@@ -164,6 +168,14 @@ export class CombatFeedback {
           this.f.arms.seanHands.strike();
           this.f.rig.shake.add(0.55);
           this.f.rig.kick(2);
+          // (On the ground, it tears along the floor.)
+          if (e.value === 1) {
+            for (let k = 1; k <= 4; k++) {
+              spot.lerpVectors(listener, at, k / 4);
+              spot.y = listener.y - CAMERA.v.eyeHeight;
+              this.f.chunks.spawn(spot, UP, 8, 1);
+            }
+          }
           break;
         case 'seanMeteorHit':
           this.f.chunks.spawn(at.set(at.x, at.y + 0.2, at.z), UP, 50, 2);
@@ -174,13 +186,32 @@ export class CombatFeedback {
           this.f.chunks.spawn(at, UP, e.value === 1 ? 26 : 14, 1);
           this.f.rig.shake.add(e.value === 1 ? 0.3 : 0.12);
           break;
+        // Update 0.3.86 — Grab, held: each rock's tearing out, and its joining the rest. Heavier as it grows.
+        case 'seanTear':
+          this.f.chunks.spawn(at, UP, 12, 0.9);
+          this.f.rig.shake.add(0.05);
+          break;
+        case 'seanGathered':
+          this.f.chunks.spawn(at, UP, 5, 0.6);
+          this.f.rig.shake.add(0.03 + 0.09 * e.value);
+          break;
+        // Gravity Punch's kick, the third's harder; a blow landing.
+        case 'seanRipple':
+          this.f.rig.kick(e.value === 1 ? 0.55 : 0.16);
+          if (e.value === 1) this.f.rig.shake.add(0.14);
+          break;
+        case 'seanImpact':
+          this.f.sparks.spawn(at, back, e.value & 1 ? 26 : 12, e.value & 1 ? 1.2 : 0.9);
+          if (e.value & 1) this.f.chunks.spawn(at, UP, 8, 0.8);
+          break;
         case 'seanThrow':
           this.f.arms.seanHands.shove();
           this.f.rig.kick(e.value === 1 ? 1 : 0.4);
           break;
         case 'seanShatter':
-          this.f.chunks.spawn(at, UP, e.value === 1 ? 30 : 12, 1.2);
-          this.f.rig.shake.add(e.value === 1 ? 0.25 : 0.06);
+          this.f.chunks.spawn(at, UP, e.value === 2 ? 70 : e.value === 1 ? 30 : 12, e.value === 2 ? 2 : 1.2);
+          this.f.rig.shake.add(e.value === 2 ? 0.7 : e.value === 1 ? 0.25 : 0.06);
+          if (e.value === 2) this.f.rig.kick(1.6);
           break;
         case 'seanSlam':
           this.f.arms.slam.start();

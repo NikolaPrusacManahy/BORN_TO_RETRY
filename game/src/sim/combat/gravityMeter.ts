@@ -9,7 +9,9 @@ import type { EventQueue } from '../../core/eventQueue';
 
 /** Update 0.3.82 — how many pieces can be in the air, how many craters a floor keeps (the oldest goes). */
 export const ROCKS = 8;
-export const CRATERS = 12;
+export const CRATERS = 24;
+/** Update 0.3.86 — rocks on their way to what he holds, at most. */
+export const COMING = 6;
 /** Update 0.3.85 — Time Stop: how many blows it holds, and how long both his palms are out as it goes (s). */
 export const STORED = 128;
 export const STOP_CAST = 0.35;
@@ -17,20 +19,41 @@ export const STOP_CAST = 0.35;
 /** What his hands are doing that isn't the fists' (viewmodel/seanHands.ts). */
 export type SeanHand = 'none' | 'reach' | 'palm' | 'wind' | 'raise' | 'sky';
 
-/** A piece he's holding: big (a pillar) or small (a chunk of floor), its size, how long held, where it came from and where it is. */
+/** A piece he's holding: big (a pillar) or small (a chunk of floor), its size now and as it was taken, how long held, where it came from and where it is.
+ *  Update 0.3.86 — where its shield is (in front of you, however high the mass is drawn); how many rocks have joined it, how many have torn out, the wait for the next. */
 export interface HeldPiece {
   big: boolean;
   r: number;
+  base: number;
+  t: number;
+  from: Vector3;
+  at: Vector3;
+  guard: Vector3;
+  gathered: number;
+  torn: number;
+  next: number;
+}
+
+/** A rock flying in to join what's held. */
+export interface Coming {
+  on: boolean;
   t: number;
   from: Vector3;
   at: Vector3;
 }
 
+/** What he's thrown. Update 0.3.86 — all it does, set by how much it gathered. */
 export interface Rock {
   alive: boolean;
   big: boolean;
   r: number;
+  lumps: number;
   left: number;
+  damage: number;
+  knock: number;
+  blast: number;
+  blastDamage: number;
+  drop: number;
   pos: Vector3;
   vel: Vector3;
 }
@@ -85,6 +108,9 @@ export interface Meteor {
   y: number;
   z: number;
   falling: boolean;
+  /** Update 0.3.86 — the way from you to the zone (flat, length 1), for the view: it comes down from beyond it, where you can see it. */
+  dx: number;
+  dz: number;
 }
 
 export interface GravityState {
@@ -103,6 +129,7 @@ export interface GravityState {
   dashing: boolean;
   /** Update 0.3.82 — Grab: what's held; what would be taken now (`pillar`: which, −1 the floor); its wait; what's flying; the floor's craters. */
   held: HeldPiece | null;
+  coming: Coming[];
   aim: { pillar: number; x: number; y: number; z: number };
   grabWait: number;
   rocks: Rock[];
@@ -131,9 +158,10 @@ export function createGravity(): GravityState {
     clash: 0,
     dashing: false,
     held: null,
+    coming: Array.from({ length: COMING }, () => ({ on: false, t: 0, from: new Vector3(), at: new Vector3() })),
     aim: { pillar: -1, x: 0, y: 0, z: 0 },
     grabWait: 0,
-    rocks: Array.from({ length: ROCKS }, () => ({ alive: false, big: false, r: 0, left: 0, pos: new Vector3(), vel: new Vector3() })),
+    rocks: Array.from({ length: ROCKS }, () => ({ alive: false, big: false, r: 0, lumps: 0, left: 0, damage: 0, knock: 0, blast: 0, blastDamage: 0, drop: 0, pos: new Vector3(), vel: new Vector3() })),
     craters: Array.from({ length: CRATERS }, () => ({ on: false, x: 0, y: 0, z: 0, r: 0 })),
     nextCrater: 0,
     palm: -1,
@@ -193,13 +221,21 @@ export const worldHeld = (g: GravityState) => g.stop !== null || g.meteor !== nu
 /** A kill of his. */
 export const gravKill = (state: Fed) => addUlt(state, SEAN.v.ultKill);
 
+/** Update 0.3.86 — how many rocks a piece can gather, and how far it's got (0 … 1). */
+export const gatherMax = () => Math.max(1, Math.floor(SEAN.v.gatherTime / SEAN.v.gatherEvery));
+export const gatherK = (h: HeldPiece) => Math.min(1, h.gathered / gatherMax());
+
+/** With this many rocks gathered, it takes both hands. */
+const BOTH_HANDS = 3;
+
 /** What his hands are doing now. */
 export function seanHand(g: GravityState): SeanHand {
   if (g.meteor) return 'sky';
   if (g.shock >= 0) return 'wind';
   if (g.stop && g.stop.t < STOP_CAST) return 'raise';
   if (g.palm >= 0) return 'palm';
-  return g.held ? 'reach' : 'none';
+  if (!g.held) return 'none';
+  return g.held.gathered >= BOTH_HANDS ? 'raise' : 'reach';
 }
 
 /** How much harder Unstable mode hits, now. */

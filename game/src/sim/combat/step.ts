@@ -53,7 +53,7 @@ import { bladeAway, blinkToBlade, regainBlade, stepThrown } from './bladeThrow';
 import { stepDemonFire } from './demonFire';
 import { feedOnFallen, landPlunge, stepLunge, tickCleave, tickDemon, tryBrand } from './demonMoves';
 import { addHeat } from './heat';
-import { landPlunge as landSeanPlunge, punchRate, shapePunch, stepDashPull, switchStance, tickGravity, trySeanSlam } from './gravity';
+import { landPlunge as landSeanPlunge, punchRate, punchWaves, shapePunch, stepDashPull, switchStance, tickGravity, trySeanSlam } from './gravity';
 import { dropPiece, stepRocks, stepSeanGrab } from './gravityGrab';
 import { dropPalm, slowBosses, stepHole, stepPalm } from './gravityHole';
 import { stepShock, tryShock } from './gravityShock';
@@ -298,7 +298,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
       tryShock(state, player, intent.slamPressed && !clasped);
     } else {
       dropPalm(state);
-      stepSeanGrab(state, player, intent.heavyPressed, intent.yaw, intent.pitch, world, dt);
+      stepSeanGrab(state, player, intent.heavyPressed, intent.heavyHeld, intent.yaw, intent.pitch, world, dt);
       trySeanSlam(state, player, intent.slamPressed && !clasped);
     }
     stepShock(state, player, intent.yaw, intent.pitch, dt);
@@ -360,11 +360,8 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   if (swung) {
     aim(player, intent.yaw, intent.pitch, eye, dir);
     const landed = resolvePunch(punch, state, eye, dir, world);
-    // (Update 0.3.81 — Gravity Punch: you see it run out to where it ended.)
-    if (sean && !state.grav.unstable) {
-      const far = landed >= 0 ? landed : Math.min(punch.reach, world.rayDistance(eye, dir, punch.reach));
-      events.push('seanRipple', far, eye.x + dir.x * far, eye.y + dir.y * far, eye.z + dir.z * far);
-    }
+    // (Update 0.3.86 — Gravity Sean's: you see it go, and land.)
+    if (sean) punchWaves(state, player, punch, landed, eye, dir, world);
     const smash = w !== null && punch.kind === 'pierce' && SMASHES[w.kind];
     if (smash) startWave(state, player, dir, world);
     if ((landed >= 0 || smash) && w && (punch.kind === 'slash' || punch.kind === 'pierce')) {

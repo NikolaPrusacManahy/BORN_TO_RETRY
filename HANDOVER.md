@@ -2,9 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-06, after Update 0.3.85)
-- **Version 0.3.85** (Gravity Sean's Time Stop), built, **not committed** until the designer says "commit", nor are 0.3.81 to 0.3.84. 0.3.58 to 0.3.80 are committed; the designer pushes.
-- **Gravity Sean** (`enemy_bibles/Born to Retry — Gravity Sean.docx`, specs `MD_UPDATES/U0380_GRAVITY_SEAN.md`, `U0381_SEAN_STANCES.md`, `U0382_SEAN_GRAB.md`, `U0383_SEAN_ULTIMATES.md`, `U0384_SEAN_UNSTABLE.md`, `U0385_SEAN_TIME_STOP.md`): the space suit, earned by winning a whole run on any difficulty. His kit is in, placeholders throughout, and being reworked by the designer, which overrides the bible (Fling is gone; Black Hole's on right click, thrown). Nothing's been played, and the look of his moves in the world hasn't been seen at all: renders cover only his arms. To decide with the designer: hover on held jump, and Unstable's dash pulling to an enemy, both taken as placeholders.
+## Where things stand (2026-11-06, after Update 0.3.86)
+- **Version 0.3.86** (Gravity Sean: Grab gathers rocks, punches with shockwaves), built, **not committed** until the designer says "commit", nor are 0.3.81 to 0.3.85. 0.3.58 to 0.3.80 are committed; the designer pushes.
+- **Gravity Sean** (`enemy_bibles/Born to Retry — Gravity Sean.docx`, specs `MD_UPDATES/U0380_GRAVITY_SEAN.md`, `U0381_SEAN_STANCES.md`, `U0382_SEAN_GRAB.md`, `U0383_SEAN_ULTIMATES.md`, `U0384_SEAN_UNSTABLE.md`, `U0385_SEAN_TIME_STOP.md`, `U0386_SEAN_GATHER_PUNCHES.md`): the space suit, earned by winning a whole run on any difficulty. His kit is in, placeholders throughout, and being reworked by the designer, which overrides the bible (Fling is gone; Black Hole's on right click, thrown). Nothing's been played, and his moves in the world have only been seen as plain meshes, with no glow (`tools/sean-world-shots.ts`). To decide with the designer: hover on held jump, and Unstable's dash pulling to an enemy, both taken as placeholders.
 - **The Playable Demon is under way** (`enemy_bibles/Born to Retry — Playable Demon.docx`, specs `MD_UPDATES/U0370_PLAYABLE_DEMON_1.md`, `U0371_BLAZING_ARC.md`, `U0372_DEMON_MOVES.md`, `U0373_DEMON_BIG_MOVES.md`, `U0374_DEMON_REWORK.md`, which overrides the bible on Q and right click, `U0375_DEMON_FEEL.md`, `U0376_SWORD_LIGHT.md`, `U0378_MODE_SWITCH.md`, which replaces its Hold left click, `U0379_HAND_SIGN.md`): phases 1 to 4 are done. The sword's light is stable on the designer's PC ("perfectly stable"), and stays. The forge hiss is out, on their word. Next, when the designer says: phase 5 (balance). Waiting on the designer: floor 10 in public runs (the unlock can't be earned there while it's closed), Victory lap or Demon Mode, HP 100 or lower.
 - **Boss work now follows the Boss Design Bible** (`enemy_bibles/Born to Retry — Boss Design Bible.docx`, the designer's,
   2026-11-05: "This is how we will work away with bosses"): a lesson per boss, tell-attack-punish, phase 2 at half health,
@@ -66,7 +66,13 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   7. Commit only when the designer says "commit": `.claude/session-tools/commit_updates.sh <scratchpad> <vers…>`,
      then `git reset -q <hash>` in the worktree.
 
-## Last update (2026-11-06, Update 0.3.85: Gravity Sean's Time Stop)
+## Last update (2026-11-06, Update 0.3.86: Gravity Sean: Grab gathers rocks, punches with shockwaves)
+- The designer's: right click held gathers rocks from random spots near him for up to 5 s, each with its crater, the throw growing to +240 damage and an 8 m burst. My call: letting go throws it, replacing the bible's second press, so right click has one rule in both stances.
+- Gravity Punch has a tube of pressure and rings down it, a ring off the knuckles, the pebbles flung along his arm; any blow lands with a flash and rings; the combo's third is bigger and throws a little real shockwave (2.5 m, 5 damage).
+- `tools/sean-world-shots.ts` renders his moves in a plain world. It found a mass that hid your aim, a flash that filled the view, a thrown hole's disk out of scale and a meteor coming down out of sight: all fixed.
+- Tests: `test-sean-grab.ts`, `test-sean-moves.ts`. Not played by me; the renders show size and place, not glow.
+
+## Before (2026-11-06, Update 0.3.85: Gravity Sean's Time Stop)
 - The designer's new ultimate for normal mode: everything but him stops for 5 s, bosses too, and every hit of his is held back, the enemy unfazed. When it ends each target takes one blow, the sum of them all, undodgeable.
 - Held back in `landHit`, so all his moves store. `stepCombat` returns early after his own moves, and `run.ts` holds the rooms' loop. Enemies' clips stop while the world's held, which also fixes them running on the spot through Meteor.
 - Tests: `test-sean-stop.ts`. Not played by me; its shell and dust have never been seen.

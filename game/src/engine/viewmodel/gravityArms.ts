@@ -25,6 +25,16 @@ const HOT = new THREE.Color(0xff2fd0);
 const WHITE = new THREE.Color(0xfff2ff);
 /** Times a second an arc's redrawn, and the rings snap. */
 const CRACKLE = 26;
+/** Update 0.3.86 — a punch: how fast the kick settles (per second); how much bigger it makes the rings and the pebbles' orbits, how far on it throws them (a share of the forearm). */
+const KICK_FADE = 9;
+const KICK_RING = 0.7;
+const KICK_OUT = 1;
+const KICK_ALONG = 0.22;
+/** The ring off the knuckles: how long (s), how far out it goes, its sizes (m). */
+const BLAST_LIFE = 0.2;
+const BLAST_OUT = 0.1;
+const BLAST_FROM = 0.03;
+const BLAST_TO = 0.13;
 /** Update 0.3.84 — Black Hole on his palm: how far from wrist to knuckle, how far off the palm (m), its size (m). */
 const PALM_ALONG = 0.8;
 const PALM_OFF = 0.07;
@@ -70,6 +80,11 @@ export class GravityArms {
   private readonly orbRimMat = new THREE.MeshBasicMaterial({ color: COOL, transparent: true, opacity: 0.7, side: THREE.BackSide, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
   readonly orb = new THREE.Mesh(this.orbGeo, this.orbMat);
   private readonly orbRim = new THREE.Mesh(this.orbGeo, this.orbRimMat);
+  /** Update 0.3.86 — a punch: the gravity on that arm goes with it, and a ring leaves its knuckles. */
+  private readonly kick: Record<Side, number> = { L: 0, R: 0 };
+  private readonly blastAge: Record<Side, number> = { L: 1, R: 1 };
+  private readonly blastMat = new THREE.MeshBasicMaterial({ color: COOL, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
+  readonly blasts: Record<Side, THREE.Mesh> = { L: new THREE.Mesh(this.ringGeo, this.blastMat), R: new THREE.Mesh(this.ringGeo, this.blastMat) };
   private time = 0;
   private crackle = 0;
   private mode: GravityMode = 0;
@@ -94,7 +109,9 @@ export class GravityArms {
     this.arcs.visible = false;
     this.orb.visible = this.orbRim.visible = false;
     this.orb.frustumCulled = this.orbRim.frustumCulled = false;
-    scene.add(this.stones, this.arcs, this.orb, this.orbRim, ...this.rings);
+    this.blasts.L.visible = this.blasts.R.visible = false;
+    this.blasts.L.frustumCulled = this.blasts.R.frustumCulled = false;
+    scene.add(this.stones, this.arcs, this.orb, this.orbRim, this.blasts.L, this.blasts.R, ...this.rings);
   }
 
   /** The stance, and the meter. */
@@ -115,6 +132,18 @@ export class GravityArms {
     out.fist.z += d * Math.sin(t * 0.9 + s * 3);
   }
 
+  /** A punch from this arm. */
+  punch(side: Side) {
+    if (this.mode === 0) return;
+    this.kick[side] = 1;
+    this.blastAge[side] = 0;
+  }
+
+  /** How hard the last punch still has this arm's gravity (for the tests). */
+  kicked(side: Side) {
+    return this.kick[side];
+  }
+
   /** How many arcs are drawn (for the tests). */
   get crackling() {
     return this.arcGeo.drawRange.count;
@@ -124,6 +153,7 @@ export class GravityArms {
   update(dt: number, rig: ArmsRig, eye: THREE.Vector3, palm = 0) {
     this.time += dt;
     this.onPalm(rig, palm);
+    this.blowOff(rig, dt);
     const on = this.mode > 0;
     this.wild += ((this.mode === 2 ? 1 : 0) - this.wild) * (1 - Math.exp(-14 * dt));
     if (this.mode === 2 && this.wild > 0.995) this.wild = 1;
@@ -150,8 +180,8 @@ export class GravityArms {
       axis.multiplyScalar(1 / long);
       u.set(0.3, 1, 0.2).cross(axis).normalize();
       w.crossVectors(axis, u);
-      this.place(k, long, snap);
-      n = this.pebbles(n, k, long);
+      this.place(k, long, snap, this.kick[side]);
+      n = this.pebbles(n, k, long, this.kick[side]);
     });
     this.stones.count = n;
     this.stones.instanceMatrix.needsUpdate = true;
@@ -172,14 +202,36 @@ export class GravityArms {
     this.orbRim.scale.setScalar(s * 1.3);
   }
 
+  /** The ring off each arm's knuckles as it punches, out along where it faces, and the gravity on the arm settling. */
+  private blowOff(rig: ArmsRig, dt: number) {
+    let bright = 0;
+    for (const side of SIDES) {
+      this.kick[side] *= Math.exp(-KICK_FADE * dt);
+      if (this.kick[side] < 0.01) this.kick[side] = 0;
+      this.blastAge[side] += dt / BLAST_LIFE;
+      const age = this.blastAge[side];
+      const m = this.blasts[side];
+      m.visible = this.mode > 0 && age < 1;
+      if (!m.visible) continue;
+      rig.handFrame(side, a, b, u);
+      seg.subVectors(b, a).normalize();
+      m.position.copy(b).addScaledVector(seg, BLAST_OUT * age);
+      m.quaternion.setFromUnitVectors(Z, seg);
+      m.scale.setScalar(BLAST_FROM + (BLAST_TO - BLAST_FROM) * (1 - (1 - age) * (1 - age)));
+      bright = Math.max(bright, 1 - age);
+    }
+    this.blastMat.opacity = 0.9 * bright;
+    this.blastMat.color.copy(this.ringMat.color);
+  }
+
   /** This arm's rings: `axis`, `u`, `w` are its forearm's. */
-  private place(k: number, long: number, snap: boolean) {
+  private place(k: number, long: number, snap: boolean, kick: number) {
     for (let i = 0; i < RINGS; i++) {
       const r = this.rings[k * RINGS + i];
       const calm = this.wild < 0.5;
       at.copy(wrist).addScaledVector(axis, RING_ALONG[i] * long);
       r.position.copy(at);
-      const size = RING_SIZES[i] * (calm ? 1 : 0.85 + 0.5 * Math.random() * (snap ? 1 : 0.2));
+      const size = RING_SIZES[i] * (calm ? 1 : 0.85 + 0.5 * Math.random() * (snap ? 1 : 0.2)) * (1 + KICK_RING * kick);
       r.scale.setScalar(size);
       if (calm || snap) {
         // Calm, square to the arm and turning; wild, any tilt, a new one at each snap.
@@ -192,7 +244,7 @@ export class GravityArms {
   }
 
   /** This arm's pebbles. */
-  private pebbles(n: number, k: number, long: number): number {
+  private pebbles(n: number, k: number, long: number, kick: number): number {
     const wild = this.wild;
     const fierce = wild * (0.5 + 0.5 * this.instab);
     for (let i = 0; i < PEBBLES; i++) {
@@ -200,8 +252,8 @@ export class GravityArms {
       const along = -0.05 + (i / (PEBBLES - 1)) * 0.75;
       const speed = (i % 2 === 0 ? 1 : -1) * (0.9 + 0.25 * (i % 3));
       const angle = this.time * speed * (1 + fierce * 7) + seed * 2.4;
-      const out = (ORBIT + (ORBIT_UP - ORBIT) * Math.max(0, along)) * (1 + fierce * 0.75 * wander(this.time * 6, seed));
-      const drift = fierce * 0.12 * wander(this.time * 9, seed + 5);
+      const out = (ORBIT + (ORBIT_UP - ORBIT) * Math.max(0, along)) * (1 + fierce * 0.75 * wander(this.time * 6, seed)) * (1 + KICK_OUT * kick);
+      const drift = fierce * 0.12 * wander(this.time * 9, seed + 5) - KICK_ALONG * kick;
       at.copy(wrist)
         .addScaledVector(axis, (along + drift) * long)
         .addScaledVector(u, Math.cos(angle) * out)
@@ -259,6 +311,9 @@ export class GravityArms {
     this.arcs.removeFromParent();
     this.orb.removeFromParent();
     this.orbRim.removeFromParent();
+    this.blasts.L.removeFromParent();
+    this.blasts.R.removeFromParent();
+    this.blastMat.dispose();
     this.orbGeo.dispose();
     this.orbMat.dispose();
     this.orbRimMat.dispose();

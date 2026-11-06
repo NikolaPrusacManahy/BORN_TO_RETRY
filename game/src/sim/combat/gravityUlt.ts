@@ -33,7 +33,7 @@ export function tryUltimate(state: CombatState, player: PlayerState, pressed: bo
   player.slamming = false;
   player.dashTime = 0;
   for (const e of state.enemies) e.prev.copy(e.pos);
-  g.meteor = { t: 0, x: player.pos.x, y: player.pos.y, z: player.pos.z, falling: false };
+  g.meteor = { t: 0, x: player.pos.x, y: player.pos.y, z: player.pos.z, falling: false, dx: 0, dz: -1 };
   aimZone(state, player, yaw, pitch, world);
   state.events.push('seanMeteorCall', 0, player.pos.x, player.pos.y, player.pos.z);
   return true;
@@ -50,6 +50,11 @@ function aimZone(state: CombatState, player: PlayerState, yaw: number, pitch: nu
   m.x = eye.x + dir.x * out;
   m.z = eye.z + dir.z * out;
   m.y = floorUnder(world, m.x, player.pos.y + 0.5, m.z);
+  const far = Math.hypot(m.x - player.pos.x, m.z - player.pos.z);
+  if (far > 0.5) {
+    m.dx = (m.x - player.pos.x) / far;
+    m.dz = (m.z - player.pos.z) / far;
+  }
 }
 
 /** It lands: one huge hit on the zone. The world goes on from here. */

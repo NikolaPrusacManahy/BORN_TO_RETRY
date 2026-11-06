@@ -79,10 +79,14 @@ section('Gravity Fists — 1.5 times faster');
     const r = room();
     foe(r.c, 0, -1.8);
     pin(r.c);
-    r.c.events.clear();
-    r.step({ attackHeld: true }, 3);
+    let n = 0;
+    for (let i = 0; i < ticks(3); i++) {
+      r.c.events.clear();
+      r.step({ attackHeld: true });
+      n += count(r.c, 'hitJab', 'hitFinisher');
+    }
     v.fistsRate = was;
-    return count(r.c, 'hitJab', 'hitFinisher');
+    return n;
   };
   const before = punches(1.1);
   const now = punches(v.fistsRate);
