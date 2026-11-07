@@ -117,6 +117,11 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   sensei: 'The Sensei',
   shadow: 'The Shadow',
   shadowClone: 'The Shadow',
+  // (Update 0.5.4 — floor 10's own.)
+  imp: 'An Imp',
+  puglin: 'A Puglin',
+  boneAxeman: 'A Bone Axeman',
+  boneGuard: 'A Bone Guard',
 };
 
 export const causeName = (by: Cause | null) => (by ? CAUSE_NAMES[by] : 'Unknown');

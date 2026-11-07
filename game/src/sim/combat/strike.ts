@@ -228,7 +228,7 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
     }
     return false;
   }
-  if (t.kind === 'enemy' && !steady && !stop && dodges(state, t.index, dirX, dirZ)) return false;
+  if (t.kind === 'enemy' && !steady && !stop && dodges(state, t.index, dirX, dirZ, damage)) return false;
   // (Update 0.2.16 — Mercy Kill, a Fate Card: a hit leaving it under the line finishes it.)
   // (Update 0.2.19 — Blood Pact, a Traitor Card: harder.)
   if (t.kind === 'enemy' && holds(state, 'bloodPact')) damage *= 1 + CARDS.v.bloodPact;

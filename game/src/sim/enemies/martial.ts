@@ -42,6 +42,9 @@ export interface Strike {
   sweep?: boolean;
   /** Ready now (its own timer: the Sand Ninjas' smoke and caltrops); none: always. */
   ready?: (e: Enemy) => boolean;
+  /** Update 0.5.4 — only when this says, where you are round it (the Bone Axeman's spin when you're behind it, its chop when in front); none:
+   *  always. */
+  when?: (e: Enemy, player: PlayerState) => boolean;
 }
 
 /** A fighter's style: its strikes; the distances its stance keeps (m); its clips' pace; its dash in (sprinting from these
@@ -58,6 +61,8 @@ export interface Style {
   counter?: number;
   /** A strike's end: the next to run at once (its move; null: open, as usual), from a roll of 0..1. */
   after?: (move: number, roll: number) => number | null;
+  /** Update 0.5.4 — its own stance instead of side-stepping round you (floor 10's skeletons stand their ground: boneAxeman.ts's plod). */
+  stand?: (e: Enemy, player: PlayerState, w: EnemyWorld, dt: number, dist: number, toward: number) => void;
 }
 
 /** A side-step lasts this long (s), this far (m); a block, this long before the counter; a dash, at most this long. */
@@ -162,15 +167,16 @@ export function martial(e: Enemy, index: number, player: PlayerState, w: EnemyWo
       w.events.push('martialDash', index, e.pos.x, e.pos.y + 1, e.pos.z);
       return;
     }
-    const pick = pickStrike(e, st, dist, w.rng());
+    const pick = pickStrike(e, st, dist, w.rng(), player);
     if (pick) return startStrike(e, index, w, pick);
   }
-  stance(e, player, w, dt, st, dist, toward);
+  if (st.stand) st.stand(e, player, w, dt, dist, toward);
+  else stance(e, player, w, dt, st, dist, toward);
 }
 
 /** One of its strikes that starts from here, by weight (null: none). */
-function pickStrike(e: Enemy, st: Style, dist: number, r: number): Strike | null {
-  const can = st.strikes.filter((k) => dist >= k.from && dist <= k.to && (k.ready?.(e) ?? true));
+function pickStrike(e: Enemy, st: Style, dist: number, r: number, player: PlayerState): Strike | null {
+  const can = st.strikes.filter((k) => dist >= k.from && dist <= k.to && (k.ready?.(e) ?? true) && (k.when?.(e, player) ?? true));
   if (can.length === 0) return null;
   const total = can.reduce((a, k) => a + (k.weight ?? 1), 0);
   let x = r * total;

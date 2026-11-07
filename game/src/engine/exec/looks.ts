@@ -169,6 +169,11 @@ EXEC_LOOKS.crewman = EXEC_LOOKS.headless = {
   ...EXEC_LOOKS.skeleton,
   pieces: [['Torso'], ['Head'], ['UpperLegL'], ['LowerLegL'], ['UpperLegR'], ['LowerLegR'], ['UpperArmL'], ['LowerArmL'], ['UpperArmR'], ['LowerArmR']],
 };
+// Update 0.5.4 — floor 10's Bestiary monsters (the Imp, the Puglin, the two armoured skeletons) are on the Animation Library's own skeleton: the
+// Orc's hold and its reactions (baked onto each: tools/ual_bake.py), held by the head with the pelvis below, cut where their own bones divide
+// (the head, each arm from its collarbone, each leg from its thigh).
+const LIBRARY_BODY: readonly (readonly string[])[] = [['neck_01'], ['clavicle_l'], ['clavicle_r'], ['thigh_l'], ['thigh_r']];
+for (const k of ['imp', 'puglin', 'boneAxeman', 'boneGuard'] as const) EXEC_LOOKS[k] = { ...EXEC_LOOKS.grunt!, grip: { at: 'Head', to: 'pelvis', face: [0, 0, 1] }, pieces: LIBRARY_BODY };
 /** The kinds that burst into their bones (the wall finisher too: pinLook.ts). */
 export const BONY: readonly EnemyKind[] = ['skeleton', 'crewman', 'headless'];
 

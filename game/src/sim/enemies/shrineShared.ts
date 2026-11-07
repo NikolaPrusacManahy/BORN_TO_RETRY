@@ -1,6 +1,8 @@
 // Update 0.3.33 — floor 8's martial artists' moves (Enemy.move: martial.ts and each fighter's), each one of the
 // Universal Animation Library's clips (engine/shrine/shrineLooks.ts plays them): how long each clip is (s) and where
-// in it each blow lands (a share of it: tools/ual_lands.py measured the fists, feet and blades). Pure data.
+// in it each blow lands (a share of it: tools/ual_lands.py measured the fists, feet and blades). Update 0.5.4 — and floor 10's fighters'
+// (hellShared.ts: their own numbers). Pure data.
+import { HELL_CLIPS } from './hellShared';
 
 // In its stance: side-stepping left, right, backing off. Dashing in. Side-stepping a blow; blocking one.
 export const STRAFE_L = 1;
@@ -83,4 +85,5 @@ export const CLIPS: Readonly<Record<number, { len: number; lands: readonly numbe
   [SPLIT]: { len: 0.63, lands: [0.8] },
   [LONG_CUT]: { len: 1.57, lands: [0.21] },
   [HEAVY_CUT]: { len: 0.73, lands: [0.64] },
+  ...HELL_CLIPS,
 };

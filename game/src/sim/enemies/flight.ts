@@ -21,7 +21,7 @@ const AIR = 0.05;
 
 /** The humanoid runners, pinned to the wall they're thrown into dead; how far up the wall a pinned body hangs (its feet,
  *  m: at least, at most). */
-export const PINNABLE: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['grunt', 'skeleton', 'rabbit', 'leaper', 'corsair', 'shanty', 'bomber', 'crewman', 'headless', 'gunner', 'flanker', 'hopper', 'beeNaut', 'flamingoNaut', 'foxNaut', 'frogNaut', 'raider', 'axeThrower', 'draugr', 'barrowMaid', 'volva', 'karateka', 'karateGirl', 'shinobi', 'kunoichi', 'sandNinja', 'sandNinjaF', 'archer']);
+export const PINNABLE: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['grunt', 'skeleton', 'rabbit', 'leaper', 'corsair', 'shanty', 'bomber', 'crewman', 'headless', 'gunner', 'flanker', 'hopper', 'beeNaut', 'flamingoNaut', 'foxNaut', 'frogNaut', 'raider', 'axeThrower', 'draugr', 'barrowMaid', 'volva', 'karateka', 'karateGirl', 'shinobi', 'kunoichi', 'sandNinja', 'sandNinjaF', 'archer', 'imp', 'puglin', 'boneAxeman', 'boneGuard']);
 const PIN_LOW = 0.2;
 const PIN_HIGH = 0.9;
 

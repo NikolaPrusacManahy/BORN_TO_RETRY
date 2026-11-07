@@ -52,6 +52,7 @@ import { SwordLight } from './demon/swordLight';
 import { EchoesView } from './hell/echoesView';
 import { TideFx } from './moon/tideFx';
 import { ShrineFx } from './shrine/shrineFx';
+import { HellFoesFx } from './hell/hellFoesFx';
 import { EnemiesView } from './enemiesView';
 import { ExecScene } from './exec/execScene';
 import { FireView } from './fireView';
@@ -114,6 +115,8 @@ export class CombatScene {
   private readonly echoes: EchoesView;
   private readonly tide: TideFx;
   private readonly shrine: ShrineFx;
+  /** Update 0.5.4 — floor 10's Bone Axeman's floor split and its fire (hell/hellFoesFx.ts). */
+  private readonly hellFoes: HellFoesFx;
   readonly raptor: RaptorFx;
   private readonly hives: HivesView;
   private readonly blood: BloodFx;
@@ -149,6 +152,7 @@ export class CombatScene {
     this.echoes = new EchoesView(scene);
     this.tide = new TideFx(scene);
     this.shrine = new ShrineFx(scene);
+    this.hellFoes = new HellFoesFx(scene);
     this.raptor = new RaptorFx(scene);
     this.hives = new HivesView(scene, state);
     this.blood = new BloodFx(scene);
@@ -222,6 +226,7 @@ export class CombatScene {
     this.echoes.update(state, gameDt);
     this.tide.update(state, this.rootOf, gameDt);
     this.shrine.update(state, gameDt, this.rootOf);
+    this.hellFoes.update(state, gameDt);
     this.raptor.update(state, alpha, gameDt, (i) => this.enemies.headOf(i), (i) => this.enemies.rootOf(i));
     this.waves.update(gameDt);
     this.coins.update(state.coins, gameDt);
@@ -292,6 +297,7 @@ export class CombatScene {
     this.roc.dispose();
     this.tide.dispose();
     this.shrine.dispose();
+    this.hellFoes.dispose();
     this.raptor.dispose();
     this.sharkFx.dispose();
     this.wardenFx.dispose();

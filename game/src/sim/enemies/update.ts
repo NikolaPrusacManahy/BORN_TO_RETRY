@@ -90,6 +90,10 @@ import { updateOkami } from './okami';
 import { updateRaider } from './raider';
 import { updateAxeThrower } from './axeThrower';
 import { updateKarate } from './karate';
+import { updateImp } from './imp';
+import { updatePuglin } from './puglin';
+import { updateBoneAxeman } from './boneAxeman';
+import { updateBoneGuard } from './boneGuard';
 import { updateShinobi } from './shinobi';
 import { updateKunoichi } from './kunoichi';
 import { updateSandNinja } from './sandNinja';
@@ -211,6 +215,11 @@ const UPDATE: Record<EnemyKind, Update> = {
   shadow: updateShadow,
   shadowClone: updateClone,
   okami: updateOkami,
+  // Update 0.5.4 — floor 10's own fighters, Hell on Earth.
+  imp: updateImp,
+  puglin: updatePuglin,
+  boneAxeman: updateBoneAxeman,
+  boneGuard: updateBoneGuard,
 };
 /** A dead boss's show, each tick until its slot frees. Update 0.2.4 — and a Green Blob splitting as it dies.
  *  Update 0.2.11 — and a dead fish floating up. Update 0.3.15 — a Gull dropping your coins, a Tentacle sinking. */

@@ -21,10 +21,10 @@ import {
   LONG_CUT, LOOSE, ROLL, SLAM, SLASH_A, SLASH_COMBO, SMOKE, SPLIT, STAFF, STAFF_COUNTER, STAFF_HEAVY, STRAFE_L, STRAFE_R, THROW, UPPERCUT, VOLLEY, WALLRUN_L, WALLRUN_R,
 } from '../../sim/enemies/shrineShared';
 
-type Clips = Record<string, readonly [string, boolean?, number?, number?]>;
+export type Clips = Record<string, readonly [string, boolean?, number?, number?]>;
 
 /** Every fighter's: side-stepping, backing off, the dash's sprint, the dodges. */
-const MOVING: Clips = {
+export const MOVING: Clips = {
   [`chase:${STRAFE_L}`]: ['Jog_Left_Loop'],
   [`chase:${STRAFE_R}`]: ['Jog_Right_Loop'],
   [`chase:${BACK}`]: ['Jog_Bwd_Loop'],
@@ -33,10 +33,10 @@ const MOVING: Clips = {
   [`dive:${DODGE_R}`]: ['Dodge_Right', true],
 };
 /** The blockers' block (only its start: its warning). */
-const BLOCKING: Clips = { [`windup:${BLOCK}`]: ['Sword_Block', true, 0.3] };
+export const BLOCKING: Clips = { [`windup:${BLOCK}`]: ['Sword_Block', true, 0.3] };
 
 /** Each strike its clip: through in its warning, held after it. */
-function strikes(map: Readonly<Record<number, string>>): Clips {
+export function strikes(map: Readonly<Record<number, string>>): Clips {
   const out: Clips = {};
   for (const [move, clip] of Object.entries(map)) {
     out[`windup:${move}`] = [clip, true];
@@ -46,7 +46,7 @@ function strikes(map: Readonly<Record<number, string>>): Clips {
 }
 
 /** Its warning (the look's): a strike's whole clip at its style's pace; the rest as the sim has them. */
-const windupOf = (pace: number, own: Readonly<Record<number, () => number>> = {}) => (move: number) => own[move]?.() ?? (move === BLOCK ? BLOCK_TIME : strikeTime(move, pace));
+export const windupOf = (pace: number, own: Readonly<Record<number, () => number>> = {}) => (move: number) => own[move]?.() ?? (move === BLOCK ? BLOCK_TIME : strikeTime(move, pace));
 
 const PEOPLE = { idle: 'Stance', move: 'Jog_Fwd_Loop', attack: 'Punch_Jab', hit: 'Hit_Chest', death: 'Death01', air: 'Jog_Fwd_Loop' };
 /** (Each one's attack clip one its model has: its first cut.) */

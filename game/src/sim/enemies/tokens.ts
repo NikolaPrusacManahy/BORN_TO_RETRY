@@ -141,6 +141,12 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   archer: 'ranged',
   sensei: 'heavy',
   shadow: 'heavy',
+  // Update 0.5.4 — floor 10's: the Imps and the Bone Guards close in on their turn, the Bone Axeman a heavy; the Puglins' packs don't wait
+  // their turn (that's what makes them a pack).
+  imp: 'melee',
+  boneGuard: 'melee',
+  boneAxeman: 'heavy',
+  puglin: null,
 };
 
 /** Kinds whose attack waits for its cooldown: they take a token only once it's ready (a token isn't held idle). */

@@ -29,6 +29,8 @@ import { sandDodges } from './sandNinja';
 import { archerDodges } from './archer';
 import { senseiGuards } from './sensei';
 import { shadowDodges } from './shadow';
+import { impDodges } from './imp';
+import { boneGuardGuards } from './boneGuard';
 
 /** You aim at an enemy within this angle of it (as the crow flies), and no further off than this (m). */
 const AIM_FAR = 30;
@@ -65,8 +67,9 @@ export function slideAside(e: Enemy, fromX: number, fromZ: number, dist: number,
   e.vel.z = side.z;
 }
 
-/** A hit along (dirX, dirZ) is about to land on enemy `i`: true if it slips it instead (the hit misses). */
-export function dodges(state: CombatState, i: number, dirX: number, dirZ: number): boolean {
+/** A hit along (dirX, dirZ) is about to land on enemy `i`: true if it slips it instead (the hit misses). Update 0.5.4 — `damage`: how hard
+ *  (a hard one breaks the Bone Guard's guard). */
+export function dodges(state: CombatState, i: number, dirX: number, dirZ: number, damage = 0): boolean {
   const e = state.enemies[i];
   if (!isLive(e) || e.phase === 'held' || e.frozen > 0) return false;
   const v = FOES4.v;
@@ -175,6 +178,11 @@ export function dodges(state: CombatState, i: number, dirX: number, dirZ: number
       return senseiGuards(state, i, dirX, dirZ);
     case 'shadow':
       return shadowDodges(state, i, dirX, dirZ);
+    // Update 0.5.4 — floor 10's: the Imp's blink and side-step, the Bone Guard's guard.
+    case 'imp':
+      return impDodges(state, i, dirX, dirZ);
+    case 'boneGuard':
+      return boneGuardGuards(state, i, dirX, dirZ, damage);
     default:
       return false;
   }

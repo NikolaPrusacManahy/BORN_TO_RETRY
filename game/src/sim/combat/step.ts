@@ -85,6 +85,7 @@ import { holds } from '../cards/cards';
 import { CARDS } from '../../tuning/cards';
 import { stepFrost } from './frost';
 import { stepSmoke } from './smoke';
+import { stepHellfire } from './hellfire';
 
 /** Update 0.1.12 — seconds with no enemy you could execute before a new one stings again. */
 const EXEC_QUIET = 0.75;
@@ -428,6 +429,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   updateBombs(state.bombs, player, events, dt, state.puddles, state.ground.frost);
   stepFrost(state.ground.frost, dt);
   stepSmoke(state.ground.smoke, player, events, dt);
+  stepHellfire(state.ground.hellfire, player, events, dt);
   updatePuddles(state.puddles, player, dt);
   updateWaves(state.waves, state.enemies, spawns, player, state.rng, events, dt);
   updateThrown(state, world, player, dt);

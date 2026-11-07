@@ -6,6 +6,7 @@
 import { FEEDBACK, FISTS } from '../../tuning/combat';
 import { Enemy, EnemyWorld, isLive, setPhase } from '../enemies/enemy';
 import { launch } from '../enemies/flight';
+import { breakGuard } from '../enemies/guardBreak';
 import { ENEMY_STATS, MINI_BOSSES } from '../enemies/kinds';
 import { damagePlayer } from '../player/health';
 import type { PlayerState } from '../player/state';
@@ -60,7 +61,11 @@ export function meleeHit(player: PlayerState, w: EnemyWorld, e: Enemy, index: nu
   // (No dodging a parry's counter.)
   const killed = landHit(state, hit, FISTS.v.parryDamage, KNOCK, dx / d, dz / d, 'hitFinisher', FISTS.v.parryDamage, true);
   if (killed) launch(e, dx / d, dz / d);
-  else if (isLive(e) && e.phase !== 'rebuild') setPhase(e, 'flinch');
+  else if (isLive(e) && e.phase !== 'rebuild') {
+    setPhase(e, 'flinch');
+    // (Update 0.5.4 — floor 10's Bone Guard: parried, its guard breaks.)
+    breakGuard(e, index, w.events);
+  }
   w.events.push('parry', index, (player.pos.x + hit.point.x) / 2, hit.point.y, (player.pos.z + hit.point.z) / 2);
   state.hitStop.request(FEEDBACK.v.stopParry);
   return false;

@@ -1,0 +1,43 @@
+// Update 0.5.4 — floor 10's own fighters, Hell on Earth (MD/FLOOR10_HELL_PLAN.md; the Bestiary pack's Imp, Puglin and two armoured skeletons,
+// the Universal Animation Library's clips baked on: tools/ual_bake.py): the Imp's mace, its fireball and its blink; the Puglins' clubs and
+// their rush; the Bone Axeman's chop, its floor split in a burning line, its spin; the Bone Guard's guard, its cuts, its riposte. Their health in
+// the floors before's range (the designer: "do not make enemies tankier NEVER"): harder by their moves. Times in seconds, distances in metres,
+// speeds in m/s. **(placeholders)**
+import { group, knob } from './schema';
+
+export const FOES_HELL = group('foesHell', 'Hell fighters', {
+  impHp: knob(30, 5, 400, 5, 'Imp health', 'Quick: its mace, its fireball, its blink behind you.'),
+  impSpeed: knob(5.8, 0.5, 12, 0.1, 'Imp speed', 'How fast it runs.'),
+  impSwing: knob(9, 1, 40, 1, 'Imp mace', 'Each blow of its mace, to you.'),
+  impFire: knob(10, 1, 40, 1, 'Imp fireball', 'Its fireball, to you (punch it back).'),
+  impFireSpeed: knob(15, 4, 40, 0.5, 'Imp fireball speed', 'How fast it flies.'),
+  impBlink: knob(0.3, 0, 1, 0.05, 'Imp blink', 'The share of your blows an Imp blinks away from, to behind you.'),
+  impBlinkRest: knob(2.6, 0.2, 8, 0.1, 'Imp blink rest', 'Between its blinks.'),
+  impDodge: knob(0.15, 0, 1, 0.05, 'Imp side-step', 'The share of the rest it side-steps (more the more you swing).'),
+  impPack: knob(3, 1, 6, 1, 'Imp pack', 'Imps come in packs this big.'),
+  puglinHp: knob(20, 5, 400, 5, 'Puglin health', 'Small and quick: they rush you in packs.'),
+  puglinSpeed: knob(6.4, 0.5, 12, 0.1, 'Puglin speed', 'How fast they run.'),
+  puglinClub: knob(5, 1, 40, 1, 'Puglin club', 'Each blow of its club, to you.'),
+  puglinRush: knob(9, 1, 40, 1, 'Puglin rush', 'Its rush through you, club out.'),
+  puglinPack: knob(4, 1, 6, 1, 'Puglin pack', 'Puglins come in packs this big.'),
+  axemanHp: knob(42, 5, 400, 5, 'Bone Axeman health', 'Slow and heavy: its chop, its floor split, its spin.'),
+  axemanSpeed: knob(3.4, 0.5, 12, 0.1, 'Bone Axeman speed', 'How fast it walks at you.'),
+  axemanTurn: knob(2.6, 0.5, 12, 0.1, 'Bone Axeman turn', 'How fast it turns to you, standing (rad/s): slow enough to get behind it.'),
+  axemanStagger: knob(12, 0, 60, 1, 'Bone Axeman stagger', 'A blow this hard or harder makes it flinch (jabs don’t).'),
+  axeChop: knob(15, 1, 60, 1, 'Axe chop', 'Its overhead chop, to you.'),
+  axeSpin: knob(12, 1, 60, 1, 'Axe spin', 'Its spin, all round it: behind it isn’t safe for long.'),
+  splitHit: knob(16, 1, 60, 1, 'Floor split', 'Its chop splitting the floor: the line bursting into fire, to you on it.'),
+  splitLong: knob(7, 2, 16, 0.5, 'Floor split length', 'How far the burning line runs out in front of it.'),
+  splitWide: knob(0.9, 0.3, 3, 0.05, 'Floor split width', 'How far either side of its line it burns.'),
+  splitBurn: knob(7, 1, 40, 1, 'Floor split burn', 'Standing on the line while it burns: this, now and then.'),
+  splitLast: knob(1.6, 0.2, 6, 0.1, 'Floor split lasts', 'How long the line burns.'),
+  guardHp: knob(36, 5, 400, 5, 'Bone Guard health', 'Its guard turns your blows from in front.'),
+  guardSpeed: knob(3.8, 0.5, 12, 0.1, 'Bone Guard speed', 'How fast it walks at you.'),
+  guardTurn: knob(1.9, 0.5, 12, 0.1, 'Bone Guard turn', 'How fast it turns to you with its guard up (rad/s): circle it.'),
+  guardArc: knob(70, 10, 120, 5, 'Bone Guard guard', 'Degrees either side of its front its guard turns blows.'),
+  guardBreak: knob(28, 5, 200, 1, 'Guard break', 'A blow this hard breaks its guard (the axe, the hammer, a charged blow, the Demon’s overhead; not a jab, a sword’s slash, a dagger); a parry always does.'),
+  guardBroken: knob(1.8, 0.3, 5, 0.1, 'Guard broken for', 'Its guard down this long once broken.'),
+  guardCounter: knob(2, 1, 6, 1, 'Bone Guard riposte after', 'Blows turned on its guard before it ripostes at once.'),
+  guardCut: knob(9, 1, 40, 1, 'Bone Guard cut', 'Each cut of its sword, to you.'),
+  guardRiposte: knob(14, 1, 60, 1, 'Bone Guard riposte', 'Its riposte after your blows are turned: it throws you up.'),
+});

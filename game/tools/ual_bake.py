@@ -4,6 +4,8 @@
 # its leg, its weapon hand's fingers held closed (a grip clip's), its textures at 1024 px (its colour variant's), every
 # clip under its own name; a still pose taken from a clip at a moment (`clip@0.4`) when a move needs one held; clips
 # played one after the other as one (`a+b`); pieces of the model left out (`drop`: its weapon).
+# Update 0.5.4 — floor 10's own (MD/FLOOR10_HELL_PLAN.md): the Imp, the Puglin and the two armoured skeletons, each with its weapon, and
+# the Orc's execution reactions (`Exec_…`: tools/ual_exec.py's, here straight onto their own Library skeleton).
 #   python tools/ual_bake.py tidebreaker
 import io, json, os, struct, sys
 import numpy as np
@@ -45,6 +47,43 @@ MONSTERS = {
         'clips': {
             'UAL1': ['Death01', 'Jump_Start@0=Jump_Crouch', 'Jump_Start+Jump_Loop=Jump_Air', 'Jump_Land'],
             'UAL2': ['Zombie_Idle_Loop', 'Zombie_Walk_Fwd_Loop', 'Zombie_Run_Fwd_Loop', 'Zombie_Scratch', 'Zombie_Bite', 'MonsterTransformation'],
+        },
+    },
+    # Update 0.5.4 — Hell's Imp: lanky, quick, its spiked mace in its right hand; it swings it, throws fire from its left, blinks.
+    'imp': {
+        'glb': 'Imp.glb', 'out': 'public/models/enemies/imp.glb',
+        'grip': ('r', 'UAL1', 'Sword_Idle'),
+        'clips': {
+            'UAL1': ['Sword_Idle', 'Walk_Loop', 'Jog_Fwd_Loop', 'Jog_Left_Loop', 'Jog_Right_Loop', 'Jog_Bwd_Loop', 'Sprint_Loop', 'Dodge_Left', 'Dodge_Right', 'Hit_Chest', 'Death01', 'Spell_Simple_Shoot'],
+            'UAL2': ['Sword_Regular_A', 'Sword_Regular_B', 'Sword_Regular_Combo', 'LiftAir=Exec_Lift', 'LiftAir_Idle_Loop=Exec_Hang', 'LiftAir_Fall_Air_Loop=Exec_Flail', 'LiftAir_Hit_R@0.3=Exec_Fold'],
+        },
+    },
+    # The Puglin: squat, tusked, a club; it rushes in packs, swinging, and leaps in on a dash.
+    'puglin': {
+        'glb': 'Puglin.glb', 'out': 'public/models/enemies/puglin.glb',
+        'grip': ('r', 'UAL1', 'Sword_Idle'),
+        'clips': {
+            'UAL1': ['Sword_Idle', 'Jog_Fwd_Loop', 'Jog_Left_Loop', 'Jog_Right_Loop', 'Jog_Bwd_Loop', 'Sprint_Loop', 'Hit_Chest', 'Death02'],
+            'UAL2': ['Sword_Light_A', 'Sword_Light_B', 'Sword_Dash', 'LiftAir=Exec_Lift', 'LiftAir_Idle_Loop=Exec_Hang', 'LiftAir_Fall_Air_Loop=Exec_Flail', 'LiftAir_Hit_R@0.3=Exec_Fold'],
+        },
+    },
+    # The Bone Axeman (Skeleton A: horned helm, an axe): slow and heavy; its chop splits the floor, its spin sweeps round it.
+    'boneAxeman': {
+        'glb': 'Skeleton_A.glb', 'out': 'public/models/enemies/bone_axeman.glb',
+        'grip': ('r', 'UAL1', 'Sword_Idle'),
+        'clips': {
+            'UAL1': ['Sword_Idle', 'Walk_Loop', 'Jog_Fwd_Loop', 'Hit_Chest', 'Death01'],
+            'UAL2': ['Sword_GroundPound', 'Sword_Heavy_A', 'Sword_Heavy_C', 'LiftAir=Exec_Lift', 'LiftAir_Idle_Loop=Exec_Hang', 'LiftAir_Fall_Air_Loop=Exec_Flail', 'LiftAir_Hit_R@0.3=Exec_Fold'],
+        },
+    },
+    # The Bone Guard (Skeleton B: a helm, a sword): its guard up, its cuts, its counter, its guard broken.
+    'boneGuard': {
+        'glb': 'Skeleton_B.glb', 'out': 'public/models/enemies/bone_guard.glb',
+        'grip': ('r', 'UAL1', 'Sword_Idle'),
+        'clips': {
+            'UAL1': ['Sword_Idle', 'Walk_Loop', 'Jog_Fwd_Loop', 'Jog_Left_Loop', 'Jog_Right_Loop', 'Jog_Bwd_Loop', 'Hit_Chest', 'Death02'],
+            # (Its guard held: the block's raised moment, still.)
+            'UAL2': ['Sword_Block', 'Sword_Block@0.3=Guard_Hold', 'Sword_Regular_A', 'Sword_Regular_Combo', 'Sword_Heavy_B', 'Idle_Shield_Break', 'LiftAir=Exec_Lift', 'LiftAir_Idle_Loop=Exec_Hang', 'LiftAir_Fall_Air_Loop=Exec_Flail', 'LiftAir_Hit_R@0.3=Exec_Fold'],
         },
     },
 }

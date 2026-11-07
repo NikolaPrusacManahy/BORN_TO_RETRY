@@ -157,8 +157,8 @@ section('Lobby — the bestiary’s list');
   // (Update 0.3.41 — the Dragon floor 1's. Update 0.3.42 — the Venom Garden's own, The Swarm.)
   check('each floor’s boss with it (its own, all ten)', shelves.slice(0, 7).map((f) => f.boss ?? '-').join() === 'dragon,swarm,boneKing,frostRoc,drownedKing,dino,bigShark' && shelves[FLOOR.shrine - 1].boss === 'okami' && shelves[FLOOR.moon - 1].boss === 'tidebreaker' && shelves[FLOOR.hell - 1].boss === 'hellwarden');
   check('a body’s second self beside it: the Headless Crewman, Barbara out of her mech', shelves[FLOOR.cove - 1].enemies.indexOf('headless') === shelves[FLOOR.cove - 1].enemies.indexOf('crewman') + 1 && shelves[FLOOR.moon - 1].enemies.indexOf('beeNaut') === shelves[FLOOR.moon - 1].enemies.indexOf('beeMech') + 1);
-  // (Update 0.3.22 — floor 7 has its warband. Update 0.3.33 — floor 8 its martial artists.)
-  check('Hell on Earth (10) has none of its own yet; Frozen Depths (4) its warband; the Shrine Dimension (8) its martial artists', shelves[FLOOR.hell - 1].enemies.length === 0 && shelves[FLOOR.frozen - 1].enemies.join() === 'raider,axeThrower,draugr,barrowMaid,volva,berserker,haugbui' && shelves[FLOOR.shrine - 1].enemies.join() === 'karateka,karateGirl,shinobi,kunoichi,sandNinja,sandNinjaF,archer,sensei,shadow', shelves[FLOOR.shrine - 1].enemies.join());
+  // (Update 0.3.22 — floor 7 has its warband. Update 0.3.33 — floor 8 its martial artists. Update 0.5.4 — floor 10 its own four.)
+  check('Hell on Earth (10) its own four; Frozen Depths (4) its warband; the Shrine Dimension (8) its martial artists', shelves[FLOOR.hell - 1].enemies.join() === 'imp,puglin,boneAxeman,boneGuard' && shelves[FLOOR.frozen - 1].enemies.join() === 'raider,axeThrower,draugr,barrowMaid,volva,berserker,haugbui' && shelves[FLOOR.shrine - 1].enemies.join() === 'karateka,karateGirl,shinobi,kunoichi,sandNinja,sandNinjaF,archer,sensei,shadow', shelves[FLOOR.shrine - 1].enemies.join());
   // (Update 0.3.28 — the Moon's four mechs: twelve. A plinth 0.7 m across, the boss's 1.15.)
   const fits = (n: number) => ROWS.start + (n - 1) * ROWS.step + 0.35 + 0.15 <= ROWS.boss - 0.575;
   check('no floor has more than its row holds before the boss’s plinth (twelve)', shelves.every((f) => fits(f.enemies.length)) && fits(12) && !fits(13), shelves.map((f) => f.enemies.length).join(' '));
@@ -341,8 +341,8 @@ section('Lobby — the boards and the credits');
   const paintings = d.boards.filter((b) => b.kind === 'floor');
   check('ten paintings, floors 1 to 10 left to right as you face them (east to west), each its name', paintings.map((b) => boardLines(b, 'real', '')[0].text).join() === '1,2,3,4,5,6,7,8,9,10' && paintings.every((b, i) => i === 0 || b.x < paintings[i - 1].x) && boardLines(paintings[FLOOR.cove - 1], 'real', '')[1].text === 'SKULL COVE' && boardLines(paintings[FLOOR.shrine - 1], 'real', '')[1].text === 'SHRINE DIMENSION' && boardLines(paintings[9], 'real', '')[1].text === 'HELL ON EARTH');
   const rows = d.boards.filter((b) => b.kind === 'row').map((b) => boardLines(b, 'real', ''));
-  // (Update 0.3.33 — only Hell on Earth's now.)
-  check('each bestiary row its floor’s number and name; COMING SOON where it has none yet', rows[0][0].text === '1 · THE DUNGEON' && rows.filter((l) => l[1]?.text === 'COMING SOON').length === 1 && rows[FLOOR.hell - 1][1]?.text === 'COMING SOON');
+  // (Update 0.3.33 — only Hell on Earth's now. Update 0.5.4 — none: Hell on Earth has its own.)
+  check('each bestiary row its floor’s number and name; none COMING SOON (every floor its own)', rows[0][0].text === '1 · THE DUNGEON' && rows.filter((l) => l[1]?.text === 'COMING SOON').length === 0 && rows[FLOOR.hell - 1][0].text.startsWith('10 ·'), rows[FLOOR.hell - 1].map((l) => l.text).join(' / '));
   // (Update 0.2.12 — the designer: no fonts or code credited.)
   // (Update 0.3.19 — and the fights' music: Polarnyne's pack asks for a credit.)
   check('credits: models, sound and music (no fonts or code)', CREDITS.map((c) => c.title).join() === 'MODELS,SOUND,MUSIC' && CREDITS[2].lines.includes('Polarnyne'));

@@ -2,8 +2,9 @@
 
 Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIGN.md`, then the current milestone plan.
 
-## Where things stand (2026-11-07, after Update 0.5.3)
-- **Version 0.5.3** (the lobby keeps its shadows), on top of 0.5.2 (the records screen), 0.5.1 (what new players start with) and 0.5.0 (Gravity Sean's cards and chests): all four committed. 0.3.58 to 0.5.3 are committed; the designer pushes. The numbering jumps from 0.3.91 by the designer's word ("0.5.0 is the update start").
+## Where things stand (2026-11-07, after Update 0.5.4)
+- **Version 0.5.4** (floor 10's own fighters), on top of 0.5.3 (the lobby keeps its shadows), 0.5.2 (the records screen), 0.5.1 (what new players start with) and 0.5.0 (Gravity Sean's cards and chests): 0.5.4 built, **not committed** until the designer says "commit". 0.3.58 to 0.5.3 are committed; the designer pushes. The numbering jumps from 0.3.91 by the designer's word ("0.5.0 is the update start").
+- **Floor 10's own fighters** (`MD_UPDATES/U0504_HELL_FIGHTERS.md`; the designer: "we need enemies in Floor 10", then "Yes, start"): the Imp (mace, fireball, a blink behind you; in threes), the Puglin (packs of four that never wait their turn; a rush), the Bone Axeman (a chop; a leap that splits the floor in a line of fire, shown first; a spin behind it) and the Bone Guard (its guard turns blows from in front; a riposte; a heavy blow or a parry breaks it). Built on floor 8's martial brain (`Strike.when`, `Style.stand`); their models baked by `tools/ual_bake.py`, their blows measured by `tools/foe-poses.ts`. The mini bosses are still stand-ins. Not played, not seen. Next, on the designer's word: Cinder Chicken, Brimstone Bee, the Pit Fiend, the Spore Lord; the echo rooms; Hellwarden calling Imps.
 - **The lobby, lighter** (`MD_UPDATES/U0503_LOBBY_SHADOWS.md`; the designer: "my fans are wilding"): measured with `tools/lobby-cost.ts`, its key light's shadow (1.69 M triangles) was drawn every frame; now it's kept (`LobbyView.shadowsDue`). One change, and the designer: "Yes, calmer". The next ones, if heat comes back, are in the spec.
 - **The records screen** (`MD_UPDATES/U0502_RECORDS.md`): a board on the west wall after the Demon; E opens a desktop in the manor's look with five apps (Ledger, Bestiary, Deck, Roster, Unlocks). Your record is `SaveData.stats` (`sim/stats.ts`): a run tallies as it goes (`CombatState.tally`) and hands it in once (`RunBase.report`), as it ends or is left. Not played, and **not seen**: no browser here.
 - **Unlocks** (`MD_UPDATES/U0501_UNLOCKS.md`): new players have Joseph only, and ARE YOU EVEN HUMAN? is locked. Clears are counted by difficulty (`SaveData.clears`, `sim/unlocks.ts`): one opens ARE YOU EVEN HUMAN?, one on THE REAL EXPERIENCE or harder opens Gravity Sean, and one on ARE YOU EVEN HUMAN? or 5 on the other two open the Demon. Beating Hellwarden no longer does. Old saves keep what they had. Not played.
@@ -23,7 +24,7 @@ Read `CLAUDE.md` first (kept on this PC only, never in the repo), then `MD/DESIG
   box (0.3.46, pause menu) are for it.
 - **The floors** (`world/dungeon/floorOrder.ts`): 1 the Dungeon, 2 the Venom Garden, 3 the Bone Keep, 4 Frozen Depths,
   5 the Drowned Temple, 6 the Desert, 7 Skull Cove, 8 the Shrine Dimension, 9 the Moon, 10 Hell on Earth (the Forge's
-  rooms in Hell's look since 0.3.43; stand-in enemies).
+  rooms in Hell's look since 0.3.43; its own four fighters since 0.5.4, stand-in mini bosses).
   - Floors 1–9 each have their own boss: floor 1's the Dragon since 0.3.41 (the Demon is gone); floor 2's The Swarm
     since 0.3.42. Floor 10's (Hellwarden) isn't built, and the Velociraptor stands in.
   - **A run ends at floor 9** since 0.3.47, for the public playtest build (`LAST_FLOOR` in `engine/runLinks.ts`, moved

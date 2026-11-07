@@ -99,6 +99,11 @@ const NAMES: Partial<Record<EnemyKind, string>> = {
   sensei: 'Sensei',
   shadow: 'The Shadow',
   shadowClone: 'Shadow clone',
+  // (Update 0.5.4 — floor 10's own.)
+  imp: 'Imp',
+  puglin: 'Puglin',
+  boneAxeman: 'Bone Axeman',
+  boneGuard: 'Bone Guard',
   // (Update 0.3.28 — the Moon's crew, and its four mechs and their pilots.)
   gunner: 'Gunner',
   flanker: 'Flanker',

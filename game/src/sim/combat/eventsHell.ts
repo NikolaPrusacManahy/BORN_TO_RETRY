@@ -1,5 +1,5 @@
 // Update 0.3.63 — floor 10's boss's combat events (Hellwarden), out of events.ts. One's value is which enemy (unless said); x, y, z where it
-// happened.
+// happened. Update 0.5.4 — and its own fighters' (the Imp, the Puglin, the two skeletons).
 export type HellEvent =
   // Its blade flaring, its Arc.
   | 'wardenFlare'
@@ -52,4 +52,23 @@ export type HellEvent =
   | 'wardenFreeze'
   | 'wardenThaw'
   | 'wardenLand'
-  | 'wardenCrack';
+  | 'wardenCrack'
+  // Update 0.5.4 — the Imp's swing, its combo, its fireball wound up and thrown; the Puglin's club, its rush; the Bone Axeman's chop, its leap
+  // for the floor split (its line shown), the split (value: its length; x, y, z its start), you burned on it (value: 1 its burst), its spin; the
+  // Bone Guard's cut, its combo, a blow turned on its guard (x, y, z its sword), its guard broken, its riposte.
+  | 'impSwing'
+  | 'impCombo'
+  | 'impFireWindup'
+  | 'impFire'
+  | 'puglinClub'
+  | 'puglinRush'
+  | 'axeChop'
+  | 'axeSplitWarn'
+  | 'axeSplit'
+  | 'splitBurn'
+  | 'axeSpin'
+  | 'guardCut'
+  | 'guardCombo'
+  | 'guardTurn'
+  | 'guardBreak'
+  | 'guardRiposte';
