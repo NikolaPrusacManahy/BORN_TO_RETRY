@@ -38,7 +38,7 @@ export function useDevKeys({ dev, getGame, phase, tuning, setTuningOpen, toggleD
       if (action === 'tuning') setTuningOpen(!tuning.current);
       else if (action === 'debug') toggleDebug();
       else if (action === 'respawn' && phase.current === 'dead') retry();
-      else if (action === 'respawn' && phase.current !== 'intro' && phase.current !== 'confirm') getGame()?.restart();
+      else if (action === 'respawn' && phase.current !== 'intro' && phase.current !== 'confirm' && phase.current !== 'records') getGame()?.restart();
       else if (action === 'god') setKnob(LAB, 'god', LAB.v.god >= 1 ? 0 : 1);
       else if (action === 'capture') capture.toggle();
       else if (action === 'lab') getGame()?.toggleLab();

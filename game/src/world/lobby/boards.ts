@@ -34,6 +34,13 @@ export function boardLines(b: Board, difficulty: Difficulty, character: string):
     const d = DIFFICULTIES[b.index];
     return [{ text: d.name, size: 0.34, tone: d.id === difficulty ? 'gold' : 'dim' }];
   }
+  // (Update 0.5.2 — the records screen.)
+  if (b.kind === 'records') {
+    return [
+      { text: 'RECORDS', size: 0.3, tone: 'gold' },
+      { text: 'Your runs, kills and unlocks', size: 0.1, tone: 'text' },
+    ];
+  }
   if (b.kind === 'floor') {
     return [
       { text: String(b.index + 1), size: 0.42, tone: 'gold' },

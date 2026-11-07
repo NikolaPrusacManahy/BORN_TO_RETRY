@@ -20,12 +20,12 @@ import type { InfoKind } from '../items/itemInfo';
 import { isPlayable, ROSTER } from '../characters';
 import type { Focus } from '../items/focus';
 import type { PlayerState } from '../player/state';
-import { ALTAR_H, ALTARS, CARD_FLOAT, CARD_STAND, DAIS, FIGURES, GATE, GATE_LINE } from '../../world/lobby/spots';
+import { ALTAR_H, ALTARS, CARD_FLOAT, CARD_STAND, DAIS, FIGURES, GATE, GATE_LINE, HALL, RECORDS } from '../../world/lobby/spots';
 import { CARD_SIZE, cardSlots, ITEM_STANDS, WEAPON_STANDS } from '../../world/lobby/galleries';
 import { PEDESTAL } from '../../world/lobby/furniture';
 import { DIFFICULTIES, Difficulty } from './difficulty';
 
-export type StationKind = 'difficulty' | 'character' | 'gate' | 'cards' | 'exhibit' | 'gallery';
+export type StationKind = 'difficulty' | 'character' | 'gate' | 'cards' | 'exhibit' | 'gallery' | 'records';
 
 export interface Station {
   kind: StationKind;
@@ -45,8 +45,8 @@ export interface Station {
 }
 
 /** 'pick': a difficulty or a character was chosen (or Fate Cards turned on or off); 'locked': a locked character was
- *  tried; 'gate': through the gate. */
-export type LobbyEvent = 'pick' | 'locked' | 'gate';
+ *  tried; 'gate': through the gate. Update 0.5.2 — 'records': the records screen opened. */
+export type LobbyEvent = 'pick' | 'locked' | 'gate' | 'records';
 
 export interface Lobby {
   stations: Station[];
@@ -71,7 +71,7 @@ export interface Lobby {
 }
 
 /** How far E reaches each kind of station (m, across). */
-export const REACH: Readonly<Record<StationKind, number>> = { difficulty: 2.6, character: 3.4, gate: 3.5, cards: 2.6, exhibit: 1.9, gallery: 1.4 };
+export const REACH: Readonly<Record<StationKind, number>> = { difficulty: 2.6, character: 3.4, gate: 3.5, cards: 2.6, exhibit: 1.9, gallery: 1.4, records: 2.6 };
 /** You're on a station's floor within this much of its level (m). */
 const SAME_FLOOR = 2.5;
 /** Where the gate's card hangs, and a character's over their head (m). */
@@ -84,6 +84,8 @@ export function createLobby(difficulty: Difficulty, character: CharacterId, card
     ...FIGURES.map((f, i): Station => ({ kind: 'character', index: i, x: f.x, z: f.z, y: DAIS.h + HEAD, reach: REACH.character, level: 0 })),
     { kind: 'gate', index: 0, x: 0, z: GATE.barsZ + 0.9, y: GATE_CARD, reach: REACH.gate, level: 0 },
     { kind: 'cards', index: 0, x: CARD_STAND.x, z: CARD_STAND.z, y: CARD_FLOAT + 0.75, reach: REACH.cards, level: 0 },
+    // (Update 0.5.2 — the records screen, its card over it.)
+    { kind: 'records', index: 0, x: -HALL.halfW + 0.3, z: RECORDS.z, y: RECORDS.y + RECORDS.h / 2 + 0.45, reach: REACH.records, level: 0 },
     ...[...WEAPON_STANDS, ...ITEM_STANDS].map((s, i): Station => ({ kind: 'exhibit', index: i, x: s.x, z: s.z, y: PEDESTAL.top + 1.25, reach: REACH.exhibit, level: 0, item: s.kind })),
     ...cardSlots().map((c, i): Station => ({ kind: 'gallery', index: i, x: c.x, z: c.z, y: c.y + 0.75, reach: REACH.gallery, level: c.y - CARD_SIZE.y, card: c.kind })),
   ];
@@ -114,6 +116,7 @@ export function stepLobby(l: Lobby, p: PlayerState, interact: boolean): boolean 
   const s = l.stations[l.near];
   if (s.kind === 'exhibit' || s.kind === 'gallery') return false;
   if (s.kind === 'gate') l.events.push('gate');
+  else if (s.kind === 'records') l.events.push('records');
   else if (s.kind === 'cards') {
     l.cards = !l.cards;
     l.events.push('pick');
@@ -154,6 +157,9 @@ export function lobbyFocus(l: Lobby, out: Focus): Focus {
   } else if (s.kind === 'gate') {
     out.label = '';
     out.act = 'enter';
+  } else if (s.kind === 'records') {
+    out.label = 'RECORDS';
+    out.act = 'open';
   } else if (s.kind === 'cards') {
     out.label = l.cards ? 'FATE CARDS: ON' : 'FATE CARDS: OFF';
     out.act = l.cards ? 'turnOff' : 'turnOn';

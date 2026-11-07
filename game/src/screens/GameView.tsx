@@ -2,7 +2,7 @@
 // Update 0.0.4 — ready once the main menu's scene has loaded too; the HUD only shows in play.
 // M1 step 8 — passes the death and respawn calls through. Update 0.0.8 — and the run's start. Update 0.1.14 — and the
 // death screen's. Update 0.2.9 — and the lobby's (a choice made, the main gate reached). Update 0.2.16 — and the Fate
-// Cards' (a deal, TAB). Update 0.3.23 — and the loader's (a level being made ready).
+// Cards' (a deal, TAB). Update 0.3.23 — and the loader's (a level being made ready). Update 0.5.2 — and the records screen's, and each run's record.
 import { ReactNode, forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import { Game, GameCallbacks } from '../engine/Game';
 import { createHudStore } from '../engine/hudStore';
@@ -22,12 +22,12 @@ interface Props extends GameCallbacks {
   children?: ReactNode;
 }
 
-export const GameView = forwardRef<GameHandle, Props>(function GameView({ settings, showHud, onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onDeathScreen, onLobbyPick, onDemonEarned, onSeanEarned, onLobbyGate, onDeal, onInventory, onLoading, onReady, children }, ref) {
+export const GameView = forwardRef<GameHandle, Props>(function GameView({ settings, showHud, onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onDeathScreen, onLobbyPick, onDemonEarned, onSeanEarned, onLobbyGate, onRecords, onRunReport, onDeal, onInventory, onLoading, onReady, children }, ref) {
   const host = useRef<HTMLDivElement>(null);
   const game = useRef<Game | null>(null);
   const hud = useMemo(() => createHudStore(), []);
-  const cbs = useRef({ onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onDeathScreen, onLobbyPick, onDemonEarned, onSeanEarned, onLobbyGate, onDeal, onInventory, onLoading, onReady, settings });
-  cbs.current = { onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onDeathScreen, onLobbyPick, onDemonEarned, onSeanEarned, onLobbyGate, onDeal, onInventory, onLoading, onReady, settings };
+  const cbs = useRef({ onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onDeathScreen, onLobbyPick, onDemonEarned, onSeanEarned, onLobbyGate, onRecords, onRunReport, onDeal, onInventory, onLoading, onReady, settings });
+  cbs.current = { onLockChange, onIntroFade, onIntroDone, onRunStart, onDeath, onRespawn, onDeathScreen, onLobbyPick, onDemonEarned, onSeanEarned, onLobbyGate, onRecords, onRunReport, onDeal, onInventory, onLoading, onReady, settings };
 
   useEffect(() => {
     let disposed = false;
@@ -45,6 +45,8 @@ export const GameView = forwardRef<GameHandle, Props>(function GameView({ settin
         onDemonEarned: () => cbs.current.onDemonEarned?.(),
         onSeanEarned: () => cbs.current.onSeanEarned?.(),
         onLobbyGate: () => cbs.current.onLobbyGate(),
+        onRecords: () => cbs.current.onRecords?.(),
+        onRunReport: (r) => cbs.current.onRunReport?.(r),
         onDeal: (cards) => cbs.current.onDeal(cards),
         onInventory: () => cbs.current.onInventory(),
         onLoading: (on) => cbs.current.onLoading?.(on),

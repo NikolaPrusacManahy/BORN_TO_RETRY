@@ -16,4 +16,6 @@ export function carryOver(from: CombatState, to: CombatState) {
   // (Update 0.5.0 — Head Start, a Fate Card of his.)
   to.grav.ult = startingUlt(from, from.grav.ult);
   to.kills = from.kills;
+  // (Update 0.5.2 — your record's tally.)
+  to.tally = from.tally;
 }

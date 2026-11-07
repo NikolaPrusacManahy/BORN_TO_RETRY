@@ -7,6 +7,7 @@
 import type { Cause } from '../sim/player/state';
 import type { CharacterId } from '../sim/characters';
 import type { Difficulty } from '../sim/lobby/difficulty';
+import type { RunReport } from '../sim/stats';
 import type { Level } from './level';
 import type { DealView } from './fateView';
 import { FLOOR } from '../world/dungeon/floorOrder';
@@ -47,6 +48,10 @@ export interface RunCallbacks {
   onLobbyPick(difficulty: Difficulty, character: CharacterId, cards: boolean): void;
   /** Update 0.2.9 — in the lobby, you went through the main gate (walked in, or E at it). */
   onLobbyGate(): void;
+  /** Update 0.5.2 — the lobby's records screen: E at it. */
+  onRecords?(): void;
+  /** Update 0.5.2 — a run's record, handed in once, as it ends or is left (sim/stats.ts). */
+  onRunReport?(r: RunReport): void;
   /** Update 0.2.16 — a chest dealt Fate Cards (the world holds still): show them; `Game.pickCard`, then `endDeal`. */
   onDeal(deal: DealView): void;
   /** Update 0.2.16 — TAB: show what you carry (`Game.inventory`). */

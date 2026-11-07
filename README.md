@@ -35,7 +35,8 @@ standard difficulty you get one life. Losing is part of the design: play, lose, 
   your side. Gravity Sean has 40 of his own, in place of weapons.
 - **A new layout every run.** Hand-made rooms assembled from a seed, with a shop and an optional challenge room on every
   floor.
-- **A manor between runs.** Walk the lobby to pick your difficulty, browse galleries of the weapons, items and cards, and
+- **A manor between runs.** Walk the lobby to pick your difficulty, browse galleries of the weapons, items and cards, read
+  your records (playtime, deaths, every kill, every card) on the screen past the dais, and
   visit the bestiary.
 
 ### Floors

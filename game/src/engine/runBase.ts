@@ -101,6 +101,9 @@ export abstract class RunBase {
   protected show = new BossShow(null);
   /** Update 0.1.14 — seconds played since this start (the death screen), and the death screen is up. */
   protected played = 0;
+  /** Update 0.5.2 — who you are, and whether this run's record has gone to the save. */
+  protected who: CharacterId;
+  private reported = false;
   protected told = false;
   /** Update 0.0.16 — a key's look, for the palm (made once). */
   protected readonly keyLook = (kind: KeyKind) => this.treasureView.look(kind);
@@ -123,6 +126,7 @@ export abstract class RunBase {
   ) {
     this.demon = character === 'demon';
     this.sean = character === 'spacesuit';
+    this.who = character;
     this.arms = new Viewmodel(true, character);
     // Loading the same models again (each floor) comes from memory.
     THREE.Cache.enabled = true;
@@ -153,7 +157,10 @@ export abstract class RunBase {
       if (this.level.physics !== level.physics) this.level.physics.dispose();
     }
     this.level = level;
-    if (!keep) this.played = 0;
+    if (!keep) {
+      this.played = 0;
+      this.reported = false;
+    }
     this.view = level.draw(this.scene, this.renderer);
     this.treasure = level.dungeon?.treasure ?? emptyTreasure();
     // (Update 0.2.12 — ARE YOU EVEN HUMAN?: no shop.)
@@ -243,6 +250,8 @@ export abstract class RunBase {
     this.rig.reset();
     this.clock.reset();
     this.death.reset();
+    // (Update 0.5.2 — a fall, for your record.)
+    this.combat.tally.falls++;
     this.cb.onRespawn();
   }
 
@@ -266,6 +275,8 @@ export abstract class RunBase {
   /** F3 and Restart: the lab, or a dungeon floor laid out again, from its start (Update 0.1.14 — the death screen's
    *  Retry: a new run; 0.3.23 — behind the loader; 0.3.37 — `boss`: the floor's boss room alone, its show: capture). */
   restart(boss = false) {
+    // (Update 0.5.2 — a run left for a new one: what it came to goes to your record.)
+    this.report();
     if (this.told) this.loadCovered(() => this.levels.fresh(), false);
     else if (this.level.dungeon && boss) this.loadCovered(() => this.levels.boss(this.level), false);
     else if (this.level.dungeon) this.loadCovered(() => this.levels.again(this.level), false);
@@ -285,6 +296,7 @@ export abstract class RunBase {
     this.demon = this.combat.demon = this.player.demon = who === 'demon';
     this.sean = this.combat.sean = this.player.sean = who === 'spacesuit';
     this.arms.setCharacter(who);
+    this.who = who;
   }
 
   /** Update 0.2.16 — the deal's card `i` is taken (the deal screen still shows it flying to your coins). */
@@ -319,7 +331,15 @@ export abstract class RunBase {
     this.audio.muffle(false);
   }
 
+  /** Update 0.5.2 — this run's record to the save, once: as it ends (`won`), or as it's left. Not the lobby's, not the Lab's. */
+  protected report(won = false) {
+    if (this.reported || !this.level.dungeon || this.everyone) return;
+    this.reported = true;
+    this.cb.onRunReport?.({ character: this.who, difficulty: this.difficulty, time: this.played, floor: this.level.floor, won, tally: this.combat.tally });
+  }
+
   dispose() {
+    this.report();
     // (A load still under way ends unheard.)
     this.loader.drop();
     this.combatScene.dispose();

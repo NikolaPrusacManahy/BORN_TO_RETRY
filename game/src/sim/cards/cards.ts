@@ -18,6 +18,7 @@ import type { Rarity } from '../dungeon/loot';
 import type { PlayerState } from '../player/state';
 import { SEAN_DECK, type SeanCardKind } from './seanDeck';
 import { shopCut } from './seanPowers';
+import { countOne } from '../stats';
 import { WEAPON_STATS, WeaponKind } from '../weapons/catalog';
 
 export type CardKind =
@@ -231,6 +232,8 @@ export const cardsIn = (cards: ReadonlySet<CardKind>) => CARD_KINDS.filter((k) =
 export function takeCard(state: CombatState, player: PlayerState, kind: CardKind) {
   if (state.items.cards.has(kind)) state.items.twice.add(kind);
   state.items.cards.add(kind);
+  // (Update 0.5.2 — your record.)
+  countOne(state.tally.cards, kind);
   player.cards = state.items.cards;
   state.events.push('cardTaken', CARD_KINDS.indexOf(kind), player.pos.x, player.pos.y + 1, player.pos.z);
 }

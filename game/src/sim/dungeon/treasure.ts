@@ -265,6 +265,8 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
     // (Update 0.3.70 — a weapon's coins to the Demon.)
     if ((state.demon || state.sean) && c.loot.item && isWeaponItem(c.loot.item)) c.loot = { ...goldLoot(c.rolls), rarity: c.loot.rarity };
     c.state = 'opening';
+    // (Update 0.5.2 — your record.)
+    state.tally.chests++;
     c.t = 0;
     t.choosing = -1;
     startKneel(player, c.spot.x + c.spot.fx * KNEEL_DIST, c.spot.z + c.spot.fz * KNEEL_DIST, c.spot.rot, T);

@@ -256,6 +256,8 @@ export function stepExecution(state: CombatState, dt: number, player: PlayerStat
 function finish(state: CombatState, ex: Execution, at: Vector3, kind: 'execLand' | 'execBurst', player: PlayerState, seen: Vector3 = at) {
   const v = EXECUTION.v;
   ex.active = false;
+  // (Update 0.5.2 — your record.)
+  state.tally.executions++;
   const e = state.enemies[ex.target];
   e.pos.copy(at);
   e.prev.copy(e.pos);

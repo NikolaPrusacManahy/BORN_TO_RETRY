@@ -5,9 +5,9 @@
 // great hall over the paintings and by the gate, in every room downstairs, down the bestiary between its rows; the
 // cards gallery's walls are its cards'). Pure.
 import type { Placement } from '../dungeon/dressing';
-import { ALTARS, HALL, PAINTING, PAINTINGS, WALL_DEPTH, WING } from './spots';
+import { ALTARS, HALL, PAINTING, PAINTINGS, RECORDS, WALL_DEPTH, WING } from './spots';
 
-export type BoardKind = 'gate' | 'difficulty' | 'credits' | 'floor' | 'row';
+export type BoardKind = 'gate' | 'difficulty' | 'credits' | 'floor' | 'row' | 'records';
 
 /** A board the game writes on: its middle, its turn (0 faces south), its size (m), and what it shows. */
 export interface Board {
@@ -50,6 +50,8 @@ export function hallBoards(): Board[] {
   const { halfW: w, halfD: d } = HALL;
   const out: Board[] = [{ x: 0, y: 8.95, z: -d + OFF, rot: 0, w: 8, h: 1.6, kind: 'gate', index: 0 }];
   ALTARS.forEach((a, i) => out.push({ x: w - OFF, y: 3.55, z: a.z, rot: WEST, w: 3.4, h: 1.1, kind: 'difficulty', index: i }));
+  // (Update 0.5.2 — the records screen, after the Demon.)
+  out.push({ x: -w + OFF, y: RECORDS.y, z: RECORDS.z, rot: EAST, w: RECORDS.w, h: RECORDS.h, kind: 'records', index: 0 });
   PAINTINGS.forEach((x, i) => out.push({ x, y: PAINTING.y, z: d - OFF - 0.06, rot: NORTH, w: PAINTING.w, h: PAINTING.h, kind: 'floor', index: i }));
   // The credits on the bestiary's north wall, over its first row (left to right as you face them).
   [-30, -25.2, -20.4].forEach((x, i) => out.push({ x, y: WING.upper + 2.45, z: WING.z0 + OFF, rot: 0, w: 4.2, h: 2.9, kind: 'credits', index: i }));

@@ -45,7 +45,9 @@ import { DebugOverlay } from './screens/DebugOverlay';
 import { FpsCounter } from './screens/FpsCounter';
 import { useFpsKey } from './screens/useFpsKey';
 import { CreditIntro } from './screens/CreditIntro';
-import { Settings, loadSave, saveRunEnd, writeSave } from './state/settings';
+import { Settings, loadSave, saveRunEnd, saveRunReport, writeSave } from './state/settings';
+import type { RunReport } from './sim/stats';
+import { Records } from './screens/records/Records';
 import { unlocksOf } from './sim/unlocks';
 import { setUiSize } from './ui/uiScale';
 import { setBloodLevel } from './engine/bloodFx';
@@ -55,7 +57,8 @@ import { devToolsEnabled } from './state/devTools';
 import { useDevKeys } from './screens/useDevKeys';
 
 /** Update 0.2.9 — 'lobby': walking round the lobby; 'lobbyPaused': its pause menu; 'confirm': its gate's questions. */
-type Phase = 'menu' | 'intro' | 'lobby' | 'lobbyPaused' | 'confirm' | 'playing' | 'paused' | 'dead';
+// (Update 0.5.2 — 'records': the lobby's records screen is up.)
+type Phase = 'menu' | 'intro' | 'lobby' | 'lobbyPaused' | 'confirm' | 'records' | 'playing' | 'paused' | 'dead';
 
 /** How long the black takes to clear off the lab (s). */
 const FADE_OUT = 0.5;
@@ -129,6 +132,35 @@ export default function App() {
       return next;
     });
   }, []);
+
+  /** Update 0.5.2 — a run's record, handed in as it ends or is left: added to yours. */
+  const onRunReport = useCallback((r: RunReport) => {
+    setSave((old) => {
+      const next = saveRunReport(old, r);
+      writeSave(next);
+      return next;
+    });
+  }, []);
+
+  /** Update 0.5.2 — E at the lobby's records screen: it wakes, the lobby held, the mouse freed. */
+  const openRecords = useCallback(() => {
+    const g = getGame();
+    if (!g || run.busy.current || phaseRef.current !== 'lobby') return;
+    g.holdLobby(true);
+    go('records');
+    g.unlock();
+  }, [getGame, go, run.busy]);
+
+  /** Back to the lobby (the mouse locked again; if the browser won't yet, its pause menu). */
+  const closeRecords = useCallback(() => {
+    const g = getGame();
+    if (!g || phaseRef.current !== 'records') return;
+    g.holdLobby(false);
+    go('lobby');
+    void g.lock().then((ok) => {
+      if (!ok) go('lobbyPaused');
+    });
+  }, [getGame, go]);
 
   /** Update 0.1.14 — the death screen: up over the black, the mouse freed. */
   const onDeathScreen = useCallback(
@@ -215,7 +247,7 @@ export default function App() {
   const onLockChange = useCallback(
     (locked: boolean) => {
       const ph = phaseRef.current;
-      if (ph === 'menu' || ph === 'intro' || ph === 'confirm') return;
+      if (ph === 'menu' || ph === 'intro' || ph === 'confirm' || ph === 'records') return;
       // The lobby: Esc pauses it (not while the tuning panel has the mouse, nor once you're going through the gate).
       if (ph === 'lobby' || ph === 'lobbyPaused') {
         if (!run.busy.current) go(locked || tuningRef.current ? 'lobby' : 'lobbyPaused');
@@ -287,6 +319,8 @@ export default function App() {
       onDemonEarned={onDemonEarned}
       onSeanEarned={onSeanEarned}
       onLobbyGate={gate.onGate}
+      onRecords={openRecords}
+      onRunReport={onRunReport}
       onReady={() => setReady(true)}
     >
       {onMenu && menuView === 'gate' && !tuning && <MainMenu ready={ready && !credits} leaving={phase === 'intro' || switching || run.starting} onStart={start} onSettings={() => switchMenu('camp')} onLab={dev ? startLab : undefined} />}
@@ -301,6 +335,7 @@ export default function App() {
         />
       )}
       {phase === 'confirm' && gate.ask && !tuning && <GateConfirm ask={gate.ask} onYes={gate.yes} onNo={gate.no} />}
+      {phase === 'records' && !tuning && <Records save={save} onClose={closeRecords} />}
       {fate.view(phase === 'playing' && !tuning)}
       {paused && !tuning && (
         <PauseMenu

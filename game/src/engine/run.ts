@@ -340,6 +340,8 @@ export class Run extends RunBase {
         this.playAs(l.character);
       }
       else if (e === 'gate') this.cb.onLobbyGate();
+      // (Update 0.5.2 — the records screen.)
+      else if (e === 'records') this.cb.onRecords?.();
     }
     l.events.length = 0;
   }
@@ -358,6 +360,7 @@ export class Run extends RunBase {
     this.told = true;
     this.silence();
     const p = this.player;
+    this.report(won);
     this.cb.onDeathScreen({ by: won ? null : p.hurtBy, floor: this.level.floor, time: this.played, kills: this.combat.kills, won, difficulty: this.difficulty, lab: this.everyone });
   }
 }

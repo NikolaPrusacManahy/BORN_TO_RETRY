@@ -13,6 +13,11 @@ export function playLobby(a: AudioEngine, e: LobbyEvent | 'open') {
   } else if (e === 'locked') {
     noise(a, { dur: 0.16, gain: 0.3, filter: 'bandpass', from: 500, to: 300, q: 3 });
     tone(a, { from: 140, to: 90, dur: 0.18, gain: 0.15, type: 'square' });
+  } else if (e === 'records') {
+    // (Update 0.5.2 — the records screen waking: a click and a rising hum.)
+    noise(a, { dur: 0.05, gain: 0.2, filter: 'highpass', from: 2400, to: 2000 });
+    tone(a, { from: 180, to: 360, dur: 0.35, gain: 0.07, type: 'triangle', delay: 0.03 });
+    tone(a, { from: 540, to: 720, dur: 0.3, gain: 0.04, type: 'sine', delay: 0.12 });
   } else if (e === 'open') {
     noise(a, { dur: 1.3, gain: 0.28, filter: 'bandpass', from: 380, to: 900, q: 2 });
     tone(a, { from: 70, to: 55, dur: 1.2, gain: 0.18, type: 'sawtooth' });

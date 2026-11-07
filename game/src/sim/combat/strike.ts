@@ -22,6 +22,7 @@ import { ENEMY_STATS, MINI_BOSSES } from '../enemies/kinds';
 import { burstCoins } from './coins';
 import { betterKeyFor, keyFor } from '../items/items';
 import { storedFactor } from '../cards/seanPowers';
+import { countOne } from '../stats';
 import { dropItem } from '../items/drops';
 import { coinsFor, rollBonus } from '../items/bonuses';
 import { newUses } from '../cards/cards';
@@ -246,6 +247,8 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   state.hitStop.request(FEEDBACK.v.stopKill);
   if (t.kind !== 'enemy') return true;
   state.kills++;
+  // (Update 0.5.2 — your record: sim/stats.ts.)
+  countOne(state.tally.kills, state.enemies[t.index].kind);
   if (state.sean) {
     const k = state.enemies[t.index].kind;
     gravKill(state, MINI_BOSSES.includes(k) || ENEMY_STATS[k]().boss);

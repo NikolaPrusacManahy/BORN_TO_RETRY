@@ -1,0 +1,464 @@
+/* theme-50 — Update 0.5.2: the lobby's records desktop (screens/records/Records.tsx). The manor as a desktop: its stone for a wallpaper, lit
+   warm in the middle like the hall under its chandeliers, the manor's seal faint over it; brass-framed windows with a forged title bar, the
+   pixel face throughout, a taskbar like a brass rail along the bottom. Sized as the HUD is (the same share of the screen at any size, times
+   the UI size): everything in it in em, from its font size. Then the designer, of the first look: "a bit cleaner please, a lot s
+   impossible to even read": bigger type, nothing dimmer than a warm grey, the long lists one shelf at a time. */
+.rb-desk {
+  --rb-desk-text: #f1e9dc;
+  --rb-desk-soft: #cdbfae;
+  --rb-desk-none: #a99d90;
+  --rb-desk-gold: #ffc75a;
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  overflow: hidden;
+  color: var(--rb-desk-text);
+  font-family: var(--rb-font);
+  font-size: calc(19px * var(--rb-hud, 1));
+  line-height: 1.3;
+  cursor: default;
+  user-select: none;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(255, 170, 70, 0.1), transparent 62%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.24) 0 2px, transparent 2px 46px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 92px),
+    linear-gradient(180deg, #1d1519, #0d0a0d 72%, #070507);
+  animation: rb-desk-wake 0.35s ease-out both;
+}
+
+@keyframes rb-desk-wake {
+  from {
+    opacity: 0;
+    filter: brightness(1.8);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+.rb-desk-svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The seal, faint, in the middle. */
+.rb-desk-mark {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+  transform: translate(-50%, -50%);
+  color: var(--rb-brass);
+  font-size: 1.5em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+/* The apps, down the left. */
+.rb-desk-icons {
+  position: absolute;
+  top: 1em;
+  left: 1em;
+  display: grid;
+  gap: 0.5em;
+}
+
+.rb-desk-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3em;
+  width: 5.6em;
+  padding: 0.55em 0.3em 0.45em;
+  color: var(--rb-brass-hi);
+  font: inherit;
+  font-size: 1em;
+  text-shadow: var(--rb-edge-thin);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.rb-desk-icon:hover,
+.rb-desk-icon:focus-visible {
+  outline: none;
+  background: rgba(201, 161, 74, 0.14);
+  border-color: rgba(201, 161, 74, 0.55);
+}
+
+/* A window. */
+.rb-win {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100% - 6em);
+  background: #140f13;
+  border: 2px solid var(--rb-brass-lo);
+  box-shadow:
+    var(--rb-frame),
+    0 1em 2.2em rgba(0, 0, 0, 0.65);
+}
+
+.rb-win.is-top {
+  border-color: var(--rb-brass);
+}
+
+.rb-win-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.4em 0.45em 0.4em 0.6em;
+  color: var(--rb-desk-gold);
+  background: linear-gradient(180deg, #3b2a1a, #21170e);
+  border-bottom: 2px solid var(--rb-brass-lo);
+  cursor: grab;
+  touch-action: none;
+}
+
+.rb-win-bar:active {
+  cursor: grabbing;
+}
+
+.rb-win-title {
+  flex: 1;
+  font-size: 1.05em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: var(--rb-edge);
+}
+
+.rb-win-close {
+  width: 1.6em;
+  height: 1.5em;
+  padding: 0;
+  color: #ece6e8;
+  font: inherit;
+  font-size: 1.05em;
+  line-height: 1;
+  background: #3b3638;
+  border: 2px solid #6e6669;
+  border-bottom-width: 3px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.rb-win-close:hover {
+  background: var(--rb-accent);
+  border-color: var(--rb-accent-hi);
+}
+
+.rb-win-body {
+  overflow: auto;
+  padding: 0.8em 0.9em 0.9em;
+  scrollbar-color: var(--rb-brass-lo) transparent;
+}
+
+/* The Ledger: a grid of tallies. */
+.rb-app-ledger {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5em;
+}
+
+.rb-app-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  padding: 0.55em 0.7em 0.6em;
+  background: #1d161b;
+  border: 1px solid rgba(201, 161, 74, 0.32);
+}
+
+.rb-app-stat-label {
+  color: var(--rb-desk-soft);
+  font-size: 0.82em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.rb-app-stat-value {
+  color: var(--rb-desk-gold);
+  font-size: 1.7em;
+  line-height: 1.05;
+  text-shadow: var(--rb-edge);
+}
+
+.rb-app-stat-note {
+  color: var(--rb-desk-soft);
+  font-size: 0.8em;
+}
+
+/* The lists: the Bestiary, the Deck. */
+.rb-app-head {
+  margin: 0 0 0.6em;
+  color: var(--rb-desk-soft);
+}
+
+.rb-app-head b {
+  color: var(--rb-desk-gold);
+  font-weight: inherit;
+}
+
+.rb-app-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em;
+  margin-bottom: 0.7em;
+}
+
+.rb-app-tab {
+  min-width: 2em;
+  padding: 0.2em 0.55em;
+  color: var(--rb-desk-soft);
+  font: inherit;
+  font-size: 0.9em;
+  background: #1d161b;
+  border: 1px solid rgba(201, 161, 74, 0.35);
+  cursor: pointer;
+}
+
+.rb-app-tab:hover {
+  color: var(--rb-desk-text);
+  border-color: var(--rb-brass);
+}
+
+.rb-app-tab.is-on {
+  color: #1a1209;
+  background: var(--rb-brass);
+  border-color: var(--rb-brass-hi);
+}
+
+.rb-app-shelf {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 0.35em;
+  padding-bottom: 0.25em;
+  color: var(--rb-desk-gold);
+  font-size: 1.05em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border-bottom: 2px solid rgba(201, 161, 74, 0.5);
+}
+
+.rb-app-rows {
+  max-height: 22em;
+  overflow: auto;
+}
+
+.rb-app-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8em;
+  padding: 0.28em 0.45em;
+}
+
+.rb-app-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.rb-app-row.is-none {
+  color: var(--rb-desk-none);
+}
+
+.rb-app-count {
+  color: var(--rb-desk-gold);
+  white-space: nowrap;
+}
+
+.rb-app-row.is-none .rb-app-count {
+  color: var(--rb-desk-none);
+}
+
+/* A card's rarity (in its colour), Traitor, Death, a boss. */
+.rb-app-tag {
+  margin-left: 0.5em;
+  font-size: 0.8em;
+  font-style: normal;
+  color: #b9b0a5;
+}
+
+.rb-app-tag.is-common {
+  color: #c4c0ba;
+}
+
+.rb-app-tag.is-uncommon {
+  color: #5fe07e;
+}
+
+.rb-app-tag.is-rare {
+  color: #7fb2ff;
+}
+
+.rb-app-tag.is-epic {
+  color: #c792ff;
+}
+
+.rb-app-tag.is-mythic {
+  color: #ff7a6a;
+}
+
+.rb-app-tag.is-traitor {
+  color: #e3b55c;
+}
+
+.rb-app-tag.is-death {
+  color: #9ccf8a;
+}
+
+.rb-app-tag.is-boss {
+  color: #ff9a6a;
+}
+
+.rb-app-tag.is-open {
+  color: #8ee08a;
+}
+
+.rb-app-tag.is-shut {
+  color: var(--rb-desk-soft);
+}
+
+/* The Roster and Unlocks: a card each. */
+.rb-app-card {
+  margin-bottom: 0.5em;
+  padding: 0.6em 0.75em 0.7em;
+  background: #1d161b;
+  border: 1px solid rgba(201, 161, 74, 0.38);
+}
+
+.rb-app-card.is-locked {
+  border-style: dashed;
+}
+
+.rb-app-card-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6em;
+}
+
+.rb-app-card-name {
+  color: var(--rb-desk-gold);
+  font-size: 1.15em;
+  text-shadow: var(--rb-edge);
+}
+
+.rb-app-card.is-locked .rb-app-card-name {
+  color: var(--rb-desk-text);
+}
+
+.rb-app-card-runs {
+  color: var(--rb-desk-soft);
+  white-space: nowrap;
+}
+
+.rb-app-card-how {
+  margin-top: 0.3em;
+  color: var(--rb-desk-soft);
+  font-size: 0.9em;
+}
+
+.rb-app-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  margin-top: 0.5em;
+}
+
+.rb-app-bar {
+  position: relative;
+  flex: 1;
+  height: 0.6em;
+  background: #2a1f24;
+  border: 1px solid var(--rb-brass-lo);
+}
+
+.rb-app-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, var(--rb-brass-lo), var(--rb-brass));
+}
+
+.rb-app-bar-count {
+  min-width: 2.6em;
+  color: var(--rb-desk-gold);
+  text-align: right;
+}
+
+/* The taskbar: a brass rail. */
+.rb-desk-bar {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  height: 2.4em;
+  padding: 0 0.6em;
+  background: linear-gradient(180deg, #2b1e14, #140e0a);
+  border-top: 2px solid var(--rb-brass);
+  box-shadow: 0 -0.4em 1em rgba(0, 0, 0, 0.5);
+}
+
+.rb-desk-start {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  color: var(--rb-desk-gold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: var(--rb-edge);
+}
+
+.rb-desk-tasks {
+  display: flex;
+  flex: 1;
+  gap: 0.35em;
+  overflow: hidden;
+}
+
+.rb-desk-task,
+.rb-desk-leave {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.2em 0.7em;
+  color: var(--rb-desk-text);
+  font: inherit;
+  font-size: 0.9em;
+  white-space: nowrap;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--rb-brass-lo);
+  cursor: pointer;
+}
+
+.rb-desk-task.is-top,
+.rb-desk-task:hover,
+.rb-desk-leave:hover {
+  color: var(--rb-desk-gold);
+  border-color: var(--rb-brass);
+}
+
+.rb-desk-clock {
+  min-width: 3em;
+  color: var(--rb-brass-hi);
+  text-align: right;
+}
+
+.rb-desk-leave .rb-cap {
+  min-width: 0;
+  padding: 0.1em 0.35em 0.05em;
+  font-size: 0.75em;
+}

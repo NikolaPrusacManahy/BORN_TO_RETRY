@@ -30,6 +30,7 @@ import { createDrops, Drop } from '../items/drops';
 import { Bonuses, createBonuses } from '../items/bonuses';
 import { createBag } from '../weapons/slots';
 import { createInventory, Inventory } from '../items/items';
+import { newTally, type Tally } from '../stats';
 import type { Deal } from '../cards/deal';
 import { clearPowers, createPowers, Powers } from '../cards/cardHits';
 import { GRID_RADIUS, SizeClass } from '../enemies/kinds';
@@ -129,6 +130,8 @@ export interface CombatState {
   fullMeter: boolean;
   /** Update 0.1.14 — enemies you've killed this run (the death screen). */
   kills: number;
+  /** Update 0.5.2 — what this run's been through, for your record (sim/stats.ts): carried down with you. */
+  tally: Tally;
   /** Update 0.0.16 — items on the floor, and the keys the room you're fighting in still gives (a Yeti drops one). */
   drops: Drop[];
   keyDrops: number;
@@ -233,6 +236,7 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     execAway: Infinity,
     fullMeter: false,
     kills: 0,
+    tally: newTally(),
     drops: createDrops(),
     keyDrops: 0,
     betterKeys: false,

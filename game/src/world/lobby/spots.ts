@@ -57,6 +57,8 @@ export const ALTAR_H = 1.16;
 /** Update 0.2.17 — the Fate Cards' stand (Update 0.3.21: after the altars, along the east wall): a small table with a
  *  big card floating over it; where the card floats (m). */
 export const CARD_STAND = { x: 12.6, z: 16 } as const;
+/** Update 0.5.2 — the records screen: on the west wall past the dais's end, after the Demon, between the two torches there (its middle, m). */
+export const RECORDS = { z: 3.25, y: 1.75, w: 1.9, h: 1.2 } as const;
 export const CARD_FLOAT = 1.75;
 
 /** The crystal's dais in the middle of the hall: its middle, its two steps' half sizes and height (m). */
