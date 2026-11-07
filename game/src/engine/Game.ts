@@ -49,14 +49,16 @@ export interface LobbyChoice {
   cards: boolean;
   /** Update 0.3.70 — you've beaten the final boss. */
   demon: boolean;
-  /** Update 0.3.80 — you've won a whole run. */
+  /** Update 0.3.80 — Gravity Sean's open (Update 0.5.1: sim/unlocks.ts). */
   won: boolean;
+  /** Update 0.5.1 — ARE YOU EVEN HUMAN? is open. */
+  human: boolean;
 }
 
 export class Game extends GameBase {
   private readonly menus: MenuScenes;
   /** Update 0.2.9 — what you chose in the lobby last (the run's difficulty: GameBase.runDifficulty). */
-  private choice: LobbyChoice = { difficulty: 'real', character: 'adventurer', cards: true, demon: false, won: false };
+  private choice: LobbyChoice = { difficulty: 'real', character: 'adventurer', cards: true, demon: false, won: false, human: false };
   private readonly resizeObs: ResizeObserver;
   private raf = 0;
   private last = performance.now();
@@ -128,7 +130,7 @@ export class Game extends GameBase {
     this.inLab = false;
     this.mode = 'play';
     this.runCharacter = this.choice.character;
-    this.newRun(lobbyLevel(createLobby(this.choice.difficulty, this.choice.character, this.choice.cards, this.choice.demon, this.choice.won)));
+    this.newRun(lobbyLevel(createLobby(this.choice.difficulty, this.choice.character, this.choice.cards, this.choice.demon, this.choice.won, this.choice.human)));
     this.input.clear();
   }
 
@@ -155,7 +157,7 @@ export class Game extends GameBase {
   /** Into a new dungeon run as `character` (only playable ones) on `difficulty`, with Fate Cards or not (`cards`). Call
    *  once the screen is black. */
   startRun(character: CharacterId, difficulty: Difficulty, cards = true) {
-    if (!canPlay(character, this.choice.demon, this.choice.won)) return;
+    if (!canPlay(character, this.choice.demon, this.choice.won) || (difficulty === 'human' && !this.choice.human)) return;
     this.runCharacter = character;
     this.runDifficulty = difficulty;
     this.runCards = cards;

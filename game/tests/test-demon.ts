@@ -44,13 +44,14 @@ const demon = ROSTER.find((c) => c.id === 'demon')!;
 section('The Demon — earned, on the roster and in the save');
 {
   check('on the roster, last', ROSTER[ROSTER.length - 1] === demon && demon.name === 'The Demon');
-  check('not playable till the final boss is beaten', !isPlayable(demon, false) && isPlayable(demon, true) && !canPlay('demon', false) && canPlay('demon', true));
+  // (Update 0.5.1 — opened by clears now, not by beating the final boss: test-unlocks.ts.)
+  check('not playable till it’s open', !isPlayable(demon, false) && isPlayable(demon, true) && !canPlay('demon', false) && canPlay('demon', true));
   check('the others don’t come with it', !isPlayable(ROSTER[1], true) && !canPlay('king', true) && isPlayable(ROSTER[0], false));
-  check('a new save hasn’t earned it', defaultSave().demon === false);
+  check('a new save hasn’t it', defaultSave().demon === false);
   check('nor an old save, or a bad value', hydrateSave({}).demon === false && hydrateSave({ demon: 'yes' }).demon === false);
-  check('earned, it’s kept', hydrateSave({ demon: true }).demon === true);
-  check('chosen in a save that hasn’t earned it: Joseph', hydrateSave({ character: 'demon' }).character === 'adventurer');
-  check('chosen and earned: the Demon', hydrateSave({ character: 'demon', demon: true }).character === 'demon');
+  check('an old save that had it keeps it', hydrateSave({ demon: true }).demon === true);
+  check('chosen in a save that hasn’t it: Joseph', hydrateSave({ character: 'demon' }).character === 'adventurer');
+  check('chosen and open: the Demon', hydrateSave({ character: 'demon', demon: true }).character === 'demon' && hydrateSave({ character: 'demon', clears: { human: 1 } }).character === 'demon');
 }
 
 section('The Demon — on the lobby’s dais');

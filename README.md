@@ -61,6 +61,9 @@ standard difficulty you get one life. Losing is part of the design: play, lose, 
 | THE REAL EXPERIENCE | One life. |
 | ARE YOU EVEN HUMAN? | One life and fists only: no coins, weapons, keys, chests, shop or rewards. |
 
+You start with Joseph. Clearing the game opens ARE YOU EVEN HUMAN? and, from THE REAL EXPERIENCE up, Gravity Sean. The Demon
+takes five clears, or one on ARE YOU EVEN HUMAN?.
+
 ## Controls
 
 Keyboard and mouse. Every action can be rebound in the options, except Esc.

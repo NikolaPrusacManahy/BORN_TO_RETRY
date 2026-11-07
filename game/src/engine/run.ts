@@ -289,11 +289,7 @@ export class Run extends RunBase {
     if (d) this.view.update?.(gameDt, d, this.camera.position, this.combat.flood, this.hits.kicks);
     else this.view.frame?.(real, this.camera.position);
     if (lobby) this.lobbyNews(lobby);
-    // (Update 0.3.70 — the final boss has fallen, on whatever difficulty: the Demon's yours.)
-    if (this.combat.wardenBeaten) {
-      this.combat.wardenBeaten = false;
-      this.cb.onDemonEarned?.();
-    }
+    // (Update 0.3.70 — the final boss beaten earned the Demon. Update 0.5.1 — no longer: clears do, sim/unlocks.ts.)
     // (The Velociraptor's sandstorm over the dungeon's haze.)
     this.combatScene.raptor.sky(this.scene, this.combat);
     const f = this.combat.fists;
@@ -362,6 +358,6 @@ export class Run extends RunBase {
     this.told = true;
     this.silence();
     const p = this.player;
-    this.cb.onDeathScreen({ by: won ? null : p.hurtBy, floor: this.level.floor, time: this.played, kills: this.combat.kills, won });
+    this.cb.onDeathScreen({ by: won ? null : p.hurtBy, floor: this.level.floor, time: this.played, kills: this.combat.kills, won, difficulty: this.difficulty, lab: this.everyone });
   }
 }

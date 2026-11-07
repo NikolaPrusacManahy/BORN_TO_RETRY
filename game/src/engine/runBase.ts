@@ -118,7 +118,7 @@ export abstract class RunBase {
     /** Update 0.2.17 — chests deal Fate Cards (the lobby's stand). */
     readonly cards = true,
     /** Update 0.3.24 — the Lab's (any enemy can be called up there: every enemy's model loaded; floorKinds.ts). */
-    private readonly everyone = false,
+    protected readonly everyone = false,
     character: CharacterId = 'adventurer',
   ) {
     this.demon = character === 'demon';

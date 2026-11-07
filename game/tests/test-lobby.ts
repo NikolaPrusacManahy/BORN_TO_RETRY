@@ -59,7 +59,8 @@ section('Lobby — the save keeps your choices');
 {
   const old = hydrateSave({ version: 1, settings: {} });
   check('an old save (from before the lobby) gets THE REAL EXPERIENCE and Joseph', old.difficulty === 'real' && old.character === 'adventurer');
-  check('a saved difficulty is kept', hydrateSave({ difficulty: 'human' }).difficulty === 'human' && hydrateSave({ difficulty: 'weakling' }).difficulty === 'weakling');
+  // (Update 0.5.1 — ARE YOU EVEN HUMAN? only once it's open: test-unlocks.ts.)
+  check('a saved difficulty is kept', hydrateSave({ difficulty: 'human', clears: { real: 1 } }).difficulty === 'human' && hydrateSave({ difficulty: 'weakling' }).difficulty === 'weakling');
   check('junk is the default', hydrateSave({ difficulty: 'easy', character: 7 }).difficulty === 'real' && hydrateSave({ character: 7 }).character === 'adventurer');
   check('a locked character in a save is Joseph', hydrateSave({ character: 'king' }).character === 'adventurer');
   // (Update 0.2.17 — and Fate Cards on or off: on to start.)

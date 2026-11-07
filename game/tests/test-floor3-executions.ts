@@ -111,7 +111,7 @@ section('Floors — 4 rooms on the way, one more every 4 floors (Update 0.3.27);
   check(`${floors} floors: the start, that many fight rooms, the boss; off the way the shop and one challenge room`, !bad, bad);
   // (Update 0.2.12 — the alpha's: floors 1–5, the designer: "don't include 6 yet".)
   check(`floor ${LAST_FLOOR} is the last: its way down ends the run (floor 8’s doesn’t)`, LAST_FLOOR === 9 && endsRun(9) && !endsRun(8));
-  const screen = (won: boolean) => renderToStaticMarkup(createElement(DeathScreen, { info: { by: won ? null : 'skeleton', floor: won ? 7 : 3, time: 1234, kills: 321, won }, onRetry: () => {}, onMenu: () => {} }));
+  const screen = (won: boolean) => renderToStaticMarkup(createElement(DeathScreen, { info: { by: won ? null : 'skeleton', floor: won ? 7 : 3, time: 1234, kills: 321, won, difficulty: 'real', lab: false }, onRetry: () => {}, onMenu: () => {} }));
   const win = screen(true);
   const lose = screen(false);
   check('then the same screen, saying you survived (in gold), the floor, the time, your kills, Retry and Menu', win.includes('Run complete') && win.includes('Survived') && win.includes('rb-won') && win.includes('>7<') && win.includes('20:34') && win.includes('321') && win.includes('Retry') && win.includes('Menu'));

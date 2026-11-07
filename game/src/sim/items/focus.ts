@@ -19,8 +19,8 @@ import { anyKey } from './items';
 /** What E does here: take it, buy it, open the chest, execute; 'locked': a chest and no key; null: nothing. Update
  *  0.2.9 — the lobby's (sim/lobby/lobby.ts): choose it, it's already chosen, go through the gate, a locked character.
  *  Update 0.2.17 — and turn Fate Cards on or off. Update 0.3.70 — 'sealed': the Demon, not yet earned.
- *  Update 0.3.80 — 'unwon': Gravity Sean, no run won yet. */
-export type FocusAct = 'pick' | 'buy' | 'open' | 'locked' | 'execute' | 'choose' | 'chosen' | 'enter' | 'sealed' | 'unwon' | 'turnOn' | 'turnOff' | null;
+ *  Update 0.3.80 — 'unwon': Gravity Sean, no run won yet. Update 0.5.1 — 'closed': a difficulty not open yet. */
+export type FocusAct = 'pick' | 'buy' | 'open' | 'locked' | 'execute' | 'choose' | 'chosen' | 'enter' | 'sealed' | 'unwon' | 'closed' | 'turnOn' | 'turnOff' | null;
 
 export interface Focus {
   /** The item it's about (its card), or null (a chest, an execution, nothing). */

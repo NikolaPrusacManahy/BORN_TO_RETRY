@@ -30,6 +30,9 @@ export interface DeathInfo {
   kills: number;
   /** Update 0.2.2 — you took the last floor's way down: the run is won. */
   won?: boolean;
+  /** Update 0.5.1 — on what difficulty, and whether it was the Lab's (a win there counts for nothing). */
+  difficulty: Difficulty;
+  lab: boolean;
 }
 
 export interface RunCallbacks {

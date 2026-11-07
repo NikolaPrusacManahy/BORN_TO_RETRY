@@ -13,6 +13,7 @@
 // its card says so.
 // Update 0.3.80 — Gravity Sean in the Fallen King's and William Rich's place: a silhouette till you've won a run (`Lobby.won`),
 // and his card says so.
+// Update 0.5.1 — what's open is sim/unlocks.ts; ARE YOU EVEN HUMAN?'s altar is closed till you've cleared the game (`Lobby.human`), and its card says so.
 import type { CardKind } from '../cards/cards';
 import type { CharacterId } from '../characters';
 import type { InfoKind } from '../items/itemInfo';
@@ -55,8 +56,10 @@ export interface Lobby {
   cards: boolean;
   /** Update 0.3.70 — you've beaten the final boss. */
   demon: boolean;
-  /** Update 0.3.80 — you've won a whole run. */
+  /** Update 0.3.80 — Gravity Sean's open (Update 0.5.1: sim/unlocks.ts). */
   won: boolean;
+  /** Update 0.5.1 — ARE YOU EVEN HUMAN? is open. */
+  human: boolean;
   /** The station in reach (−1: none). */
   near: number;
   /** You stand in the gateway (walking in sends you through once each time). */
@@ -75,7 +78,7 @@ const SAME_FLOOR = 2.5;
 const GATE_CARD = 3.2;
 const HEAD = 2.55;
 
-export function createLobby(difficulty: Difficulty, character: CharacterId, cards = true, demon = false, won = false): Lobby {
+export function createLobby(difficulty: Difficulty, character: CharacterId, cards = true, demon = false, won = false, human = false): Lobby {
   const stations: Station[] = [
     ...ALTARS.map((a, i): Station => ({ kind: 'difficulty', index: i, x: a.x, z: a.z, y: ALTAR_H + 0.95, reach: REACH.difficulty, level: 0 })),
     ...FIGURES.map((f, i): Station => ({ kind: 'character', index: i, x: f.x, z: f.z, y: DAIS.h + HEAD, reach: REACH.character, level: 0 })),
@@ -84,7 +87,7 @@ export function createLobby(difficulty: Difficulty, character: CharacterId, card
     ...[...WEAPON_STANDS, ...ITEM_STANDS].map((s, i): Station => ({ kind: 'exhibit', index: i, x: s.x, z: s.z, y: PEDESTAL.top + 1.25, reach: REACH.exhibit, level: 0, item: s.kind })),
     ...cardSlots().map((c, i): Station => ({ kind: 'gallery', index: i, x: c.x, z: c.z, y: c.y + 0.75, reach: REACH.gallery, level: c.y - CARD_SIZE.y, card: c.kind })),
   ];
-  return { stations, difficulty, character, cards, demon, won, near: -1, inGate: false, opening: false, events: [] };
+  return { stations, difficulty: difficulty === 'human' && !human ? 'real' : difficulty, character, cards, demon, won, human, near: -1, inGate: false, opening: false, events: [] };
 }
 
 /** The nearest station in its reach (−1: none). */
@@ -116,7 +119,8 @@ export function stepLobby(l: Lobby, p: PlayerState, interact: boolean): boolean 
     l.events.push('pick');
   } else if (s.kind === 'difficulty') {
     const d = DIFFICULTIES[s.index].id;
-    if (d !== l.difficulty) {
+    if (d === 'human' && !l.human) l.events.push('locked');
+    else if (d !== l.difficulty) {
       l.difficulty = d;
       l.events.push('pick');
     }
@@ -156,7 +160,7 @@ export function lobbyFocus(l: Lobby, out: Focus): Focus {
   } else if (s.kind === 'difficulty') {
     const d = DIFFICULTIES[s.index];
     out.label = d.name;
-    out.act = d.id === l.difficulty ? 'chosen' : 'choose';
+    out.act = d.id === 'human' && !l.human ? 'closed' : d.id === l.difficulty ? 'chosen' : 'choose';
   } else {
     const c = ROSTER[s.index];
     const playable = isPlayable(c, l.demon, l.won);

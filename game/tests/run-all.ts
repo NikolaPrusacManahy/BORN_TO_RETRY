@@ -36,6 +36,7 @@ import './test-sean-stop';
 import './test-sean-hud';
 import './test-sean-mass';
 import './test-sean-cards';
+import './test-unlocks';
 import './test-swarm-stare';
 import './test-seams';
 import './test-floor5';

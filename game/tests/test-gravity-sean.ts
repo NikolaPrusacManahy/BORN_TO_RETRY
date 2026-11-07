@@ -33,25 +33,24 @@ section('Gravity Sean — on the roster, in the King’s and William Rich’s pl
   check('his own kit (Update 0.3.81: test-sean-moves.ts)', sean.kit !== ROSTER[0].kit && sean.kit.length > 0);
 }
 
-section('Gravity Sean — earned by winning a whole run');
+section('Gravity Sean — opened, and kept in the save (Update 0.5.1 — by a clear on THE REAL EXPERIENCE or harder: test-unlocks.ts)');
 {
-  check('not playable till a run’s won', !isPlayable(sean, false) && !canPlay('spacesuit', false) && isPlayable(sean, false, true) && canPlay('spacesuit', false, true));
-  check('beating the final boss isn’t what earns him', !isPlayable(sean, true, false));
-  check('winning a run doesn’t earn the Demon', !isPlayable(demon, false, true) && isPlayable(demon, true, false));
-  check('a new save hasn’t won', defaultSave().won === false);
+  check('not playable till he’s open', !isPlayable(sean, false) && !canPlay('spacesuit', false) && isPlayable(sean, false, true) && canPlay('spacesuit', false, true));
+  check('the Demon open isn’t him', !isPlayable(sean, true, false));
+  check('nor is he the Demon', !isPlayable(demon, false, true) && isPlayable(demon, true, false));
+  check('a new save hasn’t him', defaultSave().won === false);
   check('nor an old save, or a bad value', hydrateSave({}).won === false && hydrateSave({ won: 'yes' }).won === false);
-  check('won, it’s kept', hydrateSave({ won: true }).won === true);
-  check('chosen in a save that hasn’t won: Joseph', hydrateSave({ character: 'spacesuit' }).character === 'adventurer');
-  check('chosen and won: Gravity Sean', hydrateSave({ character: 'spacesuit', won: true }).character === 'spacesuit');
+  check('an old save’s win keeps him', hydrateSave({ won: true }).won === true);
+  check('chosen in a save that hasn’t him: Joseph', hydrateSave({ character: 'spacesuit' }).character === 'adventurer');
+  check('chosen and his: Gravity Sean', hydrateSave({ character: 'spacesuit', won: true }).character === 'spacesuit' && hydrateSave({ character: 'spacesuit', clears: { real: 1 } }).character === 'spacesuit');
   check('an old save that chose the King: Joseph', hydrateSave({ character: 'king', won: true }).character === 'adventurer');
   const base = defaultSave();
-  const won = saveRunEnd(base, true);
-  check('a run won: he’s yours, no death counted', won.won && won.deaths === base.deaths && !base.won);
-  check('and nothing else changes', won.demon === base.demon && won.character === base.character && won.difficulty === base.difficulty);
-  check('won again: nothing new to write', saveRunEnd(won, true) === won);
-  const dead = saveRunEnd(base, false);
-  check('a death: counted, and it earns nothing', dead.deaths === base.deaths + 1 && !dead.won);
-  check('a death doesn’t take him back', saveRunEnd(won, false).won);
+  const won = saveRunEnd(base, true, 'real');
+  check('a run won: counted, no death', won.clears.real === 1 && won.deaths === base.deaths);
+  check('and nothing else changes', won.demon === base.demon && won.won === base.won && won.character === base.character && won.difficulty === base.difficulty);
+  const dead = saveRunEnd(base, false, 'real');
+  check('a death: counted, and it earns nothing', dead.deaths === base.deaths + 1 && dead.clears.real === 0);
+  check('a death takes nothing back', saveRunEnd(won, false, 'real').clears.real === 1);
   check('a run ends on the last floor', endsRun(LAST_FLOOR) && !endsRun(LAST_FLOOR - 1));
 }
 

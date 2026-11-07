@@ -46,6 +46,7 @@ import { FpsCounter } from './screens/FpsCounter';
 import { useFpsKey } from './screens/useFpsKey';
 import { CreditIntro } from './screens/CreditIntro';
 import { Settings, loadSave, saveRunEnd, writeSave } from './state/settings';
+import { unlocksOf } from './sim/unlocks';
 import { setUiSize } from './ui/uiScale';
 import { setBloodLevel } from './engine/bloodFx';
 import { setEffectsLow } from './engine/effectsLevel';
@@ -119,11 +120,11 @@ export default function App() {
     if (ok) go(ph === 'lobbyPaused' || ph === 'lobby' ? 'lobby' : 'playing');
   }, [getGame, go]);
 
-  /** A run's end, for good (Update 0.3.65: a death counted, Hellwarden's forged from them; Update 0.3.80: a win, on any
-   *  difficulty: Gravity Sean's yours). */
-  const runEnded = useCallback((won: boolean) => {
+  /** A run's end, for good (Update 0.3.65: a death counted, Hellwarden's forged from them; Update 0.5.1: a win counted by
+   *  its difficulty: sim/unlocks.ts). */
+  const runEnded = useCallback((info: DeathInfo) => {
     setSave((old) => {
-      const next = saveRunEnd(old, won);
+      const next = saveRunEnd(old, !!info.won, info.difficulty, info.lab);
       if (next !== old) writeSave(next);
       return next;
     });
@@ -133,17 +134,24 @@ export default function App() {
   const onDeathScreen = useCallback(
     (info: DeathInfo) => {
       setDeath(info);
-      runEnded(!!info.won);
+      runEnded(info);
       go('dead');
       getGame()?.unlock();
     },
     [getGame, go, runEnded],
   );
 
-  /** Update 0.3.80 — in the Lab, played as Gravity Sean: he's yours on the dais too. */
-  const onSeanEarned = useCallback(() => runEnded(true), [runEnded]);
+  /** Update 0.3.80 — in the Lab, played as Gravity Sean: he's yours on the dais too (Update 0.5.1 — a win it isn't). */
+  const onSeanEarned = useCallback(() => {
+    setSave((old) => {
+      if (old.won) return old;
+      const next = { ...old, won: true };
+      writeSave(next);
+      return next;
+    });
+  }, []);
 
-  /** Update 0.3.70 — the final boss beaten, on any difficulty: the Demon's yours, for good. */
+  /** Update 0.3.70 — the Demon's yours, for good: since 0.5.1, only from the Lab's Play as (runs open it now: sim/unlocks.ts). */
   const onDemonEarned = useCallback(() => {
     setSave((old) => {
       if (old.demon) return old;
@@ -175,8 +183,10 @@ export default function App() {
     if (!g || phaseRef.current !== 'menu') return;
     go('intro');
     void g.lock();
-    g.startIntro({ difficulty: save.difficulty, character: save.character, cards: save.cards, demon: save.demon, won: save.won });
-  }, [getGame, go, save.difficulty, save.character, save.cards, save.demon, save.won]);
+    // (Update 0.5.1 — what the save has opened.)
+    const open = unlocksOf(save);
+    g.startIntro({ difficulty: save.difficulty, character: save.character, cards: save.cards, demon: open.demon, won: open.sean, human: open.human });
+  }, [getGame, go, save]);
 
   /** Update 0.0.19 — the main menu's Lab: straight into the Lab. */
   const startLab = useCallback(() => {

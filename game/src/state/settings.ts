@@ -6,8 +6,11 @@
 // Update 0.3.38 — the frame-rate cap (core/framePacer.ts).
 // Update 0.3.70 — you've beaten the final boss: the Playable Demon's yours.
 // Update 0.3.80 — you've won a whole run: Gravity Sean's yours.
+// Update 0.5.1 — the runs you've won, by difficulty: what they open is sim/unlocks.ts.
 import { Bindings, DEFAULT_BINDINGS, hydrateBindings } from '../input/bindings';
 import { canPlay, CharacterId, ROSTER } from '../sim/characters';
+import { Clears, noClears, unlocksOf } from '../sim/unlocks';
+import { DIFFICULTIES } from '../sim/lobby/difficulty';
 import { DEFAULT_DIFFICULTY, Difficulty, isDifficulty } from '../sim/lobby/difficulty';
 import { DEFAULT_FRAME_CAP, FRAME_CAPS } from '../core/framePacer';
 import { DEFAULT_FPS_KEY } from '../input/fpsKey';
@@ -54,10 +57,13 @@ export interface SaveData {
   cards: boolean;
   /** Update 0.3.65 — how many times you've died, all runs (Hellwarden's forged from them). */
   deaths: number;
-  /** Update 0.3.70 — you've beaten the final boss, on any difficulty: the Demon's yours to play. */
+  /** Update 0.3.70 — you've beaten the final boss, on any difficulty: the Demon's yours to play. Update 0.5.1 — no longer how it's earned (`clears` is): a save that has it keeps it, and so does the Lab's Play as. */
   demon: boolean;
-  /** Update 0.3.80 — you've won a whole run, on any difficulty: Gravity Sean's yours to play. */
+  /** Update 0.3.80 — you've won a whole run, on any difficulty: Gravity Sean's yours to play. Update 0.5.1 — no longer set by a win (`clears` counts them): a save that has it keeps him and ARE YOU EVEN
+   *  HUMAN?, and the Lab's Play as sets it. */
   won: boolean;
+  /** Update 0.5.1 — runs won, by difficulty (not the Lab's). */
+  clears: Clears;
 }
 
 /** Named after the working title; kept when the game became Born To Retry so saved settings carry over. */
@@ -72,14 +78,14 @@ export const UI_SIZE_MAX = 1.4;
 export const DEFAULT_SETTINGS: Settings = { sensitivity: 1, invertY: false, fov: 100, volume: 0.8, sfxVolume: 1, musicVolume: 0.7, uiSize: 1, blood: 'on', glow: true, effects: 'high', frameCap: DEFAULT_FRAME_CAP, fpsKey: DEFAULT_FPS_KEY, showFps: false, bindings: DEFAULT_BINDINGS };
 
 export function defaultSave(): SaveData {
-  return { version: 1, settings: { ...DEFAULT_SETTINGS, bindings: { ...DEFAULT_BINDINGS } }, difficulty: DEFAULT_DIFFICULTY, character: DEFAULT_CHARACTER, cards: true, deaths: 0, demon: false, won: false };
+  return { version: 1, settings: { ...DEFAULT_SETTINGS, bindings: { ...DEFAULT_BINDINGS } }, difficulty: DEFAULT_DIFFICULTY, character: DEFAULT_CHARACTER, cards: true, deaths: 0, demon: false, won: false, clears: noClears() };
 }
 
-/** A run's end, saved: a death counted (Update 0.3.65); Update 0.3.80 — a win kept for good, whatever the difficulty. The same
- *  save if nothing's new. */
-export function saveRunEnd(old: SaveData, won: boolean): SaveData {
+/** A run's end, saved: a death counted (Update 0.3.65); Update 0.5.1 — a win counted on the difficulty it was on (`lab`: the Lab's, which count for nothing). The same save if nothing's new. */
+export function saveRunEnd(old: SaveData, won: boolean, difficulty: Difficulty, lab = false): SaveData {
   if (!won) return { ...old, deaths: old.deaths + 1 };
-  return old.won ? old : { ...old, won: true };
+  if (lab) return old;
+  return { ...old, clears: { ...old.clears, [difficulty]: old.clears[difficulty] + 1 } };
 }
 
 /** Update 0.2.9 — the character a new save has (the first playable one). */
@@ -92,17 +98,23 @@ export function hydrateSave(raw: unknown): SaveData {
   const base = defaultSave();
   if (!raw || typeof raw !== 'object') return base;
   const s: Partial<Settings> = (raw as { settings?: Partial<Settings> }).settings ?? {};
-  const { difficulty, character, cards, deaths, demon, won } = raw as Partial<Record<'difficulty' | 'character' | 'cards' | 'deaths' | 'demon' | 'won', unknown>>;
+  const { difficulty, character, cards, deaths, demon, won, clears } = raw as Partial<Record<'difficulty' | 'character' | 'cards' | 'deaths' | 'demon' | 'won' | 'clears', unknown>>;
   const beaten = demon === true;
   const runWon = won === true;
+  // (Update 0.5.1 — a count for each difficulty, nonsense as none.)
+  const counted = noClears();
+  const given = clears && typeof clears === 'object' ? (clears as Record<string, unknown>) : {};
+  for (const d of DIFFICULTIES) counted[d.id] = Math.floor(clamp(given[d.id], 0, 1e7, 0));
+  const open = unlocksOf({ clears: counted, won: runWon, demon: beaten });
   return {
     version: 1,
-    difficulty: isDifficulty(difficulty) ? difficulty : DEFAULT_DIFFICULTY,
-    character: canPlay(character, beaten, runWon) ? (character as CharacterId) : DEFAULT_CHARACTER,
+    difficulty: isDifficulty(difficulty) && (difficulty !== 'human' || open.human) ? difficulty : DEFAULT_DIFFICULTY,
+    character: canPlay(character, open.demon, open.sean) ? (character as CharacterId) : DEFAULT_CHARACTER,
     cards: typeof cards === 'boolean' ? cards : true,
     deaths: Math.floor(clamp(deaths, 0, 1e7, 0)),
     demon: beaten,
     won: runWon,
+    clears: counted,
     settings: {
       sensitivity: clamp(s.sensitivity, SENS_MIN, SENS_MAX, DEFAULT_SETTINGS.sensitivity),
       invertY: typeof s.invertY === 'boolean' ? s.invertY : DEFAULT_SETTINGS.invertY,
