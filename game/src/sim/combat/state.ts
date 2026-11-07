@@ -16,7 +16,6 @@ import { Fireball, createFireballs } from '../weapons/fireballs';
 import { KiCharge, createKi } from '../weapons/kiCharge';
 import { SmashWave, createSmashWaves } from '../weapons/smashWaves';
 import { Knife, Volley, createKnives, createVolley } from '../weapons/knives';
-import { GunState, createGun } from '../weapons/gun';
 import type { CombatEvent } from './events';
 import { createFlow, Flow } from '../enemies/chase';
 import { createEnemies, Enemy } from '../enemies/enemy';
@@ -98,8 +97,6 @@ export interface CombatState {
   /** Update 0.1.9 — the Dual Daggers' volley (right click held) and its daggers in flight or stuck in walls. */
   volley: Volley;
   knives: Knife[];
-  /** Update 0.2.4 — the Pistol's aim, reload and spread (gun.ts). */
-  gun: GunState;
   recallHeld: boolean;
   smashHeld: boolean;
   rng: Rng;
@@ -217,7 +214,6 @@ export function createCombat(arena: Arena, walkGrid = true): CombatState {
     ki: createKi(),
     smashWaves: createSmashWaves(),
     volley: createVolley(),
-    gun: createGun(),
     knives: createKnives(),
     recallHeld: false,
     smashHeld: false,
@@ -293,7 +289,6 @@ export function resetCombat(state: CombatState, arena: Arena) {
   state.ki = createKi();
   for (const w of state.smashWaves) w.alive = false;
   state.volley = createVolley();
-  state.gun = createGun();
   for (const k of state.knives) k.alive = false;
   state.recallHeld = state.smashHeld = false;
   state.stands = createStands(arena.stands);

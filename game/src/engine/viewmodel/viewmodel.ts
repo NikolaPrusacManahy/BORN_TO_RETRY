@@ -13,7 +13,6 @@
 // fists' pose moved to fistArm.ts.
 // Update 0.1.9 — the Dual Daggers: one in each hand; the left plays its own moves and holds the second (offHand.ts).
 // The sway, bob and dips moved to armsMotion.ts.
-// Update 0.2.4 — the Pistol: the right arm follows the gun's pose (gunArms.ts), the left out of view.
 // Update 0.3.5 — barehanded, right click raises the fists into a block (blockArms.ts): the parry. Update 0.3.6 — the
 // right fist only, a quick move.
 // Update 0.3.70 — the Playable Demon (design bible): its own arms, its blade in the hand whenever nothing else is. They're
@@ -50,7 +49,6 @@ import { KeyPalm } from './palm';
 import { OffHand } from './offHand';
 import { holdWeapon, turnOpen, wrapOf } from './tipHold';
 import { SwordAnim, SwordMove } from './swordAnim';
-import { GUN_GRIP, GunArms } from './gunArms';
 import { emptySword } from './swordPoses';
 
 export { ARMS_URL, DEMON_ARMS_URL, DEMON_BLADE_URL, SEAN_ARMS_URL } from './armsWardrobe';
@@ -87,8 +85,6 @@ export class Viewmodel {
   readonly block = new BlockArms(this.anim);
   /** Update 0.1.9 — the left hand's own weapon (the Dual Daggers' second). */
   readonly off = new OffHand();
-  readonly gun = new GunArms(this.scene);
-  private readonly gunPose = pose();
   private readonly slamPose = { L: pose(), R: pose() };
   private readonly bookPose = pose();
   private readonly knuckleL = new THREE.Vector3();
@@ -185,7 +181,6 @@ export class Viewmodel {
     if (model && this.catching && !verdict) this.swordAnim.start('caught');
     this.catching = false;
     this.off.take(model?.userData.pair ?? null, model ? movesOf(model).pair : null);
-    this.gun.use(model?.userData.hold === 'gun' ? model : null);
     this.weapon = model;
     if (!model) return;
     model.matrixAutoUpdate = false;
@@ -274,7 +269,6 @@ export class Viewmodel {
 
   /** M2 — the sword arm's next move. */
   sword(move: SwordMove) {
-    if (move === 'throw' && this.weapon?.userData.hold === 'gun') this.gun.throwStart();
     this.swordAnim.start(move);
     if (this.off.active) this.off.start(move);
   }
@@ -320,7 +314,6 @@ export class Viewmodel {
     this.pivot.rotation.x += lean.x;
     this.pivot.rotation.y += lean.y;
     this.pivot.rotation.z += lean.z;
-    this.gun.update(gameDt);
     this.seanHands.update(realDt);
     this.armedVis = Math.max(0, Math.min(1, this.armedVis + ((this.weapon ? 1 : -1) * gameDt) / v.armedSwap));
     this.flip = Math.max(0, Math.min(1, this.flip + ((charge >= 0 ? 1 : -1) * gameDt) / v.daggerFlip));
@@ -338,11 +331,10 @@ export class Viewmodel {
     if (this.chest.weight > 0) this.chest.aimed();
     const armed = smooth(this.armedVis) * (1 - reach);
     const book = this.weapon?.userData.hold === 'book' ? armed : 0;
-    const gun = this.weapon?.userData.hold === 'gun' ? armed : 0;
     const palm = this.palm.mix;
     // A weapon in the right fist (posed first: a two-handed one's haft is where the left hand goes).
     const tremble = this.time < this.steadyUntil ? 0 : charge >= 1 ? 2 : 1;
-    const held = book === 0 && gun === 0 && armed > 0 ? swordArm(rig, this.swordAnim, this.chargeVis, tremble, this.time, this.swordPose, this.swordArm) : null;
+    const held = book === 0 && armed > 0 ? swordArm(rig, this.swordAnim, this.chargeVis, tremble, this.time, this.swordPose, this.swordArm) : null;
     // (Update 0.3.74 — the Demon's Last Verdict takes both.)
     const two = held ? this.swordAnim.twoHanded : 0;
     const fixed = this.swordAnim.moves.hands();
@@ -377,9 +369,6 @@ export class Viewmodel {
       mixArm(right, held, armed, right);
       this.elbow.copy(GUARD.R.pole).lerp(this.swordPose.elbow, armed);
       rig.apply('R', right, v.wristBend + (1 - v.wristBend) * armed, this.elbow);
-    } else if (gun > 0) {
-      mixArm(right, this.gun.pose(rig, this.gunPose), gun, right);
-      rig.apply('R', right, v.wristBend + (1 - v.wristBend) * gun, this.elbow.copy(GUARD.R.pole).lerp(this.gun.elbow, gun));
     } else {
       if (clasp > 0) mixArm(right, this.slam.pose(rig, 'R', this.slamPose.R), clasp, right);
       if (reach > 0) this.chest.pull(rig, 'R', right, reach, this.grip, this.holder, this.camera);
@@ -389,12 +378,11 @@ export class Viewmodel {
       this.gravity?.shake('R', right);
       rig.apply('R', right, v.wristBend + (1 - v.wristBend) * Math.max(clasp, this.grip.bend('R'), handR), this.seanHands.pole('R', this.block.pole(this.elbow.copy(GUARD.R.pole), blocking)));
     }
-    rig.openHand('R', Math.max(this.seanHands.open, book * this.book.open('R'), this.grip.open('R'), held ? Math.max(RELEASE * this.swordAnim.letGo, turnOpen(moves, this.flip)) : 0), held ? wrapOf(moves, this.flip) : gun > 0 ? GUN_GRIP : ROPE, held ? armed : gun || this.grip.rope('R'), held ? this.swordPose.tilt : gun > 0 ? this.gun.tilt : undefined, held ? this.swordAnim.handSign : 0, this.seanHands.flat);
+    rig.openHand('R', Math.max(this.seanHands.open, book * this.book.open('R'), this.grip.open('R'), held ? Math.max(RELEASE * this.swordAnim.letGo, turnOpen(moves, this.flip)) : 0), held ? wrapOf(moves, this.flip) : ROPE, held ? armed : this.grip.rope('R'), held ? this.swordPose.tilt : undefined, held ? this.swordAnim.handSign : 0, this.seanHands.flat);
     if (this.weapon) {
       // (Update 0.3.79 — and not with the Demon's sword put away.)
       this.weapon.visible = reach < 0.2 && !this.swordAnim.empty && this.swordAnim.swordGoing < 1;
       if (book > 0) this.book.bookMatrix(rig, this.weapon.matrix);
-      else if (gun > 0) this.gun.matrix(rig, this.weapon.matrix);
       else holdWeapon(rig, moves, this.swordPose.tilt, this.flip, this.weapon.matrix);
       this.weapon.matrixWorldNeedsUpdate = true;
     }
@@ -461,7 +449,6 @@ export class Viewmodel {
     this.book.clear();
     this.slam.reset();
     this.block.reset();
-    this.gun.clear();
     this.seanHands.reset();
     this.armedVis = this.weapon ? 1 : 0;
     this.motion.reset();

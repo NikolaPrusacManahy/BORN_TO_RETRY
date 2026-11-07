@@ -14,7 +14,6 @@ import type { FeedbackParts } from './combatFeedback';
 import { execFeedback } from './execFeedback';
 import { kingFeedback } from './boss/kingFeedback';
 import { desertFeedback } from './desertFeedback';
-import { gunFeedback } from './gunFeedback';
 import { foes3bFeedback } from './foes3bFeedback';
 import { drownedFeedback } from './drownedFeedback';
 import { fishFeedback } from './fishFeedback';
@@ -157,7 +156,7 @@ export function foes2Feedback(f: FeedbackParts, kind: CombatEvent, value: number
       break;
     default:
       // (Update 0.2.3 — the Bone King's; Update 0.2.4 — floor 4's; Update 0.2.10 — floor 5's; Update 0.2.11 — floor 6's.)
-      if (!kingFeedback(f, kind, value, at, back, near) && !desertFeedback(f, kind, value, at, back, near) && !gunFeedback(f, kind, value, at, back) && !foes3bFeedback(f, kind, value, at, back, near) && !drownedFeedback(f, kind, value, at, back, near) && !fishFeedback(f, kind, value, at, back, near) && !cardFeedback(f, kind, value, at, back, near)) execFeedback(f, kind, value, at, back, near);
+      if (!kingFeedback(f, kind, value, at, back, near) && !desertFeedback(f, kind, value, at, back, near) && !foes3bFeedback(f, kind, value, at, back, near) && !drownedFeedback(f, kind, value, at, back, near) && !fishFeedback(f, kind, value, at, back, near) && !cardFeedback(f, kind, value, at, back, near)) execFeedback(f, kind, value, at, back, near);
       break;
   }
 }

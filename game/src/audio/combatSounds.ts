@@ -39,7 +39,6 @@ import { playCards } from './cardSounds';
 import { playExec } from './execSounds';
 import { playFire } from './fireSounds';
 import { playWeapons } from './weaponSounds';
-import { playGun } from './gunSounds';
 import { playFoes3b } from './foes3bSounds';
 import { noise, tone } from './synth';
 import { playClip } from './clipRoutes';
@@ -299,7 +298,7 @@ export class CombatSounds {
         tone(a, { from: 1320, to: 2640, dur: 0.35, gain: 0.08, type: 'triangle' });
         break;
       default:
-        if (!playWarden(a, kind, value, far) && !playFoes2(a, kind, value, far) && !playFoes3(a, kind, value, far) && !playKing(a, kind, value, far) && !playDesert(a, kind, value, far) && !playDragon(a, kind, value, far) && !playExec(a, kind, value, far) && !playFire(a, kind, value, far) && !playWeapons(a, kind, value, far) && !playGun(a, kind, value, far) && !playFoes3b(a, kind, value, far) && !playDrowned(a, kind, value, far) && !playFish(a, kind, value, far) && !playCards(a, kind, value, far) && !playCove(a, kind, value, far) && !playShark(a, kind, value, far) && !playMoon(a, kind, value, far) && !playShrine(a, kind, value, far) && !playNorse(a, kind, value, far) && !playGarden(a, kind, far)) playBoss(a, kind, value, far);
+        if (!playWarden(a, kind, value, far) && !playFoes2(a, kind, value, far) && !playFoes3(a, kind, value, far) && !playKing(a, kind, value, far) && !playDesert(a, kind, value, far) && !playDragon(a, kind, value, far) && !playExec(a, kind, value, far) && !playFire(a, kind, value, far) && !playWeapons(a, kind, value, far) && !playFoes3b(a, kind, value, far) && !playDrowned(a, kind, value, far) && !playFish(a, kind, value, far) && !playCards(a, kind, value, far) && !playCove(a, kind, value, far) && !playShark(a, kind, value, far) && !playMoon(a, kind, value, far) && !playShrine(a, kind, value, far) && !playNorse(a, kind, value, far) && !playGarden(a, kind, far)) playBoss(a, kind, value, far);
         break;
     }
   }

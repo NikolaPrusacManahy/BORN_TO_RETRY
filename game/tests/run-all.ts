@@ -90,7 +90,7 @@ import './test-dragon';
 import './test-dragon-show';
 import './test-ultimate';
 import './test-lab';
-import './test-pistol';
+import './test-no-guns';
 import './test-fixes025';
 import './test-floor3b';
 import './test-lava';

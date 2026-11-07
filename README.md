@@ -27,7 +27,7 @@ standard difficulty you get one life. Losing is part of the design: play, lose, 
 
 - **Fast movement.** Dash, wall run, wall jump and ground pound through rooms that lock behind you.
 - **Fists first.** Every run opens with jab combos and a parry. Anything else you have to find or buy.
-- **Weapons that break.** Nine weapons, from swords and hammers to a grimoire and a pistol. Throw one at any time; a
+- **Weapons that break.** Eight weapons, from swords and hammers to daggers and a grimoire. Throw one at any time; a
   broken one is thrown for a big hit.
 - **Executions.** Kills fill a meter. When it's full, grab a nearby enemy and finish it to win back health. Hits and
   kills heal nothing: health comes from hearts, rings and executions.
@@ -75,7 +75,6 @@ Keyboard and mouse. Every action can be rebound in the options, except Esc.
 | Left click | Attack |
 | Right click | Parry with bare hands, a weapon's alternate attack otherwise |
 | `Q` | Throw the held weapon |
-| `R` | Reload |
 | `E` | Interact, execute |
 | `1` to `5` | Weapon slots (`1` is your fists) |
 | Mouse wheel down | Switch key at a chest |
@@ -206,14 +205,13 @@ from Google Fonts, and saves stay in your browser.
 - Floor 10, Hell on Earth: its own enemies and its boss, Hellwarden
 - The rest of The Swarm's attacks and phases
 - Cinematic intros for the remaining bosses
-- Alpha Team as a playable character
 - A Steam release, through Electron
 
 ## Credits
 
 **Models and animation:** [Quaternius](https://quaternius.com): Modular Dungeon Pack, Ultimate Nature Pack, Ultimate RPG
 Pack, Ultimate Monsters, Pirate Kit, Ultimate Space Kit, Bestiary: Dungeon Monsters Kit, Universal Animation Library 1
-and 2, and further character, gun and nature models. Released under
+and 2, and further character and nature models. Released under
 [CC0](https://creativecommons.org/publicdomain/zero/1.0/) or the
 [Quaternius Asset License](https://quaternius.com/license.html).
 

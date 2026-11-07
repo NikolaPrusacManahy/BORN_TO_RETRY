@@ -1,6 +1,6 @@
 // Update 0.3.60 — the Velociraptor's ultimate, Apex Hunt (the Boss Design Bible, "Trust your ears"; spec
 // MD_UPDATES/U0360_VELOCIRAPTOR_BIBLE.md). The light dies, a heart beats, it's gone, and all that's left is its clicks from wherever it
-// is. Then its eyes flash in the dark for half a second, and it kicks a stone at you. Hit it in that time (a shot, a thrown blade, or the
+// is. Then its eyes flash in the dark for half a second, and it kicks a stone at you. Hit it in that time (a thrown blade, or the
 // stone parried back into its eyes: bare hands have their way through) and it's blinded, on its back, a long while. Not: it lunges out of
 // the dark, heavy, not a one-shot. A dash still beats the lunge, without the stagger. Enemy.shots: the light dying, its stalk, its eyes,
 // its lunge. Combat's storm: seconds of dark left. Pure.

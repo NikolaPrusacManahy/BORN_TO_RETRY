@@ -9,7 +9,6 @@
 # the glTF export drops).
 #   blender --background --disable-autoexec --python tools/blender/export_items.py -- --rpg <Ultimate RPG Pack>
 #       --dungeon <Modular Dungeon Pack - part 1> --glb public/models/items/items.glb [--previews <folder>]
-#       [--guns <Guns pack>] (Update 0.2.12: the Pistol)
 import argparse
 import os
 import sys
@@ -48,8 +47,6 @@ ITEMS = {
     'item_goldIngots': ('Gold_Ingots', 0.5, {}),
     'item_bluePotion': ('Potion5_Filled', 0.5, {'Liquid': (0.1, 0.35, 1.0), 'Glass': (0.45, 0.7, 1.0)}),
 }
-# Update 0.2.12 — the Pistol in a chest (the Guns pack's: `--guns`).
-GUNS = {'item_pistol': ('Pistol', 0.5, {})}
 
 
 def recolor(o, colours):
@@ -68,7 +65,6 @@ def parse_args():
     p.add_argument('--dungeon', required=True)
     p.add_argument('--glb', required=True)
     p.add_argument('--previews', default=None)
-    p.add_argument('--guns', default=None)
     return p.parse_args(argv)
 
 
@@ -110,7 +106,7 @@ def main():
     for o in list(bpy.data.objects):
         bpy.data.objects.remove(o, do_unlink=True)
     made = []
-    packs = [(args.rpg, ITEMS)] + ([(args.guns, GUNS)] if args.guns else [])
+    packs = [(args.rpg, ITEMS)]
     for name, folder, (blend, size, colours) in [(n, f, spec) for f, table in packs for n, spec in table.items()]:
         objs = load(os.path.join(folder, blend + '.blend'))
         for o in objs:

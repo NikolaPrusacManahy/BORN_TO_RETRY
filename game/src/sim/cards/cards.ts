@@ -133,7 +133,7 @@ export const CARD: Record<CardKind, CardFace> = {
   collector: { rarity: 'common', move: 'Weapons', name: 'Collector', up: 2, does: (m = 1) => `New weapons have ${pct(v().collector * m)} more uses.` },
   hardHead: { rarity: 'common', move: 'Body', name: 'Hard Head', does: () => `Every ${Math.round(v().hardHead)}th hit on you does nothing.` },
   lightBones: { rarity: 'common', move: 'Jump', name: 'Light Bones', does: () => `You jump ${pct(v().lightBones)} higher.` },
-  quickHands: { rarity: 'common', move: 'Weapons', name: 'Quick Hands', does: () => `Reloads and throws are ${pct(v().quickHands)} quicker.` },
+  quickHands: { rarity: 'common', move: 'Weapons', name: 'Quick Hands', does: () => `Weapons charge ${pct(v().quickHands)} quicker.` },
   bloodMoney: { rarity: 'common', move: 'Coins', name: 'Blood Money', does: () => `Every hit you take drops ${Math.round(v().bloodMoney)} coins for you.` },
   haggler: { rarity: 'common', move: 'Coins', name: 'Haggler', up: 2, does: (m = 1) => `The shop is ${pct(v().haggler * m)} cheaper.` },
   shoulderCharge: { rarity: 'uncommon', move: 'Dash', name: 'Shoulder Charge', does: () => 'Dashing into an enemy throws it back and staggers it.' },

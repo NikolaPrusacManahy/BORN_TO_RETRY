@@ -24,8 +24,8 @@ import { hasteFactor } from './bonuses';
 import { CardKind, holds, newUses } from '../cards/cards';
 import { CARDS } from '../../tuning/cards';
 
-export type ItemKind = 'heart' | 'plate' | 'goldSword' | 'redRing' | 'blueRing' | 'key' | 'whiteKey' | 'goldKey' | 'goldPlate' | 'greenRing' | 'tealRing' | 'grimoire' | 'goldAxe' | 'hammer' | 'daggers' | 'goldHammer' | 'goldDaggers' | 'greatHeart' | 'pistol';
-export const ITEM_KINDS: readonly ItemKind[] = ['heart', 'plate', 'goldSword', 'redRing', 'blueRing', 'key', 'whiteKey', 'goldKey', 'goldPlate', 'greenRing', 'tealRing', 'grimoire', 'goldAxe', 'hammer', 'daggers', 'goldHammer', 'goldDaggers', 'greatHeart', 'pistol'];
+export type ItemKind = 'heart' | 'plate' | 'goldSword' | 'redRing' | 'blueRing' | 'key' | 'whiteKey' | 'goldKey' | 'goldPlate' | 'greenRing' | 'tealRing' | 'grimoire' | 'goldAxe' | 'hammer' | 'daggers' | 'goldHammer' | 'goldDaggers' | 'greatHeart';
+export const ITEM_KINDS: readonly ItemKind[] = ['heart', 'plate', 'goldSword', 'redRing', 'blueRing', 'key', 'whiteKey', 'goldKey', 'goldPlate', 'greenRing', 'tealRing', 'grimoire', 'goldAxe', 'hammer', 'daggers', 'goldHammer', 'goldDaggers', 'greatHeart'];
 export type KeyKind = 'key' | 'whiteKey' | 'goldKey';
 export const KEY_KINDS: readonly KeyKind[] = ['key', 'whiteKey', 'goldKey'];
 
@@ -117,7 +117,6 @@ export const PRICE: Record<ItemKind, () => number> = {
   grimoire: () => ITEMS.v.priceGrimoire,
   goldDaggers: () => ITEMS.v.priceGoldDaggers,
   greatHeart: () => ITEMS.v.priceGreatHeart,
-  pistol: () => ITEMS.v.pricePistol,
 };
 
 /** What `kind` costs in the shop on floor `floor` (1, 2, …), to the nearest coin (a half rounds up: 50 × 1.15 is 58,
@@ -182,8 +181,6 @@ export function takeItem(kind: ItemKind, p: PlayerState, state: CombatState) {
     case 'daggers':
     case 'goldHammer':
     case 'goldDaggers':
-    // Update 0.2.12 — the Pistol (the designer: uncommon), loaded.
-    case 'pistol':
       giveWeapon(state, holding(kind, newUses(state, kind)), p.pos);
       break;
     case 'redRing':

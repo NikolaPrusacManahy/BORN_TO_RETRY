@@ -57,7 +57,6 @@ import { ExecScene } from './exec/execScene';
 import { FireView } from './fireView';
 import { KnivesView } from './knivesView';
 import { CardFx } from './cardFx';
-import { GunView } from './gunView';
 import { ExecMarkView } from './execMarkView';
 import { Shockwaves } from './fx/shockwave';
 import { CoinsView } from './coinsView';
@@ -81,7 +80,6 @@ export class CombatScene {
   private readonly knives: KnivesView;
   /** Update 0.2.18 — wave 2's Fate Cards (fire, frost, blood, lightning, blasts). */
   private readonly cards: CardFx;
-  private readonly gun: GunView;
   private readonly execMark: ExecMarkView;
   readonly rootOf = (i: number) => this.enemies.rootOf(i);
   private readonly waves = new Shockwaves();
@@ -168,7 +166,6 @@ export class CombatScene {
     this.fire = new FireView(scene, arms, rig.camera);
     this.knives = new KnivesView(scene, arms, rig.camera);
     this.cards = new CardFx(scene, rig.camera);
-    this.gun = new GunView(scene, arms, rig.camera);
     this.execMark = new ExecMarkView(scene, this.rootOf);
     this.sparks = new Burst(240, new THREE.MeshBasicMaterial({ color: 0xfff0c0 }), { speed: [4, 11], life: [0.12, 0.3], size: 0.05, gravity: 6, bounce: 0.3 });
     this.chunks = new Burst(160, new THREE.MeshStandardMaterial({ color: 0xb49a76, roughness: 0.85 }), { speed: [3, 7], life: [0.9, 1.4], size: 0.14, gravity: 20, bounce: 0.35 });
@@ -198,7 +195,6 @@ export class CombatScene {
     this.gravity?.update(state, gameDt);
     if (state.demon && !this.swordLight) this.swordLight = new SwordLight(this.world);
     this.swordLight?.update(state, this.arms.heldWeapon, this.arms.swordAnim.flare, this.camera, gameDt);
-    this.gun.update(state, gameDt);
     state.events.clear();
     this.targets.update(state, playerChest, gameDt);
     this.hives.update(state, gameDt);
@@ -259,7 +255,6 @@ export class CombatScene {
     this.fire.clear();
     this.knives.clear();
     this.cards.clear();
-    this.gun.clear();
     this.execMark.clear();
     this.exec.clear();
   }
@@ -315,7 +310,6 @@ export class CombatScene {
     this.coins.dispose();
     this.weapons.dispose();
     this.fire.dispose();
-    this.gun.dispose();
     this.knives.dispose();
     this.cards.dispose();
     this.execMark.dispose();

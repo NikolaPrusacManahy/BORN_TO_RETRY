@@ -67,19 +67,8 @@ function SwordIcon({ gold }: { gold: boolean }) {
   );
 }
 
-/** Update 0.2.4 — the Pistol. */
-function PistolIcon() {
-  return (
-    <svg viewBox="0 0 32 32" className="rb-slot-icon">
-      <path d="M4 9h23v5H13l-1 3h-3l-2 9H3l3-12H4z" fill="#8b8f9c" stroke="#2a2018" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M9 18l-1.6 7" stroke="#6b3c1c" strokeWidth="3" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 /** Update 0.3.20 — a weapon's icon. */
 export function SlotIcon({ kind }: { kind: HudSlot['kind'] }) {
-  if (kind === 'pistol') return <PistolIcon />;
   if (kind === 'grimoire') return <BookIcon />;
   if (kind === 'goldAxe') return <AxeIcon />;
   if (kind === 'hammer' || kind === 'goldHammer') return <HammerIcon gold={kind === 'goldHammer'} />;

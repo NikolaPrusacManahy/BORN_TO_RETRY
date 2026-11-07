@@ -7,7 +7,6 @@
 // Update 0.0.17 — max health with the red rings, the green and purple rings, the weapon slots, the kill bonuses.
 // Update 0.2.3 — the boss bar's mark; held in the Bone King's hand, the QTE (your hits, the time left, how it ended).
 // Update 0.3.20 — the controls bottom right (controlsHud.ts).
-import { SHOOTS } from '../sim/weapons/catalog';
 import type { CombatState } from '../sim/combat/state';
 import { PlayerState, flatSpeed, moveMode } from '../sim/player/state';
 import { WEAPON_NAME } from '../sim/weapons/catalog';
@@ -147,11 +146,10 @@ export class HudFeed {
     const weapon = combat.weapon;
     const name = weapon ? WEAPON_NAME[weapon.kind] : '';
     const uses = weapon ? weapon.uses : 0;
-    const mag = weapon && SHOOTS[weapon.kind] ? weapon.mag : -1;
     const money = combat.money;
     const it = combat.items;
     this.timer -= real;
-    const same = cur.hits === fb.hits && cur.hurts === hits.hurts && cur.shields === hits.shields && cur.hp === hp && cur.shield === shield && cur.weapon === name && cur.uses === uses && cur.mag === mag && cur.money === money;
+    const same = cur.hits === fb.hits && cur.hurts === hits.hurts && cur.shields === hits.shields && cur.hp === hp && cur.shield === shield && cur.weapon === name && cur.uses === uses && cur.money === money;
     // The boss's bar moves in steps of 1%.
     const bossHp = show.bossHp < 0 ? -1 : Math.ceil(show.bossHp * 100) / 100;
     const skip = show.skip ? this.skipKey : '';
@@ -197,7 +195,6 @@ export class HudFeed {
       maxHp: maxHpOf(p),
       weapon: name,
       uses,
-      mag,
       money,
       shield,
       shields: hits.shields,

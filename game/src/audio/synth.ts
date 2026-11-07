@@ -1,6 +1,6 @@
 // M1 — placeholder sounds made in code (no files yet): pitch-swept tones and filtered noise. Real samples
 // replace them in M4; until then movement still needs to sound like something.
-// Update 0.2.4 — either can start a moment later (`delay`, s): a sound in beats (the Pistol's magazine going in).
+// Update 0.2.4 — either can start a moment later (`delay`, s): a sound in beats.
 import type { AudioEngine } from './audio';
 
 interface Tone {

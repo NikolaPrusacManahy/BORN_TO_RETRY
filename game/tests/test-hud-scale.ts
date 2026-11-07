@@ -31,7 +31,7 @@ section('HUD scale — the HUD is drawn at it');
 {
   const hud = readFileSync('src/ui/theme/theme-03-hud.css', 'utf8');
   check('the HUD is laid out at its size and scaled to fill the window', hud.includes('transform: scale(var(--rb-hud, 1))') && hud.includes('width: calc(100% / var(--rb-hud, 1))'));
-  const inside = ['48-demon', '03-hud', '05-hits', '07-health', '11-weapon', '12-money', '13-minimap', '14-items', '15-boss', '16-keys', '17-slots', '18-poison', '20-count', '21-exec', '22-exec-ready', '27-grab', '28-gun', '29-raptor', '31-drowned'];
+  const inside = ['48-demon', '03-hud', '05-hits', '07-health', '11-weapon', '12-money', '13-minimap', '14-items', '15-boss', '16-keys', '17-slots', '18-poison', '20-count', '21-exec', '22-exec-ready', '27-grab', '29-raptor', '31-drowned'];
   const off = inside.filter((f) => /\d(vw|vh|vmin|vmax)\b|var\(--rb-ui\)/.test(readFileSync(`src/ui/theme/theme-${f}.css`, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')));
   check('nothing in it sized by the window again (no vw, no panel zoom)', off.length === 0, off.join(' '));
 }

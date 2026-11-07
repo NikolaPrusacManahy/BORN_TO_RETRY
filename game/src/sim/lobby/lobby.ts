@@ -161,7 +161,7 @@ export function lobbyFocus(l: Lobby, out: Focus): Focus {
     const c = ROSTER[s.index];
     const playable = isPlayable(c, l.demon, l.won);
     out.label = playable ? c.name : '';
-    out.act = !playable ? (c.earned ? 'sealed' : c.byWin ? 'unwon' : 'unavailable') : c.id === l.character ? 'chosen' : 'choose';
+    out.act = !playable ? (c.earned ? 'sealed' : 'unwon') : c.id === l.character ? 'chosen' : 'choose';
   }
   return out;
 }

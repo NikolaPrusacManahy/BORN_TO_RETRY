@@ -9,6 +9,7 @@
 #     --characters "<Humanoid Rig/Individual Characters/Blend>" --glb public/models/menu/lobby.glb [--previews <folder>]
 # (Moved here from build_prison_scene.py, the old character select's corridor: the posing and baking of the roster.)
 # Update 0.3.80 — Gravity Sean, the space suit, in the King's and the Suit's place (the designer: "remove King and William Rich from the lobby").
+# Update 0.3.91 — Alpha Team (Swat) out (the designer: "scrap every guns and the swat character").
 # Update 0.3.21 — the manor (MD/LOBBY_MANOR_PLAN.md): its stairs and their side covers, fences (the landings' rails),
 # arched doors, columns, the big pedestal (the bestiary's plinths), barrels and chests; windows, an entrance, the tall
 # candelabrum, more potions; the RPG pack's armour, weapons (the armoury), books open and closed (the library), crystals
@@ -33,7 +34,7 @@ RPG = ['Chalice', 'ChickenLeg', 'Sword_big', 'Skull2', 'Crown', 'Scroll', 'Book1
        'Hammer_Double', 'Bow_Wooden', 'Bow_Golden', 'Sword_big_Golden', 'Sword', 'Book2_Closed', 'Book3_Closed',
        'Book4_Closed', 'Book1_Open', 'Crystal1', 'Crystal2', 'Gold_Ingots', 'Chest_Closed', 'Chest_Ingots', 'Crown2',
        'Coin_Star', 'Parchment', 'Potion4_Filled', 'Potion6_Filled', 'Necklace1']
-CHARACTERS = [('adventurer', 'Adventurer'), ('spacesuit', 'Spacesuit'), ('swat', 'Swat')]
+CHARACTERS = [('adventurer', 'Adventurer'), ('spacesuit', 'Spacesuit')]
 SILHOUETTE_OF = 'Adventurer'
 
 

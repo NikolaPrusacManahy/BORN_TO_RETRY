@@ -1,8 +1,8 @@
 // Update 0.3.21 — the manor's galleries' exhibits (world/lobby/galleries.ts; the designer: "a gallery of all items"):
 // each weapon and each item turning slowly over its pedestal, as the shop's float over their tiles (items.glb through
 // itemLooks: the keys in their auras, the daggers crossed, the bonuses lit; the plain Sword is the gold one's shape in
-// steel), each brought to one size (a weapon's, a thing's: a ring big enough to see; none grown much past its own, the
-// pistol no sword) and turning about its middle; and every card's face (cardFace.ts) on the cards gallery's walls, in a gilt frame. What each is and does
+// steel), each brought to one size (a weapon's, a thing's: a ring big enough to see; none grown much past its own)
+// and turning about its middle; and every card's face (cardFace.ts) on the cards gallery's walls, in a gilt frame. What each is and does
 // shows as you come near (sim/lobby/lobby.ts).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';

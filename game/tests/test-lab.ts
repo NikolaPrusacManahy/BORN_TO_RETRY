@@ -200,7 +200,7 @@ section('Lab panel — a column a floor, the items by kind');
   const weapons = items.flatMap((c) => (c.kind === 'weapon' ? [c.weapon as string] : []));
   // (A weapon is a drop too; the panel gives it as a weapon.)
   const loose = DROP_KINDS.filter((k) => !weapons.includes(k));
-  check('every item and bonus once, every weapon, a chest', loose.every((k) => drops.filter((d) => d === k).length === 1) && new Set(weapons).size === 9 && items.some((c) => c.kind === 'chest'));
+  check('every item and bonus once, every weapon, a chest', loose.every((k) => drops.filter((d) => d === k).length === 1) && new Set(weapons).size === 8 && items.some((c) => c.kind === 'chest'));
   check('an item’s column fits (10 at most)', LAB_ITEMS.every(([, picks]) => picks.length <= 10));
   // (Update 0.2.16 — the Fate Cards' tab: a deal, and every card once, a column a rarity.)
   // (Update 0.2.19 — and a tab for the Traitor and Death Cards: between the two, every card once.)

@@ -186,7 +186,6 @@ export const LAB_ITEMS: readonly [string, Pick[]][] = [
       weapon('goldDaggers', 'Gold daggers'),
       weapon('grimoire', 'Grimoire'),
       weapon('goldAxe', 'Gold axe'),
-      weapon('pistol', 'Pistol'),
     ],
   ],
 ];

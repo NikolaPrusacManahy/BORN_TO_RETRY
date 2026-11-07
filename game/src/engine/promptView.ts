@@ -12,9 +12,9 @@ import type { Focus } from '../sim/items/focus';
 import { infoOf, ItemInfo } from '../sim/items/itemInfo';
 import { CARD, CardKind } from '../sim/cards/cards';
 
-const ACT: Record<Exclude<Focus['act'], null | 'execute' | 'locked' | 'chosen' | 'unavailable' | 'sealed' | 'unwon'>, string> = { pick: 'to pick up', buy: 'to buy', open: 'to open', choose: 'to choose', enter: 'to enter', turnOn: 'to turn on', turnOff: 'to turn off' };
+const ACT: Record<Exclude<Focus['act'], null | 'execute' | 'locked' | 'chosen' | 'sealed' | 'unwon'>, string> = { pick: 'to pick up', buy: 'to buy', open: 'to open', choose: 'to choose', enter: 'to enter', turnOn: 'to turn on', turnOff: 'to turn off' };
 /** Update 0.2.9 — what a card says where E does nothing (a chest without a key; in the lobby, yours already, locked). */
-const NOTE: Partial<Record<Exclude<Focus['act'], null>, string>> = { locked: 'Needs a key', chosen: 'Chosen', unavailable: 'Coming soon', sealed: 'Beat the final boss', unwon: 'Win a run' };
+const NOTE: Partial<Record<Exclude<Focus['act'], null>, string>> = { locked: 'Needs a key', chosen: 'Chosen', sealed: 'Beat the final boss', unwon: 'Win a run' };
 /** The skull over an executable enemy (execMarkView.ts): its height on screen (a share of the screen's), and the gap
  *  over it (px). */
 const SKULL = 0.065;

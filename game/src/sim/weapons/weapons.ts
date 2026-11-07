@@ -4,16 +4,13 @@
 // Update 0.0.17 — picking one up takes it off the ground; where it goes is the weapon slots' business (slots.ts).
 // Update 0.1.5 — a thrown Gold Axe (catalog.ts `RETURNS`) keeps its uses and comes back to your hand (recall.ts).
 // Update 0.1.6 — only when thrown with right click (axeThrow.ts: charged, faster and harder); Q throws it to break.
-// Update 0.2.4 — a gun (the Pistol) has a magazine: the bullets in it (`mag`), its uses all it has left, the magazine's
-// included. A new one comes loaded.
 import { Vector3 } from 'three';
 import type { EventQueue } from '../../core/eventQueue';
 import { WEAPONS } from '../../tuning/weapons';
 import type { Spot } from '../../world/arena';
 import type { CombatEvent } from '../combat/state';
 import type { PlayerState } from '../player/state';
-import { GUN } from '../../tuning/gun';
-import { RETURNS, SHOOTS, WEAPON_STATS, WeaponKind } from './catalog';
+import { RETURNS, WEAPON_STATS, WeaponKind } from './catalog';
 
 export interface HeldWeapon {
   kind: WeaponKind;
@@ -23,8 +20,6 @@ export interface HeldWeapon {
   cooldown: number;
   /** Seconds into a throw's wind-up (−1: not throwing). */
   throwing: number;
-  /** Update 0.2.4 — a gun's bullets in its magazine (0 for the rest). */
-  mag: number;
 }
 
 export interface Pickup {
@@ -105,7 +100,7 @@ export function createStands(spots: readonly Spot[] = []): Stand[] {
 }
 
 export function holding(kind: WeaponKind, uses: number): HeldWeapon {
-  return { kind, uses, cooldown: 0, throwing: -1, mag: SHOOTS[kind] ? Math.min(Math.round(GUN.v.pistolMag), uses) : 0 };
+  return { kind, uses, cooldown: 0, throwing: -1 };
 }
 
 /** A weapon on the ground at `at`. Reuses the oldest drop if every slot is taken. */

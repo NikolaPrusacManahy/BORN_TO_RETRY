@@ -40,7 +40,7 @@ import { FLOOR } from '../src/world/dungeon/floorOrder';
 section('Lobby — the roster and the difficulties');
 {
   // (Update 0.3.70 — the designer: the Playable Demon, last. It's earned, so still only Joseph at first.)
-  check('four characters, in the designer’s order', ROSTER.map((c) => c.name).join(', ') === 'Joseph, Gravity Sean, Alpha Team, The Demon');
+  check('three characters, in the designer’s order', ROSTER.map((c) => c.name).join(', ') === 'Joseph, Gravity Sean, The Demon');
   check('only Joseph (the Adventurer) is playable', ROSTER.filter((c) => c.available).map((c) => c.id).join() === 'adventurer');
   check('Joseph: fists only, picks up used weapons', /fists only/i.test(ROSTER[0].kit) && /used weapons/i.test(ROSTER[0].kit));
   check('character ids are all different', new Set(ROSTER.map((c) => c.id)).size === ROSTER.length);
@@ -238,11 +238,11 @@ section('Lobby — the stations');
   l.events.length = 0;
   stepLobby(l, at(weak.x - 2, weak.z), true);
   check('E again: nothing new', l.events.length === 0 && l.difficulty === 'weakling');
-  const alpha = FIGURES[ROSTER.findIndex((c) => c.id === 'swat')];
-  stepLobby(l, at(DAIS.x0 + 0.6, alpha.z), false);
+  const locked = FIGURES[ROSTER.findIndex((c) => c.id === 'spacesuit')];
+  stepLobby(l, at(DAIS.x0 + 0.6, locked.z), false);
   lobbyFocus(l, f);
-  check('at a silhouette: Coming soon, no name', f.act === 'unavailable' && f.label === '');
-  stepLobby(l, at(DAIS.x0 + 0.6, alpha.z), true);
+  check('at a silhouette: how to earn it, no name', f.act === 'unwon' && f.label === '');
+  stepLobby(l, at(DAIS.x0 + 0.6, locked.z), true);
   check('E there: still Joseph (a knock)', l.character === 'adventurer' && l.events.join() === 'locked');
   l.events.length = 0;
   stepLobby(l, at(DAIS.x0 + 0.6, FIGURES[0].z), false);

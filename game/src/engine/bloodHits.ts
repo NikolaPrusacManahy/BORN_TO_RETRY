@@ -16,7 +16,6 @@ export function bloodDrops(kind: CombatEvent, value: number, a: BloodAmount): nu
     case 'hitPierce':
     case 'hitThrown':
     case 'hitKnife':
-    case 'hitShot':
     case 'hitSlam':
       return a.hit(value > 1 ? value : 15);
     case 'hitHeavy':

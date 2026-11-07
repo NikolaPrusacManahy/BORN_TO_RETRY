@@ -8,14 +8,14 @@
 // Update 0.0.12 — F is the ground slam (the designer).
 // Update 0.0.16 — Switch key (the wheel): the key you'll use at a chest.
 // Update 0.0.17 — Weapon 1–5 (the number keys): the weapon slots (1 is your fists).
-// Update 0.2.4 — Reload (R): the Pistol's magazine.
+// Update 0.3.91 — Reload's gone with the guns: R is free.
 // Update 0.3.5 — right click barehanded is the parry (no charged punch): 'heavy' shown as Parry.
 // Update 0.3.20 — the slide is gone (the designer: "remove the sliding mechanics"); the slam is Ctrl by default ("Ground
 // pound is now Control key by default"). Ctrl+W still closes a browser tab: the run's leave guard asks first
 // (platform/leaveGuard.ts), and in fullscreen the keyboard lock hands it to the game (platform/fullscreen.ts). An old
 // save (it still has the slide) moves its slam from F, the old default, to Ctrl, if nothing else has Ctrl.
 
-export type Action = 'forward' | 'back' | 'left' | 'right' | 'jump' | 'dash' | 'slam' | 'attack' | 'heavy' | 'throw' | 'reload' | 'interact' | 'switchKey' | 'inventory' | 'slot1' | 'slot2' | 'slot3' | 'slot4' | 'slot5';
+export type Action = 'forward' | 'back' | 'left' | 'right' | 'jump' | 'dash' | 'slam' | 'attack' | 'heavy' | 'throw' | 'interact' | 'switchKey' | 'inventory' | 'slot1' | 'slot2' | 'slot3' | 'slot4' | 'slot5';
 /** Update 0.0.17 — the weapon slot actions, in slot order. */
 export const SLOT_ACTIONS: readonly Action[] = ['slot1', 'slot2', 'slot3', 'slot4', 'slot5'];
 export type Bindings = Record<Action, string>;
@@ -32,7 +32,6 @@ export const ACTIONS: { id: Action; label: string }[] = [
   { id: 'attack', label: 'Attack' },
   { id: 'heavy', label: 'Parry' },
   { id: 'throw', label: 'Throw' },
-  { id: 'reload', label: 'Reload' },
   { id: 'interact', label: 'Interact' },
   { id: 'switchKey', label: 'Switch key' },
   { id: 'inventory', label: 'Inventory' },
@@ -54,7 +53,6 @@ export const DEFAULT_BINDINGS: Bindings = {
   attack: 'Mouse0',
   heavy: 'Mouse2',
   throw: 'KeyQ',
-  reload: 'KeyR',
   interact: 'KeyE',
   switchKey: 'WheelDown',
   inventory: 'Tab',

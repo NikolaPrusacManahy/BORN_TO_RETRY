@@ -17,7 +17,7 @@ export const CARDS = group('cards', 'Fate Cards', {
   hoarder: knob(2, 1, 4, 0.25, 'Hoarder', 'Hoarder: kill bonuses last this many times as long.'),
   hardHead: knob(10, 2, 30, 1, 'Hard Head', 'Hard Head: every this-many-th hit on you does nothing.'),
   lightBones: knob(0.2, 0, 1, 0.05, 'Light Bones', 'Light Bones: how much higher you jump (0.2: +20%).'),
-  quickHands: knob(0.4, 0, 0.8, 0.05, 'Quick Hands', 'Quick Hands: how much quicker reloads and throws are (0.4: 40%).'),
+  quickHands: knob(0.4, 0, 0.8, 0.05, 'Quick Hands', 'Quick Hands: how much quicker weapons charge (0.4: 40%).'),
   bloodMoney: knob(3, 1, 20, 1, 'Blood Money', 'Blood Money: coins each hit you take drops for you.'),
   haggler: knob(0.15, 0, 0.5, 0.05, 'Haggler', 'Haggler: how much cheaper the shop is (0.15: 15%).'),
   bloodrush: knob(0.3, 0, 1, 0.05, 'Bloodrush speed', 'Bloodrush: extra run speed after a kill (0.3: +30%).'),

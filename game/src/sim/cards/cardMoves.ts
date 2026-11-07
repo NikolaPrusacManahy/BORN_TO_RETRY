@@ -79,7 +79,7 @@ export function onKill(state: CombatState, e: Enemy) {
 
 /** Your attacks' speed, times this (Killing Spree). */
 export const frenzyFactor = (state: CombatState) => (state.frenzy > 0 ? 1 + CARDS.v.spreeRate : 1);
-/** How fast reloads go (Quick Hands: 40% quicker is 1 / 0.6 as fast). */
+/** How fast a weapon's charge goes (Quick Hands: 40% quicker is 1 / 0.6 as fast). */
 export const handsRate = (state: CombatState) => (holds(state, 'quickHands') ? 1 / Math.max(0.2, 1 - CARDS.v.quickHands) : 1);
 
 /** What one kill is worth on the execution meter, and how many fill it (Air Butcher, Reaper's Rhythm). */

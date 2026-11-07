@@ -2,7 +2,7 @@
 // them all properly and put their name and effect as player get closer, like a gallery of all items, that is the left
 // side; the right side downstair is objects that aren't weapons, ring, health, armour; upstairs right is the Cards
 // gallery"): where each exhibit stands. The weapons on pedestals in the west wing's south room, in rows (the silver ones,
-// the gold ones under them, then the axe, the book and the gun); the other things on pedestals in the east wing's south
+// the gold ones under them, then the axe and the book); the other things on pedestals in the east wing's south
 // room, a row of each sort (health and armour, the rings, the keys, the kill bonuses); every card on the walls of the
 // east wing's upper room, round it from its door (the Fate Cards from common to mythic, then the Traitor Cards, then the
 // Death Cards). Coming near one shows its name and what it does (sim/lobby/lobby.ts). Pure.
@@ -35,7 +35,7 @@ const IN = WALL_DEPTH / 2;
 const WEAPON_ROWS: readonly (readonly InfoKind[])[] = [
   ['sword', 'daggers', 'hammer'],
   ['goldSword', 'goldDaggers', 'goldHammer'],
-  ['goldAxe', 'grimoire', 'pistol'],
+  ['goldAxe', 'grimoire'],
 ];
 /** The other things, a row of each sort. */
 const ITEM_ROWS: readonly (readonly InfoKind[])[] = [

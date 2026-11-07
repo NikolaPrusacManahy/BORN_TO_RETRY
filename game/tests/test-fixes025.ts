@@ -1,13 +1,10 @@
 // Update 0.2.5 — the designer's fixes after playing 0.2.4: the Pistol's bullet streaks stayed in the air for good; the
 // hand sat low on its grip; Tribals on a high spot "just run on the spot and remain stuck"; Cactoros "stay up too
 // little"; "a golden aura chest and … no keys in the room".
-import * as THREE from 'three';
 import { Vector3 } from 'three';
 import { check, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
 import { createRng } from '../src/core/rng';
-import { GunView } from '../src/engine/gunView';
-import { Viewmodel } from '../src/engine/viewmodel/viewmodel';
 import { CombatIntent, emptyCombatIntent } from '../src/sim/combat/fists';
 import { createCombat } from '../src/sim/combat/state';
 import { stepCombat } from '../src/sim/combat/step';
@@ -122,20 +119,4 @@ section('Keys — a won room’s keys are yours');
   landHit(c, hit, 1e6, 0, 0, -1, 'hitJab', 1);
   const key = c.drops.find((d) => d.alive && /key/i.test(d.kind));
   check('a mini boss killed up on something drops its key on top of it, not inside it', !!key && key.pos.y === 2.5);
-}
-
-section('Pistol — its streaks go');
-{
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(70, 16 / 9, 0.05, 500);
-  const view = new GunView(scene, new Viewmodel(false), camera);
-  const c = createCombat(ROOM);
-  c.events.push('gunShot', 7, 0, 1.6, 0);
-  c.events.push('gunTrace', 0, 0, 1.6, -30);
-  view.update(c, 1 / 60);
-  c.events.clear();
-  const streaks = () => scene.children.filter((o) => o instanceof THREE.Mesh && o.visible && (o.geometry as THREE.BufferGeometry).type === 'CylinderGeometry').length;
-  const at = streaks();
-  for (let i = 0; i < 30; i++) view.update(c, 1 / 60);
-  check('a bullet’s streak races to where it ended and is gone (it stayed for good)', at === 1 && streaks() === 0);
 }

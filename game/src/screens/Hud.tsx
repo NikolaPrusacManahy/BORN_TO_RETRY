@@ -145,12 +145,6 @@ export function Hud({ store }: { store: HudStore }) {
           </div>
         </div>
       </div>
-      {s.mag >= 0 && (
-        <div className="rb-ammo">
-          <b className={s.mag === 0 ? 'is-empty' : ''}>{s.mag}</b>
-          <span>{Math.max(0, s.uses - s.mag)}</span>
-        </div>
-      )}
       {!s.demon && !s.sean && <WeaponSlots slots={s.slots} slot={s.slot} keys={s.slotKeys} />}
       {s.demon ? <DemonControls s={s} /> : s.sean ? <SeanControls s={s} /> : <Controls s={s} />}
       {s.seanHud.stopLeft > 0 && (

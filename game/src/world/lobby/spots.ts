@@ -44,8 +44,9 @@ export const WING_ARCH_Z = -4;
 /** The characters' dais along the west wall: its east edge (x), its ends (z) and its height (m: one step). */
 export const DAIS = { x0: -11, z0: 8, z1: 20, h: 0.35 } as const;
 /** Where each character stands on it (in the roster's order, south to north: left to right as you face them). */
-// (Update 0.3.70 — the Demon last. Update 0.3.80 — four, spread along the same stretch: the Fallen King and William Rich gone.)
-export const FIGURES: readonly { x: number; z: number }[] = [18.8, 15.6, 12.4, 9.2].map((z) => ({ x: -13, z }));
+// (Update 0.3.70 — the Demon last. Update 0.3.80 — four, spread along the same stretch: the Fallen King and William Rich gone.
+// Update 0.3.91 — three, along the same stretch: Alpha Team gone.)
+export const FIGURES: readonly { x: number; z: number }[] = [18.8, 14, 9.2].map((z) => ({ x: -13, z }));
 
 /** The difficulties' altars along the east wall (in the difficulties' order, north to south: left to right as you face
  *  them), and how tall an altar is (m). (The designer: "a bit on the left I would say, for the difficulty tables and

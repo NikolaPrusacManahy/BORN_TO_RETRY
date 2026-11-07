@@ -69,7 +69,7 @@ section('Fate Cards — common: Hard Head, Light Bones, Quick Hands, Blood Money
     return p.vel.y;
   };
   check(`Light Bones: jumps ${Math.round(CARDS.v.lightBones * 100)}% higher`, near(jump(['lightBones']) ** 2 / jump([]) ** 2, 1 + CARDS.v.lightBones, 1e-9) && near(jump([]), jumpSpeed(), 1e-9));
-  check('Quick Hands: reloads 40% quicker (and a weapon’s charge), fists as before', near(1 / handsRate(fight('quickHands')), 1 - CARDS.v.quickHands, 1e-9) && handsRate(fight()) === 1);
+  check('Quick Hands: a weapon’s charge 40% quicker, fists as before', near(1 / handsRate(fight('quickHands')), 1 - CARDS.v.quickHands, 1e-9) && handsRate(fight()) === 1);
   const money = (cards: CardKind[]) => {
     const c = fight(...cards);
     const p = createPlayer(0, 0, 0, 0);

@@ -24,8 +24,6 @@
 // Update 0.2.3 — held in the Bone King's hand (grab.ts), nothing else moves: your attacks are hits on it.
 // Update 0.2.8 — pinned by the Velociraptor (pin.ts), nothing else moves either: your dash is a twist out of its bite.
 // Its sandstorm blows itself out (or ends with it).
-// Update 0.2.4 — the Pistol: its shots, aim and reloads (gun.ts) instead of swings; right click aims, so only a click
-// throws one with no bullets left.
 import { damagePlayer, healPlayer } from '../player/health';
 import { updatePuddles } from './puddles';
 import { stepGrab, tickGrab } from './grab';
@@ -41,8 +39,7 @@ import { asPierce, updateSlashes, usesFor } from '../weapons/swing';
 import { updateThrown } from '../weapons/thrown';
 import { castFireball, updateCasts, updateFireballs } from '../weapons/fireballs';
 import { dropKi, updateKi } from '../weapons/kiCharge';
-import { CASTS, RETURNS, SHOOTS, SMASHES, VOLLEYS } from '../weapons/catalog';
-import { dropGun, updateGun } from '../weapons/gun';
+import { CASTS, RETURNS, SMASHES, VOLLEYS } from '../weapons/catalog';
 import { dropVolley, updateKnives, updateVolley, volleyBusy } from '../weapons/knives';
 import { updateAxeCharge } from '../weapons/axeThrow';
 import { axeOut, callBack } from '../weapons/recall';
@@ -179,7 +176,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   // (A charge that has burnt the book's last use is still let go as a cast, not a throw.)
   // (Update 0.3.36 — a tester: "if you are holding attack and pick up a weapon you can use it infinitely as long as you
   // hold click": a broken one held swinging is thrown too, not swung on at no uses.)
-  const spent = held !== null && held.uses <= 0 && !state.ki.charging && (intent.attackPressed || intent.attackHeld || (intent.heavyHeld && !SHOOTS[held.kind]));
+  const spent = held !== null && held.uses <= 0 && !state.ki.charging && (intent.attackPressed || intent.attackHeld || intent.heavyHeld);
   if (held && !throwing && (intent.throwPressed || spent)) {
     held.throwing = 0;
     state.fists.charging = state.fists.chargeReady = false;
@@ -229,11 +226,6 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   const volley = w !== null && VOLLEYS[w.kind] && !busy;
   if (volley && w) updateVolley(state, w, player, intent.heavyHeld && player.kneel <= 0, intent.yaw, intent.pitch, dt, rate);
   else dropVolley(state);
-  const gun = w !== null && SHOOTS[w.kind] && !busy;
-  if (gun && w) {
-    aim(player, intent.yaw, intent.pitch, eye, dir);
-    updateGun(state, w, intent, eye, dir, world, dt, rate);
-  } else dropGun(state.gun);
   // Update 0.2.21 — barehanded, a slam clasps the fists (a tester: the hands stuck up after a click in one): as it drops
   // they do nothing (a charge held, a cooldown paused); a click then is kept and punches as you land.
   const clasped = w === null && player.slamming;
@@ -318,11 +310,11 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   } else endStop(state, player);
   // (Update 0.3.5 — barehanded, right click is the parry: Hair Trigger's longer window, Giant Killer's no wait.)
   const times = parryTimes(state);
-  let swung = axe || volley || gun || clasped ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, sean ? rate * punchRate(state.grav) : rate, chargeRate(state), times);
+  let swung = axe || volley || clasped ? false : updateFists(state.fists, busy || casts ? IDLE : fistIntent, events, dt, punch, w !== null, sean ? rate * punchRate(state.grav) : rate, chargeRate(state), times);
   // (With the fists not in play — a weapon's own right click, the slam's clasp — the window shuts; a click held meanwhile
   // isn't a press after.)
-  if (axe || volley || gun || clasped) state.fists.parryHeld = intent.heavyHeld;
-  if (axe || volley || gun || clasped) state.fists.parryWindow = 0;
+  if (axe || volley || clasped) state.fists.parryHeld = intent.heavyHeld;
+  if (axe || volley || clasped) state.fists.parryWindow = 0;
   if (state.fists.parryWindow > 0) {
     aim(player, intent.yaw, intent.pitch, eye, dir);
     // (Update 0.3.6 — one that lands: the long wait, Parry cooldown.)
@@ -364,7 +356,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
     }
   } else dropKi(state.ki);
   if (swung && punch.kind === 'pierce' && w) asPierce(w, punch);
-  if (!swung && w && state.weapon === w && !casts && !gun && !busy && !state.fists.charging && !volleyBusy(state.volley)) swung = updateSlashes(w, intent, events, dt, punch, rate);
+  if (!swung && w && state.weapon === w && !casts && !busy && !state.fists.charging && !volleyBusy(state.volley)) swung = updateSlashes(w, intent, events, dt, punch, rate);
   if (swung) {
     aim(player, intent.yaw, intent.pitch, eye, dir);
     const landed = resolvePunch(punch, state, eye, dir, world);

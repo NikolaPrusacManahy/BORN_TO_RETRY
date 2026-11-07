@@ -367,20 +367,6 @@ export type CombatEvent =
   | 'knifeThrow'
   | 'hitKnife'
   | 'knifeStick'
-  // Update 0.2.4 — the Pistol: a shot (value: bullets left in the magazine; x, y, z = your eye), where its bullet ended
-  // (value 1: on a target, 0: a wall, −1: nowhere in range; x, y, z = there), a bullet landing (value 1); a reload begun
-  // (value 1: from empty), its magazine out (value: the bullets it held) and in (value: the bullets now in), the slide
-  // let go home (from empty), done.
-  | 'gunShot'
-  | 'gunTrace'
-  | 'hitShot'
-  | 'reloadStart'
-  | 'magOut'
-  | 'magIn'
-  | 'slideHome'
-  | 'reloadDone'
-  // Update 0.2.6 — right click with the Pistol: a whip swung (what it hits is a punch's hit).
-  | 'pistolWhip'
   // Update 0.1.12 — an enemy you can execute comes into reach after a while with none (value: its slot): a sting.
   | 'execReady'
   | 'standRespawn'

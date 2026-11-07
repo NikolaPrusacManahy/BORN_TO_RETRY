@@ -1,4 +1,4 @@
-// Update 0.2.12 — the alpha (the designer: "allow room 1 to 5 only"; the Pistol 60 rounds and uncommon; the Grimoire 50
+// Update 0.2.12 — the alpha (the designer: "allow room 1 to 5 only"; the Grimoire 50
 // charges; the difficulties; checkpoints): going into a fight room saves a checkpoint outside the door you came in by,
 // facing in; lava sends you there; a boss fight you died in starts over; on ARE YOU EVEN HUMAN? (`bare`) a kill gives
 // nothing but the meter, no chest rises, a room gives no keys or bonuses and the challenge room no reward.
@@ -13,27 +13,19 @@ import { lavaStep } from '../src/sim/dungeon/lava';
 import { createDungeonRun, roomAt, stepRooms } from '../src/sim/dungeon/roomLoop';
 import { raiseChest } from '../src/sim/dungeon/treasure';
 import { spawnEnemy } from '../src/sim/enemies/enemy';
-import { rarityOf } from '../src/sim/items/itemInfo';
-import { takeItem } from '../src/sim/items/items';
 import { createPlayer } from '../src/sim/player/state';
 import { WEAPON_STATS } from '../src/sim/weapons/catalog';
-import { GUN } from '../src/tuning/gun';
 import { WEAPONS } from '../src/tuning/weapons';
 import { buildDungeon } from '../src/world/dungeon/assemble';
 import { planFloor } from '../src/world/dungeon/floorPlan';
 import { FLOOR } from '../src/world/dungeon/floorOrder';
 
-section('Alpha — floors 1 to 5, the Pistol, the Grimoire');
+section('Alpha — floors 1 to 5, the Grimoire');
 {
   // (Update 0.3.11 — floor 6 is in.)
   // (Update 0.3.25 — the floors reordered: Skull Cove floor 7, Frozen Depths in at 4.)
   // (Update 0.3.47 — the public build's playtest: floors 1–9.)
   check('the Moon’s way down ends the run (floor 9): no floor 10 in a run', LAST_FLOOR === 9 && LAST_FLOOR === FLOOR.moon && endsRun(9) && !endsRun(8) && !endsRun(7));
-  check(`the Pistol: ${GUN.v.pistolRounds} rounds, uncommon (in uncommon chests)`, GUN.v.pistolRounds === 60 && WEAPON_STATS.pistol().uses === 60 && rarityOf('pistol') === 'uncommon');
-  const c = createCombat(buildDungeon(planFloor(3, 1)).arena);
-  const p = createPlayer(0, 0, 0, 0);
-  takeItem('pistol', p, c);
-  check('one out of a chest is in your hand, loaded', c.weapon?.kind === 'pistol' && c.weapon.uses === 60 && c.weapon.mag === Math.round(GUN.v.pistolMag));
   check(`the Grimoire: ${WEAPONS.v.grimoireUses} charges`, WEAPONS.v.grimoireUses === 50 && WEAPON_STATS.grimoire().uses === 50);
 }
 

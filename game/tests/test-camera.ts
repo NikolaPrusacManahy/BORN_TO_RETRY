@@ -100,7 +100,7 @@ section('Camera — slow frames (Update 0.2.14)');
   }
 }
 {
-  // The same springs as the arms' dip (140, 16) and the gun's recoil (260, 26): one long frame or many short ones.
+  // The same springs as the arms' dip (140, 16) and a stiff one (260, 26): one long frame or many short ones.
   for (const [k, c] of [[140, 16], [260, 26], [600, 60]]) {
     const slow: Spring = { x: 0, v: -3 };
     const fast: Spring = { x: 0, v: -3 };

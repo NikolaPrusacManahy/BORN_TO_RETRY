@@ -17,7 +17,7 @@ export const BONE_KING = group('boneKing', 'Bone King', {
   kingCoins: knob(15, 0, 300, 5, 'Bone King coins', 'Coins in its chest.'),
   tell: knob(1, 0.2, 2, 0.05, 'Its tells', 'How long it shows each move before it comes (s; the bible: boss 3 of 10).'),
   tell2: knob(0.8, 0.3, 1, 0.05, 'Phase 2 tells', 'Its tells in its second life, times this.'),
-  skullBonus: knob(2, 1, 5, 0.1, 'Skull damage', 'A blow on its skull does this many times the damage (run up its arm, jump, or shoot it).'),
+  skullBonus: knob(2, 1, 5, 0.1, 'Skull damage', 'A blow on its skull does this many times the damage (run up its arm, or jump).'),
   ribTime: knob(2.4, 1, 5, 0.1, 'Rib flight', 'Seconds a rib is out and back (it stands open meanwhile).'),
   ribWide: knob(6, 1, 14, 0.5, 'Rib curve', 'How far out to the side each rib curves (m), out one side and back the other.'),
   ribMin: knob(11, 4, 24, 0.5, 'Rib reach', 'A rib flies at least this far (m), however close you stand.'),

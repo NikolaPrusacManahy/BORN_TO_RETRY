@@ -17,7 +17,7 @@ section('The frame-rate counter — its key');
   const b = DEFAULT_BINDINGS;
   check('any free keyboard key (F2, P, F8)', ['F2', 'KeyP', 'F8', 'Numpad0'].every((k) => fpsKeyAllowed(k, b)));
   check('not a key a control uses (W, Space, Tab, either Shift), not Esc or the system’s keys, not the browser’s own (F5, F11, F12), not the mouse', ['KeyW', 'Space', 'Tab', 'ShiftRight', 'Escape', 'MetaLeft', 'F5', 'F11', 'F12', 'Mouse0', 'WheelUp'].every((k) => !fpsKeyAllowed(k, b)));
-  const taken = rebind(b, 'reload', 'KeyP');
+  const taken = rebind(b, 'inventory', 'KeyP');
   check('a key a control takes later: the counter on F2 again', fpsKeyOf('KeyP', b) === 'KeyP' && fpsKeyOf('KeyP', taken) === DEFAULT_FPS_KEY);
   check('the public build: its key shows and hides it, a held key once', togglesFps('F2', false, 'F2', b, false) && !togglesFps('F2', true, 'F2', b, false) && togglesFps('KeyP', false, 'KeyP', b, false) && !togglesFps('F2', false, 'KeyP', b, false));
   check('the dev build: F2 stays the debug overlay (it shows the frame rate too); another key works', !togglesFps('F2', false, 'F2', b, true) && togglesFps('KeyP', false, 'KeyP', b, true));

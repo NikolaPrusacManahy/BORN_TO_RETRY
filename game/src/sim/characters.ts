@@ -10,8 +10,9 @@
 // Update 0.3.80 — Gravity Sean, the space suit (the designer: "remove King and William Rich from the lobby, we replace them
 // with Gravity Sean"; "a character that unlocked after winning a entire run, no matter what difficulty"; "we will design his
 // abilities in game soon"; "just crop his arms and set them up for FPS pov"). Update 0.3.81 — his kit (combat/gravity.ts).
+// Update 0.3.91 — Alpha Team's gone (the designer: "scrap every guns and the swat character").
 
-export type CharacterId = 'adventurer' | 'spacesuit' | 'swat' | 'demon';
+export type CharacterId = 'adventurer' | 'spacesuit' | 'demon';
 
 export interface Character {
   id: CharacterId;
@@ -29,7 +30,6 @@ export interface Character {
 export const ROSTER: readonly Character[] = [
   { id: 'adventurer', name: 'Joseph', kit: 'Fists only. Picks up used weapons.', available: true },
   { id: 'spacesuit', name: 'Gravity Sean', kit: 'Gravity, in two stances.', available: false, byWin: true },
-  { id: 'swat', name: 'Alpha Team', kit: '', available: false },
   { id: 'demon', name: 'The Demon', kit: 'The sword always in hand.', available: false, earned: true },
 ];
 

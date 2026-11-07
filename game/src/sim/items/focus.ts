@@ -20,7 +20,7 @@ import { anyKey } from './items';
  *  0.2.9 — the lobby's (sim/lobby/lobby.ts): choose it, it's already chosen, go through the gate, a locked character.
  *  Update 0.2.17 — and turn Fate Cards on or off. Update 0.3.70 — 'sealed': the Demon, not yet earned.
  *  Update 0.3.80 — 'unwon': Gravity Sean, no run won yet. */
-export type FocusAct = 'pick' | 'buy' | 'open' | 'locked' | 'execute' | 'choose' | 'chosen' | 'enter' | 'unavailable' | 'sealed' | 'unwon' | 'turnOn' | 'turnOff' | null;
+export type FocusAct = 'pick' | 'buy' | 'open' | 'locked' | 'execute' | 'choose' | 'chosen' | 'enter' | 'sealed' | 'unwon' | 'turnOn' | 'turnOff' | null;
 
 export interface Focus {
   /** The item it's about (its card), or null (a chest, an execution, nothing). */

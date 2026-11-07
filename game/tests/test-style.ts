@@ -22,7 +22,7 @@ section('Style rank — variety, air, multikills');
   for (let i = 0; i < 6; i++) a.event('hitJab', 7);
   const same = a.points;
   const b = new StyleMeter();
-  for (const k of ['hitJab', 'hitFinisher', 'hitSlam', 'hitThrown', 'hitSlash', 'hitShot'] as const) b.event(k, 7);
+  for (const k of ['hitJab', 'hitFinisher', 'hitSlam', 'hitThrown', 'hitSlash'] as const) b.event(k, 7);
   check('the same move over and over climbs it less than a mix', b.points > same * 1.5, `${same.toFixed(0)} vs ${b.points.toFixed(0)}`);
   const c = new StyleMeter();
   c.update(0.01, true);

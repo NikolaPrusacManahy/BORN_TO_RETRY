@@ -38,7 +38,6 @@ section('Gravity Sean — earned by winning a whole run');
   check('not playable till a run’s won', !isPlayable(sean, false) && !canPlay('spacesuit', false) && isPlayable(sean, false, true) && canPlay('spacesuit', false, true));
   check('beating the final boss isn’t what earns him', !isPlayable(sean, true, false));
   check('winning a run doesn’t earn the Demon', !isPlayable(demon, false, true) && isPlayable(demon, true, false));
-  check('Alpha Team stays locked', !isPlayable(ROSTER[2], true, true));
   check('a new save hasn’t won', defaultSave().won === false);
   check('nor an old save, or a bad value', hydrateSave({}).won === false && hydrateSave({ won: 'yes' }).won === false);
   check('won, it’s kept', hydrateSave({ won: true }).won === true);

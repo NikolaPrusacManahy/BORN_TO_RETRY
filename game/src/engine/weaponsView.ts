@@ -27,8 +27,6 @@ export const WEAPON_URL: Record<WeaponKind, string> = {
   daggers: '/models/weapons/dagger.glb',
   goldHammer: '/models/weapons/gold_hammer.glb',
   goldDaggers: '/models/weapons/gold_dagger.glb',
-  // Update 0.2.4 — the Pistol: the Guns pack's 1911 in parts (pistol.glb, export_pistol.py), held its own way.
-  pistol: '/models/weapons/pistol.glb',
 };
 const KINDS = Object.keys(WEAPON_URL) as WeaponKind[];
 /** A weapon lying in reach floats this high above the floor (m) and turns this fast (rad/s). */
@@ -139,8 +137,6 @@ export class WeaponsView {
     this.held[kind] = model.clone();
     // Update 0.1.4 — the Grimoire lies open on the right palm (viewmodel/bookArms.ts).
     if (kind === 'grimoire') this.held[kind]!.userData.hold = 'book';
-    // Update 0.2.4 — the Pistol: posed by viewmodel/gunArms.ts.
-    if (kind === 'pistol') this.held[kind]!.userData.hold = 'gun';
     // Update 0.1.5 — the arms play this weapon's own moves (viewmodel/weaponMoves.ts).
     this.held[kind]!.userData.kind = kind;
     // Update 0.1.9 — the second of a pair, for the left fist (viewmodel/offHand.ts).
@@ -194,8 +190,6 @@ export class WeaponsView {
     // (Update 0.3.73 — the Demon's sword, thrown, isn't in the hand.)
     this.arms.setBladeOut(state.demon && bladeAway(state));
     this.arms.setWeapon(state.weapon ? this.held[state.weapon.kind] ?? null : null);
-    // Update 0.2.4 — the Pistol's reload and magazine, for its arm.
-    this.arms.gun.sync(state.gun.reload, state.gun.empty, state.weapon?.mag ?? 0);
   }
 
   /** A weapon just thrown: it starts from where the sword in the arms is (the arms' camera sits at the eye, so the
