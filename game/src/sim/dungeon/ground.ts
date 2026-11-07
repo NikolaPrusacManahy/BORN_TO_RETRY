@@ -13,6 +13,7 @@ import type { DungeonLevel } from '../../world/dungeon/assemble';
 import { createFrost, Frost } from '../combat/frost';
 import { createSmoke, Smoke } from '../combat/smoke';
 import { createHellfire, Hellfire } from '../combat/hellfire';
+import { createSpores, Spores } from '../combat/spores';
 
 /** Update 0.3.29 — rock called down at (x, z), this long from now (s). */
 export interface RockCall {
@@ -29,12 +30,14 @@ export interface Ground {
   rocks: RockCall[];
   smoke: Smoke;
   hellfire: Hellfire;
+  /** Update 0.5.5 — the Spore Lord's clouds (combat/spores.ts). */
+  spores: Spores;
 }
 
-export const noGround = (): Ground => ({ ice: [], pits: [], boards: [], frost: createFrost(), rocks: [], smoke: createSmoke(), hellfire: createHellfire() });
+export const noGround = (): Ground => ({ ice: [], pits: [], boards: [], frost: createFrost(), rocks: [], smoke: createSmoke(), hellfire: createHellfire(), spores: createSpores() });
 
 /** A dungeon floor's (none elsewhere). */
-export const groundOf = (level: DungeonLevel | undefined): Ground => (level ? { ice: level.ice, pits: lavaOf(level.arena), boards: level.cove.boards, frost: createFrost(), rocks: [], smoke: createSmoke(), hellfire: createHellfire() } : noGround());
+export const groundOf = (level: DungeonLevel | undefined): Ground => (level ? { ice: level.ice, pits: lavaOf(level.arena), boards: level.cove.boards, frost: createFrost(), rocks: [], smoke: createSmoke(), hellfire: createHellfire(), spores: createSpores() } : noGround());
 
 /** Is (x, z) over one of `boxes`? */
 export const over = (boxes: readonly ArenaBox[], x: number, z: number) => boxes.some((b) => Math.abs(x - b.x) < b.w / 2 && Math.abs(z - b.z) < b.d / 2);

@@ -13,6 +13,7 @@ import { beltUnder, Forge, PressSpot, VentSpot } from '../../world/dungeon/forge
 import { pushOutOfWalls } from '../../world/navGrid';
 import { execHeld } from '../combat/execution';
 import type { CombatState } from '../combat/state';
+import { igniteSpores } from '../combat/spores';
 import { emptyTargetHit, landHit } from '../combat/strike';
 import { Enemy, isLive, radiusOf } from '../enemies/enemy';
 import { ENEMY_STATS, flies } from '../enemies/kinds';
@@ -182,6 +183,8 @@ function burn(vent: Vent, player: PlayerState, combat: CombatState) {
   const v = FORGE_KNOBS.v;
   const s = vent.spot;
   const reach = VENT_HALF + BODY.radius;
+  // (Update 0.5.5 — the Spore Lord's clouds over it catch fire.)
+  igniteSpores(combat.ground.spores, s.x, s.z, VENT_HALF);
   if (!vent.burntYou && !player.dead && player.pos.y < v.ventHeight && Math.abs(player.pos.x - s.x) < reach && Math.abs(player.pos.z - s.z) < reach) {
     vent.burntYou = true;
     if (damagePlayer(player, v.ventDamage, 'vent')) {

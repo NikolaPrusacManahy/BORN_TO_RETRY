@@ -77,7 +77,8 @@ const jab = (m: Crew, each?: () => void) => [...fight(m, { attackPressed: true, 
 section('Floor 10 — its own fighters');
 {
   const roster = rosterOf(F);
-  check('its roster: the Imp, the Puglin, the Bone Axeman, the Bone Guard; its mini bosses stand-ins still (the Yeti, the Ninja)', roster.join() === 'imp,puglin,boneAxeman,boneGuard,brute,ninja', roster.join(', '));
+  // (Update 0.5.5 — its stand-in mini bosses gone, its second batch in: test-hell-fighters2.ts.)
+  check('its roster begins with the Imp, the Puglin, the Bone Axeman, the Bone Guard; no stand-ins left', roster.slice(0, 4).join() === 'imp,puglin,boneAxeman,boneGuard' && !roster.includes('brute') && !roster.includes('ninja'), roster.join(', '));
   check('none of them on any other floor', HELL.every((k) => ![1, 2, 3, 4, 5, 6, 7, 8, 9].some((f) => rosterOf(f).includes(k))));
   const earlier = [1, 2, 3, 4, 5, 6, 7, 8, 9].flatMap((f) => [...rosterOf(f)]).filter((k) => !MINI_BOSSES.includes(k) && !ENEMY_STATS[k]().boss);
   const toughest = Math.max(...earlier.map((k) => ENEMY_STATS[k]().hp));

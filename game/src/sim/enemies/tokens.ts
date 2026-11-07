@@ -147,10 +147,15 @@ export const ROLE: Record<EnemyKind, Role | null> = {
   boneGuard: 'melee',
   boneAxeman: 'heavy',
   puglin: null,
+  // Update 0.5.5 — the Cinder Chickens don't wait (kamikazes); the Brimstone Bee drops from range on its turn; the mini bosses heavies.
+  cinderChicken: null,
+  brimBee: 'ranged',
+  pitFiend: 'heavy',
+  sporeLord: 'heavy',
 };
 
 /** Kinds whose attack waits for its cooldown: they take a token only once it's ready (a token isn't held idle). */
-const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon', 'dragonling', 'skullWraith', 'glub', 'squidle', 'clownfish', 'tuna', 'angelfish', 'dolphin', 'mantaRay', 'shark', 'bomber', 'captain', 'gunner', 'strafer', 'diver', 'hopper', 'axeThrower', 'volva', 'shinobi', 'kunoichi', 'sandNinja', 'sandNinjaF', 'archer']);
+const COOLS: ReadonlySet<EnemyKind> = new Set<EnemyKind>(['spitter', 'leaper', 'stinger', 'wraith', 'frog', 'wasp', 'blueDemon', 'dragonling', 'skullWraith', 'glub', 'squidle', 'clownfish', 'tuna', 'angelfish', 'dolphin', 'mantaRay', 'shark', 'bomber', 'captain', 'gunner', 'strafer', 'diver', 'hopper', 'axeThrower', 'volva', 'shinobi', 'kunoichi', 'sandNinja', 'sandNinjaF', 'archer', 'brimBee', 'pitFiend', 'sporeLord']);
 
 /** How far a close fighter's attack reaches (m): waiting, it keeps out of it. */
 const REACH: Partial<Record<EnemyKind, () => number>> = {

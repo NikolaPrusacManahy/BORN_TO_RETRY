@@ -23,6 +23,18 @@ export const RIPOSTE = 71;
 export const GUARD = 73;
 export const BROKEN = 72;
 
+// Update 0.5.5 — the second batch's (their own rules, not the martial brain's): the Cinder Chicken's fuse; the Brimstone Bee's bomb; the Pit
+// Fiend's charge, leap, volley and roar; the Spore Lord's puff of spores, its slam, its bite.
+export const FUSE = 80;
+export const BEE_BOMB = 81;
+export const FIEND_CHARGE = 82;
+export const FIEND_LEAP = 83;
+export const FIEND_VOLLEY = 84;
+export const FIEND_ROAR = 85;
+export const PUFF = 86;
+export const SPORE_SLAM = 87;
+export const BITE = 88;
+
 /** Each move's clip: its length (s) and where its blows land (shares of it). */
 export const HELL_CLIPS: Readonly<Record<number, { len: number; lands: readonly number[] }>> = {
   [SWING_A]: { len: 0.43, lands: [0.56] },

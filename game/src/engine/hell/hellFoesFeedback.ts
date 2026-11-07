@@ -1,6 +1,8 @@
 // Update 0.5.4 — floor 10's own fighters felt (out of combatFeedback.ts's chain, as wardenFeedback.ts is): sparks off the Bone Guard's guard
 // and more as it breaks; the Bone Axeman's floor split bursting (a ring of fire, chunks, the view shaken nearby), its chop and spin; a jolt as
-// the line burns you; the Imp's fireball leaving its hand; a Puglin's rush.
+// the line burns you; the Imp's fireball leaving its hand; a Puglin's rush. Update 0.5.5 — the second batch: a Cinder Chicken's burst and a
+// spore cloud blowing (a ring of fire, chunks, the view shaken nearby), a blow lighting a Chicken (sparks); the Pit Fiend's landing (as the old
+// Demon's: chunks, a hard shake), its roar, its fan of fire leaving its trident; the Spore Lord's slam, its puff.
 import * as THREE from 'three';
 import type { CombatEvent } from '../../sim/combat/state';
 import { FEEDBACK } from '../../tuning/combat';
@@ -41,6 +43,36 @@ export function hellFoesFeedback(f: FeedbackParts, kind: CombatEvent, value: num
       return true;
     case 'puglinRush':
       f.rig.shake.add(fb.shakeJab * 0.4 * near(8));
+      return true;
+    case 'chickenBurst':
+    case 'sporeBlast':
+      f.waves.spawn(at, Math.max(1, value), FIRE);
+      f.chunks.spawn(at, UP, 14, 1.1);
+      f.sparks.spawn(at, UP, 18, 1.2);
+      f.rig.shake.add(fb.shakeHeavy * near(12));
+      return true;
+    case 'chickenLit':
+      f.sparks.spawn(at, UP, 10, 0.7);
+      return true;
+    case 'sporeBurn':
+      f.rig.shake.add(fb.shakeJab * 0.5);
+      return true;
+    case 'fiendSlam':
+      f.chunks.spawn(at, UP, 26, 1.3);
+      f.rig.shake.add(0.7 * near(30));
+      return true;
+    case 'fiendRoar':
+      f.rig.shake.add(0.5 * near(30));
+      return true;
+    case 'fiendVolley':
+      f.sparks.spawn(at, UP, 14, 0.9);
+      return true;
+    case 'sporeSlam':
+      f.chunks.spawn(at, UP, 16, 1.1);
+      f.rig.shake.add(fb.shakeHeavy * 0.8 * near(14));
+      return true;
+    case 'sporePuff':
+      f.rig.shake.add(fb.shakeJab * 0.3 * near(10));
       return true;
     default:
       return false;

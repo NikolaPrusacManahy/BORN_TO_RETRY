@@ -71,4 +71,25 @@ export type HellEvent =
   | 'guardCombo'
   | 'guardTurn'
   | 'guardBreak'
-  | 'guardRiposte';
+  | 'guardRiposte'
+  // Update 0.5.5 — the Cinder Chicken's squawk, its fuse burning (it stopped close), lit by a blow, its burst (value: its reach); the Brimstone
+  // Bee rearing back, its bomb dropped; the Pit Fiend's warning (value: its move), its leap, its landing (value: its ring's reach), its fan of
+  // fire, its roar; the Spore Lord's warning (value: its move), its puff, its slam (value: its ring's reach), its bite; a spore cloud blowing
+  // (value: its reach), burning you.
+  | 'chickenSquawk'
+  | 'chickenFuse'
+  | 'chickenLit'
+  | 'chickenBurst'
+  | 'beeWindup'
+  | 'beeBomb'
+  | 'fiendWindup'
+  | 'fiendLeap'
+  | 'fiendSlam'
+  | 'fiendVolley'
+  | 'fiendRoar'
+  | 'sporeWindup'
+  | 'sporePuff'
+  | 'sporeSlam'
+  | 'sporeBite'
+  | 'sporeBlast'
+  | 'sporeBurn';

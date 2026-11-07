@@ -54,6 +54,18 @@ The Drowned King wears a crown: `--crown "<Ultimate RPG Pack>/Crown.blend"` puts
 blender --background --disable-autoexec --python tools/blender/export_monster.py -- --blend "<Ultimate Monsters>/used_monster/Boss/Fish.blend" --glb public/models/enemies/drowned_king.glb --previews <folder> --attack Weapon --crown "<Ultimate RPG Pack>/Crown.blend"
 ```
 
+## Update 0.5.5 — floor 10's Ultimate Monsters, in Hell's colours
+```
+blender --background --disable-autoexec --python tools/blender/export_monster.py -- --blend "<Ultimate Monsters>/used_monster/blobs/Chicken.blend" --glb public/models/enemies/cinder_chicken.glb --previews <folder> --attack Bite_Front
+blender --background --disable-autoexec --python tools/blender/export_monster.py -- --blend "<Ultimate Monsters>/used_monster/flying/Armabee_Evolved.blend" --glb public/models/enemies/brimstone_bee.glb --previews <folder> --attack Punch
+blender --background --disable-autoexec --python tools/blender/export_monster.py -- --blend "<Ultimate Monsters>/used_monster/mini_boss/Mushnub_Evolved.blend" --glb public/models/enemies/spore_lord.glb --previews <folder> --attack Weapon
+py -3 tools/hell_paint.py public/models/enemies/cinder_chicken.glb cinder
+py -3 tools/hell_paint.py public/models/enemies/brimstone_bee.glb brimstone
+py -3 tools/hell_paint.py public/models/enemies/spore_lord.glb spore
+```
+- `hell_paint.py` repaints each model's own copy of `Atlas_Monsters` (only the palette cells its mesh's UVs use; `--list` prints them). Run it once after an export: a second run would repaint the repainted colours.
+- The Pit Fiend's model is the old Demon's, from git: `git show 7f6a8e4:game/public/models/enemies/demon.glb > public/models/enemies/pit_fiend.glb`. Its `.blend` is in `used_monster/mini_boss/` again.
+
 ## A held weapon: `game/tools/blender/export_weapon.py`
 
 Update 0.1.5: a weapon whose head sticks out to one side (an axe) needs `--handle-center` (centre on the handle where it's held), and `--edge-out` (turn its blade to +x, the way the knuckles face). The Gold Axe and the Hammer:

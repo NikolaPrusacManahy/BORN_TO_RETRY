@@ -104,6 +104,10 @@ const NAMES: Partial<Record<EnemyKind, string>> = {
   puglin: 'Puglin',
   boneAxeman: 'Bone Axeman',
   boneGuard: 'Bone Guard',
+  cinderChicken: 'Cinder Chicken',
+  brimBee: 'Brimstone Bee',
+  pitFiend: 'Pit Fiend',
+  sporeLord: 'Spore Lord',
   // (Update 0.3.28 — the Moon's crew, and its four mechs and their pilots.)
   gunner: 'Gunner',
   flanker: 'Flanker',

@@ -122,6 +122,10 @@ export const CAUSE_NAMES: Record<Cause, string> = {
   puglin: 'A Puglin',
   boneAxeman: 'A Bone Axeman',
   boneGuard: 'A Bone Guard',
+  cinderChicken: 'A Cinder Chicken',
+  brimBee: 'A Brimstone Bee',
+  pitFiend: 'The Pit Fiend',
+  sporeLord: 'The Spore Lord',
 };
 
 export const causeName = (by: Cause | null) => (by ? CAUSE_NAMES[by] : 'Unknown');

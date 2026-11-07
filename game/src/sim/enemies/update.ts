@@ -94,6 +94,10 @@ import { updateImp } from './imp';
 import { updatePuglin } from './puglin';
 import { updateBoneAxeman } from './boneAxeman';
 import { updateBoneGuard } from './boneGuard';
+import { doomChicken, updateCinderChicken } from './cinderChicken';
+import { updateBrimBee } from './brimBee';
+import { updatePitFiend } from './pitFiend';
+import { updateSporeLord } from './sporeLord';
 import { updateShinobi } from './shinobi';
 import { updateKunoichi } from './kunoichi';
 import { updateSandNinja } from './sandNinja';
@@ -220,10 +224,15 @@ const UPDATE: Record<EnemyKind, Update> = {
   puglin: updatePuglin,
   boneAxeman: updateBoneAxeman,
   boneGuard: updateBoneGuard,
+  // Update 0.5.5 — its second batch.
+  cinderChicken: updateCinderChicken,
+  brimBee: updateBrimBee,
+  pitFiend: updatePitFiend,
+  sporeLord: updateSporeLord,
 };
 /** A dead boss's show, each tick until its slot frees. Update 0.2.4 — and a Green Blob splitting as it dies.
  *  Update 0.2.11 — and a dead fish floating up. Update 0.3.15 — a Gull dropping your coins, a Tentacle sinking. */
-const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld, dt: number) => void>> = { dragon: doomBoss, swarm: doomSwarm, boneKing: doomKing, frostRoc: doomRoc, dino: doomBoss, drownedKing: doomBoss, greenBlob: splitBlob, bigMushnub: splitMushnub, clownfish: floatUp, tuna: floatUp, angelfish: floatUp, dolphin: floatUp, mantaRay: floatUp, shark: floatUp, whale: doomBoss, gull: gullDrops, tentacle: tentacleSinks, bigShark: doomBoss, tidebreaker: doomBoss, okami: doomBoss, hellwarden: doomBoss };
+const DOOM: Partial<Record<EnemyKind, (e: Enemy, index: number, w: EnemyWorld, dt: number, player: PlayerState) => void>> = { dragon: doomBoss, swarm: doomSwarm, boneKing: doomKing, frostRoc: doomRoc, dino: doomBoss, drownedKing: doomBoss, greenBlob: splitBlob, bigMushnub: splitMushnub, clownfish: floatUp, tuna: floatUp, angelfish: floatUp, dolphin: floatUp, mantaRay: floatUp, shark: floatUp, whale: doomBoss, gull: gullDrops, tentacle: tentacleSinks, bigShark: doomBoss, tidebreaker: doomBoss, okami: doomBoss, hellwarden: doomBoss, cinderChicken: doomChicken };
 
 export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWorld, world: CollisionWorld, dt: number) {
   let any = false;
@@ -252,7 +261,7 @@ export function updateEnemies(enemies: Enemy[], player: PlayerState, w: EnemyWor
       if (waits(e, player)) wait(e, player, w, edt);
       else UPDATE[e.kind](e, i, player, w, edt, world);
       fanOut(e, player, w, edt);
-    } else if (e.alive && e.phase === 'dead') DOOM[e.kind]?.(e, i, w, dt);
+    } else if (e.alive && e.phase === 'dead') DOOM[e.kind]?.(e, i, w, dt, player);
   }
   separateEnemies(enemies, w.nav);
 }
