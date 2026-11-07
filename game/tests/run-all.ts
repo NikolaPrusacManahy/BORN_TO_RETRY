@@ -38,6 +38,7 @@ import './test-sean-mass';
 import './test-sean-cards';
 import './test-unlocks';
 import './test-records';
+import './test-lobby-perf';
 import './test-swarm-stare';
 import './test-seams';
 import './test-floor5';

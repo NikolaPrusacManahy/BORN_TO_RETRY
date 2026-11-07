@@ -288,6 +288,11 @@ export class Run extends RunBase {
     }
     if (d) this.view.update?.(gameDt, d, this.camera.position, this.combat.flood, this.hits.kicks);
     else this.view.frame?.(real, this.camera.position);
+    // (Update 0.5.3 — the lobby keeps its shadows: the key light's map, the whole manor, drawn again only when something that casts into it has moved.)
+    if (this.view.shadowsDue) {
+      renderer.shadowMap.autoUpdate = false;
+      if (this.view.shadowsDue()) renderer.shadowMap.needsUpdate = true;
+    }
     if (lobby) this.lobbyNews(lobby);
     // (Update 0.3.70 — the final boss beaten earned the Demon. Update 0.5.1 — no longer: clears do, sim/unlocks.ts.)
     // (The Velociraptor's sandstorm over the dungeon's haze.)

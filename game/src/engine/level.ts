@@ -33,6 +33,8 @@ export interface LevelView extends ArenaView {
   torchesOut?: boolean;
   /** Update 0.2.9 — anywhere else (the lobby): its own life each frame; `at`: the camera. */
   frame?(dt: number, at: THREE.Vector3): void;
+  /** Update 0.5.3 — it keeps its shadows (the lobby): whether they must be drawn again now, as something that casts them has moved. Absent: drawn every frame. */
+  shadowsDue?(): boolean;
   /** Update 0.3.9 — pillar `i` (`p`) broken by the pillar finisher. */
   breakPillar?(i: number, p: Pillar): void;
   /** Update 0.3.29 — the floor's pillars' pieces (one torn out by the Moon's boss: pillarEvents.ts). */

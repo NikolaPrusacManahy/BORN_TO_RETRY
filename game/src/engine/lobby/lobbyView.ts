@@ -8,6 +8,8 @@
 // painting in a gilt frame with a brass plaque under it; the windows' daylight behind their frames; the galleries'
 // exhibits (galleryView.ts).
 // Update 0.3.70 — the Demon's figure, from its own file: a silhouette till it's earned.
+// Update 0.5.3 (the designer: "optimase the Lobby, my fans are wilding") — its shadows kept: the key light's map (the whole manor, 1.7 M triangles) was drawn again every frame though only the
+// portcullis ever moves. Now it's drawn as the manor's built, while the portcullis rises, and when the key light's shadows are turned on (`shadowsDue`). The figures' breathing (0.6%) leaves it be.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { isPlayable, ROSTER } from '../../sim/characters';
@@ -24,6 +26,7 @@ import { LobbyLights } from './lobbyLights';
 import { FateStand } from './fateStand';
 import { GalleryView } from './galleryView';
 import { ITEMS_URL } from '../treasureView';
+import { LOBBY_LIGHT } from '../../tuning/lobbyLight';
 
 export const LOBBY_KIT_URL = '/models/menu/lobby.glb';
 export const DEMON_FIGURE_URL = '/models/menu/demon_figure.glb';
@@ -75,6 +78,9 @@ export class LobbyView implements LevelView {
   private name = '';
   private seenDifficulty = '';
   private seenCharacter = '';
+  /** Update 0.5.3 — the shadows must be drawn again; whether the key light cast them last frame. */
+  private shadowsDirty = true;
+  private shadowsOn = LOBBY_LIGHT.v.shadows >= 1;
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -162,6 +168,15 @@ export class LobbyView implements LevelView {
       this.group.add(crystal);
       this.crystal = crystal;
     }
+    // (Update 0.5.3 — the manor's there now: its shadows.)
+    this.shadowsDirty = true;
+  }
+
+  /** Update 0.5.3 — the shadows must be drawn again now (and then they're not, till something moves). */
+  shadowsDue(): boolean {
+    const due = this.shadowsDirty;
+    this.shadowsDirty = false;
+    return due;
   }
 
   /** The walls' cores, the beams, the chandeliers' iron and the dark beyond the gate: none of it casts a shadow. */
@@ -255,7 +270,16 @@ export class LobbyView implements LevelView {
     this.stand.update(this.time, dt, this.lobby.cards);
     this.gallery.update(this.time);
     for (let i = 0; i < this.figures.length; i++) if (this.figures[i]) this.figures[i].scale.y = 1 + Math.sin(this.time * 1.7 + i * 1.3) * 0.006;
-    if (this.lobby.opening) this.lift = Math.min(BARS_LIFT, this.lift + BARS_RATE * dt);
+    // (Update 0.5.3 — the portcullis rising moves its shadow; the key light's shadows turned on or off.)
+    if (this.lobby.opening && this.lift < BARS_LIFT) {
+      this.lift = Math.min(BARS_LIFT, this.lift + BARS_RATE * dt);
+      this.shadowsDirty = true;
+    }
+    const on = LOBBY_LIGHT.v.shadows >= 1;
+    if (on !== this.shadowsOn) {
+      this.shadowsOn = on;
+      this.shadowsDirty = true;
+    }
     if (this.bars) this.bars.position.y = this.dressing.bars.y + this.lift;
     if (this.crystal) {
       this.crystal.rotation.y = this.time * CRYSTAL.turn;
