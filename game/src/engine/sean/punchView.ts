@@ -3,6 +3,7 @@
 // white ring and a slower one spreading from it, facing you. Shockwave Punch: all of that at the size of its cone, many rings, and on the ground more of them rolling out along the floor.
 // The rings are one instanced mesh, faded by their colour as they're additive.
 import * as THREE from 'three';
+import { shockConeOf } from '../../sim/cards/seanPowers';
 import type { CombatState } from '../../sim/combat/state';
 import { CAMERA } from '../../tuning/camera';
 import { SEAN } from '../../tuning/sean';
@@ -114,7 +115,7 @@ export class PunchView {
       else if (e.kind === 'jabR') this.side = 1;
       else if (e.kind === 'seanRipple') this.ripple(at.set(e.x, e.y, e.z), e.value === 1);
       else if (e.kind === 'seanImpact') this.impact(at.set(e.x, e.y, e.z), (e.value & 1) === 1, (e.value & 2) === 2);
-      else if (e.kind === 'seanShock') this.shock(at.set(e.x, e.y, e.z), e.value === 1);
+      else if (e.kind === 'seanShock') this.shock(at.set(e.x, e.y, e.z), e.value === 1, shockConeOf(state));
     }
     this.moveWaves(dt);
     for (const t of this.tubes) {
@@ -196,10 +197,10 @@ export class PunchView {
   }
 
   /** Shockwave Punch, out to `to`. */
-  private shock(to: THREE.Vector3, grounded: boolean) {
+  private shock(to: THREE.Vector3, grounded: boolean, cone: number) {
     const from = this.fromFist(1, fist);
     const v = SEAN.v;
-    const wide = Math.tan((v.shockCone * Math.PI) / 180);
+    const wide = Math.tan((cone * Math.PI) / 180);
     const long = from.distanceTo(to);
     for (let i = 0; i < 9; i++) {
       const k = (i + 1) / 9;

@@ -457,6 +457,11 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 
 ---
 
+### Gravity Sean's deck (Update 0.5.0, the designer: "he won't be able to get any weapons like Joseph"; spec `MD_UPDATES/U0500_SEAN_CARDS.md`)
+- **40 cards of his own: 20 Fate, 10 Traitor, 10 Death** (`sim/cards/seanDeck.ts`; numbers in F1 → Gravity Sean Cards, placeholders). Each changes a move of his. He's dealt only these and no one else is dealt them, in the same deals, at the same odds.
+- **Only out of a challenge room's chest:** his boss chests don't deal, and his shop has no Fate Card.
+- **Not in the manor's gallery:** its walls hold 70 cards.
+
 ## 7. Money and style
 - Kills give money (Update 0.0.12): coins burst out of what you kill and fly to you. **Update 0.0.17 (the designer): half what they were:** a grunt **1**, a spitter **2**, a brute **5**, a leaper **2**, a stinger **1.5**, a wraith **2.5** (a half is one more coin half the time), the Demon **30** (out of its burst). Elites will give more.
 - **Kill bonuses (Update 0.0.17, the designer: like CoD Zombies' power-ups):** a kill may drop a snowflake (7 s: every melee hit freezes what it hits for 1 s; never a boss), gold ingots (10 s: +50% coins) or a blue potion (7 s: +30% speed): gold 10%, the snowflake and the potion 6% (Update 0.2.0, the designer: 4% less; was 10%), at most 2 a fight room **(placeholder)**. Walk over one to take it; left lying, it fades after 20 s. Your coins show just above the health bar. **(placeholder amounts)**
@@ -507,6 +512,8 @@ What you carry (keys, rings, the shield) goes down to the next floor with you an
 - A chest holds **50–80 coins**, a **silver plate**, a **heart** or **a ring** (either). Coins 40%, the rest alike. **(placeholder odds)**
 
 ---
+
+- **Gravity Sean's runs (Update 0.5.0, the designer: "no need for keys in Gravity Sean runs"; "a 50% chance to spawn a chests in rooms with a higher chance to get only gold"):** no keys at all: every chest opens with E, none drops, his shop sells none. Each fight room has a **50%** chance of a chest, the challenge room always. A room's chest holds **only coins 70%** of the time (a placeholder), else a heart, armour or a ring, never a weapon. A challenge room's deals and always holds an item, a ring at least.
 
 ## 9. Enemies **(placeholder roster)**
 Rule: every attack is telegraphed (a flash and a sound) before it can hit, and every projectile can be parried unless it is clearly marked.

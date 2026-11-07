@@ -60,9 +60,9 @@ export function labLevel(): Level {
   return { arena: FEEL_LAB, physics: new RapierWorld(FEEL_LAB), dungeon: null, seed: LAB_SEED, floor: 0, fightSeed: LAB_SEED, draw: (scene, renderer) => buildArenaView(scene, FEEL_LAB, renderer) };
 }
 
-/** Floor `floor` of the run with `seed`. */
-export function dungeonLevel(seed: number, floor: number): Level {
-  const d = buildDungeon(planFloor(seed, floor));
+/** Floor `floor` of the run with `seed`. Update 0.5.0 — `sean`: Gravity Sean's run. */
+export function dungeonLevel(seed: number, floor: number, sean = false): Level {
+  const d = buildDungeon(planFloor(seed, floor, sean));
   const physics = new RapierWorld(d.arena);
   physics.addGates(d.gates);
   // (Update 0.2.15 — the run's last boss deals no Fate Cards: the run ends there.)
@@ -72,8 +72,8 @@ export function dungeonLevel(seed: number, floor: number): Level {
 }
 
 /** Update 0.0.19 — floor `floor`'s boss room straight away (the Lab): you stand just inside it, facing the portal. */
-export function bossRoomLevel(seed: number, floor: number): Level {
-  const l = dungeonLevel(seed, floor);
+export function bossRoomLevel(seed: number, floor: number, sean = false): Level {
+  const l = dungeonLevel(seed, floor, sean);
   const start = bossRoomStart(l.dungeon!.level);
   return { ...l, arena: { ...l.arena, playerStart: start }, bossRoom: true };
 }

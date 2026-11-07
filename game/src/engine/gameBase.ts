@@ -61,10 +61,10 @@ export abstract class GameBase {
   protected covering = false;
   protected gone = false;
   protected readonly levels: Levels = {
-    fresh: () => (this.inLab ? labLevel() : dungeonLevel(newSeed(), 1)),
-    next: (l: Level) => (this.inLab && l.bossRoom ? labLevel() : dungeonLevel(l.seed, l.floor + 1)),
-    again: (l: Level) => (l.bossRoom ? bossRoomLevel(l.seed, l.floor) : dungeonLevel(l.seed, l.floor)),
-    boss: (l: Level) => bossRoomLevel(l.seed, l.floor),
+    fresh: () => (this.inLab ? labLevel() : dungeonLevel(newSeed(), 1, this.seanRun)),
+    next: (l: Level) => (this.inLab && l.bossRoom ? labLevel() : dungeonLevel(l.seed, l.floor + 1, this.seanRun)),
+    again: (l: Level) => (l.bossRoom ? bossRoomLevel(l.seed, l.floor, this.seanRun) : dungeonLevel(l.seed, l.floor, this.seanRun)),
+    boss: (l: Level) => bossRoomLevel(l.seed, l.floor, this.seanRun),
   };
 
   constructor(
@@ -147,13 +147,13 @@ export abstract class GameBase {
   labBoss(kind: 'dragon' | 'swarm' | 'boneKing' | 'dino' | 'drownedKing' | 'whale' | 'bigShark' | 'frostRoc' | 'tidebreaker' | 'okami' | 'hellwarden') {
     // (Update 0.3.25 — on its floor as the floors are ordered now: floorOrder.ts.)
     const at = kind === 'dragon' ? FLOOR.dungeon : kind === 'swarm' ? FLOOR.garden : kind === 'boneKing' ? FLOOR.keep : kind === 'dino' ? FLOOR.desert : kind === 'drownedKing' ? FLOOR.temple : kind === 'frostRoc' ? FLOOR.frozen : kind === 'tidebreaker' ? FLOOR.moon : kind === 'okami' ? FLOOR.shrine : kind === 'hellwarden' ? FLOOR.hell : FLOOR.cove;
-    if (this.lab) this.covered(() => this.newRun(bossRoomLevel(newSeed(), at)));
+    if (this.lab) this.covered(() => this.newRun(bossRoomLevel(newSeed(), at, this.seanRun)));
   }
 
   /** Update 0.0.20 — floor `floor` (1–3) from the Lab, from its start. Update 0.3.11 — up to 7 (past the run's end:
    *  its way down wins, as the last floor's). */
   labFloor(floor: number) {
-    if (this.lab) this.covered(() => this.newRun(dungeonLevel(newSeed(), floor)));
+    if (this.lab) this.covered(() => this.newRun(dungeonLevel(newSeed(), floor, this.seanRun)));
   }
 
   /** Update 0.0.19 — back to the Lab from a boss room (or a floor). */
@@ -203,6 +203,11 @@ export abstract class GameBase {
   setPaused(on: boolean) {
     this.paused = on;
     if (this.run) this.run.paused = on;
+  }
+
+  /** Update 0.5.0 — you're Gravity Sean: his chests are laid out with the floor. */
+  private get seanRun() {
+    return (this.inLab ? this.labWho : this.runCharacter) === 'spacesuit';
   }
 
   protected newRun(level: Level) {

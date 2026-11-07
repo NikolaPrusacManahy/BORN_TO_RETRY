@@ -153,7 +153,8 @@ export function stepRooms(run: DungeonRun, player: PlayerState, combat: CombatSt
       rr.total = room.waves.reduce((n, w) => n + w.length, 0);
       rr.sent = 0;
       // Update 0.1.20 — a challenge room gives Challenge: keys, each white or gold.
-      combat.keyDrops = combat.bare ? 0 : room.challenge ? Math.round(ROOMS.v.challengeKeys) : hasYeti(room.waves) ? 1 : 0;
+      // (Update 0.5.0 — Gravity Sean needs none.)
+      combat.keyDrops = combat.bare || combat.sean ? 0 : room.challenge ? Math.round(ROOMS.v.challengeKeys) : hasYeti(room.waves) ? 1 : 0;
       combat.betterKeys = room.challenge;
       combat.bonusDrops = combat.bare ? 0 : BONUS.v.perRoom;
       rr.delay = FIRST_WAVE;

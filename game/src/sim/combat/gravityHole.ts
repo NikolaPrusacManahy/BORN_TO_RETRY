@@ -4,6 +4,7 @@
 // Fling, which this replaced, is gone. Pure.
 import { Vector3 } from 'three';
 import { SEAN } from '../../tuning/sean';
+import { has, holePower, holeReachOf, holeWaitOf, unstableHit } from '../cards/seanPowers';
 import { pushOutOfWalls } from '../../world/navGrid';
 import type { CollisionWorld } from '../collisionWorld';
 import type { Enemy } from '../enemies/enemy';
@@ -42,10 +43,10 @@ export function floorUnder(world: CollisionWorld, x: number, y: number, z: numbe
   return Number.isFinite(down) ? y - down : 0;
 }
 
-/** What it drags in. */
-export function pullable(e: Enemy): boolean {
+/** What it drags in. Update 0.5.0 — `minis`: mini bosses too (Singularity, a Fate Card of his). */
+export function pullable(e: Enemy, minis = false): boolean {
   const s = ENEMY_STATS[e.kind]();
-  return !s.boss && !MINI_BOSSES.includes(e.kind) && e.perch <= 0 && e.phase !== 'rebuild' && e.phase !== 'intro';
+  return !s.boss && (minis || !MINI_BOSSES.includes(e.kind)) && e.perch <= 0 && e.phase !== 'rebuild' && e.phase !== 'intro';
 }
 
 /** The orb in his palm goes out: he left Unstable mode, or Meteor took his hands. No wait, as it was never thrown. */
@@ -58,8 +59,8 @@ function throwHole(state: CombatState, player: PlayerState, yaw: number, pitch: 
   const g = state.grav;
   aim(player, yaw, pitch, eye, dir);
   g.palm = -1;
-  g.holeWait = SEAN.v.holeWait;
-  g.hole = { flying: true, t: 0, tick: 0, x: eye.x + dir.x * FROM_EYE, y: eye.y + dir.y * FROM_EYE, z: eye.z + dir.z * FROM_EYE, dx: dir.x, dy: dir.y, dz: dir.z, floor: 0, power: instabFactor(g), pulled: [] };
+  g.holeWait = g.holeFull = holeWaitOf(state);
+  g.hole = { flying: true, t: 0, tick: 0, reach: holeReachOf(state), x: eye.x + dir.x * FROM_EYE, y: eye.y + dir.y * FROM_EYE, z: eye.z + dir.z * FROM_EYE, dx: dir.x, dy: dir.y, dz: dir.z, floor: 0, power: instabFactor(g) * unstableHit(state) * holePower(state), pulled: [] };
   state.events.push('seanHoleThrow', 0, g.hole.x, g.hole.y, g.hole.z);
 }
 
@@ -119,8 +120,8 @@ function drag(state: CombatState, i: number, e: Enemy, dt: number) {
   const dx = e.pos.x - h.x;
   const dz = e.pos.z - h.z;
   const d = Math.hypot(dx, dz);
-  if (d > v.holeReach) return;
-  if (!pullable(e)) return;
+  if (d > h.reach) return;
+  if (!pullable(e, has(state, 'singularity'))) return;
   if (e.phase !== 'held') setPhase(e, 'held');
   if (!h.pulled.includes(i)) h.pulled.push(i);
   e.vel.set(0, 0, 0);
@@ -128,7 +129,7 @@ function drag(state: CombatState, i: number, e: Enemy, dt: number) {
     const nx = dx / d;
     const nz = dz / d;
     // Faster the nearer it's come; round as it goes in.
-    const speed = v.holePull * (2 - d / v.holeReach);
+    const speed = v.holePull * (2 - d / h.reach);
     const inward = Math.min(speed * dt, Math.max(0, d - radiusOf(e) - CORE));
     e.pos.x += -nx * inward - nz * v.holeSwirl * dt;
     e.pos.z += -nz * inward + nx * v.holeSwirl * dt;
@@ -199,7 +200,7 @@ export function slowBosses(state: CombatState) {
   if (!h || h.flying) return;
   const v = SEAN.v;
   for (const e of state.enemies) {
-    if (!isLive(e) || !ENEMY_STATS[e.kind]().boss || Math.hypot(e.pos.x - h.x, e.pos.z - h.z) > v.holeReach) continue;
+    if (!isLive(e) || !ENEMY_STATS[e.kind]().boss || Math.hypot(e.pos.x - h.x, e.pos.z - h.z) > h.reach) continue;
     e.pos.x -= (e.pos.x - e.prev.x) * v.holeBossSlow;
     e.pos.z -= (e.pos.z - e.prev.z) * v.holeBossSlow;
   }

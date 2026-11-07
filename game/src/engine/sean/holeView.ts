@@ -209,7 +209,7 @@ export class HoleView {
       this.stoneAll(h.x, h.y, h.z, size, 8);
       return;
     }
-    const reach = v.holeReach * open;
+    const reach = h.reach * open;
     this.floor.position.set(h.x, h.floor + FLOOR_UP, h.z);
     this.floor.scale.setScalar(Math.max(0.01, reach));
     this.floor.rotation.y = -this.time * FLOOR_SPIN;

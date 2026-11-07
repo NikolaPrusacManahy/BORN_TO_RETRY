@@ -196,14 +196,19 @@ export const LAB_ITEMS: readonly [string, Pick[]][] = [
 const fate = (k: CardKind): Pick => [CARD[k].name, { kind: 'card', card: k }];
 export const LAB_CARDS: readonly [string, Pick[]][] = [
   ['Deal', [['Deal 3', { kind: 'deal' }]]],
-  ...RARITIES.map((r): [string, Pick[]] => [r[0].toUpperCase() + r.slice(1), CARD_KINDS.filter((k) => familyOf(k) === 'fate' && CARD[k].rarity === r && !BUILD_CARDS.includes(k)).map(fate)]),
+  ...RARITIES.map((r): [string, Pick[]] => [r[0].toUpperCase() + r.slice(1), CARD_KINDS.filter((k) => familyOf(k) === 'fate' && !CARD[k].sean && CARD[k].rarity === r && !BUILD_CARDS.includes(k)).map(fate)]),
   ['Builds', BUILD_CARDS.map(fate)],
+  // (Update 0.5.0 — Gravity Sean's: ten a column.)
+  ['Sean', CARD_KINDS.filter((k) => familyOf(k) === 'fate' && CARD[k].sean).slice(0, 10).map(fate)],
+  ['More Sean', CARD_KINDS.filter((k) => familyOf(k) === 'fate' && CARD[k].sean).slice(10).map(fate)],
 ];
 
 /** Update 0.2.19 — the Traitor and Death Cards' tab: each card given you (the Death Cards two columns: 10 a column). */
-const given = (family: 'traitor' | 'death') => CARD_KINDS.filter((k) => familyOf(k) === family).map((k): Pick => [CARD[k].name, { kind: 'card', card: k }]);
+const given = (family: 'traitor' | 'death', sean = false) => CARD_KINDS.filter((k) => familyOf(k) === family && !!CARD[k].sean === sean).map((k): Pick => [CARD[k].name, { kind: 'card', card: k }]);
 export const LAB_DARK: readonly [string, Pick[]][] = [
   ['Traitor', given('traitor')],
   ['Death', given('death').slice(0, 8)],
   ['More Death', given('death').slice(8)],
+  ['Sean Traitor', given('traitor', true)],
+  ['Sean Death', given('death', true)],
 ];

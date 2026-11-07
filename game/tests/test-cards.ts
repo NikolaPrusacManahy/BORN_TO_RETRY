@@ -89,11 +89,13 @@ setKnob(CARDS, 'traitorChance', 0);
 
 section('Fate Cards — the cards');
 {
-  const fate = CARD_KINDS.filter((k) => familyOf(k) === 'fate');
+  // (Update 0.5.0 — Gravity Sean's own 40 apart: test-sean-cards.ts.)
+  const shared = CARD_KINDS.filter((k) => !CARD[k].sean);
+  const fate = shared.filter((k) => familyOf(k) === 'fate');
   const by = RARITIES.map((r) => fate.filter((k) => CARD[k].rarity === r).length);
   check('waves 1 and 2 and the builds’ (0.2.22): 44 Fate Cards (Update 0.3.20 — the slide’s two gone), every rarity among them', fate.length === 44 && by.every((n) => n >= 3), by.join(' '));
-  check('16 Death Cards, 9 Traitor Cards (69 in all; Runaway gone with the slide)', CARD_KINDS.filter((k) => familyOf(k) === 'death').length === 16 && CARD_KINDS.filter((k) => familyOf(k) === 'traitor').length === 9 && CARD_KINDS.length === 69);
-  check('each with its own name, the move it changes and what it does', new Set(CARD_KINDS.map((k) => CARD[k].name)).size === 69 && CARD_KINDS.every((k) => CARD[k].move.length > 0 && CARD[k].does().length > 10));
+  check('16 Death Cards, 9 Traitor Cards (69 in all; Runaway gone with the slide)', shared.filter((k) => familyOf(k) === 'death').length === 16 && shared.filter((k) => familyOf(k) === 'traitor').length === 9 && shared.length === 69);
+  check('each with its own name, the move it changes and what it does', new Set(shared.map((k) => CARD[k].name)).size === 69 && shared.every((k) => CARD[k].move.length > 0 && CARD[k].does().length > 10));
   check('a Traitor Card says its price; no other does', CARD_KINDS.every((k) => (familyOf(k) === 'traitor') === (CARD[k].cost?.().length ?? 0) > 5));
 }
 

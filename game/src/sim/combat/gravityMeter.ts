@@ -3,6 +3,7 @@
 // them without them leaning on it. Pure.
 import { Vector3 } from 'three';
 import { SEAN } from '../../tuning/sean';
+import { instabRate, mendFactor, ultRate, type Carries } from '../cards/seanPowers';
 import type { CombatEvent } from './state';
 import type { TargetKind } from './strike';
 import type { EventQueue } from '../../core/eventQueue';
@@ -89,6 +90,8 @@ export interface Hole {
   flying: boolean;
   t: number;
   tick: number;
+  /** Update 0.5.0 — how far it pulls (a card of his can make it further). */
+  reach: number;
   x: number;
   y: number;
   z: number;
@@ -118,6 +121,8 @@ export interface StoredHit {
 /** Time Stop: how long, what it's holding back, and whether that's landing now. */
 export interface TimeStop {
   t: number;
+  /** Update 0.5.0 — how long it runs (a card of his can change it). */
+  time: number;
   stored: StoredHit[];
   releasing: boolean;
 }
@@ -142,6 +147,10 @@ export interface GravityState {
   /** Seconds till E works again (after an overload), and till Ground Slam does. */
   switchWait: number;
   slamWait: number;
+  /** Update 0.5.0 — how long Ground Slam's, Black Hole's and Shockwave Punch's waits were when they began, for the HUD (his cards change them; 0: as the knobs say). */
+  slamFull: number;
+  holeFull: number;
+  shockFull: number;
   /** The meter his ultimates share (0 … 1). */
   ult: number;
   /** Update 0.3.88 — health owed him by kills: step.ts pays it, having the player. */
@@ -180,6 +189,9 @@ export function createGravity(): GravityState {
     instab: 0,
     switchWait: 0,
     slamWait: 0,
+    slamFull: 0,
+    holeFull: 0,
+    shockFull: 0,
     ult: 0,
     mend: 0,
     as: null,
@@ -203,7 +215,7 @@ export function createGravity(): GravityState {
   };
 }
 
-interface Fed {
+interface Fed extends Carries {
   grav: GravityState;
   events: EventQueue<CombatEvent>;
 }
@@ -212,7 +224,7 @@ interface Fed {
 export function addUlt(state: Fed, amount: number) {
   const g = state.grav;
   const was = g.ult;
-  g.ult = Math.min(1, g.ult + amount);
+  g.ult = Math.min(1, g.ult + amount * ultRate(state));
   if (was < 1 && g.ult >= 1) state.events.push('seanUltReady');
 }
 
@@ -220,7 +232,7 @@ export function addUlt(state: Fed, amount: number) {
 export function gravHit(state: Fed) {
   const g = state.grav;
   addUlt(state, SEAN.v.ultHit);
-  if (g.unstable) g.instab = Math.min(1, g.instab + SEAN.v.instabHit);
+  if (g.unstable) g.instab = Math.min(1, g.instab + SEAN.v.instabHit * instabRate(state));
 }
 
 /** Update 0.3.85 — a hit of his in stopped time: held back, for when it ends (gravityStop.ts). The meters don't wait, and nor does your sight of it; the enemy doesn't react at all. Plain targets add theirs up;
@@ -263,8 +275,9 @@ export function gravKill(state: Fed, big: boolean) {
   const g = state.grav;
   const v = SEAN.v;
   addUlt(state, v.ultKill);
-  if (g.as ?? g.unstable) g.mend += big ? v.mendBig : v.mendKill;
-  else g.mend += big ? v.mendNormalBig : v.mendNormal;
+  const unstable = g.as ?? g.unstable;
+  // (Update 0.5.0 — Cold Reactor and Cold Comfort, cards of his: less, or none.)
+  g.mend += (unstable ? (big ? v.mendBig : v.mendKill) : big ? v.mendNormalBig : v.mendNormal) * mendFactor(state, unstable);
 }
 
 /** Update 0.3.86 — how many rocks a piece can gather (the last's there as its time's up), and how far it's got (0 … 1). */

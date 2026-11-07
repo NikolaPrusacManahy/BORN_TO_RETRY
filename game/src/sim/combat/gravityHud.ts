@@ -42,22 +42,22 @@ export function seanHud(g: GravityState, inAir: boolean, out: SeanHud): SeanHud 
   const v = SEAN.v;
   // (In the air, normal mode's Ctrl is a plunge, which doesn't wait for Ground Slam.)
   if (g.unstable) {
-    setWait(out.rmb, g.holeWait, v.holeWait);
-    setWait(out.ctrl, g.shockWait, v.shockWait);
+    setWait(out.rmb, g.holeWait, g.holeFull || v.holeWait);
+    setWait(out.ctrl, g.shockWait, g.shockFull || v.shockWait);
     out.otherRmb = 0;
     out.otherCtrl = tenths(g.slamWait);
   } else {
     setWait(out.rmb, 0, 1);
-    setWait(out.ctrl, inAir ? 0 : g.slamWait, v.slamWait);
+    setWait(out.ctrl, inAir ? 0 : g.slamWait, g.slamFull || v.slamWait);
     out.otherRmb = tenths(g.holeWait);
     out.otherCtrl = tenths(g.shockWait);
   }
   setWait(out.e, g.switchWait, v.overloadWait);
   out.gather = g.held ? Math.round(gatherK(g.held) * 40) / 40 : 0;
   out.lifted = !!g.held?.lifted;
-  const left = g.stop ? v.stopTime - g.stop.t : 0;
+  const left = g.stop ? g.stop.time - g.stop.t : 0;
   out.stopLeft = tenths(left);
-  out.stopFill = g.stop ? Math.round((left / Math.max(0.01, v.stopTime)) * 40) / 40 : 0;
+  out.stopFill = g.stop ? Math.round((left / Math.max(0.01, g.stop.time)) * 40) / 40 : 0;
   return out;
 }
 

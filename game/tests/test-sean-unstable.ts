@@ -452,7 +452,7 @@ section('What it shows: it clearly pulls');
   a.pos.z = was.z;
   void b;
   const t = (r.c.grav.hole as NonNullable<typeof r.c.grav.hole>).t;
-  r.c.grav.stop = { t: 0, stored: [], releasing: false };
+  r.c.grav.stop = { t: 0, time: v.stopTime, stored: [], releasing: false };
   const before = view.showing.streaks;
   view.update(r.c, 0.5);
   check('with time stopped it hangs there', view.showing.streaks === before && r.c.grav.hole!.t === t);

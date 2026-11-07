@@ -32,10 +32,10 @@ standard difficulty you get one life. Losing is part of the design: play, lose, 
 - **Executions.** Kills fill a meter. When it's full, grab a nearby enemy and finish it to win back health. Hits and
   kills heal nothing: health comes from hearts, rings and executions.
 - **Cards that change the run.** Boss and challenge-room chests deal from a deck of 69 cards, and not all of them are on
-  your side.
+  your side. Gravity Sean has 40 of his own, in place of weapons.
 - **A new layout every run.** Hand-made rooms assembled from a seed, with a shop and an optional challenge room on every
   floor.
-- **A manor between runs.** Walk the lobby to pick your difficulty, browse galleries of every weapon, item and card, and
+- **A manor between runs.** Walk the lobby to pick your difficulty, browse galleries of the weapons, items and cards, and
   visit the bestiary.
 
 ### Floors

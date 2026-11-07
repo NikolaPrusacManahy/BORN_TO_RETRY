@@ -26,6 +26,7 @@ import { warbandWaves } from '../../sim/dungeon/warbandWaves';
 import { bossRoomOf, Cell, FIGHT_ROOMS, layOut, onFloor, RoomKind, RoomLayout, SHOP_ROOM, START_ROOM } from './rooms';
 import { NO_WAY_OUT, stampWayOut, WayOut } from './wayOut';
 import { ROOMS } from '../../tuning/rooms';
+import { SEAN_CARDS } from '../../tuning/seanCards';
 
 /** Metres per cell; slots on the board; the largest room's side (cells); cells between neighbouring rooms' insides
  *  (their walls and the corridor); the floor grid's side (cells). */
@@ -136,8 +137,8 @@ function sideTo(a: [number, number], b: [number, number]): [Side, Side] {
   return [s[2], s[3]];
 }
 
-/** Lays out floor `level` of the run with `seed`. */
-export function planFloor(seed: number, level: number): FloorPlan {
+/** Lays out floor `level` of the run with `seed`. Update 0.5.0 — `sean`: Gravity Sean's run (his chests: `placeChests`). */
+export function planFloor(seed: number, level: number, sean = false): FloorPlan {
   const rng = createRng(seed * 7919 + level * 104729);
   const n = pathFights(level);
   const way = wayThrough(rng, n);
@@ -187,7 +188,7 @@ export function planFloor(seed: number, level: number): FloorPlan {
   // (Off a fight room on the way; with no room there, off any room but the boss's.)
   if (!sideRoom('fight', 2, n, own, true) && !sideRoom('fight', 1, n, own, true)) sideRoom('fight', 0, Infinity, own, true, ['fight', 'shop', 'start']);
   for (const r of rooms) if (r.kind === 'fight') r.waves = warbandWaves(moonWaves(crewWaves(perchWaves(planWaves(r.depth, level, createRng(seed * 7717 + level * 131 + r.index * 17), r.challenge), r.layout.perches.length, percherOf(level)), r.layout.cells.includes('lava'))));
-  placeChests(rooms, rng, own);
+  placeChests(rooms, rng, own, sean ? createRng(seed * 2741 + level * 613) : null);
   for (const [a, b] of links) {
     const [sa, sb] = sideTo(rooms[a].slot, rooms[b].slot);
     rooms[a].doors.push(sa);
@@ -207,13 +208,19 @@ export function planFloor(seed: number, level: number): FloorPlan {
 }
 
 /** Update 0.0.13 — chests at one of their rooms' chest spots: Update 0.0.16, in every room with a Yeti; then one in
- *  another fight room, sometimes two. Update 0.1.20 — and in the challenge room (on its own seed, `own`). */
-function placeChests(rooms: PlacedRoom[], rng: Rng, own: Rng) {
+ *  another fight room, sometimes two. Update 0.1.20 — and in the challenge room (on its own seed, `own`). Update 0.5.0 — Gravity Sean's run (`his`: its own seed; the designer: "a 50% chance to spawn a chests in rooms"):
+ *  each fight room by its own chance, Yeti or none, and still the challenge room's always. */
+function placeChests(rooms: PlacedRoom[], rng: Rng, own: Rng, his: Rng | null) {
   const put = (r: PlacedRoom, from = rng) => {
     const spot = r.layout.chestSpots[Math.floor(from() * r.layout.chestSpots.length)];
     r.layout.cells[spot[1] * r.layout.w + spot[0]] = 'chest';
     r.chest = spot;
   };
+  if (his) {
+    for (const r of rooms) if (r.kind === 'fight' && r.layout.chestSpots.length > 0 && !r.challenge && his() < SEAN_CARDS.v.roomChest) put(r, his);
+    for (const r of rooms) if (r.challenge && r.layout.chestSpots.length > 0) put(r, own);
+    return;
+  }
   for (const r of rooms) if (r.kind === 'fight' && r.layout.chestSpots.length > 0 && hasYeti(r.waves) && !r.challenge) put(r);
   const hosts = rooms.filter((r) => r.kind === 'fight' && r.layout.chestSpots.length > 0 && !r.chest && !r.challenge);
   const count = Math.min(hosts.length, 1 + (rng() < SECOND_CHEST ? 1 : 0));

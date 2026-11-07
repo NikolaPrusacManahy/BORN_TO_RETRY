@@ -15,6 +15,17 @@ export const MARK: Record<string, string> = {
   Kills: 'M32 8C24 22 16 30 16 40a16 16 0 0 0 32 0c0-10-8-18-16-32z',
   Coins: 'M32 8a24 24 0 1 0 0.1 0zM32 18a14 14 0 1 0 0.1 0z',
   Luck: 'M12 12h40v40H12zM22 22h.1M42 22h.1M32 32h.1M22 42h.1M42 42h.1',
+  // Update 0.5.0 — Gravity Sean's moves.
+  Punch: 'M8 32h20M28 20h14a6 6 0 0 1 6 6v12a6 6 0 0 1-6 6H28zM52 22v20M58 16v32',
+  Grab: 'M20 26l10-12 16 6 6 16-12 12-16-4zM32 54v6M22 56l-4 4M42 56l4 4',
+  Hover: 'M32 8l10 12H22zM32 20v14M14 44c6-5 12-5 18 0s12 5 18 0M14 54c6-5 12-5 18 0s12 5 18 0',
+  Stance: 'M14 26a18 18 0 0 1 32-8l4 6M50 12v12H38M50 38a18 18 0 0 1-32 8l-4-6M14 52V40h12',
+  'Ground Slam': 'M32 6v26M20 22l12 12 12-12M4 46h56M14 56h36M12 40l-6-8M52 40l6-8',
+  'Black Hole': 'M32 32a5 5 0 1 1 5 5 11 11 0 1 1 6-16 18 18 0 1 1-26 2 24 24 0 0 1 34-8',
+  Shockwave: 'M10 32h10M26 18a18 18 0 0 1 0 28M36 12a26 26 0 0 1 0 40M46 6a34 34 0 0 1 0 52',
+  Ultimate: 'M32 4v14M32 46v14M4 32h14M46 32h14M12 12l10 10M42 42l10 10M12 52l10-10M42 22l10-10M32 24a8 8 0 1 0 .1 0z',
+  'Time Stop': 'M32 8a24 24 0 1 0 .1 0zM32 18v14l10 6M24 2h16',
+  Meteor: 'M26 38a12 12 0 1 0 .1 0zM34 34L56 8M28 28L44 6M40 42L60 22',
 };
 
 /** A move's mark (Bonuses' star for one it doesn't know). */

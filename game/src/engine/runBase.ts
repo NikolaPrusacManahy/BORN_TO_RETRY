@@ -18,7 +18,7 @@ import { MoveSounds } from '../audio/moveSounds';
 import type { MoveResult } from '../sim/collisionWorld';
 import { CombatIntent, emptyCombatIntent } from '../sim/combat/fists';
 import { carryOver, CombatState, createCombat, resetCombat } from '../sim/combat/state';
-import { emptyTreasure, noWeaponsOffered, Treasure } from '../sim/dungeon/treasure';
+import { emptyTreasure, noWeaponsOffered, seanTreasure, Treasure } from '../sim/dungeon/treasure';
 import type { CharacterId } from '../sim/characters';
 import { stockShop } from '../sim/cards/shopCard';
 import { LabCommand, runLab } from '../sim/lab/labCommands';
@@ -182,7 +182,9 @@ export abstract class RunBase {
     }
     // (Update 0.2.20 — the shop's Fate Card, by what you carry down; then the shop and chests are drawn.)
     stockShop(this.treasure, this.combat);
-    if (this.demon || this.sean) noWeaponsOffered(this.treasure, level.floor);
+    if (this.demon) noWeaponsOffered(this.treasure, level.floor);
+    // (Update 0.5.0 — no keys in his runs, and his chests are his own.)
+    if (this.sean) seanTreasure(this.treasure, level.floor);
     this.treasureView = new TreasureView(this.scene, this.treasure);
     this.makeReady();
   }

@@ -16,6 +16,7 @@ import { HEALTH } from '../../tuning/health';
 import { bears } from '../cards/cards';
 import { ITEMS } from '../../tuning/items';
 import { LAB } from '../../tuning/lab';
+import { SEAN_CARDS } from '../../tuning/seanCards';
 import type { Cause, PlayerState } from './state';
 
 /** Counts the hurt invincibility down (and the sand, and the dash lock), and the poison does its damage. Call once per
@@ -83,14 +84,14 @@ export function damagePlayer(p: PlayerState, amount: number, by: Cause | null = 
 export const maxHpOf = (p: PlayerState) => {
   const v = CARDS.v;
   // (Update 0.2.19 — Glass Heart, Fragile Fortune, Bottled Lightning: less.)
-  const less = (bears(p, 'glassHeart') ? v.glassHeart : 0) + (bears(p, 'fragileFortune') ? v.fragileHp : 0) + (bears(p, 'bottledLightning') ? v.bottledHp : 0);
+  const less = (bears(p, 'glassHeart') ? v.glassHeart : 0) + (bears(p, 'fragileFortune') ? v.fragileHp : 0) + (bears(p, 'bottledLightning') ? v.bottledHp : 0) + (bears(p, 'hollowFrame') ? SEAN_CARDS.v.hollowHp : 0);
   return Math.max(10, (HEALTH.v.maxHp + p.hpBonus - less) * (bears(p, 'allIn') ? 0.5 : 1));
 };
 
 /** Update 0.2.19 — damage you take, times this (Brittle Bones, Blood Pact: more; Iron Skin: less). */
 export const takenFactor = (p: PlayerState) => {
   const v = CARDS.v;
-  return (bears(p, 'brittleBones') ? 1 + v.brittle : 1) * (bears(p, 'bloodPact') ? 1 + v.bloodPact : 1) * (bears(p, 'ironSkin') ? 1 - v.ironSkin : 1);
+  return (bears(p, 'brittleBones') ? 1 + v.brittle : 1) * (bears(p, 'bloodPact') ? 1 + v.bloodPact : 1) * (bears(p, 'ironSkin') ? 1 - v.ironSkin : 1) * (bears(p, 'stolenMinutes') ? 1 + SEAN_CARDS.v.stolenTaken : 1) * (bears(p, 'bulwark') && p.holding ? 1 - SEAN_CARDS.v.bulwark : 1);
 };
 
 /** Heals up to the max. Returns how much was healed. */
@@ -128,6 +129,15 @@ function die(p: PlayerState) {
 /** Update 0.2.16 — out of health: dead, unless you carry Born Again (a Fate Card): it burns instead, and you're left on
  *  1 health, untouchable a while. */
 function fall(p: PlayerState) {
+  // (Update 0.5.0 — Escape Velocity, Gravity Sean's: the same, and time stops: gravityStop.ts.)
+  if (bears(p, 'escapeVelocity')) {
+    p.cards.delete('escapeVelocity');
+    p.hp = 1;
+    p.invuln = Math.max(p.invuln, SEAN_CARDS.v.escapeInvuln);
+    p.rescued = true;
+    p.events.push('bornAgain');
+    return;
+  }
   if (!bears(p, 'bornAgain')) {
     die(p);
     return;

@@ -44,8 +44,9 @@ export function dealable(state: CombatState, k: CardKind): 'new' | 'twice' | nul
   const { cards, twice } = state.items;
   const f = CARD[k];
   // (Update 0.3.73 — the Playable Demon takes no weapons, executes nothing and, since 0.3.74, doesn't parry: those cards would do nothing for it.)
-  // (Update 0.3.81 — so too Gravity Sean.)
-  if ((state.demon || state.sean) && (f.move === 'Weapons' || f.move === 'Executions' || k === 'hairTrigger')) return null;
+  if (state.demon && (f.move === 'Weapons' || f.move === 'Executions' || k === 'hairTrigger')) return null;
+  // (Update 0.5.0 — Gravity Sean has a deck of his own, and no one else is dealt from it.)
+  if (!!f.sean !== !!state.sean) return null;
   if (cards.has(k)) return f.up && !twice.has(k) ? 'twice' : null;
   if (f.needs && !cards.has(f.needs)) return null;
   if (f.pair && !f.pair.every((b) => countOf(cards, b) > 0)) return null;

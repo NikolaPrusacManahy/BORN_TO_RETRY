@@ -4,6 +4,8 @@
 import { Vector3 } from 'three';
 import { FEEDBACK } from '../../tuning/combat';
 import { SEAN } from '../../tuning/sean';
+import { SEAN_CARDS } from '../../tuning/seanCards';
+import { stopTimeOf } from '../cards/seanPowers';
 import { isLive } from '../enemies/enemy';
 import { launch } from '../enemies/flight';
 import type { PlayerState } from '../player/state';
@@ -16,7 +18,7 @@ const way = new Vector3();
 
 /** Q in normal mode, the meter full. */
 export function startStop(state: CombatState, player: PlayerState) {
-  state.grav.stop = { t: 0, stored: [], releasing: false };
+  state.grav.stop = { t: 0, time: stopTimeOf(state), stored: [], releasing: false };
   // (Nothing caught mid-flash, or half a tick from where it stands, for the whole of it.)
   for (const e of state.enemies) {
     e.flash = 0;
@@ -68,7 +70,15 @@ export function stepStop(state: CombatState, player: PlayerState, dt: number) {
   const s = state.grav.stop;
   if (!s) return;
   s.t += dt;
-  if (s.t >= SEAN.v.stopTime || player.dead) endStop(state, player);
+  if (s.t >= s.time || player.dead) endStop(state, player);
+}
+
+/** Update 0.5.0 — Escape Velocity, a Fate Card of his, has just saved him: time stops, and he can't be touched till a while after it starts again. */
+export function escapeStop(state: CombatState, player: PlayerState) {
+  const g = state.grav;
+  player.rescued = false;
+  if (!g.stop && !g.meteor) startStop(state, player);
+  player.invuln = Math.max(player.invuln, (g.stop?.time ?? 0) + SEAN_CARDS.v.escapeInvuln);
 }
 
 /** How drained of colour the screen is meanwhile (0 … 1): the view's. */

@@ -11,6 +11,8 @@
 // the sky: no wall stops it. Lifted, it's no shield any more, and he has no fist free: that's what it costs. Pure.
 import { Vector3 } from 'three';
 import { SEAN } from '../../tuning/sean';
+import { SEAN_CARDS } from '../../tuning/seanCards';
+import { grabWaitOf, has, thrownHit, throwSpeed } from '../cards/seanPowers';
 import { freeAt, wallBetween } from '../../world/navGrid';
 import type { CollisionWorld } from '../collisionWorld';
 import { launch } from '../enemies/flight';
@@ -122,7 +124,7 @@ function grab(state: CombatState) {
   } else crater(state, a.x, a.y, a.z, v.craterSize);
   const r = big ? v.bigSize : v.smallSize;
   g.held = { big, r, base: r, t: 0, from: new Vector3(a.x, rise, a.z), at: new Vector3(a.x, rise, a.z), gathered: 0, torn: 0, next: v.gatherEvery, lifted: false, zone: new Vector3(a.x, a.y, a.z) };
-  g.grabWait = v.grabWait;
+  g.grabWait = grabWaitOf(state);
   state.events.push('seanGrab', big ? 1 : 0, a.x, a.y, a.z);
 }
 
@@ -263,17 +265,43 @@ function throwPiece(state: CombatState, player: PlayerState, yaw: number, pitch:
     r.r = h.r;
     r.lumps = h.gathered;
     r.left = v.rockLife;
-    r.damage = (h.big ? v.bigDamage : v.smallDamage) + v.gatherDamage * k;
+    r.damage = ((h.big ? v.bigDamage : v.smallDamage) + v.gatherDamage * k) * thrownHit(state);
     r.knock = mix(h.big ? v.bigKnock : v.smallKnock, v.gatherKnock, k);
     r.blast = mix(h.big ? v.bigBlast : 0, v.gatherBlast, k);
-    r.blastDamage = mix(h.big ? v.bigBlastDamage : 0, v.gatherDamage * BURST_SHARE, k);
+    r.blastDamage = mix(h.big ? v.bigBlastDamage : 0, v.gatherDamage * BURST_SHARE, k) * thrownHit(state);
     r.drop = mix(h.big ? v.bigDrop : 0, v.bigDrop, k);
     r.pos.copy(h.at);
-    r.vel.subVectors(end, h.at).normalize().multiplyScalar((h.big ? v.bigSpeed : v.smallSpeed) * (1 - HEAVIER * k));
+    r.vel.subVectors(end, h.at).normalize().multiplyScalar((h.big ? v.bigSpeed : v.smallSpeed) * (1 - HEAVIER * k) * throwSpeed(state));
+    if (has(state, 'stoneRain')) stoneRain(state, r);
   }
   g.held = null;
-  g.grabWait = v.grabWait;
+  g.grabWait = grabWaitOf(state);
   state.events.push('seanThrow', h.big || k > 0.3 ? 1 : 0, h.at.x, h.at.y, h.at.z);
+}
+
+const RAIN_AXIS = new Vector3(0, 1, 0);
+/** How big each splinter is, against the piece. */
+const RAIN_SIZE = 0.7;
+
+/** Update 0.5.0 — Stone Rain, a Fate Card of his: two more break off the piece as it goes, either side of it, weaker. As many as there's room for. */
+function stoneRain(state: CombatState, r: Rock) {
+  const c = SEAN_CARDS.v;
+  for (const side of [-1, 1]) {
+    const o = state.grav.rocks.find((k) => !k.alive);
+    if (!o) return;
+    o.alive = true;
+    o.big = r.big;
+    o.r = r.r * RAIN_SIZE;
+    o.lumps = 0;
+    o.left = r.left;
+    o.damage = r.damage * c.rainShare;
+    o.knock = r.knock;
+    o.blast = r.blast * c.rainShare;
+    o.blastDamage = r.blastDamage * c.rainShare;
+    o.drop = r.drop;
+    o.pos.copy(r.pos);
+    o.vel.copy(r.vel).applyAxisAngle(RAIN_AXIS, (side * c.rainAngle * Math.PI) / 180);
+  }
 }
 
 /** It lands. */
@@ -302,12 +330,12 @@ function letFall(state: CombatState, h: HeldPiece) {
     to: h.zone.clone(),
     r: h.r,
     k,
-    damage: mix(h.big ? v.bigDamage : v.smallDamage, v.gatherDamage, k),
+    damage: mix(h.big ? v.bigDamage : v.smallDamage, v.gatherDamage, k) * thrownHit(state),
     knock: mix(h.big ? v.bigKnock : v.smallKnock, v.gatherKnock, k),
     blast: crashBlast(k),
   };
   g.held = null;
-  g.grabWait = v.grabWait;
+  g.grabWait = grabWaitOf(state);
   state.events.push('seanDrop', k, h.at.x, h.at.y, h.at.z);
 }
 

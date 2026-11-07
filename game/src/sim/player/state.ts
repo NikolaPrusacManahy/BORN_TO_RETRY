@@ -65,6 +65,9 @@ export interface PlayerState {
   demon: boolean;
   /** Update 0.3.81 — you're Gravity Sean: holding jump, you sink slowly (hover.ts), for this many seconds more; you are now. */
   sean: boolean;
+  /** Update 0.5.0 — he's holding a piece (Bulwark, a card of his); Escape Velocity has just saved him: time stops next tick. */
+  holding: boolean;
+  rescued: boolean;
   hover: number;
   hovering: boolean;
   /** Update 0.3.84 — Gravity Sean's in Unstable mode: Ctrl's a punch there, in the air too, not a plunge. */
@@ -164,6 +167,8 @@ export function createPlayer(x: number, y: number, z: number, yaw: number): Play
     dashCharges: DASH.v.charges,
     demon: false,
     sean: false,
+    holding: false,
+    rescued: false,
     hover: 0,
     hovering: false,
     unstable: false,

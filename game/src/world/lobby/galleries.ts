@@ -64,7 +64,8 @@ export const ITEM_STANDS: readonly Stand[] = rows(ITEM_ROWS, 1, [-1.5, 1.8, 5.1,
 /** The order the cards hang in: the Fate Cards by rarity, then the Traitor Cards, then the Death Cards. */
 const RANK = ['common', 'uncommon', 'rare', 'epic', 'mythic'];
 const FAMILY = ['fate', 'traitor', 'death'];
-export const CARD_ORDER: readonly CardKind[] = [...CARD_KINDS].sort((a, b) => FAMILY.indexOf(familyOf(a)) - FAMILY.indexOf(familyOf(b)) || RANK.indexOf(CARD[a].rarity) - RANK.indexOf(CARD[b].rarity));
+// (Update 0.5.0 — not Gravity Sean's 40: the walls hold 70.)
+export const CARD_ORDER: readonly CardKind[] = CARD_KINDS.filter((k) => !CARD[k].sean).sort((a, b) => FAMILY.indexOf(familyOf(a)) - FAMILY.indexOf(familyOf(b)) || RANK.indexOf(CARD[a].rarity) - RANK.indexOf(CARD[b].rarity));
 
 /** A card's size on the wall (m), its middle's height over the floor, and the step between them. */
 export const CARD_SIZE = { w: 0.8, h: 1.15, y: 1.7, step: 1.25 } as const;

@@ -3,7 +3,6 @@
 import * as THREE from 'three';
 import type { Hole } from '../../sim/combat/gravityMeter';
 import type { Enemy } from '../../sim/enemies/enemy';
-import { SEAN } from '../../tuning/sean';
 
 /** How far it leans, from out at its reach to right in close (rad); how much it's drawn out and thinned, at the most; how fast it whirls (per second), out there and in close. */
 const LEAN_FROM = 0.4;
@@ -20,7 +19,7 @@ const UP = new THREE.Vector3(0, 1, 0);
 
 /** How hard it's being drawn in (0 … 1), by how near it's come. */
 export function pullOn(e: Enemy, h: Hole): number {
-  return 1 - Math.min(1, Math.hypot(e.pos.x - h.x, e.pos.z - h.z) / Math.max(0.01, SEAN.v.holeReach));
+  return 1 - Math.min(1, Math.hypot(e.pos.x - h.x, e.pos.z - h.z) / Math.max(0.01, h.reach));
 }
 
 /** Onto its model, already placed and turned as usual: `scale`, its usual size. */

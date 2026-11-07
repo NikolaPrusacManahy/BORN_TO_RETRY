@@ -10,7 +10,7 @@ import type { CombatState } from '../combat/state';
 import { anyKey, betterKeyFor, keyFor, takeItem } from '../items/items';
 import type { PlayerState } from '../player/state';
 import type { DungeonRun } from './roomLoop';
-import { raiseChest } from './treasure';
+import { keyless, raiseChest } from './treasure';
 
 /** A chest's item still waits for you within this of it (m). */
 const NEAR_CHEST = 1.5;
@@ -48,7 +48,8 @@ export function rewardDone(run: DungeonRun, i: number, player: PlayerState, comb
     case 'opening':
       return false;
     case 'shut':
-      return !anyKey(combat.items);
+      // (Update 0.5.0 — Gravity Sean's opens without one: nothing lets him off.)
+      return !keyless(c) && !anyKey(combat.items);
     case 'open':
       // (Update 0.2.16 — and no Fate Card deal of its still to choose from.)
       return c.given && !combat.deal && !combat.drops.some((d) => d.alive && d.manual && Math.hypot(d.pos.x - c.spot.x, d.pos.z - c.spot.z) < NEAR_CHEST);

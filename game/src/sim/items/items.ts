@@ -23,6 +23,7 @@ import { holding } from '../weapons/weapons';
 import { hasteFactor } from './bonuses';
 import { CardKind, holds, newUses } from '../cards/cards';
 import { CARDS } from '../../tuning/cards';
+import { armourFactor, runFactor } from '../cards/seanPowers';
 
 export type ItemKind = 'heart' | 'plate' | 'goldSword' | 'redRing' | 'blueRing' | 'key' | 'whiteKey' | 'goldKey' | 'goldPlate' | 'greenRing' | 'tealRing' | 'grimoire' | 'goldAxe' | 'hammer' | 'daggers' | 'goldHammer' | 'goldDaggers' | 'greatHeart';
 export const ITEM_KINDS: readonly ItemKind[] = ['heart', 'plate', 'goldSword', 'redRing', 'blueRing', 'key', 'whiteKey', 'goldKey', 'goldPlate', 'greenRing', 'tealRing', 'grimoire', 'goldAxe', 'hammer', 'daggers', 'goldHammer', 'goldDaggers', 'greatHeart'];
@@ -138,7 +139,7 @@ export const hpBonusOf = (inv: Inventory) => ITEMS.v.redRingHp * inv.redRings + 
  *  0.2.16 — and Bloodrush (a Fate Card). Update 0.2.19 — Leaden Feet, Iron Skin (slower), Runaway (faster). */
 export const moveFactor = (state: CombatState) => {
   const v = CARDS.v;
-  const cards = (state.rush > 0 ? 1 + v.bloodrush : 1) * (holds(state, 'leadenFeet') ? 1 - v.leaden : 1) * (holds(state, 'ironSkin') ? 1 - v.ironSlow : 1);
+  const cards = (state.rush > 0 ? 1 + v.bloodrush : 1) * (holds(state, 'leadenFeet') ? 1 - v.leaden : 1) * (holds(state, 'ironSkin') ? 1 - v.ironSlow : 1) * runFactor(state);
   // (Update 0.3.72 — and the Demon's sword, in the floor or held up to block.)
   return speedFactor(state.items) * hasteFactor(state.bonuses) * (1 + (state.weapon ? HASTE[state.weapon.kind]() : 0)) * cards * (state.demon ? bladeSlow(state) : 1);
 };
@@ -164,10 +165,10 @@ export function takeItem(kind: ItemKind, p: PlayerState, state: CombatState) {
       healPlayer(p, maxHpOf(p) * ITEMS.v.greatHeartHeal);
       break;
     case 'plate':
-      addShield(p, ITEMS.v.silverShield);
+      addShield(p, ITEMS.v.silverShield * armourFactor(state));
       break;
     case 'goldPlate':
-      addShield(p, ITEMS.v.goldShield);
+      addShield(p, ITEMS.v.goldShield * armourFactor(state));
       break;
     case 'goldSword':
       // (Update 0.2.15 — Collector, a Scar: more uses.)

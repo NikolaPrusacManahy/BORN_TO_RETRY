@@ -54,7 +54,7 @@ import { landPlunge as landSeanPlunge, punchRate, punchWaves, shapePunch, stepDa
 import { dropPiece, stepFall, stepRocks, stepSeanGrab } from './gravityGrab';
 import { dropPalm, slowBosses, stepHole, stepPalm } from './gravityHole';
 import { stepShock, tryShock } from './gravityShock';
-import { endStop, stepStop } from './gravityStop';
+import { escapeStop, endStop, stepStop } from './gravityStop';
 import { stepMeteor, tryUltimate } from './gravityUlt';
 import { stepVerdict, tryVerdict } from './lastVerdict';
 import { WEAPONS } from '../../tuning/weapons';
@@ -277,6 +277,9 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
   // (Update 0.3.81 — Gravity Sean: E's his stance, right click's his own, not the parry; Ctrl on the ground's his slam; his fists keep their combo.)
   const sean = state.sean && w === null;
   if (sean) {
+    // (Update 0.5.0 — Escape Velocity has just saved him; Bulwark asks if he's holding a piece.)
+    if (player.rescued) escapeStop(state, player);
+    player.holding = state.grav.held !== null;
     tickGravity(state, player, dt);
     // (Update 0.3.88 — what his kills in Unstable mode gave back.)
     if (state.grav.mend > 0) {
@@ -332,7 +335,7 @@ export function stepCombat(state: CombatState, player: PlayerState, intent: Comb
       landBlade(state, b.step, eye, dir, world, fistFactor(state));
     }
   }
-  if (swung && sean) shapePunch(state.grav, punch);
+  if (swung && sean) shapePunch(state, punch);
   // (Update 0.2.16 — All In, a Fate Card: your fists hit twice as hard.)
   if (swung) punch.damage *= fistFactor(state);
   if (axe && w) {

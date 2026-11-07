@@ -82,7 +82,8 @@ export function fateOf(state: CombatState, rarity: Rarity, taken: readonly CardK
 
 /** A Death or Traitor Card you don't carry and not in `taken` (null: none left of it: a Fate Card instead). */
 function ofFamily(state: CombatState, family: CardFamily, taken: readonly CardKind[]): CardKind | null {
-  const pool = CARD_KINDS.filter((k) => familyOf(k) === family && !holds(state, k) && !taken.includes(k));
+  // (Update 0.5.0 — Gravity Sean's are his alone, as his are all he's dealt.)
+  const pool = CARD_KINDS.filter((k) => familyOf(k) === family && !!CARD[k].sean === !!state.sean && !holds(state, k) && !taken.includes(k));
   return pool.length > 0 ? pool[Math.floor(state.rng() * pool.length)] : null;
 }
 

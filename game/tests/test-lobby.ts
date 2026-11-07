@@ -29,7 +29,7 @@ import { dressHall } from '../src/world/lobby/hallDressing';
 import { ALTARS, CARD_STAND, CRYSTAL_DAIS, DAIS, FIGURES, GATE, GATE_BACK, HALL, LOBBY_START, STAIR, WING, WING_ARCH_Z } from '../src/world/lobby/spots';
 import { ROWS } from '../src/world/lobby/hallTrim';
 import { collection } from '../src/sim/lobby/collection';
-import { CARD_KINDS } from '../src/sim/cards/cards';
+import { CARD, CARD_KINDS } from '../src/sim/cards/cards';
 import { BONUS_KINDS } from '../src/sim/items/bonuses';
 import { isWeapon } from '../src/sim/items/itemInfo';
 import { ITEM_KINDS } from '../src/sim/items/items';
@@ -139,7 +139,9 @@ section('Lobby — the galleries');
   const upstairsEast = slots.every((c) => c.x > WING.x0 && c.x < WING.x1 && c.z > WING.z0 && c.z < WING.z1 && Math.abs(c.y - WING.upper - CARD_SIZE.y) < 1e-6);
   let close = 0;
   for (let i = 0; i < slots.length; i++) for (let j = i + 1; j < slots.length; j++) if (Math.hypot(slots[i].x - slots[j].x, slots[i].z - slots[j].z) < CARD_SIZE.w + 0.2) close++;
-  check('the cards gallery: every card once, on its walls upstairs in the east wing, none touching another', slots.length === CARD_KINDS.length && new Set(slots.map((c) => c.kind)).size === CARD_KINDS.length && slots.every((c) => c.x !== undefined) && upstairsEast && close === 0, `${slots.length} of ${CARD_KINDS.length}; ${close} touching`);
+  // (Update 0.5.0 — all but Gravity Sean's 40: the walls hold 70.)
+  const hung = CARD_KINDS.filter((k) => !CARD[k].sean).length;
+  check('the cards gallery: every card once, on its walls upstairs in the east wing, none touching another', slots.length === hung && new Set(slots.map((c) => c.kind)).size === hung && slots.every((c) => c.x !== undefined) && upstairsEast && close === 0, `${slots.length} of ${CARD_KINDS.length}; ${close} touching`);
   check('none over the landing’s doorway into it', slots.every((c) => !(c.x < WING.x0 + 1 && c.z < WING.z0 + 2.6)));
 }
 

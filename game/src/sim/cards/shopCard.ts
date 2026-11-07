@@ -57,7 +57,8 @@ export function stockShop(t: Treasure, state: CombatState) {
   const c = t.card;
   if (!c || c.sold) return;
   c.kind = null;
-  if (!state.fate || state.bare) return;
+  // (Update 0.5.0 — Gravity Sean's cards come out of a challenge room's chest only.)
+  if (!state.fate || state.bare || state.sean) return;
   const rng = createRng(Math.floor(c.roll * 0x7fffffff));
   // (Update 0.2.22 — never a II.)
   c.kind = fateOf(state, rollRarity(state, RARITIES, rng), [], rng, false);

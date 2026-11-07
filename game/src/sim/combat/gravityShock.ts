@@ -4,6 +4,7 @@
 import { Vector3 } from 'three';
 import { FEEDBACK } from '../../tuning/combat';
 import { SEAN } from '../../tuning/sean';
+import { shockConeOf, shockWaitOf, unstableHit } from '../cards/seanPowers';
 import { wallBetween } from '../../world/navGrid';
 import { isLive, radiusOf } from '../enemies/enemy';
 import { launch } from '../enemies/flight';
@@ -25,7 +26,7 @@ const hit = emptyTargetHit();
 export function tryShock(state: CombatState, player: PlayerState, pressed: boolean): boolean {
   const g = state.grav;
   if (!pressed || g.shock >= 0 || g.shockWait > 0) return false;
-  g.shockWait = SEAN.v.shockWait;
+  g.shockWait = g.shockFull = shockWaitOf(state);
   g.shock = 0;
   state.events.push('seanShockUp', 0, player.pos.x, player.pos.y, player.pos.z);
   return true;
@@ -38,7 +39,7 @@ function strike(state: CombatState, player: PlayerState, kind: TargetKind, index
   const along = to.dot(dir);
   if (along < -r || along > v.shockRange + r) return false;
   const off = to.addScaledVector(dir, -along).length();
-  const wide = Math.max(v.shockNear, Math.max(0, along) * Math.tan((v.shockCone * Math.PI) / 180));
+  const wide = Math.max(v.shockNear, Math.max(0, along) * Math.tan((shockConeOf(state) * Math.PI) / 180));
   if (off > wide + r || wallBetween(state.nav.small, player.pos.x, player.pos.z, pos.x, pos.z)) return false;
   hit.kind = kind;
   hit.index = index;
@@ -46,7 +47,7 @@ function strike(state: CombatState, player: PlayerState, kind: TargetKind, index
   hit.s = 0;
   hit.point.set(pos.x, pos.y + height * 0.5, pos.z);
   const far = Math.min(1, Math.max(0, along) / v.shockRange);
-  const damage = Math.round(v.shockDamage * instabFactor(state.grav) * (1 + (v.shockFar - 1) * far));
+  const damage = Math.round(v.shockDamage * instabFactor(state.grav) * unstableHit(state) * (1 + (v.shockFar - 1) * far));
   const killed = landHit(state, hit, damage, v.shockKnock, fx, fz, 'hitSlam', damage);
   if (killed && kind === 'enemy') launch(state.enemies[index], fx, fz);
   return true;

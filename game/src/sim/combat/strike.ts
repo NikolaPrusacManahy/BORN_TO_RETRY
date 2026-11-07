@@ -21,6 +21,7 @@ import { dodges } from '../enemies/evade';
 import { ENEMY_STATS, MINI_BOSSES } from '../enemies/kinds';
 import { burstCoins } from './coins';
 import { betterKeyFor, keyFor } from '../items/items';
+import { storedFactor } from '../cards/seanPowers';
 import { dropItem } from '../items/drops';
 import { coinsFor, rollBonus } from '../items/bonuses';
 import { newUses } from '../cards/cards';
@@ -213,7 +214,8 @@ export function landHit(state: CombatState, t: TargetHit, damage: number, knock:
   // (Update 0.3.85 — Gravity Sean's Time Stop: it's held back, and they look unfazed. As it lands there's no dodging it.)
   const stop = state.grav.stop;
   if (stop && !stop.releasing) {
-    const held = storeHit(state, t.kind, t.index, t.part, t.point, damage, knock, dirX, dirZ);
+    // (Update 0.5.0 — Stored Force, a Fate Card of his: harder when they land, and what's doomed goes by that too.)
+    const held = storeHit(state, t.kind, t.index, t.part, t.point, damage * storedFactor(state), knock, dirX, dirZ);
     // (Update 0.3.90 — once it's enough to kill it, the view shows it red. What it'll be when it lands, as below.)
     if (held && t.kind === 'enemy' && !held.doomed) {
       const e = state.enemies[t.index];

@@ -80,5 +80,26 @@ function coinsOf(rolls: LootRolls): number {
   return Math.round([v.coins1, v.coins2, v.coins3, v.coins4][Math.min(3, Math.floor(rolls[2] * 4))] * v.chestGold);
 }
 
+/** Update 0.5.0 — what a Gravity Sean chest can hold (the designer: "he can get Armour, health and stats increases with rings but no weapons"). */
+const SEAN_TIER: Record<Rarity, readonly ItemKind[]> = {
+  common: ['heart', 'plate'],
+  uncommon: ['goldPlate', 'greatHeart'],
+  rare: ['redRing', 'blueRing', 'greenRing'],
+  epic: [],
+  mythic: ['tealRing'],
+};
+
+/** Update 0.5.0 — his chests need no key (the designer: "a higher chance to get only gold"): a room's holds only coins, `onlyGold` of the time, else what any key would find, without the weapons; a challenge room's
+ *  always holds an item, as good as a white key's would be (`coinsOnly`: Black Market, a card of his: every chest's coins). Its own roll, taken from the others', as a key's second try is. */
+export function seanLoot(rolls: LootRolls, challenge: boolean, onlyGold: number, coinsOnly = false): Loot {
+  const gold = (rolls[1] * 7919 + rolls[2]) % 1;
+  if (coinsOnly || (!challenge && gold < onlyGold)) return goldLoot(rolls);
+  let i = RARITIES.indexOf(rarityOf(KEY_TIERS[challenge ? 'whiteKey' : 'key'], rolls[0]));
+  while (i > 0 && SEAN_TIER[RARITIES[i]].length === 0) i--;
+  const rarity = RARITIES[i];
+  const pool = SEAN_TIER[rarity];
+  return { rarity, item: pool[Math.min(pool.length - 1, Math.floor(rolls[1] * pool.length))], coins: 0 };
+}
+
 /** Update 0.2.1 — a gold chest's: coins only (a common chest's amount, by its coins roll). */
 export const goldLoot = (rolls: LootRolls): Loot => ({ rarity: 'common', item: null, coins: coinsOf(rolls) });

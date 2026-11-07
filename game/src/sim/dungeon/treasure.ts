@@ -25,8 +25,10 @@
 // Update 0.2.25 (the designer: "players get the normal loot in there and the card is like a bonus that can proc"; "in
 // challenge room, you get loot and also cards guaranteed") — a chest always gives its loot; its Fate Cards come as well,
 // never instead (a keyed chest's by luck, a challenge room's always).
+// Update 0.5.0 — Gravity Sean's runs (the designer: "only in challenge chest, no need for keys in Gravity Sean runs"): `seanTreasure`, `seanLoot`.
 import type { Rng } from '../../core/rng';
 import { ITEMS } from '../../tuning/items';
+import { SEAN_CARDS } from '../../tuning/seanCards';
 import type { ChestSpot, DungeonLevel } from '../../world/dungeon/assemble';
 import { burstCoins } from '../combat/coins';
 import type { CombatState } from '../combat/state';
@@ -34,7 +36,8 @@ import { anyKey, checkPick, isWeaponItem, ITEM_KINDS, ItemKind, keyFor, KeyKind,
 import { startKneel } from '../player/kneel';
 import type { PlayerState } from '../player/state';
 import { dropItem, takeWaiting } from '../items/drops';
-import { goldLoot, Loot, LootRolls, RARITIES, rollLoot } from './loot';
+import { goldLoot, Loot, LootRolls, RARITIES, rollLoot, seanLoot } from './loot';
+import { chestCoins, has } from '../cards/seanPowers';
 import { BOSS_LOOT, bossCoins } from './bossRoom';
 import { coinsFor } from '../items/bonuses';
 import type { EnemyKind } from '../enemies/kinds';
@@ -74,6 +77,8 @@ export interface Chest {
   cards: boolean;
   /** Update 0.3.27 — a challenge room's (its aura red: engine/treasureFx.ts). */
   challenge: boolean;
+  /** Update 0.5.0 — no key opens it: it's Gravity Sean's, who needs none. */
+  free?: boolean;
 }
 
 export interface Treasure {
@@ -141,11 +146,28 @@ export function noWeaponsOffered(t: Treasure, floor: number) {
   }
 }
 
+/** Update 0.5.0 — what his shop sells of them instead (he needs no key either). */
+const SEAN_OFFERS: readonly ItemKind[] = ['goldPlate', 'redRing', 'blueRing', 'greenRing', 'tealRing'];
+
+/** Update 0.5.0 — the floor's treasure as Gravity Sean finds it: every chest opens without a key, only a challenge room's deals, and the shop has no weapons or keys. (Its Fate Card he's never offered: stockShop.) */
+export function seanTreasure(t: Treasure, floor: number) {
+  for (const c of t.chests) {
+    c.free = true;
+    c.cards = c.challenge;
+  }
+  let next = 0;
+  for (const o of t.offers) {
+    if (!isWeaponItem(o.kind) && o.kind !== 'key' && o.kind !== 'whiteKey' && o.kind !== 'goldKey') continue;
+    o.kind = SEAN_OFFERS[next++ % SEAN_OFFERS.length];
+    o.price = priceOf(o.kind, floor);
+  }
+}
+
 /** Update 0.0.19 — no shop and no chests yet (the Lab's: its panel adds chests). */
 export const emptyTreasure = (): Treasure => ({ shop: -1, offers: [], chests: [], choosing: -1 });
 
 /** Update 0.2.1 — no key opens it (a boss's chest, a gold chest): E alone does. */
-export const keyless = (c: Chest) => c.boss !== null || c.spot.gold;
+export const keyless = (c: Chest) => c.boss !== null || c.spot.gold || !!c.free;
 
 /** The chest you could open from where you stand: in reach and in front of it (−1: none). */
 export function chestInReach(t: Treasure, player: PlayerState): number {
@@ -237,7 +259,9 @@ export function stepTreasure(t: Treasure, player: PlayerState, state: CombatStat
       return true;
     }
     c.key = free ? null : useKey(inv);
-    c.loot = c.boss ? { rarity: 'mythic', item: null, coins: coinsFor(bossCoins(c.boss) * ITEMS.v.chestGold, state, state.rng) } : c.spot.gold ? goldLoot(c.rolls) : rollLoot(c.key!, c.rolls, { better: holds(state, 'fortune'), worse: holds(state, 'blackCat'), up: holds(state, 'fragileFortune') });
+    c.loot = c.boss ? { rarity: 'mythic', item: null, coins: coinsFor(bossCoins(c.boss) * ITEMS.v.chestGold, state, state.rng) } : state.sean ? seanLoot(c.rolls, c.challenge, SEAN_CARDS.v.onlyGold, has(state, 'blackMarket')) : c.spot.gold ? goldLoot(c.rolls) : rollLoot(c.key!, c.rolls, { better: holds(state, 'fortune'), worse: holds(state, 'blackCat'), up: holds(state, 'fragileFortune') });
+    // (Update 0.5.0 — Prospector, a Fate Card of his.)
+    if (state.sean) c.loot = { ...c.loot, coins: Math.round(c.loot.coins * chestCoins(state)) };
     // (Update 0.3.70 — a weapon's coins to the Demon.)
     if ((state.demon || state.sean) && c.loot.item && isWeaponItem(c.loot.item)) c.loot = { ...goldLoot(c.rolls), rarity: c.loot.rarity };
     c.state = 'opening';

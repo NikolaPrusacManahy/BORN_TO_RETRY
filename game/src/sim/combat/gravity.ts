@@ -12,6 +12,8 @@ import { isLive, radiusOf } from '../enemies/enemy';
 import { launch } from '../enemies/flight';
 import { ENEMY_STATS } from '../enemies/kinds';
 import { damagePlayer } from '../player/health';
+import { has, instabRate, landingReach, punchPower, punchReachOf, rippleFactor, slamWaitOf, unstableHit, ventFactor, ventReach } from '../cards/seanPowers';
+import { SEAN_CARDS } from '../../tuning/seanCards';
 import type { CollisionWorld } from '../collisionWorld';
 import type { PlayerState } from '../player/state';
 import type { Punch } from './fists';
@@ -72,8 +74,10 @@ function vent(state: CombatState, player: PlayerState) {
   state.events.push('seanVent', k, player.pos.x, player.pos.y, player.pos.z);
   // (Update 0.3.90 — Unstable mode's blow, though he's just left it.)
   g.as = true;
-  gravBlast(state, player.pos.x, player.pos.y, player.pos.z, v.ventRadius + (v.ventRadiusFull - v.ventRadius) * k, v.ventDamage + (v.ventDamageFull - v.ventDamage) * k, v.ventKnock);
+  gravBlast(state, player.pos.x, player.pos.y, player.pos.z, v.ventRadius + (v.ventRadiusFull - v.ventRadius) * k + ventReach(state), (v.ventDamage + (v.ventDamageFull - v.ventDamage) * k) * ventFactor(state), v.ventKnock);
   g.as = null;
+  // (Update 0.5.0 — Bad Vent, a Death Card of his.)
+  if (has(state, 'badVent')) damagePlayer(player, SEAN_CARDS.v.badVent, 'overload');
 }
 
 /** The meter at max: the big blast, some of it yours, back to normal mode, and E waits. */
@@ -118,26 +122,28 @@ export function tickGravity(state: CombatState, player: PlayerState, dt: number)
   if (hole > 0 && g.holeWait === 0) state.events.push('seanReady', 0, player.pos.x, player.pos.y, player.pos.z);
   if (shock > 0 && g.shockWait === 0) state.events.push('seanReady', 1, player.pos.x, player.pos.y, player.pos.z);
   if (!g.unstable) return;
-  g.instab = Math.min(1, g.instab + SEAN.v.instabRise * dt);
-  if (g.instab >= 1) overload(state, player);
+  g.instab = Math.min(1, g.instab + SEAN.v.instabRise * instabRate(state) * dt);
+  // (Update 0.5.0 — Cold Reactor, a Traitor Card of his: it stays at full.)
+  if (g.instab >= 1 && !has(state, 'coldReactor')) overload(state, player);
 }
 
 /** How quick his fists are in this stance. */
 export const punchRate = (g: GravityState) => (g.unstable ? SEAN.v.fistsRate : SEAN.v.punchRate);
 
 /** A punch the fists just threw, made his: Gravity Punch's, or Gravity Fists'. */
-export function shapePunch(g: GravityState, punch: Punch) {
+export function shapePunch(state: CombatState, punch: Punch) {
+  const g = state.grav;
   const v = SEAN.v;
   const last = punch.kind === 'finisher';
   if (g.unstable) {
-    punch.damage = (last ? v.fistsLast : v.fistsDamage) * instabFactor(g);
+    punch.damage = (last ? v.fistsLast : v.fistsDamage) * instabFactor(g) * unstableHit(state);
     punch.knock = last ? v.fistsLastKnock : v.fistsKnock;
     punch.reach = FISTS.v.reach;
     punch.radius = FISTS.v.radius;
   } else {
-    punch.damage = last ? v.punchLast : v.punchDamage;
+    punch.damage = (last ? v.punchLast : v.punchDamage) * punchPower(state);
     punch.knock = v.punchKnock;
-    punch.reach = v.punchReach;
+    punch.reach = punchReachOf(state);
     punch.radius = v.punchRadius;
   }
   g.clash = v.clashFor;
@@ -155,7 +161,7 @@ export function punchWaves(state: CombatState, player: PlayerState, punch: Punch
   if (!g.unstable) state.events.push('seanRipple', last ? 1 : 0, x, y, z);
   // (Value: 1 the combo's third; 2 his fists.)
   if (landed >= 0 || far < punch.reach) state.events.push('seanImpact', (last ? 1 : 0) + (g.unstable ? 2 : 0), x, y, z);
-  if (last && !g.unstable && v.punchShock > 0) gravBlast(state, x, Math.max(player.pos.y, y - 1), z, v.punchShock, v.punchShockDamage, v.punchShockKnock);
+  if (last && !g.unstable && v.punchShock > 0) gravBlast(state, x, Math.max(player.pos.y, y - 1), z, v.punchShock * rippleFactor(state), v.punchShockDamage * rippleFactor(state), v.punchShockKnock);
 }
 
 /** Ctrl on the ground, if it's been long enough. */
@@ -163,9 +169,9 @@ export function trySeanSlam(state: CombatState, player: PlayerState, pressed: bo
   const g = state.grav;
   const v = SEAN.v;
   if (!pressed || !player.grounded || g.slamWait > 0) return false;
-  g.slamWait = v.slamWait;
+  g.slamWait = g.slamFull = slamWaitOf(state);
   state.events.push('seanSlam', 0, player.pos.x, player.pos.y, player.pos.z);
-  gravBlast(state, player.pos.x, player.pos.y, player.pos.z, v.slamRadius, v.slamDamage, v.slamKnock);
+  gravBlast(state, player.pos.x, player.pos.y, player.pos.z, v.slamRadius + landingReach(state), v.slamDamage, v.slamKnock);
   return true;
 }
 
@@ -175,7 +181,7 @@ export function landPlunge(state: CombatState, player: PlayerState, drop: number
   const { damage, radius } = powerFor(drop);
   // (Normal mode's, whatever he's gone to on the way down.)
   state.grav.as = false;
-  gravBlast(state, player.pos.x, player.pos.y, player.pos.z, radius + v.plungeWider, damage, v.plungeKnock);
+  gravBlast(state, player.pos.x, player.pos.y, player.pos.z, radius + v.plungeWider + landingReach(state), damage, v.plungeKnock);
   state.grav.as = null;
 }
 

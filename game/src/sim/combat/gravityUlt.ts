@@ -4,6 +4,9 @@
 // Update 0.3.84 — the designer: Black Hole's right click's now (gravityHole.ts), and "the meteor range is 50% bigger". Update 0.3.85 — normal mode's ultimate is Time Stop (gravityStop.ts).
 import { Vector3 } from 'three';
 import { SEAN } from '../../tuning/sean';
+import { SEAN_CARDS } from '../../tuning/seanCards';
+import { has, meteorHit } from '../cards/seanPowers';
+import { damagePlayer } from '../player/health';
 import type { CollisionWorld } from '../collisionWorld';
 import { isLive, radiusOf } from '../enemies/enemy';
 import { ENEMY_STATS } from '../enemies/kinds';
@@ -17,18 +20,37 @@ import type { CombatState } from './state';
 const eye = new Vector3();
 const dir = new Vector3();
 
+/** Update 0.5.0 — an ultimate's paid for: the meter, and what his cards make of it (Full Reset; Reactor Leak's health, which never kills you). */
+function payUlt(state: CombatState, player: PlayerState) {
+  const g = state.grav;
+  g.ult = 0;
+  if (has(state, 'fullReset')) {
+    // (A hair left, so you hear them come back: gravity.ts.)
+    g.holeWait = Math.min(g.holeWait, 1e-3);
+    g.shockWait = Math.min(g.shockWait, 1e-3);
+    g.slamWait = 0;
+  }
+  if (has(state, 'reactorLeak')) {
+    const cost = Math.min(SEAN_CARDS.v.leakCost, player.hp - 1);
+    if (cost > 0) {
+      player.hp -= cost;
+      player.events.push('hurt', cost);
+    }
+  }
+}
+
 /** Q, if the meter's full: by your stance. */
 export function tryUltimate(state: CombatState, player: PlayerState, pressed: boolean, yaw: number, pitch: number, world: CollisionWorld): boolean {
   const g = state.grav;
   if (!pressed || g.ult < 1 || g.meteor || g.stop) return false;
   // (Update 0.3.85 — normal mode's: gravityStop.ts.)
   if (!g.unstable) {
-    g.ult = 0;
+    payUlt(state, player);
     startStop(state, player);
     return true;
   }
   dropPalm(state);
-  g.ult = 0;
+  payUlt(state, player);
   g.shock = -1;
   player.slamming = false;
   player.dashTime = 0;
@@ -58,7 +80,7 @@ function aimZone(state: CombatState, player: PlayerState, yaw: number, pitch: nu
 }
 
 /** It lands: one huge hit on the zone. The world goes on from here. */
-function strike(state: CombatState) {
+function strike(state: CombatState, player: PlayerState) {
   const g = state.grav;
   const m = g.meteor;
   const v = SEAN.v;
@@ -71,7 +93,9 @@ function strike(state: CombatState) {
     if (ENEMY_STATS[e.kind]().boss) e.frozen = Math.max(e.frozen, v.meteorBossFreeze);
   }
   state.events.push('seanMeteorHit', v.meteorRadius, m.x, m.y, m.z);
-  gravBlast(state, m.x, m.y, m.z, v.meteorRadius, v.meteorDamage, v.meteorKnock, true);
+  gravBlast(state, m.x, m.y, m.z, v.meteorRadius, v.meteorDamage * meteorHit(state), v.meteorKnock, true);
+  // (Update 0.5.0 — Meteor Debt, a Traitor Card of his.)
+  if (has(state, 'meteorDebt') && Math.hypot(player.pos.x - m.x, player.pos.z - m.z) <= v.meteorRadius) damagePlayer(player, SEAN_CARDS.v.debtSelf, 'overload');
   g.meteor = null;
 }
 
@@ -89,7 +113,7 @@ export function stepMeteor(state: CombatState, player: PlayerState, yaw: number,
     m.falling = true;
     state.events.push('seanMeteorFall', 0, m.x, m.y, m.z);
   }
-  if (m.t >= v.meteorAim + v.meteorFall) strike(state);
+  if (m.t >= v.meteorAim + v.meteorFall) strike(state, player);
 }
 
 /** How drained of colour the screen is while the world holds still (0 … 1): the view's. */

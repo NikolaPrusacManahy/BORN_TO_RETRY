@@ -7,7 +7,7 @@ import { check, near, section } from './harness';
 import { DT, FlatWorld, ticks } from './fakes/flatWorld';
 import { OPEN_ARENA } from './fakes/enemyWorld';
 import { createRng } from '../src/core/rng';
-import { CARD_KINDS, CardKind, familyOf, newUses } from '../src/sim/cards/cards';
+import { CARD, CARD_KINDS, CardKind, familyOf, newUses } from '../src/sim/cards/cards';
 import { chargeRate, meterStep, tickCards } from '../src/sim/cards/cardMoves';
 import { drawDeal, pickCard, rollRarity } from '../src/sim/cards/deal';
 import { emptyCombatIntent } from '../src/sim/combat/fists';
@@ -143,7 +143,7 @@ section('Death and Traitor Cards — dealt among the Fate Cards');
   }
   const n = counts.fate + counts.traitor + counts.death;
   check(`each card dealt is a Death Card ${Math.round(v.deathChance * 100)}% of the time, a Traitor Card ${Math.round(v.traitorChance * 100)}%, else a Fate Card`, near(counts.death / n, v.deathChance, 0.03) && near(counts.traitor / n, v.traitorChance, 0.03), JSON.stringify(counts));
-  check('16 Death Cards and 9 Traitor Cards in all (Update 0.3.20 — Runaway gone with the slide)', CARD_KINDS.filter((k) => familyOf(k) === 'death').length === 16 && CARD_KINDS.filter((k) => familyOf(k) === 'traitor').length === 9);
+  check('16 Death Cards and 9 Traitor Cards in all (Update 0.3.20 — Runaway gone with the slide; Update 0.5.0 — Gravity Sean’s apart)', CARD_KINDS.filter((k) => !CARD[k].sean && familyOf(k) === 'death').length === 16 && CARD_KINDS.filter((k) => !CARD[k].sean && familyOf(k) === 'traitor').length === 9);
 
   // (The designer, of making a Death Card come with your pick: "nope, just random and allow them to pick whatever they want".)
   const { c, p } = both();
